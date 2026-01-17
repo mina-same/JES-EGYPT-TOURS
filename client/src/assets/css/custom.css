@@ -1,0 +1,481 @@
+/* ==========================================================================
+   1. PRELOADER & GLOBAL UTILS
+   ========================================================================== */
+.preloader {
+  position: fixed;
+  background-color: var(--gotur-black, #1d231f);
+  background-position: center center;
+  background-repeat: no-repeat;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9991;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.preloader__image {
+  animation: flipInY 2s infinite;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 60px auto;
+  width: 100%;
+  height: 100%;
+}
+
+.preloader-hidden {
+  display: none;
+}
+
+/* RTL Adjustments */
+body.rtl .main-slider-one__destinations__hover {
+  position: absolute;
+  right: -180px;
+  top: -40px;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   2. TOUR DETAILS TABS
+   ========================================================================== */
+.tour-details-tabs {
+  border-bottom: 1px solid var(--gotur-border-color, #e6e5e5);
+  margin-bottom: 40px;
+  gap: 15px; /* Reduce gap slightly */
+}
+
+.tour-details-tabs .nav-item {
+  margin-bottom: -1px;
+}
+
+.tour-details-tabs .nav-link {
+  border: none;
+  background: transparent;
+  color: var(--gotur-text, #595959);
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-weight: 700;
+  font-size: 16px;
+  padding: 12px 20px; /* Add horizontal padding */
+  margin-right: 10px;
+  position: relative;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0; /* Rounded top corners */
+}
+
+.tour-details-tabs .nav-link:hover {
+  color: var(--gotur-base, #d4af37);
+  background-color: rgba(212, 175, 55, 0.05); /* Light gold hover */
+}
+
+.tour-details-tabs .nav-link.active {
+  color: var(--gotur-base, #d4af37);
+  background: #fff; /* White background for active */
+  border-bottom: 3px solid var(--gotur-base, #d4af37);
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.03); /* Subtle lift */
+}
+
+.tour-details-tabs .nav-link .bg-primary {
+  background-color: var(--gotur-base, #d4af37) !important;
+  color: #fff !important;
+}
+
+.tour-details-tabs + .tab-content {
+  padding-top: 20px;
+  background: #fff;
+  border-radius: 0 0 12px 12px; /* if you want the content area rounded */
+}
+
+/* ==========================================================================
+   3. BOOKING FORM (Professional & Modern)
+   ========================================================================== */
+
+.booking-header {
+  background-color: var(--gotur-black, #1d231f);
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  letter-spacing: 0.5px;
+}
+
+.booking-form-inner {
+  padding: 30px 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Inputs */
+.booking-input,
+.booking-select,
+.booking-select-code,
+.booking-date-input,
+.booking-textarea {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 30px;
+  padding: 14px 24px;
+  font-size: 15px;
+  color: var(--gotur-text, #595959);
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: #f9f9f9;
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.booking-input:focus,
+.booking-select:focus,
+.booking-select-code:focus,
+.booking-date-input:focus,
+.booking-textarea:focus {
+  border-color: var(--gotur-base, #d4af37);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+}
+
+.booking-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23595959' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
+  background-size: 16px;
+}
+
+/* Phone Input Styling */
+.phone-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.booking-phone-input {
+  width: 100%;
+  position: relative;
+}
+
+.booking-phone-input .PhoneInputInput {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 30px;
+  padding: 14px 24px 14px 50px;
+  font-size: 15px;
+  color: var(--gotur-text, #595959);
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: #f9f9f9;
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.booking-phone-input .PhoneInputInput:focus {
+  border-color: var(--gotur-base, #d4af37);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+}
+
+.booking-phone-input .PhoneInputCountry {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.booking-phone-input .PhoneInputCountryIcon {
+  width: 20px;
+  height: 15px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  display: block;
+}
+
+.booking-phone-input .PhoneInputCountrySelect {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0;
+  width: 30px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0;
+  appearance: none;
+}
+
+.booking-phone-input .PhoneInputCountrySelectArrow {
+  display: none;
+}
+
+/* Booking Form Messages */
+.booking-message {
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.booking-message-success {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.booking-message-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.booking-input-error,
+.booking-date-input.booking-input-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2;
+}
+
+.booking-input-error:focus,
+.booking-date-input.booking-input-error:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+}
+
+.booking-error-text {
+  display: block;
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.booking-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.booking-submit-btn .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Split Rows */
+.booking-form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.booking-col-code { flex: 0 0 32%; }
+.booking-col-mobile { flex: 1; }
+.booking-col-date { flex: 1; }
+
+.date-input-wrapper {
+  position: relative;
+}
+
+.date-input-wrapper .icon-calendar {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  pointer-events: none;
+  font-size: 14px;
+}
+
+/* Counters */
+.booking-counter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.booking-counter-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 10px;
+}
+
+.counter-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.counter-title {
+  font-weight: 700;
+  color: var(--gotur-black, #1d231f);
+  font-size: 15px;
+}
+
+.counter-subtitle {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 30px;
+  padding: 4px 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.counter-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--gotur-base, #d4af37);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.counter-btn:hover {
+  background-color: var(--gotur-black, #1d231f);
+  transform: scale(1.1);
+}
+
+.counter-value {
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+  color: var(--gotur-black, #1d231f);
+  font-size: 16px;
+}
+
+/* Textarea */
+.booking-textarea {
+  border-radius: 20px;
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Submit Button */
+.booking-submit-btn {
+  width: 100%;
+  background: linear-gradient(45deg, var(--gotur-base, #d4af37), #f4d03f);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+  margin-top: 10px;
+}
+
+.booking-submit-btn:hover {
+  background: linear-gradient(45deg, #f4d03f, var(--gotur-base, #d4af37));
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4);
+}
+
+/* ==========================================================================
+   4. AMENITIES & EXCLUSION (Clean & Distinct)
+   ========================================================================== */
+.amenities-box {
+  padding: 30px;
+  border-radius: 16px;
+  height: 100%;
+  transition: all 0.3s ease;
+  background-color: #fff;
+  border: 1px solid #eee;
+}
+
+.inclusion-box {
+  border-top: 4px solid #28a745;
+}
+
+.exclusion-box {
+  border-top: 4px solid #dc3545;
+}
+
+.amenities-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.inclusion-title { color: #28a745; }
+.exclusion-title { color: #dc3545; }
+
+.amenities-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.amenities-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: var(--gotur-text, #595959);
+  line-height: 1.6;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.amenities-list-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.amenities-list-item i {
+  margin-top: 5px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.inclusion-item i { color: #28a745; }
+.exclusion-item i { color: #dc3545; }
+
+.amenities-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* ==========================================================================
+   5. TOUR PLAN TIMELINE - REMOVED (Using inline styles in component)
+   ========================================================================== */
+/* All Tour Plan styles have been moved to inline styles in TourPlan.tsx component */
+

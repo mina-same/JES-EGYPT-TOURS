@@ -1,0 +1,175 @@
+{
+  "pricingPlans": [
+    {
+      "planName": "AFFORDABLE",
+      "seasons": [
+        {
+          "seasonName": "From Oct 2025 to Dec 2025",
+          "startDate": "2025-10-01T00:00:00.000Z",
+          "endDate": "2025-12-31T23:59:59.000Z",
+          "prices": {
+            "solo": 120,
+            "pax_2_4": 80,
+            "pax_5_8": 65,
+            "pax_9_16": 60
+          },
+          "notes": [
+            { "title": "Booking fee", "text": "5 USD booking fee per reservation." }
+          ]
+        },
+        {
+          "seasonName": "From Jan 2026 to Mar 2026",
+          "startDate": "2026-01-01T00:00:00.000Z",
+          "endDate": "2026-03-31T23:59:59.000Z",
+          "prices": {
+            "solo": 130,
+            "pax_2_4": 90,
+            "pax_5_8": 70,
+            "pax_9_16": 65
+          },
+          "notes": []
+        },
+        {
+          "seasonName": "From 15 Apr 2026 to 30 Sep 2026",
+          "startDate": "2026-04-15T00:00:00.000Z",
+          "endDate": "2026-09-30T23:59:59.000Z",
+          "prices": {
+            "solo": 100,
+            "pax_2_4": 70,
+            "pax_5_8": 58,
+            "pax_9_16": 52
+          },
+          "notes": []
+        },
+        {
+          "seasonName": "Peak (20 Dec 2025 - 5 Jan 2026) / (25 Mar 2026 - 15 Apr 2026)",
+          "startDate": "2025-12-20T00:00:00.000Z",
+          "endDate": "2026-04-15T23:59:59.000Z",
+          "prices": {
+            "solo": 180,
+            "pax_2_4": 130,
+            "pax_5_8": 110,
+            "pax_9_16": 100
+          },
+          "notes": [
+            { "title": "Peak surcharge", "text": "Peak-season surcharge applies automatically." }
+          ]
+        }
+      ]
+    },
+    {
+      "planName": "GOLD (5 STAR STANDARD)",
+      "seasons": [
+        {
+          "seasonName": "From Oct 2025 to Dec 2025",
+          "startDate": "2025-10-01T00:00:00.000Z",
+          "endDate": "2025-12-31T23:59:59.000Z",
+          "prices": {
+            "solo": 220,
+            "pax_2_4": 150,
+            "pax_5_8": 120,
+            "pax_9_16": 110
+          },
+          "notes": [
+            { "title": "Gold inclusions", "text": "Includes premium seating and complimentary tea/coffee." }
+          ]
+        },
+        {
+          "seasonName": "From Jan 2026 to Mar 2026",
+          "startDate": "2026-01-01T00:00:00.000Z",
+          "endDate": "2026-03-31T23:59:59.000Z",
+          "prices": {
+            "solo": 240,
+            "pax_2_4": 165,
+            "pax_5_8": 130,
+            "pax_9_16": 115
+          },
+          "notes": []
+        },
+        {
+          "seasonName": "From 15 Apr 2026 to 30 Sep 2026",
+          "startDate": "2026-04-15T00:00:00.000Z",
+          "endDate": "2026-09-30T23:59:59.000Z",
+          "prices": {
+            "solo": 200,
+            "pax_2_4": 140,
+            "pax_5_8": 115,
+            "pax_9_16": 100
+          },
+          "notes": []
+        },
+        {
+          "seasonName": "Peak (20 Dec 2025 - 5 Jan 2026) / (25 Mar 2026 - 15 Apr 2026)",
+          "startDate": "2025-12-20T00:00:00.000Z",
+          "endDate": "2026-04-15T23:59:59.000Z",
+          "prices": {
+            "solo": 310,
+            "pax_2_4": 230,
+            "pax_5_8": 190,
+            "pax_9_16": 170
+          },
+          "notes": []
+        }
+      ]
+    },
+    {
+      "planName": "DIAMOND (5 STAR LUXURY)",
+      "seasons": [
+        {
+          "seasonName": "From Oct 2025 to Dec 2025",
+          "startDate": "2025-10-01T00:00:00.000Z",
+          "endDate": "2025-12-31T23:59:59.000Z",
+          "prices": {
+            "solo": 420,
+            "pax_2_4": 300,
+            "pax_5_8": 260,
+            "pax_9_16": 240
+          },
+          "notes": [
+            { "title": "Diamond extras", "text": "Private vehicle, priority seating, and luxury welcome pack." }
+          ]
+        },
+        {
+          "seasonName": "From Jan 2026 to Mar 2026",
+          "startDate": "2026-01-01T00:00:00.000Z",
+          "endDate": "2026-03-31T23:59:59.000Z",
+          "prices": {
+            "solo": 450,
+            "pax_2_4": 320,
+            "pax_5_8": 275,
+            "pax_9_16": 250
+          },
+          "notes": []
+        },
+        {
+          "seasonName": "From 15 Apr 2026 to 30 Sep 2026",
+          "startDate": "2026-04-15T00:00:00.000Z",
+          "endDate": "2026-09-30T23:59:59.000Z",
+          "prices": {
+            "solo": 380,
+            "pax_2_4": 285,
+            "pax_5_8": 250,
+            "pax_9_16": 225
+          },
+          "notes": []
+        },
+        {
+          "seasonName": "Peak (20 Dec 2025 - 5 Jan 2026) / (25 Mar 2026 - 15 Apr 2026)",
+          "startDate": "2025-12-20T00:00:00.000Z",
+          "endDate": "2026-04-15T23:59:59.000Z",
+          "prices": {
+            "solo": 520,
+            "pax_2_4": 400,
+            "pax_5_8": 350,
+            "pax_9_16": 320
+          },
+          "notes": []
+        }
+      ]
+    }
+  ],
+  "notes": [
+    { "title": "Child policy", "text": "Children under 3 travel free; kids 3–11 half-price when sharing with adults." },
+    { "title": "Accessibility", "text": "Not all activities are wheelchair accessible — contact us to discuss options." }
+  ]
+}

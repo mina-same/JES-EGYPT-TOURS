@@ -1,0 +1,63 @@
+import express from 'express';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+import { Request, Response } from 'express';
+
+const router = express.Router();
+
+// Validate Cloudinary credentials
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error('❌ Cloudinary credentials missing in environment variables');
+  console.error('Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+}
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+console.log('✅ Cloudinary configured:', {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY ? '***' + process.env.CLOUDINARY_API_KEY.slice(-4) : 'MISSING',
+  api_secret: process.env.CLOUDINARY_API_SECRET ? '***' : 'MISSING'
+});
+
+// Configure Multer (memory storage)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// Upload Endpoint
+router.post('/', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, error: 'No file uploaded' });
+      return;
+    }
+
+    // Convert buffer to base64
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'jes-egypt-tours', // Optional: organize uploads in a folder
+      resource_type: 'auto',
+    });
+
+    res.json({
+      success: true,
+      data: {
+        url: result.secure_url,
+        fileName: req.file.originalname, // Return original filename as requested
+        public_id: result.public_id,
+      },
+    });
+  } catch (error: any) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Upload failed' });
+  }
+});
+
+export default router;
