@@ -34,7 +34,8 @@ import {
   toggleTourFeatured,
   getTourStats,
 } from '../controllers/tourController';
-import { protect, authorize } from '../middleware/auth';
+import { protect, permit } from '../middleware/auth';
+import { PERMISSIONS } from '../permissions';
 
 const router = express.Router();
 
@@ -67,28 +68,24 @@ router.get('/categories/:id', getCategoryById);
  * @desc    Create new tour category
  * @access  Private/Admin
  */
-router.post('/categories', protect, authorize('admin'), createCategory);
 
 /**
  * @route   PUT /api/tours/categories/:id
  * @desc    Update tour category
  * @access  Private/Admin
  */
-router.put('/categories/:id', protect, authorize('admin'), updateCategory);
 
 /**
  * @route   PATCH /api/tours/categories/:id/toggle-active
  * @desc    Toggle category active status
  * @access  Private/Admin
  */
-router.patch('/categories/:id/toggle-active', protect, authorize('admin'), toggleCategoryStatus);
 
 /**
  * @route   DELETE /api/tours/categories/:id
  * @desc    Delete tour category
  * @access  Private/Admin
  */
-router.delete('/categories/:id', protect, authorize('admin'), deleteCategory);
 
 // ==================== SUBCATEGORY ROUTES ====================
 
@@ -128,28 +125,24 @@ router.get('/subcategories/:id', getSubcategoryById);
  * @desc    Create new tour subcategory
  * @access  Private/Admin
  */
-router.post('/subcategories', protect, authorize('admin'), createSubcategory);
 
 /**
  * @route   PUT /api/tours/subcategories/:id
  * @desc    Update tour subcategory
  * @access  Private/Admin
  */
-router.put('/subcategories/:id', protect, authorize('admin'), updateSubcategory);
 
 /**
  * @route   PATCH /api/tours/subcategories/:id/toggle-active
  * @desc    Toggle subcategory active status
  * @access  Private/Admin
  */
-router.patch('/subcategories/:id/toggle-active', protect, authorize('admin'), toggleSubcategoryStatus);
 
 /**
  * @route   DELETE /api/tours/subcategories/:id
  * @desc    Delete tour subcategory
  * @access  Private/Admin
  */
-router.delete('/subcategories/:id', protect, authorize('admin'), deleteSubcategory);
 
 // ==================== TOUR ROUTES ====================
 
@@ -158,7 +151,7 @@ router.delete('/subcategories/:id', protect, authorize('admin'), deleteSubcatego
  * @desc    Get tour statistics
  * @access  Private/Admin
  */
-router.get('/stats', protect, authorize('admin'), getTourStats);
+router.get('/stats', protect, permit(PERMISSIONS.TOUR_READ), getTourStats);
 
 /**
  * @route   GET /api/tours/featured
@@ -228,34 +221,46 @@ router.get('/:id', getTourById);
  * @desc    Create new tour
  * @access  Private/Admin
  */
-router.post('/', protect, authorize('admin'), createTour);
 
 /**
  * @route   PUT /api/tours/:id
  * @desc    Update tour
  * @access  Private/Admin
  */
-router.put('/:id', protect, authorize('admin'), updateTour);
 
 /**
  * @route   PATCH /api/tours/:id/toggle-active
  * @desc    Toggle tour active status
  * @access  Private/Admin
  */
-router.patch('/:id/toggle-active', protect, authorize('admin'), toggleTourStatus);
 
 /**
  * @route   PATCH /api/tours/:id/toggle-featured
  * @desc    Toggle tour featured status
  * @access  Private/Admin
  */
-router.patch('/:id/toggle-featured', protect, authorize('admin'), toggleTourFeatured);
 
 /**
  * @route   DELETE /api/tours/:id
  * @desc    Delete tour
  * @access  Private/Admin
  */
-router.delete('/:id', protect, authorize('admin'), deleteTour);
+
+// Permission-based admin routes
+router.post('/categories', protect, permit(PERMISSIONS.TOUR_CREATE), createCategory);
+router.put('/categories/:id', protect, permit(PERMISSIONS.TOUR_UPDATE), updateCategory);
+router.patch('/categories/:id/toggle-active', protect, permit(PERMISSIONS.TOUR_UPDATE), toggleCategoryStatus);
+router.delete('/categories/:id', protect, permit(PERMISSIONS.TOUR_DELETE), deleteCategory);
+
+router.post('/subcategories', protect, permit(PERMISSIONS.TOUR_CREATE), createSubcategory);
+router.put('/subcategories/:id', protect, permit(PERMISSIONS.TOUR_UPDATE), updateSubcategory);
+router.patch('/subcategories/:id/toggle-active', protect, permit(PERMISSIONS.TOUR_UPDATE), toggleSubcategoryStatus);
+router.delete('/subcategories/:id', protect, permit(PERMISSIONS.TOUR_DELETE), deleteSubcategory);
+
+router.post('/', protect, permit(PERMISSIONS.TOUR_CREATE), createTour);
+router.put('/:id', protect, permit(PERMISSIONS.TOUR_UPDATE), updateTour);
+router.patch('/:id/toggle-active', protect, permit(PERMISSIONS.TOUR_UPDATE), toggleTourStatus);
+router.patch('/:id/toggle-featured', protect, permit(PERMISSIONS.TOUR_UPDATE), toggleTourFeatured);
+router.delete('/:id', protect, permit(PERMISSIONS.TOUR_DELETE), deleteTour);
 
 export default router;

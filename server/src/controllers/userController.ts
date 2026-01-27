@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import User from '../models/User';
 import { ApiResponse } from '../types';
+import { emitDashboardStatsUpdate } from '../realtime/socket';
 
 /**
  * @desc    Get all users
@@ -85,7 +86,7 @@ export const updateUser = async (
       return;
     }
 
-    const { name, email, role, isActive } = req.body;
+    const { name, email, role, permissions, isActive } = req.body;
 
     // Check if user exists
     const user = await User.findById(req.params.id);
@@ -112,9 +113,11 @@ export const updateUser = async (
     // Update user
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { name, email, role, isActive },
+      { name, email, role, permissions, isActive },
       { new: true, runValidators: true }
     ).select('-password');
+
+    void emitDashboardStatsUpdate();
 
     const response: ApiResponse = {
       success: true,
@@ -162,6 +165,8 @@ export const deleteUser = async (
     }
 
     await User.findByIdAndDelete(req.params.id);
+
+    void emitDashboardStatsUpdate();
 
     const response: ApiResponse = {
       success: true,

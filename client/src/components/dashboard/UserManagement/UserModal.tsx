@@ -1,8 +1,10 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { User, RegisterData } from '@/lib/api/auth';
+import { ALL_PERMISSIONS, DEFAULT_ADMIN_PERMISSIONS, PERMISSION_PRESETS } from '@/permissions';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UserModalProps {
   show: boolean;
@@ -16,7 +18,8 @@ interface UserFormData {
   name: string;
   email: string;
   password?: string;
-  role: 'admin';
+  role: 'superadmin' | 'admin';
+  permissions: string[];
 }
 
 const UserModal: React.FC<UserModalProps> = ({
@@ -26,21 +29,98 @@ const UserModal: React.FC<UserModalProps> = ({
   user,
   isLoading = false,
 }) => {
+  const { user: currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
     setValue,
-  } = useForm<UserFormData>();
+    watch,
+  } = useForm<UserFormData>({
+    defaultValues: {
+      role: 'admin',
+      permissions: DEFAULT_ADMIN_PERMISSIONS,
+    },
+  });
+
+  const [permissionSearch, setPermissionSearch] = useState('');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('default_admin');
+
+  useEffect(() => {
+    register('permissions');
+  }, [register]);
+
+  const selectedPermissions = watch('permissions') || [];
+  const selectedRole = watch('role');
+
+  const groupedPermissions = useMemo(() => {
+    const q = permissionSearch.trim().toLowerCase();
+    const entries = ALL_PERMISSIONS.map((value) => {
+      const [resourceRaw, actionRaw] = value.split(':');
+      const resource = (resourceRaw || '').toLowerCase();
+      const action = (actionRaw || '').toLowerCase();
+      const label = `${resourceRaw?.replace(/_/g, ' ') || ''}: ${actionRaw || ''}`;
+      return {
+        value,
+        resource,
+        resourceRaw: resourceRaw || 'other',
+        action,
+        actionRaw: actionRaw || '',
+        label,
+      };
+    }).filter((p) => {
+      if (!q) return true;
+      return (
+        p.value.toLowerCase().includes(q) ||
+        p.resource.includes(q) ||
+        p.action.includes(q) ||
+        p.label.toLowerCase().includes(q)
+      );
+    });
+
+    const map = new Map<string, typeof entries>();
+    for (const item of entries) {
+      const key = item.resourceRaw;
+      const arr = map.get(key) || [];
+      arr.push(item);
+      map.set(key, arr);
+    }
+
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([group, items]) => ({
+        group,
+        title: group.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        items: items.sort((x, y) => x.value.localeCompare(y.value)),
+      }));
+  }, [permissionSearch]);
+
+  const togglePermission = (perm: string) => {
+    const next = selectedPermissions.includes(perm)
+      ? selectedPermissions.filter((p) => p !== perm)
+      : [...selectedPermissions, perm];
+    setValue('permissions', next, { shouldDirty: true });
+  };
+
+  const setPermissions = (perms: string[]) => {
+    setValue('permissions', perms, { shouldDirty: true });
+  };
+
+  const filteredPermissionValues = useMemo(() => {
+    return groupedPermissions.flatMap((g) => g.items.map((i) => i.value));
+  }, [groupedPermissions]);
 
   useEffect(() => {
     if (user) {
       setValue('name', user.name);
       setValue('email', user.email);
-      setValue('role', user.role);
+      setValue('role', user.role || 'admin');
+      setValue('permissions', user.permissions || DEFAULT_ADMIN_PERMISSIONS);
     } else {
-      reset();
+      reset({ role: 'admin', permissions: DEFAULT_ADMIN_PERMISSIONS } as any);
     }
   }, [user, setValue, reset]);
 
@@ -51,6 +131,7 @@ const UserModal: React.FC<UserModalProps> = ({
         email: data.email,
         password: data.password || 'defaultPassword123',
         role: data.role,
+        permissions: data.permissions || [],
       });
       reset();
       onHide();
@@ -204,7 +285,177 @@ const UserModal: React.FC<UserModalProps> = ({
                 )}
               </div>
 
-              <input type="hidden" {...register('role')} value="admin" />
+              {/* Role Field */}
+              <div className="form-group-modern">
+                <label className="form-label-modern">
+                  Role
+                  <span className="required">*</span>
+                </label>
+                <Form.Select
+                  className="form-input-modern"
+                  {...register('role', { required: 'Role is required' })}
+                  disabled={isLoading || !isSuperAdmin}
+                >
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">Super Admin</option>
+                </Form.Select>
+              </div>
+
+              {/* Permissions */}
+              <div className="form-group-modern">
+                <label className="form-label-modern">Permissions</label>
+                <div className="permissions-panel">
+                  <div className="permissions-toolbar">
+                    <Form.Control
+                      type="text"
+                      value={permissionSearch}
+                      placeholder="Search permissions (e.g. blog, booking:update)"
+                      onChange={(e) => setPermissionSearch(e.target.value)}
+                      className="form-input-modern"
+                      disabled={isLoading || !isSuperAdmin}
+                    />
+                    <div className="permissions-actions">
+                      <Form.Select
+                        value={selectedPresetId}
+                        onChange={(e) => setSelectedPresetId(e.target.value)}
+                        className="form-input-modern"
+                        style={{ minWidth: 220 }}
+                        disabled={isLoading || !isSuperAdmin}
+                      >
+                        {PERMISSION_PRESETS.map((preset) => (
+                          <option key={preset.id} value={preset.id}>
+                            {preset.name}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      <button
+                        type="button"
+                        className="btn-modal-submit"
+                        onClick={() => {
+                          const preset = PERMISSION_PRESETS.find((p) => p.id === selectedPresetId);
+                          if (preset) {
+                            setPermissions(preset.permissions);
+                          }
+                        }}
+                        disabled={isLoading || !isSuperAdmin}
+                        title="Apply preset"
+                      >
+                        Apply
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-modal-cancel"
+                        onClick={() => {
+                          const merged = Array.from(new Set([...selectedPermissions, ...filteredPermissionValues]));
+                          setPermissions(merged);
+                        }}
+                        disabled={isLoading || !isSuperAdmin}
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-modal-cancel"
+                        onClick={() => setPermissions([])}
+                        disabled={isLoading || !isSuperAdmin}
+                      >
+                        Clear
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-modal-submit"
+                        onClick={() => setPermissions(DEFAULT_ADMIN_PERMISSIONS)}
+                        disabled={isLoading || !isSuperAdmin}
+                      >
+                        Default
+                      </button>
+                    </div>
+                  </div>
+
+                  {selectedRole === 'superadmin' ? (
+                    <div className="info-message">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Super Admin has full access. Permissions selection is optional.
+                    </div>
+                  ) : null}
+
+                  {selectedPermissions.length > 0 ? (
+                    <div className="permissions-chips">
+                      {selectedPermissions
+                        .slice()
+                        .sort((a, b) => a.localeCompare(b))
+                        .map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            className="permission-chip"
+                            onClick={() => togglePermission(p)}
+                            disabled={isLoading || !isSuperAdmin}
+                            title="Click to remove"
+                          >
+                            {p}
+                            <span className="chip-x">×</span>
+                          </button>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="info-message">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      No permissions selected yet.
+                    </div>
+                  )}
+
+                  <div className="permissions-list" aria-disabled={isLoading || !isSuperAdmin}>
+                    {groupedPermissions.length === 0 ? (
+                      <div className="info-message">No permissions match your search.</div>
+                    ) : (
+                      groupedPermissions.map((group) => (
+                        <div key={group.group} className="permissions-group">
+                          <div className="permissions-group-title">{group.title}</div>
+                          <div className="permissions-group-items">
+                            {group.items.map((item) => {
+                              const checked = selectedPermissions.includes(item.value);
+                              return (
+                                <button
+                                  key={item.value}
+                                  type="button"
+                                  className={`permission-item ${checked ? 'is-checked' : ''}`}
+                                  onClick={() => togglePermission(item.value)}
+                                  disabled={isLoading || !isSuperAdmin}
+                                >
+                                  <span className={`permission-checkbox ${checked ? 'checked' : ''}`}>
+                                    {checked ? '✓' : ''}
+                                  </span>
+                                  <span className="permission-item-text">{item.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                {!isSuperAdmin ? (
+                  <div className="info-message">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Only Super Admin can change roles and permissions
+                  </div>
+                ) : (
+                  <div className="info-message">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Use search and quick actions to manage permissions fast
+                  </div>
+                )}
+              </div>
             </div>
           </Modal.Body>
           <Modal.Footer className="modern-modal-footer">
@@ -625,7 +876,142 @@ const UserModal: React.FC<UserModalProps> = ({
             justify-content: center;
           }
         }
-      `}</style>
+
+        .permissions-panel {
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: 12px;
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.9);
+        }
+
+        .permissions-toolbar {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        @media (min-width: 768px) {
+          .permissions-toolbar {
+            grid-template-columns: 1fr auto;
+            align-items: center;
+          }
+        }
+
+        .permissions-actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .permissions-list {
+          margin-top: 10px;
+          max-height: 240px;
+          overflow: auto;
+          border-top: 1px solid rgba(0, 0, 0, 0.06);
+          padding-top: 10px;
+        }
+
+        .permissions-group {
+          margin-bottom: 12px;
+        }
+
+        .permissions-group-title {
+          font-weight: 700;
+          font-size: 13px;
+          color: rgba(0, 0, 0, 0.7);
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+
+        .permissions-group-items {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        @media (min-width: 768px) {
+          .permissions-group-items {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        .permission-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: #fff;
+          text-align: left;
+          transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .permission-item:hover {
+          background: rgba(212, 175, 55, 0.08);
+          border-color: rgba(212, 175, 55, 0.35);
+        }
+
+        .permission-item.is-checked {
+          background: rgba(212, 175, 55, 0.12);
+          border-color: rgba(212, 175, 55, 0.55);
+        }
+
+        .permission-checkbox {
+          width: 22px;
+          height: 22px;
+          border-radius: 6px;
+          border: 1px solid rgba(0, 0, 0, 0.2);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          color: #fff;
+          background: #fff;
+          flex: 0 0 22px;
+        }
+
+        .permission-checkbox.checked {
+          background: #d4af37;
+          border-color: #d4af37;
+        }
+
+        .permission-item-text {
+          font-size: 13px;
+          color: rgba(0, 0, 0, 0.8);
+          word-break: break-word;
+        }
+
+        .permissions-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 10px 0 0;
+        }
+
+        .permission-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          border-radius: 999px;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: rgba(212, 175, 55, 0.12);
+          color: rgba(0, 0, 0, 0.85);
+          padding: 6px 10px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+
+        .chip-x {
+          font-size: 14px;
+          line-height: 1;
+          opacity: 0.8;
+        }
+      `}
+</style>
     </>
   );
 };

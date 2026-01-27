@@ -1,7 +1,28 @@
 import { useState, useEffect } from "react";
 import { tourAPI } from "@/lib/api/tour";
+import { reviewsAPI } from "@/lib/api/reviews";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
+
+function getYouTubeVideoId(url: string): string {
+  if (!url) return '';
+
+  const trimmed = url.trim();
+
+  const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
+  if (shortMatch?.[1]) return shortMatch[1];
+
+  const watchMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{6,})/);
+  if (watchMatch?.[1]) return watchMatch[1];
+
+  const embedMatch = trimmed.match(/\/embed\/([a-zA-Z0-9_-]{6,})/);
+  if (embedMatch?.[1]) return embedMatch[1];
+
+  const shortsMatch = trimmed.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/);
+  if (shortsMatch?.[1]) return shortsMatch[1];
+
+  return '';
+}
 
 export const useTourData = (id?: string) => {
   const [tourData, setTourData] = useState<TourDetailsOneData>({ 
@@ -11,38 +32,73 @@ export const useTourData = (id?: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const safeArray = <T,>(value: any): T[] => (Array.isArray(value) ? value : []);
+  const safeString = (value: any): string => (typeof value === 'string' ? value : '');
+  const safeHtmlString = (value: any): string => {
+    if (typeof value === 'string') return value;
+    if (value && typeof value === 'object') {
+      return safeString(value.html || value.text);
+    }
+    return '';
+  };
+
   useEffect(() => {
-    const fetchTour = async () => {
+    const fetchTourAndReviews = async () => {
       if (!id) return;
 
       try {
         setLoading(true);
-        const response = await tourAPI.getById(id);
+        const tourPromise = tourAPI.getById(id);
+        const reviewsPromise = reviewsAPI.getReviewsByTour(id);
         
-        if (response.success && response.data) {
-          const tour = response.data;
-          
+        const [tourResponse, reviewsResponse] = await Promise.all([tourPromise, reviewsPromise]);
+        
+        if (tourResponse.success && tourResponse.data) {
+          const tour = tourResponse.data;
+          const fetchedReviews = reviewsResponse.success ? safeArray<any>(reviewsResponse.data) : [];
+          const sliderImages = safeArray<any>(tour.images)
+            .map((img: any) => safeString(img?.url))
+            .filter(Boolean);
+
+          const galleryImages = safeArray<any>(tour.gallery)
+            .map((img: any) => safeString(img?.url))
+            .filter(Boolean);
+
+          const fallbackImage = 'https://placehold.co/600x400?text=No+Image';
+
+          const reviewVideos = safeArray<any>(tour.reviews)
+            .map((r: any) => {
+              const url = safeString(r?.url);
+              const videoId = getYouTubeVideoId(url);
+              return {
+                title: safeString(r?.title) || 'Review',
+                url,
+                videoId,
+              };
+            })
+            .filter((v: any) => v.url && v.videoId);
+
           // Map API data to component structure
           const mappedData: TourDetailsOneData = {
-            title: tour.heading || tour.name || "",
-            titleTwo: tour.name || "",
-            overview: tour.Description?.text || tour.overview || "",
-            reviews: tour.reviews?.length || 0,
-            location: tour.tourLocation || "",
-            activitiesType: tour.tourType || "",
+            title: safeString(tour.heading) || safeString(tour.name) || "",
+            titleTwo: safeString(tour.name) || "",
+            overview: safeHtmlString(tour.Description?.text) || safeHtmlString(tour.overview) || "",
+            reviews: fetchedReviews.length,
+            location: safeString(tour.tourLocation) || "",
+            activitiesType: safeString(tour.tourType) || "",
             traveler: 10,
-            activateDay: tour.duration || "",
-            price: tour.priceStartingFrom || 0,
-            overviewTitle: tour.Description?.header || "Overview",
+            activateDay: safeString(tour.duration) || "",
+            price: typeof tour.priceStartingFrom === 'number' ? tour.priceStartingFrom : 0,
+            overviewTitle: safeString(tour.Description?.header) || "Overview",
             topDestinations: "",
-            sliderImages: tour.images?.map((img: any) => img.url) || [],
-            highlightList: tour.tourHighlights || [],
-            amenities: tour.inclusion || [],
-            amenitiesTwo: tour.exclusion || [],
-            relatedTours: tour.relatedTours?.map((t: any) => ({
+            sliderImages,
+            highlightList: safeArray<string>(tour.tourHighlights),
+            amenities: safeArray<string>(tour.inclusion),
+            amenitiesTwo: safeArray<string>(tour.exclusion),
+            relatedTours: safeArray<any>(tour.relatedTours).map((t: any) => ({
               id: t._id,
-              image: t.images?.[0]?.url || "https://placehold.co/600x400?text=No+Image",
-              title: t.name || "Related Tour",
+              image: safeString(t?.images?.[0]?.url) || fallbackImage,
+              title: safeString(t?.name) || "Related Tour",
               link: `tours/${t._id}`,
               price: t.priceStartingFrom,
               rating: 5,
@@ -50,43 +106,48 @@ export const useTourData = (id?: string) => {
               videoId: "",
               discount: "",
               meta: []
-            })) || [],
-            comments: tour.reviews?.map((r: any) => ({
-              name: r.name || "Anonymous",
-              date: new Date(r.createdAt).toLocaleDateString(),
-              text: r.comment,
-              avatar: r.avatar || "https://placehold.co/100x100?text=User"
-            })) || [],
-            images: tour.gallery?.map((img: any) => img.url) || [],
-            faqs: tour.faqs?.map((f: any) => ({
-              question: f.question,
-              answer: typeof f.answer === 'string' ? f.answer : (f.answer?.html || f.answer?.text || "")
-            })) || [],
-            map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
+            })),
+            comments: safeArray<any>(fetchedReviews).map((r: any) => ({
+              name: safeString(r?.name) || "Anonymous",
+              date: r?.createdAt ? new Date(r.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+              text: safeString(r?.comment),
+              rating: r.rating || 5, // Map rating
+              avatar: safeString(r?.avatar) || "https://placehold.co/100x100?text=User"
+            })),
+            images: galleryImages,
+            faqs: safeArray<any>(tour.faqs).map((f: any) => ({
+              question: safeString(f?.question),
+              answer: safeHtmlString(f?.answer)
+            })).filter((f: any) => f.question || f.answer),
+            map: safeString(tour.tourMapIframe)?.match(/src="([^"]+)"/)?.[1] || "",
             itinerary: {
-              generalDescription: tour.itinerary?.generalDescription?.html || tour.itinerary?.generalDescription || "",
-              days: tour.itinerary?.days?.map((d: any) => ({
-                day: d.day,
-                title: d.title.replace(/^Day\s*\d+[:\s-]*/i, ""),
-                description: d.description?.html || d.description || "",
-                activities: d.activities?.map((a: any) => ({
-                  heading: a.heading,
-                  description: a.description?.html || a.description || "",
-                  image: a.image ? { url: a.image.url } : undefined
-                })) || []
-              })) || []
+              generalDescription: safeHtmlString(tour.itinerary?.generalDescription),
+              days: safeArray<any>(tour.itinerary?.days).map((d: any) => ({
+                day: typeof d?.day === 'number' ? d.day : 0,
+                title: safeString(d?.title).replace(/^Day\s*\d+[:\s-]*/i, ""),
+                description: safeHtmlString(d?.description),
+                activities: safeArray<any>(d?.activities).map((a: any) => ({
+                  heading: safeString(a?.heading),
+                  description: safeHtmlString(a?.description),
+                  image: safeString(a?.image?.url) ? { url: safeString(a?.image?.url) } : undefined
+                }))
+              }))
             },
-            pricingPlans: tour.pricingPlans?.map((plan: any) => ({
-              planName: plan.planName,
-              seasons: plan.seasons?.map((season: any) => ({
-                seasonName: season.seasonName,
-                startDate: season.startDate,
-                endDate: season.endDate,
-                prices: season.prices,
-                notes: season.notes
-              })) || []
-            })) || [],
-            whatYouWillLoveHtml: tour.whatYouWillLoveHtml || "",
+            pricingPlans: safeArray<any>(tour.pricingPlans).map((plan: any) => ({
+              planName: safeString(plan?.planName),
+              seasons: safeArray<any>(plan?.seasons).map((season: any) => ({
+                seasonName: safeString(season?.seasonName),
+                startDate: safeString(season?.startDate),
+                endDate: safeString(season?.endDate),
+                prices: season?.prices || {},
+                notes: safeArray<any>(season?.notes).map((n: any) => ({
+                  title: safeString(n?.title),
+                  text: safeString(n?.text)
+                }))
+              }))
+            })),
+            whatYouWillLoveHtml: safeHtmlString(tour.whatYouWillLoveHtml),
+            reviewVideos,
           };
 
           setTourData(mappedData);
@@ -101,7 +162,7 @@ export const useTourData = (id?: string) => {
       }
     };
 
-    fetchTour();
+    fetchTourAndReviews();
   }, [id]);
 
   return { tourData, loading, error };

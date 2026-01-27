@@ -16,6 +16,10 @@ export async function generateMetadata({
   try {
     const { id } = await params;
     const blog = await getBlogById(id);
+    const featuredImageUrl =
+      typeof blog.featuredImage === "string"
+        ? blog.featuredImage
+        : blog.featuredImage?.url;
 
     return {
       title: blog.metaTitle || `${blog.title} || JES Egypt Tours`,
@@ -26,7 +30,9 @@ export async function generateMetadata({
       openGraph: {
         title: blog.metaTitle || blog.title,
         description: blog.metaDescription || blog.excerpt,
-        images: blog.metaImage?.url ? [blog.metaImage.url] : [blog.featuredImage],
+        images: blog.metaImage?.url
+          ? [blog.metaImage.url]
+          : [featuredImageUrl || "https://placehold.co/1200x630?text=Image"],
       },
     };
   } catch (error) {

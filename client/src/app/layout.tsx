@@ -14,6 +14,9 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "@/assets/css/gotur.css";
 import "@/assets/css/custom.css";
+import "@/styles/sidebar-fix.css";
+import { Toaster } from "@/components/ui/toaster";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -36,7 +39,10 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={`${jakartaSans.variable} ${justAnotherHand.variable}`} suppressHydrationWarning>
-        {children}
+        <ErrorBoundary>
+          {children}
+          <Toaster />
+        </ErrorBoundary>
       </body>
     </html>
   );

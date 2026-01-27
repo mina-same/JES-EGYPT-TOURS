@@ -3,8 +3,12 @@ import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import Layout from "@/components/layout/Layout/Layout";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import PricingOne from "@/components/sections/PricingOne/PricingOne";
-import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
-import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
+import FaqSection from "@/components/sections/FaqSection/FaqSection";
+import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import HeaderTwo from "@/components/layout/HeaderTwo/HeaderTwo";
+import HeaderTwoCloned from "@/components/layout/HeaderTwoCloned/HeaderTwoCloned";
+import HeaderOne from "@/components/layout/HeaderOne/HeaderOne"; 
+
 
 export const metadata = {
   title: "Pricing Plan || Gotur || Travel & Tour NextJS Template",
@@ -19,10 +23,11 @@ export default function PricingPage() {
   return (
     <Layout>
       <TopbarOne />
-      <HeaderInner />
-      <HeaderInnerCloned/>
+      <HeaderOne />
+      <HeaderOneCloned/>
       <PageHeader title='Pricing Plan' subTitle='Pricing Plan' />
       <PricingOne />
+      <FaqSection />
       <FooterOne />
     </Layout>
   );

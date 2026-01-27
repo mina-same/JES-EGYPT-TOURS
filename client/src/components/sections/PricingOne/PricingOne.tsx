@@ -25,7 +25,6 @@ interface PricingData {
 }
 
 const PricingOne: React.FC = () => {
-  const [key, setKey] = useState<string>("monthly"); // State to toggle between monthly and yearly
   const { monthlyPlans, yearlyPlans }: PricingData = pricingData;
   const [activeTab, setActiveTab] = useState<string>("monthly");
 
@@ -55,7 +54,7 @@ const PricingOne: React.FC = () => {
                   activeTab === "monthly" ? "active-btn" : ""
                 }`}
               >
-                MONTHLY
+                Monthly
               </li>
               <li
                 onClick={() => handleTabChange("yearly")}
@@ -63,9 +62,14 @@ const PricingOne: React.FC = () => {
                   activeTab === "yearly" ? "active-btn" : ""
                 }`}
               >
-                YEARLY
+                Yearly
               </li>
             </ul>
+            <p className='pricing-one__text' style={{ marginTop: '10px' }}>
+              {activeTab === 'monthly'
+                ? 'Billed monthly. Cancel anytime.'
+                : 'Billed yearly. Best value for long trips & agencies.'}
+            </p>
           </div>
 
           <div className='tabs-content'>
@@ -197,7 +201,7 @@ const PricingOne: React.FC = () => {
                   <div className='pricing-one__col-card'>
                     <div className='pricing-one__card'>
                       <h2 className='pricing-one__card__price'>
-                        ${yearlyPlans.standard.price} <span>/month</span>
+                        ${yearlyPlans.standard.price} <span>/year</span>
                       </h2>
                       <h3 className='pricing-one__card__title'>
                         {yearlyPlans.standard.name}
@@ -229,7 +233,7 @@ const PricingOne: React.FC = () => {
                   <div className='pricing-one__col-card'>
                     <div className='pricing-one__card'>
                       <h2 className='pricing-one__card__price'>
-                        ${yearlyPlans.professional.price} <span>/month</span>
+                        ${yearlyPlans.professional.price} <span>/year</span>
                       </h2>
                       <h3 className='pricing-one__card__title'>
                         {yearlyPlans.professional.name}
@@ -263,7 +267,7 @@ const PricingOne: React.FC = () => {
                         MOST POPULAR
                       </div>
                       <h2 className='pricing-one__card__price'>
-                        ${yearlyPlans.premium.price} <span>/month</span>
+                        ${yearlyPlans.premium.price} <span>/year</span>
                       </h2>
                       <h3 className='pricing-one__card__title'>
                         {yearlyPlans.premium.name}

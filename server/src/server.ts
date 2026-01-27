@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import http from 'http';
 import app from './app';
 import connectDB from './config/database';
+import { initRealtime } from './realtime/socket';
 
 // Load environment variables with explicit path
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -13,7 +15,11 @@ connectDB();
 // Start server
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+const server = http.createServer(app);
+
+initRealtime(server);
+
+server.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║

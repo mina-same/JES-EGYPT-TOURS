@@ -7,7 +7,8 @@ import {
   deleteBooking,
   getBookingStats,
 } from '../controllers/bookingController';
-import { protect, authorize } from '../middleware/auth';
+import { protect, permit } from '../middleware/auth';
+import { PERMISSIONS } from '../permissions';
 import { bookingValidation } from '../middleware/validation';
 
 const router = express.Router();
@@ -16,11 +17,11 @@ const router = express.Router();
 router.post('/', bookingValidation, createBooking);
 
 // Admin only routes
-router.get('/stats', protect, authorize('admin'), getBookingStats);
-router.get('/', protect, authorize('admin'), getAllBookings);
-router.get('/:id', protect, authorize('admin'), getBookingById);
-router.patch('/:id', protect, authorize('admin'), updateBooking);
-router.delete('/:id', protect, authorize('admin'), deleteBooking);
+router.get('/stats', protect, permit(PERMISSIONS.BOOKING_READ), getBookingStats);
+router.get('/', protect, permit(PERMISSIONS.BOOKING_READ), getAllBookings);
+router.get('/:id', protect, permit(PERMISSIONS.BOOKING_READ), getBookingById);
+router.patch('/:id', protect, permit(PERMISSIONS.BOOKING_UPDATE), updateBooking);
+router.delete('/:id', protect, permit(PERMISSIONS.BOOKING_DELETE), deleteBooking);
 
 export default router;
 

@@ -1,15 +1,11 @@
 "use client";
 
-import React from "react";
-import dynamic from "next/dynamic";
+import React, { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import { topbarOne } from "@/data/topbarOne";
 
 import Link from "next/link";
-
-const LanguageSelector = dynamic(() => import("../LanguageSelector/LanguageSelector"), {
-  ssr: false,
-});
+import LanguageSelector from "../LanguageSelector/LanguageSelector";
 
 interface ContactInfoItem {
   type: string;
@@ -49,6 +45,12 @@ interface TopbarOneProps {
 const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
   const { contactInfo, contactInfoTwo, address, socialLinks }: TopbarOneData =
     topbarOne;
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className={`top-one ${extraClass || ""}`} suppressHydrationWarning>
       <Container fluid>
@@ -78,7 +80,7 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
                 <Link href={address.href}>{address.label}</Link>
               </div>
             ) : (
-              <LanguageSelector />
+              mounted ? <LanguageSelector /> : null
             )}
 
             {/* Social Links Section */}

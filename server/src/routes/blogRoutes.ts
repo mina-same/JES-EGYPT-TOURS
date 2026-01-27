@@ -15,7 +15,8 @@ import {
   unpublishBlog,
   toggleComments,
 } from '../controllers/blogController';
-import { protect, authorize } from '../middleware/auth';
+import { protect, permit } from '../middleware/auth';
+import { PERMISSIONS } from '../permissions';
 
 const router = express.Router();
 
@@ -29,13 +30,13 @@ router.get('/posts/id/:id', getBlogByIdPublic); // Public route for getting by I
 router.post('/posts/:id/comments', addComment);
 
 // Admin routes
-router.get('/posts/admin', protect, authorize('admin'), getAllBlogsAdmin);
-router.get('/posts/:id', protect, authorize('admin'), getBlogById);
-router.post('/posts', protect, authorize('admin'), createBlog);
-router.put('/posts/:id', protect, authorize('admin'), updateBlog);
-router.patch('/posts/:id/publish', protect, authorize('admin'), publishBlog);
-router.patch('/posts/:id/unpublish', protect, authorize('admin'), unpublishBlog);
-router.patch('/posts/:id/toggle-comments', protect, authorize('admin'), toggleComments);
-router.delete('/posts/:id', protect, authorize('admin'), deleteBlog);
+router.get('/posts/admin', protect, permit(PERMISSIONS.BLOG_READ), getAllBlogsAdmin);
+router.get('/posts/:id', protect, permit(PERMISSIONS.BLOG_READ), getBlogById);
+router.post('/posts', protect, permit(PERMISSIONS.BLOG_CREATE), createBlog);
+router.put('/posts/:id', protect, permit(PERMISSIONS.BLOG_UPDATE), updateBlog);
+router.patch('/posts/:id/publish', protect, permit(PERMISSIONS.BLOG_UPDATE), publishBlog);
+router.patch('/posts/:id/unpublish', protect, permit(PERMISSIONS.BLOG_UPDATE), unpublishBlog);
+router.patch('/posts/:id/toggle-comments', protect, permit(PERMISSIONS.BLOG_UPDATE), toggleComments);
+router.delete('/posts/:id', protect, permit(PERMISSIONS.BLOG_DELETE), deleteBlog);
 
 export default router;

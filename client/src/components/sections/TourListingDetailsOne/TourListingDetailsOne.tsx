@@ -1,12 +1,14 @@
 "use client";
-import React, { useState } from "react";
-import { Container, Tabs, Tab, Accordion } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Container, Accordion } from "react-bootstrap";
 import Image from "next/image";
 import Slider from "react-slick";
+import Masonry from "react-masonry-css";
+import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { Loader2, Calendar, Headphones, Tag, Star, Zap } from "lucide-react";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
-import FullWidthCalendar from "../Calender/Calender";
+import { reviewsAPI } from "@/lib/api/reviews";
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -20,6 +22,7 @@ import { TourInfoBar } from "./TourInfoBar";
 import { BookingForm } from "./BookingForm";
 import { TourPlan } from "./TourPlan";
 import { PricingPlans } from "./PricingPlans";
+import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import { RelatedTours } from "./RelatedTours";
 import { ReviewsSection } from "./ReviewsSection";
 
@@ -27,6 +30,63 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   const { tourData, loading, error } = useTourData(id);
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
+  const [activeSection, setActiveSection] = useState("description");
+
+  // Handle scroll spy and smooth scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['description', 'pricing', 'amenities', 'gallery', 'faqs', 'honest-reviews', 'reviews'];
+      
+      // Find the current active section
+      for (const sectionId of sections) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          // Check if section is in viewport (considering header offset)
+          if (rect.top <= 150 && rect.bottom >= 150) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Handle click on nav link or its children
+      const link = target.closest('.tour-nav-link');
+      if (link) {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          const sectionId = href.substring(1);
+          const element = document.getElementById(sectionId);
+          if (element) {
+            // Calculate position with offset for sticky header
+            const headerOffset = 130;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+            
+            // Immediately set active section
+            setActiveSection(sectionId);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    document.addEventListener('click', handleClick);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('click', handleClick);
+    };
+  }, []);
 
   const {
     title,
@@ -49,7 +109,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
     map,
     itinerary,
     pricingPlans,
+    reviewVideos,
   } = tourData;
+
+  const hasReviewVideos = (reviewVideos || []).length > 0;
 
   const settings = {
     className: "center",
@@ -106,14 +169,26 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
     // You could send bookingData to your API here
   };
 
-  const handleCommentSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      data[key] = value.toString();
-    });
-    console.log("Form Submitted:", data);
+  const handleCommentSubmit = async (data: any) => {
+    if (!id) {
+       console.error("No tour ID found");
+       return;
+    }
+
+    try {
+        await reviewsAPI.submitReview({
+            tourId: id,
+            name: data.name,
+            email: data.email,
+            rating: Number(data.rating),
+            comment: data.comment
+        });
+        
+        alert("Review submitted successfully! It will appear after approval.");
+    } catch (error) {
+        console.error("Error submitting review:", error);
+        alert("Failed to submit review.");
+    }
   };
 
   const handleVideoClick = (vId: string) => {
@@ -123,15 +198,15 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '400px' }}>
+        <Loader2 className="animate-spin" style={{ width: '2rem', height: '2rem' }} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] text-red-500">
+      <div className="d-flex align-items-center justify-content-center text-danger" style={{ minHeight: '400px' }}>
         {error}
       </div>
     );
@@ -150,26 +225,45 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
           data-wow-delay='500ms'
         >
           <div className='tour-one__carousel tour-two__carousel gotur-owl__carousel owl-carousel owl-theme owl-loaded owl-drag'>
-            <Slider {...settings}>
-              {sliderImages.map((img, idx) => (
-                <div key={idx}>
-                  <div className='item'>
-                    <div className='tour-one__item'>
-                      <div className="relative w-full" style={{ height: '320px' }}>
-                        <Image
-                          src={typeof img === "string" ? img : img}
-                          alt='destination'
-                          fill
-                          sizes="100vw"
-                          className="object-cover"
-                          priority={idx === 0}
-                        />
+            <PhotoSwipeGallery>
+              <Slider {...settings}>
+                {sliderImages.map((img, idx) => {
+                  const imageUrl = typeof img === 'string' ? img : img.src;
+                  return (
+                    <div key={idx}>
+                      <div className='item'>
+                        <div className='tour-one__item'>
+                          <Item original={imageUrl} thumbnail={imageUrl} width='1600' height='1000'>
+                            {({ ref, open }) => (
+                              <a
+                                href='#'
+                                ref={ref as unknown as React.Ref<HTMLAnchorElement>}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  open(e);
+                                }}
+                                style={{ display: 'block', cursor: 'pointer' }}
+                              >
+                                <div className="relative w-full" style={{ height: '320px' }}>
+                                  <Image
+                                    src={img}
+                                    alt='destination'
+                                    fill
+                                    sizes="100px"
+                                    className="object-cover"
+                                    priority={idx === 0}
+                                  />
+                                </div>
+                              </a>
+                            )}
+                          </Item>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </Slider>
+                  );
+                })}
+              </Slider>
+            </PhotoSwipeGallery>
           </div>
         </div>
 
@@ -233,11 +327,32 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         }}></div>
 
         <Container fluid style={{ maxWidth: '1400px', padding: '0 20px' }}>
-          <div className='row gutter-y-30'>
+          {/* Navigation Bar */}
+          <div className="tour-details-nav-wrapper bg-white" style={{ borderBottom: '2px solid #f0f0f0', marginBottom: '40px' }}>
+            <nav className="tour-details-nav">
+              <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>Description</a>
+              <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>Pricing Plans</a>
+              <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>Tour Amenities</a>
+              <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>Tour Gallery</a>
+              <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>Tour FAQ</a>
+              {hasReviewVideos ? (
+                <a href="#honest-reviews" className={`tour-nav-link ${activeSection === 'honest-reviews' ? 'active' : ''}`}>
+                  Reflective & Honest Reviews
+                  <span className="review-count">{reviewVideos?.length || 0}</span>
+                </a>
+              ) : null}
+              <a href="#reviews" className={`tour-nav-link ${activeSection === 'reviews' ? 'active' : ''}`}>
+                Tour Reviews
+                <span className="review-count">{comments.length}</span>
+              </a>
+            </nav>
+          </div>
+
+          <div className='row gutter-y-30 tour-details-row'>
             {/* Sidebar */}
             <div className='col-lg-3'>
               <div className='tour-listing-details__sidebar'>
-                <BookingForm tourId={id} onSubmit={handleBookingSubmit} />
+                <BookingForm tourId={id || ''} onSubmit={handleBookingSubmit} />
 
                 <div
                   className='tour-listing-details__sidebar__item tour-listing-details__sidebar__item-location wow fadeInUp animated'
@@ -262,182 +377,290 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             {/* Main Content */}
             <div className='col-lg-9'>
               <div className='tour-listing-details__content'>
-                <Tabs defaultActiveKey="description" id="tour-details-tabs" className="tour-details-tabs mb-4">
-                  {/* Description Tab */}
-                  <Tab eventKey="description" title="Description">
-                    <div className='tour-listing-details__content__item tour-listing-details__content__text'>
-                      <h4 className='tour-listing-details__title'>
-                        {overviewTitle}
-                      </h4>
-                      <div
-                        className='tour-listing-details__text'
-                        dangerouslySetInnerHTML={{ __html: overview }}
+
+
+                {/* Description Section */}
+                <section id="description" className="tour-section">
+                  <div className='tour-listing-details__content__item tour-listing-details__content__text'>
+                    <h4 className='tour-listing-details__title'>
+                      {overviewTitle}
+                    </h4>
+                    <div
+                      className='tour-listing-details__text'
+                      dangerouslySetInnerHTML={{ __html: overview }}
+                    />
+                    {tourData.whatYouWillLoveHtml && (
+                      <div 
+                        className="tour-listing-details__what-you-love"
+                        dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
                       />
-                      {tourData.whatYouWillLoveHtml && (
-                        <div 
-                          className="tour-listing-details__what-you-love mt-4 p-4 rounded-lg bg-yellow-50 border-1 border-yellow-200"
-                          dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
-                        />
-                      )}
+                    )}
+                  </div>
+                  
+                  {/* Highlight List Section */}
+                  {/* Highlight List Section */}
+                  <div className='tour-listing-details__content__item tour-listing-details__list'>
+                    <h4 className='tour-listing-details__title'>
+                      Highlight List
+                    </h4>
+                    <ul className='tour-listing-details__content__list'>
+                      {highlightList.map((item, index) => (
+                        <li key={index}>
+                          <i className='icon-check-star'></i> {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Tour Plan */}
+                  <TourPlan itinerary={itinerary} />
+                </section>
+
+                {/* Pricing Section */}
+                <section id="pricing" className="tour-section">
+                  {pricingPlans && pricingPlans.length > 0 ? (
+                    <div className='tour-listing-details__content__item tour-listing-details__pricing'>
+                      <div className="mb-4">
+                         <h4 className='tour-listing-details__title mb-2'>Tour Pricing</h4>
+                         <p className="tour-reviews-subtitle">Find the perfect package that suits your budget and preferences.</p>
+                      </div>
+                      <PricingPlans pricingPlans={pricingPlans} />
                     </div>
-                    <hr className='tour-listing-details__separator' />
+                  ) : (
+                    <EmptyState 
+                      title="No Pricing Plans Available"
+                      description="There are currently no pricing plans available for this tour."
+                      icon="file"
+                      size="medium"
+                    />
+                  )}
+                </section>
 
-                    {/* Highlight List Section */}
-                    <div className='tour-listing-details__content__item tour-listing-details__list'>
-                      <h4 className='tour-listing-details__title'>
-                        Highlight List
-                      </h4>
-                      <ul className='tour-listing-details__content__list'>
-                        {highlightList.map((item, index) => (
-                          <li key={index}>
-                            <i className='icon-check-star'></i> {item}
-                          </li>
-                        ))}
-                      </ul>
+                {/* Amenities Section */}
+                <section id="amenities" className="tour-section">
+                  {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
+                    <div className='tour-listing-details__content__item tour-listing-details__amenities'>
+                      <div className="mb-4">
+                         <h4 className='tour-listing-details__title mb-2'>Tour Amenities</h4>
+                         <p className="tour-reviews-subtitle">Comprehensive list of what's provided for your comfortable journey.</p>
+                      </div>
+                      <div className="row gutter-y-30">
+                        {amenities && amenities.length > 0 && (
+                          <div className="col-lg-6">
+                            <div className="amenities-card inclusion-card">
+                              <div className="amenities-card-header">
+                                <div className="amenities-icon-wrapper inclusion-icon">
+                                  <i className="fas fa-check-circle"></i>
+                                </div>
+                                <h4 className='amenities-card-title'>What's Included</h4>
+                              </div>
+                              <ul className='amenities-card-list'>
+                                {amenities.map((amenity, index) => (
+                                  <li key={index} className="amenities-card-item">
+                                    <i className='fas fa-check'></i>
+                                    <span>{amenity}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                        {amenitiesTwo && amenitiesTwo.length > 0 && (
+                          <div className="col-lg-6">
+                            <div className="amenities-card exclusion-card">
+                              <div className="amenities-card-header">
+                                <div className="amenities-icon-wrapper exclusion-icon">
+                                  <i className="fas fa-times-circle"></i>
+                                </div>
+                                <h4 className='amenities-card-title'>What's Not Included</h4>
+                              </div>
+                              <ul className='amenities-card-list'>
+                                {amenitiesTwo.map((amenity, index) => (
+                                  <li key={index} className="amenities-card-item">
+                                    <i className='fas fa-times'></i>
+                                    <span>{amenity}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  ) : (
+                    <EmptyState 
+                      title="No Amenities Information"
+                      description="There are currently no amenities or inclusions/exclusions listed for this tour."
+                      icon="file"
+                      size="medium"
+                    />
+                  )}
+                </section>
 
-                    {/* Tour Plan */}
-                    <TourPlan itinerary={itinerary} />
-                  </Tab>
-
-                  {/* Pricing Tab */}
-                  <Tab eventKey="pricing" title="Pricing Plans">
-                    {pricingPlans && pricingPlans.length > 0 ? (
-                      <div className='tour-listing-details__content__item tour-listing-details__pricing'>
-                        <h4 className='tour-listing-details__title'>Tour Pricing</h4>
-                        <PricingPlans pricingPlans={pricingPlans} />
+                {/* Gallery Section */}
+                <section id="gallery" className="tour-section">
+                  {images && images.length > 0 ? (
+                    <div className='tour-listing-details__content__item tour-listing-details__thumb'>
+                      <div className="mb-4">
+                         <h4 className='tour-listing-details__title mb-2'>Tour Gallery</h4>
+                         <p className="tour-reviews-subtitle">A visual journey through the amazing places you will visit.</p>
                       </div>
-                    ) : (
-                      <EmptyState 
-                        title="No Pricing Plans Available"
-                        description="There are currently no pricing plans available for this tour."
-                        icon="file"
-                        size="medium"
-                      />
-                    )}
-                  </Tab>
+                      <PhotoSwipeGallery>
+                        <Masonry
+                          breakpointCols={{
+                            default: 3,
+                            1100: 2,
+                            700: 1
+                          }}
+                          className="tour-gallery-masonry"
+                          columnClassName="tour-gallery-masonry-column"
+                        >
+                          {images.map((img, idx) => {
+                            const imgUrl = typeof img === 'string' ? img : img.src;
+                            return (
+                              <Item
+                                key={idx}
+                                original={imgUrl}
+                                thumbnail={imgUrl}
+                                width="1200"
+                                height="800"
+                              >
+                                {({ ref, open }) => (
+                                  <a
+                                    href={imgUrl}
+                                    ref={ref as unknown as React.Ref<HTMLAnchorElement>}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      open(e);
+                                    }}
+                                    style={{ display: 'block' }}
+                                  >
+                                    <div className='tour-gallery-item'>
+                                      <div className='tour-gallery-image-wrapper'>
+                                        <Image
+                                          src={typeof img === 'string' ? img : img}
+                                          alt={`Tour gallery image ${idx + 1}`}
+                                          width={400}
+                                          height={300}
+                                          className="tour-gallery-image"
+                                          style={{ width: '100%', height: 'auto' }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </a>
+                                )}
+                              </Item>
+                            );
+                          })}
+                        </Masonry>
+                      </PhotoSwipeGallery>
+                    </div>
+                  ) : (
+                    <EmptyState 
+                      title="No Gallery Images"
+                      description="This tour currently has no gallery images available."
+                      icon="inbox"
+                      size="medium"
+                    />
+                  )}
+                </section>
 
-                  {/* Amenities Tab */}
-                  <Tab eventKey="amenities" title="Tour Amenities">
-                    {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
-                      <div className='tour-listing-details__content__item tour-listing-details__amenities'>
-                        <h4 className='tour-listing-details__title'>Tour Amenities</h4>
-                        <div className="flex-col flex-wrap gap-10">
-                          {amenities && amenities.length > 0 && (
-                            <div className="">
-                              <div className="amenities-box inclusion-box">
-                                <h4 className='amenities-title inclusion-title'>
-                                  <i className="fas fa-check-circle" style={{ color: '#b79c5c' }}></i> Inclusion
-                                </h4>
-                                <ul className='amenities-list'>
-                                  {amenities.map((amenity, index) => (
-                                    <li key={index} className="amenities-list-item inclusion-item">
-                                      <i className='fas fa-check' style={{ color: '#b79c5c' }}></i> {amenity}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                          {amenitiesTwo && amenitiesTwo.length > 0 && (
-                            <div className="">
-                              <div className="amenities-box exclusion-box">
-                                <h4 className='amenities-title exclusion-title'>
-                                  <i className="fas fa-times-circle"></i> Exclusion
-                                </h4>
-                                <ul className='amenities-list'>
-                                  {amenitiesTwo.map((amenity, index) => (
-                                    <li key={index} className="amenities-list-item exclusion-item">
-                                      <i className='fas fa-times'></i> {amenity}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                {/* FAQs Section */}
+                <section id="faqs" className="tour-section">
+                  {faqs && faqs.length > 0 ? (
+                    <div className='tour-listing-details__content__item tour-listing-details__faqs'>
+                      <div className="mb-4">
+                         <h4 className='tour-listing-details__title mb-2'>Frequently Asked Questions</h4>
+                         <p className="tour-reviews-subtitle">Common questions and answers to help you prepare.</p>
                       </div>
-                    ) : (
-                      <EmptyState 
-                        title="No Amenities Information"
-                        description="There are currently no amenities or inclusions/exclusions listed for this tour."
-                        icon="file"
-                        size="medium"
-                      />
-                    )}
-                  </Tab>
-
-                  {/* Gallery Tab */}
-                  <Tab eventKey="gallery" title="Tour Gallery">
-                    {images && images.length > 0 ? (
-                      <div className='tour-listing-details__content__item tour-listing-details__thumb'>
-                        <div className='row gutter-y-30'>
-                          {images.map((img, idx) => (
-                            <div className='col-md-6' key={idx}>
-                              <div className='destination-details__content__thumb__item'>
-                                <Image
-                                  src={typeof img === 'string' ? img : img}
-                                  alt='destination'
-                                  width={370}
-                                  height={250}
-                                  className="object-cover w-full h-[250px]"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <EmptyState 
-                        title="No Gallery Images"
-                        description="This tour currently has no gallery images available."
-                        icon="inbox"
-                        size="medium"
-                      />
-                    )}
-                  </Tab>
-
-                  {/* FAQs Tab */}
-                  <Tab eventKey="faqs" title="Tour FAQ">
-                    {faqs && faqs.length > 0 ? (
-                      <div className='tour-listing-details__content__item tour-listing-details__faqs'>
-                        <h4 className='tour-listing-details__title'>
-                          Frequently Asked Questions
-                        </h4>
-                        <Accordion defaultActiveKey="0" className="tour-listing-details__faqs-accordion">
+                      <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
+                        <Accordion
+                          defaultActiveKey="0"
+                          className="wow fadeInUp"
+                          data-wow-duration="1500ms"
+                          data-wow-delay="500ms"
+                        >
                           {faqs.map((faq, index) => (
                             <Accordion.Item eventKey={String(index)} key={index}>
-                              <Accordion.Header>{faq.question}</Accordion.Header>
+                              <Accordion.Header>
+                                <div className="accordion-title">
+                                  <h4 className="accordion-title__text">
+                                    {faq.question}
+                                    <span className="accordion-title__icon"></span>
+                                  </h4>
+                                </div>
+                              </Accordion.Header>
                               <Accordion.Body>
-                                <div dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                                <div className="accordion-content">
+                                  <div className="inner">
+                                    <div className="inner__text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                                  </div>
+                                </div>
                               </Accordion.Body>
                             </Accordion.Item>
                           ))}
                         </Accordion>
                       </div>
-                    ) : (
-                      <EmptyState 
-                        title="No FAQs Available"
-                        description="There are currently no frequently asked questions for this tour."
-                        icon="file"
-                        size="medium"
-                      />
-                    )}
-                  </Tab>
-
-                  {/* Reviews Tab */}
-                  <Tab eventKey="reviews" title={
-                    <div className="d-flex align-items-center gap-2">
-                      Tour Reviews
-                      <span className="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle" style={{ width: '24px', height: '24px', fontSize: '12px' }}>
-                        {comments.length}
-                      </span>
                     </div>
-                  }>
-                    <ReviewsSection comments={comments} onSubmit={handleCommentSubmit} />
-                  </Tab>
-                </Tabs>
+                  ) : (
+                    <EmptyState 
+                      title="No FAQs Available"
+                      description="There are currently no frequently asked questions for this tour."
+                      icon="file"
+                      size="medium"
+                    />
+                  )}
+                </section>
 
+                {hasReviewVideos ? (
+                  <section id="honest-reviews" className="tour-section">
+                    <div className='tour-listing-details__content__item'>
+                      <div className="mb-4">
+                        <h4 className='tour-listing-details__title mb-2'>Reflective & Honest Reviews</h4>
+                        <p className="tour-reviews-subtitle">Watch real experiences from travelers on YouTube.</p>
+                      </div>
+                      <div className="row gutter-y-30">
+                        {(reviewVideos || []).map((v, idx) => (
+                          <div className="col-lg-6" key={`${v.videoId}-${idx}`}>
+                            <div
+                              className="bg-white border rounded-3 overflow-hidden"
+                              style={{ boxShadow: '0 8px 18px rgba(0,0,0,0.06)' }}
+                            >
+                              <div className="p-3 border-bottom">
+                                <div className="fw-semibold" style={{ color: '#1a1a1a' }}>{v.title || 'Review'}</div>
+                              </div>
+                              <div className="ratio ratio-16x9">
+                                <iframe
+                                  src={`https://www.youtube-nocookie.com/embed/${v.videoId}`}
+                                  title={v.title || 'YouTube review'}
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                  allowFullScreen
+                                />
+                              </div>
+                              <div className="p-3">
+                                <a href={v.url} target="_blank" rel="noreferrer" className="text-decoration-none">
+                                  Open on YouTube
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                ) : null}
+
+                {/* Reviews Section */}
+                <section id="reviews" className="tour-section">
+                  <TourReviews2 
+                    comments={comments} 
+                    tourId={id || ""} 
+                    onSubmit={handleCommentSubmit}
+                    totalReviews={comments.length}
+                    averageRating={4.9} 
+                  />
+                </section>
+                
                 {/* Related Tours Section */}
                 <RelatedTours relatedTours={relatedTours} onVideoClick={handleVideoClick} />
               </div>

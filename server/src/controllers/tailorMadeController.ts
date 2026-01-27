@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import TailorMadeRequest from '../models/TailorMadeRequest';
+import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
 
 /**
  * @desc    Create a new tailor-made travel request
@@ -25,6 +26,15 @@ export const createTailorMadeRequest = async (
 
     // Create tailor-made request
     const tailorMadeRequest = await TailorMadeRequest.create(req.body);
+
+    emitAdminNotification({
+      type: 'tailorMade',
+      title: `Tailor-made request from ${tailorMadeRequest.fullName}`,
+      entityId: tailorMadeRequest._id.toString(),
+      createdAt: tailorMadeRequest.createdAt?.toISOString?.() || new Date().toISOString(),
+    });
+
+    void emitDashboardStatsUpdate();
 
     res.status(201).json({
       success: true,
@@ -150,6 +160,8 @@ export const updateTailorMadeRequest = async (
 
     await request.save();
 
+    void emitDashboardStatsUpdate();
+
     res.status(200).json({
       success: true,
       message: 'Travel request updated successfully',
@@ -185,6 +197,8 @@ export const deleteTailorMadeRequest = async (
     }
 
     await request.deleteOne();
+
+    void emitDashboardStatsUpdate();
 
     res.status(200).json({
       success: true,

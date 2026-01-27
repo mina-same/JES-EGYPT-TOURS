@@ -7,6 +7,11 @@ import {
   ChevronDown, Mail, Phone
 } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
+import StatCard from '@/components/common/StatCard/StatCard';
+import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
+import BulkActionsBar from '@/components/admin/BulkActionsBar';
+import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
+import { useToast } from '@/hooks/use-toast';
 import './tailor-made.css';
 
 interface TailorMadeRequest {
@@ -38,6 +43,7 @@ interface TailorMadeRequest {
 }
 
 const TailorMadePage: React.FC = () => {
+  const { toast } = useToast();
   const [requests, setRequests] = useState<TailorMadeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,6 +53,10 @@ const TailorMadePage: React.FC = () => {
   const [updating, setUpdating] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [newStatus, setNewStatus] = useState('');
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteIds, setDeleteIds] = useState<string[]>([]);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -123,22 +133,62 @@ const TailorMadePage: React.FC = () => {
   };
 
   const handleDeleteRequest = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this request?')) return;
-    
+    setDeleteIds([id]);
+    setDeleteModalOpen(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedRowKeys.length === 0) return;
+    setDeleteIds(selectedRowKeys);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteIds.length === 0) return;
+    setDeleteBusy(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(API_ENDPOINTS.TAILOR_MADE.BY_ID(id), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        fetchRequests();
+      if (!token) {
+        throw new Error('Missing auth token');
       }
-    } catch (error) {
-      console.error('Error deleting request:', error);
+
+      const results = await Promise.all(
+        deleteIds.map((id) =>
+          fetch(API_ENDPOINTS.TAILOR_MADE.BY_ID(id), {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        )
+      );
+
+      const failed = results.find((r) => !r.ok);
+      if (failed) {
+        throw new Error('Failed to delete request(s)');
+      }
+
+      toast({
+        title: 'Deleted',
+        description:
+          deleteIds.length === 1
+            ? 'Request deleted successfully.'
+            : `${deleteIds.length} requests deleted successfully.`,
+        variant: 'success',
+      });
+      setSelectedRowKeys([]);
+      setDeleteModalOpen(false);
+      setDeleteIds([]);
+      fetchRequests();
+    } catch (err: any) {
+      const msg = err.message || 'Failed to delete request(s)';
+      toast({
+        title: 'Delete failed',
+        description: msg,
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -178,6 +228,84 @@ const TailorMadePage: React.FC = () => {
     completed: requests.filter(r => r.status === 'completed').length,
   };
 
+  const columns: Array<AdminTableColumn<TailorMadeRequest>> = [
+    {
+      header: 'Customer',
+      render: (request) => (
+        <div className="customer-info">
+          <div className="customer-name">{request.fullName}</div>
+          <div className="customer-details">
+            <Mail size={14} /> {request.email}
+          </div>
+          {request.phone && (
+            <div className="customer-details">
+              <Phone size={14} /> {request.phone}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Travel Details',
+      render: (request) => (
+        <div className="travel-info">
+          <div className="travel-dates">
+            <Calendar size={14} />
+            {request.startMonth} {request.startYear} - {request.endMonth} {request.endYear}
+          </div>
+          <div className="travel-location">
+            <MapPin size={14} /> {request.country}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Travelers',
+      render: (request) => (
+        <div className="travelers-count">
+          <Users size={14} />
+          {request.adults}A {request.children > 0 && `${request.children}C`} {request.infants > 0 && `${request.infants}I`}
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      render: (request) => (
+        <span className={`status-badge ${getStatusColor(request.status)}`}>
+          {getStatusIcon(request.status)}
+          {request.status.replace('-', ' ')}
+        </span>
+      ),
+    },
+    {
+      header: 'Date',
+      render: (request) => (
+        <div className="date-info">{new Date(request.createdAt).toLocaleDateString()}</div>
+      ),
+    },
+    {
+      header: 'Actions',
+      render: (request) => (
+        <div className="action-buttons">
+          <button
+            className="btn-icon btn-view"
+            onClick={() => handleViewDetails(request)}
+            title="View Details"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            className="btn-icon btn-delete"
+            onClick={() => handleDeleteRequest(request._id)}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="tailor-made-admin">
       {/* Header */}
@@ -194,34 +322,10 @@ const TailorMadePage: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-total">
-            <Users size={20} />
-          </div>
-          <div className="stat-value">{stats.total}</div>
-          <div className="stat-label">Total Requests</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-pending">
-            <Clock size={20} />
-          </div>
-          <div className="stat-value">{stats.pending}</div>
-          <div className="stat-label">Pending</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-progress">
-            <Loader2 size={20} />
-          </div>
-          <div className="stat-value">{stats.inProgress}</div>
-          <div className="stat-label">In Progress</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-completed">
-            <CheckCircle size={20} />
-          </div>
-          <div className="stat-value">{stats.completed}</div>
-          <div className="stat-label">Completed</div>
-        </div>
+        <StatCard icon={Users} value={stats.total} label="Total Requests" iconVariant="total" />
+        <StatCard icon={Clock} value={stats.pending} label="Pending" iconVariant="pending" />
+        <StatCard icon={Loader2} value={stats.inProgress} label="In Progress" iconVariant="progress" />
+        <StatCard icon={CheckCircle} value={stats.completed} label="Completed" iconVariant="completed" />
       </div>
 
       {/* Filters */}
@@ -248,99 +352,51 @@ const TailorMadePage: React.FC = () => {
         </div>
       </div>
 
+      <BulkActionsBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        onDeleteSelected={handleBulkDelete}
+        deleteDisabled={loading}
+      />
+
       {/* Requests Table */}
       <div className="requests-table-container">
-        {loading ? (
-          <div className="loading-state">
-            <Loader2 size={48} className="spinner" />
-            <p>Loading requests...</p>
-          </div>
-        ) : filteredRequests.length === 0 ? (
-          <div className="empty-state">
-            <MessageSquare size={64} />
-            <h3>No requests found</h3>
-            <p>There are no tailor-made requests matching your criteria.</p>
-          </div>
-        ) : (
-          <table className="requests-table">
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Travel Details</th>
-                <th>Travelers</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRequests.map((request) => (
-                <tr key={request._id}>
-                  <td>
-                    <div className="customer-info">
-                      <div className="customer-name">{request.fullName}</div>
-                      <div className="customer-details">
-                        <Mail size={14} /> {request.email}
-                      </div>
-                      {request.phone && (
-                        <div className="customer-details">
-                          <Phone size={14} /> {request.phone}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="travel-info">
-                      <div className="travel-dates">
-                        <Calendar size={14} />
-                        {request.startMonth} {request.startYear} - {request.endMonth} {request.endYear}
-                      </div>
-                      <div className="travel-location">
-                        <MapPin size={14} /> {request.country}
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="travelers-count">
-                      <Users size={14} />
-                      {request.adults}A {request.children > 0 && `${request.children}C`} {request.infants > 0 && `${request.infants}I`}
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${getStatusColor(request.status)}`}>
-                      {getStatusIcon(request.status)}
-                      {request.status.replace('-', ' ')}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="date-info">
-                      {new Date(request.createdAt).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="btn-icon btn-view"
-                        onClick={() => handleViewDetails(request)}
-                        title="View Details"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button 
-                        className="btn-icon btn-delete"
-                        onClick={() => handleDeleteRequest(request._id)}
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <AdminTable<TailorMadeRequest>
+          data={filteredRequests}
+          columns={columns}
+          getRowKey={(row) => row._id}
+          enableSelection
+          selectedRowKeys={selectedRowKeys}
+          onSelectedRowKeysChange={setSelectedRowKeys}
+          loading={loading}
+          loadingNode={
+            <div className="loading-state">
+              <Loader2 size={48} className="spinner" />
+              <p>Loading requests...</p>
+            </div>
+          }
+          emptyNode={
+            <div className="empty-state">
+              <MessageSquare size={64} />
+              <h3>No requests found</h3>
+              <p>There are no tailor-made requests matching your criteria.</p>
+            </div>
+          }
+          tableClassName="requests-table"
+        />
       </div>
+
+      <ConfirmDeleteModal
+        open={deleteModalOpen}
+        onOpenChange={(open) => {
+          if (deleteBusy) return;
+          setDeleteModalOpen(open);
+          if (!open) setDeleteIds([]);
+        }}
+        count={deleteIds.length}
+        onConfirm={confirmDelete}
+        confirmDisabled={deleteBusy}
+      />
 
       {/* Modal */}
       {showModal && selectedRequest && (

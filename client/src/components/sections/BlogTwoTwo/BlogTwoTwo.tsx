@@ -53,13 +53,28 @@ const BlogTwoTwo = () => {
   const featuredViewModel = useMemo(() => {
     return featuredBlogs.map((post) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+      const image =
+        typeof post.featuredImage === "string"
+          ? post.featuredImage
+          : post.featuredImage?.url || "https://placehold.co/600x400?text=Image";
+      const imageAlt =
+        typeof post.featuredImage === "object" && post.featuredImage?.alt
+          ? post.featuredImage.alt
+          : post.title;
+
+      const authorName =
+        post.author && typeof post.author === "object"
+          ? (post.author as any).name || "Admin"
+          : "Admin";
+
       return {
         id: post._id,
         title: post.title,
-        image: post.featuredImage,
+        image,
+        imageAlt,
         day,
         month,
-        author: typeof post.author === "object" ? post.author.name : "Admin",
+        author: authorName,
         category: post.tags && post.tags.length > 0 ? post.tags[0] : "",
         link: `/blogs/${post._id}`,
       };
@@ -105,11 +120,11 @@ const BlogTwoTwo = () => {
                 <div className='blog-card-two__image'>
                   <Image
                     src={post.image}
-                    alt={post.title}
+                    alt={post.imageAlt || post.title}
                     className='img-fluid'
                     width={600}
                     height={450}
-                    style={{ width: "100%", height: "auto" }}
+                    style={{ width: "100%", height: "260px", objectFit: "cover" }}
                   />
                   <div className='blog-card-two__date'>
                     <span className='blog-card-two__date__day'>{post.day}</span>

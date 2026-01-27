@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+ 'use client';
+
+ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export interface ImageData {
   url: string;
@@ -35,21 +38,87 @@ export default function ImageUpload({
   maxImages,
 }: ImageUploadProps) {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const [selectedFileInfo, setSelectedFileInfo] = useState<Record<number, string>>({});
+
+  const MAX_FILE_BYTES = 2 * 1024 * 1024;
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    return `${mb.toFixed(2)} MB`;
+  };
+
+  const validateFileSize = (file: File) => {
+    if (file.size > MAX_FILE_BYTES) {
+      const message = `Image is too large (${formatBytes(file.size)}). Max allowed is 2.00 MB.`;
+      setUploadError(message);
+      toast({
+        title: 'Upload blocked',
+        description: message,
+        variant: 'destructive',
+      });
+      return false;
+    }
+    return true;
+  };
 
   const handleFileUpload = async (file: File, index: number) => {
+    setUploadError(null);
+    setSelectedFileInfo(prev => ({ ...prev, [index]: `${file.name} (${formatBytes(file.size)})` }));
+
+    if (!validateFileSize(file)) {
+      return;
+    }
+
     setUploadingIndex(index);
     try {
       const result = await onUpload(file, index);
-      if (result) {
+      
+      if (result && result.url) {
         onUpdate(index, 'url', result.url);
-        onUpdate(index, 'fileName', result.fileName);
+        if (result.fileName) {
+          onUpdate(index, 'fileName', result.fileName);
+        }
+        toast({
+          title: "Upload successful",
+          description: `${file.name} (${formatBytes(file.size)}) uploaded successfully.`,
+        });
+      } else {
+        console.error('Upload failed: missing image URL from server.', result);
+        setUploadError('Upload failed: missing image URL from server.');
+        toast({
+          title: "Upload failed",
+          description: "Image upload failed. Please try again.",
+          variant: "destructive",
+        });
       }
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setUploadError(err?.message || 'Upload failed. Please try again.');
+      toast({
+        title: "Upload error",
+        description: err?.message || 'An error occurred during upload.',
+        variant: "destructive",
+      });
     } finally {
       setUploadingIndex(null);
     }
   };
 
   const canAddMore = maxImages ? images.length < maxImages : true;
+
+  // Dynamic grid classes based on number of images
+  const getGridClasses = () => {
+    if (images.length === 0) return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+    if (images.length === 1) return 'grid grid-cols-1 gap-4';
+    if (images.length === 2) return 'grid grid-cols-1 md:grid-cols-2 gap-4';
+    return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+  };
 
   return (
     <div className="space-y-4">
@@ -59,8 +128,13 @@ export default function ImageUpload({
           <p className="text-sm text-muted-foreground mt-1">{description}</p>
         )}
       </div>
+      {uploadError && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {uploadError}
+        </div>
+      )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={getGridClasses()}>
         {images.map((image, index) => (
           <div key={index} className="group relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-colors">
             {/* Remove Button */}
@@ -69,7 +143,14 @@ export default function ImageUpload({
               variant="destructive"
               size="icon"
               className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg z-10"
-              onClick={() => onRemove(index)}
+              onClick={() => {
+                setSelectedFileInfo(prev => {
+                  const next = { ...prev };
+                  delete next[index];
+                  return next;
+                });
+                onRemove(index);
+              }}
             >
               <X className="h-3 w-3" />
             </Button>
@@ -126,6 +207,10 @@ export default function ImageUpload({
                 )}
                 <span className="text-sm text-gray-500">Click to upload</span>
                 <span className="text-xs text-gray-400 mt-1">or drag and drop</span>
+                <span className="text-[11px] text-gray-400 mt-1">
+                  Max 2MB
+                  {selectedFileInfo[index] ? ` • Selected: ${selectedFileInfo[index]}` : ''}
+                </span>
               </label>
             )}
 

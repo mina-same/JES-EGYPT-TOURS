@@ -3,8 +3,8 @@ import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import Layout from "@/components/layout/Layout/Layout";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FaqSection from "@/components/sections/FaqSection/FaqSection";
-import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
-import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
+import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
+import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 
 export const metadata = {
   title: "FAQS || Gotur || Travel & Tour NextJS Template",
@@ -18,9 +18,9 @@ export const metadata = {
 export default function FaqPage() {
   return (
     <Layout>
-      <TopbarOne />
-      <HeaderInner />
-      <HeaderInnerCloned/>
+     <TopbarOne/>
+      <HeaderOne linkTheme="light" />
+      <HeaderOneCloned />
       <PageHeader title='FAQS' subTitle='FAQS' />
       <FaqSection />
       <FooterOne />

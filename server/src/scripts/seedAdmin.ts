@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import User from '../models/User';
+import { DEFAULT_ADMIN_PERMISSIONS } from '../permissions';
 
 // Load environment variables
 dotenv.config();
@@ -15,18 +16,25 @@ const seedAdmin = async () => {
     const existingAdmin = await User.findOne({ email: 'admin@jesegypttours.com' });
     
     if (existingAdmin) {
-      console.log('⚠️  Admin user already exists');
+      existingAdmin.role = 'superadmin' as any;
+      (existingAdmin as any).permissions = (existingAdmin as any).permissions || DEFAULT_ADMIN_PERMISSIONS;
+      existingAdmin.isActive = true;
+      await existingAdmin.save();
+
+      console.log('✅ Existing admin promoted to superadmin');
       console.log('Email:', existingAdmin.email);
       console.log('Name:', existingAdmin.name);
+      console.log('🛡️  Role:', existingAdmin.role);
       process.exit(0);
     }
 
-    // Create admin user
+    // Create superadmin user
     const admin = await User.create({
       name: 'Admin',
       email: 'admin@jesegypttours.com',
       password: 'admin123',
-      role: 'admin',
+      role: 'superadmin',
+      permissions: DEFAULT_ADMIN_PERMISSIONS,
       isActive: true,
     });
 

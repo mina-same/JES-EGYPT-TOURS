@@ -10,9 +10,9 @@ import { updateUserValidation } from '../middleware/validation';
 
 const router = express.Router();
 
-// All routes are protected and admin only
+// All routes are protected and superadmin only
 router.use(protect);
-router.use(authorize('admin'));
+router.use(authorize('superadmin'));
 
 router.route('/').get(getAllUsers);
 

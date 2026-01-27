@@ -113,41 +113,71 @@ export default function DetailsTab({
           <CardDescription>Additional information, policies, or warnings</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {formData.notes?.map((note: any, index: number) => (
-            <div key={index} className="p-4 border rounded-lg space-y-3">
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Note {index + 1}</h4>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeTourNote(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+          {(!formData.notes || formData.notes.length === 0) ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-lg bg-muted/10">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Plus className="w-6 h-6 text-primary" />
               </div>
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input
-                  value={note.title}
-                  onChange={(e) => updateTourNote(index, 'title', e.target.value)}
-                  placeholder="Note Title (e.g., Visa Info)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Content</Label>
-                <RichTextEditor
-                  value={note.text}
-                  onChange={(value) => updateTourNote(index, 'text', value)}
-                  placeholder="Note content..."
-                />
-              </div>
+              <h3 className="text-lg font-semibold">No notes yet</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
+                Add important notes like policies, warnings, meeting point details, or special requirements.
+              </p>
+              <Button type="button" onClick={addTourNote}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Note
+              </Button>
             </div>
-          ))}
-          <Button type="button" onClick={addTourNote} variant="outline" className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Note
-          </Button>
+          ) : (
+            <div className="space-y-4">
+              {formData.notes.map((note: any, index: number) => (
+                <div key={index} className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold truncate">
+                        {note?.title || `Note ${index + 1}`}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Additional information, policies, or warnings
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      onClick={() => removeTourNote(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Title</Label>
+                      <Input
+                        value={note.title}
+                        onChange={(e) => updateTourNote(index, 'title', e.target.value)}
+                        placeholder="Note Title (e.g., Visa Info)"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Content</Label>
+                      <RichTextEditor
+                        value={note.text}
+                        onChange={(value) => updateTourNote(index, 'text', value)}
+                        placeholder="Note content..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <Button type="button" onClick={addTourNote} variant="outline" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Note
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

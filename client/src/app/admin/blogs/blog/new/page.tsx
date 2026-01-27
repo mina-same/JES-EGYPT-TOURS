@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
+import { API_URL } from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +21,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
+import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
+import TagInput from '@/components/admin/TagInput';
+import { useToast } from '@/hooks/use-toast';
 
 // Tab definitions
 const TABS = [
@@ -28,8 +32,21 @@ const TABS = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
+// Predefined tag suggestions
+const TAG_SUGGESTIONS = [
+  'Travel', 'Egypt', 'Pyramids', 'Luxor', 'Cairo', 'Giza', 'Ancient Egypt', 'History',
+  'UNESCO', 'Culture', 'Adventure', 'Tours', 'Safari', 'Desert', 'Nile', 'Red Sea',
+  'Diving', 'Snorkeling', 'Beach', 'Resort', 'Hotel', 'Luxury', 'Budget', 'Family',
+  'Solo Travel', 'Honeymoon', 'Photography', 'Food', 'Shopping', 'Museums', 'Temples',
+  'Valley of the Kings', 'Abu Simbel', 'Aswan', 'Alexandria', 'Sharm El Sheikh',
+  'Hurghada', 'Dahab', 'Marsa Alam', 'Siwa', 'Oasis', 'Egyptian Museum',
+  'Islamic Cairo', 'Coptic Cairo', 'Khan el-Khalili', 'Egyptian Cuisine',
+  'Hieroglyphics', 'Pharaohs', 'Mummies', 'Archaeology', 'Antiquities'
+];
+
 export default function NewBlogPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('content');
@@ -54,7 +71,6 @@ export default function NewBlogPage() {
     tags: [],
     status: 'draft',
     isFeatured: false,
-    commentsEnabled: true,
     metaTitle: '',
     metaDescription: '',
     metaKeywords: [],
@@ -118,78 +134,31 @@ export default function NewBlogPage() {
     });
   };
 
-  // Handle tags
-  const handleTagsChange = (value: string) => {
-    const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag);
-    setFormData(prev => ({
-      ...prev,
-      tags,
-    }));
-  };
-
-  // Handle keywords
-  const handleKeywordsChange = (value: string) => {
-    const keywords = value.split(',').map(k => k.trim()).filter(k => k);
-    setFormData(prev => ({
-      ...prev,
-      metaKeywords: keywords,
-    }));
-  };
-
-  // Handle content blocks
-  const addContentBlock = (type: ContentBlock['type']) => {
-    const newBlock: ContentBlock = {
-      type,
-      content: type === 'html' ? '' : undefined,
-      images: type === 'imageRow' ? [] : undefined,
-      image: type === 'image' ? '' : undefined,
-      url: type === 'video' ? '' : undefined,
-      alt: type === 'image' ? '' : undefined,
-      caption: type === 'image' || type === 'video' ? '' : undefined,
-    };
-
-    setFormData(prev => ({
-      ...prev,
-      contentBlocks: [...prev.contentBlocks, newBlock],
-    }));
-  };
-
-  const removeContentBlock = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      contentBlocks: prev.contentBlocks.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateContentBlock = (index: number, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      contentBlocks: prev.contentBlocks.map((block, i) => 
-        i === index ? { ...block, [field]: value } : block
-      ),
-    }));
-  };
-
-
   // Handle Image Upload
-  const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
+  const handleImageUpload = async (file: File, index?: number) => {
+    console.log('🔍 handleImageUpload called:', { file: file.name, index });
+    
     const formDataUpload = new FormData();
-    formDataUpload.append('file', file);
+    formDataUpload.append('image', file);
 
     try {
-      const response = await fetch('http://localhost:5001/api/upload', {
+      console.log('🔍 Starting upload to:', `${API_URL}/upload`);
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formDataUpload,
       });
       const data = await response.json();
-      if (data.success) {
-        return { url: data.data.url, fileName: data.data.fileName };
+      console.log('🔍 Upload response:', data);
+      
+      if (data.success && data.data && data.data.url) {
+        console.log('🔍 Upload successful:', data.data);
+        return { url: data.data.url, fileName: data.data.fileName || '' };
       } else {
-        console.error('Upload failed:', data.error);
+        console.error('🔍 Upload failed:', data.error || 'No URL in response');
         return null;
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('🔍 Upload error:', error);
       return null;
     }
   };
@@ -208,15 +177,41 @@ export default function NewBlogPage() {
       // Remove empty content blocks
       cleanData.contentBlocks = cleanData.contentBlocks.filter(block => {
         if (block.type === 'html') return block.content?.trim();
+        if (block.type === 'blockquote') return block.content?.trim();
         if (block.type === 'image') return block.image?.trim();
         if (block.type === 'video') return block.url?.trim();
-        if (block.type === 'imageRow') return block.images && block.images.length > 0;
+        if (block.type === 'imageRow') return block.images && block.images.length > 0 && block.images.some(img => img.url?.trim());
         return true;
       });
 
+      // Normalize imageRow images to satisfy backend validators (url + alt required)
+      cleanData.contentBlocks = cleanData.contentBlocks.map((block: any) => {
+        if (block?.type !== 'imageRow') return block;
+
+        const images = Array.isArray(block.images) ? block.images : [];
+        const normalizedImages = images
+          .filter((img: any) => img?.url?.trim())
+          .map((img: any) => ({
+            ...img,
+            url: String(img.url).trim(),
+            alt: (img.alt && String(img.alt).trim()) || cleanData.title || 'Image',
+          }));
+
+        return {
+          ...block,
+          images: normalizedImages,
+        };
+      });
+
       // Remove empty arrays
-      if (!cleanData.tags?.length) cleanData.tags = [];
-      if (!cleanData.metaKeywords?.length) cleanData.metaKeywords = [];
+      cleanData.tags = Array.isArray(cleanData.tags)
+        ? cleanData.tags.map((t: any) => String(t).trim()).filter(Boolean)
+        : [];
+
+      cleanData.metaKeywords = Array.isArray(cleanData.metaKeywords)
+        ? cleanData.metaKeywords.map((k: any) => String(k).trim()).filter(Boolean)
+        : [];
+
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
 
@@ -259,6 +254,9 @@ export default function NewBlogPage() {
       // Remove empty metaImage if no URL
       if (!cleanData.metaImage?.url?.trim()) {
         delete cleanData.metaImage;
+      } else if (!cleanData.metaImage.fileName?.trim()) {
+        const urlParts = cleanData.metaImage.url.split('/');
+        cleanData.metaImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
       }
 
       // Set author to current user (this should come from auth context)
@@ -268,12 +266,26 @@ export default function NewBlogPage() {
       const response = await blogAPI.create(cleanData);
       
       if (response.success) {
-        router.push('/admin/blogs');
+        toast({
+          title: "Blog post created",
+          description: `"${cleanData.title}" has been created successfully.`,
+        });
+        router.push('/admin/blogs/blog');
       } else {
         setError(response.error || 'Failed to create blog post');
+        toast({
+          title: "Creation failed",
+          description: response.error || 'Failed to create blog post',
+          variant: "destructive",
+        });
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');
+      toast({
+        title: "Error",
+        description: err.message || 'An error occurred while creating the blog post',
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -380,13 +392,14 @@ export default function NewBlogPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="tags">Tags *</Label>
-                      <Input
-                        id="tags"
-                        value={formData.tags.join(', ')}
-                        onChange={(e) => handleTagsChange(e.target.value)}
-                        placeholder="travel, egypt, tips (comma-separated)"
+                      <TagInput
+                        tags={formData.tags}
+                        onChange={(tags) => handleChange('tags', tags)}
+                        placeholder="Add a tag and press Enter..."
+                        suggestions={TAG_SUGGESTIONS}
+                        maxTags={15}
                       />
-                      <p className="text-sm text-muted-foreground">Separate tags with commas. Tags are used for filtering and searching.</p>
+                      <p className="text-sm text-muted-foreground">Type and press Enter to add tags. Tags are used for filtering and searching.</p>
                     </div>
 
                     <div className="flex items-center justify-between space-x-2 p-4 border rounded-lg">
@@ -405,125 +418,26 @@ export default function NewBlogPage() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>Content Blocks</CardTitle>
-                      <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => addContentBlock('html')}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Text
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => addContentBlock('image')}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Image
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => addContentBlock('video')}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Video
-                        </Button>
-                      </div>
-                    </div>
-                    <CardDescription>Build your blog content with different types of blocks</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {formData.contentBlocks.map((block, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-4 bg-muted/20">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium capitalize">{block.type} Block</h4>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => removeContentBlock(index)}
-                            className="h-8 w-8"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        
-                        {block.type === 'html' && (
-                          <div className="space-y-2">
-                            <Label>Content</Label>
-                            <RichTextEditor
-                              value={block.content || ''}
-                              onChange={(value) => updateContentBlock(index, 'content', value)}
-                              placeholder="Write your content here..."
-                              className="min-h-[200px]"
-                            />
-                          </div>
-                        )}
-
-                        {block.type === 'image' && (
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label>Image URL</Label>
-                              <div className="flex gap-2">
-                                <Input
-                                  value={block.image || ''}
-                                  onChange={(e) => updateContentBlock(index, 'image', e.target.value)}
-                                  placeholder="https://example.com/image.jpg"
-                                />
-                                <Input
-                                  type="file"
-                                  className="w-[100px] text-xs"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      const result = await handleImageUpload(file);
-                                      if (result) {
-                                        updateContentBlock(index, 'image', result.url);
-                                      }
-                                    }
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <div className="space-y-2">
-                                <Label>Alt Text</Label>
-                                <Input
-                                  value={block.alt || ''}
-                                  onChange={(e) => updateContentBlock(index, 'alt', e.target.value)}
-                                  placeholder="Image description"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Caption</Label>
-                                <Input
-                                  value={block.caption || ''}
-                                  onChange={(e) => updateContentBlock(index, 'caption', e.target.value)}
-                                  placeholder="Image caption"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {block.type === 'video' && (
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label>Video URL</Label>
-                              <Input
-                                value={block.url || ''}
-                                onChange={(e) => updateContentBlock(index, 'url', e.target.value)}
-                                placeholder="https://youtube.com/watch?v=..."
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Caption</Label>
-                              <Input
-                                value={block.caption || ''}
-                                onChange={(e) => updateContentBlock(index, 'caption', e.target.value)}
-                                placeholder="Video caption"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                <ContentBlockEditor
+                  blocks={formData.contentBlocks
+                    .filter(block => ['html', 'blockquote', 'imageRow'].includes(block.type))
+                    .map((block, index) => ({
+                      id: block.id || `block-${index}`,
+                      type: block.type as 'html' | 'blockquote' | 'imageRow',
+                      content: block.content,
+                      images: block.type === 'imageRow' ? (block.images || []).map(img => ({
+                        url: img.url,
+                        alt: img.alt || '',
+                        title: img.title || '',
+                        fileName: img.fileName || ''
+                      })) : undefined,
+                      title: block.type === 'blockquote' ? block.title : undefined,
+                    }))}
+                  onChange={(updatedBlocks) => {
+                    handleChange('contentBlocks', updatedBlocks);
+                  }}
+                  onImageUpload={handleImageUpload}
+                />
               </div>
             )}
 
@@ -557,13 +471,10 @@ export default function NewBlogPage() {
                         });
                       }}
                       onUpdate={(index, field, value) => {
-                        handleChange('featuredImage', {
-                          ...(formData.featuredImage || { url: '', fileName: '', title: '', alt: '' }),
-                          [field]: value,
-                        });
+                        handleChange(`featuredImage.${field}`, value);
                       }}
                       onUpload={async (file, index) => {
-                        return await handleImageUpload(file);
+                        return await handleImageUpload(file, index);
                       }}
                       title="Featured Image"
                       description="Main image for the blog post"
@@ -615,11 +526,47 @@ export default function NewBlogPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="metaKeywords">Meta Keywords</Label>
-                      <Input
-                        id="metaKeywords"
-                        value={formData.metaKeywords?.join(', ') || ''}
-                        onChange={(e) => handleKeywordsChange(e.target.value)}
-                        placeholder="keyword1, keyword2, keyword3"
+                      <TagInput
+                        tags={formData.metaKeywords || []}
+                        onChange={(tags) => handleChange('metaKeywords', tags)}
+                        placeholder="Add a keyword and press Enter..."
+                        suggestions={TAG_SUGGESTIONS}
+                        maxTags={10}
+                      />
+                      <p className="text-sm text-muted-foreground">Type and press Enter to add keywords for SEO.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Meta / Social Image</Label>
+                      <ImageUpload
+                        images={formData.metaImage ? [formData.metaImage as ImageData] : []}
+                        onAdd={() => {
+                          if (!formData.metaImage) {
+                            handleChange('metaImage', {
+                              url: '',
+                              fileName: '',
+                              title: '',
+                              alt: '',
+                            });
+                          }
+                        }}
+                        onRemove={() => {
+                          handleChange('metaImage', {
+                            url: '',
+                            fileName: '',
+                            title: '',
+                            alt: '',
+                          });
+                        }}
+                        onUpdate={(index, field, value) => {
+                          handleChange(`metaImage.${field}`, value);
+                        }}
+                        onUpload={async (file, index) => {
+                          return await handleImageUpload(file, index);
+                        }}
+                        title="Meta / Social Image"
+                        description="Used for SEO and social sharing previews"
+                        maxImages={1}
                       />
                     </div>
 
@@ -680,15 +627,6 @@ export default function NewBlogPage() {
                         />
                       </div>
                     )}
-
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="commentsEnabled"
-                        checked={formData.commentsEnabled}
-                        onCheckedChange={(checked) => handleChange('commentsEnabled', checked)}
-                      />
-                      <Label htmlFor="commentsEnabled">Enable Comments</Label>
-                    </div>
                   </CardContent>
                 </Card>
               </div>

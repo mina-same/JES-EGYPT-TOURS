@@ -12,18 +12,35 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import tailorMadeRoutes from './routes/tailorMadeRoutes';
+import contactRoutes from './routes/contactRoutes';
 import blogRoutes from './routes/blogRoutes';
 import tourRoutes from './routes/tourRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import uploadRoutes from './routes/uploadRoutes';
+import reviewRoutes from './routes/reviewRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app: Application = express();
 
 // CORS configuration - MUST be before helmet
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:3000',
+  'http://192.168.1.33:3000',
+].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow non-browser tools (like curl/postman) that may not send an Origin header
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -39,9 +56,12 @@ app.use(helmet({
 }));
 
 // Rate limiting
+const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+  max: isDev
+    ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100') * 20
+    : parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -76,10 +96,12 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tailor-made', tailorMadeRoutes);
+app.use('/api/contact', contactRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

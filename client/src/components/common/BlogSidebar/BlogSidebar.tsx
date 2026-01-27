@@ -59,12 +59,21 @@ const BlogSidebar: React.FC = () => {
         month: "short",
         day: "2-digit",
       });
+      const image =
+        typeof post.featuredImage === "string"
+          ? post.featuredImage
+          : post.featuredImage?.url || "https://placehold.co/600x400?text=Image";
+      const imageAlt =
+        typeof post.featuredImage === "object" && post.featuredImage?.alt
+          ? post.featuredImage.alt
+          : post.title;
 
       return {
         id: post._id,
         title: post.title,
         date: dateLabel,
-        image: post.featuredImage,
+        image,
+        imageAlt,
         link: `/blogs/${post._id}`,
       };
     });
@@ -90,7 +99,7 @@ const BlogSidebar: React.FC = () => {
                   >
                     <Image
                       src={post.image}
-                      alt={post.title}
+                  alt={post.imageAlt || post.title}
                       width={600}
                       height={400}
                       style={{ width: "100%", height: "auto", objectFit: "cover" }}

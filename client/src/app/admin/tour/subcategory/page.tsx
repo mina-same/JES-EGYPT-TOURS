@@ -11,10 +11,16 @@ import {
   XCircle, FolderTree, Tag
 } from 'lucide-react';
 import Image from 'next/image';
+import StatCard from '@/components/common/StatCard/StatCard';
+import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
+import BulkActionsBar from '@/components/admin/BulkActionsBar';
+import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
+import { useToast } from '@/hooks/use-toast';
 import './subcategory.css';
 
 export default function TourSubcategoriesPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [subcategories, setSubcategories] = useState<ITourSubcategory[]>([]);
   const [categories, setCategories] = useState<ITourCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +31,10 @@ export default function TourSubcategoriesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteIds, setDeleteIds] = useState<string[]>([]);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
 
   // Fetch categories for filter
@@ -81,21 +91,50 @@ export default function TourSubcategoriesPage() {
 
   // Delete subcategory
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this subcategory?')) return;
+    setDeleteIds([id]);
+    setDeleteModalOpen(true);
+  };
 
+  const handleBulkDelete = () => {
+    if (selectedRowKeys.length === 0) return;
+    setDeleteIds(selectedRowKeys);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteIds.length === 0) return;
+    setDeleteBusy(true);
+    setDeleting(deleteIds.length === 1 ? deleteIds[0] : 'bulk');
     try {
-      setDeleting(id);
-      const response = await tourSubcategoryAPI.delete(id);
-      
-      if (response.success) {
-        setSubcategories(subcategories.filter(s => s._id !== id));
-      } else {
-        setError(response.error || 'Failed to delete subcategory');
+      const results = await Promise.all(deleteIds.map((id) => tourSubcategoryAPI.delete(id)));
+      const failed = results.find((r: any) => !r?.success);
+      if (failed) {
+        throw new Error((failed as any).error || 'Failed to delete subcategory(ies)');
       }
+
+      toast({
+        title: 'Deleted',
+        description:
+          deleteIds.length === 1
+            ? 'Subcategory deleted successfully.'
+            : `${deleteIds.length} subcategories deleted successfully.`,
+        variant: 'success',
+      });
+      setSelectedRowKeys([]);
+      setDeleteModalOpen(false);
+      setDeleteIds([]);
+      await fetchSubcategories();
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      const msg = err.message || 'Failed to delete subcategory(ies)';
+      setError(msg);
+      toast({
+        title: 'Delete failed',
+        description: msg,
+        variant: 'destructive',
+      });
     } finally {
       setDeleting(null);
+      setDeleteBusy(false);
     }
   };
 
@@ -146,6 +185,94 @@ export default function TourSubcategoriesPage() {
     subcategory.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const columns: Array<AdminTableColumn<ITourSubcategory>> = [
+    {
+      header: 'Subcategory',
+      render: (subcategory) => (
+        <div className="subcategory-info">
+          {subcategory.image?.url && (
+            <img
+              src={subcategory.image.url}
+              alt={subcategory.image.alt || subcategory.name}
+              className="subcategory-image"
+            />
+          )}
+          <div className="subcategory-details">
+            <div className="subcategory-name">{subcategory.name}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Category',
+      render: (subcategory) => (
+        <span className="category-badge">
+          <FolderTree size={14} />
+          {getCategoryName(subcategory.category)}
+        </span>
+      ),
+    },
+    {
+      header: 'Slug',
+      render: (subcategory) => (
+        <div className="subcategory-slug">/{subcategory.slug}</div>
+      ),
+    },
+    {
+      header: 'Status',
+      render: (subcategory) => (
+        <span className={`status-badge ${subcategory.isActive ? 'status-active' : 'status-inactive'}`}>
+          {subcategory.isActive ? (
+            <>
+              <CheckCircle size={14} /> Active
+            </>
+          ) : (
+            <>
+              <XCircle size={14} /> Inactive
+            </>
+          )}
+        </span>
+      ),
+    },
+    {
+      header: 'Tours',
+      render: (subcategory) => (
+        <div className="tours-count">
+          <Layers size={14} />
+          {subcategory.toursCount || 0}
+        </div>
+      ),
+    },
+    {
+      header: 'Actions',
+      render: (subcategory) => (
+        <div className="action-buttons">
+          <Link href={`/admin/tour/subcategory/new?id=${subcategory._id}`}>
+            <button className="btn-icon btn-edit" title="Edit">
+              <Edit2 size={16} />
+            </button>
+          </Link>
+          <button
+            className="btn-icon btn-toggle"
+            onClick={() => handleToggleStatus(subcategory._id)}
+            disabled={toggling === subcategory._id}
+            title={subcategory.isActive ? 'Deactivate' : 'Activate'}
+          >
+            {subcategory.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+          <button
+            className="btn-icon btn-delete"
+            onClick={() => handleDelete(subcategory._id)}
+            disabled={deleting === subcategory._id}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="tour-subcategory-admin">
       {/* Header */}
@@ -168,42 +295,10 @@ export default function TourSubcategoriesPage() {
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-total">
-            <Tag size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Total Subcategories</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-active">
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.active}</div>
-            <div className="stat-label">Active</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-inactive">
-            <XCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.inactive}</div>
-            <div className="stat-label">Inactive</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-tours">
-            <Layers size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.totalTours}</div>
-            <div className="stat-label">Total Tours</div>
-          </div>
-        </div>
+        <StatCard icon={Tag} value={stats.total} label="Total Subcategories" iconVariant="total" />
+        <StatCard icon={CheckCircle} value={stats.active} label="Active" iconVariant="active" />
+        <StatCard icon={XCircle} value={stats.inactive} label="Inactive" iconVariant="inactive" />
+        <StatCard icon={Layers} value={stats.totalTours} label="Total Tours" iconVariant="tours" />
       </div>
 
       {/* Filters */}
@@ -245,107 +340,55 @@ export default function TourSubcategoriesPage() {
         </div>
       )}
 
+      <BulkActionsBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        onDeleteSelected={handleBulkDelete}
+        deleteDisabled={loading}
+      />
+
       {/* Subcategories Table */}
       <div className="subcategories-table-container">
-        {loading ? (
-          <div className="loading-state">
-            <Loader2 size={48} className="spinner" />
-            <p>Loading subcategories...</p>
-          </div>
-        ) : filteredSubcategories.length === 0 ? (
-          <div className="empty-state">
-            <Tag size={64} />
-            <h3>No subcategories found</h3>
-            <p>There are no tour subcategories matching your criteria.</p>
-            <Link href="/admin/tour/subcategory/new" className="btn-add-new" style={{ marginTop: '16px' }}>
-              <Plus size={18} />
-              Create First Subcategory
-            </Link>
-          </div>
-        ) : (
-          <table className="subcategories-table">
-            <thead>
-              <tr>
-                <th>Subcategory</th>
-                <th>Category</th>
-                <th>Slug</th>
-                <th>Status</th>
-                <th>Tours</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSubcategories.map((subcategory) => (
-                <tr key={subcategory._id}>
-                  <td>
-                    <div className="subcategory-info">
-                      {subcategory.image?.url && (
-                        <img
-                          src={subcategory.image.url}
-                          alt={subcategory.image.alt || subcategory.name}
-                          className="subcategory-image"
-                        />
-                      )}
-                      <div className="subcategory-details">
-                        <div className="subcategory-name">{subcategory.name}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="category-badge">
-                      <FolderTree size={14} />
-                      {getCategoryName(subcategory.category)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="subcategory-slug">/{subcategory.slug}</div>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${subcategory.isActive ? 'status-active' : 'status-inactive'}`}>
-                      {subcategory.isActive ? (
-                        <><CheckCircle size={14} /> Active</>
-                      ) : (
-                        <><XCircle size={14} /> Inactive</>
-                      )}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="tours-count">
-                      <Layers size={14} />
-                      {subcategory.toursCount || 0}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <Link href={`/admin/tour/subcategory/new?id=${subcategory._id}`}>
-                        <button className="btn-icon btn-edit" title="Edit">
-                          <Edit2 size={16} />
-                        </button>
-                      </Link>
-                      <button
-                        className="btn-icon btn-toggle"
-                        onClick={() => handleToggleStatus(subcategory._id)}
-                        disabled={toggling === subcategory._id}
-                        title={subcategory.isActive ? 'Deactivate' : 'Activate'}
-                      >
-                        {subcategory.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                      <button
-                        className="btn-icon btn-delete"
-                        onClick={() => handleDelete(subcategory._id)}
-                        disabled={deleting === subcategory._id}
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <AdminTable<ITourSubcategory>
+          data={filteredSubcategories}
+          columns={columns}
+          getRowKey={(row) => row._id}
+          enableSelection
+          selectedRowKeys={selectedRowKeys}
+          onSelectedRowKeysChange={setSelectedRowKeys}
+          loading={loading}
+          loadingNode={
+            <div className="loading-state">
+              <Loader2 size={48} className="spinner" />
+              <p>Loading subcategories...</p>
+            </div>
+          }
+          emptyNode={
+            <div className="empty-state">
+              <Tag size={64} />
+              <h3>No subcategories found</h3>
+              <p>There are no tour subcategories matching your criteria.</p>
+              <Link href="/admin/tour/subcategory/new" className="btn-add-new" style={{ marginTop: '16px' }}>
+                <Plus size={18} />
+                Create First Subcategory
+              </Link>
+            </div>
+          }
+          tableClassName="subcategories-table"
+        />
       </div>
+
+      <ConfirmDeleteModal
+        open={deleteModalOpen}
+        onOpenChange={(open) => {
+          if (deleteBusy) return;
+          setDeleteModalOpen(open);
+          if (!open) setDeleteIds([]);
+        }}
+        count={deleteIds.length}
+        onConfirm={confirmDelete}
+        confirmDisabled={deleteBusy}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (

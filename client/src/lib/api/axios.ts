@@ -15,13 +15,22 @@ const axiosInstance = axios.create({
 // Request interceptor to add token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('authToken');
-    
+    if (typeof window === 'undefined') {
+      return config;
+    }
+
+    let token: string | null = null;
+    try {
+      token = window.localStorage.getItem('authToken');
+    } catch {
+      token = null;
+    }
+
     if (token) {
+      config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error) => {
@@ -38,26 +47,24 @@ axiosInstance.interceptors.response.use(
     // Handle 401 Unauthorized (Invalid/Expired Token)
     if (error.response?.status === 401) {
       // Clear token and redirect to login
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      
-      // Only redirect if not already on login page
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.removeItem('authToken');
+          window.localStorage.removeItem('user');
+        } catch {
+          // ignore
+        }
+
+        // Only redirect if not already on login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     
-    // Handle 403 Forbidden (Not Admin)
-    if (error.response?.status === 403) {
-      // Clear token and redirect to login
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      
-      // Redirect to login with error message
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login?error=insufficient_permissions';
-      }
-    }
+    // Handle 403 Forbidden
+    // In a permission-based system, 403 can be expected (admin lacks a permission).
+    // Do NOT redirect globally to avoid infinite loops; let the UI handle it.
     
     return Promise.reject(error);
   }

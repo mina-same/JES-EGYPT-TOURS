@@ -6,7 +6,7 @@ const blogTwoData = {
   sectionTagline: 'Blog & News',
   sectionTitle: 'Explore Blogs <span>And News</span>',
   buttonText: 'See More Article',
-  buttonLink: '/blog-details-left',
+  buttonLink: '/blogs',
 
   mainBlog: {
     image: mainImage,

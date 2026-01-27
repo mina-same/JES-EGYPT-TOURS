@@ -12,7 +12,7 @@ const blogThreeData = {
   tagline: 'News & Blog',
   title: 'Latest News & Articles from the Blog Posts',
   buttonText: 'See More Article',
-  buttonUrl: '/blog-details-left',
+  buttonUrl: '/s',
  blogPosts:  [
      {
        id: 1,

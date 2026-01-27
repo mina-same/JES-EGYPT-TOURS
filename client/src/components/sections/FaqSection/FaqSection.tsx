@@ -43,6 +43,10 @@ const FaqSection: React.FC = () => {
   return (
     <section className='faq-page section-space tabs-box'>
       <Container>
+        <div className='sec-title text-center mb-5'>
+          <h6 className='sec-title__tagline'>{faqData.subTitle}</h6>
+          <h3 className='sec-title__title'>{faqData.title}</h3>
+        </div>
         <div className='tabs-box'>
           <Row className='gutter-y-30'>
             <Col lg={4}>

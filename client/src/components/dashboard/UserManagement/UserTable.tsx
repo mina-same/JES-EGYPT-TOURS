@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import { User } from '@/lib/api/auth';
 import DeleteConfirmModal from './DeleteConfirmModal';
 
@@ -137,83 +138,90 @@ const UserTable: React.FC<UserTableProps> = ({
       />
       
       <div className="table-container">
-        <table className="user-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Joined</th>
-              <th className="actions-header">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user, index) => (
-              <tr key={user.id || user.email || index}>
-                <td>
-                  <div className="user-info">
-                    <div 
-                      className="avatar" 
-                      style={{ backgroundColor: getAvatarColor(user.name) }}
-                    >
-                      {getInitials(user.name)}
-                    </div>
-                    <span className="user-name">{user.name}</span>
+        <AdminTable
+          data={users}
+          getRowKey={(row: any, index: number) => row.id || row.email || String(index)}
+          tableClassName="user-table"
+          columns={([
+            {
+              header: 'User',
+              render: (user: any) => (
+                <div className="user-info">
+                  <div className="avatar" style={{ backgroundColor: getAvatarColor(user.name) }}>
+                    {getInitials(user.name)}
                   </div>
-                </td>
-                <td>
-                  <span className="email">{user.email}</span>
-                </td>
-                <td>
-                  <span className="role-badge">Admin</span>
-                </td>
-                <td>
-                  <button
-                    className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}
-                    onClick={() => user.id && handleToggleStatus(user.id, user.isActive)}
-                    disabled={!user.id || togglingId === user.id}
-                  >
-                    {togglingId === user.id ? (
-                      <span className="mini-spinner"></span>
-                    ) : (
-                      <>
-                        <span className="status-dot"></span>
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </>
-                    )}
+                  <span className="user-name">{user.name}</span>
+                </div>
+              ),
+            },
+            {
+              header: 'Email',
+              render: (user: any) => <span className="email">{user.email}</span>,
+            },
+            {
+              header: 'Role',
+              render: (user: any) => (
+                <span className="role-badge">{user.role === 'superadmin' ? 'Super Admin' : 'Admin'}</span>
+              ),
+            },
+            {
+              header: 'Status',
+              render: (user: any) => (
+                <button
+                  className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}
+                  onClick={() => user.id && handleToggleStatus(user.id, user.isActive)}
+                  disabled={!user.id || togglingId === user.id}
+                >
+                  {togglingId === user.id ? (
+                    <span className="mini-spinner"></span>
+                  ) : (
+                    <>
+                      <span className="status-dot"></span>
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </>
+                  )}
+                </button>
+              ),
+            },
+            {
+              header: 'Joined',
+              render: (user: any) => <span className="date">{formatDate(user.createdAt)}</span>,
+            },
+            {
+              header: 'Actions',
+              headerClassName: 'actions-header',
+              render: (user: any) => (
+                <div className="actions">
+                  <button className="action-btn edit" onClick={() => onEdit(user)} title="Edit user">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
                   </button>
-                </td>
-                <td>
-                  <span className="date">{formatDate(user.createdAt)}</span>
-                </td>
-                <td>
-                  <div className="actions">
-                    <button
-                      className="action-btn edit"
-                      onClick={() => onEdit(user)}
-                      title="Edit user"
-                    >
-                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      className="action-btn delete"
-                      onClick={() => handleDeleteClick(user)}
-                      title="Delete user"
-                      disabled={deletingId === user.id}
-                    >
-                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <button
+                    className="action-btn delete"
+                    onClick={() => handleDeleteClick(user)}
+                    title="Delete user"
+                    disabled={deletingId === user.id}
+                  >
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ),
+            },
+          ] as Array<AdminTableColumn<any>>)}
+        />
       </div>
 
       <style jsx>{`

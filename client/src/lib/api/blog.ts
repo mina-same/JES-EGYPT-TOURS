@@ -27,6 +27,13 @@ export interface BlogSubCategory {
   isActive: boolean;
 }
 
+export interface ImageObject {
+  url: string;
+  fileName?: string;
+  title?: string;
+  alt?: string;
+}
+
 export interface BlogPost {
   _id: string;
   title: string;
@@ -37,8 +44,7 @@ export interface BlogPost {
     name: string;
     email: string;
   };
-  featuredImage: string;
-  featuredImageAlt?: string;
+  featuredImage: string | ImageObject;
   excerpt?: string;
   contentBlocks: ContentBlock[];
   tags: string[];
@@ -51,12 +57,7 @@ export interface BlogPost {
   relatedPosts?: BlogPost[];
   metaTitle?: string;
   metaDescription?: string;
-  metaImage?: {
-    url: string;
-    alt?: string;
-    width?: number;
-    height?: number;
-  };
+  metaImage?: ImageObject;
   createdAt: string;
   updatedAt: string;
 }

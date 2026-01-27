@@ -204,8 +204,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
                 onChange={setPhone}
                 placeholder="Mobile"
                 className="booking-phone-input"
-                inputClassName="booking-input booking-phone-input-field"
-                countrySelectClassName="booking-phone-country-select"
               />
             </div>
           </div>

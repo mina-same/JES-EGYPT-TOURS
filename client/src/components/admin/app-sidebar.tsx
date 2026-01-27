@@ -26,6 +26,8 @@ import {
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useTailorMade } from '@/contexts/TailorMadeContext'
+import { useContactForm } from '@/contexts/ContactFormContext'
+import { useBooking } from '@/contexts/BookingContext'
 import {
   Sidebar,
   SidebarContent,
@@ -113,6 +115,7 @@ const menuItems = [
         title: 'Bookings',
         icon: Calendar,
         url: '/admin/tour/booking',
+        badgeKey: 'booking',
       },
     ],
   },
@@ -140,7 +143,7 @@ const menuItems = [
         title: 'Contact Form',
         icon: Phone,
         url: '/admin/contact-forms/contact-form',
-        badge: 5,
+        badgeKey: 'contactForm',
       },
     ],
   },
@@ -150,10 +153,18 @@ export function AppSidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const { unreadCount } = useTailorMade()
+  const { newCount } = useContactForm()
+  const { pendingCount } = useBooking()
 
   const getBadgeCount = (item: any) => {
     if (item.badgeKey === 'tailorMade') {
       return unreadCount
+    }
+    if (item.badgeKey === 'contactForm') {
+      return newCount
+    }
+    if (item.badgeKey === 'booking') {
+      return pendingCount
     }
     return item.badge
   }

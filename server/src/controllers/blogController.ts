@@ -410,10 +410,78 @@ export const updateBlog = async (
       data: blog,
     });
   } catch (error: any) {
-    console.error('Error updating blog:', error);
+    const body: any = req.body || {};
+    const contentBlocks = Array.isArray(body.contentBlocks) ? body.contentBlocks : [];
+    const contentBlocksSummary = contentBlocks.map((b: any) => {
+      const type = b?.type;
+      const imagesCount = Array.isArray(b?.images) ? b.images.length : 0;
+      return { type, imagesCount };
+    });
+
+    const bodySummary = {
+      title: body.title,
+      slug: body.slug,
+      author: body.author,
+      tagsCount: Array.isArray(body.tags) ? body.tags.length : 0,
+      metaKeywordsCount: Array.isArray(body.metaKeywords) ? body.metaKeywords.length : 0,
+      featuredImage: body.featuredImage
+        ? { hasUrl: !!body.featuredImage?.url, hasFileName: !!body.featuredImage?.fileName }
+        : undefined,
+      metaImage: body.metaImage
+        ? { hasUrl: !!body.metaImage?.url, hasFileName: !!body.metaImage?.fileName }
+        : undefined,
+      contentBlocksCount: contentBlocks.length,
+      contentBlocksSummary,
+    };
+
+    console.error('Error updating blog:', {
+      name: error?.name,
+      message: error?.message,
+      code: error?.code,
+      keyValue: error?.keyValue,
+    });
+    console.error('Update blog params:', req.params);
+    console.error('Update blog body summary:', bodySummary);
+    if (error?.errors) {
+      console.error('Mongoose errors:', error.errors);
+    }
+
+    // Make common errors actionable for the client
+    if (error?.name === 'ValidationError') {
+      res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: error.message,
+        errors: error.errors,
+      });
+      return;
+    }
+
+    // Duplicate key (usually slug uniqueness)
+    if (error?.code === 11000) {
+      res.status(400).json({
+        success: false,
+        error: 'Duplicate key',
+        details: 'A unique field already exists (often slug). Please choose a different value.',
+        keyValue: error.keyValue,
+      });
+      return;
+    }
+
+    // Invalid ObjectId
+    if (error?.name === 'CastError') {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid identifier',
+        details: error.message,
+      });
+      return;
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to update blog post',
+      details: error?.message || 'Unknown error',
     });
   }
 };

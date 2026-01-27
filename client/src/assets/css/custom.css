@@ -39,54 +39,81 @@ body.rtl .main-slider-one__destinations__hover {
 }
 
 /* ==========================================================================
-   2. TOUR DETAILS TABS
+   2. TOUR DETAILS NAVIGATION (Scroll-based)
    ========================================================================== */
-.tour-details-tabs {
-  border-bottom: 1px solid var(--gotur-border-color, #e6e5e5);
-  margin-bottom: 40px;
-  gap: 15px; /* Reduce gap slightly */
+.tour-details-nav-wrapper {
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0; /* Adjust this to match your site header height if needed */
+  z-index: 1000;
+  background-color: #fff;
+  width: 100%;
 }
 
-.tour-details-tabs .nav-item {
-  margin-bottom: -1px;
+.tour-details-nav {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 20px;
 }
 
-.tour-details-tabs .nav-link {
-  border: none;
-  background: transparent;
-  color: var(--gotur-text, #595959);
+.tour-details-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.tour-nav-link {
+  flex: 1;
+  justify-content: center;
+  padding: 18px 10px;
   font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-  font-weight: 700;
-  font-size: 16px;
-  padding: 12px 20px; /* Add horizontal padding */
-  margin-right: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--gotur-text, #595959);
+  text-decoration: none;
   position: relative;
   transition: all 0.3s ease;
   border-bottom: 3px solid transparent;
-  border-radius: 8px 8px 0 0; /* Rounded top corners */
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.tour-details-tabs .nav-link:hover {
-  color: var(--gotur-base, #d4af37);
-  background-color: rgba(212, 175, 55, 0.05); /* Light gold hover */
+.tour-nav-link:hover {
+  color: #b79c5c;
+  background-color: rgba(183, 156, 92, 0.05);
 }
 
-.tour-details-tabs .nav-link.active {
-  color: var(--gotur-base, #d4af37);
-  background: #fff; /* White background for active */
-  border-bottom: 3px solid var(--gotur-base, #d4af37);
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.03); /* Subtle lift */
+.tour-nav-link.active,
+.tour-nav-link:active {
+  color: #b79c5c;
+  border-bottom-color: #b79c5c;
 }
 
-.tour-details-tabs .nav-link .bg-primary {
-  background-color: var(--gotur-base, #d4af37) !important;
-  color: #fff !important;
+.tour-nav-link .review-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #b79c5c, #d4af37);
+  color: #fff;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
 }
 
-.tour-details-tabs + .tab-content {
-  padding-top: 20px;
-  background: #fff;
-  border-radius: 0 0 12px 12px; /* if you want the content area rounded */
+.tour-section {
+  scroll-margin-top: 140px;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tour-section:last-of-type {
+  border-bottom: none;
 }
 
 /* ==========================================================================
@@ -404,78 +431,613 @@ body.rtl .main-slider-one__destinations__hover {
 }
 
 /* ==========================================================================
-   4. AMENITIES & EXCLUSION (Clean & Distinct)
+   4. AMENITIES CARDS (Premium Design)
    ========================================================================== */
-.amenities-box {
-  padding: 30px;
-  border-radius: 16px;
+.amenities-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 0;
   height: 100%;
-  transition: all 0.3s ease;
-  background-color: #fff;
-  border: 1px solid #eee;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #f0f0f0;
 }
 
-.inclusion-box {
-  border-top: 4px solid #28a745;
+.amenities-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
-.exclusion-box {
-  border-top: 4px solid #dc3545;
-}
-
-.amenities-title {
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 25px;
+.amenities-card-header {
+  padding: 30px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  gap: 20px;
+  border-bottom: 2px solid #f5f5f5;
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
 }
 
-.inclusion-title { color: #28a745; }
-.exclusion-title { color: #dc3545; }
+.amenities-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
 
-.amenities-list {
+.amenities-icon-wrapper i {
+  font-size: 28px;
+  z-index: 2;
+  position: relative;
+}
+
+.inclusion-icon {
+  background: linear-gradient(135deg, #b79c5c, #d4af37);
+  box-shadow: 0 8px 20px rgba(183, 156, 92, 0.25);
+}
+
+.inclusion-icon i {
+  color: #fff;
+}
+
+.exclusion-icon {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  box-shadow: 0 8px 20px rgba(220, 53, 69, 0.25);
+}
+
+.exclusion-icon i {
+  color: #fff;
+}
+
+.amenities-card:hover .amenities-icon-wrapper {
+  transform: rotate(5deg) scale(1.05);
+}
+
+.amenities-card-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  color: #1a1a1a;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  letter-spacing: -0.3px;
+}
+
+.amenities-card-list {
   list-style: none;
-  padding: 0;
+  padding: 30px;
   margin: 0;
 }
 
-.amenities-list-item {
+.amenities-card-item {
   display: flex;
   align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 15px;
-  font-size: 16px;
-  color: var(--gotur-text, #595959);
-  line-height: 1.6;
-  padding-bottom: 15px;
-  border-bottom: 1px dashed #f0f0f0;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f5f5f5;
+  transition: all 0.3s ease;
 }
 
-.amenities-list-item:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
+.amenities-card-item:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
-.amenities-list-item i {
-  margin-top: 5px;
-  font-size: 16px;
+.amenities-card-item:hover {
+  padding-left: 8px;
+  background-color: rgba(183, 156, 92, 0.02);
+  border-radius: 8px;
+}
+
+.amenities-card-item i {
+  font-size: 18px;
+  margin-top: 3px;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
-.inclusion-item i { color: #28a745; }
-.exclusion-item i { color: #dc3545; }
+.inclusion-card .amenities-card-item i {
+  color: #b79c5c;
+}
 
-.amenities-box:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+.exclusion-card .amenities-card-item i {
+  color: #dc3545;
+}
+
+.amenities-card-item:hover i {
+  transform: scale(1.2);
+}
+
+.amenities-card-item span {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #595959;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .amenities-card {
+    margin-bottom: 30px;
+  }
+  
+  .amenities-card-header {
+    padding: 24px;
+  }
+  
+  .amenities-card-list {
+    padding: 24px;
+  }
 }
 
 /* ==========================================================================
-   5. TOUR PLAN TIMELINE - REMOVED (Using inline styles in component)
+   5. TOUR GALLERY MASONRY LAYOUT
+   ========================================================================== */
+.tour-gallery-masonry {
+  display: flex;
+  margin-left: -15px;
+  width: auto;
+}
+
+.tour-gallery-masonry-column {
+  padding-left: 15px;
+  background-clip: padding-box;
+}
+
+.tour-gallery-item {
+  margin-bottom: 15px;
+  break-inside: avoid;
+}
+
+.tour-gallery-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #f5f5f5;
+}
+
+.tour-gallery-image-wrapper:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.tour-gallery-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.4s ease;
+  border-radius: 12px;
+}
+
+.tour-gallery-image-wrapper:hover .tour-gallery-image {
+  transform: scale(1.05);
+}
+
+/* Add a subtle overlay on hover */
+.tour-gallery-image-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(183, 156, 92, 0.1), rgba(212, 175, 55, 0.1));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.tour-gallery-image-wrapper:hover::after {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+  .tour-gallery-masonry {
+    margin-left: -12px;
+  }
+  
+  .tour-gallery-masonry-column {
+    padding-left: 12px;
+  }
+  
+  .tour-gallery-item {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 700px) {
+  .tour-gallery-masonry {
+    margin-left: -10px;
+  }
+  
+  .tour-gallery-masonry-column {
+    padding-left: 10px;
+  }
+  
+  .tour-gallery-item {
+    margin-bottom: 10px;
+  }
+}
+
+/* ==========================================================================
+   6. FAQ ACCORDION (Simple & Professional)
+   ========================================================================== */
+.tour-listing-details__faqs-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tour-listing-details__faqs-accordion .accordion-item {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  transition: all 0.3s ease;
+  margin-bottom: 0;
+}
+
+.tour-listing-details__faqs-accordion .accordion-item:hover {
+  border-color: #b79c5c;
+  box-shadow: 0 2px 8px rgba(183, 156, 92, 0.1);
+}
+
+.tour-listing-details__faqs-accordion .accordion-header {
+  margin-bottom: 0;
+}
+
+.tour-listing-details__faqs-accordion .accordion-button {
+  background: #fff;
+  border: none;
+  padding: 20px 24px;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tour-listing-details__faqs-accordion .accordion-button:not(.collapsed) {
+  background: #fff;
+  color: #b79c5c;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tour-listing-details__faqs-accordion .accordion-button:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.tour-listing-details__faqs-accordion .accordion-button::after {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23666'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-size: 16px;
+  background-position: center;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.tour-listing-details__faqs-accordion .accordion-button:not(.collapsed)::after {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23b79c5c'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+  transform: rotate(-180deg);
+}
+
+.tour-listing-details__faqs-accordion .accordion-body {
+  padding: 0 24px 20px 24px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #666;
+  background: #fff;
+}
+
+.tour-listing-details__faqs-accordion .accordion-body p {
+  margin-bottom: 12px;
+}
+
+.tour-listing-details__faqs-accordion .accordion-body p:last-child {
+  margin-bottom: 0;
+}
+
+.tour-listing-details__faqs-accordion .accordion-body ul,
+.tour-listing-details__faqs-accordion .accordion-body ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.tour-listing-details__faqs-accordion .accordion-body li {
+  margin-bottom: 6px;
+}
+
+.tour-listing-details__faqs-accordion .accordion-body strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.tour-listing-details__faqs-accordion .accordion-body a {
+  color: #b79c5c;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.tour-listing-details__faqs-accordion .accordion-body a:hover {
+  color: #d4af37;
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tour-listing-details__faqs-accordion .accordion-button {
+    padding: 16px 20px;
+    font-size: 15px;
+  }
+  
+  .tour-listing-details__faqs-accordion .accordion-body {
+    padding: 0 20px 16px 20px;
+    font-size: 14px;
+  }
+}
+
+/* ==========================================================================
+   7. STICKY SIDEBAR
+   ========================================================================== */
+/* Ensure parent row allows sticky - items must stretch to equal height */
+.tour-listing-details .tour-details-row {
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+/* Base sticky positioning for sidebar */
+.tour-listing-details__sidebar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 75px;
+  z-index: 10;
+  height: fit-content;
+}
+
+.tour-listing-details__sidebar > * {
+  margin-bottom: 30px;
+}
+
+.tour-listing-details__sidebar > *:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 991px) {
+  .tour-listing-details__sidebar {
+    position: relative;
+    top: 0;
+  }
+}
+
+/* ==========================================================================
+   8. TOUR PLAN TIMELINE - REMOVED (Using inline styles in component)
    ========================================================================== */
 /* All Tour Plan styles have been moved to inline styles in TourPlan.tsx component */
 
+
+/* ==========================================================================
+   8. TOUR REVIEWS
+   ========================================================================== */
+.tour-reviews-section {
+    padding: 3rem 0;
+}
+
+
+
+.tour-reviews-subtitle {
+    color: var(--gotur-text, #697488);
+    font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+    font-size: 16px;
+}
+
+.tour-reviews-featured-image {
+    position: relative;
+    height: 550px;
+    width: 320px;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+}
+
+.tour-reviews-featured-image img {
+    object-fit: cover;
+}
+
+.tour-reviews-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+}
+
+.tour-reviews-count {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 700;
+    color: var(--gotur-black, #0A2B4B);
+    margin: 0;
+    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.tour-reviews-rating-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tour-reviews-avg-rating {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700;
+    color: #9CA3AF;
+    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.tour-reviews-stars {
+    display: flex;
+    color: #F5A31B;
+}
+
+.tour-reviews-testimonial-box {
+    background-color: #F5F6F8 !important;
+    border-radius: 30px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.tour-reviews-quote-icon {
+    margin-bottom: 1.5rem;
+}
+
+.tour-reviews-text {
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--gotur-text, #697488);
+    margin-bottom: 2rem;
+    font-weight: 500;
+    font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.tour-reviews-name {
+    color: var(--gotur-black, #0A2B4B);
+    font-weight: 700;
+    font-size: 1.125rem; /* text-lg */
+    margin-bottom: 0;
+    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.tour-reviews-verified {
+    color: #9CA3AF;
+    font-size: 0.875rem; /* text-sm */
+    margin: 0.25rem 0 0 0;
+    font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.tour-reviews-nav-buttons {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .tour-reviews-nav-buttons {
+        position: absolute;
+        bottom: 2.5rem;
+        right: 2.5rem;
+        z-index: 10;
+        display: flex;
+        gap: 0.75rem;
+    }
+}
+
+.tour-reviews-nav-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.tour-reviews-nav-prev {
+    border: 1px solid #b79c5c;
+    color: #b79c5c;
+    background: transparent;
+}
+
+.tour-reviews-nav-prev:hover {
+    background-color: rgba(183, 156, 92, 0.12);
+}
+
+.tour-reviews-nav-next {
+    background-color: #b79c5c;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.tour-reviews-nav-next:hover {
+    background-color: #a48952;
+}
+
+.tour-reviews-nav-btn:disabled,
+.tour-reviews-nav-btn[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.tour-reviews-nav-btn:disabled:hover,
+.tour-reviews-nav-btn[aria-disabled="true"]:hover {
+    background-color: #b79c5c;
+}
+
+.tour-reviews-platform-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 24px;
+    background-color: white;
+    height: 100%;
+    transition: box-shadow 0.3s ease;
+}
+
+.tour-reviews-platform-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.tour-reviews-platform-logo {
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.tour-reviews-platform-name {
+    display: block;
+    font-weight: 700;
+    font-size: 1rem; /* text-base */
+    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.tour-reviews-platform-rating {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem; /* text-xs */
+    color: #F5A31B;
+    margin-top: 0.25rem;
+    font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.tour-reviews-platform-score {
+    color: #4B5563;
+    margin-right: 0.5rem;
+    font-weight: 500;
+}
+
+.text-google-blue { color: #0a2b4b; }
+.text-tripadvisor-green { color: #34E0A1; }
+/* What You Will Love Section */
+.tour-listing-details__what-you-love {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}

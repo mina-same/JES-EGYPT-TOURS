@@ -7,10 +7,18 @@ import {
   ChevronDown, FileText
 } from 'lucide-react';
 import { getAllBookings, deleteBooking, updateBooking, getBookingStats, IBooking } from '@/lib/api/booking';
+import { useBooking } from '@/contexts/BookingContext';
 import Image from 'next/image';
+import StatCard from '@/components/common/StatCard/StatCard';
+import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
+import BulkActionsBar from '@/components/admin/BulkActionsBar';
+import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
+import { useToast } from '@/hooks/use-toast';
 import './booking.css';
 
 const BookingPage: React.FC = () => {
+  const { refreshCount } = useBooking();
+  const { toast } = useToast();
   const [bookings, setBookings] = useState<IBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +29,10 @@ const BookingPage: React.FC = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteIds, setDeleteIds] = useState<string[]>([]);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [stats, setStats] = useState({
@@ -94,6 +106,7 @@ const BookingPage: React.FC = () => {
       
       await fetchBookings();
       await fetchStats();
+      refreshCount();
       setShowModal(false);
       setSelectedBooking(null);
     } catch (error) {
@@ -105,20 +118,51 @@ const BookingPage: React.FC = () => {
   };
 
   const handleDeleteBooking = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this booking?')) {
-      return;
-    }
+    setDeleteIds([id]);
+    setDeleteModalOpen(true);
+  };
 
-    setDeleting(id);
+  const handleBulkDelete = () => {
+    if (selectedRowKeys.length === 0) return;
+    setDeleteIds(selectedRowKeys);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteIds.length === 0) return;
+    setDeleteBusy(true);
+    setDeleting(deleteIds.length === 1 ? deleteIds[0] : 'bulk');
     try {
-      await deleteBooking(id);
+      const results = await Promise.all(deleteIds.map((id) => deleteBooking(id)));
+      const failed = results.find((r: any) => !r?.success);
+      if (failed) {
+        throw new Error((failed as any).message || 'Failed to delete booking(s)');
+      }
+
+      toast({
+        title: 'Deleted',
+        description:
+          deleteIds.length === 1
+            ? 'Booking deleted successfully.'
+            : `${deleteIds.length} bookings deleted successfully.`,
+        variant: 'success',
+      });
+      setSelectedRowKeys([]);
+      setDeleteModalOpen(false);
+      setDeleteIds([]);
       await fetchBookings();
       await fetchStats();
-    } catch (error) {
-      console.error('Error deleting booking:', error);
-      alert('Failed to delete booking');
+      refreshCount();
+    } catch (err: any) {
+      const msg = err.message || 'Failed to delete booking(s)';
+      toast({
+        title: 'Delete failed',
+        description: msg,
+        variant: 'destructive',
+      });
     } finally {
       setDeleting(null);
+      setDeleteBusy(false);
     }
   };
 
@@ -163,6 +207,128 @@ const BookingPage: React.FC = () => {
     });
   };
 
+  const columns: Array<AdminTableColumn<IBooking>> = [
+    {
+      header: 'Tour',
+      render: (booking) => {
+        const tour = typeof booking.tour === 'object' ? booking.tour : null;
+        return (
+          <div className="tour-info">
+            {tour?.images?.[0]?.url && (
+              <Image
+                src={tour.images[0].url}
+                alt={tour.heading || 'Tour'}
+                width={50}
+                height={50}
+                className="tour-thumbnail"
+              />
+            )}
+            <div>
+              <div className="tour-name">{tour?.heading || 'Tour Not Found'}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      header: 'Customer',
+      render: (booking) => (
+        <div className="customer-info">
+          <div className="customer-name">{booking.name}</div>
+          {booking.nationality && (
+            <div className="customer-nationality">{booking.nationality}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Contact',
+      render: (booking) => (
+        <div className="contact-info">
+          <div className="contact-item">
+            <Mail size={14} />
+            <span>{booking.email}</span>
+          </div>
+          {booking.phone && (
+            <div className="contact-item">
+              <Phone size={14} />
+              <span>{booking.phone}</span>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Date & Time',
+      render: (booking) => (
+        <div className="date-time-info">
+          <div className="date-item">
+            <Calendar size={14} />
+            <span>{formatDate(booking.date)}</span>
+          </div>
+          <div className="time-item">
+            <Clock size={14} />
+            <span>{formatTime(booking.time)}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Travelers',
+      render: (booking) => (
+        <div className="travelers-info">
+          <div className="traveler-item">
+            <Users size={14} />
+            <span>{booking.adults} Adults</span>
+          </div>
+          {booking.children > 0 && (
+            <div className="traveler-item">
+              <span>{booking.children} Children</span>
+            </div>
+          )}
+          {booking.infants > 0 && (
+            <div className="traveler-item">
+              <span>{booking.infants} Infants</span>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      render: (booking) => (
+        <span className={`status-badge ${getStatusColor(booking.status || 'pending')}`}>
+          {getStatusIcon(booking.status || 'pending')}
+          {booking.status || 'pending'}
+        </span>
+      ),
+    },
+    {
+      header: 'Actions',
+      render: (booking) => (
+        <div className="action-buttons">
+          <button
+            className="btn-action btn-view"
+            onClick={() => handleViewDetails(booking)}
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            className="btn-action btn-delete"
+            onClick={() => handleDeleteBooking(booking._id || booking.id || '')}
+            disabled={deleting === (booking._id || booking.id)}
+          >
+            {deleting === (booking._id || booking.id) ? (
+              <Loader2 size={16} className="spinning" />
+            ) : (
+              <Trash2 size={16} />
+            )}
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="booking-admin">
       {/* Header */}
@@ -181,51 +347,11 @@ const BookingPage: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-total">
-            <Calendar size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Total Bookings</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-pending">
-            <Clock size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.pending}</div>
-            <div className="stat-label">Pending</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-confirmed">
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.confirmed}</div>
-            <div className="stat-label">Confirmed</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-completed">
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.completed}</div>
-            <div className="stat-label">Completed</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-cancelled">
-            <XCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.cancelled}</div>
-            <div className="stat-label">Cancelled</div>
-          </div>
-        </div>
+        <StatCard icon={Calendar} value={stats.total} label="Total Bookings" iconVariant="total" />
+        <StatCard icon={Clock} value={stats.pending} label="Pending" iconVariant="pending" />
+        <StatCard icon={CheckCircle} value={stats.confirmed} label="Confirmed" iconVariant="confirmed" />
+        <StatCard icon={CheckCircle} value={stats.completed} label="Completed" iconVariant="completed" />
+        <StatCard icon={XCircle} value={stats.cancelled} label="Cancelled" iconVariant="cancelled" />
       </div>
 
       {/* Filters */}
@@ -257,139 +383,37 @@ const BookingPage: React.FC = () => {
         </div>
       </div>
 
+      <BulkActionsBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        onDeleteSelected={handleBulkDelete}
+        deleteDisabled={loading}
+      />
+
       {/* Bookings Table */}
       <div className="table-container">
-        {loading ? (
-          <div className="loading-state">
-            <Loader2 size={32} className="spinning" />
-            <p>Loading bookings...</p>
-          </div>
-        ) : bookings.length === 0 ? (
-          <div className="empty-state">
-            <Calendar size={48} />
-            <p>No bookings found</p>
-          </div>
-        ) : (
-          <table className="bookings-table">
-            <thead>
-              <tr>
-                <th>Tour</th>
-                <th>Customer</th>
-                <th>Contact</th>
-                <th>Date & Time</th>
-                <th>Travelers</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((booking) => {
-                const tour = typeof booking.tour === 'object' ? booking.tour : null;
-                return (
-                  <tr key={booking._id || booking.id}>
-                    <td>
-                      <div className="tour-info">
-                        {tour?.images?.[0]?.url && (
-                          <Image
-                            src={tour.images[0].url}
-                            alt={tour.heading || 'Tour'}
-                            width={50}
-                            height={50}
-                            className="tour-thumbnail"
-                          />
-                        )}
-                        <div>
-                          <div className="tour-name">
-                            {tour?.heading || 'Tour Not Found'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="customer-info">
-                        <div className="customer-name">{booking.name}</div>
-                        {booking.nationality && (
-                          <div className="customer-nationality">{booking.nationality}</div>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="contact-info">
-                        <div className="contact-item">
-                          <Mail size={14} />
-                          <span>{booking.email}</span>
-                        </div>
-                        {booking.phone && (
-                          <div className="contact-item">
-                            <Phone size={14} />
-                            <span>{booking.phone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="date-time-info">
-                        <div className="date-item">
-                          <Calendar size={14} />
-                          <span>{formatDate(booking.date)}</span>
-                        </div>
-                        <div className="time-item">
-                          <Clock size={14} />
-                          <span>{formatTime(booking.time)}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="travelers-info">
-                        <div className="traveler-item">
-                          <Users size={14} />
-                          <span>{booking.adults} Adults</span>
-                        </div>
-                        {booking.children > 0 && (
-                          <div className="traveler-item">
-                            <span>{booking.children} Children</span>
-                          </div>
-                        )}
-                        {booking.infants > 0 && (
-                          <div className="traveler-item">
-                            <span>{booking.infants} Infants</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${getStatusColor(booking.status || 'pending')}`}>
-                        {getStatusIcon(booking.status || 'pending')}
-                        {booking.status || 'pending'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="btn-action btn-view"
-                          onClick={() => handleViewDetails(booking)}
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          className="btn-action btn-delete"
-                          onClick={() => handleDeleteBooking(booking._id || booking.id || '')}
-                          disabled={deleting === (booking._id || booking.id)}
-                        >
-                          {deleting === (booking._id || booking.id) ? (
-                            <Loader2 size={16} className="spinning" />
-                          ) : (
-                            <Trash2 size={16} />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
+        <AdminTable<IBooking>
+          data={bookings}
+          columns={columns}
+          getRowKey={(row, index) => (row._id || row.id || String(index)) as string}
+          enableSelection
+          selectedRowKeys={selectedRowKeys}
+          onSelectedRowKeysChange={setSelectedRowKeys}
+          loading={loading}
+          loadingNode={
+            <div className="loading-state">
+              <Loader2 size={32} className="spinning" />
+              <p>Loading bookings...</p>
+            </div>
+          }
+          emptyNode={
+            <div className="empty-state">
+              <Calendar size={48} />
+              <p>No bookings found</p>
+            </div>
+          }
+          tableClassName="bookings-table"
+        />
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -410,6 +434,18 @@ const BookingPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmDeleteModal
+        open={deleteModalOpen}
+        onOpenChange={(open) => {
+          if (deleteBusy) return;
+          setDeleteModalOpen(open);
+          if (!open) setDeleteIds([]);
+        }}
+        count={deleteIds.length}
+        onConfirm={confirmDelete}
+        confirmDisabled={deleteBusy}
+      />
 
       {/* Details Modal */}
       {showModal && selectedBooking && (

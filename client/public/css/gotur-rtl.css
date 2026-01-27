@@ -618,7 +618,6 @@ h6 {
 
 .page-wrapper {
   position: relative;
-  margin: 0 auto;
   width: 100%;
   min-width: 300px;
   overflow: hidden;
@@ -6347,7 +6346,6 @@ body.megamenu-popup-active .mobile-nav__content {
   position: absolute;
   bottom: 220px;
   z-index: 1;
-  margin: 0 auto;
   padding: 0 0 0;
   max-width: 1024px;
   right: 50%;

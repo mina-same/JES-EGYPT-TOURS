@@ -91,10 +91,49 @@ export const authorize = (...roles: string[]) => {
       return;
     }
 
+    // Superadmin bypasses role checks
+    if (req.user.role === 'superadmin') {
+      next();
+      return;
+    }
+
     if (!roles.includes(req.user.role)) {
       res.status(403).json({
         success: false,
         error: `User role '${req.user.role}' is not authorized to access this route`,
+      });
+      return;
+    }
+
+    next();
+  };
+};
+
+/**
+ * Grant access if user has at least one of the required permissions
+ */
+export const permit = (...permissions: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: 'Not authorized to access this route',
+      });
+      return;
+    }
+
+    // Superadmin bypasses permission checks
+    if (req.user.role === 'superadmin') {
+      return next();
+    }
+
+    const userPerms = (req.user as any).permissions || [];
+    const hasPermission = permissions.some(p => userPerms.includes(p));
+
+    if (!hasPermission) {
+      res.status(403).json({
+        success: false,
+        error: `Insufficient permissions. Required: ${permissions.join(' or ')}`,
       });
       return;
     }

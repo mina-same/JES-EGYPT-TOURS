@@ -8,13 +8,19 @@ import { ITour, ITourSubcategory } from '@/types/tour';
 import { 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, MapPin, Clock, 
-  DollarSign, Star, CheckCircle, XCircle, Tag
+  DollarSign, Star, CheckCircle, XCircle, Tag, MessageSquare
 } from 'lucide-react';
 import Image from 'next/image';
+import StatCard from '@/components/common/StatCard/StatCard';
+import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
+import BulkActionsBar from '@/components/admin/BulkActionsBar';
+import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
+import { useToast } from '@/hooks/use-toast';
 import './tour.css';
 
 export default function ToursPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [tours, setTours] = useState<ITour[]>([]);
   const [subcategories, setSubcategories] = useState<ITourSubcategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +32,10 @@ export default function ToursPage() {
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
   const [featuredFilter, setFeaturedFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteIds, setDeleteIds] = useState<string[]>([]);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
 
   // Fetch tours
@@ -81,21 +91,50 @@ export default function ToursPage() {
 
   // Delete tour
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this tour?')) return;
-    
+    setDeleteIds([id]);
+    setDeleteModalOpen(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedRowKeys.length === 0) return;
+    setDeleteIds(selectedRowKeys);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteIds.length === 0) return;
+    setDeleteBusy(true);
+    setDeleting(deleteIds.length === 1 ? deleteIds[0] : 'bulk');
     try {
-      setDeleting(id);
-      const response = await tourAPI.delete(id);
-      
-      if (response.success) {
-        await fetchTours();
-      } else {
-        setError(response.error || 'Failed to delete tour');
+      const results = await Promise.all(deleteIds.map((id) => tourAPI.delete(id)));
+      const failed = results.find((r: any) => !r?.success);
+      if (failed) {
+        throw new Error((failed as any).error || 'Failed to delete tour(s)');
       }
+
+      toast({
+        title: 'Deleted',
+        description:
+          deleteIds.length === 1
+            ? 'Tour deleted successfully.'
+            : `${deleteIds.length} tours deleted successfully.`,
+        variant: 'success',
+      });
+      setSelectedRowKeys([]);
+      setDeleteModalOpen(false);
+      setDeleteIds([]);
+      await fetchTours();
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      const msg = err.message || 'Failed to delete tour(s)';
+      setError(msg);
+      toast({
+        title: 'Delete failed',
+        description: msg,
+        variant: 'destructive',
+      });
     } finally {
       setDeleting(null);
+      setDeleteBusy(false);
     }
   };
 
@@ -156,6 +195,150 @@ export default function ToursPage() {
     featured: tours.filter(t => t.isFeatured).length,
   };
 
+  const columns: Array<AdminTableColumn<ITour>> = [
+    {
+      header: 'Tour',
+      render: (tour) => (
+        <div className="tour-info">
+          {tour.images && tour.images.length > 0 ? (
+            <img
+              src={tour.images[0].url}
+              alt={tour.images[0].alt || tour.name}
+              className="tour-image"
+            />
+          ) : (
+            <div
+              className="tour-image"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#f3f4f6',
+              }}
+            >
+              <MapPin size={24} color="#9ca3af" />
+            </div>
+          )}
+          <div className="tour-details">
+            <div className="tour-name">{tour.name || tour.heading || 'Untitled Tour'}</div>
+            <div className="tour-meta">
+              {tour.location && (
+                <div className="tour-meta-item">
+                  <MapPin size={12} />
+                  {tour.location}
+                </div>
+              )}
+              {tour.viewCount !== undefined && (
+                <div className="tour-meta-item">
+                  <Eye size={12} />
+                  {tour.viewCount} views
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Subcategory',
+      render: (tour) => (
+        <span className="subcategory-badge">
+          <Tag size={14} />
+          {getSubcategoryName(tour.subcategory)}
+        </span>
+      ),
+    },
+    {
+      header: 'Duration',
+      render: (tour) => (
+        <div className="tour-meta-item">
+          <Clock size={14} />
+          {tour.duration || 'N/A'}
+        </div>
+      ),
+    },
+    {
+      header: 'Price',
+      render: (tour) => (
+        <div className="price-display">
+          {tour.priceStartingFrom ? (
+            <>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>From </span>
+              ${tour.priceStartingFrom}
+            </>
+          ) : (
+            'N/A'
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      render: (tour) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <span className={`status-badge ${tour.isActive ? 'status-active' : 'status-inactive'}`}>
+            {tour.isActive ? (
+              <>
+                <CheckCircle size={14} /> Active
+              </>
+            ) : (
+              <>
+                <XCircle size={14} /> Inactive
+              </>
+            )}
+          </span>
+          {tour.isFeatured && (
+            <span className="featured-badge">
+              <Star size={14} />
+              Featured
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Actions',
+      render: (tour) => (
+        <div className="action-buttons">
+          <Link href={`/admin/tour/tour/${tour._id}/edit`}>
+            <button className="btn-icon btn-edit" title="Edit">
+              <Edit2 size={16} />
+            </button>
+          </Link>
+          <button
+            className="btn-icon btn-toggle"
+            onClick={() => handleToggleStatus(tour._id)}
+            disabled={toggling === tour._id}
+            title={tour.isActive ? 'Deactivate' : 'Activate'}
+          >
+            {tour.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+          <button
+            className={`btn-icon btn-featured ${tour.isFeatured ? 'is-featured' : ''}`}
+            onClick={() => handleToggleFeatured(tour._id)}
+            disabled={toggling === tour._id}
+            title={tour.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+          >
+            <Star size={16} />
+          </button>
+          <Link href={`/admin/tour/tour/${tour._id}/reviews`}>
+            <button className="btn-icon btn-view" title="Reviews / Messages">
+              <MessageSquare size={16} />
+            </button>
+          </Link>
+          <button
+            className="btn-icon btn-delete"
+            onClick={() => handleDelete(tour._id)}
+            disabled={deleting === tour._id}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   const subcategoriesFetchedRef = useRef(false);
 
   useEffect(() => {
@@ -190,42 +373,10 @@ export default function ToursPage() {
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-total">
-            <MapPin size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Total Tours</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-active">
-            <CheckCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.active}</div>
-            <div className="stat-label">Active</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-inactive">
-            <XCircle size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.inactive}</div>
-            <div className="stat-label">Inactive</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-featured">
-            <Star size={24} />
-          </div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.featured}</div>
-            <div className="stat-label">Featured Tours</div>
-          </div>
-        </div>
+        <StatCard icon={MapPin} value={stats.total} label="Total Tours" iconVariant="total" />
+        <StatCard icon={CheckCircle} value={stats.active} label="Active" iconVariant="active" />
+        <StatCard icon={XCircle} value={stats.inactive} label="Inactive" iconVariant="inactive" />
+        <StatCard icon={Star} value={stats.featured} label="Featured Tours" iconVariant="featured" />
       </div>
 
       {/* Filters */}
@@ -275,148 +426,55 @@ export default function ToursPage() {
         </div>
       )}
 
+      <BulkActionsBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        onDeleteSelected={handleBulkDelete}
+        deleteDisabled={loading}
+      />
+
       {/* Tours Table */}
       <div className="tours-table-container">
-        {loading ? (
-          <div className="loading-state">
-            <Loader2 size={48} className="spinner" />
-            <p>Loading tours...</p>
-          </div>
-        ) : tours.length === 0 ? (
-          <div className="empty-state">
-            <MapPin size={64} />
-            <h3>No tours found</h3>
-            <p>There are no tours matching your criteria.</p>
-            <Link href="/admin/tour/tour/new" className="btn-add-new" style={{ marginTop: '16px' }}>
-              <Plus size={18} />
-              Create First Tour
-            </Link>
-          </div>
-        ) : (
-          <table className="tours-table">
-            <thead>
-              <tr>
-                <th>Tour</th>
-                <th>Subcategory</th>
-                <th>Duration</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tours.map((tour) => (
-                <tr key={tour._id}>
-                  <td>
-                    <div className="tour-info">
-                      {tour.images && tour.images.length > 0 ? (
-                        <img
-                          src={tour.images[0].url}
-                          alt={tour.images[0].alt || tour.name}
-                          className="tour-image"
-                        />
-                      ) : (
-                        <div className="tour-image" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6' }}>
-                          <MapPin size={24} color="#9ca3af" />
-                        </div>
-                      )}
-                      <div className="tour-details">
-                        <div className="tour-name">{tour.name || tour.heading || 'Untitled Tour'}</div>
-                        <div className="tour-meta">
-                          {tour.location && (
-                            <div className="tour-meta-item">
-                              <MapPin size={12} />
-                              {tour.location}
-                            </div>
-                          )}
-                          {tour.viewCount !== undefined && (
-                            <div className="tour-meta-item">
-                              <Eye size={12} />
-                              {tour.viewCount} views
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="subcategory-badge">
-                      <Tag size={14} />
-                      {getSubcategoryName(tour.subcategory)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="tour-meta-item">
-                      <Clock size={14} />
-                      {tour.duration || 'N/A'}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="price-display">
-                      {tour.priceStartingFrom ? (
-                        <>
-                          <span style={{ fontSize: '12px', color: '#6b7280' }}>From </span>
-                          ${tour.priceStartingFrom}
-                        </>
-                      ) : 'N/A'}
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <span className={`status-badge ${tour.isActive ? 'status-active' : 'status-inactive'}`}>
-                        {tour.isActive ? (
-                          <><CheckCircle size={14} /> Active</>
-                        ) : (
-                          <><XCircle size={14} /> Inactive</>
-                        )}
-                      </span>
-                      {tour.isFeatured && (
-                        <span className="featured-badge">
-                          <Star size={14} />
-                          Featured
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <Link href={`/admin/tour/tour/${tour._id}/edit`}>
-                        <button className="btn-icon btn-edit" title="Edit">
-                          <Edit2 size={16} />
-                        </button>
-                      </Link>
-                      <button
-                        className="btn-icon btn-toggle"
-                        onClick={() => handleToggleStatus(tour._id)}
-                        disabled={toggling === tour._id}
-                        title={tour.isActive ? 'Deactivate' : 'Activate'}
-                      >
-                        {tour.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                      <button
-                        className={`btn-icon btn-featured ${tour.isFeatured ? 'is-featured' : ''}`}
-                        onClick={() => handleToggleFeatured(tour._id)}
-                        disabled={toggling === tour._id}
-                        title={tour.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
-                      >
-                        <Star size={16} />
-                      </button>
-                      <button
-                        className="btn-icon btn-delete"
-                        onClick={() => handleDelete(tour._id)}
-                        disabled={deleting === tour._id}
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <AdminTable<ITour>
+          data={tours}
+          columns={columns}
+          getRowKey={(row) => row._id}
+          enableSelection
+          selectedRowKeys={selectedRowKeys}
+          onSelectedRowKeysChange={setSelectedRowKeys}
+          loading={loading}
+          loadingNode={
+            <div className="loading-state">
+              <Loader2 size={48} className="spinner" />
+              <p>Loading tours...</p>
+            </div>
+          }
+          emptyNode={
+            <div className="empty-state">
+              <MapPin size={64} />
+              <h3>No tours found</h3>
+              <p>There are no tours matching your criteria.</p>
+              <Link href="/admin/tour/tour/new" className="btn-add-new" style={{ marginTop: '16px' }}>
+                <Plus size={18} />
+                Create First Tour
+              </Link>
+            </div>
+          }
+          tableClassName="tours-table"
+        />
       </div>
+
+      <ConfirmDeleteModal
+        open={deleteModalOpen}
+        onOpenChange={(open) => {
+          if (deleteBusy) return;
+          setDeleteModalOpen(open);
+          if (!open) setDeleteIds([]);
+        }}
+        count={deleteIds.length}
+        onConfirm={confirmDelete}
+        confirmDisabled={deleteBusy}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (

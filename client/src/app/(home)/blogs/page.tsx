@@ -19,10 +19,11 @@ export const metadata = {
 export default async function BlogsPage({
   searchParams,
 }: {
-  searchParams: { page?: string; tag?: string };
+  searchParams: Promise<{ page?: string; tag?: string }>;
 }) {
-  const page = Number(searchParams.page) || 1;
-  const tag = typeof searchParams.tag === "string" ? searchParams.tag : undefined;
+  const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams.page) || 1;
+  const tag = typeof resolvedSearchParams.tag === "string" ? resolvedSearchParams.tag : undefined;
   const blogsData = await getAllBlogs({ page, limit: 9, tags: tag });
 
   return (

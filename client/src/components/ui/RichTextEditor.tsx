@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -17,12 +17,35 @@ interface RichTextEditorProps {
   className?: string;
 }
 
+// Sanitize HTML content to prevent issues
+const sanitizeHTML = (html: string): string => {
+  if (!html) return '';
+  
+  // Remove potentially problematic tags and attributes
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/on\w+="[^"]*"/gi, '')
+    .replace(/on\w+='[^']*'/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/vbscript:/gi, '')
+    .replace(/data:/gi, '');
+};
+
 export default function RichTextEditor({
   value,
   onChange,
   placeholder,
   className,
 }: RichTextEditorProps) {
+  
+  const handleChange = useCallback((content: string, delta: any, source: string, editor: any) => {
+    if (source === 'user') {
+      const sanitizedContent = sanitizeHTML(content);
+      onChange(sanitizedContent);
+    }
+  }, [onChange]);
+
   const modules = useMemo(
     () => ({
       toolbar: [
@@ -37,6 +60,9 @@ export default function RichTextEditor({
         ['link', 'image'],
         ['clean'],
       ],
+      clipboard: {
+        matchVisual: false,
+      },
     }),
     []
   );
@@ -54,20 +80,20 @@ export default function RichTextEditor({
     'image',
   ];
 
+  // Sanitize initial value
+  const sanitizedValue = useMemo(() => sanitizeHTML(value), [value]);
+
   return (
     <div className={`rich-text-editor ${className}`}>
       <ReactQuill
         theme="snow"
-        value={value}
-        onChange={(content, delta, source, editor) => {
-          if (source === 'user') {
-            onChange(content);
-          }
-        }}
+        value={sanitizedValue}
+        onChange={handleChange}
         modules={modules}
         formats={formats}
         placeholder={placeholder}
         className="bg-background text-foreground"
+        preserveWhitespace
       />
       <style jsx global>{`
         .ql-toolbar.ql-snow {
@@ -86,10 +112,31 @@ export default function RichTextEditor({
         }
         .ql-editor {
           min-height: 150px;
+          line-height: 1.6;
         }
         .ql-editor.ql-blank::before {
           color: hsl(var(--muted-foreground));
           font-style: normal;
+        }
+        .ql-editor p {
+          margin-bottom: 0.5em;
+        }
+        .ql-editor p:last-child {
+          margin-bottom: 0;
+        }
+        .ql-snow .ql-editor img {
+          max-width: 100%;
+          height: auto;
+        }
+        .ql-snow .ql-editor a {
+          color: hsl(var(--primary));
+          text-decoration: underline;
+        }
+        .ql-snow .ql-editor blockquote {
+          border-left: 4px solid hsl(var(--border));
+          padding-left: 1em;
+          margin: 1em 0;
+          color: hsl(var(--muted-foreground));
         }
       `}</style>
     </div>

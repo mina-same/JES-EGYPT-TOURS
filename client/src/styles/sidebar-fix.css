@@ -1,0 +1,37 @@
+/* Fix for Recent Posts hover animations */
+.sidebar__posts__item:hover .sidebar__posts__image::after {
+  display: none;
+}
+
+.sidebar__posts__item:hover .sidebar__posts__image img {
+  transform: none !important;
+  transition: none !important;
+}
+
+.sidebar__posts__title a:hover {
+  color: var(--gotur-base, #63ab45) !important;
+  background-size: 0% 1px !important;
+  text-shadow: none !important;
+}
+
+.sidebar__posts__meta a:hover {
+  color: var(--gotur-base, #63ab45) !important;
+  text-shadow: none !important;
+}
+
+/* Remove all hover transitions for sidebar posts */
+.sidebar__posts__item {
+  transition: none !important;
+}
+
+.sidebar__posts__image img {
+  transition: none !important;
+}
+
+.sidebar__posts__title a {
+  transition: none !important;
+}
+
+.sidebar__posts__meta a {
+  transition: none !important;
+}

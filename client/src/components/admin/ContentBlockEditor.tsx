@@ -1,0 +1,524 @@
+'use client';
+
+import React, { useState, useCallback } from 'react';
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { 
+  GripVertical, Plus, Trash2, Copy, Settings, ChevronDown, ChevronUp,
+  Type, Quote, Images, X
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import RichTextEditor from '@/components/ui/RichTextEditor';
+import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+export interface ContentBlock {
+  id: string;
+  type: 'html' | 'blockquote' | 'imageRow';
+  content?: string;
+  images?: ImageData[];
+  image?: string;
+  url?: string;
+  alt?: string;
+  caption?: string;
+  title?: string;
+  fileName?: string;
+}
+
+interface ContentBlockEditorProps {
+  blocks: ContentBlock[];
+  onChange: (blocks: ContentBlock[]) => void;
+  onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
+}
+
+const BLOCK_TYPES = [
+  { type: 'html', label: 'Text', icon: Type, description: 'Rich text content' },
+  { type: 'blockquote', label: 'Quote', icon: Quote, description: 'Styled quote block' },
+  { type: 'imageRow', label: 'Gallery', icon: Images, description: 'Single image or multiple images gallery' },
+] as const;
+
+// Sortable Block Item
+function SortableBlockItem({ 
+  block, 
+  index, 
+  onUpdate, 
+  onRemove, 
+  onDuplicate, 
+  onImageUpload,
+  isCollapsed,
+  onToggleCollapse 
+}: {
+  block: ContentBlock;
+  index: number;
+  onUpdate: (index: number, field: string, value: any) => void;
+  onRemove: (index: number) => void;
+  onDuplicate: (index: number) => void;
+  onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
+  isCollapsed: boolean;
+  onToggleCollapse: (index: number) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: block.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const blockType = BLOCK_TYPES.find(b => b.type === block.type);
+  const Icon = blockType?.icon || Type;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group relative border rounded-lg transition-all duration-200",
+        isDragging ? "opacity-50 shadow-2xl" : "hover:shadow-md",
+        isCollapsed ? "border-gray-200" : "border-gray-300",
+        block.type === 'html' && "bg-blue-50 border-blue-200",
+        block.type === 'blockquote' && "bg-green-50 border-green-200",
+        block.type === 'imageRow' && "bg-purple-50 border-purple-200"
+      )}
+    >
+      {/* Block Header */}
+      <div className="flex items-center justify-between p-3 border-b bg-gray-50 rounded-t-lg">
+        <div className="flex items-center gap-3">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded transition-colors"
+          >
+            <GripVertical className="w-4 h-4 text-gray-500" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Icon className="w-4 h-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">{blockType?.label}</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onToggleCollapse(index)}
+            className="h-8 w-8 p-0 transition-opacity"
+          >
+            {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onDuplicate(index)}
+            className="h-8 w-8 p-0 transition-opacity"
+          >
+            <Copy className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(index)}
+            className="h-8 w-8 p-0 transition-opacity hover:text-red-600"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Block Content */}
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4">
+              <BlockContent 
+                block={block} 
+                index={index} 
+                onUpdate={onUpdate}
+                onImageUpload={onImageUpload}
+                canRemoveImage={(imageIndex) => block.type === 'imageRow' ? (block.images?.length || 0) > 1 : true}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Block Content Renderer
+function BlockContent({ 
+  block, 
+  index, 
+  onUpdate, 
+  onImageUpload,
+  canRemoveImage
+}: {
+  block: ContentBlock;
+  index: number;
+  onUpdate: (index: number, field: string, value: any) => void;
+  onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
+  canRemoveImage?: (imageIndex: number) => boolean;
+}) {
+  switch (block.type) {
+    case 'html':
+      return (
+        <div className="space-y-2">
+          <Label>Content</Label>
+          <RichTextEditor
+            value={block.content || ''}
+            onChange={(value) => onUpdate(index, 'content', value)}
+            placeholder="Write your content here..."
+            className="min-h-[200px]"
+          />
+        </div>
+      );
+
+    case 'blockquote':
+      return (
+        <div className="space-y-2">
+          <Label>Quote Content</Label>
+          <Textarea
+            value={block.content || ''}
+            onChange={(e) => onUpdate(index, 'content', e.target.value)}
+            placeholder="Enter the quote text here..."
+            rows={4}
+            className="resize-none border-l-4 border-blue-500"
+          />
+          <div className="space-y-2">
+            <Label>Attribution (Optional)</Label>
+            <Input
+              value={block.title || ''}
+              onChange={(e) => onUpdate(index, 'title', e.target.value)}
+              placeholder="— Author or source"
+            />
+          </div>
+        </div>
+      );
+
+    case 'imageRow':
+      return (
+        <div className="space-y-4">
+          <Label>Image Gallery (1 or more images)</Label>
+          <ImageUpload
+            images={block.images || []}
+            onAdd={() => {
+              const currentImages = block.images || [];
+              onUpdate(index, 'images', [...currentImages, {
+                url: '',
+                fileName: '',
+                title: '',
+                alt: ''
+              }]);
+            }}
+            onRemove={(imageIndex) => {
+              const newImages = block.images?.filter((_, i) => i !== imageIndex) || [];
+              onUpdate(index, 'images', newImages);
+            }}
+            onUpdate={(imageIndex, field, value) => {
+              console.log('🔍 Image onUpdate:', { imageIndex, field, value });
+              const newImages = [...(block.images || [])];
+              if (newImages[imageIndex]) {
+                newImages[imageIndex] = { ...newImages[imageIndex], [field]: value };
+              }
+              console.log('🔍 Updated images array:', newImages);
+              onUpdate(index, 'images', newImages);
+            }}
+            onUpload={async (file, imageIndex) => {
+              const result = await onImageUpload(file, imageIndex);
+              return result;
+            }}
+            title="Image Gallery"
+            description="Upload single or multiple images for a gallery layout"
+            maxImages={6}
+          />
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
+
+// Add Block Modal
+function AddBlockModal({ 
+  isOpen, 
+  onClose, 
+  onAddBlock 
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddBlock: (type: ContentBlock['type']) => void;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">Add Content Block</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        
+        <div className="p-4">
+          <div className="grid gap-3">
+            {BLOCK_TYPES.map((blockType) => {
+              const Icon = blockType.icon;
+              return (
+                <button
+                  key={blockType.type}
+                  onClick={() => {
+                    onAddBlock(blockType.type);
+                    onClose();
+                  }}
+                  className="flex items-center gap-4 p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <Icon className="w-5 h-5 text-gray-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{blockType.label}</h3>
+                    <p className="text-sm text-gray-500">{blockType.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ContentBlockEditor({ blocks, onChange, onImageUpload }: ContentBlockEditorProps) {
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = blocks.findIndex((block) => block.id === active.id);
+      const newIndex = blocks.findIndex((block) => block.id === over?.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onChange(arrayMove(blocks, oldIndex, newIndex));
+      }
+    }
+
+    setActiveId(null);
+  };
+
+  const addBlock = useCallback((type: ContentBlock['type']) => {
+    const newBlock: ContentBlock = {
+      id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type,
+      content: type === 'html' || type === 'blockquote' ? '' : undefined,
+      images: type === 'imageRow' ? [
+        { url: '', fileName: '', title: '', alt: '' }
+      ] : undefined,
+      title: type === 'blockquote' ? '' : undefined,
+    };
+
+    onChange([...blocks, newBlock]);
+  }, [blocks, onChange]);
+
+  const updateBlock = useCallback((index: number, field: string, value: any) => {
+    console.log(`updateBlock: index=${index}, field=${field}, value=`, value);
+    const newBlocks = [...blocks];
+    newBlocks[index] = { ...newBlocks[index], [field]: value };
+    console.log('Updated blocks:', newBlocks);
+    onChange(newBlocks);
+  }, [blocks, onChange]);
+
+  const removeBlock = useCallback((index: number) => {
+    onChange(blocks.filter((_, i) => i !== index));
+  }, [blocks, onChange]);
+
+  const duplicateBlock = useCallback((index: number) => {
+    const blockToDuplicate = blocks[index];
+    const duplicatedBlock: ContentBlock = {
+      ...blockToDuplicate,
+      id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    };
+    
+    const newBlocks = [...blocks];
+    newBlocks.splice(index + 1, 0, duplicatedBlock);
+    onChange(newBlocks);
+  }, [blocks, onChange]);
+
+  const canRemoveImage = useCallback((blockIndex: number, imageIndex: number) => {
+    const block = blocks[blockIndex];
+    if (block.type === 'imageRow' && block.images) {
+      return block.images.length > 1;
+    }
+    return true;
+  }, [blocks]);
+
+  const toggleCollapse = useCallback((index: number) => {
+    const blockId = blocks[index].id;
+    const newCollapsed = new Set(collapsedBlocks);
+    
+    if (newCollapsed.has(blockId)) {
+      newCollapsed.delete(blockId);
+    } else {
+      newCollapsed.add(blockId);
+    }
+    
+    setCollapsedBlocks(newCollapsed);
+  }, [blocks, collapsedBlocks]);
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        setShowAddModal(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Content Blocks</h3>
+          <p className="text-sm text-gray-500">
+            Drag to reorder • Click to edit • Ctrl+Enter to add block
+          </p>
+        </div>
+        <Button type="button" onClick={() => setShowAddModal(true)} className="gap-2">
+          <Plus className="w-4 h-4" />
+          Add Block
+        </Button>
+      </div>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            <AnimatePresence>
+              {blocks.map((block, index) => (
+                <motion.div
+                  key={block.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <SortableBlockItem
+                    block={block}
+                    index={index}
+                    onUpdate={updateBlock}
+                    onRemove={removeBlock}
+                    onDuplicate={duplicateBlock}
+                    onImageUpload={onImageUpload}
+                    isCollapsed={collapsedBlocks.has(block.id)}
+                    onToggleCollapse={toggleCollapse}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </SortableContext>
+
+        <DragOverlay>
+          {activeId ? (
+            <div className="border-2 border-blue-500 rounded-lg bg-white p-4 shadow-2xl opacity-90">
+              <div className="flex items-center gap-2">
+                <GripVertical className="w-4 h-4" />
+                <span className="font-medium">
+                  {BLOCK_TYPES.find(b => b.type === blocks.find(b => b.id === activeId)?.type)?.label}
+                </span>
+              </div>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
+      {blocks.length === 0 && (
+        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+          <div className="space-y-3">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+              <Plus className="w-6 h-6 text-gray-400" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">No content blocks yet</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Get started by adding your first content block
+              </p>
+            </div>
+            <Button type="button" onClick={() => setShowAddModal(true)} variant="outline">
+              Add First Block
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <AddBlockModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAddBlock={addBlock}
+      />
+    </div>
+  );
+}

@@ -4,8 +4,8 @@ import Layout from "@/components/layout/Layout/Layout";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import TourListing from "@/components/sections/TourListing/TourListing";
 import AboutOne from "@/components/sections/AboutOne/AboutOne";
-import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
-import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
+import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
+import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 
 export const metadata = {
   title: "Tour Listing || Gotur || Travel & Tour NextJS Template",
@@ -19,9 +19,9 @@ export const metadata = {
 export default function TourListingOnePage() {
   return (
     <Layout>
-      <TopbarOne />
-      <HeaderInner />
-      <HeaderInnerCloned/>
+     <TopbarOne />
+      <HeaderOne linkTheme="light" />
+      <HeaderOneCloned />
       <PageHeader title='Tour Listing' subTitle='Tour Listing' />
       <TourListing />
       <AboutOne extraclass='about-one--one' />

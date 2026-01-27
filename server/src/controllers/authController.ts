@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import User, { IUser } from '../models/User';
 import { ApiResponse, LoginCredentials, RegisterData } from '../types';
+import { DEFAULT_ADMIN_PERMISSIONS } from '../permissions';
+import { emitDashboardStatsUpdate } from '../realtime/socket';
 
 // Extend Express Request type
 declare module 'express-serve-static-core' {
@@ -30,7 +32,7 @@ export const register = async (
       return;
     }
 
-    const { name, email, password, role }: RegisterData = req.body;
+    const { name, email, password, role, permissions }: RegisterData = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -43,12 +45,21 @@ export const register = async (
     }
 
     // Create user
+    const resolvedRole = role || 'admin';
+    const resolvedPermissions =
+      resolvedRole === 'admin'
+        ? (permissions && permissions.length > 0 ? permissions : DEFAULT_ADMIN_PERMISSIONS)
+        : permissions || [];
+
     const user = await User.create({
       name,
       email,
       password,
-      role: role || 'user',
+      role: resolvedRole,
+      permissions: resolvedPermissions,
     });
+
+    void emitDashboardStatsUpdate();
 
     const response: ApiResponse = {
       success: true,
@@ -59,6 +70,7 @@ export const register = async (
           name: user.name,
           email: user.email,
           role: user.role,
+          permissions: (user as any).permissions || [],
           isActive: user.isActive,
         },
       },
@@ -150,6 +162,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           name: user.name,
           email: user.email,
           role: user.role,
+          permissions: (user as any).permissions || [],
           isActive: user.isActive,
         },
       },
@@ -182,6 +195,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
           name: user?.name,
           email: user?.email,
           role: user?.role,
+          permissions: (user as any)?.permissions || [],
           isActive: user?.isActive,
         },
       },

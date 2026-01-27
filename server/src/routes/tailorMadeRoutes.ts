@@ -7,7 +7,8 @@ import {
   deleteTailorMadeRequest,
   getTailorMadeStats,
 } from '../controllers/tailorMadeController';
-import { protect, authorize } from '../middleware/auth';
+import { protect, permit } from '../middleware/auth';
+import { PERMISSIONS } from '../permissions';
 import { tailorMadeRequestValidation } from '../middleware/validation';
 
 const router = express.Router();
@@ -16,10 +17,10 @@ const router = express.Router();
 router.post('/', tailorMadeRequestValidation, createTailorMadeRequest);
 
 // Admin only routes
-router.get('/stats', protect, authorize('admin'), getTailorMadeStats);
-router.get('/', protect, authorize('admin'), getAllTailorMadeRequests);
-router.get('/:id', protect, authorize('admin'), getTailorMadeRequestById);
-router.patch('/:id', protect, authorize('admin'), updateTailorMadeRequest);
-router.delete('/:id', protect, authorize('admin'), deleteTailorMadeRequest);
+router.get('/stats', protect, permit(PERMISSIONS.TAILOR_MADE_READ), getTailorMadeStats);
+router.get('/', protect, permit(PERMISSIONS.TAILOR_MADE_READ), getAllTailorMadeRequests);
+router.get('/:id', protect, permit(PERMISSIONS.TAILOR_MADE_READ), getTailorMadeRequestById);
+router.patch('/:id', protect, permit(PERMISSIONS.TAILOR_MADE_UPDATE), updateTailorMadeRequest);
+router.delete('/:id', protect, permit(PERMISSIONS.TAILOR_MADE_DELETE), deleteTailorMadeRequest);
 
 export default router;

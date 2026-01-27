@@ -26,6 +26,15 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
         <Row className='gutter-y-30'>
           {blogs.map((post, index) => {
             const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+            const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
+            const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
+              ? post.featuredImage.alt
+              : post.title;
+
+            const authorName =
+              post.author && typeof post.author === 'object'
+                ? (post.author as any).name || 'Admin'
+                : 'Admin';
             
             // Build blog URL - using ID instead of slug for reliability
             const blogUrl = `/blogs/${post._id}`;
@@ -38,13 +47,16 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                   data-wow-delay={`${100 * (index + 1)}ms`}
                 >
                   <div className='blog-card__image'>
-                    <Image 
-                      src={post.featuredImage} 
-                      alt={post.featuredImageAlt || post.title}
-                      width={400}
-                      height={300}
-                      style={{ width: '100%', height: 'auto' }}
-                    />
+                    <div className="relative w-full" style={{ height: '250px' }}>
+                      <Image 
+                        src={imageUrl || "https://placehold.co/600x400?text=Image"} 
+                        alt={imageAlt}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
                     <Link href={blogUrl} className='blog-card-two__image__link'>
                       <span className='sr-only'>{post.title}</span>
                     </Link>
@@ -61,7 +73,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                             <span className='blog-card__meta__icon'>
                               <i className='icon-user'></i>
                             </span>
-                            By {typeof post.author === 'object' ? post.author.name : 'Admin'}
+                            By {authorName}
                           </Link>
                         </li>
                         {post.tags && post.tags.length > 0 && (

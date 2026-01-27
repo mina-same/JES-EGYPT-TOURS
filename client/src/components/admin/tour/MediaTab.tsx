@@ -31,6 +31,15 @@ export default function MediaTab({
 }: MediaTabProps) {
   const [uploadingIndex, setUploadingIndex] = useState<{ type: 'main' | 'gallery', index: number } | null>(null);
 
+  const mapPreviewSrc = (() => {
+    const raw = String(formData.tourMapIframe || '').trim();
+    if (!raw) return '';
+    const srcMatch = raw.match(/src\s*=\s*"([^"]+)"/i);
+    if (srcMatch?.[1]) return srcMatch[1];
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    return '';
+  })();
+
   const handleFileUpload = async (file: File, type: 'main' | 'gallery', index: number) => {
     setUploadingIndex({ type, index });
     try {
@@ -304,6 +313,20 @@ export default function MediaTab({
               rows={4}
             />
           </div>
+
+          {mapPreviewSrc && (
+            <div className="mt-4 space-y-2">
+              <Label>Map Preview</Label>
+              <div className="w-full overflow-hidden rounded-lg border bg-muted/10">
+                <iframe
+                  src={mapPreviewSrc}
+                  className="w-full h-64"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

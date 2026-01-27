@@ -27,14 +27,12 @@ export default function TourListingDetailsPage({ params }: PageProps) {
     <Layout>
       <TopbarOne/>
       <HeaderOne linkTheme="light" />
-      <HeaderOneCloned />
       <PageHeader
         title="Tour Listing Details"
         subTitle="Tour Listing Details"
         bgImage='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBz9RsGBZErQQOzYdoMyqX-6tjs_zUEuiJg&s'
       />
       <TourListingOneDetails id={params.id} />
-
       <FooterOne />
     </Layout>
   );

@@ -18,6 +18,6 @@ router.get('/me', protect, getMe);
 router.post('/logout', protect, logout);
 
 // Admin only routes
-router.post('/register', protect, authorize('admin'), registerValidation, register);
+router.post('/register', protect, authorize('superadmin'), registerValidation, register);
 
 export default router;

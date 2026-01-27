@@ -112,6 +112,28 @@ export const tailorMadeRequestValidation: ValidationChain[] = [
     .withMessage('Comments cannot exceed 2000 characters'),
 ];
 
+export const contactSubmissionValidation: ValidationChain[] = [
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters'),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail(),
+  body('message')
+    .trim()
+    .notEmpty()
+    .withMessage('Message is required')
+    .isLength({ max: 5000 })
+    .withMessage('Message cannot exceed 5000 characters'),
+];
+
 export const registerValidation: ValidationChain[] = [
   body('name')
     .trim()
@@ -133,8 +155,16 @@ export const registerValidation: ValidationChain[] = [
     .withMessage('Password must be at least 6 characters'),
   body('role')
     .optional()
-    .isIn(['admin', 'user'])
-    .withMessage('Role must be either admin or user'),
+    .isIn(['superadmin', 'admin'])
+    .withMessage('Role must be either superadmin or admin'),
+  body('permissions')
+    .optional()
+    .isArray()
+    .withMessage('Permissions must be an array'),
+  body('isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('isActive must be a boolean'),
 ];
 
 export const loginValidation: ValidationChain[] = [
@@ -164,8 +194,12 @@ export const updateUserValidation: ValidationChain[] = [
     .normalizeEmail(),
   body('role')
     .optional()
-    .isIn(['admin', 'user'])
-    .withMessage('Role must be either admin or user'),
+    .isIn(['superadmin', 'admin'])
+    .withMessage('Role must be either superadmin or admin'),
+  body('permissions')
+    .optional()
+    .isArray()
+    .withMessage('Permissions must be an array'),
   body('isActive')
     .optional()
     .isBoolean()

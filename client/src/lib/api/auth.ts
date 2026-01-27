@@ -9,14 +9,16 @@ export interface RegisterData {
   name: string;
   email: string;
   password: string;
-  role?: 'admin';
+  role?: 'superadmin' | 'admin';
+  permissions?: string[];
 }
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin';
+  role: 'superadmin' | 'admin';
+  permissions?: string[];
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;

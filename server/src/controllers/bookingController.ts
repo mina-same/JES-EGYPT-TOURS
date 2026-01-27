@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import Booking from '../models/Booking';
 import Tour from '../models/Tour';
+import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
 
 /**
  * @desc    Create a new tour booking
@@ -39,6 +40,15 @@ export const createBooking = async (
 
     // Populate tour details
     await booking.populate('tour', 'heading slug images');
+
+    emitAdminNotification({
+      type: 'booking',
+      title: `Booking from ${booking.name}`,
+      entityId: booking._id.toString(),
+      createdAt: booking.createdAt?.toISOString?.() || new Date().toISOString(),
+    });
+
+    void emitDashboardStatsUpdate();
 
     res.status(201).json({
       success: true,
@@ -181,6 +191,8 @@ export const updateBooking = async (
     // Populate tour details
     await booking.populate('tour', 'heading slug images');
 
+    void emitDashboardStatsUpdate();
+
     res.status(200).json({
       success: true,
       message: 'Booking updated successfully',
@@ -216,6 +228,8 @@ export const deleteBooking = async (
     }
 
     await booking.deleteOne();
+
+    void emitDashboardStatsUpdate();
 
     res.status(200).json({
       success: true,

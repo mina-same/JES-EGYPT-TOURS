@@ -9,7 +9,7 @@ import shape from '@/assets/images/shapes/city.png'
 export const blogTwoInfo = {
   tagline: 'Blog & News',
   title: 'Our Latest News',
-  link: '/blog-details-left',
+  link: '/blogs',
   linkLabel: 'See More Article',
   shape: shape,
 

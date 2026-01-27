@@ -173,7 +173,7 @@ export default function EditTourPage() {
       try {
         const response = await getAllBlogs({ search: blogSearchQuery, limit: 5 });
         if (response.success && response.data) {
-          setBlogSearchResults(response.data.blogs);
+          setBlogSearchResults(response.data);
         }
       } catch (error) {
         console.error('Failed to search blogs:', error);
@@ -252,10 +252,66 @@ export default function EditTourPage() {
       if (response.success) {
         router.push('/admin/tour/tour');
       } else {
-        setError(response.error || 'Failed to update tour');
+        // Parse error response to provide helpful field-specific messages
+        let errorMessage = 'Failed to update tour';
+        
+        if (response.error) {
+          // Check for common validation error patterns
+          if (typeof response.error === 'string') {
+            if (response.error.includes('name') || response.error.includes('heading')) {
+              errorMessage = 'Tour name is required';
+            } else if (response.error.includes('description') || response.error.includes('overview')) {
+              errorMessage = 'Tour description is required';
+            } else if (response.error.includes('price')) {
+              errorMessage = 'Price information is incomplete or invalid';
+            } else if (response.error.includes('duration')) {
+              errorMessage = 'Tour duration is required';
+            } else if (response.error.includes('images') || response.error.includes('image')) {
+              errorMessage = 'At least one tour image is required';
+            } else if (response.error.includes('pricingPlans')) {
+              errorMessage = 'Pricing plans have missing required fields';
+            } else if (response.error.includes('faqs')) {
+              errorMessage = 'FAQs have missing required fields (question/answer)';
+            } else if (response.error.includes('itinerary')) {
+              errorMessage = 'Itinerary has missing required fields';
+            } else if (response.error.includes('validation')) {
+              errorMessage = 'Please check all required fields are filled correctly';
+            } else {
+              errorMessage = response.error;
+            }
+          } else {
+            errorMessage = JSON.stringify(response.error);
+          }
+        }
+        
+        setError(errorMessage);
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      // Parse and provide helpful error messages
+      let errorMessage = 'An error occurred while updating the tour';
+      
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.errors && Array.isArray(errorData.errors)) {
+          // Handle validation errors array
+          const fieldErrors = errorData.errors.map((e: any) => {
+            if (e.field && e.message) {
+              return `${e.field}: ${e.message}`;
+            }
+            return e.message || e.toString();
+          }).join('; ');
+          errorMessage = `Validation errors: ${fieldErrors}`;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -302,7 +358,20 @@ export default function EditTourPage() {
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
+          <div className="flex items-start gap-2">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-red-800">Error</h4>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <div className="mt-2 text-xs text-red-600">
+                Please check the form fields and try again. If the problem persists, contact support.
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

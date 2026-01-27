@@ -400,26 +400,133 @@ const seedBlogs = async () => {
       viewCount: 890,
     });
 
-    console.log('✅ Created 6 blog posts (3 featured, 3 regular)');
+    // Featured Blog 7 - Luxor Temple (New Professional Article)
+    const blog7 = await Blog.create({
+      title: 'Luxor Temple: The Complete Guide to Egypt\'s Ancient Temple Complex',
+      slug: 'luxor-temple-complete-guide-egypt',
+      author: admin._id,
+      featuredImage: {
+        url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b3?w=1200&h=600&fit=crop',
+        fileName: 'luxor-temple-night.jpg',
+        title: 'Luxor Temple illuminated at night',
+        alt: 'Luxor Temple illuminated at night showing ancient columns and statues',
+      },
+      excerpt: 'Discover the magnificent Luxor Temple, one of Egypt\'s best-preserved ancient temples. Our comprehensive guide covers history, architecture, best visiting times, and insider tips for an unforgettable experience.',
+      contentBlocks: [
+        {
+          type: 'html',
+          content: '<h2>Introduction to Luxor Temple</h2><p>Luxor Temple, known anciently as Ipet Resyt ("The Southern Sanctuary"), stands as one of Egypt\'s most magnificent and well-preserved ancient monuments. Located on the east bank of the Nile River in modern-day Luxor, this stunning temple complex offers visitors an unparalleled glimpse into ancient Egyptian religious architecture and royal power.</p><p>Built primarily during the New Kingdom period, Luxor Temple served as a vital center for the annual Opet Festival, one of ancient Egypt\'s most important religious celebrations. Unlike many other Egyptian temples that were dedicated to specific deities, Luxor Temple was primarily dedicated to the rejuvenation of kingship, making it unique in ancient Egyptian religious architecture.</p>',
+        },
+        {
+          type: 'imageRow',
+          images: [
+            {
+              url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b3?w=800&h=600&fit=crop',
+              alt: 'Luxor Temple at sunset',
+              caption: 'The magnificent entrance of Luxor Temple bathed in golden sunlight',
+              width: 800,
+              height: 600,
+            },
+            {
+              url: 'https://images.unsplash.com/photo-1548919175-b36508a0b3f8?w=800&h=600&fit=crop',
+              alt: 'Ancient hieroglyphics on temple walls',
+              caption: 'Intricate hieroglyphics telling stories of ancient pharaohs',
+              width: 800,
+              height: 600,
+            },
+          ],
+        },
+        {
+          type: 'html',
+          content: '<h2>Historical Significance and Construction</h2><p>The construction of Luxor Temple spanned several centuries, with contributions from some of Egypt\'s most famous pharaohs. The temple\'s core was begun by Amenhotep III (1390-1352 BCE) and later expanded by Tutankhamun, Horemheb, and finally Ramesses II, who added the massive pylon entrance and courtyard.</p><p>What makes Luxor Temple particularly significant is its role in the Opet Festival, during which the statues of Amun, Mut, and Khonsu were transported from Karnak Temple to Luxor Temple in a grand procession. This festival celebrated the rejuvenation of the pharaoh\'s divine power and ensured the fertility of the Nile Valley.</p>',
+        },
+        {
+          type: 'blockquote',
+          content: 'Luxor Temple is not just a monument to the gods, but a testament to the enduring legacy of ancient Egyptian civilization. Every stone tells a story of faith, power, and artistic mastery that has captivated visitors for over 3,000 years.',
+          image: '/images/shapes/quote-Icon.png',
+        },
+        {
+          type: 'html',
+          content: '<h2>Architectural Marvels</h2><p>The temple\'s architecture showcases the pinnacle of ancient Egyptian building techniques. The massive first pylon, standing over 24 meters high, is adorned with reliefs depicting Ramesses II\'s military victories. Beyond lies the Great Court of Ramesses II, surrounded by 74 papyrus-bud columns.</p><p>The heart of the temple contains the Colonnade of Amenhotep III, featuring 14 massive columns with intricate papyrus capitals. This area leads to the Sun Court of Amenhotep III and finally to the inner sanctuary, where the sacred barque of the god Amun was housed during festivals.</p>',
+        },
+        {
+          type: 'imageRow',
+          images: [
+            {
+              url: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&h=600&fit=crop',
+              alt: 'Massive temple columns',
+              caption: 'The towering columns showcase ancient Egyptian architectural genius',
+              width: 800,
+              height: 600,
+            },
+          ],
+        },
+        {
+          type: 'html',
+          content: '<h2>Best Time to Visit Luxor Temple</h2><p>For the most enjoyable experience, visit Luxor Temple during the cooler months from October to April. The temple is particularly magical at night when it\'s beautifully illuminated, creating a mystical atmosphere that enhances the ancient stone carvings and statues.</p><p>Early morning visits offer fewer crowds and softer lighting perfect for photography, while evening visits provide a completely different perspective as the setting sun casts golden hues across the ancient stones.</p>',
+        },
+        {
+          type: 'html',
+          content: '<h2>Practical Visitor Information</h2><p><strong>Opening Hours:</strong> Daily from 6:00 AM to 9:00 PM<br><strong>Admission Fees:</strong> Approximately 140 Egyptian Pounds for foreign tourists<br><strong>Recommended Visit Duration:</strong> 2-3 hours<br><strong>Best Photography Times:</strong> Early morning and sunset</p><p>Consider hiring a licensed Egyptologist guide to fully appreciate the temple\'s rich history and symbolism. Audio guides are also available in multiple languages.</p>',
+        },
+        {
+          type: 'html',
+          content: '<h2>Tips for an Unforgettable Visit</h2><ul><li>Wear comfortable walking shoes as you\'ll be covering considerable distance on uneven stone surfaces</li><li>Bring plenty of water, especially during summer months</li><li>Don\'t forget sunscreen and a hat for daytime visits</li><li>Evening visits require a separate ticket but offer a completely different experience</li><li>Consider combining your visit with Karnak Temple, located just 2 kilometers away</li><li>Respect the ancient site by not touching the carvings or climbing on structures</li></ul>',
+        },
+      ],
+      metaTitle: 'Luxor Temple Guide: History & Visiting Tips 2024',
+      metaDescription: 'Ultimate guide to Luxor Temple, Egypt. Discover ancient history, architectural marvels, best visiting times, and insider tips for an unforgettable experience.',
+      metaKeywords: ['luxor temple', 'ancient egypt', 'egyptian temples', 'luxor egypt', 'ancient architecture', 'egypt travel guide', 'opet festival', 'amenhotep iii', 'ramesses ii'],
+      tags: ['Luxor Temple', 'Ancient Egypt', 'Egypt Travel', 'Historical Sites', 'Architecture', 'UNESCO'],
+      status: 'published',
+      isFeatured: true,
+      publishedAt: new Date('2024-01-25'),
+      focusKeyword: 'luxor temple',
+      commentsEnabled: true,
+      viewCount: 2850,
+      comments: [
+        {
+          name: 'Sarah Mitchell',
+          email: 'sarah@example.com',
+          text: 'Absolutely breathtaking! The night illumination creates an otherworldly atmosphere. Our guide was fantastic at explaining the history.',
+          avatar: 'https://ui-avatars.com/api/?name=Sarah+Mitchell',
+          isApproved: true,
+          createdAt: new Date('2024-01-26'),
+        } as any,
+        {
+          name: 'Ahmed Hassan',
+          email: 'ahmed@example.com',
+          text: 'As an Egyptian, I\'m still amazed by the beauty of Luxor Temple. This guide captures its essence perfectly. Highly recommend visiting during the Opet Festival season!',
+          avatar: 'https://ui-avatars.com/api/?name=Ahmed+Hassan',
+          isApproved: true,
+          createdAt: new Date('2024-01-27'),
+        } as any,
+      ],
+    });
+
+    console.log('✅ Created 7 blog posts (4 featured, 3 regular)');
 
     // Set related posts
-    blog1.relatedPosts = [blog2._id, blog3._id];
+    blog1.relatedPosts = [blog2._id, blog3._id, blog7._id];
     await blog1.save();
 
-    blog2.relatedPosts = [blog1._id, blog3._id];
+    blog2.relatedPosts = [blog1._id, blog3._id, blog7._id];
     await blog2.save();
 
-    blog3.relatedPosts = [blog1._id, blog2._id];
+    blog3.relatedPosts = [blog1._id, blog2._id, blog7._id];
     await blog3.save();
 
-    blog4.relatedPosts = [blog5._id, blog6._id];
+    blog4.relatedPosts = [blog5._id, blog6._id, blog7._id];
     await blog4.save();
 
-    blog5.relatedPosts = [blog4._id, blog6._id];
+    blog5.relatedPosts = [blog4._id, blog6._id, blog7._id];
     await blog5.save();
 
-    blog6.relatedPosts = [blog4._id, blog5._id];
+    blog6.relatedPosts = [blog4._id, blog5._id, blog7._id];
     await blog6.save();
+
+    blog7.relatedPosts = [blog1._id, blog2._id, blog3._id];
+    await blog7.save();
 
     console.log('✅ Set related posts');
 
@@ -427,9 +534,9 @@ const seedBlogs = async () => {
     console.log('✅ Blog seeding completed successfully!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📊 Summary:');
-    console.log(`   - Featured Blogs: 3`);
+    console.log(`   - Featured Blogs: 4`);
     console.log(`   - Regular Blogs: 3`);
-    console.log(`   - Total Blog Posts: 6`);
+    console.log(`   - Total Blog Posts: 7`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     process.exit(0);

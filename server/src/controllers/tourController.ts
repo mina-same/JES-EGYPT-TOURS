@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
 import { ITour } from '../models/Tour';
+import { emitDashboardStatsUpdate } from '../realtime/socket';
 
 // ==================== INTERFACES ====================
 
@@ -523,6 +524,8 @@ export const createTour = async (
     // Populate subcategory details
     await tour.populate('subcategory', 'name slug');
 
+    void emitDashboardStatsUpdate();
+
     res.status(201).json({
       success: true,
       message: 'Tour created successfully',
@@ -588,6 +591,13 @@ export const updateTour = async (
   res: Response
 ): Promise<void> => {
   try {
+    // Filter out empty gallery items (items with empty fileName)
+    if (req.body.gallery && Array.isArray(req.body.gallery)) {
+      req.body.gallery = req.body.gallery.filter((item: any) => 
+        item && item.fileName && item.fileName.trim() !== ''
+      );
+    }
+
     const tour = await Tour.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -604,6 +614,8 @@ export const updateTour = async (
       });
       return;
     }
+
+    void emitDashboardStatsUpdate();
 
     res.status(200).json({
       success: true,
@@ -691,6 +703,8 @@ export const deleteTour = async (
 
     await tour.deleteOne();
 
+    void emitDashboardStatsUpdate();
+
     res.status(200).json({
       success: true,
       message: 'Tour deleted successfully',
@@ -737,6 +751,8 @@ export const toggleTourStatus = async (
     tour.isActive = !tour.isActive;
     await tour.save();
 
+    void emitDashboardStatsUpdate();
+
     res.status(200).json({
       success: true,
       message: `Tour ${tour.isActive ? 'activated' : 'deactivated'} successfully`,
@@ -774,6 +790,8 @@ export const toggleTourFeatured = async (
 
     tour.isFeatured = !tour.isFeatured;
     await tour.save();
+
+    void emitDashboardStatsUpdate();
 
     res.status(200).json({
       success: true,

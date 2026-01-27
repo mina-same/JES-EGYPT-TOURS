@@ -100,3 +100,6 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+/* PhotoSwipe styles */
+@import 'photoswipe/dist/photoswipe.css';

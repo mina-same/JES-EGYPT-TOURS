@@ -7,6 +7,7 @@ export interface ContactFormField {
   type: "text" | "email" | "textarea";
 }
 
+
 export interface Metadata {
   id: number;
   title: string;
@@ -73,7 +74,14 @@ export interface Comment {
   name: string;
   date: string;
   text: string;
+  rating?: number;
   avatar: StaticImageData | string;
+}
+
+export interface ReviewVideo {
+  title: string;
+  url: string;
+  videoId: string;
 }
 
 export interface TourDetailsOneData {
@@ -100,6 +108,7 @@ export interface TourDetailsOneData {
   itinerary?: Itinerary;
   pricingPlans?: PricingPlan[];
   whatYouWillLoveHtml?: string;
+  reviewVideos?: ReviewVideo[];
 }
 
 export interface TourListingOneDetailsProps {

@@ -49,7 +49,6 @@ export interface BlogFormData {
   isFeatured: boolean;
   publishedAt?: Date;
   scheduledAt?: Date;
-  commentsEnabled: boolean;
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string[];
@@ -58,8 +57,8 @@ export interface BlogFormData {
   ogDescription?: string;
   ogImage?: string;
   ogType?: string;
-  noIndex: boolean;
-  noFollow: boolean;
+  noIndex?: boolean;
+  noFollow?: boolean;
   focusKeyword?: string;
   breadcrumbs?: {
     name: string;
@@ -69,13 +68,16 @@ export interface BlogFormData {
 }
 
 export interface ContentBlock {
+  id?: string;
   type: 'html' | 'imageRow' | 'blockquote' | 'video' | 'image';
   content?: string;
+  title?: string;
   images?: {
     url: string;
     alt: string;
     title?: string;
     caption?: string;
+    fileName?: string;
     width?: number;
     height?: number;
   }[];

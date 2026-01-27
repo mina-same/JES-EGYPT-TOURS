@@ -1,23 +1,28 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Search, Filter, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import UserTable from '@/components/dashboard/UserManagement/UserTable';
-import UserModal from '@/components/dashboard/UserManagement/UserModal';
-import { userAPI, authAPI, User, RegisterData } from '@/lib/api/auth';
-import { useAuth } from '@/contexts/AuthContext';
+import { Users, Search, Filter, RefreshCw, CheckCircle, XCircle, Edit2, Trash2 } from 'lucide-react';
+import StatCard from '@/components/common/StatCard/StatCard';
+import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
+import BulkActionsBar from '@/components/admin/BulkActionsBar';
+import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
+import { userAPI, User } from '@/lib/api/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 import './modern-users.css';
 
 const UsersPage: React.FC = () => {
+  const router = useRouter();
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const { user: currentUser } = useAuth();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteIds, setDeleteIds] = useState<string[]>([]);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   // Fetch users
   const fetchUsers = async () => {
@@ -57,48 +62,45 @@ const UsersPage: React.FC = () => {
     });
   }, [users, searchTerm, statusFilter]);
 
-  // Handle create/edit user
-  const handleSubmit = async (data: RegisterData) => {
-    try {
-      setIsSubmitting(true);
-      setError('');
-      
-      if (selectedUser) {
-        // Update user
-        await userAPI.updateUser(selectedUser.id, {
-          name: data.name,
-          role: data.role,
-        });
-        setSuccess('User updated successfully');
-      } else {
-        // Create user
-        await authAPI.register(data);
-        setSuccess('User created successfully');
-      }
-      
-      await fetchUsers();
-      setShowModal(false);
-      setSelectedUser(null);
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Operation failed');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // Handle delete user
   const handleDelete = async (userId: string) => {
+    setDeleteIds([userId]);
+    setDeleteModalOpen(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedRowKeys.length === 0) return;
+    setDeleteIds(selectedRowKeys);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteIds.length === 0) return;
+    setDeleteBusy(true);
     try {
-      setError('');
-      await userAPI.deleteUser(userId);
-      setSuccess('User deleted successfully');
+      await Promise.all(deleteIds.map((id) => userAPI.deleteUser(id)));
+      toast({
+        title: 'Deleted',
+        description:
+          deleteIds.length === 1
+            ? 'Administrator deleted successfully.'
+            : `${deleteIds.length} administrators deleted successfully.`,
+        variant: 'success',
+      });
+      setSelectedRowKeys([]);
+      setDeleteModalOpen(false);
+      setDeleteIds([]);
       await fetchUsers();
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete user');
+      const msg = err.response?.data?.error || 'Failed to delete user(s)';
+      setError(msg);
+      toast({
+        title: 'Delete failed',
+        description: msg,
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -115,22 +117,13 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  // Handle edit user
-  const handleEdit = (user: User) => {
-    setSelectedUser(user);
-    setShowModal(true);
-  };
-
   // Handle create new user
   const handleCreateNew = () => {
-    setSelectedUser(null);
-    setShowModal(true);
+    router.push('/admin/users/new');
   };
 
-  // Clear filters
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('all');
+  const handleEdit = (user: User) => {
+    router.push(`/admin/users/${user.id}/edit`);
   };
 
   const stats = {
@@ -138,15 +131,112 @@ const UsersPage: React.FC = () => {
     active: users.filter(u => u.isActive).length,
     inactive: users.filter(u => !u.isActive).length,
     filtered: filteredUsers.length,
+    superadmins: users.filter(u => (u as any).role === 'superadmin').length,
+    admins: users.filter(u => (u as any).role === 'admin').length,
   };
+
+  const columns: Array<AdminTableColumn<User>> = [
+    {
+      header: 'User',
+      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+      cellClassName: 'px-6 py-4',
+      render: (user) => (
+        <div className="flex items-center">
+          <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+            <Users size={20} className="text-gray-500" />
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900">{user.name}</div>
+            <div className="text-sm text-gray-500">{user.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Role',
+      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+      cellClassName: 'px-6 py-4',
+      render: (user) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          (user as any).role === 'superadmin' 
+            ? 'bg-purple-100 text-purple-800' 
+            : 'bg-blue-100 text-blue-800'
+        }`}>
+          {(user as any).role || 'admin'}
+        </span>
+      ),
+    },
+    {
+      header: 'Status',
+      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+      cellClassName: 'px-6 py-4',
+      render: (user) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          user.isActive 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-red-100 text-red-800'
+        }`}>
+          {user.isActive ? (
+            <>
+              <CheckCircle size={12} className="mr-1" />
+              Active
+            </>
+          ) : (
+            <>
+              <XCircle size={12} className="mr-1" />
+              Inactive
+            </>
+          )}
+        </span>
+      ),
+    },
+    {
+      header: 'Actions',
+      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+      cellClassName: 'px-6 py-4',
+      render: (user) => (
+        <div className="flex items-center gap-2">
+          <button
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+            onClick={() => handleEdit(user)}
+            title="Edit"
+          >
+            <Edit2 size={16} />
+          </button>
+          <button
+            className={`p-2 text-gray-400 rounded-md transition-colors disabled:opacity-50 ${
+              user.isActive
+                ? 'hover:text-yellow-600 hover:bg-yellow-50'
+                : 'hover:text-green-600 hover:bg-green-50'
+            }`}
+            onClick={() => handleToggleStatus(user.id, !user.isActive)}
+            title={user.isActive ? 'Deactivate' : 'Activate'}
+          >
+            {user.isActive ? (
+              <XCircle size={16} />
+            ) : (
+              <CheckCircle size={16} />
+            )}
+          </button>
+          <button
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            onClick={() => handleDelete(user.id)}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="users-admin">
       {/* Header */}
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">User Management</h1>
-          <p className="admin-page-subtitle">Manage administrator accounts and permissions</p>
+          <h1 className="admin-page-title">Administrators</h1>
+          <p className="admin-page-subtitle">Manage superadmin and admin accounts and permissions</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button className="btn-refresh" onClick={fetchUsers} disabled={isLoading}>
@@ -164,34 +254,11 @@ const UsersPage: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-total">
-            <Users size={20} />
-          </div>
-          <div className="stat-value">{stats.total}</div>
-          <div className="stat-label">Total Users</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-active">
-            <CheckCircle size={20} />
-          </div>
-          <div className="stat-value">{stats.active}</div>
-          <div className="stat-label">Active</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-inactive">
-            <XCircle size={20} />
-          </div>
-          <div className="stat-value">{stats.inactive}</div>
-          <div className="stat-label">Inactive</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-filtered">
-            <Filter size={20} />
-          </div>
-          <div className="stat-value">{stats.filtered}</div>
-          <div className="stat-label">Filtered Results</div>
-        </div>
+        <StatCard icon={Users} value={stats.total} label="Total Administrators" iconVariant="total" />
+        <StatCard icon={CheckCircle} value={stats.active} label="Active" iconVariant="active" />
+        <StatCard icon={XCircle} value={stats.inactive} label="Inactive" iconVariant="inactive" />
+        <StatCard icon={Filter} value={stats.superadmins} label="Superadmins" iconVariant="filtered" />
+        <StatCard icon={Filter} value={stats.admins} label="Admins" iconVariant="filtered" />
       </div>
 
       {/* Filters */}
@@ -229,25 +296,63 @@ const UsersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Users Table */}
-      <UserTable
-        users={filteredUsers}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onToggleStatus={handleToggleStatus}
-        isLoading={isLoading}
+      <BulkActionsBar
+        selectedCount={selectedRowKeys.length}
+        onClear={() => setSelectedRowKeys([])}
+        onDeleteSelected={handleBulkDelete}
+        deleteDisabled={isLoading}
       />
 
-      {/* User Modal */}
-      <UserModal
-        show={showModal}
-        onHide={() => {
-          setShowModal(false);
-          setSelectedUser(null);
+      {/* Administrators Table */}
+      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+        <AdminTable<User>
+          data={filteredUsers}
+          columns={columns}
+          getRowKey={(row) => row.id}
+          enableSelection
+          selectedRowKeys={selectedRowKeys}
+          onSelectedRowKeysChange={setSelectedRowKeys}
+          loading={isLoading}
+          loadingNode={
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw size={48} className="animate-spin text-gray-400" />
+              <span className="ml-3 text-gray-500">Loading administrators...</span>
+            </div>
+          }
+          emptyNode={
+            <div className="text-center py-12">
+              <Users size={64} className="mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No administrators found</h3>
+              <p className="text-gray-500 mb-6">There are no administrators matching your criteria.</p>
+              <button
+                onClick={handleCreateNew}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '18px', height: '18px' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add First Administrator
+              </button>
+            </div>
+          }
+          wrapperClassName="overflow-x-auto"
+          tableClassName="w-full"
+          theadClassName="bg-gray-50 border-b"
+          tbodyClassName="bg-white divide-y divide-gray-200"
+          rowClassName="hover:bg-gray-50"
+        />
+      </div>
+
+      <ConfirmDeleteModal
+        open={deleteModalOpen}
+        onOpenChange={(open) => {
+          if (deleteBusy) return;
+          setDeleteModalOpen(open);
+          if (!open) setDeleteIds([]);
         }}
-        onSubmit={handleSubmit}
-        user={selectedUser}
-        isLoading={isSubmitting}
+        count={deleteIds.length}
+        onConfirm={confirmDelete}
+        confirmDisabled={deleteBusy}
       />
     </div>
   );

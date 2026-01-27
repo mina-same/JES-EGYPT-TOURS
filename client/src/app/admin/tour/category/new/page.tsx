@@ -63,7 +63,56 @@ export default function NewCategoryPage() {
       const response = await tourCategoryAPI.getById(id);
       console.log('Fetched category data:', response);
       if (response.success && response.data) {
-        setFormData(response.data);
+        const data = response.data as any;
+        setFormData({
+          name: data.name || '',
+          slug: data.slug || '',
+          description: data.description || '',
+          image: data.image
+            ? {
+                url: data.image.url || '',
+                fileName: data.image.fileName || '',
+                title: data.image.title || '',
+                alt: data.image.alt || '',
+              }
+            : {
+                url: '',
+                fileName: '',
+                title: '',
+                alt: '',
+              },
+          seo: data.seo
+            ? {
+                metaTitle: data.seo.metaTitle || '',
+                metaDescription: data.seo.metaDescription || '',
+                metaKeywords: Array.isArray(data.seo.metaKeywords) ? data.seo.metaKeywords : [],
+                metaImage: data.seo.metaImage
+                  ? {
+                      url: data.seo.metaImage.url || '',
+                      fileName: data.seo.metaImage.fileName || '',
+                      title: data.seo.metaImage.title || '',
+                      alt: data.seo.metaImage.alt || '',
+                    }
+                  : {
+                      url: '',
+                      fileName: '',
+                      title: '',
+                      alt: '',
+                    },
+              }
+            : {
+                metaTitle: '',
+                metaDescription: '',
+                metaKeywords: [],
+                metaImage: {
+                  url: '',
+                  fileName: '',
+                  title: '',
+                  alt: '',
+                },
+              },
+          isActive: data.isActive !== undefined ? !!data.isActive : true,
+        });
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to fetch category data');
@@ -178,11 +227,43 @@ export default function NewCategoryPage() {
         }
       }
 
+      // Build a clean payload (avoid sending _id/createdAt/etc from fetched data)
+      const payload: TourCategoryFormData = {
+        name: cleanData.name,
+        slug: cleanData.slug,
+        description: cleanData.description,
+        isActive: cleanData.isActive,
+      };
+
+      if (cleanData.image?.url) {
+        payload.image = cleanData.image;
+      }
+
+      if (cleanData.seo) {
+        const hasSeoData =
+          !!cleanData.seo.metaTitle ||
+          !!cleanData.seo.metaDescription ||
+          (Array.isArray(cleanData.seo.metaKeywords) && cleanData.seo.metaKeywords.length > 0) ||
+          !!cleanData.seo.metaImage?.url;
+
+        if (hasSeoData) {
+          const seoPayload: any = {};
+          if (cleanData.seo.metaTitle?.trim()) seoPayload.metaTitle = cleanData.seo.metaTitle;
+          if (cleanData.seo.metaDescription?.trim()) seoPayload.metaDescription = cleanData.seo.metaDescription;
+          if (Array.isArray(cleanData.seo.metaKeywords) && cleanData.seo.metaKeywords.length > 0) {
+            seoPayload.metaKeywords = cleanData.seo.metaKeywords;
+          }
+          if (cleanData.seo.metaImage?.url) seoPayload.metaImage = cleanData.seo.metaImage;
+
+          payload.seo = seoPayload;
+        }
+      }
+
       let response;
       if (isEditMode && categoryId) {
-        response = await tourCategoryAPI.update(categoryId, cleanData);
+        response = await tourCategoryAPI.update(categoryId, payload);
       } else {
-        response = await tourCategoryAPI.create(cleanData);
+        response = await tourCategoryAPI.create(payload);
       }
       
       if (response.success) {
@@ -287,25 +368,28 @@ export default function NewCategoryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <ImageUpload
-              images={formData.image?.url ? [{
+              images={formData.image ? [{
                 url: formData.image.url || '',
                 title: formData.image.title || '',
                 alt: formData.image.alt || '',
                 fileName: formData.image.fileName || '',
               }] : []}
               onAdd={() => {
-                if (!formData.image?.url) {
-                  handleChange('image', { url: '', title: '', alt: '', fileName: '' });
-                }
+                if (!formData.image) handleChange('image', { url: '', title: '', alt: '', fileName: '' });
               }}
               onRemove={() => {
-                handleChange('image', { url: '', title: '', alt: '', fileName: '' });
+                handleChange('image', undefined);
               }}
               onUpdate={(index, field, value) => {
-                const currentImage = formData.image || { url: '', title: '', alt: '', fileName: '' };
-                handleChange('image', {
-                  ...currentImage,
-                  [field]: value,
+                setFormData(prev => {
+                  const currentImage = prev.image || { url: '', title: '', alt: '', fileName: '' };
+                  return {
+                    ...prev,
+                    image: {
+                      ...currentImage,
+                      [field]: value,
+                    },
+                  };
                 });
               }}
               onUpload={async (file) => {
@@ -364,25 +448,32 @@ export default function NewCategoryPage() {
             
             <div className="space-y-4">
               <ImageUpload
-                images={formData.seo?.metaImage?.url ? [{
+                images={formData.seo?.metaImage ? [{
                   url: formData.seo.metaImage.url || '',
                   title: formData.seo.metaImage.title || '',
                   alt: formData.seo.metaImage.alt || '',
                   fileName: formData.seo.metaImage.fileName || '',
                 }] : []}
                 onAdd={() => {
-                  if (!formData.seo?.metaImage?.url) {
-                    handleChange('seo.metaImage', { url: '', title: '', alt: '', fileName: '' });
-                  }
+                  if (!formData.seo?.metaImage) handleChange('seo.metaImage', { url: '', title: '', alt: '', fileName: '' });
                 }}
                 onRemove={() => {
-                  handleChange('seo.metaImage', { url: '', title: '', alt: '', fileName: '' });
+                  handleChange('seo.metaImage', undefined);
                 }}
                 onUpdate={(index, field, value) => {
-                  const currentImage = formData.seo?.metaImage || { url: '', title: '', alt: '', fileName: '' };
-                  handleChange('seo.metaImage', {
-                    ...currentImage,
-                    [field]: value,
+                  setFormData(prev => {
+                    const currentSeo = prev.seo || { metaTitle: '', metaDescription: '', metaKeywords: [] as string[] };
+                    const currentImage = currentSeo.metaImage || { url: '', title: '', alt: '', fileName: '' };
+                    return {
+                      ...prev,
+                      seo: {
+                        ...currentSeo,
+                        metaImage: {
+                          ...currentImage,
+                          [field]: value,
+                        },
+                      },
+                    };
                   });
                 }}
                 onUpload={async (file) => {

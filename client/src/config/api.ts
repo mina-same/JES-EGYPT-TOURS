@@ -26,4 +26,10 @@ export const API_ENDPOINTS = {
     BASE: `${API_URL}/users`,
     BY_ID: (id: string) => `${API_URL}/users/${id}`,
   },
+
+  // Contact Forms
+  CONTACT: {
+    BASE: `${API_URL}/contact`,
+    BY_ID: (id: string) => `${API_URL}/contact/${id}`,
+  },
 };

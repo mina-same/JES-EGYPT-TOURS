@@ -23,7 +23,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   });
 
   const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt);
-  const author = typeof blog.author === 'object' ? blog.author.name : 'Admin';
+  const author =
+    blog.author && typeof blog.author === 'object'
+      ? (blog.author as any).name || 'Admin'
+      : 'Admin';
+  const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
+  const featuredImageAlt = typeof blog.featuredImage === 'object' && blog.featuredImage?.alt
+    ? blog.featuredImage.alt
+    : blog.title;
   
   const approvedComments = blog.comments?.filter(c => c.isApproved) || [];
 
@@ -59,23 +66,32 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         const nextBlock = blog.contentBlocks[index + 1];
         const isNextBlockContent = nextBlock && (nextBlock.type === 'html' || nextBlock.type === 'blockquote');
         
+        // Dynamic column classes based on number of images
+        const getImageColumnClass = () => {
+          const imageCount = block.images?.length || 0;
+          if (imageCount === 1) return 'col-md-12';
+          return 'col-md-6'; // 2 or more images
+        };
+        
         return (
           <div key={index} className='blog-details__inner'>
             <div className='row gutter-y-30'>
               {block.images?.map((img: any, imgIndex: number) => (
                 <div
-                  className='col-md-6 wow fadeInLeft'
+                  className={`${getImageColumnClass()} wow fadeInLeft`}
                   data-wow-delay={`${100 * imgIndex}ms`}
                   key={imgIndex}
                 >
                   <div className='blog-details__inner__image'>
-                    <Image 
-                      src={img.url} 
-                      alt={img.alt || 'Blog image'}
-                      width={img.width || 800}
-                      height={img.height || 600}
-                      style={{ width: '100%', height: 'auto' }}
-                    />
+                    <div style={{ height: '250px', overflow: 'hidden' }}>
+                      <Image 
+                        src={img.url} 
+                        alt={img.alt || 'Blog image'}
+                        width={img.width || 800}
+                        height={300}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -182,8 +198,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               >
                 <div className='blog-details-card__image'>
                   <Image 
-                    src={blog.featuredImage} 
-                    alt={blog.featuredImageAlt || blog.title}
+                    src={featuredImageUrl || "https://placehold.co/1200x600?text=Image"} 
+                    alt={featuredImageAlt}
                     width={1200}
                     height={600}
                     style={{ width: '100%', height: 'auto' }}
@@ -348,7 +364,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               )}
 
               {/* Comment Form */}
-              {blog.commentsEnabled && (
+              {/* {blog.commentsEnabled && (
                 <div className='comments-form'>
                   <h3 className='comments-form__title'>Leave a Comment</h3>
                   <form
@@ -415,7 +431,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     </div>
                   </form>
                 </div>
-              )}
+              )} */}
             </div>
           </Col>
           
