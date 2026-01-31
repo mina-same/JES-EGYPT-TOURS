@@ -25,6 +25,7 @@ import { PricingPlans } from "./PricingPlans";
 import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import { RelatedTours } from "./RelatedTours";
 import { ReviewsSection } from "./ReviewsSection";
+import FeatureTwo from "../FeatureTwo/FeatureTwo";
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
   const { tourData, loading, error } = useTourData(id);
@@ -35,8 +36,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   // Handle scroll spy and smooth scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['description', 'pricing', 'amenities', 'gallery', 'faqs', 'honest-reviews', 'reviews'];
-      
+      const sections = ['description', 'tour-plan', 'amenities', 'pricing', 'gallery', 'faqs', 'honest-reviews', 'reviews'];
+
       // Find the current active section
       for (const sectionId of sections) {
         const element = document.getElementById(sectionId);
@@ -66,12 +67,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             const headerOffset = 130;
             const elementPosition = element.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-            
+
             window.scrollTo({
               top: offsetPosition,
               behavior: 'smooth'
             });
-            
+
             // Immediately set active section
             setActiveSection(sectionId);
           }
@@ -81,7 +82,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
     window.addEventListener('scroll', handleScroll);
     document.addEventListener('click', handleClick);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClick);
@@ -171,23 +172,23 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
   const handleCommentSubmit = async (data: any) => {
     if (!id) {
-       console.error("No tour ID found");
-       return;
+      console.error("No tour ID found");
+      return;
     }
 
     try {
-        await reviewsAPI.submitReview({
-            tourId: id,
-            name: data.name,
-            email: data.email,
-            rating: Number(data.rating),
-            comment: data.comment
-        });
-        
-        alert("Review submitted successfully! It will appear after approval.");
+      await reviewsAPI.submitReview({
+        tourId: id,
+        name: data.name,
+        email: data.email,
+        rating: Number(data.rating),
+        comment: data.comment
+      });
+
+      alert("Review submitted successfully! It will appear after approval.");
     } catch (error) {
-        console.error("Error submitting review:", error);
-        alert("Failed to submit review.");
+      console.error("Error submitting review:", error);
+      alert("Failed to submit review.");
     }
   };
 
@@ -320,8 +321,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         </Container>
 
         {/* Section Separator */}
-        <div className="section-separator" style={{ 
-          height: '1px', 
+        <div className="section-separator" style={{
+          height: '1px',
           background: 'linear-gradient(90deg, transparent, #e0e0e0, transparent)',
           margin: '40px 0'
         }}></div>
@@ -331,8 +332,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
           <div className="tour-details-nav-wrapper bg-white" style={{ borderBottom: '2px solid #f0f0f0', marginBottom: '40px' }}>
             <nav className="tour-details-nav">
               <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>Description</a>
-              <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>Pricing Plans</a>
+              <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>Tour Plan</a>
               <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>Tour Amenities</a>
+              <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>Pricing Plans</a>
               <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>Tour Gallery</a>
               <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>Tour FAQ</a>
               {hasReviewVideos ? (
@@ -390,13 +392,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       dangerouslySetInnerHTML={{ __html: overview }}
                     />
                     {tourData.whatYouWillLoveHtml && (
-                      <div 
+                      <div
                         className="tour-listing-details__what-you-love"
                         dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
                       />
                     )}
                   </div>
-                  
+
                   {/* Highlight List Section */}
                   {/* Highlight List Section */}
                   <div className='tour-listing-details__content__item tour-listing-details__list'>
@@ -411,29 +413,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       ))}
                     </ul>
                   </div>
-
-                  {/* Tour Plan */}
-                  <TourPlan itinerary={itinerary} />
                 </section>
 
-                {/* Pricing Section */}
-                <section id="pricing" className="tour-section">
-                  {pricingPlans && pricingPlans.length > 0 ? (
-                    <div className='tour-listing-details__content__item tour-listing-details__pricing'>
-                      <div className="mb-4">
-                         <h4 className='tour-listing-details__title mb-2'>Tour Pricing</h4>
-                         <p className="tour-reviews-subtitle">Find the perfect package that suits your budget and preferences.</p>
-                      </div>
-                      <PricingPlans pricingPlans={pricingPlans} />
-                    </div>
-                  ) : (
-                    <EmptyState 
-                      title="No Pricing Plans Available"
-                      description="There are currently no pricing plans available for this tour."
-                      icon="file"
-                      size="medium"
-                    />
-                  )}
+                <section id="tour-plan" className="tour-section">
+                  <TourPlan itinerary={itinerary} />
                 </section>
 
                 {/* Amenities Section */}
@@ -441,8 +424,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
                     <div className='tour-listing-details__content__item tour-listing-details__amenities'>
                       <div className="mb-4">
-                         <h4 className='tour-listing-details__title mb-2'>Tour Amenities</h4>
-                         <p className="tour-reviews-subtitle">Comprehensive list of what's provided for your comfortable journey.</p>
+                        <h4 className='tour-listing-details__title mb-2'>Tour Amenities</h4>
+                        <p className="tour-reviews-subtitle">Comprehensive list of what's provided for your comfortable journey.</p>
                       </div>
                       <div className="row gutter-y-30">
                         {amenities && amenities.length > 0 && (
@@ -488,9 +471,29 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       </div>
                     </div>
                   ) : (
-                    <EmptyState 
+                    <EmptyState
                       title="No Amenities Information"
                       description="There are currently no amenities or inclusions/exclusions listed for this tour."
+                      icon="file"
+                      size="medium"
+                    />
+                  )}
+                </section>
+
+                {/* Pricing Section */}
+                <section id="pricing" className="tour-section">
+                  {pricingPlans && pricingPlans.length > 0 ? (
+                    <div className='tour-listing-details__content__item tour-listing-details__pricing'>
+                      <div className="mb-4">
+                        <h4 className='tour-listing-details__title mb-2'>Tour Pricing</h4>
+                        <p className="tour-reviews-subtitle">Find the perfect package that suits your budget and preferences.</p>
+                      </div>
+                      <PricingPlans pricingPlans={pricingPlans} />
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No Pricing Plans Available"
+                      description="There are currently no pricing plans available for this tour."
                       icon="file"
                       size="medium"
                     />
@@ -502,8 +505,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {images && images.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__thumb'>
                       <div className="mb-4">
-                         <h4 className='tour-listing-details__title mb-2'>Tour Gallery</h4>
-                         <p className="tour-reviews-subtitle">A visual journey through the amazing places you will visit.</p>
+                        <h4 className='tour-listing-details__title mb-2'>Tour Gallery</h4>
+                        <p className="tour-reviews-subtitle">A visual journey through the amazing places you will visit.</p>
                       </div>
                       <PhotoSwipeGallery>
                         <Masonry
@@ -556,7 +559,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       </PhotoSwipeGallery>
                     </div>
                   ) : (
-                    <EmptyState 
+                    <EmptyState
                       title="No Gallery Images"
                       description="This tour currently has no gallery images available."
                       icon="inbox"
@@ -570,8 +573,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {faqs && faqs.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__faqs'>
                       <div className="mb-4">
-                         <h4 className='tour-listing-details__title mb-2'>Frequently Asked Questions</h4>
-                         <p className="tour-reviews-subtitle">Common questions and answers to help you prepare.</p>
+                        <h4 className='tour-listing-details__title mb-2'>Frequently Asked Questions</h4>
+                        <p className="tour-reviews-subtitle">Common questions and answers to help you prepare.</p>
                       </div>
                       <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
                         <Accordion
@@ -603,7 +606,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       </div>
                     </div>
                   ) : (
-                    <EmptyState 
+                    <EmptyState
                       title="No FAQs Available"
                       description="There are currently no frequently asked questions for this tour."
                       icon="file"
@@ -652,21 +655,70 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
                 {/* Reviews Section */}
                 <section id="reviews" className="tour-section">
-                  <TourReviews2 
-                    comments={comments} 
-                    tourId={id || ""} 
+                  <TourReviews2
+                    comments={comments}
+                    tourId={id || ""}
                     onSubmit={handleCommentSubmit}
                     totalReviews={comments.length}
-                    averageRating={4.9} 
+                    averageRating={4.9}
                   />
                 </section>
-                
+
                 {/* Related Tours Section */}
-                <RelatedTours relatedTours={relatedTours} onVideoClick={handleVideoClick} />
+                <FeatureTwo 
+                  tours={relatedTours} 
+                  itemsPerRow={3} 
+                  extraClass="section-space-top"
+                  title="Related Tours"
+                  titleSpan="Tours"
+                  subtitle="You might also like those tour"
+                  uniqueId="related-tours"
+                  headerStyle="testimonials"
+                />
               </div>
             </div>
           </div>
         </Container>
+
+        {/* Full-width Related Tours Carousel */}
+        <FeatureTwo 
+          extraClass="section-space-top" 
+          itemsPerRow={4}
+          showHeart={false}
+          title="More"
+          titleSpan="Tours"
+          subtitle="Discover more amazing experiences"
+          uniqueId="more-tours"
+          showPartners={true}
+          partners={[
+            {
+              id: 1,
+              name: "Egypt Tourism",
+              logo: "https://placehold.co/120x60/4A90E2/FFFFFF?text=Egypt+Tourism",
+              link: "https://egypt.tourism"
+            },
+            {
+              id: 2,
+              name: "Cairo Tours",
+              logo: "https://placehold.co/120x60/50C878/FFFFFF?text=Cairo+Tours",
+              link: "https://cairo.tours"
+            },
+            {
+              id: 3,
+              name: "Luxor Travel",
+              logo: "https://placehold.co/120x60/F5A623/FFFFFF?text=Luxor+Travel",
+              link: "https://luxor.travel"
+            },
+            {
+              id: 4,
+              name: "Aswan Adventures",
+              logo: "https://placehold.co/120x60/E74C3C/FFFFFF?text=Aswan+Adv",
+              link: "https://aswan.adventures"
+            }
+          ]}
+          partnersTitle="Our Travel Partners"
+          partnersSubtitle="We collaborate with trusted local and international travel partners"
+        />
       </section>
       <VideoModal isOpen={isOpen} setOpen={setOpen} id={videoId} />
     </>

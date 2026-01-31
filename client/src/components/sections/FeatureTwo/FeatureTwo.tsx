@@ -12,6 +12,7 @@ import Link from "next/link";
 
 const TinySlider = dynamic(() => import("tiny-slider-react"), {
   ssr: false,
+  loading: () => <div className="text-center p-4">Loading carousel...</div>
 });
 
 interface FeaturePackageItem {
@@ -119,10 +120,9 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                     gutter: 30,
                     loop: false,
                     smartSpeed: 700,
-                    nav: false,
-                    dots: false,
+                    nav: true,
+                    dots: true,
                     autoplay: false,
-                    controlsContainer: ".feature-package__bottom__nav",
                     responsive: {
                       0: { items: 1 },
                       576: { items: 2 },

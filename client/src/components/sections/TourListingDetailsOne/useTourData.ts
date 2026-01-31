@@ -50,12 +50,14 @@ export const useTourData = (id?: string) => {
         setLoading(true);
         const tourPromise = tourAPI.getById(id);
         const reviewsPromise = reviewsAPI.getReviewsByTour(id);
+        const relatedToursPromise = tourAPI.getRelated(id, 6); // Get up to 6 related tours
         
-        const [tourResponse, reviewsResponse] = await Promise.all([tourPromise, reviewsPromise]);
+        const [tourResponse, reviewsResponse, relatedToursResponse] = await Promise.all([tourPromise, reviewsPromise, relatedToursPromise]);
         
         if (tourResponse.success && tourResponse.data) {
           const tour = tourResponse.data;
           const fetchedReviews = reviewsResponse.success ? safeArray<any>(reviewsResponse.data) : [];
+          const fetchedRelatedTours = relatedToursResponse.success ? safeArray<any>(relatedToursResponse.data) : [];
           const sliderImages = safeArray<any>(tour.images)
             .map((img: any) => safeString(img?.url))
             .filter(Boolean);
@@ -95,7 +97,7 @@ export const useTourData = (id?: string) => {
             highlightList: safeArray<string>(tour.tourHighlights),
             amenities: safeArray<string>(tour.inclusion),
             amenitiesTwo: safeArray<string>(tour.exclusion),
-            relatedTours: safeArray<any>(tour.relatedTours).map((t: any) => ({
+            relatedTours: fetchedRelatedTours.map((t: any) => ({
               id: t._id,
               image: safeString(t?.images?.[0]?.url) || fallbackImage,
               title: safeString(t?.name) || "Related Tour",

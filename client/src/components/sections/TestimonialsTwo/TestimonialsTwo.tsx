@@ -35,27 +35,33 @@ const TestimonialsTwo = () => {
     testimonials,
     elementImage,
   }: TestimonialsData = testimonialsTwoData;
+
+  // Don't render if no testimonials
+  if (!testimonials || testimonials.length === 0) {
+    return null;
+  }
+
   const settings = {
     items: 1,
     gutter: 30,
-    loop: false,
+    loop: testimonials.length > 1,
     nav: false,
     autoplay: false,
-    controls: true,
+    controls: testimonials.length > 1,
     mouseDrag: true,
-    controlsContainer: ".testimonials-two__bottom__nav",
+    controlsContainer: testimonials.length > 1 ? ".testimonials-two__bottom__nav" : undefined,
     responsive: {
       0: {
         items: 1,
       },
       768: {
-        items: 2,
+        items: Math.min(2, testimonials.length),
       },
       992: {
-        items: 2,
+        items: Math.min(2, testimonials.length),
       },
       1199: {
-        items: 2,
+        items: Math.min(2, testimonials.length),
       },
     },
   };
@@ -77,14 +83,16 @@ const TestimonialsTwo = () => {
                   </span>
                 </h3>
               </div>
-              <div className='testimonials-two__bottom__nav'>
-                <button className='testimonials-two__carousel__nav--left'>
-                  <span className='icon-arrow-left'></span>
-                </button>
-                <button className='testimonials-two__carousel__nav--right'>
-                  <span className='icon-arrow-right'></span>
-                </button>
-              </div>
+              {testimonials.length > 1 && (
+                <div className='testimonials-two__bottom__nav'>
+                  <button className='testimonials-two__carousel__nav--left'>
+                    <span className='icon-arrow-left'></span>
+                  </button>
+                  <button className='testimonials-two__carousel__nav--right'>
+                    <span className='icon-arrow-right'></span>
+                  </button>
+                </div>
+              )}
             </div>
           </Col>
 

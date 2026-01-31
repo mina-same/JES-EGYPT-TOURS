@@ -30,7 +30,7 @@ export default function Home() {
       <HeaderOne />
       <HeaderOneCloned />
       <MainSliderOne />
-      <AboutTwo cta={true} extraClass='about-two--two' />
+      {/* <AboutTwo cta={true} extraClass='about-two--two' /> */}
       <DestinationFilter />
       <CTAFive />
       <FeatureTwo />

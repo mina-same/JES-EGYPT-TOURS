@@ -23,10 +23,16 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
   if (!mounted) {
     return null;
   }
+
+  // Don't render if no items
+  if (!clientCarouselData?.items || clientCarouselData.items.length === 0) {
+    return null;
+  }
+
   const settings = {
-    items: 5,
+    items: Math.min(5, clientCarouselData.items.length),
     gutter: 65,
-    loop: true,
+    loop: clientCarouselData.items.length > 1,
     autoplay: false,
     autoplayTimeout: 6000,
     mouseDrag: true,
@@ -36,27 +42,27 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
 
     responsive: {
       0: {
-        items: 2,
+        items: Math.min(2, clientCarouselData.items.length),
         gutter: 30,
       },
       431: {
-        items: 1,
+        items: Math.min(1, clientCarouselData.items.length),
         gutter: 30,
       },
       500: {
-        items: 2,
+        items: Math.min(2, clientCarouselData.items.length),
         gutter: 30,
       },
       768: {
-        items: 3,
+        items: Math.min(3, clientCarouselData.items.length),
         gutter: 50,
       },
       992: {
-        items: 4,
+        items: Math.min(4, clientCarouselData.items.length),
         gutter: 60,
       },
       1200: {
-        items: 5,
+        items: Math.min(5, clientCarouselData.items.length),
         gutter: 100,
       },
     },
