@@ -30,14 +30,6 @@
   display: none;
 }
 
-/* RTL Adjustments */
-body.rtl .main-slider-one__destinations__hover {
-  position: absolute;
-  right: -180px;
-  top: -40px;
-  z-index: 1;
-}
-
 /* ==========================================================================
    2. TOUR DETAILS NAVIGATION (Scroll-based)
    ========================================================================== */

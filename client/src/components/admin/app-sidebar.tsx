@@ -11,7 +11,6 @@ import {
   FolderOpen,
   Target,
   Scissors,
-  Search,
   Phone,
   Sparkles,
   ChevronRight,
@@ -131,13 +130,6 @@ const menuItems = [
         icon: Scissors,
         url: '/admin/contact-forms/tailor-made',
         badgeKey: 'tailorMade',
-      },
-      {
-        id: 'search-form',
-        title: 'Search Form',
-        icon: Search,
-        url: '/admin/contact-forms/search-form',
-        badge: 8,
       },
       {
         id: 'contact-form',

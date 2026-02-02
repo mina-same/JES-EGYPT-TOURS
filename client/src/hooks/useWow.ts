@@ -1,8 +1,9 @@
 "use client";
 import { useEffect } from "react";
 
-const useWow = () => {
+const useWow = (enabled: boolean = true) => {
   useEffect(() => {
+    if (!enabled) return;
     // Ensure this only runs in the browser
     if (typeof window !== "undefined") {
       import("wow.js")
@@ -21,7 +22,7 @@ const useWow = () => {
           console.error("Failed to load WOW.js:", error);
         });
     }
-  }, []);
+  }, [enabled]);
 };
 
 export default useWow;

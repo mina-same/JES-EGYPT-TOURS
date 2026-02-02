@@ -2,16 +2,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
 
 const StyleSwitcher: React.FC = () => {
-  const pathname = usePathname();
-
   useEffect(() => {
     // Determine which stylesheet to use based on the pathname
-    const newHref = pathname.includes("/home-rtl")
-      ? "/css/gotur-rtl.css"
-      : "/css/gotur.css";
+    const newHref = "/css/gotur.css";
 
     // Look for an existing dynamically injected stylesheet
     const currentLink = document.getElementById(
@@ -35,7 +30,7 @@ const StyleSwitcher: React.FC = () => {
     link.href = newHref;
 
     document.head.appendChild(link);
-  }, [pathname]);
+  }, []);
 
   return null;
 };

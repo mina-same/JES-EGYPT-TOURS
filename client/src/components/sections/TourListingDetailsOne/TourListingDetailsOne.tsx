@@ -2,13 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { Container, Accordion } from "react-bootstrap";
 import Image from "next/image";
-import Slider from "react-slick";
+import dynamic from "next/dynamic";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { Loader2, Calendar, Headphones, Tag, Star, Zap } from "lucide-react";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import { reviewsAPI } from "@/lib/api/reviews";
+
+const TinySlider = dynamic(() => import("tiny-slider-react"), {
+  ssr: false,
+});
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -116,53 +120,24 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   const hasReviewVideos = (reviewVideos || []).length > 0;
 
   const settings = {
-    className: "center",
-    centerMode: true,
-    slidesToShow: 3,
-    slidesToScroll: 1,
+    items: 3,
     gutter: 30,
+    center: true,
     loop: false,
     nav: false,
-    autoplay: false,
     controls: false,
+    autoplay: false,
     mouseDrag: true,
-    centerPadding: "230px",
-
-    responsive: [
-      {
-        breakpoint: 1199,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          infinite: true,
-          centerPadding: "230px",
-        },
-      },
-      {
-        breakpoint: 992,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          centerPadding: "70px",
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          centerPadding: "100px",
-        },
-      },
-      {
-        breakpoint: 575,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          centerPadding: "30px",
-        },
-      },
-    ],
+    speed: 700,
+    edgePadding: 230,
+    responsive: {
+      0: { items: 1, edgePadding: 30 },
+      576: { items: 2, edgePadding: 30 },
+      768: { items: 2, edgePadding: 100 },
+      992: { items: 2, edgePadding: 70 },
+      1199: { items: 2, edgePadding: 230 },
+      1400: { items: 3, edgePadding: 230 },
+    },
   };
 
   const handleBookingSubmit = (data: any) => {
@@ -227,7 +202,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         >
           <div className='tour-one__carousel tour-two__carousel gotur-owl__carousel owl-carousel owl-theme owl-loaded owl-drag'>
             <PhotoSwipeGallery>
-              <Slider {...settings}>
+              <TinySlider settings={settings}>
                 {sliderImages.map((img, idx) => {
                   const imageUrl = typeof img === 'string' ? img : img.src;
                   return (
@@ -263,7 +238,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     </div>
                   );
                 })}
-              </Slider>
+              </TinySlider>
             </PhotoSwipeGallery>
           </div>
         </div>

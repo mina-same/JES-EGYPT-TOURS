@@ -24,12 +24,7 @@ export const RtlModeProvider: React.FC<RtlModeProviderProps> = ({
   const pathname = usePathname();
 
   const updateRtlMode = () => {
-    const rtlPages = ["/home-rtl"];
-    if (rtlPages.includes(pathname)) {
-      document.body.classList.add("rtl");
-    } else {
-      document.body.classList.remove("rtl");
-    }
+    document.body.classList.remove("rtl");
   };
 
   useEffect(() => {

@@ -8,14 +8,20 @@ import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { contactFormFields } from "@/data/contactData";
 import FullWidthCalendar from "../Calender/Calender";
-import Slider from "react-slick";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const TinySlider = dynamic(() => import("tiny-slider-react"), {
+  ssr: false,
+});
+
 interface ContactFormField {
   name: string;
   label: string;
   placeholder: string;
   type: "text" | "email" | "textarea";
 }
+
 // ... imports
 // Remove local Metadata interface if it conflicts
 import { Item as TourItem } from "../TourListingDetailsOne/types";
@@ -67,7 +73,6 @@ import { useParams } from "next/navigation";
 import TourReviews2 from "./TourReviews2";
 import { useTourData } from "../TourListingDetailsOne/useTourData";
 import { reviewsAPI } from "@/lib/api/reviews";
-
 
 // ... (keep interfaces if needed, or import them)
 
@@ -132,53 +137,24 @@ const TourListingTwoDetails: React.FC = () => {
   };
 
   const settings = {
-    className: "center",
-    centerMode: true,
-    slidesToShow: 3,
-    slidesToScroll: 1,
+    items: 3,
     gutter: 30,
+    center: true,
     loop: false,
     nav: false,
-    autoplay: false,
     controls: false,
+    autoplay: false,
     mouseDrag: true,
-    centerPadding: "230px",
-
-    responsive: [
-      {
-        breakpoint: 1199,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          infinite: true,
-          centerPadding: "230px",
-        },
-      },
-      {
-        breakpoint: 992,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          centerPadding: "70px",
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          centerPadding: "100px",
-        },
-      },
-      {
-        breakpoint: 575,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          centerPadding: "30px",
-        },
-      },
-    ],
+    speed: 700,
+    edgePadding: 230,
+    responsive: {
+      0: { items: 1, edgePadding: 30 },
+      576: { items: 2, edgePadding: 30 },
+      768: { items: 2, edgePadding: 100 },
+      992: { items: 2, edgePadding: 70 },
+      1199: { items: 2, edgePadding: 230 },
+      1400: { items: 3, edgePadding: 230 },
+    },
   };
 
   const [extraBooking, setExtraBooking] = useState({
@@ -241,7 +217,7 @@ const TourListingTwoDetails: React.FC = () => {
         data-wow-delay='500ms'
       >
         <div className='tour-one__carousel tour-two__carousel gotur-owl__carousel owl-carousel owl-theme owl-loaded owl-drag'>
-          <Slider {...settings}>
+          <TinySlider settings={settings}>
             {sliderImages.map((img: any, idx: number) => (
               <div key={idx}>
                 <div className='item'>
@@ -251,7 +227,7 @@ const TourListingTwoDetails: React.FC = () => {
                 </div>
               </div>
             ))}
-          </Slider>
+          </TinySlider>
         </div>
       </div>
       <section className='tour-listing-details section-space-bottom'>

@@ -33,7 +33,7 @@ export const featureOneDemoData = [
   },
   {
     id: 4,
-    title: "RTL + LTR Support",
+    title: "Modern Layout Support",
     image: featureImg4,
   },
   {

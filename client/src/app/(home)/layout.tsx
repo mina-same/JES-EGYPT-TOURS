@@ -7,29 +7,37 @@ import "@/assets/vendors/gotur-icons/style.css";
 import "@/assets/vendors/animate/animate.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "tiny-slider/dist/tiny-slider.css";
-import "photoswipe/dist/photoswipe.css";
 import "react-datepicker/dist/react-datepicker.css";
 import "react-phone-number-input/style.css";
 import "rc-slider/assets/index.css";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import "@/assets/css/gotur.css";
 import "@/assets/css/custom.css";
 
 // import "./globals.css";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { DarkModeProvider } from "@/context/DarkModeProvider";
-import { RtlModeProvider } from "@/context/RtlModeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Preloader from "@/components/common/Preloader/Preloader";
-import Drawer from "@/components/layout/Drawer/Drawer";
-import Sidebar from "@/components/common/Sidebar/Sidebar";
 import useWow from "@/hooks/useWow";
-import DrawerTwo from "@/components/layout/DrawerTwo/DrawerTwo";
-import LayoutObserver from "@/components/layout/LayoutObserver/LayoutObserver";
-import StyleSwitcher from "@/components/layout/StyleSwitcher/StyleSwitcher";
-import Search from "@/components/common/Search/Search";
+
+ const LayoutObserver = dynamic(
+   () => import("@/components/layout/LayoutObserver/LayoutObserver"),
+   { ssr: false }
+ );
+ const Drawer = dynamic(() => import("@/components/layout/Drawer/Drawer"), {
+   ssr: false,
+ });
+ const DrawerTwo = dynamic(
+   () => import("@/components/layout/DrawerTwo/DrawerTwo"),
+   { ssr: false }
+ );
+ const Sidebar = dynamic(() => import("@/components/common/Sidebar/Sidebar"), {
+   ssr: false,
+ });
+ const Search = dynamic(() => import("@/components/common/Search/Search"), {
+   ssr: false,
+ });
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -49,28 +57,96 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
   const [showPreloader, setShowPreloader] = useState(true);
+  const [enableNonCriticalUi, setEnableNonCriticalUi] = useState(false);
+  const [enableWow, setEnableWow] = useState(false);
 
   useEffect(() => {
-    setShowPreloader(true);
-    const timer = setTimeout(() => setShowPreloader(false), 1000);
-    return () => clearTimeout(timer);
-  }, [pathname]);
-  useWow();
+    const originalConsoleError = console.error;
+
+    console.error = (...args: any[]) => {
+      try {
+        const msg = args.map((a) => String(a)).join(" ");
+        const hasTinySlider = msg.includes("tiny-slider") || msg.includes("tiny-slider-react");
+        const hasNoMod = msg.includes("NoModificationAllowedError") || msg.includes("outerHTML");
+
+        if (hasTinySlider && hasNoMod) {
+          return;
+        }
+      } catch {
+        // ignore
+      }
+
+      originalConsoleError(...args);
+    };
+
+    const tinySliderErrorHandler = (event: ErrorEvent) => {
+      const err = event?.error as any;
+      const stack = String(err?.stack || "");
+
+      if (
+        err?.name === "NoModificationAllowedError" &&
+        (stack.includes("tiny-slider") || stack.includes("tiny-slider-react"))
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("error", tinySliderErrorHandler);
+
+    let didEnable = false;
+    const enableUi = () => {
+      if (didEnable) return;
+      didEnable = true;
+      setEnableNonCriticalUi(true);
+      setEnableWow(true);
+    };
+
+    const idleId = (window as any).requestIdleCallback
+      ? (window as any).requestIdleCallback(enableUi, { timeout: 1500 })
+      : null;
+    const enableUiTimer = setTimeout(enableUi, 1200);
+
+    const timer = setTimeout(() => setShowPreloader(false), 150);
+
+    const onFirstInteraction = () => {
+      enableUi();
+      window.removeEventListener("pointerdown", onFirstInteraction, true);
+      window.removeEventListener("keydown", onFirstInteraction, true);
+      window.removeEventListener("scroll", onFirstInteraction, true);
+    };
+    window.addEventListener("pointerdown", onFirstInteraction, true);
+    window.addEventListener("keydown", onFirstInteraction, true);
+    window.addEventListener("scroll", onFirstInteraction, true);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(enableUiTimer);
+      if (idleId && (window as any).cancelIdleCallback) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      window.removeEventListener("pointerdown", onFirstInteraction, true);
+      window.removeEventListener("keydown", onFirstInteraction, true);
+      window.removeEventListener("scroll", onFirstInteraction, true);
+      window.removeEventListener("error", tinySliderErrorHandler);
+      console.error = originalConsoleError;
+    };
+  }, []);
+  useWow(enableWow);
   return (
     <AuthProvider>
       <DarkModeProvider>
-        <RtlModeProvider>
           {showPreloader && <Preloader />}
-          {/* <StyleSwitcher /> */}
           {children}
-          <LayoutObserver />
-          <Drawer />
-          <DrawerTwo />
-          <Sidebar />
-          <Search />
-        </RtlModeProvider>
+          {enableNonCriticalUi ? (
+            <>
+              <LayoutObserver />
+              <Drawer />
+              <DrawerTwo />
+              <Sidebar />
+              <Search />
+            </>
+          ) : null}
       </DarkModeProvider>
     </AuthProvider>
   );

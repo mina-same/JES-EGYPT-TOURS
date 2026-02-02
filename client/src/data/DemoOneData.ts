@@ -4,7 +4,6 @@ import home3Img from "@/assets/images/landing/home-3.jpg";
 import home4Img from "@/assets/images/landing/home-4.jpg";
 
 import homeBoxedImg from "@/assets/images/landing/home-boxed.jpg";
-import homeRtlImg from "@/assets/images/landing/home-rtl.jpg";
 
 export const demoOneData = [
   {
@@ -53,12 +52,5 @@ export const demoOneData = [
     alt: "Home Boxed",
     title: "Home Boxed",
     buttons: [{ href: "home-boxed", label: "View Page" }],
-  },
-  {
-    id: 9,
-    image: homeRtlImg,
-    alt: "Home RTL",
-    title: "Home RTL",
-    buttons: [{ href: "home-rtl", label: "View Page" }],
   },
 ];
