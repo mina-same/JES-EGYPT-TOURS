@@ -3,7 +3,7 @@ import HeaderFourSingle from "@/components/layout/HeaderFour/HeaderFourSingle";
 import HeaderFourSingleCloned from "@/components/layout/HeaderFourCloned/HeaderFourCloned copy";
 import MainSliderFour from "@/components/sections/MainSliderFour/MainSliderFour";
 import AboutFiveTwo from "@/components/sections/AboutFiveTwo/AboutFiveTwo";
-import DestinationsTwo from "@/components/sections/DestinationsTwo/DestinationsTwo";
+import DestinationsTwo from "@/components/sections/whyChooseUs/whyChoseeUs";
 import CtaFour from "@/components/sections/CtaFour/CtaFour";
 import HowItWorks from "@/components/sections/HowItWorks/HowItWorks";
 import AboutTestimonials from "@/components/sections/AboutTestimonials/AboutTestimonials";

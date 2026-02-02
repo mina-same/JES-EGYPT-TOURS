@@ -1,35 +1,44 @@
-import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
-import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import Layout from "@/components/layout/Layout/Layout";
-import TourListingOneDetails from "@/components/sections/TourListingDetailsOne/TourListingDetailsOne";
-import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
-import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
-import MainSliderThree from "@/components/sections/MainSliderThree/MainSliderThree";
-import PageHeader from "@/components/sections/PageHeader/PageHeader";
+"use client";
 
-export const metadata = {
-  title: "Tour Listing Details || Gotur || Travel & Tour NextJS Template",
-  description:
-    "Gotur is a modern travel & tour booking NextJS Template. It is perfect for travel agencies, tour operators, trip holiday booking websites, adventure and booking companies looking for a unique and intuitive search function and all other travel & tourism websites and businesses.",
-  icons: {
-    icon: "/favicon-32x32.png",
-  },
-};
+import { useEffect, useState } from "react";
+import Layout from "@/components/layout/Layout/Layout";
+import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
+import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
+import PageHeader from "@/components/sections/PageHeader/PageHeader";
+import TourListingOneDetails from "@/components/sections/TourListingDetailsOne/TourListingDetailsOne";
+import FooterOne from "@/components/layout/FooterOne/FooterOne";
+import tourDetailsOneData from "@/data/tourDetailsOneData";
 
 interface PageProps {
   params: {
-    id: string;
+    id: string; // This will be the slug
   };
 }
 
 export default function TourListingDetailsPage({ params }: PageProps) {
+  const [tourName, setTourName] = useState("Tour Details");
+  const [pageTitle, setPageTitle] = useState("Tour Details");
+
+  useEffect(() => {
+    // Use the tour details data to get the title
+    if (tourDetailsOneData.title) {
+      setTourName(tourDetailsOneData.title);
+      setPageTitle(`${tourDetailsOneData.title} || Gotur || Travel & Tour NextJS Template`);
+    }
+    
+    // Update document title
+    if (typeof window !== 'undefined') {
+      document.title = pageTitle;
+    }
+  }, [params.id, pageTitle]);
+
   return (
     <Layout>
       <TopbarOne/>
       <HeaderOne linkTheme="light" />
       <PageHeader
-        title="Tour Listing Details"
-        subTitle="Tour Listing Details"
+        title={tourName}
+        subTitle="Tour Details"
         bgImage='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBz9RsGBZErQQOzYdoMyqX-6tjs_zUEuiJg&s'
       />
       <TourListingOneDetails id={params.id} />

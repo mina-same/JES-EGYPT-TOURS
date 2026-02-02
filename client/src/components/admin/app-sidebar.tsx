@@ -22,6 +22,7 @@ import {
   Bell,
   HelpCircle,
   Calendar,
+  Database,
 } from "lucide-react"
 
 import { useAuth } from '@/contexts/AuthContext'
@@ -144,6 +145,19 @@ const menuItems = [
         icon: Phone,
         url: '/admin/contact-forms/contact-form',
         badgeKey: 'contactForm',
+      },
+    ],
+  },
+  {
+    id: 'content-management',
+    title: 'Content Management',
+    icon: Database,
+    items: [
+      {
+        id: 'slider-content',
+        title: 'Slider Content',
+        icon: FileText,
+        url: '/admin/content-management/slider-content',
       },
     ],
   },

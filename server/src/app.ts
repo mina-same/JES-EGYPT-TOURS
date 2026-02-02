@@ -18,6 +18,7 @@ import tourRoutes from './routes/tourRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import reviewRoutes from './routes/reviewRoutes';
+import sliderContentRoutes from './routes/sliderContentRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app: Application = express();
@@ -102,6 +103,7 @@ app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/slider-content', sliderContentRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

@@ -16,11 +16,11 @@ const TinySlider = dynamic(() => import("tiny-slider-react"), {
 });
 
 interface FeaturePackageItem {
-  id: number;
-  image: StaticImageData;
+  id: number | string;
+  image: StaticImageData | string;
   title: string;
   link: string;
-  price: string;
+  price: string | number;
   rating: number;
   reviews: number;
   videoId: string;
@@ -36,22 +36,78 @@ interface FeatureTwoProps {
   extraClass?: string;
   id?: string;
   homeThree?: boolean;
+  tours?: FeaturePackageItem[];
+  itemsPerRow?: number;
+  title?: string;
+  titleSpan?: string;
+  subtitle?: string;
+  uniqueId?: string;
+  headerStyle?: string;
+  showPartners?: boolean;
+  partners?: Array<{
+    id: number;
+    name: string;
+    logo: string;
+    link: string;
+  }>;
+  partnersTitle?: string;
+  partnersSubtitle?: string;
+  showShape?: boolean;
 }
 
 const FeatureTwo: React.FC<FeatureTwoProps> = ({
   extraClass,
   id,
   homeThree,
+  tours,
+  itemsPerRow = 4,
+  title,
+  titleSpan,
+  subtitle,
+  uniqueId,
+  headerStyle,
+  showPartners = false,
+  partners = [],
+  partnersTitle,
+  partnersSubtitle,
+  showShape = true,
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
 
+  // Use custom tours if provided, otherwise use default data
+  const displayData = tours ? { items: tours } : featurePackageData;
+
+  // Use custom title data if provided
+  const displayTitle = title || (homeThree ? featurePackageData.title2 : featurePackageData.title);
+  const displayTitleSpan = titleSpan || (homeThree ? featurePackageData.titleSpan2 : featurePackageData.titleSpan);
+  const displaySubtitle = subtitle || featurePackageData.subtitle;
+
+  // Create responsive breakpoints based on itemsPerRow
+  const getResponsiveSettings = () => {
+    const baseSettings: Record<string, { items: number }> = {
+      0: { items: 1 },
+      576: { items: 2 },
+      768: { items: 2 },
+      992: { items: 3 },
+    };
+
+    // Add larger breakpoints based on itemsPerRow
+    if (itemsPerRow >= 3) {
+      baseSettings['1199'] = { items: Math.min(3, itemsPerRow) };
+    }
+    if (itemsPerRow >= 4) {
+      baseSettings['1500'] = { items: Math.min(4, itemsPerRow) };
+    }
+
+    return baseSettings;
+  };
+
   return (
     <>
       <section
-        className={`feature-package feature-package--two ${
-          extraClass ? extraClass : ""
-        }`}
+        className={`feature-package feature-package--two ${extraClass ? extraClass : ""
+          }`}
         id={id}
       >
         <div className='container'>
@@ -61,38 +117,21 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                 <div className='sec-title'>
                   <h6 className='sec-title__tagline bw-split-in-right'>
                     <TextAnimation
-                      text={featurePackageData.subtitle}
+                      text={displaySubtitle}
                       animationType='right'
                     />
                   </h6>
                   <h3 className='sec-title__title bw-split-in-left d-flex gap-2'>
-                    {homeThree ? (
-                      <>
-                        <TextAnimation
-                          text={featurePackageData.title2}
-                          animationType='left'
-                        />
-                        <span>
-                          <TextAnimation
-                            text={featurePackageData.titleSpan2}
-                            animationType='left'
-                          />
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <TextAnimation
-                          text={featurePackageData.title}
-                          animationType='left'
-                        />
-                        <span>
-                          <TextAnimation
-                            text={featurePackageData.titleSpan}
-                            animationType='left'
-                          />
-                        </span>
-                      </>
-                    )}
+                    <TextAnimation
+                      text={displayTitle}
+                      animationType='left'
+                    />
+                    <span>
+                      <TextAnimation
+                        text={displayTitleSpan}
+                        animationType='left'
+                      />
+                    </span>
                   </h3>
                 </div>
               </div>
@@ -123,24 +162,28 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                     nav: true,
                     dots: true,
                     autoplay: false,
-                    responsive: {
-                      0: { items: 1 },
-                      576: { items: 2 },
-                      768: { items: 2 },
-                      992: { items: 3 },
-                      1199: { items: 3 },
-                      1500: { items: 4 },
-                    },
+                    responsive: getResponsiveSettings(),
                   }}
                 >
-                  {featurePackageData.items.map((item: FeaturePackageItem) => (
+                  {displayData.items.map((item: FeaturePackageItem) => (
                     <div className='item' key={item.id}>
                       <div
                         className='listing-card-four wow fadeInUp'
                         data-wow-duration='1500ms'
                       >
                         <div className='listing-card-four__image'>
-                          <Image src={item.image} alt={item.title} />
+                          {typeof item.image === 'string' ? (
+                            <Image
+                              src={item.image}
+                              alt={item.title}
+                              width={370}
+                              height={220}
+                              className="img-fluid"
+                              unoptimized
+                            />
+                          ) : (
+                            <Image src={item.image} alt={item.title} />
+                          )}
                           <div className='listing-card-four__btn-group'>
                             {item.discount && (
                               <div className='listing-card-four__discount'>
@@ -157,8 +200,8 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                             </Link>
                             <div className='listing-card-four__btns__hover'>
                               <Item
-                                original={item.image.src}
-                                thumbnail={item.image.src}
+                                original={typeof item.image === 'string' ? item.image : item.image.src}
+                                thumbnail={typeof item.image === 'string' ? item.image : item.image.src}
                                 width='370'
                                 height='220'
                               >
@@ -246,7 +289,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
         </div>
 
         {/* Element Shapes */}
-        {!homeThree && (
+        {showShape && !homeThree && (
           <div className='feature-package__element'>
             <Image src={featurePackageData.shape} alt='Element Shape' />
           </div>

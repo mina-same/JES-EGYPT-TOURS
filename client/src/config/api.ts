@@ -32,4 +32,13 @@ export const API_ENDPOINTS = {
     BASE: `${API_URL}/contact`,
     BY_ID: (id: string) => `${API_URL}/contact/${id}`,
   },
+
+  SLIDER_CONTENT: {
+    PUBLIC: `${API_URL}/slider-content`,
+    PROMO_PUBLIC: `${API_URL}/slider-content/promo`,
+    ADMIN_BASE: `${API_URL}/slider-content/admin/slider-content`,
+    ADMIN_BY_ID: (id: string) => `${API_URL}/slider-content/admin/slider-content/${id}`,
+    ADMIN_TOGGLE_ACTIVE: (id: string) => `${API_URL}/slider-content/admin/slider-content/${id}/toggle-active`,
+    PROMO_ADMIN: `${API_URL}/slider-content/admin/promo`,
+  },
 };

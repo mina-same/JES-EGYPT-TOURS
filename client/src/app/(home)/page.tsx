@@ -2,7 +2,6 @@ import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
-import MainSliderThree from "@/components/sections/MainSliderThree/MainSliderThree";
 import AboutOne from "@/components/sections/AboutOne/AboutOne";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
 import OfferTwo from "@/components/sections/OfferTwo/OfferTwo";
@@ -12,7 +11,8 @@ import TestimonialsTwo from "@/components/sections/TestimonialsTwo/TestimonialsT
 import InstagramOne from "@/components/sections/InstagramOne/InstagramOne";
 import BlogTwoTwo from "@/components/sections/BlogTwoTwo/BlogTwoTwo";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
-import DestinationsTwoTwo from "@/components/sections/DestinationsTwoTwo/DestinationsTwoTwo";
+import MainSliderFour from "@/components/sections/MainSliderFour/MainSliderFour";
+import DestinationsTwo from "@/components/sections/whyChooseUs/whyChoseeUs";
 
 export const metadata = {
   title: "Home Three || Gotur || Travel & Tour NextJS Template",
@@ -26,12 +26,12 @@ export const metadata = {
 export default function HomeThree() {
   return (
     <Layout>
-      <TopbarOne extraClass='top-one--two' />
-      <HeaderOne/>
+      <TopbarOne />
+      <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <MainSliderThree />
+      <MainSliderFour />
       <AboutOne />
-      <DestinationsTwoTwo />
+      <DestinationsTwo />
       <FeatureTwo extraClass='section-space' id='popular' />
       <OfferTwo />
       <OfferOne />

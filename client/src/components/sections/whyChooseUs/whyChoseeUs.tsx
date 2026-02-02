@@ -23,8 +23,33 @@ interface DestinationsTwo {
   destinations: Destination[];
 }
 
-const DestinationsTwo = () => {
+const whyChooseUs = () => {
   const { tagline, title, destinations }: DestinationsTwo = destinationsTwoData;
+
+  // Why Choose Us content
+  const whyChooseUsContent = {
+    tagline: "Why Choose Us?",
+    title: "Why Choose Us?",
+    subtitle: "We craft unforgettable adventures for passionate explorers around the world.",
+    reasons: [
+      {
+        title: "Tailored Experiences",
+        description: "Design your ideal journey, Customize every detail or let us craft the perfect itinerary based on your preferences and interests."
+      },
+      {
+        title: "Multi-Country Trips", 
+        description: "Effortlessly explore multiple destinations with expert planning and the best prices, all managed by local travel specialists."
+      },
+      {
+        title: "Over 65 years of success",
+        description: "Memphis Tours has been setting standards in the tourism industry for over six decades giving you the trust that you look for in your next adventure."
+      },
+      {
+        title: "Secure Online Payment",
+        description: "Book with confidence using our encrypted payment system, ensuring your personal and financial information is fully protected."
+      }
+    ]
+  };
 
   const carouselOptions = {
     items: 1,
@@ -44,18 +69,21 @@ const DestinationsTwo = () => {
   };
 
   return (
-    <section className='destinations-two section-space' id='destination'>
+    <section className='destinations-two section-space' id='why-choose-us'>
       <Container>
         <div className='destinations-two__top'>
           <Row className='align-items-end'>
             <Col lg={8}>
               <div className='sec-title'>
                 <h6 className='sec-title__tagline'>
-                  <TextAnimation text={tagline} animationType='right' />
+                  <TextAnimation text={whyChooseUsContent.tagline} animationType='right' />
                 </h6>
                 <h3 className='sec-title__title d-md-flex gap-2'>
-                  <TextAnimation text={title} animationType='left' />
+                  <TextAnimation text={whyChooseUsContent.title} animationType='left' />
                 </h3>
+                <p className='sec-title__subtitle'>
+                  {whyChooseUsContent.subtitle}
+                </p>
               </div>
             </Col>
             <Col lg={4}>
@@ -95,10 +123,17 @@ const DestinationsTwo = () => {
                         className='img-fluid'
                       />
                     </div>
+                    {/* Add Why Choose Us content overlay */}
+                    <div className='reason-card__overlay'></div>
+                    <div className='reason-card__content'>
+                      <h4 className='reason-card__title'>
+                        {whyChooseUsContent.reasons[index]?.title || dest.title}
+                      </h4>
+                      <p className='reason-card__description'>
+                        {whyChooseUsContent.reasons[index]?.description || ''}
+                      </p>
+                    </div>
                   </div>
-                  <h4 className='destinations-card-two__title'>
-                    <Link href={dest.link}>{dest.title}</Link>
-                  </h4>
                 </div>
               </div>
             </div>
@@ -109,4 +144,4 @@ const DestinationsTwo = () => {
   );
 };
 
-export default DestinationsTwo;
+export default whyChooseUs;

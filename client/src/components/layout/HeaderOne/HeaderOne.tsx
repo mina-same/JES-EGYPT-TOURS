@@ -4,7 +4,6 @@ import Image from "next/image";
 
 import Link from "next/link"; // Assuming we're using Next.js for routing
 import { navItems, headerOneNavItems } from "@/data/navItems"; // Import the navItems data
-import DemoPages from "@/components/common/DemoPages/DemoPages";
 import main_logo from "@/assets/images/logo-dark.png";
 import { usePathname } from "next/navigation";
 import useStore from "@/store/useStore";
@@ -21,7 +20,7 @@ interface HeaderOneProps {
   linkTheme?: HeaderLinkTheme;
 }
 
-const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "dark" }) => {
+const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
   const pathname = usePathname();
   const {
     changeSearchPopupStatus,
@@ -111,7 +110,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "dark" }) => {
               <i className='icon-menu-bar'></i>
             </div>
 
-            <Link href='contact' className='gotur-btn main-header__btn'>
+            <Link href='tailorMade' className='gotur-btn main-header__btn'>
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>
 

@@ -430,6 +430,28 @@ body.rtl .main-slider-one__destinations__hover {
   box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4);
 }
 
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.mobile-nav__wrapper,
+.header-right-sidebar,
+.main-menu .main-menu__list > .megamenu.megamenu-clickable > ul,
+.mobile-nav__container .main-menu__list > .megamenu.megamenu-clickable > ul,
+.stricky-header .main-menu__list > .megamenu.megamenu-clickable > ul {
+  width: 100% !important;
+}
+
+.main-slider-four__form {
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  max-width: none !important;
+}
+
 /* ==========================================================================
    4. AMENITIES CARDS (Premium Design)
    ========================================================================== */
@@ -1040,4 +1062,212 @@ body.rtl .main-slider-one__destinations__hover {
   background-color: #fffbeb;
   border: 1px solid #fde68a;
   color: #92400e;
+}
+
+/* ==========================================================================
+   13. WHY CHOOSE US OVERLAY STYLES
+   ========================================================================== */
+.destinations-card-two__thumb {
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+.reason-card__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%);
+  z-index: 1;
+  border-radius: 15px;
+}
+
+.reason-card__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px 20px 20px;
+  z-index: 2;
+  color: #fff;
+}
+
+.reason-card__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #fff;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.reason-card__description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+}
+
+.destinations-card-two:hover .reason-card__overlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%);
+}
+
+.destinations-card-two:hover .reason-card__content {
+  transform: translateY(-5px);
+  transition: transform 0.3s ease;
+}
+
+.sec-title__subtitle {
+  font-size: 16px;
+  color: var(--gotur-text, #595959);
+  margin-top: 10px;
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+}
+
+/* Hide original destination title when using Why Choose Us content */
+.destinations-card-two__title {
+  display: none;
+}
+
+/* Hide hover image to prevent it from showing */
+.destinations-card-two__hover {
+  display: none;
+}
+
+.destinations-card-two:hover .destinations-card-two__hover {
+  display: none;
+}
+
+/* Add background to Why Choose Us section */
+#why-choose-us {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  position: relative;
+}
+
+#why-choose-us::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.3;
+}
+
+/* Hide unwanted TinySlider navigation buttons with text */
+.feature-package__carousel .tns-nav,
+.feature-package__carousel .tns-controls {
+  display: none !important;
+}
+
+/* Hide any TinySlider generated buttons with prev/next text */
+.feature-package__carousel button[data-controls="prev"],
+.feature-package__carousel button[data-controls="next"] {
+  display: none !important;
+}
+
+/* Ensure only custom navigation buttons are visible */
+.feature-package__bottom__nav {
+  display: flex !important;
+}
+
+/* Hide browser extension attributes that cause hydration issues */
+[bis_skin_checked],
+[bis_size],
+[bis_id] {
+  /* These attributes are added by browser extensions and cause hydration mismatches */
+  /* We don't hide the elements themselves, just acknowledge they exist */
+  pointer-events: auto !important;
+}
+
+/* Suppress hydration warnings for browser extension attributes */
+div[suppressHydrationWarning] {
+  /* Allow browser extension attributes without warnings */
+  isolation: isolate;
+}
+
+/* ==========================================================================
+    9. MAIN SLIDER FOUR PROMO STYLES (TopbarOne-inspired)
+    ========================================================================== */
+.main-slider-four__promo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  background: var(--gotur-black, #1d231f);
+  width: 100%;
+  border-radius: 0;
+  margin: 0;
+}
+
+.main-slider-four__action-form {
+  margin: 0;
+}
+
+.main-slider-four__form {
+  margin: 0;
+}
+
+.main-slider-four__promo-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+  white-space: nowrap;
+}
+
+.main-slider-four__promo-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--gotur-base, #d4af37);
+  color: #fff !important;
+  text-decoration: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.main-slider-four__promo-btn:hover {
+  background: var(--gotur-black, #1d231f);
+  transform: translateY(-1px);
+  color: #fff !important;
+  text-decoration: none;
+}
+
+/* Position explore button on slider */
+.main-slider-four__explore-btn {
+  margin-top: 20px;
+}
+
+.main-slider-four__explore-btn .gotur-btn {
+  background: linear-gradient(45deg, var(--gotur-base, #d4af37), #f4d03f);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.main-slider-four__explore-btn .gotur-btn:hover {
+  background: linear-gradient(45deg, #f4d03f, var(--gotur-base, #d4af37));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  color: #fff;
+  text-decoration: none;
 }

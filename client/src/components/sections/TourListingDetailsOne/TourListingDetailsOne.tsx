@@ -668,6 +668,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                 <FeatureTwo 
                   tours={relatedTours} 
                   itemsPerRow={3} 
+                  homeThree={false}
+                  showShape={false}
                   extraClass="section-space-top"
                   title="Related Tours"
                   titleSpan="Tours"
@@ -684,7 +686,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         <FeatureTwo 
           extraClass="section-space-top" 
           itemsPerRow={4}
-          showHeart={false}
+          homeThree={false}
+          showShape={false}
           title="More"
           titleSpan="Tours"
           subtitle="Discover more amazing experiences"

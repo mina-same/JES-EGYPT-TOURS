@@ -14,6 +14,8 @@ import tour2 from "@/assets/images/blog/listing-list-4-2.jpg";
 import commentImg1 from "@/assets/images/blog/blog-comment-1-1.png";
 
 const tourDetailsOneData = {
+  id: "the-montcalm-at-brewery-japan-city",
+  slug: "the-montcalm-at-brewery-japan-city",
   title: "The Montcalm At Brewery Japan City",
   reviews: 17,
   location: "Japan",

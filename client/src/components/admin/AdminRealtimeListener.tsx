@@ -60,25 +60,27 @@ export default function AdminRealtimeListener() {
       const gain = ctx.createGain();
 
       const t0 = ctx.currentTime;
-      const t1 = t0 + 0.18;
+      const totalDurationSeconds = 3;
+      const beepIntervalSeconds = 0.5;
+      const beepDurationSeconds = 0.22;
+      const beepCount = Math.max(1, Math.floor(totalDurationSeconds / beepIntervalSeconds));
 
       osc.type = "triangle";
       osc.frequency.setValueAtTime(880, t0);
-      osc.frequency.setValueAtTime(1320, t1);
 
       gain.gain.setValueAtTime(0.0001, t0);
-      gain.gain.exponentialRampToValueAtTime(0.6, t0 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
-
-      gain.gain.setValueAtTime(0.0001, t1);
-      gain.gain.exponentialRampToValueAtTime(0.6, t1 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.12);
+      for (let i = 0; i < beepCount; i++) {
+        const ts = t0 + i * beepIntervalSeconds;
+        gain.gain.setValueAtTime(0.0001, ts);
+        gain.gain.exponentialRampToValueAtTime(0.9, ts + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ts + beepDurationSeconds);
+      }
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start();
-      osc.stop(t1 + 0.14);
+      osc.stop(t0 + totalDurationSeconds + 0.1);
     } catch (e) {
       console.warn("Notification sound failed to play", e);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import './langusgeSelect.css'
 
@@ -13,7 +13,16 @@ const options = [
 ];
 
 const LanguageSelector: React.FC = () => {
+  const [mounted, setMounted] = useState(false);
   const [selectedOption, setSelectedOption] = useState(options[0]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div style={{ width: '120px', height: '40px' }} />;
+  }
 
   return (
     <div className="top-one__language-sort" suppressHydrationWarning>

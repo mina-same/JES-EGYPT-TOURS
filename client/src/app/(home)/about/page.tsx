@@ -9,6 +9,8 @@ import HowItWorks from "@/components/sections/HowItWorks/HowItWorks";
 import AboutTestimonials from "@/components/sections/AboutTestimonials/AboutTestimonials";
 import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
 import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
+import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
+import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 
 export const metadata = {
   title: "About Us || Gotur || Travel & Tour NextJS Template",
@@ -23,8 +25,8 @@ export default function About() {
   return (
     <Layout>
       <TopbarOne />
-      <HeaderInner />
-      <HeaderInnerCloned/>
+      <HeaderOne linkTheme="light" />
+      <HeaderOneCloned />
       <PageHeader title='About Us' subTitle='About Us' />
       <AboutOne />
       <CtaTwo />

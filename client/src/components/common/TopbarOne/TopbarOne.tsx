@@ -26,24 +26,17 @@ interface AddressInfo {
   href: string;
 }
 
-interface SocialLink {
-  platform: string;
-  iconClass: string;
-  href: string;
-}
-
 interface TopbarOneData {
   contactInfo: ContactInfoItem[];
   contactInfoTwo: ContactInfoItemTwo[];
   address: AddressInfo;
-  socialLinks: SocialLink[];
 }
 interface TopbarOneProps {
   extraClass?: string;
 }
 
 const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
-  const { contactInfo, contactInfoTwo, address, socialLinks }: TopbarOneData =
+  const { contactInfo, contactInfoTwo, address }: TopbarOneData =
     topbarOne;
 
   const [mounted, setMounted] = useState(false);
@@ -80,17 +73,14 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
                 <Link href={address.href}>{address.label}</Link>
               </div>
             ) : (
-              mounted ? <LanguageSelector /> : null
+              mounted ? <LanguageSelector /> : <div style={{ width: '120px', height: '40px' }} />
             )}
 
-            {/* Social Links Section */}
-            <div className='top-one__social'>
-              {socialLinks.map((social: SocialLink, index) => (
-                <Link href={social.href} key={index}>
-                  <i className={social.iconClass} aria-hidden='true'></i>
-                  <span className='sr-only'>{social.platform}</span>
-                </Link>
-              ))}
+            {/* Links Section */}
+            <div className='top-one__social' suppressHydrationWarning>
+              <Link href='/faq'>FAQ</Link>
+              <Link href='/about'>About</Link>
+              <Link href='/contact'>Contact</Link>
             </div>
           </div>
         </div>
