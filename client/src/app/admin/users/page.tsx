@@ -8,7 +8,6 @@ import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { userAPI, User } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import './modern-users.css';
 
 const UsersPage: React.FC = () => {
   const router = useRouter();

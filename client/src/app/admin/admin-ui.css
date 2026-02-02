@@ -1,0 +1,1034 @@
+.admin-scope .admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 12px;
+}
+
+.admin-scope .admin-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.admin-scope .admin-page-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.admin-scope .header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-scope .btn-refresh,
+.admin-scope .btn-add-new,
+.admin-scope .btn-add-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.admin-scope .btn-refresh {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.admin-scope .btn-refresh:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.admin-scope .btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-scope .btn-add-new,
+.admin-scope .btn-add-user {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+  border: none;
+}
+
+.admin-scope .btn-add-new:hover,
+.admin-scope .btn-add-user:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.admin-scope .spinning,
+.admin-scope .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.admin-scope .booking-admin,
+.admin-scope .tour-admin,
+.admin-scope .tour-category-admin,
+.admin-scope .tour-subcategory-admin,
+.admin-scope .tailor-made-admin,
+.admin-scope .users-admin,
+.admin-scope .slider-admin {
+  padding: 24px;
+}
+
+.admin-scope .tour-admin {
+  max-width: 1800px;
+}
+
+.admin-scope .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.admin-scope .stat-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.admin-scope .stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.admin-scope .stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.admin-scope .stat-icon-total {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.admin-scope .stat-icon-active {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.admin-scope .stat-icon-inactive {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.admin-scope .stat-icon-featured {
+  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+}
+
+.admin-scope .stat-icon-subcategories,
+.admin-scope .stat-icon-tours {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.admin-scope .stat-icon-pending {
+  background: linear-gradient(135deg, #ffd89b 0%, #f6d365 100%);
+}
+
+.admin-scope .stat-icon-confirmed {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.admin-scope .stat-icon-completed {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.admin-scope .stat-icon-cancelled {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.admin-scope .stat-icon-progress {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.admin-scope .stat-icon-filtered {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.admin-scope .stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-scope .stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.admin-scope .stat-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.admin-scope .filters-bar,
+.admin-scope .filters-section {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-scope .search-box {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.admin-scope .search-box svg {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.admin-scope .search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #1f2937;
+  background: #fff;
+}
+
+.admin-scope .search-box input::placeholder {
+  color: #9ca3af;
+}
+
+.admin-scope .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.admin-scope .filter-group svg {
+  color: #9ca3af;
+}
+
+.admin-scope .filter-group select {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #1f2937;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  min-width: 150px;
+}
+
+.admin-scope .requests-table-container,
+.admin-scope .table-container,
+.admin-scope .tours-table-container,
+.admin-scope .categories-table-container,
+.admin-scope .subcategories-table-container,
+.admin-scope .slider-table-container {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-scope .requests-table,
+.admin-scope .bookings-table,
+.admin-scope .tours-table,
+.admin-scope .categories-table,
+.admin-scope .subcategories-table,
+.admin-scope .slider-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-scope .requests-table thead,
+.admin-scope .bookings-table thead,
+.admin-scope .tours-table thead,
+.admin-scope .categories-table thead,
+.admin-scope .subcategories-table thead {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-scope .requests-table th,
+.admin-scope .bookings-table th,
+.admin-scope .tours-table th,
+.admin-scope .categories-table th,
+.admin-scope .subcategories-table th,
+.admin-scope .slider-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-scope .requests-table tbody tr,
+.admin-scope .bookings-table tbody tr,
+.admin-scope .tours-table tbody tr,
+.admin-scope .categories-table tbody tr,
+.admin-scope .subcategories-table tbody tr,
+.admin-scope .slider-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.2s ease;
+}
+
+.admin-scope .requests-table tbody tr:hover,
+.admin-scope .bookings-table tbody tr:hover,
+.admin-scope .tours-table tbody tr:hover,
+.admin-scope .categories-table tbody tr:hover,
+.admin-scope .subcategories-table tbody tr:hover,
+.admin-scope .slider-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.admin-scope .requests-table td,
+.admin-scope .bookings-table td,
+.admin-scope .tours-table td,
+.admin-scope .categories-table td,
+.admin-scope .subcategories-table td,
+.admin-scope .slider-table td {
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #374151;
+  vertical-align: middle;
+}
+
+/* Common thumbnails (reduce size + align) */
+.admin-scope .tour-image {
+  width: 64px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.admin-scope .category-image,
+.admin-scope .subcategory-image {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.admin-scope .tour-thumbnail {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.admin-scope .slider-image {
+  width: 64px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+/* Tours table: Tour column layout */
+.admin-scope .tour-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.admin-scope .tour-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-scope .tour-details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-scope .tour-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-scope .tour-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+}
+
+.admin-scope .tour-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  padding: 2px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.admin-scope .subcategory-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  max-width: 280px;
+}
+
+.admin-scope .subcategory-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.admin-scope .action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-scope .btn-icon,
+.admin-scope .btn-action {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-scope .btn-icon svg,
+.admin-scope .btn-action svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Action button variants (consistent across all pages) */
+.admin-scope .btn-icon:hover,
+.admin-scope .btn-action:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.admin-scope .btn-edit {
+  color: #2563eb;
+}
+
+.admin-scope .btn-edit:hover {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.admin-scope .btn-view {
+  color: #2563eb;
+}
+
+.admin-scope .btn-view:hover {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.admin-scope .btn-toggle {
+  color: #92400e;
+}
+
+.admin-scope .btn-toggle:hover {
+  border-color: rgba(146, 64, 14, 0.35);
+  background: rgba(146, 64, 14, 0.06);
+}
+
+.admin-scope .btn-featured {
+  color: #92400e;
+}
+
+.admin-scope .btn-featured:hover {
+  border-color: rgba(146, 64, 14, 0.35);
+  background: rgba(146, 64, 14, 0.06);
+}
+
+.admin-scope .btn-featured.is-featured {
+  border-color: rgba(251, 191, 36, 0.6);
+  background: rgba(251, 191, 36, 0.18);
+  color: #78350f;
+}
+
+.admin-scope .btn-delete {
+  color: #dc2626;
+}
+
+.admin-scope .btn-delete:hover {
+  border-color: rgba(220, 38, 38, 0.35);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.admin-scope .btn-icon:disabled,
+.admin-scope .btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-scope .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Status variants (shared) */
+.admin-scope .status-pending,
+.admin-scope .status-badge-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.admin-scope .status-contacted,
+.admin-scope .status-badge-confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.admin-scope .status-in-progress {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.admin-scope .status-completed,
+.admin-scope .status-badge-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.admin-scope .status-cancelled,
+.admin-scope .status-badge-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Contact form statuses */
+.admin-scope .status-new {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.admin-scope .status-replied {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.admin-scope .status-archived {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.admin-scope .status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.admin-scope .status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.admin-scope .featured-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.admin-scope .price-display {
+  font-size: 16px;
+  font-weight: 600;
+  color: #059669;
+}
+
+.admin-scope .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-scope .pagination button,
+.admin-scope .pagination-button {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-scope .pagination button:hover:not(:disabled),
+.admin-scope .pagination-button:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.admin-scope .pagination button:disabled,
+.admin-scope .pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-scope .pagination span,
+.admin-scope .pagination-info {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.admin-scope .loading-state,
+.admin-scope .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: #9ca3af;
+}
+
+.admin-scope .empty-state h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 16px 0 8px 0;
+}
+
+.admin-scope .empty-state p {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0 0 16px 0;
+}
+
+.admin-scope .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.admin-scope .modal-content {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.admin-scope .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-scope .modal-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.admin-scope .modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 24px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+}
+
+.admin-scope .modal-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.admin-scope .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.admin-scope .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-scope .btn-secondary,
+.admin-scope .btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.admin-scope .btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.admin-scope .btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.admin-scope .btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+}
+
+.admin-scope .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.admin-scope .btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.admin-scope .detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.admin-scope .detail-section {
+  margin-bottom: 24px;
+}
+
+.admin-scope .detail-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.admin-scope .detail-item label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.admin-scope .detail-item p {
+  font-size: 14px;
+  color: #1f2937;
+  margin: 0;
+}
+
+.admin-scope .comments-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-scope .slider-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .admin-scope .slider-edit-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.admin-scope .slider-edit-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.admin-scope .slider-edit-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.admin-scope .slider-edit-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.admin-scope .slider-edit-input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+}
+
+.admin-scope .slider-edit-input:focus {
+  border-color: #63ab45;
+  box-shadow: 0 0 0 3px rgba(99, 171, 69, 0.15);
+}
+
+.admin-scope .slider-edit-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 700px) {
+  .admin-scope .slider-edit-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.admin-scope .slider-edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-scope .slider-edit-toggle.is-on {
+  border-color: rgba(99, 171, 69, 0.5);
+  background: rgba(99, 171, 69, 0.08);
+  color: #166534;
+}
+
+.admin-scope .slider-edit-toggle.is-off {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.06);
+  color: #991b1b;
+}
+
+.admin-scope .slider-edit-preview {
+  width: 100%;
+  height: 180px;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: #f9fafb;
+}
+
+.admin-scope .slider-edit-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-scope .slider-edit-preview-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: #6b7280;
+}
+
+.admin-scope .slider-edit-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
+  text-decoration: none;
+}
+
+.admin-scope .slider-edit-back:hover {
+  color: #111827;
+}
+
+@media (max-width: 1024px) {
+  .admin-scope .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-scope .booking-admin,
+  .admin-scope .tour-admin,
+  .admin-scope .tour-category-admin,
+  .admin-scope .tour-subcategory-admin,
+  .admin-scope .tailor-made-admin,
+  .admin-scope .users-admin,
+  .admin-scope .slider-admin {
+    padding: 16px;
+  }
+
+  .admin-scope .admin-page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .admin-scope .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-scope .filters-bar,
+  .admin-scope .filters-section {
+    flex-direction: column;
+  }
+
+  .admin-scope .search-box {
+    min-width: 100%;
+  }
+
+  .admin-scope .tours-table-container,
+  .admin-scope .categories-table-container,
+  .admin-scope .subcategories-table-container,
+  .admin-scope .table-container,
+  .admin-scope .requests-table-container {
+    overflow-x: auto;
+  }
+
+  .admin-scope .tours-table {
+    min-width: 1000px;
+  }
+
+  .admin-scope .categories-table {
+    min-width: 800px;
+  }
+
+  .admin-scope .subcategories-table {
+    min-width: 900px;
+  }
+
+  .admin-scope .bookings-table,
+  .admin-scope .requests-table {
+    min-width: 800px;
+  }
+}

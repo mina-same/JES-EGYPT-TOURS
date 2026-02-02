@@ -15,8 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { SliderItem, SliderUnderPromo } from '@/types/slider';
 import { API_ENDPOINTS } from '@/config/api';
 import { sliderService } from '@/services/sliderService';
-import '../../contact-forms/tailor-made/tailor-made.css';
-import './slider-content.css';
 
 const sliderAPI = {
   getAll: async (params: { isActive?: boolean } = {}) => {
@@ -305,7 +303,7 @@ export default function SliderContentPage() {
             <img
               src={item.image.url}
               alt={item.image.alt || 'Slider image'}
-              className="h-14 w-20 rounded-md border border-gray-200 object-cover"
+              className="slider-image"
             />
           ) : (
             <div className="h-14 w-20 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center">

@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, Filter, Eye, Edit, Trash2, 
-  Calendar, Users, MapPin, Mail, Phone,
+  Search, Filter, Eye, Trash2, 
+  Calendar, Users, Mail, Phone,
   CheckCircle, Clock, XCircle, Loader2, RefreshCw,
-  ChevronDown, FileText
+  
 } from 'lucide-react';
 import { getAllBookings, deleteBooking, updateBooking, getBookingStats, IBooking } from '@/lib/api/booking';
 import { useBooking } from '@/contexts/BookingContext';
@@ -14,7 +14,6 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
-import './booking.css';
 
 const BookingPage: React.FC = () => {
   const { refreshCount } = useBooking();

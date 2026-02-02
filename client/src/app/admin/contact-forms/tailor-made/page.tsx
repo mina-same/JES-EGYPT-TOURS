@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, Filter, Download, Eye, Edit, Trash2, 
-  Calendar, Users, MapPin, DollarSign, MessageSquare,
+  Search, Filter, Eye, Trash2, 
+  Calendar, Users, MapPin, MessageSquare,
   CheckCircle, Clock, XCircle, Loader2, RefreshCw,
-  ChevronDown, Mail, Phone
+  Mail, Phone
 } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -12,7 +12,6 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
-import './tailor-made.css';
 
 interface TailorMadeRequest {
   _id: string;

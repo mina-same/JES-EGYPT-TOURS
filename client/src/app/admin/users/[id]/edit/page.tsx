@@ -23,7 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Save, Loader2, User as UserIcon, Shield, Settings } from "lucide-react";
 
-import "../../modern-users.css";
 
 const PERMISSIONS_GLOBAL_STYLES = `
   .permissions-panel {

@@ -16,7 +16,6 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
-import './subcategory.css';
 
 export default function TourSubcategoriesPage() {
   const router = useRouter();

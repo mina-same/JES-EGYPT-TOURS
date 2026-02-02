@@ -17,8 +17,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { SliderItem } from '@/types/slider';
 import { API_ENDPOINTS } from '@/config/api';
-import '../../../contact-forms/tailor-made/tailor-made.css';
-import '../slider-content.css';
 
 type SliderApiResponse<T> = {
   success: boolean;

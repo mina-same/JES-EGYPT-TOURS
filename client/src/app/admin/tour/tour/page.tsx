@@ -1,25 +1,21 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { tourAPI, tourSubcategoryAPI } from '@/lib/api/tour';
 import { ITour, ITourSubcategory } from '@/types/tour';
 import { 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, MapPin, Clock, 
-  DollarSign, Star, CheckCircle, XCircle, Tag, MessageSquare
+  Star, CheckCircle, XCircle, Tag, MessageSquare
 } from 'lucide-react';
-import Image from 'next/image';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
-import './tour.css';
 
 export default function ToursPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [tours, setTours] = useState<ITour[]>([]);
   const [subcategories, setSubcategories] = useState<ITourSubcategory[]>([]);
@@ -207,15 +203,7 @@ export default function ToursPage() {
               className="tour-image"
             />
           ) : (
-            <div
-              className="tour-image"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#f3f4f6',
-              }}
-            >
+            <div className="tour-image tour-image-placeholder">
               <MapPin size={24} color="#9ca3af" />
             </div>
           )}

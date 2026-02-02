@@ -8,7 +8,6 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
-import '../tailor-made/tailor-made.css';
 
 interface ContactSubmission {
   _id: string;
@@ -65,7 +64,7 @@ const ContactFormPage: React.FC = () => {
 
       const json = await response.json().catch(() => null);
       setSubmissions(json?.data || []);
-    } catch (_err) {
+    } catch {
       setSubmissions([]);
     } finally {
       setLoading(false);
