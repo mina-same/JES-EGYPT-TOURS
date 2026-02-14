@@ -3,12 +3,9 @@ import Image, { StaticImageData } from "next/image";
 import { useState } from "react";
 
 import { Carousel, Container, Row, Col, Button } from "react-bootstrap";
-import dynamic from "next/dynamic";
 import testimonialsTwoData from "@/data/testimonialsTwoData";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface Testimonial {
   id: number;

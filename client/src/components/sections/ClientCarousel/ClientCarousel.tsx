@@ -1,13 +1,10 @@
 "use client";
 
 import { clientCarouselData } from "@/data/clientCarouselData";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface ClientCarouselProps {
   extraClass?: string;

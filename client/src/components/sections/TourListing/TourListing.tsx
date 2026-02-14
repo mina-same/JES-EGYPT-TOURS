@@ -30,33 +30,52 @@ interface Metadata {
 const TourListing: React.FC = () => {
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
-  const [tours, setTours] = useState<FeatureOneItem[]>([]);
+  const [tours, setTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const toursPerPage = 10;
 
   useEffect(() => {
     const fetchTours = async () => {
       try {
         setLoading(true);
-        const response = await tourAPI.getAll();
+        const response = await tourAPI.getAll({
+          page: currentPage,
+          limit: toursPerPage
+        });
         
         if (response.success && response.data) {
-          const mappedTours = response.data.map((tour: any) => ({
-            id: tour._id,
-            image: tour.images?.[0]?.url || "/assets/images/resources/tour-1-1.jpg", // Fallback image
-            title: tour.heading || tour.name,
-            link: `/tours/${tour._id}`,
-            price: tour.priceStartingFrom || 0,
-            rating: 5, // Default rating as backend might not have it yet
-            reviews: tour.reviews?.length || 0,
-            videoId: "", // Add if available in backend
-            discount: "", // Add if available
-            meta: [
-              { id: 1, title: `${tour.duration || '3 Days'}`, icon: "icon-clock" },
-              { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
-              { id: 3, title: tour.tourLocation || "Location", icon: "icon-location" },
-            ]
-          }));
+          setTotalPages(response.totalPages || 1);
+          const mappedTours = response.data.map((tour: any) => {
+            // Collect all available images for the gallery
+            const galleryImages = [
+              ...(tour.images || []).map((img: any) => img.url),
+              ...(tour.gallery || []).map((img: any) => img.url)
+            ].filter(Boolean);
+
+            // Ensure unique URLs
+            const uniqueImages = Array.from(new Set(galleryImages));
+
+            return {
+              id: tour._id,
+              image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg", 
+              allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+              title: tour.heading || tour.name,
+              link: `/tours/${tour.slug}`,
+              price: tour.priceStartingFrom || 0,
+              rating: 5,
+              reviews: tour.reviews?.length || 0,
+              videoId: tour.videoLink || "", 
+              discount: "", 
+              meta: [
+                { id: 1, title: `${tour.duration || '3 Days'}`, icon: "icon-clock" },
+                { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
+                { id: 3, title: tour.tourLocation || "Location", icon: "icon-location" },
+              ]
+            };
+          });
           setTours(mappedTours);
         } else {
           setError("Failed to load tours");
@@ -70,7 +89,12 @@ const TourListing: React.FC = () => {
     };
 
     fetchTours();
-  }, []);
+  }, [currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (loading) {
     return (
@@ -92,11 +116,11 @@ const TourListing: React.FC = () => {
     <>
       <section className='tour-listing-page section-space'>
         <Container>
-          <PhotoSwipeGallery>
-            <Row className='gutter-y-30 gutter-x-30'>
-              {tours.map((item: FeatureOneItem) => (
-                <Col lg={4} md={6} key={item.id}>
-                  <div className='item' key={item.id}>
+          <Row className='gutter-y-30 gutter-x-30'>
+            {tours.map((item: any) => (
+              <Col lg={4} md={6} key={item.id}>
+                <PhotoSwipeGallery>
+                  <div className='item'>
                     <div
                       className='listing-card-four wow fadeInUp'
                       data-wow-duration='1500ms'
@@ -104,7 +128,7 @@ const TourListing: React.FC = () => {
                       <div className='listing-card-four__image'>
                         <div className="relative w-full" style={{ height: '257px' }}>
                           <Image 
-                            src={typeof item.image === 'string' ? item.image : item.image} 
+                            src={item.image} 
                             alt={item.title} 
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -126,17 +150,18 @@ const TourListing: React.FC = () => {
                             <i className='far fa-heart'></i>
                           </Link>
                           <div className='listing-card-four__btns__hover'>
+                            {/* Primary Image Item (Visible Toggle) */}
                             <Item
-                              original={typeof item.image === 'string' ? item.image : item.image.src}
-                              thumbnail={typeof item.image === 'string' ? item.image : item.image.src}
-                              width='370'
-                              height='257'
+                              original={item.allImages[0]}
+                              thumbnail={item.allImages[0]}
+                              width='1200'
+                              height='800'
                             >
                               {({ ref, open }) => (
                                 <Link
                                   href='#'
                                   className='listing-card-four__popup card__popup'
-                                  ref={ref}
+                                  ref={ref as any}
                                   onClick={(e) => {
                                     e.preventDefault();
                                     open(e);
@@ -147,13 +172,32 @@ const TourListing: React.FC = () => {
                               )}
                             </Item>
 
+                            {/* Hidden Image Items for the Swipe Gallery */}
+                            {item.allImages.slice(1).map((imgUrl: string, idx: number) => (
+                              <Item
+                                key={idx}
+                                original={imgUrl}
+                                thumbnail={imgUrl}
+                                width='1200'
+                                height='800'
+                              >
+                                {({ ref }) => (
+                                  <div ref={ref as any} style={{ display: 'none' }} />
+                                )}
+                              </Item>
+                            ))}
+
                             <Link
                               className='video-popup'
-                              href='https://www.youtube.com/watch?v=0MuL8fd3pb8'
+                              href='#'
                               onClick={(e) => {
                                 e.preventDefault();
-                                setOpen(true);
-                                setVideoId(item.videoId);
+                                if (item.videoId) {
+                                  setVideoId(item.videoId);
+                                  setOpen(true);
+                                } else {
+                                  alert("No video preview available for this tour.");
+                                }
                               }}
                             >
                               <span className='icon-video'></span>
@@ -161,13 +205,11 @@ const TourListing: React.FC = () => {
                           </div>
                         </div>
                         <ul className='listing-card-four__meta list-unstyled'>
-                          {item.meta.map((meta: Metadata) => (
+                          {item.meta.map((meta: any) => (
                             <li key={meta.id}>
-                              <Link href='tour-listing-details-2'>
-                                {" "}
+                              <Link href={item.link}>
                                 <span className='listing-card-four__meta__icon'>
-                                  {" "}
-                                  <i className={meta.icon}></i>{" "}
+                                  <i className={meta.icon}></i>
                                 </span>
                                 {meta.title}
                               </Link>
@@ -208,14 +250,18 @@ const TourListing: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </Col>
-              ))}
-
-              <Col xs={12}>
-                <Pagination />
+                </PhotoSwipeGallery>
               </Col>
-            </Row>
-          </PhotoSwipeGallery>
+            ))}
+
+            <Col xs={12}>
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </Col>
+          </Row>
         </Container>
       </section>
       <VideoModal isOpen={isOpen} setOpen={setOpen} id={videoId} />

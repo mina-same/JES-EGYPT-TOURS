@@ -1,6 +1,6 @@
 import axiosInstance from './axios';
 
-const API_BASE = '/blog';
+const API_BASE = 'blog';
 
 // ==================== TYPES ====================
 
@@ -184,7 +184,7 @@ export const blogSubcategoryAPI = {
    */
   getByCategory: async (categoryId: string, params?: QueryParams) => {
     const response = await axiosInstance.get<ApiResponse<any[]>>(
-      `${API_BASE}/categories/${categoryId}/subcategories`,
+      `${API_BASE}/subcategories/category/${categoryId}`,
       { params }
     );
     return response.data;

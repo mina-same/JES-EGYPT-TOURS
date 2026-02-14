@@ -105,25 +105,25 @@ function SortableBlockItem({
       className={cn(
         "group relative border rounded-lg transition-all duration-200",
         isDragging ? "opacity-50 shadow-2xl" : "hover:shadow-md",
-        isCollapsed ? "border-gray-200" : "border-gray-300",
-        block.type === 'html' && "bg-blue-50 border-blue-200",
-        block.type === 'blockquote' && "bg-green-50 border-green-200",
-        block.type === 'imageRow' && "bg-purple-50 border-purple-200"
+        isCollapsed ? "border-gray-200 dark:border-slate-800" : "border-gray-300 dark:border-slate-700",
+        block.type === 'html' && "bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/30",
+        block.type === 'blockquote' && "bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-900/30",
+        block.type === 'imageRow' && "bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-900/30"
       )}
     >
       {/* Block Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50 rounded-t-lg">
+      <div className="flex items-center justify-between p-3 border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 rounded-t-lg">
         <div className="flex items-center gap-3">
           <div
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded transition-colors"
+            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors"
           >
-            <GripVertical className="w-4 h-4 text-gray-500" />
+            <GripVertical className="w-4 h-4 text-gray-500 dark:text-slate-400" />
           </div>
           <div className="flex items-center gap-2">
-            <Icon className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">{blockType?.label}</span>
+            <Icon className="w-4 h-4 text-gray-600 dark:text-slate-300" />
+            <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{blockType?.label}</span>
           </div>
         </div>
         
@@ -202,12 +202,12 @@ function BlockContent({
     case 'html':
       return (
         <div className="space-y-2">
-          <Label>Content</Label>
+          <Label className="dark:text-slate-300">Content</Label>
           <RichTextEditor
             value={block.content || ''}
             onChange={(value) => onUpdate(index, 'content', value)}
             placeholder="Write your content here..."
-            className="min-h-[200px]"
+            className="min-h-[200px] dark:bg-slate-900 dark:border-slate-800"
           />
         </div>
       );
@@ -215,20 +215,21 @@ function BlockContent({
     case 'blockquote':
       return (
         <div className="space-y-2">
-          <Label>Quote Content</Label>
+          <Label className="dark:text-slate-300">Quote Content</Label>
           <Textarea
             value={block.content || ''}
             onChange={(e) => onUpdate(index, 'content', e.target.value)}
             placeholder="Enter the quote text here..."
             rows={4}
-            className="resize-none border-l-4 border-blue-500"
+            className="resize-none border-l-4 border-blue-500 dark:bg-slate-900 dark:border-slate-800"
           />
           <div className="space-y-2">
-            <Label>Attribution (Optional)</Label>
+            <Label className="dark:text-slate-300">Attribution (Optional)</Label>
             <Input
               value={block.title || ''}
               onChange={(e) => onUpdate(index, 'title', e.target.value)}
               placeholder="— Author or source"
+              className="dark:bg-slate-900 dark:border-slate-800"
             />
           </div>
         </div>
@@ -291,11 +292,11 @@ function AddBlockModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">Add Content Block</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto border dark:border-slate-800">
+        <div className="flex items-center justify-between p-4 border-b dark:border-slate-800">
+          <h2 className="text-lg font-semibold dark:text-white">Add Content Block</h2>
+          <Button variant="ghost" size="sm" onClick={onClose} className="dark:hover:bg-slate-800">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -311,14 +312,14 @@ function AddBlockModal({
                     onAddBlock(blockType.type);
                     onClose();
                   }}
-                  className="flex items-center gap-4 p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-4 p-4 text-left border dark:border-slate-800 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
                 >
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Icon className="w-5 h-5 text-gray-600" />
+                  <div className="p-2 bg-gray-100 dark:bg-slate-800 rounded-lg">
+                    <Icon className="w-5 h-5 text-gray-600 dark:text-slate-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium">{blockType.label}</h3>
-                    <p className="text-sm text-gray-500">{blockType.description}</p>
+                    <h3 className="font-medium dark:text-white">{blockType.label}</h3>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">{blockType.description}</p>
                   </div>
                 </button>
               );
@@ -437,8 +438,8 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload }: 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Content Blocks</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-semibold dark:text-white">Content Blocks</h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400">
             Drag to reorder • Click to edit • Ctrl+Enter to add block
           </p>
         </div>
@@ -496,14 +497,14 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload }: 
       </DndContext>
 
       {blocks.length === 0 && (
-        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+        <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-slate-800 rounded-lg bg-gray-50/50 dark:bg-slate-900/50">
           <div className="space-y-3">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-              <Plus className="w-6 h-6 text-gray-400" />
+            <div className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto">
+              <Plus className="w-6 h-6 text-gray-400 dark:text-slate-600" />
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">No content blocks yet</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="font-medium text-gray-900 dark:text-white">No content blocks yet</h3>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
                 Get started by adding your first content block
               </p>
             </div>

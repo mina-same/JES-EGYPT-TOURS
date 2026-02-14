@@ -11,9 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Image as ImageIcon } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import ImageUpload from '@/components/admin/ImageUpload';
+import { uploadAPI } from '@/lib/api/upload';
+import { FormSkeleton } from '@/components/admin/skeletons/FormSkeleton';
 
 export default function NewSubcategoryPage() {
   const router = useRouter();
@@ -52,102 +54,96 @@ export default function NewSubcategoryPage() {
     isActive: true,
   });
 
-  // Fetch categories
-  const fetchCategories = async () => {
-    try {
-      setCategoriesLoading(true);
-      const response = await tourCategoryAPI.getAll({ limit: 100, isActive: true });
-      
-      if (response.success && response.data) {
-        setCategories(response.data);
-      } else {
-        setError('Failed to load categories');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load categories');
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
-
+  // Parallel data fetching on mount
   useEffect(() => {
-    fetchCategories();
-    if (isEditMode && subcategoryId) {
-      fetchSubcategoryData(subcategoryId);
-    }
-  }, [subcategoryId, isEditMode]);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const promises: Promise<any>[] = [tourCategoryAPI.getAll({ limit: 100, isActive: true })];
+        if (isEditMode && subcategoryId) {
+          promises.push(tourSubcategoryAPI.getById(subcategoryId));
+        }
 
-  const fetchSubcategoryData = async (id: string) => {
-    try {
-      setFetchingData(true);
-      setError(null);
-      const response = await tourSubcategoryAPI.getById(id);
-      console.log('Fetched subcategory data:', response);
-      if (response.success && response.data) {
-        const data = response.data as any;
-        const categoryValue =
-          data.category && typeof data.category === 'object' && data.category._id
-            ? data.category._id
-            : data.category || '';
+        const [categoriesRes, subcatRes] = await Promise.all(promises);
 
-        setFormData({
-          category: categoryValue,
-          name: data.name || '',
-          slug: data.slug || '',
-          description: data.description || '',
-          image: data.image
-            ? {
-                url: data.image.url || '',
-                fileName: data.image.fileName || '',
-                title: data.image.title || '',
-                alt: data.image.alt || '',
-              }
-            : {
-                url: '',
-                fileName: '',
-                title: '',
-                alt: '',
-              },
-          seo: data.seo
-            ? {
-                metaTitle: data.seo.metaTitle || '',
-                metaDescription: data.seo.metaDescription || '',
-                metaKeywords: Array.isArray(data.seo.metaKeywords) ? data.seo.metaKeywords : [],
-                metaImage: data.seo.metaImage
-                  ? {
-                      url: data.seo.metaImage.url || '',
-                      fileName: data.seo.metaImage.fileName || '',
-                      title: data.seo.metaImage.title || '',
-                      alt: data.seo.metaImage.alt || '',
-                    }
-                  : {
-                      url: '',
-                      fileName: '',
-                      title: '',
-                      alt: '',
-                    },
-              }
-            : {
-                metaTitle: '',
-                metaDescription: '',
-                metaKeywords: [],
-                metaImage: {
+        if (categoriesRes.success && categoriesRes.data) {
+          setCategories(categoriesRes.data);
+        } else {
+          setError('Failed to load categories');
+        }
+
+        if (subcatRes && subcatRes.success && subcatRes.data) {
+          const data = subcatRes.data as any;
+          const categoryValue =
+            data.category && typeof data.category === 'object' && data.category._id
+              ? data.category._id
+              : data.category || '';
+
+          setFormData({
+            category: categoryValue,
+            name: data.name || '',
+            slug: data.slug || '',
+            description: data.description || '',
+            image: data.image
+              ? {
+                  url: data.image.url || '',
+                  fileName: data.image.fileName || '',
+                  title: data.image.title || '',
+                  alt: data.image.alt || '',
+                }
+              : {
                   url: '',
                   fileName: '',
                   title: '',
                   alt: '',
                 },
-              },
-          isActive: data.isActive !== undefined ? !!data.isActive : true,
-        });
+            seo: data.seo
+              ? {
+                  metaTitle: data.seo.metaTitle || '',
+                  metaDescription: data.seo.metaDescription || '',
+                  metaKeywords: Array.isArray(data.seo.metaKeywords) ? data.seo.metaKeywords : [],
+                  metaImage: data.seo.metaImage
+                    ? {
+                        url: data.seo.metaImage.url || '',
+                        fileName: data.seo.metaImage.fileName || '',
+                        title: data.seo.metaImage.title || '',
+                        alt: data.seo.metaImage.alt || '',
+                      }
+                    : {
+                        url: '',
+                        fileName: '',
+                        title: '',
+                        alt: '',
+                      },
+                }
+              : {
+                  metaTitle: '',
+                  metaDescription: '',
+                  metaKeywords: [],
+                  metaImage: {
+                    url: '',
+                    fileName: '',
+                    title: '',
+                    alt: '',
+                  },
+                },
+            isActive: data.isActive !== undefined ? !!data.isActive : true,
+          });
+        } else if (isEditMode && !subcatRes?.success) {
+          setError(subcatRes?.error || 'Failed to fetch subcategory data');
+        }
+      } catch (err: any) {
+        console.error('Error loading data:', err);
+        setError(err.message || 'Failed to load required data');
+      } finally {
+        setCategoriesLoading(false);
+        setFetchingData(false);
+        setLoading(false);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch subcategory data');
-      console.error('Error fetching subcategory:', err);
-    } finally {
-      setFetchingData(false);
-    }
-  };
+    };
+
+    loadData();
+  }, [subcategoryId, isEditMode]);
 
   // Generate slug from name
   const generateSlug = (name: string) => {
@@ -210,19 +206,12 @@ export default function NewSubcategoryPage() {
 
   // Handle Image Upload
   const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
-    const formDataUpload = new FormData();
-    formDataUpload.append('file', file);
-
     try {
-      const response = await fetch('http://localhost:5001/api/upload', {
-        method: 'POST',
-        body: formDataUpload,
-      });
-      const data = await response.json();
-      if (data.success) {
-        return { url: data.data.url, fileName: data.data.fileName };
+      const response = await uploadAPI.uploadFile(file);
+      if (response.success) {
+        return { url: response.data.url, fileName: response.data.fileName };
       } else {
-        console.error('Upload failed:', data.error);
+        console.error('Upload failed:', response.error);
         return null;
       }
     } catch (error) {
@@ -324,14 +313,7 @@ export default function NewSubcategoryPage() {
   };
 
   if (fetchingData || categoriesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">{fetchingData ? 'Loading subcategory data...' : 'Loading categories...'}</p>
-        </div>
-      </div>
-    );
+    return <FormSkeleton />;
   }
 
   return (
@@ -369,7 +351,7 @@ export default function NewSubcategoryPage() {
                   id="category"
                   value={formData.category}
                   onChange={(e) => handleChange('category', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                  className="w-full px-3 py-2 border border-gray-100 dark:border-slate-800 rounded-md text-sm bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#b79c5c]/50"
                   required
                 >
                   <option value="">Select a category...</option>
@@ -415,7 +397,7 @@ export default function NewSubcategoryPage() {
                   value={formData.description}
                   onChange={(value: string) => handleChange('description', value)}
                   placeholder="Describe this subcategory..."
-                  className="bg-white"
+                  className="bg-white dark:bg-slate-900"
                 />
               </div>
 
@@ -508,9 +490,9 @@ export default function NewSubcategoryPage() {
                   value={formData.seo?.metaDescription || ''}
                   onChange={(value: string) => handleChange('seo.metaDescription', value)}
                   placeholder="Book exciting desert safari experiences..."
-                  className="bg-white"
+                  className="bg-white dark:bg-slate-900"
                 />
-                <p className="text-xs text-gray-500">Keep it concise for SEO (recommended: 150-160 characters)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Keep it concise for SEO (recommended: 150-160 characters)</p>
               </div>
 
               <Separator />
@@ -559,7 +541,7 @@ export default function NewSubcategoryPage() {
           {/* Actions */}
           <div className="flex gap-4 justify-end">
             <Link href="/admin/tour/subcategory">
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" className="text-gray-700 dark:text-gray-300">
                 Cancel
               </Button>
             </Link>

@@ -1,4 +1,4 @@
-import image1 from "@/assets/images/team/team-d-1-1.jpg"; // Example image
+// import image1 from "@/assets/images/team/team-skill-1.png"; // Example image
 
 
 

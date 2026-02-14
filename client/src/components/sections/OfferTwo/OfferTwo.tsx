@@ -133,14 +133,14 @@ const OfferTwo = () => {
             </div>
           </div>
 
-          <div className='offer-two__element'>
-            <Image src={shapes.bgShape} alt='background shape' />
+          <div className='offer-two__element w-full max-w-[50%] pointer-events-none'>
+            <Image src={shapes.bgShape} alt='background shape' className="max-w-full h-auto" />
           </div>
-          <div className='offer-two__element-two'>
-            <Image src={shapes.aboutShape} alt='about shape' />
+          <div className='offer-two__element-two w-full max-w-[50%] pointer-events-none'>
+            <Image src={shapes.aboutShape} alt='about shape' className="max-w-full h-auto" />
           </div>
-          <div className='offer-two__element-three'>
-            <Image src={shapes.planShape} alt='plan shape' />
+          <div className='offer-two__element-three w-full max-w-[50%] pointer-events-none'>
+            <Image src={shapes.planShape} alt='plan shape' className="max-w-full h-auto" />
           </div>
         </div>
       </div>

@@ -2,6 +2,9 @@ import { Plus_Jakarta_Sans, Just_Another_Hand } from "next/font/google";
 import Script from "next/script";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -165,8 +168,19 @@ export default function RootLayout({
           }}
         />
         <ErrorBoundary>
-          {children}
-          <Toaster />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <AuthProvider>
+              <NotificationProvider>
+                {children}
+                <Toaster />
+              </NotificationProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </ErrorBoundary>
       </body>
     </html>

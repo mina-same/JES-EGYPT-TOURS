@@ -10,6 +10,8 @@
     "seed": "ts-node src/scripts/seedAdmin.ts",
     "seed:blogs": "ts-node src/scripts/seedBlogs.ts",
     "seed:tours": "ts-node src/seeds/tourSeeder.ts",
+    "seed:general-content": "ts-node src/seeds/generalContentSeeder.ts",
+    "seed:video-reviews": "ts-node src/seeds/videoReviewSeeder.ts",
     "seed:all-tours": "ts-node src/seeds/comprehensiveTourSeeder.ts",
     "seed:detailed": "ts-node src/seeds/detailedTourSeeder.ts",
     "check:cloudinary": "ts-node src/scripts/checkCloudinary.ts",

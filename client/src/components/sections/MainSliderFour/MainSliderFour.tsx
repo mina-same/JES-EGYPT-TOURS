@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 
-import dynamic from "next/dynamic";
 import mainSliderFourData from "@/data/mainSliderFourData";
 import LineShape from "@/assets/images/shapes/line-shape.png";
 import Link from "next/link";
@@ -40,9 +39,7 @@ const dotsStyles = `
   }
 `;
 
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 type SlideVM = {
   id: string;
@@ -174,7 +171,7 @@ const MainSliderFour: React.FC = () => {
                         {' '}{item.titleEnd}
                       </h2>
                       {item.buttonText && item.buttonLink && (
-                        <div className="main-slider-four__explore-btn wow fadeInUp animated" data-wow-duration="1500ms" data-wow-delay="600ms" >
+                        <div className="wow fadeInUp animated mt-30" data-wow-duration="1500ms" data-wow-delay="600ms" >
                           <Link
                             href={item.buttonLink}
                             target={item.buttonTarget === "_blank" ? "_blank" : undefined}

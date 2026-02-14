@@ -11,9 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Image as ImageIcon } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import ImageUpload from '@/components/admin/ImageUpload';
+import { uploadAPI } from '@/lib/api/upload';
 
 export default function NewCategoryPage() {
   const router = useRouter();
@@ -177,19 +178,12 @@ export default function NewCategoryPage() {
 
   // Handle Image Upload
   const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
-    const formDataUpload = new FormData();
-    formDataUpload.append('file', file);
-
     try {
-      const response = await fetch('http://localhost:5001/api/upload', {
-        method: 'POST',
-        body: formDataUpload,
-      });
-      const data = await response.json();
-      if (data.success) {
-        return { url: data.data.url, fileName: data.data.fileName };
+      const response = await uploadAPI.uploadFile(file);
+      if (response.success) {
+        return { url: response.data.url, fileName: response.data.fileName };
       } else {
-        console.error('Upload failed:', data.error);
+        console.error('Upload failed:', response.error);
         return null;
       }
     } catch (error) {
@@ -346,7 +340,7 @@ export default function NewCategoryPage() {
                 value={formData.description}
                 onChange={(value: string) => handleChange('description', value)}
                 placeholder="Describe this category..."
-                className="bg-white"
+                className="bg-white dark:bg-slate-900"
               />
             </div>
 
@@ -439,9 +433,9 @@ export default function NewCategoryPage() {
                 value={formData.seo?.metaDescription || ''}
                 onChange={(value: string) => handleChange('seo.metaDescription', value)}
                 placeholder="Discover amazing adventure tours..."
-                className="bg-white"
+                className="bg-white dark:bg-slate-900"
               />
-              <p className="text-xs text-gray-500">Keep it concise for SEO (recommended: 150-160 characters)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Keep it concise for SEO (recommended: 150-160 characters)</p>
             </div>
 
             <Separator />
@@ -490,7 +484,7 @@ export default function NewCategoryPage() {
         {/* Actions */}
         <div className="flex gap-4 justify-end">
           <Link href="/admin/tour/category">
-            <Button type="button" variant="outline" className="!text-black">
+            <Button type="button" variant="outline" className="text-gray-700 dark:text-gray-300">
               Cancel
             </Button>
           </Link>

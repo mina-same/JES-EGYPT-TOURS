@@ -14,15 +14,22 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
+import { usePermissions } from '@/hooks/usePermissions';
+import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
+
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 export default function ToursPage() {
   const { toast } = useToast();
+  const { canEdit, canDelete, canCreate } = usePermissions();
   const [tours, setTours] = useState<ITour[]>([]);
   const [subcategories, setSubcategories] = useState<ITourSubcategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
@@ -42,7 +49,7 @@ export default function ToursPage() {
       
       const params: any = {
         page,
-        limit: 12,
+        limit,
         search: searchTerm || undefined,
       };
       
@@ -70,6 +77,7 @@ export default function ToursPage() {
       setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -288,40 +296,48 @@ export default function ToursPage() {
       header: 'Actions',
       render: (tour) => (
         <div className="action-buttons">
-          <Link href={`/admin/tour/tour/${tour._id}/edit`}>
-            <button className="btn-icon btn-edit" title="Edit">
-              <Edit2 size={16} />
-            </button>
-          </Link>
-          <button
-            className="btn-icon btn-toggle"
-            onClick={() => handleToggleStatus(tour._id)}
-            disabled={toggling === tour._id}
-            title={tour.isActive ? 'Deactivate' : 'Activate'}
-          >
-            {tour.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-          <button
-            className={`btn-icon btn-featured ${tour.isFeatured ? 'is-featured' : ''}`}
-            onClick={() => handleToggleFeatured(tour._id)}
-            disabled={toggling === tour._id}
-            title={tour.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
-          >
-            <Star size={16} />
-          </button>
+          {canEdit('tour') && (
+            <Link href={`/admin/tour/tour/${tour._id}/edit`}>
+              <button className="btn-icon btn-edit" title="Edit">
+                <Edit2 size={16} />
+              </button>
+            </Link>
+          )}
+          {canEdit('tour') && (
+            <>
+              <button
+                className="btn-icon btn-toggle"
+                onClick={() => handleToggleStatus(tour._id)}
+                disabled={toggling === tour._id}
+                title={tour.isActive ? 'Deactivate' : 'Activate'}
+              >
+                {tour.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+              <button
+                className={`btn-icon btn-featured ${tour.isFeatured ? 'is-featured' : ''}`}
+                onClick={() => handleToggleFeatured(tour._id)}
+                disabled={toggling === tour._id}
+                title={tour.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+              >
+                <Star size={16} />
+              </button>
+            </>
+          )}
           <Link href={`/admin/tour/tour/${tour._id}/reviews`}>
             <button className="btn-icon btn-view" title="Reviews / Messages">
               <MessageSquare size={16} />
             </button>
           </Link>
-          <button
-            className="btn-icon btn-delete"
-            onClick={() => handleDelete(tour._id)}
-            disabled={deleting === tour._id}
-            title="Delete"
-          >
-            <Trash2 size={16} />
-          </button>
+          {canDelete('tour') && (
+            <button
+              className="btn-icon btn-delete"
+              onClick={() => handleDelete(tour._id)}
+              disabled={deleting === tour._id}
+              title="Delete"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
         </div>
       ),
     },
@@ -339,8 +355,12 @@ export default function ToursPage() {
     fetchSubcategories();
   }, []);
 
+  if (initialLoad) {
+    return <AdminPageSkeleton showStats showFilters tableRows={12} />;
+  }
+
   return (
-    <div className="tour-admin">
+    <div className="tour-admin admin-scope">
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -352,10 +372,12 @@ export default function ToursPage() {
             <RefreshCw size={18} className={loading ? 'spinning' : ''} />
             Refresh
           </button>
-          <Link href="/admin/tour/tour/new" className="btn-add-new">
-            <Plus size={18} />
-            New Tour
-          </Link>
+          {canCreate('tour') && (
+            <Link href="/admin/tour/tour/new" className="btn-add-new">
+              <Plus size={18} />
+              New Tour
+            </Link>
+          )}
         </div>
       </div>
 
@@ -417,8 +439,8 @@ export default function ToursPage() {
       <BulkActionsBar
         selectedCount={selectedRowKeys.length}
         onClear={() => setSelectedRowKeys([])}
-        onDeleteSelected={handleBulkDelete}
-        deleteDisabled={loading}
+        onDeleteSelected={canDelete('tour') ? handleBulkDelete : () => {}}
+        deleteDisabled={loading || !canDelete('tour')}
       />
 
       {/* Tours Table */}
@@ -450,6 +472,19 @@ export default function ToursPage() {
           }
           tableClassName="tours-table"
         />
+
+        {/* Pagination */}
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={stats.total}
+          itemsPerPage={limit}
+          onPageChange={setPage}
+          onItemsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+        />
       </div>
 
       <ConfirmDeleteModal
@@ -463,29 +498,6 @@ export default function ToursPage() {
         onConfirm={confirmDelete}
         confirmDisabled={deleteBusy}
       />
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button
-            className="pagination-button"
-            onClick={() => setPage((p: number) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Previous
-          </button>
-          <span className="pagination-info">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="pagination-button"
-            onClick={() => setPage((p: number) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 }

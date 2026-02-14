@@ -4,7 +4,7 @@ import {
   Search, Filter, Eye, Trash2, 
   Calendar, Users, Mail, Phone,
   CheckCircle, Clock, XCircle, Loader2, RefreshCw,
-  
+  MapPin, MessageSquare
 } from 'lucide-react';
 import { getAllBookings, deleteBooking, updateBooking, getBookingStats, IBooking } from '@/lib/api/booking';
 import { useBooking } from '@/contexts/BookingContext';
@@ -14,12 +14,16 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
+import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
+
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 const BookingPage: React.FC = () => {
   const { refreshCount } = useBooking();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<IBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedBooking, setSelectedBooking] = useState<IBooking | null>(null);
@@ -33,6 +37,7 @@ const BookingPage: React.FC = () => {
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [stats, setStats] = useState({
     total: 0,
@@ -52,7 +57,7 @@ const BookingPage: React.FC = () => {
     try {
       const params: any = {
         page,
-        limit: 10,
+        limit,
       };
       
       if (statusFilter !== 'all') {
@@ -72,6 +77,7 @@ const BookingPage: React.FC = () => {
       console.error('Error fetching bookings:', error);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -208,22 +214,33 @@ const BookingPage: React.FC = () => {
 
   const columns: Array<AdminTableColumn<IBooking>> = [
     {
-      header: 'Tour',
+      header: 'Tour Information',
       render: (booking) => {
         const tour = typeof booking.tour === 'object' ? booking.tour : null;
         return (
-          <div className="tour-info">
-            {tour?.images?.[0]?.url && (
-              <Image
-                src={tour.images[0].url}
-                alt={tour.heading || 'Tour'}
-                width={50}
-                height={50}
-                className="tour-thumbnail"
-              />
-            )}
-            <div>
-              <div className="tour-name">{tour?.heading || 'Tour Not Found'}</div>
+          <div className="flex items-center gap-3 py-1">
+            <div className="relative h-12 w-16 overflow-hidden rounded-lg bg-gray-100 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm">
+              {tour?.images?.[0]?.url ? (
+                <Image
+                  src={tour.images[0].url}
+                  alt={tour.heading || 'Tour'}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-gray-400">
+                  <MapPin size={20} />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-1">
+                {tour?.heading || 'Tour Not Found'}
+              </span>
+              <span className="text-[10px] uppercase tracking-wider font-bold text-[#b79c5c]">
+                Ref: {(booking._id || booking.id || '').slice(-6).toUpperCase()}
+              </span>
             </div>
           </div>
         );
@@ -232,62 +249,74 @@ const BookingPage: React.FC = () => {
     {
       header: 'Customer',
       render: (booking) => (
-        <div className="customer-info">
-          <div className="customer-name">{booking.name}</div>
-          {booking.nationality && (
-            <div className="customer-nationality">{booking.nationality}</div>
-          )}
-        </div>
-      ),
-    },
-    {
-      header: 'Contact',
-      render: (booking) => (
-        <div className="contact-info">
-          <div className="contact-item">
-            <Mail size={14} />
-            <span>{booking.email}</span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#b79c5c]" />
+            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{booking.name}</span>
           </div>
-          {booking.phone && (
-            <div className="contact-item">
-              <Phone size={14} />
-              <span>{booking.phone}</span>
+          {booking.nationality && (
+            <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 pl-3">
+              <span className="opacity-70">from</span>
+              <span className="font-semibold text-gray-600 dark:text-gray-300 italic">{booking.nationality}</span>
             </div>
           )}
         </div>
       ),
     },
     {
-      header: 'Date & Time',
+      header: 'Contact Details',
       render: (booking) => (
-        <div className="date-time-info">
-          <div className="date-item">
-            <Calendar size={14} />
-            <span>{formatDate(booking.date)}</span>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <div className="w-6 h-6 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
+              <Mail size={12} />
+            </div>
+            <span className="font-medium truncate max-w-[140px]">{booking.email}</span>
           </div>
-          <div className="time-item">
-            <Clock size={14} />
-            <span>{formatTime(booking.time)}</span>
+          {booking.phone && (
+            <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+              <div className="w-6 h-6 rounded-md bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500">
+                <Phone size={12} />
+              </div>
+              <span className="font-medium">{booking.phone}</span>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Schedule',
+      render: (booking) => (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <Calendar size={13} className="text-[#b79c5c]" />
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{formatDate(booking.date)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock size={13} className="text-slate-400" />
+            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+              {formatTime(booking.time)}
+            </span>
           </div>
         </div>
       ),
     },
     {
-      header: 'Travelers',
+      header: 'Group Size',
       render: (booking) => (
-        <div className="travelers-info">
-          <div className="traveler-item">
-            <Users size={14} />
-            <span>{booking.adults} Adults</span>
+        <div className="flex flex-wrap gap-1 max-w-[120px]">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold border border-indigo-100 dark:border-indigo-900/30">
+            <Users size={12} />
+            <span>{booking.adults} Adl</span>
           </div>
           {booking.children > 0 && (
-            <div className="traveler-item">
-              <span>{booking.children} Children</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 text-[11px] font-bold border border-violet-100 dark:border-violet-900/30">
+              <span>{booking.children} Chl</span>
             </div>
           )}
           {booking.infants > 0 && (
-            <div className="traveler-item">
-              <span>{booking.infants} Infants</span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[11px] font-bold border border-amber-100 dark:border-amber-900/30">
+              <span>{booking.infants} Inf</span>
             </div>
           )}
         </div>
@@ -295,32 +324,37 @@ const BookingPage: React.FC = () => {
     },
     {
       header: 'Status',
-      render: (booking) => (
-        <span className={`status-badge ${getStatusColor(booking.status || 'pending')}`}>
-          {getStatusIcon(booking.status || 'pending')}
-          {booking.status || 'pending'}
-        </span>
-      ),
+      render: (booking) => {
+        const status = booking.status || 'pending';
+        return (
+          <div className={`status-badge-premium ${status}`}>
+            {getStatusIcon(status)}
+            <span className="uppercase tracking-widest font-black">{status}</span>
+          </div>
+        );
+      },
     },
     {
       header: 'Actions',
       render: (booking) => (
-        <div className="action-buttons">
+        <div className="flex items-center gap-2">
           <button
-            className="btn-action btn-view"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#b79c5c] text-white shadow-lg shadow-[#b79c5c]/20 hover:bg-[#8a7545] transition-all hover:scale-105 active:scale-95"
             onClick={() => handleViewDetails(booking)}
+            title="View Details"
           >
-            <Eye size={16} />
+            <Eye size={16} strokeWidth={2.5} />
           </button>
           <button
-            className="btn-action btn-delete"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/30 text-red-500 hover:bg-red-500 hover:text-white transition-all hover:scale-105 active:scale-95"
             onClick={() => handleDeleteBooking(booking._id || booking.id || '')}
             disabled={deleting === (booking._id || booking.id)}
+            title="Delete Booking"
           >
             {deleting === (booking._id || booking.id) ? (
               <Loader2 size={16} className="spinning" />
             ) : (
-              <Trash2 size={16} />
+              <Trash2 size={16} strokeWidth={2.5} />
             )}
           </button>
         </div>
@@ -328,8 +362,12 @@ const BookingPage: React.FC = () => {
     },
   ];
 
+  if (initialLoad) {
+    return <AdminPageSkeleton showStats showFilters tableRows={10} />;
+  }
+
   return (
-    <div className="booking-admin">
+    <div className="booking-admin admin-scope">
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -415,23 +453,17 @@ const BookingPage: React.FC = () => {
         />
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button
-              onClick={() => setPage(prev => Math.max(1, prev - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </button>
-            <span>Page {page} of {totalPages}</span>
-            <button
-              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </button>
-          </div>
-        )}
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={stats.total} // Need verify if this total matches current filter
+          itemsPerPage={limit}
+          onPageChange={setPage}
+          onItemsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+        />
       </div>
 
       <ConfirmDeleteModal
@@ -449,88 +481,129 @@ const BookingPage: React.FC = () => {
       {/* Details Modal */}
       {showModal && selectedBooking && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content max-w-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Booking Details</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+              <div className="flex items-center gap-3">
+                <div className="bg-[#b79c5c]/10 p-2 rounded-lg">
+                  <Calendar className="text-[#b79c5c]" size={20} />
+                </div>
+                <div>
+                  <h2>Booking Details</h2>
+                  <p className="text-xs text-gray-500 font-normal">Reference: {(selectedBooking._id || selectedBooking.id || "").slice(-8).toUpperCase()}</p>
+                </div>
+              </div>
+              <button className="modal-close" onClick={() => setShowModal(false)}>
+                <XCircle size={22} />
+              </button>
             </div>
             <div className="modal-body">
               <div className="detail-section">
-                <h3>Tour Information</h3>
+                <h3><MapPin size={14} /> Tour Information</h3>
                 {typeof selectedBooking.tour === 'object' && selectedBooking.tour && (
-                  <div className="detail-item">
-                    <strong>Tour:</strong> {selectedBooking.tour.heading || 'N/A'}
+                  <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                    {selectedBooking.tour.images?.[0]?.url && (
+                        <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
+                            <Image
+                                src={selectedBooking.tour.images[0].url}
+                                alt={selectedBooking.tour.heading || 'Tour'}
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+                    )}
+                    <div>
+                        <p className="font-bold text-gray-900 dark:text-gray-100">{selectedBooking.tour.heading || 'N/A'}</p>
+                        <p className="text-sm text-[#b79c5c] font-medium flex items-center gap-1.5 mt-1">
+                            <Calendar size={12} /> {formatDate(selectedBooking.date)} at {formatTime(selectedBooking.time)}
+                        </p>
+                    </div>
                   </div>
                 )}
               </div>
 
               <div className="detail-section">
-                <h3>Customer Information</h3>
-                <div className="detail-item">
-                  <strong>Name:</strong> {selectedBooking.name}
-                </div>
-                <div className="detail-item">
-                  <strong>Email:</strong> {selectedBooking.email}
-                </div>
-                {selectedBooking.phone && (
+                <h3><Users size={14} /> Customer Information</h3>
+                <div className="detail-grid">
                   <div className="detail-item">
-                    <strong>Phone:</strong> {selectedBooking.phone}
+                    <label>Full Name</label>
+                    <p>{selectedBooking.name}</p>
                   </div>
-                )}
-                {selectedBooking.nationality && (
                   <div className="detail-item">
-                    <strong>Nationality:</strong> {selectedBooking.nationality}
+                    <label>Nationality</label>
+                    <p>{selectedBooking.nationality || 'Not specified'}</p>
                   </div>
-                )}
+                  <div className="detail-item">
+                    <label>Email Address</label>
+                    <p className="flex items-center gap-1.5"><Mail size={12} className="text-[#b79c5c]" /> {selectedBooking.email}</p>
+                  </div>
+                  <div className="detail-item">
+                    <label>Phone Number</label>
+                    <p className="flex items-center gap-1.5"><Phone size={12} className="text-[#b79c5c]" /> {selectedBooking.phone || 'N/A'}</p>
+                  </div>
+                </div>
               </div>
 
               <div className="detail-section">
-                <h3>Booking Details</h3>
-                <div className="detail-item">
-                  <strong>Date:</strong> {formatDate(selectedBooking.date)}
+                <h3><Users size={14} /> Traveler Counts</h3>
+                <div className="flex flex-wrap gap-4">
+                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 min-w-[80px] text-center">
+                        <span className="block text-xs text-gray-500 uppercase font-bold mb-1">Adults</span>
+                        <span className="text-lg font-bold">{selectedBooking.adults}</span>
+                    </div>
+                    {selectedBooking.children > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 min-w-[80px] text-center">
+                            <span className="block text-xs text-gray-500 uppercase font-bold mb-1">Children</span>
+                            <span className="text-lg font-bold">{selectedBooking.children}</span>
+                        </div>
+                    )}
+                    {selectedBooking.infants > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 min-w-[80px] text-center">
+                            <span className="block text-xs text-gray-500 uppercase font-bold mb-1">Infants</span>
+                            <span className="text-lg font-bold">{selectedBooking.infants}</span>
+                        </div>
+                    )}
                 </div>
-                <div className="detail-item">
-                  <strong>Time:</strong> {formatTime(selectedBooking.time)}
-                </div>
-                <div className="detail-item">
-                  <strong>Travelers:</strong> {selectedBooking.adults} Adults, {selectedBooking.children} Children, {selectedBooking.infants} Infants
-                </div>
-                {selectedBooking.requirements && (
-                  <div className="detail-item">
-                    <strong>Requirements:</strong>
-                    <p>{selectedBooking.requirements}</p>
-                  </div>
-                )}
               </div>
 
-              <div className="detail-section">
-                <h3>Status & Notes</h3>
-                <div className="form-group">
-                  <label>Status</label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+              {selectedBooking.requirements && (
+                <div className="detail-section">
+                    <h3><MessageSquare size={14} /> Special Requirements</h3>
+                    <p className="comments-text text-sm italic">{selectedBooking.requirements}</p>
                 </div>
-                <div className="form-group">
-                  <label>Admin Notes</label>
-                  <textarea
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    rows={4}
-                    placeholder="Add notes about this booking..."
-                  />
+              )}
+
+              <div className="detail-section">
+                <h3><CheckCircle size={14} /> Status & Internal Notes</h3>
+                <div className="space-y-4 pt-2">
+                  <div className="admin-field">
+                    <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Booking Status</label>
+                    <select
+                      value={newStatus}
+                      onChange={(e) => setNewStatus(e.target.value)}
+                      className="status-select w-full"
+                    >
+                      <option value="pending">Pending Confirmation</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <div className="admin-field">
+                    <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Internal Admin Notes</label>
+                    <textarea
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      rows={4}
+                      placeholder="Add internal notes about this booking..."
+                      className="admin-notes-textarea w-full"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
-                Cancel
+                Close
               </button>
               <button
                 className="btn-primary"
@@ -543,7 +616,10 @@ const BookingPage: React.FC = () => {
                     Updating...
                   </>
                 ) : (
-                  'Update Booking'
+                  <>
+                    <CheckCircle size={18} />
+                    Update Booking
+                  </>
                 )}
               </button>
             </div>

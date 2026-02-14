@@ -16,12 +16,15 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
+import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 export default function TourCategoriesPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [categories, setCategories] = useState<ITourCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
@@ -62,6 +65,7 @@ export default function TourCategoriesPage() {
       setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -233,8 +237,12 @@ export default function TourCategoriesPage() {
     },
   ];
 
+  if (initialLoad) {
+    return <AdminPageSkeleton showStats showFilters tableRows={10} />;
+  }
+
   return (
-    <div className="tour-category-admin">
+    <div className="tour-category-admin admin-scope">
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -326,6 +334,17 @@ export default function TourCategoriesPage() {
           }
           tableClassName="categories-table"
         />
+
+        {/* Pagination */}
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={stats.total}
+          itemsPerPage={10}
+          onPageChange={setPage}
+          onItemsPerPageChange={() => {}}
+          disableLimitChange={true}
+        />
       </div>
 
       <ConfirmDeleteModal
@@ -340,28 +359,6 @@ export default function TourCategoriesPage() {
         confirmDisabled={deleteBusy}
       />
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button
-            className="pagination-button"
-            onClick={() => setPage((p: number) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Previous
-          </button>
-          <span className="pagination-info">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="pagination-button"
-            onClick={() => setPage((p: number) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 }

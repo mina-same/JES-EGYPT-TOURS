@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { tourListingOneLeftData } from "@/data/tourListingOneLeftData";
 import Image, { StaticImageData } from "next/image";
-import { Container, Row, Col } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import TourSidebar from "@/components/common/TourSidebar/TourSidebar";

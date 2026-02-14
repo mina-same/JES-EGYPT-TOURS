@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import ContactSubmission from '../models/ContactSubmission';
+import Notification from '../models/Notification';
 import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
 
 export const createContactSubmission = async (
@@ -29,6 +30,14 @@ export const createContactSubmission = async (
       title: `Contact form from ${submission.name}`,
       entityId: submission._id.toString(),
       createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
+    });
+
+    // Save notification to database
+    await Notification.create({
+      type: 'contact',
+      title: `New Contact Form`,
+      message: `Contact form from ${submission.name} (${submission.email})`,
+      entityId: submission._id,
     });
 
     void emitDashboardStatsUpdate();

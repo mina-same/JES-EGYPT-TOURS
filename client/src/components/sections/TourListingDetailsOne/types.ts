@@ -85,6 +85,7 @@ export interface ReviewVideo {
 }
 
 export interface TourDetailsOneData {
+  id: string;
   title: string;
   titleTwo: string;
   overview: string;

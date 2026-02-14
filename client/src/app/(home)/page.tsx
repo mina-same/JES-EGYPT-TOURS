@@ -12,12 +12,16 @@ import InstagramOne from "@/components/sections/InstagramOne/InstagramOne";
 import BlogTwoTwo from "@/components/sections/BlogTwoTwo/BlogTwoTwo";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import MainSliderFour from "@/components/sections/MainSliderFour/MainSliderFour";
-import DestinationsTwo from "@/components/sections/whyChooseUs/whyChoseeUs";
+import WhyChooseUs from "@/components/sections/whyChooseUs/whyChoseeUs";
+import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
+import ReflectiveReviews from "@/components/sections/ReflectiveReviews/ReflectiveReviews";
+import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
+import HomeIntro from "@/components/sections/HomeIntro/HomeIntro";
 
 export const metadata = {
-  title: "Home Three || Gotur || Travel & Tour NextJS Template",
+  title: "Home | JES Egypt Tours",
   description:
-    "Gotur is a modern travel & tour booking NextJS Template. It is perfect for travel agencies, tour operators, trip holiday booking websites, adventure and booking companies looking for a unique and intuitive search function and all other travel & tourism websites and businesses.",
+    "JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences. Explore the land of pharaohs with our expert-led tours.",
   icons: {
     icon: "/favicon-32x32.png",
   },
@@ -31,16 +35,18 @@ export default function HomeThree() {
       <HeaderOneCloned />
       <MainSliderFour />
       <AboutOne />
-      <DestinationsTwo />
+      <WhyChooseUs />
+      <HomeIntro />
       <FeatureTwo extraClass='section-space' id='popular' />
       <OfferTwo />
       <OfferOne />
       <DestinationCarouselTwo />
       <TestimonialsTwo />
+      <ReflectiveReviews />
       <InstagramOne />
-
+      <HomeFAQ />
       <BlogTwoTwo />
-
+      <ClientCarousel />
       <FooterOne />
     </Layout>
   );

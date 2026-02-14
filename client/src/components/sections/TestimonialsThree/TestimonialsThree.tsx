@@ -1,11 +1,8 @@
 'use client'
 import React from 'react';
-import dynamic from "next/dynamic";
 import { testimonialsThreeData } from '@/data/testimonialsThreeData';
 import Image, { StaticImageData } from 'next/image';
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 
 interface Testimonial {

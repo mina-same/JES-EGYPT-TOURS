@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 
 import Image, { StaticImageData } from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
@@ -9,11 +8,7 @@ import { featurePackageData } from "@/data/featureTwoData";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import Link from "next/link";
-
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-  loading: () => <div className="text-center p-4">Loading carousel...</div>
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface FeaturePackageItem {
   id: number | string;
@@ -172,18 +167,25 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                         data-wow-duration='1500ms'
                       >
                         <div className='listing-card-four__image'>
-                          {typeof item.image === 'string' ? (
-                            <Image
-                              src={item.image}
-                              alt={item.title}
-                              width={370}
-                              height={220}
-                              className="img-fluid"
-                              unoptimized
-                            />
-                          ) : (
-                            <Image src={item.image} alt={item.title} />
-                          )}
+                          <div className="relative w-full overflow-hidden rounded-3" style={{ height: '220px' }}>
+                            {typeof item.image === 'string' ? (
+                              <Image
+                                src={item.image}
+                                alt={item.title}
+                                fill
+                                className="object-cover transition-transform duration-500 hover:scale-110"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                              />
+                            ) : (
+                              <Image 
+                                src={item.image} 
+                                alt={item.title}
+                                fill
+                                className="object-cover transition-transform duration-500 hover:scale-110"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                              />
+                            )}
+                          </div>
                           <div className='listing-card-four__btn-group'>
                             {item.discount && (
                               <div className='listing-card-four__discount'>
@@ -222,7 +224,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
 
                               <Link
                                 className='video-popup'
-                                href='https://www.youtube.com/watch?v=0MuL8fd3pb8'
+                                href={`https://www.youtube.com/watch?v=${item.videoId}`}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   setOpen(true);

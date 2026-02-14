@@ -3,11 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { mainSliderOneData } from "@/data/mainSliderOneData";
 import Image, { StaticImageData } from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
-import dynamic from "next/dynamic";
 import BannerForm from "../BannerForm/BannerForm";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 export interface MainSliderOneDataType {
   title: string;
   subtitle: string;

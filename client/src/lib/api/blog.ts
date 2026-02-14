@@ -13,6 +13,7 @@ export interface BlogCategory {
     alt?: string;
   };
   isActive: boolean;
+  subcategoriesCount?: number;
 }
 
 export interface BlogSubCategory {

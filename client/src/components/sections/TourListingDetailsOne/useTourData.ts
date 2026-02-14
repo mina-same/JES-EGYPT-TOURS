@@ -44,18 +44,22 @@ export const useTourData = (id?: string) => {
 
   useEffect(() => {
     const fetchTourAndReviews = async () => {
-      if (!id) return;
+      if (!id) return; // Note: 'id' variable here is actually the slug from params
 
       try {
         setLoading(true);
-        const tourPromise = tourAPI.getById(id);
-        const reviewsPromise = reviewsAPI.getReviewsByTour(id);
-        const relatedToursPromise = tourAPI.getRelated(id, 6); // Get up to 6 related tours
-        
-        const [tourResponse, reviewsResponse, relatedToursResponse] = await Promise.all([tourPromise, reviewsPromise, relatedToursPromise]);
+        // Fetch tour by slug
+        const tourResponse = await tourAPI.getBySlug(id);
         
         if (tourResponse.success && tourResponse.data) {
           const tour = tourResponse.data;
+          const tourId = tour._id; // Real ID for reviews and related tours
+
+          const reviewsPromise = reviewsAPI.getReviewsByTour(tourId);
+          const relatedToursPromise = tourAPI.getRelated(tourId, 6);
+          
+          const [reviewsResponse, relatedToursResponse] = await Promise.all([reviewsPromise, relatedToursPromise]);
+          
           const fetchedReviews = reviewsResponse.success ? safeArray<any>(reviewsResponse.data) : [];
           const fetchedRelatedTours = relatedToursResponse.success ? safeArray<any>(relatedToursResponse.data) : [];
           const sliderImages = safeArray<any>(tour.images)
@@ -82,6 +86,7 @@ export const useTourData = (id?: string) => {
 
           // Map API data to component structure
           const mappedData: TourDetailsOneData = {
+            id: tourId,
             title: safeString(tour.heading) || safeString(tour.name) || "",
             titleTwo: safeString(tour.name) || "",
             overview: safeHtmlString(tour.Description?.text) || safeHtmlString(tour.overview) || "",
@@ -101,7 +106,7 @@ export const useTourData = (id?: string) => {
               id: t._id,
               image: safeString(t?.images?.[0]?.url) || fallbackImage,
               title: safeString(t?.name) || "Related Tour",
-              link: `tours/${t._id}`,
+              link: `/tours/${t.slug}`,
               price: t.priceStartingFrom,
               rating: 5,
               reviews: 0,

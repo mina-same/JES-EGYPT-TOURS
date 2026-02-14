@@ -7,7 +7,7 @@ import destinationImg5 from '@/assets/images/resources/destinations-2-5.jpg';
 
 
 
-const destinationsTwoData = {
+const whyChooseUsData = {
   tagline: 'Popular Destination',
   title: 'Inspiration Next Tour',
 
@@ -45,4 +45,4 @@ const destinationsTwoData = {
   ],
 };
 
-export default destinationsTwoData;
+export default whyChooseUsData;

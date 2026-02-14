@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { AppSidebar } from '@/components/admin/app-sidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { TailorMadeProvider } from '@/contexts/TailorMadeContext';
 import { ContactFormProvider } from '@/contexts/ContactFormContext';
 import { BookingProvider } from '@/contexts/BookingContext';
@@ -29,8 +28,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div suppressHydrationWarning>
-      <AuthProvider>
-        <TailorMadeProvider>
+      <TailorMadeProvider>
           <ContactFormProvider>
             <BookingProvider>
               <ProtectedRoute>
@@ -50,7 +48,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </BookingProvider>
           </ContactFormProvider>
         </TailorMadeProvider>
-      </AuthProvider>
     </div>
   );
 }

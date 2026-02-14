@@ -74,7 +74,7 @@ const BlogSidebar: React.FC = () => {
         date: dateLabel,
         image,
         imageAlt,
-        link: `/blogs/${post._id}`,
+        link: `/blogs/${post.slug}`,
       };
     });
   }, [recentPosts]);

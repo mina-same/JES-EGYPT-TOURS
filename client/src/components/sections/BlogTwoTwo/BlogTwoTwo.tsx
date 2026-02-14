@@ -76,7 +76,7 @@ const BlogTwoTwo = () => {
         month,
         author: authorName,
         category: post.tags && post.tags.length > 0 ? post.tags[0] : "",
-        link: `/blogs/${post._id}`,
+        link: `/blogs/${post.slug}`,
       };
     });
   }, [featuredBlogs]);

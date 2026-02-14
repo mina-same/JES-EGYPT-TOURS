@@ -41,4 +41,10 @@ export const API_ENDPOINTS = {
     ADMIN_TOGGLE_ACTIVE: (id: string) => `${API_URL}/slider-content/admin/slider-content/${id}/toggle-active`,
     PROMO_ADMIN: `${API_URL}/slider-content/admin/promo`,
   },
+
+  NOTIFICATIONS: {
+    BASE: `${API_URL}/notifications`,
+    BY_ID: (id: string) => `${API_URL}/notifications/${id}`,
+    MARK_READ: (id: string) => `${API_URL}/notifications/${id}/read`,
+  },
 };

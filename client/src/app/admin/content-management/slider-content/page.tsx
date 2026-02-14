@@ -410,7 +410,7 @@ export default function SliderContentPage() {
         <StatCard icon={XCircle} value={stats.inactive} label='Inactive' iconVariant='cancelled' />
       </div>
 
-      <div className='rounded-xl border border-gray-200 bg-white p-4'>
+      <div className='rounded-xl border border-gray-200 bg-white p-4 mb-5'>
         <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
           <div>
             <div className='text-sm font-semibold text-gray-900'>Under Slider Promo (Global)</div>

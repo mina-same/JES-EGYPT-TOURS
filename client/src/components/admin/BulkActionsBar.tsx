@@ -21,15 +21,15 @@ export default function BulkActionsBar({
   if (selectedCount <= 0) return null;
 
   return (
-    <div className={"mb-3 flex flex-col gap-2 rounded-lg border bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between " + className}>
-      <div className="text-sm font-medium text-gray-700">
+    <div className={"mb-3 flex flex-col gap-2 rounded-lg border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between " + className}>
+      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
         {selectedCount} selected
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <button
           type="button"
           onClick={onClear}
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+          className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-slate-700"
         >
           <X className="h-4 w-4" />
           Clear

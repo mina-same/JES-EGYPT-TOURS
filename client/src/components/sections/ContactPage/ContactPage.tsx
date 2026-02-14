@@ -15,8 +15,10 @@ const ContactPage: React.FC = () => {
   const formFields = contactFormFields as ContactFormField[];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
   const [submittedOnce, setSubmittedOnce] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -28,10 +30,10 @@ const ContactPage: React.FC = () => {
     if (isSubmitting || submittedOnce) return;
     setIsSubmitting(true);
     setSubmittedOnce(true);
-    setSuccessMessage("");
-    setErrorMessage("");
+    setStatus({ type: null, message: "" });
 
     const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget; // Store reference to form element
     const data: Record<string, string> = {};
 
     formData.forEach((value, key) => {
@@ -40,33 +42,33 @@ const ContactPage: React.FC = () => {
 
     // Basic client-side validation
     if (!data.name?.trim()) {
-      setErrorMessage('Name is required');
+      setStatus({ type: "error", message: "Name is required" });
       toast({
-        title: 'Send failed',
-        description: 'Name is required',
-        variant: 'destructive',
+        title: "Send failed",
+        description: "Name is required",
+        variant: "destructive",
       });
       setIsSubmitting(false);
       setSubmittedOnce(false);
       return;
     }
     if (!data.email?.trim()) {
-      setErrorMessage('Email is required');
+      setStatus({ type: "error", message: "Email is required" });
       toast({
-        title: 'Send failed',
-        description: 'Email is required',
-        variant: 'destructive',
+        title: "Send failed",
+        description: "Email is required",
+        variant: "destructive",
       });
       setIsSubmitting(false);
       setSubmittedOnce(false);
       return;
     }
     if (!data.message?.trim()) {
-      setErrorMessage('Message is required');
+      setStatus({ type: "error", message: "Message is required" });
       toast({
-        title: 'Send failed',
-        description: 'Message is required',
-        variant: 'destructive',
+        title: "Send failed",
+        description: "Message is required",
+        variant: "destructive",
       });
       setIsSubmitting(false);
       setSubmittedOnce(false);
@@ -74,63 +76,75 @@ const ContactPage: React.FC = () => {
     }
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(data.email.trim())) {
-      setErrorMessage('Please provide a valid email');
+      setStatus({ type: "error", message: "Please provide a valid email" });
       toast({
-        title: 'Send failed',
-        description: 'Please provide a valid email',
-        variant: 'destructive',
+        title: "Send failed",
+        description: "Please provide a valid email",
+        variant: "destructive",
       });
       setIsSubmitting(false);
       setSubmittedOnce(false);
       return;
     }
 
+    let successOccurred = false;
     try {
+      console.log('ContactPage: Sending request to:', API_ENDPOINTS.CONTACT.BASE);
       const res = await fetch(API_ENDPOINTS.CONTACT.BASE, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: data.name || '',
-          email: data.email || '',
-          message: data.message || '',
+          name: data.name || "",
+          email: data.email || "",
+          message: data.message || "",
         }),
       });
 
+      console.log('ContactPage: Response status:', res.status, res.ok);
       const json = await res.json().catch(() => null);
+      console.log('ContactPage: Response JSON:', json);
 
       if (!res.ok) {
-        const errMsg = json?.error || 'Failed to send message';
-        setErrorMessage(errMsg);
+        const errMsg = json?.error || "Failed to send message";
+        console.log('ContactPage: Setting error message:', errMsg);
+        setStatus({ type: "error", message: errMsg });
         toast({
-          title: 'Send failed',
+          title: "Send failed",
           description: errMsg,
-          variant: 'destructive',
+          variant: "destructive",
         });
         setIsSubmitting(false);
         setSubmittedOnce(false);
         return;
       }
 
-      const okMsg = json?.message || 'Message sent successfully';
-      setSuccessMessage(okMsg);
+      successOccurred = true;
+      const okMsg = json?.message || "Your message has been sent successfully.";
+      console.log('ContactPage: Setting success message:', okMsg);
+      setStatus({ type: "success", message: okMsg });
       toast({
-        title: 'Message sent',
+        title: "Message sent",
         description: okMsg,
       });
-      e.currentTarget.reset();
-    } catch (_err) {
-      setErrorMessage('Failed to send message');
-      toast({
-        title: 'Send failed',
-        description: 'Failed to send message',
-        variant: 'destructive',
-      });
+      // Use the stored form reference to reset
+      form.reset();
+    } catch (_err: any) {
+      console.error('ContactPage: Catch block error:', _err);
+      if (!successOccurred) {
+        const errMsg = _err.message || "Failed to send message";
+        setStatus({ type: "error", message: errMsg });
+        toast({
+          title: "Send failed",
+          description: errMsg,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
       // Reset submittedOnce after a short delay to allow re-submit if needed
-      setTimeout(() => setSubmittedOnce(false), 1000);
+      setTimeout(() => setSubmittedOnce(false), 2000);
     }
   };
   return (
@@ -172,16 +186,20 @@ const ContactPage: React.FC = () => {
                 onSubmit={handleSubmit}
               >
                 <div className='form-one__group'>
-                  {successMessage ? (
+                  {status.type === "success" && (
                     <div className='form-one__control form-one__control--full'>
-                      <div className='alert alert-success'>{successMessage}</div>
+                      <div className='alert alert-success'>
+                        {status.message}
+                      </div>
                     </div>
-                  ) : null}
-                  {errorMessage ? (
+                  )}
+                  {status.type === "error" && (
                     <div className='form-one__control form-one__control--full'>
-                      <div className='alert alert-danger'>{errorMessage}</div>
+                      <div className='alert alert-danger'>
+                        {status.message}
+                      </div>
                     </div>
-                  ) : null}
+                  )}
                   {formFields.map((field, index) => (
                     <div
                       key={index}

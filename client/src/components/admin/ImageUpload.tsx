@@ -123,26 +123,26 @@ export default function ImageUpload({
   return (
     <div className="space-y-4">
       <div>
-        <Label className="text-base font-semibold">{title} {required && '*'}</Label>
+        <Label className="text-base font-semibold text-gray-900 dark:text-gray-100">{title} {required && '*'}</Label>
         {description && (
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
         )}
       </div>
       {uploadError && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <div className="text-sm text-red-600 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-md px-3 py-2">
           {uploadError}
         </div>
       )}
       
       <div className={getGridClasses()}>
         {images.map((image, index) => (
-          <div key={index} className="group relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-colors">
+          <div key={index} className="group relative border border-dashed border-gray-300 dark:border-slate-700 rounded-xl p-4 hover:border-[#b79c5c] dark:hover:border-[#b79c5c] bg-gray-50/50 dark:bg-slate-900/50 transition-all">
             {/* Remove Button */}
             <Button
               type="button"
               variant="destructive"
               size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg z-10"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={() => {
                 setSelectedFileInfo(prev => {
                   const next = { ...prev };
@@ -157,17 +157,17 @@ export default function ImageUpload({
 
             {/* Image Preview */}
             {image.url ? (
-              <div className="relative aspect-video mb-3 rounded-md overflow-hidden bg-gray-100">
+              <div className="relative aspect-video max-h-[160px] mx-auto mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
                 <img
                   src={image.url}
                   alt={image.alt || 'Preview'}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"%3E%3Crect width="600" height="400" fill="%23F3F4F6"/%3E%3Cpath d="M300 180V220M280 200H320" stroke="%239CA3AF" stroke-width="4" stroke-linecap="round"/%3E%3Ctext x="300" y="260" font-family="sans-serif" font-size="20" fill="%236B7280" text-anchor="middle"%3EImage Failed to Load%3C/text%3E%3Ctext x="300" y="290" font-family="sans-serif" font-size="14" fill="%239CA3AF" text-anchor="middle"%3EClick to upload new image%3C/text%3E%3C/svg%3E';
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"%3E%3Crect width="600" height="400" fill="%231F2937"/%3E%3Cpath d="M300 180V220M280 200H320" stroke="%234B5563" stroke-width="4" stroke-linecap="round"/%3E%3Ctext x="300" y="260" font-family="sans-serif" font-size="20" fill="%239CA3AF" text-anchor="middle"%3EImage Failed to Load%3C/text%3E%3C/svg%3E';
                   }}
                 />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <label className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                  <label className="cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
@@ -178,70 +178,59 @@ export default function ImageUpload({
                         if (file) await handleFileUpload(file, index);
                       }}
                     />
-                    <div className="bg-white rounded-full p-2 shadow-lg">
+                    <div className="bg-white dark:bg-slate-900 rounded-full p-2.5 shadow-xl transform scale-90 group-hover:scale-100 transition-transform">
                       {uploadingIndex === index ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <Loader2 className="h-5 w-5 animate-spin text-[#b79c5c]" />
                       ) : (
-                        <Upload className="h-5 w-5 text-primary" />
+                        <Upload className="h-5 w-5 text-[#b79c5c]" />
                       )}
                     </div>
                   </label>
                 </div>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center aspect-video mb-3 rounded-md border-2 border-dashed border-gray-300 cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploadingIndex === index}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) await handleFileUpload(file, index);
-                  }}
-                />
+              <label className="flex flex-col items-center justify-center aspect-video max-h-[160px] mb-4 rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 cursor-pointer hover:border-[#b79c5c] dark:hover:border-[#b79c5c] hover:bg-white dark:hover:bg-slate-800 transition-all">
                 {uploadingIndex === index ? (
-                  <Loader2 className="h-10 w-10 text-primary animate-spin mb-2" />
+                  <Loader2 className="h-10 w-10 text-[#b79c5c] animate-spin mb-2" />
                 ) : (
-                  <ImageIcon className="h-10 w-10 text-gray-400 mb-2" />
+                  <ImageIcon className="h-10 w-10 text-gray-300 dark:text-slate-600 mb-2" />
                 )}
-                <span className="text-sm text-gray-500">Click to upload</span>
-                <span className="text-xs text-gray-400 mt-1">or drag and drop</span>
-                <span className="text-[11px] text-gray-400 mt-1">
+                <span className="text-sm text-gray-900 dark:text-white font-bold">Click to upload</span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider font-bold">
                   Max 2MB
-                  {selectedFileInfo[index] ? ` • Selected: ${selectedFileInfo[index]}` : ''}
+                  {selectedFileInfo[index] ? ` • ${selectedFileInfo[index]}` : ''}
                 </span>
               </label>
             )}
 
             {/* Image Details */}
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs">Image URL *</Label>
+                <Label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">Image URL *</Label>
                 <Input
                   value={image.url || ''}
                   onChange={(e) => onUpdate(index, 'url', e.target.value)}
                   placeholder="https://..."
-                  className="h-8 text-xs"
+                  className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
                   required={required && index === 0}
                 />
               </div>
               <div>
-                <Label className="text-xs">Title</Label>
+                <Label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">Title</Label>
                 <Input
                   value={image.title || ''}
                   onChange={(e) => onUpdate(index, 'title', e.target.value)}
                   placeholder="Image title"
-                  className="h-8 text-xs"
+                  className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
                 />
               </div>
               <div>
-                <Label className="text-xs">Alt Text</Label>
+                <Label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">Alt Text</Label>
                 <Input
                   value={image.alt || ''}
                   onChange={(e) => onUpdate(index, 'alt', e.target.value)}
-                  placeholder="Image description for accessibility"
-                  className="h-8 text-xs"
+                  placeholder="Accessibility description"
+                  className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
                 />
               </div>
             </div>
@@ -250,9 +239,14 @@ export default function ImageUpload({
       </div>
       
       {canAddMore && (
-        <Button type="button" onClick={onAdd} variant="outline" className="w-full">
+        <Button 
+          type="button" 
+          onClick={onAdd} 
+          variant="outline" 
+          className="w-full border-dashed border-2 hover:border-[#b79c5c] hover:text-[#b79c5c] hover:bg-[#b79c5c]/5"
+        >
           <Plus className="h-4 w-4 mr-2" />
-          Add Image
+          Add Another Image
         </Button>
       )}
     </div>

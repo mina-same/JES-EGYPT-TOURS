@@ -13,10 +13,18 @@
   margin: 0 0 8px 0;
 }
 
+.dark .admin-scope .admin-page-title {
+  color: #f9fafb;
+}
+
 .admin-scope .admin-page-subtitle {
   font-size: 14px;
   color: #6b7280;
   margin: 0;
+}
+
+.dark .admin-scope .admin-page-subtitle {
+  color: #9ca3af;
 }
 
 .admin-scope .header-actions {
@@ -47,9 +55,20 @@
   color: #374151;
 }
 
+.dark .admin-scope .btn-refresh {
+  background: #1f2937;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
 .admin-scope .btn-refresh:hover:not(:disabled) {
   background: #f9fafb;
   border-color: #d1d5db;
+}
+
+.dark .admin-scope .btn-refresh:hover:not(:disabled) {
+  background: #374151;
+  border-color: #4b5563;
 }
 
 .admin-scope .btn-refresh:disabled {
@@ -88,6 +107,8 @@
 .admin-scope .tour-admin,
 .admin-scope .tour-category-admin,
 .admin-scope .tour-subcategory-admin,
+.admin-scope .blog-category-admin,
+.admin-scope .blog-subcategory-admin,
 .admin-scope .tailor-made-admin,
 .admin-scope .users-admin,
 .admin-scope .slider-admin {
@@ -116,9 +137,18 @@
   transition: all 0.2s ease;
 }
 
+.dark .admin-scope .stat-card {
+  background: #111827;
+  border-color: #1f2937;
+}
+
 .admin-scope .stat-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
+}
+
+.dark .admin-scope .stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .admin-scope .stat-icon {
@@ -183,17 +213,25 @@
 }
 
 .admin-scope .stat-value {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 800;
   color: #1a1a1a;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.dark .admin-scope .stat-value {
+  color: #f9fafb;
 }
 
 .admin-scope .stat-label {
   font-size: 14px;
   color: #6b7280;
   font-weight: 500;
+}
+
+.dark .admin-scope .stat-label {
+  color: #9ca3af;
 }
 
 .admin-scope .filters-bar,
@@ -217,6 +255,11 @@
   border-radius: 8px;
 }
 
+.dark .admin-scope .search-box {
+  background: #1f2937;
+  border-color: #374151;
+}
+
 .admin-scope .search-box svg {
   color: #9ca3af;
   flex-shrink: 0;
@@ -231,8 +274,17 @@
   background: #fff;
 }
 
+.dark .admin-scope .search-box input {
+  color: #f9fafb;
+  background: #1f2937;
+}
+
 .admin-scope .search-box input::placeholder {
   color: #9ca3af;
+}
+
+.dark .admin-scope .search-box input::placeholder {
+  color: #6b7280;
 }
 
 .admin-scope .filter-group {
@@ -243,6 +295,11 @@
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
+}
+
+.dark .admin-scope .filter-group {
+  background: #1f2937;
+  border-color: #374151;
 }
 
 .admin-scope .filter-group svg {
@@ -260,6 +317,11 @@
   min-width: 150px;
 }
 
+.dark .admin-scope .filter-group select {
+  color: #f9fafb;
+  background: #1f2937;
+}
+
 .admin-scope .requests-table-container,
 .admin-scope .table-container,
 .admin-scope .tours-table-container,
@@ -270,6 +332,16 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
+}
+
+.dark .admin-scope .requests-table-container,
+.dark .admin-scope .table-container,
+.dark .admin-scope .tours-table-container,
+.dark .admin-scope .categories-table-container,
+.dark .admin-scope .subcategories-table-container,
+.dark .admin-scope .slider-table-container {
+  background: #1f2937;
+  border-color: #374151;
 }
 
 .admin-scope .requests-table,
@@ -291,6 +363,15 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.dark .admin-scope .requests-table thead,
+.dark .admin-scope .bookings-table thead,
+.dark .admin-scope .tours-table thead,
+.dark .admin-scope .categories-table thead,
+.dark .admin-scope .subcategories-table thead {
+  background: #111827;
+  border-bottom-color: #374151;
+}
+
 .admin-scope .requests-table th,
 .admin-scope .bookings-table th,
 .admin-scope .tours-table th,
@@ -306,6 +387,15 @@
   letter-spacing: 0.5px;
 }
 
+.dark .admin-scope .requests-table th,
+.dark .admin-scope .bookings-table th,
+.dark .admin-scope .tours-table th,
+.dark .admin-scope .categories-table th,
+.dark .admin-scope .subcategories-table th,
+.dark .admin-scope .slider-table th {
+  color: #9ca3af;
+}
+
 .admin-scope .requests-table tbody tr,
 .admin-scope .bookings-table tbody tr,
 .admin-scope .tours-table tbody tr,
@@ -316,6 +406,15 @@
   transition: background 0.2s ease;
 }
 
+.dark .admin-scope .requests-table tbody tr,
+.dark .admin-scope .bookings-table tbody tr,
+.dark .admin-scope .tours-table tbody tr,
+.dark .admin-scope .categories-table tbody tr,
+.dark .admin-scope .subcategories-table tbody tr,
+.dark .admin-scope .slider-table tbody tr {
+  border-bottom-color: #374151;
+}
+
 .admin-scope .requests-table tbody tr:hover,
 .admin-scope .bookings-table tbody tr:hover,
 .admin-scope .tours-table tbody tr:hover,
@@ -323,6 +422,15 @@
 .admin-scope .subcategories-table tbody tr:hover,
 .admin-scope .slider-table tbody tr:hover {
   background: #f9fafb;
+}
+
+.dark .admin-scope .requests-table tbody tr:hover,
+.dark .admin-scope .bookings-table tbody tr:hover,
+.dark .admin-scope .tours-table tbody tr:hover,
+.dark .admin-scope .categories-table tbody tr:hover,
+.dark .admin-scope .subcategories-table tbody tr:hover,
+.dark .admin-scope .slider-table tbody tr:hover {
+  background: #111827;
 }
 
 .admin-scope .requests-table td,
@@ -335,6 +443,15 @@
   font-size: 14px;
   color: #374151;
   vertical-align: middle;
+}
+
+.dark .admin-scope .requests-table td,
+.dark .admin-scope .bookings-table td,
+.dark .admin-scope .tours-table td,
+.dark .admin-scope .categories-table td,
+.dark .admin-scope .subcategories-table td,
+.dark .admin-scope .slider-table td {
+  color: #d1d5db;
 }
 
 /* Common thumbnails (reduce size + align) */
@@ -407,6 +524,10 @@
   white-space: nowrap;
 }
 
+.dark .admin-scope .tour-name {
+  color: #f9fafb;
+}
+
 .admin-scope .tour-meta {
   display: flex;
   flex-wrap: wrap;
@@ -427,6 +548,12 @@
   background: #ffffff;
 }
 
+.dark .admin-scope .tour-meta-item {
+  background: #111827;
+  border-color: #374151;
+  color: #9ca3af;
+}
+
 .admin-scope .subcategory-badge {
   display: inline-flex;
   align-items: center;
@@ -441,9 +568,175 @@
   max-width: 280px;
 }
 
+.dark .admin-scope .subcategory-badge {
+  background: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
 .admin-scope .subcategory-badge svg {
   width: 14px;
   height: 14px;
+}
+
+.admin-scope .category-info,
+.admin-scope .subcategory-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.admin-scope .category-details,
+.admin-scope .subcategory-details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-scope .category-name,
+.admin-scope .subcategory-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .admin-scope .category-name,
+.dark .admin-scope .subcategory-name {
+  color: #f9fafb;
+}
+
+.admin-scope .category-slug,
+.admin-scope .subcategory-slug {
+  font-size: 12px;
+  color: #6b7280;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.dark .admin-scope .category-slug,
+.dark .admin-scope .subcategory-slug {
+  color: #9ca3af;
+}
+
+.admin-scope .category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  max-width: 280px;
+}
+
+.dark .admin-scope .category-badge {
+  background: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.admin-scope .category-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.admin-scope .subcategories-count,
+.admin-scope .tours-count,
+.admin-scope .travelers-count,
+.admin-scope .date-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.dark .admin-scope .subcategories-count,
+.dark .admin-scope .tours-count,
+.dark .admin-scope .travelers-count,
+.dark .admin-scope .date-info {
+  background: #111827;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+.admin-scope .customer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-scope .customer-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.dark .admin-scope .customer-name {
+  color: #f9fafb;
+}
+
+.admin-scope .customer-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .admin-scope .customer-details {
+  color: #9ca3af;
+}
+
+.admin-scope .customer-details svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.admin-scope .travel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-scope .travel-dates,
+.admin-scope .travel-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.admin-scope .travel-dates {
+  color: #111827;
+}
+
+.admin-scope .travel-info svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #6b7280;
 }
 
 .admin-scope .action-buttons {
@@ -466,6 +759,12 @@
   transition: all 0.2s ease;
 }
 
+.dark .admin-scope .btn-icon,
+.dark .admin-scope .btn-action {
+  background: #1f2937;
+  border-color: #374151;
+}
+
 .admin-scope .btn-icon svg,
 .admin-scope .btn-action svg {
   width: 16px;
@@ -479,6 +778,12 @@
   border-color: #d1d5db;
 }
 
+.dark .admin-scope .btn-icon:hover,
+.dark .admin-scope .btn-action:hover {
+  background: #374151;
+  border-color: #4b5563;
+}
+
 .admin-scope .btn-edit {
   color: #2563eb;
 }
@@ -486,6 +791,10 @@
 .admin-scope .btn-edit:hover {
   border-color: rgba(37, 99, 235, 0.35);
   background: rgba(37, 99, 235, 0.06);
+}
+
+.dark .admin-scope .btn-edit:hover {
+  background: rgba(37, 99, 235, 0.15);
 }
 
 .admin-scope .btn-view {
@@ -497,6 +806,10 @@
   background: rgba(37, 99, 235, 0.06);
 }
 
+.dark .admin-scope .btn-view:hover {
+  background: rgba(37, 99, 235, 0.15);
+}
+
 .admin-scope .btn-toggle {
   color: #92400e;
 }
@@ -506,6 +819,10 @@
   background: rgba(146, 64, 14, 0.06);
 }
 
+.dark .admin-scope .btn-toggle:hover {
+  background: rgba(146, 64, 14, 0.15);
+}
+
 .admin-scope .btn-featured {
   color: #92400e;
 }
@@ -513,6 +830,10 @@
 .admin-scope .btn-featured:hover {
   border-color: rgba(146, 64, 14, 0.35);
   background: rgba(146, 64, 14, 0.06);
+}
+
+.dark .admin-scope .btn-featured:hover {
+  background: rgba(146, 64, 14, 0.15);
 }
 
 .admin-scope .btn-featured.is-featured {
@@ -528,6 +849,10 @@
 .admin-scope .btn-delete:hover {
   border-color: rgba(220, 38, 38, 0.35);
   background: rgba(220, 38, 38, 0.06);
+}
+
+.dark .admin-scope .btn-delete:hover {
+  background: rgba(220, 38, 38, 0.15);
 }
 
 .admin-scope .btn-icon:disabled,
@@ -593,6 +918,11 @@
   color: #374151;
 }
 
+.dark .admin-scope .status-archived {
+  background: #374151;
+  color: #d1d5db;
+}
+
 .admin-scope .status-active {
   background: #d1fae5;
   color: #065f46;
@@ -630,6 +960,10 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.dark .admin-scope .pagination {
+  border-top-color: #374151;
+}
+
 .admin-scope .pagination button,
 .admin-scope .pagination-button {
   padding: 8px 16px;
@@ -643,10 +977,23 @@
   transition: all 0.2s ease;
 }
 
+.dark .admin-scope .pagination button,
+.dark .admin-scope .pagination-button {
+  background: #1f2937;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
 .admin-scope .pagination button:hover:not(:disabled),
 .admin-scope .pagination-button:hover:not(:disabled) {
   background: #f9fafb;
   border-color: #d1d5db;
+}
+
+.dark .admin-scope .pagination button:hover:not(:disabled),
+.dark .admin-scope .pagination-button:hover:not(:disabled) {
+  background: #374151;
+  border-color: #4b5563;
 }
 
 .admin-scope .pagination button:disabled,
@@ -660,6 +1007,11 @@
   font-size: 14px;
   color: #6b7280;
   font-weight: 500;
+}
+
+.dark .admin-scope .pagination span,
+.dark .admin-scope .pagination-info {
+  color: #9ca3af;
 }
 
 .admin-scope .loading-state,
@@ -691,39 +1043,69 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .admin-scope .modal-content {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 20px;
   max-width: 800px;
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e5e7eb;
+  animation: slideUp 0.3s ease;
+}
+
+.dark .admin-scope .modal-content {
+  background: #111827;
+  border-color: #374151;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .admin-scope .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  border-bottom: 2px solid #f3f4f6;
+  background: #fff;
+}
+
+.dark .admin-scope .modal-header {
+  background: #111827;
+  border-bottom-color: #1f2937;
 }
 
 .admin-scope .modal-header h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #111111;
   margin: 0;
+}
+
+.dark .admin-scope .modal-header h2 {
+  color: #f9fafb;
 }
 
 .admin-scope .modal-close {
@@ -743,8 +1125,13 @@
 }
 
 .admin-scope .modal-close:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.dark .admin-scope .modal-close:hover {
+  background: #450a0a;
+  color: #f87171;
 }
 
 .admin-scope .modal-body {
@@ -757,41 +1144,60 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid #e5e7eb;
+  padding: 18px 24px;
+  border-top: 2px solid #f3f4f6;
+  background: #f9fafb;
+}
+
+.dark .admin-scope .modal-footer {
+  background: #111827;
+  border-top-color: #1f2937;
 }
 
 .admin-scope .btn-secondary,
 .admin-scope .btn-primary {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
 }
 
 .admin-scope .btn-secondary {
   background: #f3f4f6;
-  color: #374151;
+  color: #4b5563;
+}
+
+.dark .admin-scope .btn-secondary {
+  background: #1f2937;
+  color: #9ca3af;
 }
 
 .admin-scope .btn-secondary:hover {
   background: #e5e7eb;
+  color: #111827;
+}
+
+.dark .admin-scope .btn-secondary:hover {
+  background: #374151;
+  color: #f9fafb;
 }
 
 .admin-scope .btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #b79c5c 0%, #8a7545 100%);
   color: #fff;
+  box-shadow: 0 4px 12px rgba(183, 156, 92, 0.3);
 }
 
 .admin-scope .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(183, 156, 92, 0.4);
+  transform: translateY(-2px);
 }
 
 .admin-scope .btn-primary:disabled {
@@ -810,37 +1216,66 @@
 }
 
 .admin-scope .detail-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 12px;
+  font-weight: 800;
+  color: #b79c5c;
   margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-scope .detail-section h3::after {
+  content: "";
+  height: 1px;
+  background: #e5e7eb;
+  flex: 1;
+}
+
+.dark .admin-scope .detail-section h3::after {
+  background: #374151;
 }
 
 .admin-scope .detail-item label {
   display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
 }
 
 .admin-scope .detail-item p {
-  font-size: 14px;
-  color: #1f2937;
+  font-size: 15px;
+  color: #111827;
+  font-weight: 600;
   margin: 0;
+  line-height: 1.5;
+}
+
+.dark .admin-scope .detail-item p {
+  color: #e5e7eb;
 }
 
 .admin-scope .comments-text {
   font-size: 14px;
-  color: #374151;
-  line-height: 1.6;
+  color: #4b5563;
+  line-height: 1.8;
   margin: 0;
-  padding: 16px;
+  padding: 20px;
   background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  border: 1px solid #f3f4f6;
+  font-style: italic;
+}
+
+.dark .admin-scope .comments-text {
+  background: #1f2937;
+  border-color: #111827;
+  color: #9ca3af;
 }
 
 .admin-scope .slider-edit-grid {
@@ -862,11 +1297,20 @@
   padding: 16px;
 }
 
+.dark .admin-scope .slider-edit-card {
+  background: #111827;
+  border-color: #374151;
+}
+
 .admin-scope .slider-edit-card-title {
   font-size: 14px;
   font-weight: 700;
   color: #111827;
   margin-bottom: 12px;
+}
+
+.dark .admin-scope .slider-edit-card-title {
+  color: #f9fafb;
 }
 
 .admin-scope .slider-edit-label {
@@ -878,6 +1322,10 @@
   margin-bottom: 12px;
 }
 
+.dark .admin-scope .slider-edit-label {
+  color: #9ca3af;
+}
+
 .admin-scope .slider-edit-input {
   width: 100%;
   border: 1px solid #e5e7eb;
@@ -886,6 +1334,12 @@
   font-size: 14px;
   outline: none;
   background: #fff;
+}
+
+.dark .admin-scope .slider-edit-input {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
 }
 
 .admin-scope .slider-edit-input:focus {
@@ -920,16 +1374,32 @@
   font-weight: 600;
 }
 
+.dark .admin-scope .slider-edit-toggle {
+  background: #1f2937;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
 .admin-scope .slider-edit-toggle.is-on {
   border-color: rgba(99, 171, 69, 0.5);
   background: rgba(99, 171, 69, 0.08);
   color: #166534;
 }
 
+.dark .admin-scope .slider-edit-toggle.is-on {
+  background: rgba(99, 171, 69, 0.15);
+  color: #4ade80;
+}
+
 .admin-scope .slider-edit-toggle.is-off {
   border-color: rgba(220, 38, 38, 0.3);
   background: rgba(220, 38, 38, 0.06);
   color: #991b1b;
+}
+
+.dark .admin-scope .slider-edit-toggle.is-off {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
 }
 
 .admin-scope .slider-edit-preview {
@@ -968,8 +1438,16 @@
   text-decoration: none;
 }
 
+.dark .admin-scope .slider-edit-back {
+  color: #9ca3af;
+}
+
 .admin-scope .slider-edit-back:hover {
   color: #111827;
+}
+
+.dark .admin-scope .slider-edit-back:hover {
+  color: #f9fafb;
 }
 
 @media (max-width: 1024px) {
@@ -1031,4 +1509,93 @@
   .admin-scope .requests-table {
     min-width: 800px;
   }
+}
+
+/* Premium Status Badges */
+.admin-scope .status-badge-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.admin-scope .status-badge-premium.pending {
+  background: #fefce8;
+  color: #a16207;
+  border-color: #fef08a;
+}
+
+.dark .admin-scope .status-badge-premium.pending {
+  background: rgba(254, 252, 232, 0.1);
+  color: #fde047;
+  border-color: rgba(254, 240, 138, 0.2);
+}
+
+.admin-scope .status-badge-premium.confirmed {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.dark .admin-scope .status-badge-premium.confirmed {
+  background: rgba(240, 253, 244, 0.1);
+  color: #4ade80;
+  border-color: rgba(187, 247, 208, 0.2);
+}
+
+.admin-scope .status-badge-premium.completed {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.dark .admin-scope .status-badge-premium.completed {
+  background: rgba(239, 246, 255, 0.1);
+  color: #60a5fa;
+  border-color: rgba(191, 219, 254, 0.2);
+}
+
+.admin-scope .status-badge-premium.cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.dark .admin-scope .status-badge-premium.cancelled {
+  background: rgba(254, 242, 242, 0.1);
+  color: #f87171;
+  border-color: rgba(254, 202, 202, 0.2);
+}
+
+.admin-scope .status-badge-premium svg {
+  stroke-width: 2.5px;
+}
+
+.admin-scope .status-badge-premium:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-scope .bookings-table tr:hover td {
+  background-color: #fcfcfc;
+}
+
+.dark .admin-scope .bookings-table tr:hover td {
+  background-color: #1a2233;
+}
+
+.admin-scope .bookings-table .tour-thumbnail {
+  transition: transform 0.3s ease;
+}
+
+.admin-scope .bookings-table tr:hover .tour-thumbnail {
+  transform: scale(1.1);
 }

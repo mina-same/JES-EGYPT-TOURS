@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Search, Filter, RefreshCw, CheckCircle, XCircle, Edit2, Trash2 } from 'lucide-react';
+import { Users, Search, Filter, RefreshCw, CheckCircle, XCircle, Edit2, Trash2, Plus } from 'lucide-react';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -8,12 +8,15 @@ import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { userAPI, User } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 const UsersPage: React.FC = () => {
   const router = useRouter();
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [error, setError] = useState<string>('');
@@ -22,12 +25,12 @@ const UsersPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
-  // Fetch users
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      setError('');
       const response = await userAPI.getAllUsers();
       if (response.success && response.data) {
         setUsers(response.data.users);
@@ -36,6 +39,7 @@ const UsersPage: React.FC = () => {
       setError(err.response?.data?.error || 'Failed to fetch users');
     } finally {
       setIsLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -60,6 +64,12 @@ const UsersPage: React.FC = () => {
       return matchesSearch && matchesStatus;
     });
   }, [users, searchTerm, statusFilter]);
+
+  const detailedUsers = useMemo(() => {
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    return filteredUsers.slice(start, end);
+  }, [filteredUsers, page, limit]);
 
   // Handle delete user
   const handleDelete = async (userId: string) => {
@@ -141,12 +151,12 @@ const UsersPage: React.FC = () => {
       cellClassName: 'px-6 py-4',
       render: (user) => (
         <div className="flex items-center">
-          <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            <Users size={20} className="text-gray-500" />
+          <div className="flex-shrink-0 w-10 h-10 bg-gray-200 dark:bg-slate-800 rounded-full flex items-center justify-center">
+            <Users size={20} className="text-gray-500 dark:text-slate-400" />
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+            <div className="text-sm text-gray-500 dark:text-slate-400">{user.email}</div>
           </div>
         </div>
       ),
@@ -158,8 +168,8 @@ const UsersPage: React.FC = () => {
       render: (user) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
           (user as any).role === 'superadmin' 
-            ? 'bg-purple-100 text-purple-800' 
-            : 'bg-blue-100 text-blue-800'
+            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' 
+            : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
         }`}>
           {(user as any).role || 'admin'}
         </span>
@@ -172,8 +182,8 @@ const UsersPage: React.FC = () => {
       render: (user) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
           user.isActive 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
         }`}>
           {user.isActive ? (
             <>
@@ -196,7 +206,7 @@ const UsersPage: React.FC = () => {
       render: (user) => (
         <div className="flex items-center gap-2">
           <button
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+            className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
             onClick={() => handleEdit(user)}
             title="Edit"
           >
@@ -205,8 +215,8 @@ const UsersPage: React.FC = () => {
           <button
             className={`p-2 text-gray-400 rounded-md transition-colors disabled:opacity-50 ${
               user.isActive
-                ? 'hover:text-yellow-600 hover:bg-yellow-50'
-                : 'hover:text-green-600 hover:bg-green-50'
+                ? 'hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                : 'hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
             }`}
             onClick={() => handleToggleStatus(user.id, !user.isActive)}
             title={user.isActive ? 'Deactivate' : 'Activate'}
@@ -218,7 +228,7 @@ const UsersPage: React.FC = () => {
             )}
           </button>
           <button
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
             onClick={() => handleDelete(user.id)}
             title="Delete"
           >
@@ -229,8 +239,12 @@ const UsersPage: React.FC = () => {
     },
   ];
 
+  if (initialLoad) {
+    return <AdminPageSkeleton showStats showFilters tableRows={8} />;
+  }
+
   return (
-    <div className="users-admin">
+    <div className="users-admin admin-scope">
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -303,9 +317,9 @@ const UsersPage: React.FC = () => {
       />
 
       {/* Administrators Table */}
-      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border dark:border-slate-800 shadow-sm overflow-hidden">
         <AdminTable<User>
-          data={filteredUsers}
+          data={detailedUsers}
           columns={columns}
           getRowKey={(row) => row.id}
           enableSelection
@@ -314,31 +328,42 @@ const UsersPage: React.FC = () => {
           loading={isLoading}
           loadingNode={
             <div className="flex items-center justify-center py-12">
-              <RefreshCw size={48} className="animate-spin text-gray-400" />
-              <span className="ml-3 text-gray-500">Loading administrators...</span>
+              <RefreshCw size={48} className="animate-spin text-gray-400 dark:text-slate-600" />
+              <span className="ml-3 text-gray-500 dark:text-slate-400">Loading administrators...</span>
             </div>
           }
           emptyNode={
             <div className="text-center py-12">
-              <Users size={64} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No administrators found</h3>
-              <p className="text-gray-500 mb-6">There are no administrators matching your criteria.</p>
+              <Users size={64} className="mx-auto text-gray-400 dark:text-slate-600 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No administrators found</h3>
+              <p className="text-gray-500 dark:text-slate-400 mb-6">There are no administrators matching your criteria.</p>
               <button
                 onClick={handleCreateNew}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '18px', height: '18px' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+                <Plus size={18} />
                 Add First Administrator
               </button>
             </div>
           }
           wrapperClassName="overflow-x-auto"
           tableClassName="w-full"
-          theadClassName="bg-gray-50 border-b"
-          tbodyClassName="bg-white divide-y divide-gray-200"
-          rowClassName="hover:bg-gray-50"
+          theadClassName="bg-gray-50 dark:bg-slate-800 border-b dark:border-slate-700"
+          tbodyClassName="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-800"
+          rowClassName="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+        />
+
+        {/* Pagination */}
+        <PaginationControls
+          currentPage={page}
+          totalPages={Math.ceil(stats.filtered / limit)}
+          totalItems={stats.filtered}
+          itemsPerPage={limit}
+          onPageChange={setPage}
+          onItemsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
         />
       </div>
 

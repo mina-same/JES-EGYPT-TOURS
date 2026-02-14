@@ -14,11 +14,16 @@ import userRoutes from './routes/userRoutes';
 import tailorMadeRoutes from './routes/tailorMadeRoutes';
 import contactRoutes from './routes/contactRoutes';
 import blogRoutes from './routes/blogRoutes';
+import blogCategoryRoutes from './routes/blogCategoryRoutes';
+import blogSubCategoryRoutes from './routes/blogSubCategoryRoutes';
 import tourRoutes from './routes/tourRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import reviewRoutes from './routes/reviewRoutes';
 import sliderContentRoutes from './routes/sliderContentRoutes';
+import generalContentRoutes from './routes/generalContentRoutes';
+import videoReviewRoutes from './routes/videoReviewRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app: Application = express();
@@ -99,11 +104,16 @@ app.use('/api/users', userRoutes);
 app.use('/api/tailor-made', tailorMadeRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/blog/categories', blogCategoryRoutes);
+app.use('/api/blog/subcategories', blogSubCategoryRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/slider-content', sliderContentRoutes);
+app.use('/api/general-content', generalContentRoutes);
+app.use('/api/video-reviews', videoReviewRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

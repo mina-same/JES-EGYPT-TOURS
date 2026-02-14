@@ -3,10 +3,7 @@
 
 import Image from 'next/image';
 import destinationCarouselTwoData from '@/data/destinationCarouselTwoData';
-import dynamic from "next/dynamic";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 interface DestinationItem {
   id: number;
   image: any;

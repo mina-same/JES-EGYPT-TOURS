@@ -2,12 +2,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import Image, { StaticImageData } from "next/image";
-import dynamic from "next/dynamic";
 import { sliderTowData } from "@/data/mainSliderTwoData";
 import BannerForm from "../BannerForm/BannerForm";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface SliderItem {
   id: number;

@@ -16,6 +16,7 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 export default function TourSubcategoriesPage() {
   const router = useRouter();
@@ -375,6 +376,17 @@ export default function TourSubcategoriesPage() {
           }
           tableClassName="subcategories-table"
         />
+
+        {/* Pagination */}
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={stats.total}
+          itemsPerPage={10}
+          onPageChange={setPage}
+          onItemsPerPageChange={() => {}}
+          disableLimitChange={true}
+        />
       </div>
 
       <ConfirmDeleteModal
@@ -389,28 +401,6 @@ export default function TourSubcategoriesPage() {
         confirmDisabled={deleteBusy}
       />
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button
-            className="pagination-button"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Previous
-          </button>
-          <span className="pagination-info">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="pagination-button"
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 }

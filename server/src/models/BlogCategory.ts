@@ -139,6 +139,18 @@ BlogCategorySchema.index({ slug: 1 });
 BlogCategorySchema.index({ isActive: 1 });
 BlogCategorySchema.index({ name: 'text', description: 'text' });
 
+// Virtual for subcategories count
+BlogCategorySchema.virtual('subcategoriesCount', {
+  ref: 'BlogSubCategory',
+  localField: '_id',
+  foreignField: 'category',
+  count: true,
+});
+
+// Ensure virtuals are included in JSON
+BlogCategorySchema.set('toJSON', { virtuals: true });
+BlogCategorySchema.set('toObject', { virtuals: true });
+
 // Pre-save middleware to auto-populate SEO fields if not provided
 BlogCategorySchema.pre<IBlogCategory>('save', function (next) {
   // Auto-populate metaTitle from name if not provided

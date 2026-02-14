@@ -1,7 +1,6 @@
 // data.ts
 import bgImage from '@/assets/images/backgrounds/testi-3-1.png';
 import thumb from '@/assets/images/resources/testi--3-1.png'
-import testi1 from '@/assets/images/resources/testi--3-1.png';
 import testi2 from '@/assets/images/resources/testimonials-2-1.png';
 import testi3 from '@/assets/images/resources/testimonials-2-2.png';
 import { StaticImageData } from 'next/image';

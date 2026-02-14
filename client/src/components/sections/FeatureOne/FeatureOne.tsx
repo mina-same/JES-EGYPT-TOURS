@@ -1,7 +1,6 @@
 "use client";
 import "photoswipe/dist/photoswipe.css";
 import { useState } from "react";
-import dynamic from "next/dynamic";
 
 import Image, { StaticImageData } from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
@@ -11,9 +10,7 @@ import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import Link from "next/link";
 import { Col, Container, Row } from "react-bootstrap";
 
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface FeatureOneItem {
   id: number;

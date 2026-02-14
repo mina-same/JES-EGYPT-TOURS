@@ -22,7 +22,11 @@ import {
   HelpCircle,
   Calendar,
   Database,
+  Layout,
+  Sun,
+  Moon,
 } from "lucide-react"
+import { ThemeToggle } from "./ThemeToggle"
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useTailorMade } from '@/contexts/TailorMadeContext'
@@ -79,6 +83,18 @@ const menuItems = [
     title: 'Blogs',
     icon: FileText,
     items: [
+      {
+        id: 'blog-category',
+        title: 'Category',
+        icon: Folder,
+        url: '/admin/blogs/category',
+      },
+      {
+        id: 'blog-subcategory',
+        title: 'Sub Category',
+        icon: FolderOpen,
+        url: '/admin/blogs/subcategory',
+      },
       {
         id: 'blog-blog',
         title: 'Blogs',
@@ -151,9 +167,23 @@ const menuItems = [
         icon: FileText,
         url: '/admin/content-management/slider-content',
       },
+      {
+        id: 'general-content',
+        title: 'General Content',
+        icon: Layout,
+        url: '/admin/content-management/general-content',
+      },
+      {
+        id: 'video-management',
+        title: 'Video Management',
+        icon: Sparkles,
+        url: '/admin/content-management/video-management',
+      },
     ],
   },
 ]
+
+import { useNotifications } from '@/contexts/NotificationContext'
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -161,6 +191,7 @@ export function AppSidebar() {
   const { unreadCount } = useTailorMade()
   const { newCount } = useContactForm()
   const { pendingCount } = useBooking()
+  const { unreadCount: notificationCount } = useNotifications()
 
   const getBadgeCount = (item: any) => {
     if (item.badgeKey === 'tailorMade') {
@@ -171,6 +202,9 @@ export function AppSidebar() {
     }
     if (item.badgeKey === 'booking') {
       return pendingCount
+    }
+    if (item.badgeKey === 'notifications') {
+      return notificationCount
     }
     return item.badge
   }
@@ -287,7 +321,14 @@ export function AppSidebar() {
                     <User className="size-4" />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.name || 'Admin User'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-semibold">{user?.name || 'Admin User'}</span>
+                      {notificationCount > 0 && (
+                        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                          {notificationCount}
+                        </span>
+                      )}
+                    </div>
                     <span className="truncate text-xs">{user?.email || 'admin@gotur.com'}</span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4" />
@@ -312,21 +353,25 @@ export function AppSidebar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/admin/users/${user?.id}/edit`}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                    <ThemeToggle />
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell className="mr-2 h-4 w-4" />
-                    <span>Notifications</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <HelpCircle className="mr-2 h-4 w-4" />
-                    <span>Help & Support</span>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/notifications" className="flex items-center w-full">
+                      <Bell className="mr-2 h-4 w-4" />
+                      <span>Notifications</span>
+                      {notificationCount > 0 && (
+                        <span className="ml-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
+                          {notificationCount}
+                        </span>
+                      )}
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

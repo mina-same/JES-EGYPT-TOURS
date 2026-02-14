@@ -24,6 +24,7 @@ import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
 import TagInput from '@/components/admin/TagInput';
 import { useToast } from '@/hooks/use-toast';
+import { uploadAPI } from '@/lib/api/upload';
 
 // Tab definitions
 const TABS = [
@@ -136,29 +137,16 @@ export default function NewBlogPage() {
 
   // Handle Image Upload
   const handleImageUpload = async (file: File, index?: number) => {
-    console.log('🔍 handleImageUpload called:', { file: file.name, index });
-    
-    const formDataUpload = new FormData();
-    formDataUpload.append('image', file);
-
     try {
-      console.log('🔍 Starting upload to:', `${API_URL}/upload`);
-      const response = await fetch(`${API_URL}/upload`, {
-        method: 'POST',
-        body: formDataUpload,
-      });
-      const data = await response.json();
-      console.log('🔍 Upload response:', data);
-      
-      if (data.success && data.data && data.data.url) {
-        console.log('🔍 Upload successful:', data.data);
-        return { url: data.data.url, fileName: data.data.fileName || '' };
+      const response = await uploadAPI.uploadFile(file);
+      if (response.success && response.data && response.data.url) {
+        return { url: response.data.url, fileName: response.data.fileName || '' };
       } else {
-        console.error('🔍 Upload failed:', data.error || 'No URL in response');
+        console.error('Upload failed:', response.error || 'No URL in response');
         return null;
       }
     } catch (error) {
-      console.error('🔍 Upload error:', error);
+      console.error('Upload error:', error);
       return null;
     }
   };
@@ -328,7 +316,7 @@ export default function NewBlogPage() {
                 "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap",
                 isActive 
                   ? "bg-primary text-primary-foreground" 
-                  : "hover:bg-muted text-muted-foreground"
+                  : "hover:bg-muted text-foreground"
               )}
             >
               <Icon className="w-4 h-4" />

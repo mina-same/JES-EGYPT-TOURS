@@ -2,13 +2,10 @@
 
 import Image, { StaticImageData } from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
-import dynamic from "next/dynamic";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
-import destinationsTwoData from "@/data/destinationsTwoData";
-import Link from "next/link";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import whyChooseUsData from "@/data/destinationsTwoData";
+import { useRef } from "react";
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface Destination {
   title: string;
@@ -17,14 +14,15 @@ interface Destination {
   hoverImage: StaticImageData;
 }
 
-interface DestinationsTwo {
+interface WhyChooseUsData {
   tagline: string;
   title: string;
   destinations: Destination[];
 }
 
-const whyChooseUs = () => {
-  const { tagline, title, destinations }: DestinationsTwo = destinationsTwoData;
+const WhyChooseUs = () => {
+  const { destinations }: WhyChooseUsData = whyChooseUsData;
+  const sliderRef = useRef<any>(null);
 
   // Why Choose Us content
   const whyChooseUsContent = {
@@ -88,10 +86,16 @@ const whyChooseUs = () => {
             </Col>
             <Col lg={4}>
               <div className='destinations-two__bottom__nav'>
-                <button className='destinations-two__carousel__nav--left'>
+                <button 
+                  className='destinations-two__carousel__nav--left'
+                  onClick={() => sliderRef.current?.slider?.goTo("prev")}
+                >
                   <span className='icon-arrow-left'></span>
                 </button>
-                <button className='destinations-two__carousel__nav--right'>
+                <button 
+                  className='destinations-two__carousel__nav--right'
+                  onClick={() => sliderRef.current?.slider?.goTo("next")}
+                >
                   <span className='icon-arrow-right'></span>
                 </button>
               </div>
@@ -99,6 +103,7 @@ const whyChooseUs = () => {
           </Row>
         </div>
         <TinySlider
+          ref={sliderRef}
           className='destinations-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'
           settings={carouselOptions}
         >
@@ -144,4 +149,4 @@ const whyChooseUs = () => {
   );
 };
 
-export default whyChooseUs;
+export default WhyChooseUs;

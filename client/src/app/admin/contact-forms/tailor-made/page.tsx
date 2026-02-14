@@ -12,6 +12,7 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
+import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 
 interface TailorMadeRequest {
   _id: string;
@@ -45,6 +46,7 @@ const TailorMadePage: React.FC = () => {
   const { toast } = useToast();
   const [requests, setRequests] = useState<TailorMadeRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedRequest, setSelectedRequest] = useState<TailorMadeRequest | null>(null);
@@ -92,6 +94,7 @@ const TailorMadePage: React.FC = () => {
       console.error('Error fetching requests:', error);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -305,8 +308,12 @@ const TailorMadePage: React.FC = () => {
     },
   ];
 
+  if (initialLoad) {
+    return <AdminPageSkeleton showStats showFilters tableRows={10} />;
+  }
+
   return (
-    <div className="tailor-made-admin">
+    <div className="tailor-made-admin admin-scope">
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -400,165 +407,168 @@ const TailorMadePage: React.FC = () => {
       {/* Modal */}
       {showModal && selectedRequest && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content max-w-4xl" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Request Details</h2>
+              <div className="flex items-center gap-3">
+                <div className="bg-[#b79c5c]/10 p-2 rounded-lg">
+                  <Users className="text-[#b79c5c]" size={20} />
+                </div>
+                <div>
+                  <h2>Request Details</h2>
+                  <p className="text-xs text-gray-500 font-normal">Reference ID: {selectedRequest._id.slice(-8).toUpperCase()}</p>
+                </div>
+              </div>
               <button className="modal-close" onClick={() => setShowModal(false)}>
-                <XCircle size={24} />
+                <XCircle size={22} />
               </button>
             </div>
             
             <div className="modal-body">
-              {/* Customer Information */}
-              <div className="detail-section">
-                <h3>Customer Information</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Full Name</label>
-                    <p>{selectedRequest.fullName}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Email</label>
-                    <p>{selectedRequest.email}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Phone</label>
-                    <p>{selectedRequest.phone || 'N/A'}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Country</label>
-                    <p>{selectedRequest.country}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Travel Details */}
-              <div className="detail-section">
-                <h3>Travel Details</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Travel Period</label>
-                    <p>{selectedRequest.startMonth} {selectedRequest.startYear} - {selectedRequest.endMonth} {selectedRequest.endYear}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Duration</label>
-                    <p>{selectedRequest.duration || 'Not specified'}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Accommodation</label>
-                    <p>{selectedRequest.accommodation || 'Not specified'}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Travelers</label>
-                    <p>{selectedRequest.adults} Adults, {selectedRequest.children} Children, {selectedRequest.infants} Infants</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Budget & Preferences */}
-              <div className="detail-section">
-                <h3>Budget & Preferences</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Budget Range</label>
-                    <p>
-                      {selectedRequest.minBudget && selectedRequest.maxBudget 
-                        ? `$${selectedRequest.minBudget} - $${selectedRequest.maxBudget}`
-                        : selectedRequest.minBudget 
-                        ? `From $${selectedRequest.minBudget}`
-                        : selectedRequest.maxBudget
-                        ? `Up to $${selectedRequest.maxBudget}`
-                        : 'Not specified'}
-                    </p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Special Occasion</label>
-                    <p>{selectedRequest.specialOccasion || 'None'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interests */}
-              {selectedRequest.interests.length > 0 && (
-                <div className="detail-section">
-                  <h3>Interests</h3>
-                  <div className="interests-tags">
-                    {selectedRequest.interests.map((interest, index) => (
-                      <span key={index} className="interest-tag">{interest}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Special Requirements */}
-              {(selectedRequest.dietary || selectedRequest.mobility) && (
-                <div className="detail-section">
-                  <h3>Special Requirements</h3>
-                  <div className="detail-grid">
-                    {selectedRequest.dietary && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-6">
+                  {/* Customer Information */}
+                  <div className="detail-section">
+                    <h3><Users size={14} /> Customer Information</h3>
+                    <div className="detail-grid">
                       <div className="detail-item">
-                        <label>Dietary Requirements</label>
-                        <p>{selectedRequest.dietary}</p>
+                        <label>Full Name</label>
+                        <p>{selectedRequest.fullName}</p>
                       </div>
-                    )}
-                    {selectedRequest.mobility && (
                       <div className="detail-item">
-                        <label>Mobility Requirements</label>
-                        <p>{selectedRequest.mobility}</p>
+                        <label>Country</label>
+                        <p className="flex items-center gap-1.5"><MapPin size={12} className="text-[#b79c5c]" /> {selectedRequest.country}</p>
                       </div>
-                    )}
+                      <div className="detail-item">
+                        <label>Email</label>
+                        <p className="flex items-center gap-1.5"><Mail size={12} className="text-[#b79c5c]" /> {selectedRequest.email}</p>
+                      </div>
+                      <div className="detail-item">
+                        <label>Phone</label>
+                        <p className="flex items-center gap-1.5"><Phone size={12} className="text-[#b79c5c]" /> {selectedRequest.phone || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Travel Details */}
+                  <div className="detail-section">
+                    <h3><Calendar size={14} /> Travel Timeline</h3>
+                    <div className="detail-grid">
+                      <div className="detail-item">
+                        <label>Period</label>
+                        <p>{selectedRequest.startMonth} {selectedRequest.startYear} - {selectedRequest.endMonth} {selectedRequest.endYear}</p>
+                      </div>
+                      <div className="detail-item">
+                        <label>Duration</label>
+                        <p>{selectedRequest.duration || 'Not specified'}</p>
+                      </div>
+                      <div className="detail-item">
+                        <label>Accommodation</label>
+                        <p>{selectedRequest.accommodation || 'Not specified'}</p>
+                      </div>
+                      <div className="detail-item">
+                        <label>Travelers</label>
+                        <p>{selectedRequest.adults} Adults, {selectedRequest.children} Children, {selectedRequest.infants} Infants</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Budget & Occasion */}
+                  <div className="detail-section">
+                    <h3><MapPin size={14} /> Preferences</h3>
+                    <div className="detail-grid">
+                      <div className="detail-item">
+                        <label>Budget Range</label>
+                        <p className="font-bold text-[#b79c5c]">
+                          {selectedRequest.minBudget && selectedRequest.maxBudget 
+                            ? `$${selectedRequest.minBudget} - $${selectedRequest.maxBudget}`
+                            : selectedRequest.minBudget 
+                            ? `From $${selectedRequest.minBudget}`
+                            : selectedRequest.maxBudget
+                            ? `Up to $${selectedRequest.maxBudget}`
+                            : 'Not specified'}
+                        </p>
+                      </div>
+                      <div className="detail-item">
+                        <label>Occasion</label>
+                        <p>{selectedRequest.specialOccasion || 'Standard Trip'}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {/* Comments */}
-              <div className="detail-section">
-                <h3>Customer Comments</h3>
-                <p className="comments-text">{selectedRequest.comments}</p>
-              </div>
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* Interests */}
+                  {selectedRequest.interests.length > 0 && (
+                    <div className="detail-section">
+                      <h3><MapPin size={14} /> Interests</h3>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {selectedRequest.interests.map((interest, index) => (
+                          <span key={index} className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-              {/* Metadata */}
-              <div className="detail-section">
-                <h3>Request Information</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Submitted On</label>
-                    <p>{new Date(selectedRequest.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Last Updated</label>
-                    <p>{new Date(selectedRequest.updatedAt).toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
+                  {/* Requirements */}
+                  {(selectedRequest.dietary || selectedRequest.mobility) && (
+                    <div className="detail-section">
+                      <h3><CheckCircle size={14} /> Special Needs</h3>
+                      <div className="space-y-3">
+                        {selectedRequest.dietary && (
+                          <div className="detail-item">
+                            <label>Dietary</label>
+                            <p className="text-sm">{selectedRequest.dietary}</p>
+                          </div>
+                        )}
+                        {selectedRequest.mobility && (
+                          <div className="detail-item">
+                            <label>Mobility</label>
+                            <p className="text-sm">{selectedRequest.mobility}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-              {/* Admin Management */}
-              <div className="detail-section">
-                <h3>Admin Management</h3>
-                <div className="admin-management-grid">
-                  <div className="admin-field">
-                    <label>Update Status</label>
-                    <select 
-                      value={newStatus} 
-                      onChange={(e) => setNewStatus(e.target.value)}
-                      className="status-select"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
+                  {/* Comments */}
+                  <div className="detail-section">
+                    <h3><MessageSquare size={14} /> Customer Requests</h3>
+                    <p className="comments-text text-sm italic">{selectedRequest.comments || "No additional comments provided."}</p>
                   </div>
-                  <div className="admin-field">
-                    <label>Admin Notes</label>
-                    <textarea
-                      value={adminNotes}
-                      onChange={(e) => setAdminNotes(e.target.value)}
-                      placeholder="Add internal notes about this request..."
-                      rows={4}
-                      className="admin-notes-textarea"
-                    />
+
+                  {/* Admin Management */}
+                  <div className="detail-section">
+                    <h3><CheckCircle size={14} /> Internal Management</h3>
+                    <div className="space-y-4">
+                      <div className="admin-field">
+                        <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Status</label>
+                        <select 
+                          value={newStatus} 
+                          onChange={(e) => setNewStatus(e.target.value)}
+                          className="status-select w-full"
+                        >
+                          <option value="pending">Pending Review</option>
+                          <option value="contacted">Customer Contacted</option>
+                          <option value="in-progress">In Planning</option>
+                          <option value="completed">Booking Confirmed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                      <div className="admin-field">
+                        <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Internal Notes</label>
+                        <textarea
+                          value={adminNotes}
+                          onChange={(e) => setAdminNotes(e.target.value)}
+                          placeholder="Add internal notes about this request..."
+                          rows={3}
+                          className="admin-notes-textarea w-full"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -566,7 +576,7 @@ const TailorMadePage: React.FC = () => {
 
             <div className="modal-footer">
               <button className="btn-secondary" onClick={() => setShowModal(false)}>
-                Cancel
+                Close
               </button>
               <button 
                 className="btn-primary" 

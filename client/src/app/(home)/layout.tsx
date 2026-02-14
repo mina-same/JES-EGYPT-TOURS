@@ -2,24 +2,21 @@
 
 import { Plus_Jakarta_Sans, Just_Another_Hand } from "next/font/google";
 import "@/assets/vendors/fontawesome/css/all.min.css";
-// import "@/assets/vendors/icofont/icofont.min.css";
 import "@/assets/vendors/gotur-icons/style.css";
-import "@/assets/vendors/animate/animate.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "tiny-slider/dist/tiny-slider.css";
 import "react-datepicker/dist/react-datepicker.css";
 import "react-phone-number-input/style.css";
 import "rc-slider/assets/index.css";
+import "photoswipe/dist/photoswipe.css";
 import "@/assets/css/gotur.css";
 import "@/assets/css/custom.css";
+import "@/app/(home)/globals.css";
 
-// import "./globals.css";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { DarkModeProvider } from "@/context/DarkModeProvider";
-import { AuthProvider } from "@/contexts/AuthContext";
 import Preloader from "@/components/common/Preloader/Preloader";
-import useWow from "@/hooks/useWow";
 
  const LayoutObserver = dynamic(
    () => import("@/components/layout/LayoutObserver/LayoutObserver"),
@@ -59,7 +56,6 @@ export default function RootLayout({
 }>) {
   const [showPreloader, setShowPreloader] = useState(true);
   const [enableNonCriticalUi, setEnableNonCriticalUi] = useState(false);
-  const [enableWow, setEnableWow] = useState(false);
 
   useEffect(() => {
     const originalConsoleError = console.error;
@@ -99,7 +95,6 @@ export default function RootLayout({
       if (didEnable) return;
       didEnable = true;
       setEnableNonCriticalUi(true);
-      setEnableWow(true);
     };
 
     const idleId = (window as any).requestIdleCallback
@@ -107,7 +102,7 @@ export default function RootLayout({
       : null;
     const enableUiTimer = setTimeout(enableUi, 1200);
 
-    const timer = setTimeout(() => setShowPreloader(false), 150);
+    const timer = setTimeout(() => setShowPreloader(false), 50); // Reduced from 150ms for faster loading
 
     const onFirstInteraction = () => {
       enableUi();
@@ -132,10 +127,9 @@ export default function RootLayout({
       console.error = originalConsoleError;
     };
   }, []);
-  useWow(enableWow);
+
   return (
-    <AuthProvider>
-      <DarkModeProvider>
+    <DarkModeProvider>
           {showPreloader && <Preloader />}
           {children}
           {enableNonCriticalUi ? (
@@ -148,6 +142,5 @@ export default function RootLayout({
             </>
           ) : null}
       </DarkModeProvider>
-    </AuthProvider>
   );
 }

@@ -1,14 +1,11 @@
 "use client";
 import React from "react";
-import dynamic from "next/dynamic";
 import Image, { StaticImageData } from "next/image";
 import { Container } from "react-bootstrap";
 import Link from "next/link";
 import destinationsTwoGridData from "@/data/destinationTwoGridData";
 
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 interface Destination {
   title: string;
   image: StaticImageData;

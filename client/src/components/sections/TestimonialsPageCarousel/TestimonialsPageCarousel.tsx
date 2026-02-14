@@ -3,10 +3,7 @@ import testimonialsTwoData from "@/data/testimonialsTwoData";
 import Image, { StaticImageData } from "next/image";
 import React from "react";
 import { Col, Container, Row } from "react-bootstrap";
-import dynamic from "next/dynamic";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 interface Testimonial {
   id: number;
   name: string;

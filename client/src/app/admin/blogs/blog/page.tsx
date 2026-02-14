@@ -14,6 +14,7 @@ import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 interface BlogPost {
   _id: string;
@@ -252,10 +253,10 @@ export default function BlogsPage() {
             })()}
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900 line-clamp-2">{blog.title}</div>
-            {blog.excerpt && <div className="text-sm text-gray-500 line-clamp-1 mt-1">{blog.excerpt}</div>}
+            <div className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{blog.title}</div>
+            {blog.excerpt && <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">{blog.excerpt}</div>}
             {blog.readingTime && (
-              <div className="flex items-center text-xs text-gray-400 mt-1">
+              <div className="flex items-center text-xs text-gray-400 dark:text-gray-500 mt-1">
                 <Clock size={12} className="mr-1" />
                 {blog.readingTime} min read
               </div>
@@ -274,7 +275,7 @@ export default function BlogsPage() {
             blog.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
               >
                 <Tag size={10} className="mr-1" />
                 {tag}
@@ -295,7 +296,7 @@ export default function BlogsPage() {
       cellClassName: 'px-6 py-4',
       render: (blog) =>
         blog.isFeatured ? (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500">
             <CheckCircle size={12} className="mr-1" />
             Featured
           </span>
@@ -309,10 +310,10 @@ export default function BlogsPage() {
       cellClassName: 'px-6 py-4',
       render: (blog) => (
         <div className="flex items-center">
-          <User size={16} className="text-gray-400 mr-2" />
+          <User size={16} className="text-gray-400 dark:text-gray-500 mr-2" />
           <div>
-            <div className="text-sm font-medium text-gray-900">{blog.author?.name || 'Unknown Author'}</div>
-            <div className="text-xs text-gray-500">{blog.author?.email || 'No email'}</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{blog.author?.name || 'Unknown Author'}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{blog.author?.email || 'No email'}</div>
           </div>
         </div>
       ),
@@ -334,7 +335,7 @@ export default function BlogsPage() {
             {blog.status.charAt(0).toUpperCase() + blog.status.slice(1)}
           </span>
           {blog.status !== 'published' && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-50 text-red-700 border border-red-200 w-fit">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-900/50 w-fit">
               Not Published
             </span>
           )}
@@ -347,8 +348,8 @@ export default function BlogsPage() {
       cellClassName: 'px-6 py-4 text-sm text-gray-500',
       render: (blog) => (
         <>
-          <div>{formatDate(blog.publishedAt || blog.createdAt)}</div>
-          <div className="text-xs text-gray-400">Updated: {formatDate(blog.updatedAt)}</div>
+          <div className="dark:text-gray-300">{formatDate(blog.publishedAt || blog.createdAt)}</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500">Updated: {formatDate(blog.updatedAt)}</div>
         </>
       ),
     },
@@ -357,8 +358,8 @@ export default function BlogsPage() {
       headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
       cellClassName: 'px-6 py-4 text-sm text-gray-500',
       render: (blog) => (
-        <div className="flex items-center">
-          <Eye size={14} className="mr-1" />
+        <div className="flex items-center dark:text-gray-300">
+          <Eye size={14} className="mr-1 text-gray-400 dark:text-gray-500" />
           {blog.viewCount}
         </div>
       ),
@@ -371,7 +372,7 @@ export default function BlogsPage() {
         <div className="flex items-center gap-2">
           <Link href={`/admin/blogs/blog/${blog._id}/edit`}>
             <button
-              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
               title="Edit"
             >
               <Edit2 size={16} />
@@ -380,7 +381,7 @@ export default function BlogsPage() {
           <button
             onClick={() => handleToggleStatus(blog._id, blog.status)}
             disabled={toggling === blog._id}
-            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
+            className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors disabled:opacity-50"
             title={blog.status === 'published' ? 'Unpublish' : 'Publish'}
           >
             {blog.status === 'published' ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -388,7 +389,7 @@ export default function BlogsPage() {
           <button
             onClick={() => handleDelete(blog._id)}
             disabled={deleting === blog._id}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50"
             title="Delete"
           >
             <Trash2 size={16} />
@@ -520,7 +521,7 @@ export default function BlogsPage() {
       />
 
       {/* Blogs Table */}
-      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm overflow-hidden">
         <AdminTable<BlogPost>
           data={blogs}
           columns={columns}
@@ -538,8 +539,8 @@ export default function BlogsPage() {
           emptyNode={
             <div className="text-center py-12">
               <FileText size={64} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No blog posts found</h3>
-              <p className="text-gray-500 mb-6">There are no blog posts matching your criteria.</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No blog posts found</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">There are no blog posts matching your criteria.</p>
               <Link
                 href="/admin/blogs/new"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -551,9 +552,20 @@ export default function BlogsPage() {
           }
           wrapperClassName="overflow-x-auto"
           tableClassName="w-full"
-          theadClassName="bg-gray-50 border-b"
-          tbodyClassName="bg-white divide-y divide-gray-200"
-          rowClassName="hover:bg-gray-50"
+          theadClassName="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600"
+          tbodyClassName="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+          rowClassName="hover:bg-gray-50 dark:hover:bg-gray-700"
+        />
+
+        {/* Pagination */}
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={10}
+          onPageChange={setPage}
+          onItemsPerPageChange={() => {}}
+          disableLimitChange={true}
         />
       </div>
 
@@ -568,33 +580,6 @@ export default function BlogsPage() {
         onConfirm={confirmDelete}
         confirmDisabled={deleteBusy}
       />
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white px-6 py-3 border rounded-lg">
-          <div className="flex items-center">
-            <p className="text-sm text-gray-700">
-              Page <span className="font-medium">{page}</span> of <span className="font-medium">{totalPages}</span>
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -39,7 +39,7 @@ export default function RichTextEditor({
   className,
 }: RichTextEditorProps) {
   
-  const handleChange = useCallback((content: string, delta: any, source: string, editor: any) => {
+  const handleChange = useCallback((content: string, _delta: any, source: string) => {
     if (source === 'user') {
       const sanitizedContent = sanitizeHTML(content);
       onChange(sanitizedContent);

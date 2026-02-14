@@ -6,11 +6,8 @@ import { Accordion, Card } from "react-bootstrap";
 import Image, { StaticImageData } from "next/image";
 
 import destinationDetailsData from "@/data/destinationDetailsData";
-import dynamic from "next/dynamic";
 import destinationInfo, { mapEmbedUrl } from "@/data/destinationInfoData";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface DestinationDetailsData {
   title: string;

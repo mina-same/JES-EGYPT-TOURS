@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import dynamic from "next/dynamic";
 import { Container } from "react-bootstrap";
 import Image, { StaticImageData } from "next/image";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
@@ -8,9 +7,7 @@ import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { tourListingPageData } from "@/data/tourListingPageData";
 import Link from "next/link";
 
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 interface TourListingData {
   sectionTitle: string;
@@ -39,7 +36,7 @@ interface TourListingData {
   };
 }
 const TourListingTwoCarousel: React.FC = () => {
-  const { filterOptions, tours }: TourListingData = tourListingPageData;
+  const { tours }: TourListingData = tourListingPageData;
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
   return (

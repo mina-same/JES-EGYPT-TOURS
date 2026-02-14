@@ -179,12 +179,12 @@ export default function NewAdministratorPage() {
   ];
 
   return (
-    <div className="max-full space-y-6 pb-24 p-6">
+    <div className="admin-scope max-full space-y-6 pb-24 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Add Administrator</h1>
-            <p className="text-gray-500 mt-1">Create a new administrator account and assign permissions</p>
+            <h1 className="admin-page-title">Add Administrator</h1>
+            <p className="admin-page-subtitle">Create a new administrator account and assign permissions</p>
           </div>
         </div>
         <Link href="/admin/users">
@@ -436,7 +436,7 @@ export default function NewAdministratorPage() {
                                 <div className="flex items-center gap-2">
                                   <button
                                     type="button"
-                                    className="px-2 py-1 text-xs rounded-md border bg-white hover:bg-muted"
+                                    className="px-2 py-1 text-xs rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                                     onClick={() => selectPermissions(group.items.map((i) => i.value))}
                                     disabled={loading || !isSuperAdmin}
                                   >
@@ -444,7 +444,7 @@ export default function NewAdministratorPage() {
                                   </button>
                                   <button
                                     type="button"
-                                    className="px-2 py-1 text-xs rounded-md border bg-white hover:bg-muted"
+                                    className="px-2 py-1 text-xs rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                                     onClick={() => clearPermissions(group.items.map((i) => i.value))}
                                     disabled={loading || !isSuperAdmin}
                                   >
@@ -529,22 +529,28 @@ export default function NewAdministratorPage() {
 
       <style jsx global>{`
         .permissions-panel {
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          border: 1px solid #e5e7eb;
           border-radius: 12px;
-          padding: 12px;
-          background: rgba(255, 255, 255, 0.9);
+          padding: 16px;
+          background: #ffffff;
+          transition: all 0.2s ease;
+        }
+
+        .dark .permissions-panel {
+          border-color: #374151;
+          background: #111827;
         }
 
         .permissions-toolbar {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 10px;
-          margin-bottom: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 20px;
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
           .permissions-toolbar {
-            grid-template-columns: 1fr auto;
+            flex-direction: row;
             align-items: center;
           }
         }
@@ -553,113 +559,239 @@ export default function NewAdministratorPage() {
           display: flex;
           gap: 8px;
           flex-wrap: wrap;
-          justify-content: flex-end;
         }
 
         .permissions-list {
-          margin-top: 10px;
-          max-height: 320px;
-          overflow: auto;
-          border-top: 1px solid rgba(0, 0, 0, 0.06);
-          padding-top: 10px;
+          margin-top: 20px;
+          max-height: 400px;
+          overflow-y: auto;
+          border-top: 1px solid #f3f4f6;
+          padding-top: 20px;
+          padding-right: 8px;
+        }
+
+        .dark .permissions-list {
+          border-top-color: #374151;
+        }
+
+        .permissions-list::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .permissions-list::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .permissions-list::-webkit-scrollbar-thumb {
+          background: #e5e7eb;
+          border-radius: 10px;
+        }
+
+        .dark .permissions-list::-webkit-scrollbar-thumb {
+          background: #374151;
         }
 
         .permissions-group {
-          margin-bottom: 12px;
+          margin-bottom: 24px;
         }
 
         .permissions-group-title {
           font-weight: 700;
-          font-size: 13px;
-          color: rgba(0, 0, 0, 0.7);
-          margin-bottom: 8px;
+          font-size: 12px;
+          color: #6b7280;
+          margin-bottom: 12px;
           text-transform: uppercase;
-          letter-spacing: 0.06em;
+          letter-spacing: 0.05em;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .dark .permissions-group-title {
+          color: #9ca3af;
         }
 
         .permissions-group-items {
           display: grid;
-          grid-template-columns: 1fr;
-          gap: 8px;
-        }
-
-        @media (min-width: 768px) {
-          .permissions-group-items {
-            grid-template-columns: 1fr 1fr;
-          }
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          gap: 10px;
         }
 
         .permission-item {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 10px 12px;
+          gap: 12px;
+          padding: 12px;
           border-radius: 10px;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          background: #fff;
+          border: 1px solid #e5e7eb;
+          background: #ffffff;
           text-align: left;
-          transition: background 0.15s ease, border-color 0.15s ease;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+        }
+
+        .dark .permission-item {
+          border-color: #374151;
+          background: #1f2937;
         }
 
         .permission-item:hover {
-          background: rgba(212, 175, 55, 0.08);
-          border-color: rgba(212, 175, 55, 0.35);
+          border-color: #3b82f6;
+          background: rgba(59, 130, 246, 0.02);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .permission-item:hover {
+          background: rgba(59, 130, 246, 0.05);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
         }
 
         .permission-item.is-checked {
-          background: rgba(212, 175, 55, 0.12);
-          border-color: rgba(212, 175, 55, 0.55);
+          background: rgba(59, 130, 246, 0.05);
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 1px #3b82f6 inset;
+        }
+
+        .dark .permission-item.is-checked {
+          background: rgba(59, 130, 246, 0.1);
         }
 
         .permission-checkbox {
-          width: 22px;
-          height: 22px;
+          width: 20px;
+          height: 20px;
           border-radius: 6px;
-          border: 1px solid rgba(0, 0, 0, 0.2);
+          border: 2px solid #d1d5db;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           font-weight: 800;
           color: #fff;
           background: #fff;
-          flex: 0 0 22px;
+          flex: 0 0 20px;
+          transition: all 0.2s ease;
+          font-size: 12px;
+        }
+
+        .dark .permission-checkbox {
+          border-color: #4b5563;
+          background: #374151;
         }
 
         .permission-checkbox.checked {
-          background: #d4af37;
-          border-color: #d4af37;
+          background: #3b82f6;
+          border-color: #3b82f6;
+          color: #ffffff;
         }
 
         .permission-item-text {
           font-size: 13px;
-          color: rgba(0, 0, 0, 0.8);
-          word-break: break-word;
+          font-weight: 500;
+          color: #374151;
+          word-break: break-all;
+        }
+
+        .dark .permission-item-text {
+          color: #d1d5db;
+        }
+
+        .permission-item.is-checked .permission-item-text {
+          color: #1d4ed8;
+        }
+
+        .dark .permission-item.is-checked .permission-item-text {
+          color: #60a5fa;
         }
 
         .permissions-chips {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
-          margin: 10px 0 0;
+          gap: 6px;
+          margin-top: 12px;
         }
 
         .permission-chip {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          background: rgba(212, 175, 55, 0.12);
-          color: rgba(0, 0, 0, 0.85);
-          padding: 6px 10px;
-          font-size: 12px;
+          gap: 6px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          background: #f9fafb;
+          color: #4b5563;
+          padding: 4px 10px;
+          font-size: 11px;
+          font-weight: 600;
           cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .dark .permission-chip {
+          background: #1f2937;
+          border-color: #374151;
+          color: #9ca3af;
+        }
+
+        .permission-chip:hover {
+          background: #fee2e2;
+          border-color: #fecaca;
+          color: #b91c1c;
+        }
+
+        .dark .permission-chip:hover {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.4);
+          color: #f87171;
         }
 
         .chip-x {
           font-size: 14px;
-          line-height: 1;
-          opacity: 0.8;
+          opacity: 0.6;
+        }
+
+        .info-message {
+          padding: 12px 16px;
+          border-radius: 10px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #64748b;
+          font-size: 13px;
+          margin: 12px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .dark .info-message {
+          background: #1e293b;
+          border-color: #334155;
+          color: #94a3b8;
+        }
+
+        .btn-refresh {
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          background: #ffffff;
+          color: #374151;
+          font-size: 13px;
+          font-weight: 600;
+          transition: all 0.2s ease;
+        }
+
+        .dark .btn-refresh {
+          background: #1f2937;
+          border-color: #374151;
+          color: #d1d5db;
+        }
+
+        .btn-refresh:hover {
+          background: #f9fafb;
+          border-color: #d1d5db;
+        }
+
+        .dark .btn-refresh:hover {
+          background: #374151;
+          border-color: #4b5563;
         }
       `}</style>
     </div>

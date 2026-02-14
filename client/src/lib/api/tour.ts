@@ -1,6 +1,6 @@
 import axiosInstance from './axios';
 
-const API_BASE = '/tours';
+const API_BASE = 'tours';
 
 // ==================== TYPES ====================
 

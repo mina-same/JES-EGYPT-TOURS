@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
-import { Eye, Loader2, Mail, MessageSquare, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Eye, Loader2, Mail, MessageSquare, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 import { useContactForm } from '@/contexts/ContactFormContext';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -8,6 +8,8 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
+import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 interface ContactSubmission {
   _id: string;
@@ -25,6 +27,7 @@ const ContactFormPage: React.FC = () => {
   const { toast } = useToast();
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'replied' | 'archived'>('all');
   const [selected, setSelected] = useState<ContactSubmission | null>(null);
@@ -36,6 +39,8 @@ const ContactFormPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -68,6 +73,7 @@ const ContactFormPage: React.FC = () => {
       setSubmissions([]);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -101,6 +107,12 @@ const ContactFormPage: React.FC = () => {
       );
     });
   }, [submissions, searchTerm]);
+
+  const paginatedSubmissions = useMemo(() => {
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    return filteredSubmissions.slice(start, end);
+  }, [filteredSubmissions, page, limit]);
 
   const handleViewDetails = (submission: ContactSubmission) => {
     setSelected(submission);
@@ -277,8 +289,12 @@ const ContactFormPage: React.FC = () => {
     },
   ];
 
+  if (initialLoad) {
+    return <AdminPageSkeleton showStats showFilters tableRows={8} />;
+  }
+
   return (
-    <div className='tailor-made-admin'>
+    <div className='tailor-made-admin admin-scope'>
       <div className='admin-page-header'>
         <div>
           <h1 className='admin-page-title'>Contact Forms</h1>
@@ -327,7 +343,7 @@ const ContactFormPage: React.FC = () => {
 
       <div className='requests-table-container'>
         <AdminTable<ContactSubmission>
-          data={filteredSubmissions}
+          data={paginatedSubmissions}
           columns={columns}
           getRowKey={(row) => row._id}
           enableSelection
@@ -349,6 +365,19 @@ const ContactFormPage: React.FC = () => {
           }
           tableClassName='requests-table'
         />
+        
+        {/* Pagination */}
+        <PaginationControls
+          currentPage={page}
+          totalPages={Math.ceil(filteredSubmissions.length / limit)}
+          totalItems={filteredSubmissions.length}
+          itemsPerPage={limit}
+          onPageChange={setPage}
+          onItemsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+        />
       </div>
 
       <ConfirmDeleteModal
@@ -365,36 +394,47 @@ const ContactFormPage: React.FC = () => {
 
       {showModal && selected && (
         <div className='modal-overlay' onClick={() => setShowModal(false)}>
-          <div className='modal-content' onClick={(e) => e.stopPropagation()}>
+          <div className='modal-content max-w-2xl' onClick={(e) => e.stopPropagation()}>
             <div className='modal-header'>
-              <h2>Submission Details</h2>
+              <div className="flex items-center gap-3">
+                <div className="bg-[#b79c5c]/10 p-2 rounded-lg">
+                  <MessageSquare className="text-[#b79c5c]" size={20} />
+                </div>
+                <div>
+                  <h2>Submission Details</h2>
+                  <p className="text-xs text-gray-500 font-normal">Received on {new Date(selected.createdAt).toLocaleString()}</p>
+                </div>
+              </div>
               <button className='modal-close' onClick={() => setShowModal(false)}>
-                <span aria-hidden='true'>×</span>
+                <XCircle size={22} />
               </button>
             </div>
 
             <div className='modal-body'>
               <div className='detail-section'>
-                <h3>Customer</h3>
+                <h3><User size={14} /> Customer Information</h3>
                 <div className='detail-grid'>
                   <div className='detail-item'>
-                    <label>Name</label>
+                    <label>Full Name</label>
                     <p>{selected.name}</p>
                   </div>
                   <div className='detail-item'>
-                    <label>Email</label>
-                    <p>{selected.email}</p>
+                    <label>Email Address</label>
+                    <p className="flex items-center gap-2">
+                       <Mail size={14} className="text-[#b79c5c]" />
+                       {selected.email}
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div className='detail-section'>
-                <h3>Message</h3>
+                <h3><MessageSquare size={14} /> Message Content</h3>
                 <p className='comments-text'>{selected.message}</p>
               </div>
 
               <div className='detail-section'>
-                <h3>Admin Management</h3>
+                <h3><CheckCircle size={14} /> Admin Actions</h3>
                 <div className='admin-management-grid'>
                   <div className='admin-field'>
                     <label>Update Status</label>
@@ -403,17 +443,17 @@ const ContactFormPage: React.FC = () => {
                       onChange={(e) => setNewStatus(e.target.value as any)}
                       className='status-select'
                     >
-                      <option value='new'>New</option>
-                      <option value='replied'>Replied</option>
-                      <option value='archived'>Archived</option>
+                      <option value='new'>New Submission</option>
+                      <option value='replied'>Mark as Replied</option>
+                      <option value='archived'>Archive Submission</option>
                     </select>
                   </div>
                   <div className='admin-field'>
-                    <label>Admin Notes</label>
+                    <label>Admin Internal Notes</label>
                     <textarea
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
-                      placeholder='Add internal notes...'
+                      placeholder='Add internal notes regarding this submission...'
                       rows={4}
                       className='admin-notes-textarea'
                     />
@@ -424,7 +464,7 @@ const ContactFormPage: React.FC = () => {
 
             <div className='modal-footer'>
               <button className='btn-secondary' onClick={() => setShowModal(false)}>
-                Cancel
+                Close
               </button>
               <button className='btn-primary' onClick={handleUpdateSubmission} disabled={updating}>
                 {updating ? (
@@ -433,7 +473,10 @@ const ContactFormPage: React.FC = () => {
                     Updating...
                   </>
                 ) : (
-                  'Save Changes'
+                  <>
+                    <CheckCircle size={18} />
+                    Save Changes
+                  </>
                 )}
               </button>
             </div>

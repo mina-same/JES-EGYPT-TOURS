@@ -27,8 +27,52 @@
 }
 
 .preloader-hidden {
-  display: none;
+  display: none !important;
 }
+
+/* Global Overflow Fixes */
+html, body {
+  overflow-x: hidden !important;
+  position: relative;
+  width: 100%;
+}
+
+/* Fix for oversized background shapes in Offer section */
+[class*="offer-two__element"] {
+  max-width: 100vw;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+[class*="offer-two__element"] img {
+  max-width: 50vw !important; /* Prevent background shapes from taking full width */
+  height: auto !important;
+}
+
+/* Ensure carousels don't leak */
+.instagram-one, 
+.destination-carousel-two,
+.client-carousel {
+  overflow: hidden;
+}
+
+/* Preloader Safety Fallback - if it gets stuck, allow interaction after 10s */
+@keyframes preloader-fade-out {
+  0% { opacity: 1; visibility: visible; }
+  90% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.preloader {
+  animation: preloader-fade-out 8s forwards;
+  pointer-events: none; /* Allow clicking through if it gets stuck */
+}
+
+/* Ensure HomeIntro card design works even if Tailwind is missing */
+.home-intro-v2 .container {
+  max-width: 1200px;
+}
+
 
 /* ==========================================================================
    2. TOUR DETAILS NAVIGATION (Scroll-based)
@@ -1138,6 +1182,21 @@ body {
   position: relative;
 }
 
+#why-choose-us .destinations-two__top {
+  position: relative;
+  z-index: 10;
+}
+
+#why-choose-us .destinations-two__bottom__nav {
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+}
+
+#why-choose-us .destinations-two__bottom__nav button {
+  pointer-events: auto;
+}
+
 #why-choose-us::before {
   content: '';
   position: absolute;
@@ -1262,4 +1321,41 @@ div[suppressHydrationWarning] {
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
   color: #fff;
   text-decoration: none;
+}
+/* ==========================================================================
+   7. PHOTOSWIPE LIGHTBOX FIXES
+   ========================================================================== */
+.pswp {
+  --pswp-bg: rgba(0, 0, 0, 0.95);
+  --pswp-placeholder-bg: #222;
+  
+  --pswp-root-z-index: 100000;
+  
+  --pswp-preloader-color: rgba(0, 0, 0, 0.4);
+  --pswp-preloader-color-secondary: rgba(255, 255, 255, 0.9);
+  
+  /* Icon colors */
+  --pswp-icon-color: #fff;
+  --pswp-icon-color-secondary: #b79c5c;
+}
+
+.pswp__button {
+  background: none !important;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.pswp__button:hover {
+  opacity: 1;
+  color: #b79c5c !important;
+}
+
+.pswp__img {
+  border-radius: 4px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+.tour-gallery-link:hover .tour-gallery-image {
+  transform: scale(1.05);
+  transition: transform 0.4s ease;
 }

@@ -3,11 +3,8 @@ import React from "react";
 import Image, { StaticImageData } from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
 import { teamData } from "@/data/teamPageData";
-import dynamic from "next/dynamic";
 import Link from "next/link";
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 interface TeamMember {
   name: string;
   role: string;
