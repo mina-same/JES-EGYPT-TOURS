@@ -17,6 +17,23 @@ const HomeIntro: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const sanitizeHTML = (html: string): string => {
+    if (!html) return "";
+    return html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+      .replace(/\son\w+="[^"]*"/gi, "")
+      .replace(/\son\w+='[^']*'/gi, "")
+      .replace(/\sstyle="[^"]*"/gi, "")
+      .replace(/\sstyle='[^']*'/gi, "")
+      .replace(/javascript:/gi, "")
+      .replace(/vbscript:/gi, "")
+      .replace(/data:/gi, "");
+  };
+
+  const sanitizedContent = sanitizeHTML(content?.content || "");
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -91,7 +108,7 @@ const HomeIntro: React.FC = () => {
                   >
                     <div 
                       className="narrative-html"
-                      dangerouslySetInnerHTML={{ __html: content.content }}
+                      dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                     />
                   </div>
                   
@@ -117,7 +134,13 @@ const HomeIntro: React.FC = () => {
                     <div className="flex -space-x-2">
                        {[1,2,3,4].map(i => (
                          <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 overflow-hidden">
-                            <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="user" />
+                            <Image
+                              src={`https://i.pravatar.cc/100?img=${i+10}`}
+                              alt="User"
+                              width={32}
+                              height={32}
+                              className="object-cover w-full h-full"
+                            />
                          </div>
                        ))}
                        <div className="w-8 h-8 rounded-full border-2 border-white bg-[#1a1a1a] flex items-center justify-center text-[8px] font-bold text-white">15K+</div>
@@ -163,17 +186,6 @@ const HomeIntro: React.FC = () => {
                 {/* Sophisticated Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a]/90 via-transparent to-transparent lg:bg-gradient-to-l lg:from-[#1a1a1a]/40 lg:via-transparent"></div>
                 
-                {/* Floating Discovery Badge */}
-                <div className="absolute bottom-10 left-10 right-10 md:left-auto md:w-64 bg-white/10 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 text-white shadow-2xl animate-float">
-                   <div className="flex items-center gap-3 mb-3">
-                      <div className="relative">
-                         <div className="w-2.5 h-2.5 rounded-full bg-[#b79c5c]"></div>
-                         <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-[#b79c5c] animate-ping opacity-75"></div>
-                      </div>
-                      <span className="text-[10px] uppercase font-black tracking-[0.2em]">Live Insights</span>
-                   </div>
-                   <p className="text-sm font-medium leading-relaxed italic opacity-95">"Experience the dawn rising over the Sphinx precisely as the ancients intended."</p>
-                </div>
               </div>
             </Col>
           </Row>
@@ -186,6 +198,14 @@ const HomeIntro: React.FC = () => {
         }
         .narrative-html p:last-child {
           margin-bottom: 0;
+        }
+        .narrative-html a {
+          color: #b79c5c;
+          text-decoration: underline;
+          font-weight: 600;
+        }
+        .narrative-html a:hover {
+          opacity: 0.9;
         }
         @keyframes float {
           0%, 100% { transform: translateY(0); }

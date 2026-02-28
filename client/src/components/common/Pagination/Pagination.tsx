@@ -38,6 +38,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <ul className='post-pagination justify-content-center' data-wow-duration='1500ms' data-wow-delay='500ms'>
             <li>
                 <button 
+                    type="button"
                     className={`previous ${currentPage === 1 ? 'disabled' : ''}`}
                     onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
@@ -58,6 +59,7 @@ const Pagination: React.FC<PaginationProps> = ({
             {getPageNumbers().map(page => (
                 <li key={page} className={currentPage === page ? 'active' : ''}>
                     <button 
+                        type="button"
                         onClick={() => onPageChange(page)}
                         style={{ 
                             border: '1px solid #eee', 
@@ -78,6 +80,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
             <li>
                 <button 
+                    type="button"
                     className={`next ${currentPage === totalPages ? 'disabled' : ''}`}
                     onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}

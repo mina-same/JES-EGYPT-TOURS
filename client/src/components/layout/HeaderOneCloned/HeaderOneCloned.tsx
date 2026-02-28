@@ -9,6 +9,7 @@ import main_logo from "@/assets/images/logo-dark.png";
 import { usePathname } from "next/navigation";
 import useStore from "@/store/useStore";
 import useScrollUp from "@/hooks/useScrollUp";
+import { useWishlist } from "@/contexts/WishlistContext";
 interface NavItem {
   id: number;
   title: string;
@@ -24,6 +25,7 @@ const HeaderOneCloned: React.FC = () => {
     changeMobileDrawerStatus,
     changeSideBarDrawerStatus,
   } = useStore();
+  const { wishlist } = useWishlist();
   const renderSubMenu = (subMenu: NavItem[]) => (
     <ul className=''>
       {subMenu.map((item: any, index: number) => (
@@ -94,9 +96,33 @@ const HeaderOneCloned: React.FC = () => {
                 ></i>
                 <span className='sr-only'>Search</span>
               </Link>
-              <Link href='cart' className='main-header__info__item'>
-                <i className='icon-shopping-carts' aria-hidden='true'></i>
-                <span className='sr-only'>Cart</span>
+              <Link href='/wishlist' className='main-header__info__item' style={{ position: "relative" }}>
+                <i className={wishlist.length > 0 ? 'fas fa-heart' : 'far fa-heart'} aria-hidden='true'></i>
+                <span className='sr-only'>Wishlist</span>
+                {wishlist.length > 0 && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      top: -6,
+                      right: -10,
+                      background: "#b79c5c",
+                      color: "#fff",
+                      borderRadius: 999,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      lineHeight: "16px",
+                      minWidth: 18,
+                      height: 16,
+                      padding: "0 6px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {wishlist.length}
+                  </span>
+                )}
               </Link>
             </div>
 
@@ -107,7 +133,7 @@ const HeaderOneCloned: React.FC = () => {
               <i className='icon-menu-bar'></i>
             </div>
 
-            <Link href='contact' className='gotur-btn main-header__btn'>
+            <Link href='/contact' className='gotur-btn main-header__btn'>
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>
 

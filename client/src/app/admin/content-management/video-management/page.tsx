@@ -185,7 +185,7 @@ export default function VideoManagementPage() {
       <div className='admin-page-header'>
         <div>
           <h1 className='admin-page-title'>Video Management</h1>
-          <p className='admin-page-subtitle'>Manage "Reflective Reviews" traveler video feedback</p>
+          <p className='admin-page-subtitle'>Manage Reflective Reviews traveler video feedback</p>
         </div>
         <div className='header-actions'>
           <button className='btn-refresh' onClick={fetchItems} disabled={loading}>

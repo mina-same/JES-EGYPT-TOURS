@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,7 +7,7 @@ import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { tourAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { Loader2 } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -15,15 +15,20 @@ import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import AboutOne from "@/components/sections/AboutOne/AboutOne";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { tourAPI as tourApiForFetch } from "@/lib/api/tour";
+import { toast } from "@/hooks/use-toast";
 
-export default function TourSubCategoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function TourSubCategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [loading, setLoading] = useState(true);
   const [subcategory, setSubcategory] = useState<any>(null);
+  const [siblingSubcategories, setSiblingSubcategories] = useState<any[]>([]);
   const [tours, setTours] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setOpen] = useState(false);
-  const [videoId, setVideoId] = useState("");
+  const [videoIds, setVideoIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const toursPerPage = 10;
@@ -40,6 +45,22 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
           return;
         }
         setSubcategory(subResponse.data);
+
+        const categoryId =
+          typeof subResponse.data?.category === "string"
+            ? subResponse.data.category
+            : subResponse.data?.category?._id;
+
+        if (categoryId) {
+          const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
+          if (siblingsRes?.success && Array.isArray(siblingsRes.data)) {
+            setSiblingSubcategories(siblingsRes.data);
+          } else {
+            setSiblingSubcategories([]);
+          }
+        } else {
+          setSiblingSubcategories([]);
+        }
 
         // 2. Fetch Tours by Subcategory ID with Pagination
         const toursResponse = await tourAPI.getAll({ 
@@ -60,6 +81,7 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
 
             return {
               id: tour._id,
+              slug: tour.slug,
               image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg", 
               allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
               title: tour.heading || tour.name,
@@ -88,6 +110,43 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
 
     fetchData();
   }, [slug, currentPage]);
+
+  const getYouTubeVideoId = (url: string): string => {
+    if (!url) return "";
+    const t = url.trim();
+    const s = t.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (s?.[1]) return s[1];
+    const w = t.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (w?.[1]) return w[1];
+    const e = t.match(/\/embed\/([a-zA-Z0-9_-]{6,})/); if (e?.[1]) return e[1];
+    const sh = t.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/); if (sh?.[1]) return sh[1];
+    return "";
+  };
+
+  const openVideoReviews = async (tourSlug: string) => {
+    try {
+      const res = await tourApiForFetch.getBySlug(tourSlug);
+      if (res.success && res.data) {
+        const vids = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
+          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
+          .filter(Boolean);
+        if (vids.length > 0) {
+          setVideoIds(vids);
+          setOpen(true);
+        } else {
+          toast({
+            title: "No video reviews",
+            description: "This tour doesn’t have any reflective & honest review videos yet.",
+            variant: "info",
+          });
+        }
+      }
+    } catch {
+      toast({
+        title: "Failed to load videos",
+        description: "Network or server error. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -129,7 +188,112 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title={subcategory.name} subTitle={subcategory.category?.name || "Tour Subcategory"} />
+      <PageHeader
+        title={subcategory.name}
+        breadcrumbs={[
+          { label: 'Destination', href: '/tours' },
+          {
+            label: subcategory.category?.name || 'Category',
+            href: subcategory.category?.slug ? `/tours/category/${subcategory.category.slug}` : undefined,
+          },
+          { label: subcategory.name }
+        ]}
+      />
+
+      {(() => {
+        const sh = subcategory?.sectionHeader;
+        const hasData =
+          sh &&
+          sh.isEnabled !== false &&
+          (!!sh?.title || !!sh?.description || !!sh?.image?.url || (!!sh?.button?.label && !!sh?.button?.href));
+
+        if (!hasData) return null;
+
+        return (
+          <section className="section-space-top">
+            <Container>
+              <Row className="align-items-center gutter-y-30">
+                {sh?.image?.url && (
+                  <Col lg={5}>
+                    <div className="relative w-full" style={{ height: 320, borderRadius: 16, overflow: 'hidden' }}>
+                      <Image
+                        src={sh.image.url}
+                        alt={sh.image.alt || sh.image.title || sh.title || subcategory.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  </Col>
+                )}
+
+                <Col lg={sh?.image?.url ? 7 : 12}>
+                  {sh?.title && (
+                    <h2 style={{ fontSize: 34, fontWeight: 800, marginBottom: 12 }}>{sh.title}</h2>
+                  )}
+
+                  {sh?.description && (
+                    <div
+                      className="text-gray-700 prose prose-sm max-w-none [&_a]:text-[#b79c5c] [&_a]:font-semibold [&_a]:no-underline hover:[&_a]:underline"
+                      dangerouslySetInnerHTML={{ __html: String(sh.description) }}
+                    />
+                  )}
+
+                  {sh?.button?.label && sh?.button?.href && (
+                    <div style={{ marginTop: 18 }}>
+                      <Link
+                        href={sh.button.href}
+                        className="gotur-btn"
+                        target={sh.button.newTab ? '_blank' : undefined}
+                        rel={sh.button.newTab ? 'noreferrer noopener' : undefined}
+                      >
+                        {sh.button.label}
+                      </Link>
+                    </div>
+                  )}
+                </Col>
+              </Row>
+            </Container>
+          </section>
+        );
+      })()}
+
+      {siblingSubcategories.length > 0 && (
+        <section className="subcategory-section section-space-top">
+          <Container>
+            <div className="subcategory-slider-wrapper">
+              <div className="subcategory-slider">
+                {siblingSubcategories.map((sub: any) => {
+                  const isActive = String(sub?._id || "") === String(subcategory?._id || "") || String(sub?.slug || "") === String(slug || "");
+                  return (
+                    <div key={sub._id} className="subcategory-slide">
+                      <Link href={`/tours/subcategory/${sub.slug}`} className="subcategory-card-link">
+                        <div className={`subcategory-card${isActive ? " is-active" : ""}`}>
+                          <div className="subcategory-card__image-box">
+                            <Image
+                              src={sub.image?.url || "/assets/images/resources/tour-1-1.jpg"}
+                              alt={sub.name}
+                              fill
+                              className="subcategory-card__image"
+                            />
+                            <div className="subcategory-card__overlay" />
+                          </div>
+                          <div className="subcategory-card__content">
+                            <h3 className="subcategory-card__title">{sub.name}</h3>
+                            <span className="subcategory-card__icon">
+                              <ChevronRight className="w-4 h-4" />
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Container>
+        </section>
+      )}
       
       <section className='tour-listing-page section-space'>
         <Container>
@@ -164,8 +328,16 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
                             </div>
                             </div>
                             <div className='listing-card-four__btns'>
-                            <Link href='#'>
-                                <i className='far fa-heart'></i>
+                            <Link
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                toggleWishlist(item.id);
+                              }}
+                              aria-label={isInWishlist(item.id) ? "Remove from wishlist" : "Add to wishlist"}
+                              className={isInWishlist(item.id) ? 'is-active' : undefined}
+                            >
+                              <i className={isInWishlist(item.id) ? 'fas fa-heart' : 'far fa-heart'}></i>
                             </Link>
                             <div className='listing-card-four__btns__hover'>
                                 {/* Primary Image Item (Visible Toggle) */}
@@ -210,12 +382,7 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
                                 href='#'
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    if (item.videoId) {
-                                    setVideoId(item.videoId);
-                                    setOpen(true);
-                                    } else {
-                                    alert("No video preview available for this tour.");
-                                    }
+                                    openVideoReviews(item.slug);
                                 }}
                                 >
                                 <span className='icon-video'></span>
@@ -223,16 +390,23 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
                             </div>
                             </div>
                             <ul className='listing-card-four__meta list-unstyled'>
-                            {item.meta.map((meta: any) => (
+                            {item.meta.map((meta: any) => {
+                              const isLocation = meta.icon === "icon-location";
+                              const fullText = String(meta.title || "");
+                              const firstWord = isLocation
+                                ? (fullText.split(/[, ]+/).filter(Boolean)[0] || fullText)
+                                : fullText;
+                              return (
                                 <li key={meta.id}>
-                                <Link href={item.link}>
+                                  <Link href={item.link} title={isLocation ? fullText : undefined}>
                                     <span className='listing-card-four__meta__icon'>
-                                    <i className={meta.icon}></i>
+                                      <i className={meta.icon}></i>
                                     </span>
-                                    {meta.title}
-                                </Link>
+                                    <span className={isLocation ? 'meta-text' : undefined}>{firstWord}</span>
+                                  </Link>
                                 </li>
-                            ))}
+                              );
+                            })}
                             </ul>
                         </div>
                         <div className='listing-card-four__content'>
@@ -287,7 +461,105 @@ export default function TourSubCategoryPage({ params }: { params: { slug: string
           </Row>
         </Container>
       </section>
-      <VideoModal isOpen={isOpen} setOpen={setOpen} id={videoId} />
+      <style jsx global>{`
+        .subcategory-slider-wrapper {
+          overflow-x: auto;
+          padding-bottom: 12px;
+          margin: 0 -15px;
+        }
+        .subcategory-slider-wrapper::-webkit-scrollbar {
+          height: 6px;
+        }
+        .subcategory-slider-wrapper::-webkit-scrollbar-track {
+          background: #f0f0f0;
+          border-radius: 3px;
+        }
+        .subcategory-slider-wrapper::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 3px;
+        }
+        .subcategory-slider-wrapper::-webkit-scrollbar-thumb:hover {
+          background: #bbb;
+        }
+        .subcategory-slider {
+          display: flex;
+          gap: 16px;
+          padding: 0 15px;
+        }
+        .subcategory-slide {
+          flex: 0 0 auto;
+          width: 180px;
+        }
+        .subcategory-card {
+          border-radius: 12px;
+          overflow: hidden;
+          background: #fff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          transition: transform 0.2s, box-shadow 0.2s;
+          cursor: pointer;
+          height: 140px;
+          display: flex;
+          flex-direction: column;
+        }
+        .subcategory-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .subcategory-card__image-box {
+          position: relative;
+          flex: 1;
+          min-height: 0;
+        }
+        .subcategory-card__image {
+          object-fit: cover;
+        }
+        .subcategory-card__overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+        }
+        .subcategory-card__content {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: white;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        .subcategory-card__title {
+          font-size: 14px;
+          font-weight: 700;
+          margin: 0;
+          line-height: 1.2;
+        }
+        .subcategory-card__icon {
+          width: 24px;
+          height: 24px;
+          background: rgba(255,255,255,0.2);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.3s ease;
+        }
+        .subcategory-card:hover .subcategory-card__icon {
+          background: var(--gotur-primary, #b79c5c);
+          color: white;
+        }
+        .subcategory-card-link {
+          text-decoration: none;
+          color: inherit;
+        }
+
+        .subcategory-card.is-active {
+          box-shadow: 0 0 0 2px var(--gotur-primary, #b79c5c), 0 6px 16px rgba(0,0,0,0.12);
+        }
+      `}</style>
+      <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />
 
       <AboutOne extraclass='about-one--one' />
       <FooterOne />

@@ -1,19 +1,28 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface VideoModalProps {
   isOpen: boolean;
   setOpen: (open: boolean) => void;
-  id: string;
+  id?: string;
+  ids?: string[];
   channel?: "youtube" | "vimeo";
 }
 
 const VideoModal: React.FC<VideoModalProps> = ({ 
   isOpen, 
   setOpen, 
-  id, 
+  id,
+  ids,
   channel = "youtube" 
 }) => {
+  const [current, setCurrent] = useState(0);
+
+  const activeId = useMemo(() => {
+    if (ids && ids.length > 0) return ids[Math.max(0, Math.min(current, ids.length - 1))];
+    return id || "";
+  }, [ids, current, id]);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -29,9 +38,9 @@ const VideoModal: React.FC<VideoModalProps> = ({
 
   const getVideoUrl = () => {
     if (channel === "youtube") {
-      return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+      return `https://www.youtube.com/embed/${activeId}?autoplay=1&rel=0`;
     }
-    return `https://player.vimeo.com/video/${id}?autoplay=1`;
+    return `https://player.vimeo.com/video/${activeId}?autoplay=1`;
   };
 
   return (
@@ -62,6 +71,44 @@ const VideoModal: React.FC<VideoModalProps> = ({
           aspectRatio: "16 / 9",
         }}
       >
+        {ids && ids.length > 1 && (
+          <>
+            <button
+              onClick={() => setCurrent((c) => (c - 1 + ids.length) % ids.length)}
+              style={{
+                position: "absolute",
+                left: "-50px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                color: "white",
+                fontSize: "30px",
+                cursor: "pointer",
+              }}
+              aria-label="Previous video"
+            >
+              ‹
+            </button>
+            <button
+              onClick={() => setCurrent((c) => (c + 1) % ids.length)}
+              style={{
+                position: "absolute",
+                right: "-50px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                color: "white",
+                fontSize: "30px",
+                cursor: "pointer",
+              }}
+              aria-label="Next video"
+            >
+              ›
+            </button>
+          </>
+        )}
         <button
           onClick={() => setOpen(false)}
           style={{

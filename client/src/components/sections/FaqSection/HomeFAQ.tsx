@@ -2,34 +2,55 @@
 
 import React, { useEffect, useState } from "react";
 import { Container, Accordion } from "react-bootstrap";
-import { tourAPI } from "@/lib/api/tour";
-import { Loader2 } from "lucide-react";
-
-interface FAQItem {
-  question: string;
-  answer: string;
-  tourName: string;
-}
+import { faqService, type FAQ } from "@/services/faqService";
+import { HelpCircle, Loader2 } from "lucide-react";
 
 const HomeFAQ: React.FC = () => {
-  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
-        // Fetch featured tours first as they usually have the best content
+        setLoading(true);
+        const response = await faqService.getHomeFaqs(8);
+        
+        if (response.success && response.data) {
+          setFaqs(response.data);
+        } else {
+          // If no dedicated FAQs, fallback to tour FAQs (existing logic)
+          await fetchTourFaqs();
+        }
+      } catch (err) {
+        console.error("Error fetching home FAQs:", err);
+        // Fallback to tour FAQs
+        await fetchTourFaqs();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchTourFaqs = async () => {
+      try {
+        const { tourAPI } = await import("@/lib/api/tour");
         const response = await tourAPI.getFeatured();
         if (response.success && response.data) {
-          const allFaqs: FAQItem[] = [];
+          const allFaqs: FAQ[] = [];
           response.data.forEach((tour: any) => {
             if (tour.faqs && Array.isArray(tour.faqs)) {
               tour.faqs.forEach((f: any) => {
                 if (f.question && f.answer) {
                   allFaqs.push({
+                    _id: `tour-${tour._id}-${f.question.slice(0, 10)}`,
                     question: f.question,
                     answer: f.answer,
-                    tourName: tour.heading || tour.name
+                    category: tour.heading || tour.name,
+                    isActive: true,
+                    order: 0,
+                    displayOnHome: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
                   });
                 }
               });
@@ -45,9 +66,15 @@ const HomeFAQ: React.FC = () => {
                         tour.faqs.forEach((f: any) => {
                             if (f.question && f.answer && !allFaqs.some(existing => existing.question === f.question)) {
                                 allFaqs.push({
-                                    question: f.question,
-                                    answer: f.answer,
-                                    tourName: tour.heading || tour.name
+                                  _id: `tour-${tour._id}-${f.question.slice(0, 10)}`,
+                                  question: f.question,
+                                  answer: f.answer,
+                                  category: tour.heading || tour.name,
+                                  isActive: true,
+                                  order: 0,
+                                  displayOnHome: true,
+                                  createdAt: new Date().toISOString(),
+                                  updatedAt: new Date().toISOString()
                                 });
                             }
                         });
@@ -56,13 +83,11 @@ const HomeFAQ: React.FC = () => {
              }
           }
 
-          // Randomize or filter to get a good mix
           setFaqs(allFaqs.slice(0, 8));
         }
-      } catch (err) {
-        console.error("Error fetching home FAQs:", err);
-      } finally {
-        setLoading(false);
+      } catch (tourErr) {
+        console.error("Error fetching tour FAQs:", tourErr);
+        setError("Failed to load FAQs");
       }
     };
 
@@ -77,7 +102,9 @@ const HomeFAQ: React.FC = () => {
     );
   }
 
-  if (faqs.length === 0) return null;
+  if (error || faqs.length === 0) {
+    return null;
+  }
 
   return (
     <section className="home-faq section-space" id="faq">
@@ -88,30 +115,33 @@ const HomeFAQ: React.FC = () => {
             <p className="mt-3 text-muted">Everything you need to know about our tours and services.</p>
         </div>
 
-        <div className="faq-accordion gotur-accordion mx-auto" style={{ maxWidth: '900px' }}>
+        <div className="faq-accordion mx-auto" style={{ maxWidth: '900px' }}>
           <Accordion defaultActiveKey="0">
             {faqs.map((faq, index) => (
-              <Accordion.Item eventKey={String(index)} key={index} className="border-0 mb-3 shadow-sm rounded-4 overflow-hidden">
-                <Accordion.Header className="bg-white">
-                  <div className="accordion-title py-2">
-                    <h4 className="accordion-title__text" style={{ fontSize: '18px', fontWeight: '600' }}>
-                      {faq.question}
-                      <span className="accordion-title__icon"></span>
-                    </h4>
+              <Accordion.Item eventKey={String(index)} key={faq._id}>
+                <Accordion.Header>
+                  <div className="faq-header-content d-flex align-items-center gap-3 w-100">
+                    <div className="faq-icon-box">
+                      <HelpCircle size={20} />
+                    </div>
+                    <div className="faq-question-box text-start">
+                      <h4 className="faq-question-title">
+                        {faq.question}
+                      </h4>
+                    </div>
                   </div>
                 </Accordion.Header>
-                <Accordion.Body className="bg-white pt-0">
+                <Accordion.Body>
                   <div className="accordion-content">
                     <div className="inner">
                       <div 
-                        className="inner__text text-muted" 
-                        style={{ lineHeight: '1.8' }}
+                        className="inner__text" 
                         dangerouslySetInnerHTML={{ __html: faq.answer }} 
                       />
-                      {faq.tourName && (
+                      {faq.category && (
                         <div className="mt-3">
-                          <small className="text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px', color: '#b79c5c' }}>
-                            Source: {faq.tourName}
+                          <small className="text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px', color: '#b79c5c', fontWeight: '700' }}>
+                            Category: {faq.category}
                           </small>
                         </div>
                       )}

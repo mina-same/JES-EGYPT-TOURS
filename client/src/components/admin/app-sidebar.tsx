@@ -179,6 +179,12 @@ const menuItems = [
         icon: Sparkles,
         url: '/admin/content-management/video-management',
       },
+      {
+        id: 'faq-management',
+        title: 'FAQ Management',
+        icon: HelpCircle,
+        url: '/admin/content-management/faq',
+      },
     ],
   },
 ]

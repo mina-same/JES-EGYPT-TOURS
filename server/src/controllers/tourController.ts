@@ -106,7 +106,7 @@ const parsePagination = (queryParams: QueryParams) => {
  * Parse sort parameter
  */
 const parseSort = (sortParam?: string): string => {
-  const validSortFields = ['heading', 'createdAt', 'updatedAt', 'viewCount', 'tourLocation'];
+  const validSortFields = ['heading', 'createdAt', 'updatedAt', 'viewCount', 'tourLocation', 'priceStartingFrom'];
   
   if (!sortParam) return '-createdAt';
 

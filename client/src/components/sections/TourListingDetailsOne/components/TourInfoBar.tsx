@@ -79,7 +79,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
           </li>
           <li>
             <Link href='' className='gotur-btn'>
-              Price starts from ${price}/Per Person
+              Price starts from ${price}
             </Link>
           </li>
         </ul>

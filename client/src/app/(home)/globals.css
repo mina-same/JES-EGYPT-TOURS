@@ -103,3 +103,84 @@ a {
 
 /* PhotoSwipe styles */
 @import 'photoswipe/dist/photoswipe.css';
+
+/* FAQ Section Styling */
+.faq-accordion .accordion-item {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  margin-bottom: 16px !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+.faq-accordion .accordion-item:hover {
+  border-color: #d4af37 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08) !important;
+}
+
+.faq-accordion .accordion-button {
+  padding: 20px 24px !important;
+  border-radius: 12px !important;
+  background-color: #fff !important;
+  box-shadow: none !important;
+}
+
+.faq-accordion .accordion-button:not(.collapsed) {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  color: #d4af37 !important;
+}
+
+.faq-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fefce8;
+  color: #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.accordion-button:not(.collapsed) .faq-icon-box {
+  background: #d4af37;
+  color: #fff;
+}
+
+.faq-question-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.accordion-button:not(.collapsed) .faq-question-title {
+  color: #d4af37;
+}
+
+.faq-accordion .accordion-body {
+  padding: 0 24px 24px 76px !important;
+  background-color: #fff !important;
+  border-radius: 12px !important;
+}
+
+.faq-accordion .inner__text {
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.8;
+}
+
+.faq-accordion .accordion-button::after {
+  background-size: 1.25rem !important;
+  transition: transform 0.3s ease !important;
+}
+
+.faq-accordion .accordion-title__icon {
+  display: none !important; /* Hide old icon span if it exists */
+}
+
+
+

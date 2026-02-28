@@ -1,9 +1,11 @@
 "use client";
-import React, { Fragment, useState } from "react";
-import { Accordion, Col, Container, Row, Tab, Tabs } from "react-bootstrap";
-import { faqData } from "@/data/faqData";
+import React, { useEffect, useState } from "react";
+import { Accordion, Col, Container, Row } from "react-bootstrap";
+import { faqService, type FAQ } from "@/services/faqService";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
+import { HelpCircle, Loader2 } from "lucide-react";
+import image from "@/assets/images/resources/faq-sidebar.png";
 // types.ts
 interface Faq {
   question: string;
@@ -35,10 +37,113 @@ export interface FaqData {
 
 const FaqSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("1");
+  const [faqData, setFaqData] = useState<FaqData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await faqService.getAllFaqs({
+          isActive: true,
+          sort: "category,order",
+          limit: 200,
+        });
+
+        if (!response.success || !response.data) {
+          setError("Failed to load FAQs");
+          return;
+        }
+
+        const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
+
+        const grouped = response.data.reduce((acc, faq) => {
+          const category = faq.category || "General";
+          if (!acc[category]) acc[category] = [];
+          acc[category].push(faq);
+          return acc;
+        }, {} as Record<string, FAQ[]>);
+
+        const categories = Object.keys(grouped);
+
+        const tabs: FaqTab[] = categories.map((category, index) => ({
+          id: String(index + 1),
+          title: category,
+        }));
+
+        const tabContents: FaqTabContent[] = tabs.map((tab, index) => {
+          const faqsForCategory = grouped[tab.title] || [];
+          return {
+            id: String(index + 1),
+            faqId: tab.id,
+            faqContent: [
+              {
+                id: `content-${tab.id}`,
+                title: tab.title,
+                faqs: faqsForCategory.map((f) => ({
+                  question: f.question,
+                  answer: stripHtml(f.answer),
+                })),
+              },
+            ],
+          };
+        });
+
+        const structured: FaqData = {
+          title: "Egypt Travel FAQ - Expert Answers",
+          subTitle:
+            "Find answers to frequently asked questions about Egypt travel, tours, booking, safety, and more.",
+          image,
+          faqTabs: tabs,
+          faqTabsContent: tabContents,
+        };
+
+        setFaqData(structured);
+        if (tabs.length > 0) {
+          setActiveTab((prev) => prev || tabs[0].id);
+        }
+      } catch (e) {
+        console.error("Error fetching FAQs:", e);
+        setError("Failed to load FAQs. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFaqs();
+  }, []);
 
   const handleTabSelect = (tabId: string) => {
     setActiveTab(tabId);
   };
+
+  if (loading) {
+    return (
+      <section className='faq-page section-space tabs-box'>
+        <Container>
+          <div className='text-center py-5'>
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
+            <p className="mt-2 text-muted">Loading FAQs...</p>
+          </div>
+        </Container>
+      </section>
+    );
+  }
+
+  if (error || !faqData) {
+    return (
+      <section className='faq-page section-space tabs-box'>
+        <Container>
+          <div className='text-center py-5'>
+            <p className="text-danger">{error || "No FAQs available"}</p>
+          </div>
+        </Container>
+      </section>
+    );
+  }
 
   return (
     <section className='faq-page section-space tabs-box'>
@@ -140,11 +245,15 @@ const FaqSection: React.FC = () => {
                                 key={idx}
                               >
                                 <Accordion.Header>
-                                  <div className='accordion-title'>
-                                    <h4 className='accordion-title__text'>
-                                      {faq.question}
-                                      <span className='accordion-title__icon'></span>
-                                    </h4>
+                                  <div className="faq-header-content d-flex align-items-center gap-3 w-100">
+                                    <div className="faq-icon-box">
+                                      <HelpCircle size={20} />
+                                    </div>
+                                    <div className="faq-question-box text-start">
+                                      <h4 className="faq-question-title">
+                                        {faq.question}
+                                      </h4>
+                                    </div>
                                   </div>
                                 </Accordion.Header>
                                 <Accordion.Body>

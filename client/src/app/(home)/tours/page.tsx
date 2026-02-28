@@ -75,7 +75,10 @@ export default function TourCategoriesPage() {
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title="Tour Categories" subTitle="Explore by Destinations" />
+      <PageHeader
+        title="Tour Categories"
+        breadcrumbs={[{ label: 'Destination', href: '/tours' }]}
+      />
       
       <section className="category-directory section-space">
         <Container>

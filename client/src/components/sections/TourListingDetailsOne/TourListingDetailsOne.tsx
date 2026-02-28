@@ -1,18 +1,13 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Container, Accordion } from "react-bootstrap";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { Loader2, Calendar, Headphones, Tag, Star, Zap } from "lucide-react";
-import VideoModal from "@/components/common/VideoModal/VideoModal";
+
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import { reviewsAPI } from "@/lib/api/reviews";
-
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -21,26 +16,87 @@ import { TourListingOneDetailsProps } from "./types";
 import { useTourData } from "./useTourData";
 
 // Import sub-components
-import { TourHeader } from "./TourHeader";
-import { TourInfoBar } from "./TourInfoBar";
-import { BookingForm } from "./BookingForm";
-import { TourPlan } from "./TourPlan";
-import { PricingPlans } from "./PricingPlans";
+import { TourHeader } from "./components/TourHeader";
+import { TourInfoBar } from "./components/TourInfoBar"; 
+import { BookingForm } from "./components/BookingForm";
+import { TourPlan } from "./components/TourPlan";
+import { PricingPlans } from "./components/PricingPlans";
+import { TourCarousel } from "./components/TourCarousel";
+import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
-import { RelatedTours } from "./RelatedTours";
-import { ReviewsSection } from "./ReviewsSection";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
   const { tourData, loading, error } = useTourData(id);
-  const [isOpen, setOpen] = useState(false);
-  const [videoId, setVideoId] = useState("");
   const [activeSection, setActiveSection] = useState("description");
+  const navRef = useRef<HTMLDivElement>(null);
+  const navPlaceholderRef = useRef<HTMLDivElement>(null);
+  const [navHeight, setNavHeight] = useState(0);
+  const [isNavFixed, setIsNavFixed] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarRowRef = useRef<HTMLDivElement>(null);
+  const [isSidebarFixed, setIsSidebarFixed] = useState(false);
+  const [sidebarLeft, setSidebarLeft] = useState(0);
+  const [sidebarWidth, setSidebarWidth] = useState(0);
+
+  useEffect(() => {
+    const updateNavHeight = () => {
+      const h = navRef.current?.getBoundingClientRect().height || 0;
+      setNavHeight(h);
+    };
+
+    const updateSidebarBounds = () => {
+      const sidebar = sidebarRef.current;
+      const row = sidebarRowRef.current;
+      if (!sidebar || !row) return;
+      const rowRect = row.getBoundingClientRect();
+      const sidebarRect = sidebar.getBoundingClientRect();
+      setSidebarLeft(sidebarRect.left);
+      setSidebarWidth(sidebarRect.width);
+    };
+
+    updateNavHeight();
+    updateSidebarBounds();
+    const handleResize = () => {
+      updateNavHeight();
+      updateSidebarBounds();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const updateFixedState = () => {
+      const el = navPlaceholderRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      setIsNavFixed(top <= 0);
+    };
+
+    const updateSidebarFixed = () => {
+      const row = sidebarRowRef.current;
+      if (!row) return;
+      const rowRect = row.getBoundingClientRect();
+      const fixedNavHeight = isNavFixed ? navHeight : 0;
+      const threshold = fixedNavHeight + 20;
+      const shouldFix = rowRect.top <= threshold && rowRect.bottom > window.innerHeight;
+      setIsSidebarFixed(shouldFix);
+    };
+
+    const onScroll = () => {
+      updateFixedState();
+      updateSidebarFixed();
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true } as any);
+    return () => window.removeEventListener("scroll", onScroll as any);
+  }, [isNavFixed, navHeight]);
 
   // Handle scroll spy and smooth scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['description', 'tour-plan', 'amenities', 'pricing', 'gallery', 'faqs', 'honest-reviews', 'reviews'];
+      const sections = ['description', 'tour-plan', 'amenities', 'pricing', 'gallery', 'download-pdf', 'faqs', 'honest-reviews', 'reviews'];
 
       // Find the current active section
       for (const sectionId of sections) {
@@ -48,7 +104,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         if (element) {
           const rect = element.getBoundingClientRect();
           // Check if section is in viewport (considering header offset)
-          if (rect.top <= 150 && rect.bottom >= 150) {
+          const y = (isNavFixed ? (navHeight || 0) : 0) + 20;
+          if (rect.top <= y && rect.bottom >= y) {
             setActiveSection(sectionId);
             break;
           }
@@ -68,7 +125,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
           const element = document.getElementById(sectionId);
           if (element) {
             // Calculate position with offset for sticky header
-            const headerOffset = 130;
+            const headerOffset = (isNavFixed ? (navHeight || 0) : 0) + 20;
             const elementPosition = element.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -91,7 +148,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClick);
     };
-  }, []);
+  }, [navHeight, isNavFixed]);
 
   const {
     title,
@@ -118,27 +175,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   } = tourData;
 
   const hasReviewVideos = (reviewVideos || []).length > 0;
-
-  const settings = {
-    items: 3,
-    gutter: 30,
-    center: true,
-    loop: false,
-    nav: false,
-    controls: false,
-    autoplay: false,
-    mouseDrag: true,
-    speed: 700,
-    edgePadding: 230,
-    responsive: {
-      0: { items: 1, edgePadding: 30 },
-      576: { items: 2, edgePadding: 30 },
-      768: { items: 2, edgePadding: 100 },
-      992: { items: 2, edgePadding: 70 },
-      1199: { items: 2, edgePadding: 230 },
-      1400: { items: 3, edgePadding: 230 },
-    },
-  };
 
   const handleBookingSubmit = (data: any) => {
     console.log("Booking Submitted:", data);
@@ -167,11 +203,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
     }
   };
 
-  const handleVideoClick = (vId: string) => {
-    setOpen(true);
-    setVideoId(vId);
-  };
-
   if (loading) {
     return (
       <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '400px' }}>
@@ -194,54 +225,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         {/* Header Section */}
         <TourHeader title={title} reviews={reviews} location={location} />
 
+        <PhotoSwipeGallery>
         {/* Carousel Section */}
-        <div
-          className='tour-one section-space-top wow fadeInUp animated'
-          data-wow-duration='1500ms'
-          data-wow-delay='500ms'
-        >
-          <div className='tour-one__carousel tour-two__carousel gotur-owl__carousel owl-carousel owl-theme owl-loaded owl-drag'>
-            <PhotoSwipeGallery>
-              <TinySlider settings={settings}>
-                {sliderImages.map((img, idx) => {
-                  const imageUrl = typeof img === 'string' ? img : img.src;
-                  return (
-                    <div key={idx}>
-                      <div className='item'>
-                        <div className='tour-one__item'>
-                          <Item original={imageUrl} thumbnail={imageUrl} width='1600' height='1000'>
-                            {({ ref, open }) => (
-                              <a
-                                href='#'
-                                ref={ref as unknown as React.Ref<HTMLAnchorElement>}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  open(e);
-                                }}
-                                style={{ display: 'block', cursor: 'pointer' }}
-                              >
-                                <div className="relative w-full" style={{ height: '320px' }}>
-                                  <Image
-                                    src={img}
-                                    alt='destination'
-                                    fill
-                                    sizes="100px"
-                                    className="object-cover"
-                                    priority={idx === 0}
-                                  />
-                                </div>
-                              </a>
-                            )}
-                          </Item>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </TinySlider>
-            </PhotoSwipeGallery>
-          </div>
-        </div>
+        <TourCarousel sliderImages={sliderImages} title={title} />
 
         {/* Info Bar Section */}
         <TourInfoBar
@@ -304,13 +290,28 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
         <Container fluid style={{ maxWidth: '1400px', padding: '0 20px' }}>
           {/* Navigation Bar */}
-          <div className="tour-details-nav-wrapper bg-white" style={{ borderBottom: '2px solid #f0f0f0', marginBottom: '40px' }}>
+          <div ref={navPlaceholderRef} />
+          <div
+            ref={navRef}
+            className="tour-details-nav-wrapper bg-white"
+            style={{
+              position: isNavFixed ? 'fixed' : 'relative',
+              top: isNavFixed ? 0 : undefined,
+              left: isNavFixed ? 0 : undefined,
+              right: isNavFixed ? 0 : undefined,
+              zIndex: isNavFixed ? 1100 : undefined,
+              background: '#fff',
+              borderBottom: '2px solid #f0f0f0',
+              width: '100%',
+            }}
+          >
             <nav className="tour-details-nav">
               <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>Description</a>
               <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>Tour Plan</a>
               <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>Tour Amenities</a>
               <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>Pricing Plans</a>
               <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>Tour Gallery</a>
+              <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>Download Brochure</a>
               <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>Tour FAQ</a>
               {hasReviewVideos ? (
                 <a href="#honest-reviews" className={`tour-nav-link ${activeSection === 'honest-reviews' ? 'active' : ''}`}>
@@ -325,10 +326,28 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             </nav>
           </div>
 
-          <div className='row gutter-y-30 tour-details-row'>
+          <div style={{ height: isNavFixed ? (navHeight || 0) + 40 : 0 }} />
+
+          <div className='row gutter-y-30 tour-details-row' ref={sidebarRowRef}>
             {/* Sidebar */}
             <div className='col-lg-3'>
-              <div className='tour-listing-details__sidebar'>
+              {/* Spacer to prevent layout jump when sidebar is fixed */}
+              {isSidebarFixed && (
+                <div style={{ height: sidebarRef.current?.getBoundingClientRect().height || 0 }} />
+              )}
+              <div
+                ref={sidebarRef}
+                className='tour-listing-details__sidebar'
+                style={{
+                  position: isSidebarFixed ? 'fixed' : 'relative',
+                  left: isSidebarFixed ? sidebarLeft : undefined,
+                  width: isSidebarFixed ? sidebarWidth : undefined,
+                  top: isSidebarFixed ? (isNavFixed ? navHeight : 0) + 20 : undefined,
+                  zIndex: isSidebarFixed ? 1000 : undefined,
+                  alignSelf: 'flex-start',
+                  height: 'fit-content',
+                }}
+              >
                 <BookingForm tourId={id || ''} onSubmit={handleBookingSubmit} />
 
                 <div
@@ -354,7 +373,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             {/* Main Content */}
             <div className='col-lg-9'>
               <div className='tour-listing-details__content'>
-
 
                 {/* Description Section */}
                 <section id="description" className="tour-section">
@@ -400,7 +418,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     <div className='tour-listing-details__content__item tour-listing-details__amenities'>
                       <div className="mb-4">
                         <h4 className='tour-listing-details__title mb-2'>Tour Amenities</h4>
-                        <p className="tour-reviews-subtitle">Comprehensive list of what's provided for your comfortable journey.</p>
+                        <p className="tour-reviews-subtitle">Comprehensive list of what&apos;s provided for your comfortable journey.</p>
                       </div>
                       <div className="row gutter-y-30">
                         {amenities && amenities.length > 0 && (
@@ -410,7 +428,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                 <div className="amenities-icon-wrapper inclusion-icon">
                                   <i className="fas fa-check-circle"></i>
                                 </div>
-                                <h4 className='amenities-card-title'>What's Included</h4>
+                                <h4 className='amenities-card-title'>What&apos;s Included</h4>
                               </div>
                               <ul className='amenities-card-list'>
                                 {amenities.map((amenity, index) => (
@@ -430,7 +448,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                 <div className="amenities-icon-wrapper exclusion-icon">
                                   <i className="fas fa-times-circle"></i>
                                 </div>
-                                <h4 className='amenities-card-title'>What's Not Included</h4>
+                                <h4 className='amenities-card-title'>What&apos;s Not Included</h4>
                               </div>
                               <ul className='amenities-card-list'>
                                 {amenitiesTwo.map((amenity, index) => (
@@ -483,7 +501,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                         <h4 className='tour-listing-details__title mb-2'>Tour Gallery</h4>
                         <p className="tour-reviews-subtitle">A visual journey through the amazing places you will visit.</p>
                       </div>
-                      <PhotoSwipeGallery>
                         <Masonry
                           breakpointCols={{
                             default: 3,
@@ -531,7 +548,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                             );
                           })}
                         </Masonry>
-                      </PhotoSwipeGallery>
                     </div>
                   ) : (
                     <EmptyState
@@ -541,6 +557,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       size="medium"
                     />
                   )}
+                </section>
+
+                {/* Download Section */}
+                <section id="download-pdf" className="tour-section">
+                  <DownloadPdfBrochure tour={tourData} />
                 </section>
 
                 {/* FAQs Section */}
@@ -697,8 +718,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
           partnersTitle="Our Travel Partners"
           partnersSubtitle="We collaborate with trusted local and international travel partners"
         />
+      </PhotoSwipeGallery>
       </section>
-      <VideoModal isOpen={isOpen} setOpen={setOpen} id={videoId} />
+      
     </>
   );
 };

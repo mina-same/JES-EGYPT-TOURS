@@ -1,6 +1,7 @@
 import React from "react";
 import { Accordion } from "react-bootstrap";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
+import { HelpCircle } from "lucide-react";
 
 interface FAQ {
   question: string;
@@ -29,16 +30,20 @@ export const TourFaqSection: React.FC<TourFaqSectionProps> = ({ faqs }) => {
         <h4 className='tour-listing-details__title mb-2'>Frequently Asked Questions</h4>
         <p className="tour-reviews-subtitle">Common questions and answers to help you prepare.</p>
       </div>
-      <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
+      <div className="faq-accordion" data-grp-name="gotur-accordion">
         <Accordion defaultActiveKey="0">
           {faqs.map((faq, index) => (
             <Accordion.Item eventKey={String(index)} key={index}>
               <Accordion.Header>
-                <div className="accordion-title">
-                  <h4 className="accordion-title__text">
-                    {faq.question}
-                    <span className="accordion-title__icon"></span>
-                  </h4>
+                <div className="faq-header-content d-flex align-items-center gap-3 w-100">
+                  <div className="faq-icon-box">
+                    <HelpCircle size={20} />
+                  </div>
+                  <div className="faq-question-box text-start">
+                    <h4 className="faq-question-title">
+                      {faq.question}
+                    </h4>
+                  </div>
                 </div>
               </Accordion.Header>
               <Accordion.Body>

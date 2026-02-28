@@ -3154,7 +3154,7 @@ h6 {
 }
 @media (max-width: 1199px) {
   .main-header__inner {
-    padding: 15px 30px;
+    /* padding: 15px 30px; */
   }
 }
 @media (max-width: 575px) {

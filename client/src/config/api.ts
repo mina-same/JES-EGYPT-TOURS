@@ -47,4 +47,12 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `${API_URL}/notifications/${id}`,
     MARK_READ: (id: string) => `${API_URL}/notifications/${id}/read`,
   },
+
+  // FAQs
+  FAQ: {
+    BASE: `${API_URL}/faqs`,
+    HOME: `${API_URL}/faqs/home`,
+    CATEGORIES: `${API_URL}/faqs/categories`,
+    BY_ID: (id: string) => `${API_URL}/faqs/${id}`,
+  },
 };

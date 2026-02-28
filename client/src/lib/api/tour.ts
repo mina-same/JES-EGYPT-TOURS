@@ -82,11 +82,16 @@ export const tourCategoryAPI = {
    * Update category
    */
   update: async (id: string, data: any) => {
-    const response = await axiosInstance.put<ApiResponse<any>>(
-      `${API_BASE}/categories/${id}`,
-      data
-    );
-    return response.data;
+    try {
+      const response = await axiosInstance.put<ApiResponse<any>>(
+        `${API_BASE}/categories/${id}`,
+        data
+      );
+      return response.data;
+    } catch (err: any) {
+      console.error('Category update API error:', err.response?.data || err.message);
+      throw err;
+    }
   },
 
   /**

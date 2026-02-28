@@ -24,6 +24,7 @@ import sliderContentRoutes from './routes/sliderContentRoutes';
 import generalContentRoutes from './routes/generalContentRoutes';
 import videoReviewRoutes from './routes/videoReviewRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import faqRoutes from './routes/faqRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app: Application = express();
@@ -114,6 +115,7 @@ app.use('/api/slider-content', sliderContentRoutes);
 app.use('/api/general-content', generalContentRoutes);
 app.use('/api/video-reviews', videoReviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/faqs', faqRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

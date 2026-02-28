@@ -1,5 +1,5 @@
 "use client";
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
@@ -8,34 +8,21 @@ import Link from "next/link";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { tourAPI } from "@/lib/api/tour";
 import { Loader2 } from "lucide-react";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { toast } from "@/hooks/use-toast";
 
-interface FeatureOneItem {
-  id: string;
-  image: StaticImageData | string;
-  title: string;
-  link: string;
-  price: string | number;
-  rating: number;
-  reviews: number;
-  videoId: string;
-  discount: string;
-  meta: Metadata[];
-}
-interface Metadata {
-  id: number;
-  title: string;
-  icon: string;
-}
+// 
 
 const TourListing: React.FC = () => {
   const [isOpen, setOpen] = useState(false);
-  const [videoId, setVideoId] = useState("");
+  const [videoIds, setVideoIds] = useState<string[]>([]);
   const [tours, setTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const toursPerPage = 10;
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -60,6 +47,7 @@ const TourListing: React.FC = () => {
 
             return {
               id: tour._id,
+              slug: tour.slug,
               image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg", 
               allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
               title: tour.heading || tour.name,
@@ -90,6 +78,54 @@ const TourListing: React.FC = () => {
 
     fetchTours();
   }, [currentPage]);
+
+  const getYouTubeVideoId = (url: string): string => {
+    if (!url) return "";
+    const trimmed = url.trim();
+    const short = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
+    if (short?.[1]) return short[1];
+    const watch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{6,})/);
+    if (watch?.[1]) return watch[1];
+    const embed = trimmed.match(/\/embed\/([a-zA-Z0-9_-]{6,})/);
+    if (embed?.[1]) return embed[1];
+    const shorts = trimmed.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/);
+    if (shorts?.[1]) return shorts[1];
+    return "";
+  };
+
+  const openVideoReviews = async (slug: string) => {
+    try {
+      const res = await tourAPI.getBySlug(slug);
+      if (res.success && res.data) {
+        const videos = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
+          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
+          .filter(Boolean);
+        if (videos.length > 0) {
+          setVideoIds(videos);
+          setOpen(true);
+        } else {
+          toast({
+            title: "No video reviews",
+            description: "This tour doesn’t have any reflective & honest review videos yet.",
+            variant: "info",
+          });
+        }
+      } else {
+        toast({
+          title: "Couldn’t load videos",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load video reviews", e);
+      toast({
+        title: "Failed to load videos",
+        description: "Network or server error. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -146,8 +182,16 @@ const TourListing: React.FC = () => {
                           </div>
                         </div>
                         <div className='listing-card-four__btns'>
-                          <Link href='#'>
-                            <i className='far fa-heart'></i>
+                          <Link
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              toggleWishlist(item.id);
+                            }}
+                            aria-label={isInWishlist(item.id) ? "Remove from wishlist" : "Add to wishlist"}
+                            className={isInWishlist(item.id) ? 'is-active' : undefined}
+                          >
+                            <i className={isInWishlist(item.id) ? 'fas fa-heart' : 'far fa-heart'}></i>
                           </Link>
                           <div className='listing-card-four__btns__hover'>
                             {/* Primary Image Item (Visible Toggle) */}
@@ -192,12 +236,7 @@ const TourListing: React.FC = () => {
                               href='#'
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (item.videoId) {
-                                  setVideoId(item.videoId);
-                                  setOpen(true);
-                                } else {
-                                  alert("No video preview available for this tour.");
-                                }
+                                openVideoReviews(item.slug);
                               }}
                             >
                               <span className='icon-video'></span>
@@ -205,16 +244,23 @@ const TourListing: React.FC = () => {
                           </div>
                         </div>
                         <ul className='listing-card-four__meta list-unstyled'>
-                          {item.meta.map((meta: any) => (
-                            <li key={meta.id}>
-                              <Link href={item.link}>
-                                <span className='listing-card-four__meta__icon'>
-                                  <i className={meta.icon}></i>
-                                </span>
-                                {meta.title}
-                              </Link>
-                            </li>
-                          ))}
+                          {item.meta.map((meta: any) => {
+                            const isLocation = meta.icon === "icon-location";
+                            const fullText = String(meta.title || "");
+                            const firstWord = isLocation
+                              ? (fullText.split(/[, ]+/).filter(Boolean)[0] || fullText)
+                              : fullText;
+                            return (
+                              <li key={meta.id}>
+                                <Link href={item.link} title={isLocation ? fullText : undefined}>
+                                  <span className='listing-card-four__meta__icon'>
+                                    <i className={meta.icon}></i>
+                                  </span>
+                                  <span className={isLocation ? 'meta-text' : undefined}>{firstWord}</span>
+                                </Link>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                       <div className='listing-card-four__content'>
@@ -264,7 +310,7 @@ const TourListing: React.FC = () => {
           </Row>
         </Container>
       </section>
-      <VideoModal isOpen={isOpen} setOpen={setOpen} id={videoId} />
+      <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />
     </>
   );
 };

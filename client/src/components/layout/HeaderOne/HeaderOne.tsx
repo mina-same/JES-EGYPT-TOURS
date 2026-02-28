@@ -7,6 +7,7 @@ import { navItems, headerOneNavItems } from "@/data/navItems"; // Import the nav
 import main_logo from "@/assets/images/logo-dark.png";
 import { usePathname } from "next/navigation";
 import useStore from "@/store/useStore";
+import { useWishlist } from "@/contexts/WishlistContext";
 interface NavItem {
   id: number;
   title: string;
@@ -27,6 +28,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
     changeMobileDrawerStatus,
     changeSideBarDrawerStatus,
   } = useStore();
+  const { wishlist } = useWishlist();
   const renderSubMenu = (subMenu: NavItem[]) => (
     <ul className=''>
       {subMenu.map((item: any, index: number) => (
@@ -97,9 +99,28 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                 ></i>
                 <span className='sr-only'>Search</span>
               </Link>
-              <Link href='cart' className='main-header__info__item'>
-                <i className='icon-shopping-carts' aria-hidden='true'></i>
-                <span className='sr-only'>Cart</span>
+              <Link href='/wishlist' className='main-header__info__item' style={{ position: "relative" }}>
+                <i className={wishlist.length > 0 ? 'fas fa-heart' : 'far fa-heart'} aria-hidden='true'></i>
+                <span className='sr-only'>Wishlist</span>
+                {wishlist.length > 0 && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      top: -6,
+                      right: -10,
+                      background: "#b79c5c",
+                      color: "#fff",
+                      borderRadius: 9999,
+                      fontSize: 10,
+                      padding: "2px 6px",
+                      lineHeight: 1,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {wishlist.length}
+                  </span>
+                )}
               </Link>
             </div>
 

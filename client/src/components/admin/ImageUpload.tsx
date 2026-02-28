@@ -190,6 +190,16 @@ export default function ImageUpload({
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center aspect-video max-h-[160px] mb-4 rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 cursor-pointer hover:border-[#b79c5c] dark:hover:border-[#b79c5c] hover:bg-white dark:hover:bg-slate-800 transition-all">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingIndex === index}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) await handleFileUpload(file, index);
+                  }}
+                />
                 {uploadingIndex === index ? (
                   <Loader2 className="h-10 w-10 text-[#b79c5c] animate-spin mb-2" />
                 ) : (

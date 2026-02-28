@@ -10,12 +10,27 @@ export interface ISEO {
   metaImage?: IImage;
 }
 
+export interface ISectionHeaderButton {
+  label?: string;
+  href?: string;
+  newTab?: boolean;
+}
+
+export interface ISectionHeader {
+  isEnabled?: boolean;
+  image?: IImage;
+  title?: string;
+  description?: any;
+  button?: ISectionHeaderButton;
+}
+
 export interface ITourCategory extends Document {
   name: string;
   slug: string;
   description?: any; // HTML content (Schema.Types.Mixed)
   image?: IImage;
   seo?: ISEO;
+  sectionHeader?: ISectionHeader;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +59,52 @@ const SEOSchema = new Schema<ISEO>(
     ],
     metaImage: {
       type: ImageSchema,
+      required: false,
+    },
+  },
+  { _id: false }
+);
+
+const SectionHeaderButtonSchema = new Schema<ISectionHeaderButton>(
+  {
+    label: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Button label should not exceed 100 characters'],
+    },
+    href: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Button link should not exceed 500 characters'],
+    },
+    newTab: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false }
+);
+
+const SectionHeaderSchema = new Schema<ISectionHeader>(
+  {
+    isEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    image: {
+      type: ImageSchema,
+      required: false,
+    },
+    title: {
+      type: String,
+      trim: true,
+      maxlength: [150, 'Section header title should not exceed 150 characters'],
+    },
+    description: {
+      type: Schema.Types.Mixed,
+    },
+    button: {
+      type: SectionHeaderButtonSchema,
       required: false,
     },
   },
@@ -80,6 +141,10 @@ const TourCategorySchema = new Schema<ITourCategory>(
     },
     seo: {
       type: SEOSchema,
+      required: false,
+    },
+    sectionHeader: {
+      type: SectionHeaderSchema,
       required: false,
     },
     isActive: {

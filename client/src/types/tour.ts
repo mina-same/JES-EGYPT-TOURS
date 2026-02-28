@@ -15,6 +15,20 @@ export interface ISEO {
   mapSchema?: any;
 }
 
+export interface ISectionHeaderButton {
+  label?: string;
+  href?: string;
+  newTab?: boolean;
+}
+
+export interface ISectionHeader {
+  isEnabled?: boolean;
+  image?: IImage;
+  title?: string;
+  description?: any;
+  button?: ISectionHeaderButton;
+}
+
 // ==================== TOUR CATEGORY ====================
 
 export interface ITourCategory {
@@ -24,6 +38,7 @@ export interface ITourCategory {
   description?: any; // HTML content
   image?: IImage;
   seo?: ISEO;
+  sectionHeader?: ISectionHeader;
   isActive: boolean;
   subcategoriesCount?: number; // Virtual field
   createdAt: Date | string;
@@ -40,6 +55,7 @@ export interface ITourSubcategory {
   description?: any; // HTML content
   image?: IImage;
   seo?: ISEO;
+  sectionHeader?: ISectionHeader;
   isActive: boolean;
   toursCount?: number; // Virtual field
   createdAt: Date | string;
@@ -79,6 +95,7 @@ export interface TourCategoryFormData {
   description?: any;
   image?: IImage;
   seo?: ISEO;
+  sectionHeader?: ISectionHeader;
   isActive: boolean;
 }
 
@@ -89,6 +106,7 @@ export interface TourSubcategoryFormData {
   description?: any;
   image?: IImage;
   seo?: ISEO;
+  sectionHeader?: ISectionHeader;
   isActive: boolean;
 }
 

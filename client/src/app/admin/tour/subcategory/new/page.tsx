@@ -51,6 +51,16 @@ export default function NewSubcategoryPage() {
         alt: '',
       },
     },
+    sectionHeader: {
+      isEnabled: true,
+      title: '',
+      description: '',
+      button: {
+        label: '',
+        href: '',
+        newTab: false,
+      },
+    },
     isActive: true,
   });
 
@@ -127,6 +137,41 @@ export default function NewSubcategoryPage() {
                     alt: '',
                   },
                 },
+            sectionHeader: data.sectionHeader
+              ? {
+                  isEnabled: data.sectionHeader.isEnabled !== undefined ? !!data.sectionHeader.isEnabled : true,
+                  image: data.sectionHeader.image?.url
+                    ? {
+                        url: data.sectionHeader.image.url || '',
+                        fileName: data.sectionHeader.image.fileName || '',
+                        title: data.sectionHeader.image.title || '',
+                        alt: data.sectionHeader.image.alt || '',
+                      }
+                    : undefined,
+                  title: data.sectionHeader.title || '',
+                  description: data.sectionHeader.description || '',
+                  button: data.sectionHeader.button
+                    ? {
+                        label: data.sectionHeader.button.label || '',
+                        href: data.sectionHeader.button.href || '',
+                        newTab: data.sectionHeader.button.newTab !== undefined ? !!data.sectionHeader.button.newTab : false,
+                      }
+                    : {
+                        label: '',
+                        href: '',
+                        newTab: false,
+                      },
+                }
+              : {
+                  isEnabled: true,
+                  title: '',
+                  description: '',
+                  button: {
+                    label: '',
+                    href: '',
+                    newTab: false,
+                  },
+                },
             isActive: data.isActive !== undefined ? !!data.isActive : true,
           });
         } else if (isEditMode && !subcatRes?.success) {
@@ -158,19 +203,16 @@ export default function NewSubcategoryPage() {
     setFormData(prev => {
       const updated = { ...prev };
       
-      // Handle nested fields
+      // Handle nested fields (supports deep paths like sectionHeader.button.label)
       if (field.includes('.')) {
-        const [parent, child] = field.split('.');
-        const parentKey = parent as keyof TourSubcategoryFormData;
-        const currentValue = updated[parentKey];
-        
-        // Type-safe nested object update
-        if (typeof currentValue === 'object' && currentValue !== null) {
-          (updated as any)[parentKey] = {
-            ...currentValue,
-            [child]: value,
-          };
+        const keys = field.split('.');
+        let cursor: any = updated;
+        for (let i = 0; i < keys.length - 1; i++) {
+          const k = keys[i];
+          cursor[k] = typeof cursor[k] === 'object' && cursor[k] !== null ? cursor[k] : {};
+          cursor = cursor[k];
         }
+        cursor[keys[keys.length - 1]] = value;
       } else {
         (updated as any)[field] = value;
       }
@@ -254,6 +296,38 @@ export default function NewSubcategoryPage() {
         }
       }
 
+      // Remove empty section header fields
+      if (cleanData.sectionHeader) {
+        const sh: any = { ...cleanData.sectionHeader };
+
+        // Only include image if it has a real URL
+        if (sh.image?.url) {
+          // Ensure fileName is present if URL exists
+          if (!sh.image.fileName) {
+            sh.image.fileName = sh.image.url.split('/').pop() || 'image';
+          }
+        } else {
+          delete sh.image;
+        }
+
+        if (sh.button && (!sh.button.label || !sh.button.href)) {
+          delete sh.button;
+        }
+
+        const hasSectionHeaderData =
+          sh.isEnabled === false ||
+          !!sh.title ||
+          !!sh.description ||
+          !!sh.image?.url ||
+          !!sh.button;
+
+        if (hasSectionHeaderData) {
+          cleanData.sectionHeader = sh;
+        } else {
+          delete cleanData.sectionHeader;
+        }
+      }
+
       // Build a clean payload (avoid sending _id/createdAt/etc from fetched data)
       const payload: TourSubcategoryFormData = {
         category: cleanData.category,
@@ -285,6 +359,10 @@ export default function NewSubcategoryPage() {
 
           payload.seo = seoPayload;
         }
+      }
+
+      if (cleanData.sectionHeader) {
+        payload.sectionHeader = cleanData.sectionHeader;
       }
 
       let response;
@@ -534,6 +612,120 @@ export default function NewSubcategoryPage() {
                   description="Image for social media sharing and SEO"
                   maxImages={1}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section Header */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Section Header</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="sectionHeaderEnabled"
+                  checked={formData.sectionHeader?.isEnabled !== false}
+                  onCheckedChange={(checked) => handleChange('sectionHeader.isEnabled', checked)}
+                />
+                <Label htmlFor="sectionHeaderEnabled">Enable section header</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Section Header Image</Label>
+                <ImageUpload
+                  images={formData.sectionHeader?.image ? [{
+                    url: formData.sectionHeader.image.url || '',
+                    title: formData.sectionHeader.image.title || '',
+                    alt: formData.sectionHeader.image.alt || '',
+                    fileName: formData.sectionHeader.image.fileName || '',
+                  }] : []}
+                  onAdd={() => {
+                    if (!formData.sectionHeader?.image) handleChange('sectionHeader.image', { url: '', title: '', alt: '', fileName: '' });
+                  }}
+                  onRemove={() => {
+                    handleChange('sectionHeader.image', undefined);
+                  }}
+                  onUpdate={(index, field, value) => {
+                    setFormData(prev => {
+                      const currentSH = (prev.sectionHeader || { isEnabled: true }) as any;
+                      const currentImage = currentSH.image || { url: '', title: '', alt: '', fileName: '' };
+                      return {
+                        ...prev,
+                        sectionHeader: {
+                          ...currentSH,
+                          image: {
+                            ...currentImage,
+                            [field]: value,
+                          },
+                        },
+                      };
+                    });
+                  }}
+                  onUpload={async (file, index) => {
+                    const result = await handleImageUpload(file);
+                    if (result && index === 0) {
+                      handleChange('sectionHeader.image.url', result.url);
+                      handleChange('sectionHeader.image.fileName', result.fileName);
+                    }
+                    return result;
+                  }}
+                  title="Section Header Image"
+                  description="Optional image shown in the section header"
+                  maxImages={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sectionHeaderTitle">Header Title</Label>
+                <Input
+                  id="sectionHeaderTitle"
+                  value={formData.sectionHeader?.title || ''}
+                  onChange={(e) => handleChange('sectionHeader.title', e.target.value)}
+                  placeholder="Section title"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Section Description</Label>
+                <RichTextEditor
+                  value={formData.sectionHeader?.description || ''}
+                  onChange={(value: string) => handleChange('sectionHeader.description', value)}
+                  placeholder="Section description..."
+                  className="bg-white dark:bg-slate-900"
+                />
+              </div>
+
+              <Separator />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="sectionHeaderBtnLabel">Button Label</Label>
+                  <Input
+                    id="sectionHeaderBtnLabel"
+                    value={formData.sectionHeader?.button?.label || ''}
+                    onChange={(e) => handleChange('sectionHeader.button.label', e.target.value)}
+                    placeholder="e.g. Contact Us"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sectionHeaderBtnHref">Button Link</Label>
+                  <Input
+                    id="sectionHeaderBtnHref"
+                    value={formData.sectionHeader?.button?.href || ''}
+                    onChange={(e) => handleChange('sectionHeader.button.href', e.target.value)}
+                    placeholder="e.g. /contact or https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="sectionHeaderBtnNewTab"
+                  checked={!!formData.sectionHeader?.button?.newTab}
+                  onCheckedChange={(checked) => handleChange('sectionHeader.button.newTab', checked)}
+                />
+                <Label htmlFor="sectionHeaderBtnNewTab">Open button link in new tab</Label>
               </div>
             </CardContent>
           </Card>

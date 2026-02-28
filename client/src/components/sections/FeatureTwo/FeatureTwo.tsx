@@ -59,12 +59,12 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   title,
   titleSpan,
   subtitle,
-  uniqueId,
-  headerStyle,
-  showPartners = false,
-  partners = [],
-  partnersTitle,
-  partnersSubtitle,
+  // uniqueId,
+  // headerStyle,
+  // showPartners = false,
+  // partners = [],
+  // partnersTitle,
+  // partnersSubtitle,
   showShape = true,
 }) => {
   const [isOpen, setOpen] = useState(false);
@@ -131,11 +131,11 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                 </div>
               </div>
               <div className='col-lg-4'>
-                <div className='feature-package__bottom__nav'>
-                  <button className='feature-package__carousel__nav--left'>
+                <div className='feature-package__bottom__nav owl-nav'>
+                  <button type="button" role="presentation" className='owl-prev' aria-label='carousel previous'>
                     <span className='icon-arrow-left'></span>
                   </button>
-                  <button className='feature-package__carousel__nav--right'>
+                  <button type="button" role="presentation" className='owl-next' aria-label='carousel next'>
                     <span className='icon-arrow-right'></span>
                   </button>
                 </div>
@@ -154,9 +154,11 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                     gutter: 30,
                     loop: false,
                     smartSpeed: 700,
-                    nav: true,
+                    nav: false,
                     dots: true,
-                    autoplay: false,
+                    controls: true,
+                    mouseDrag: true,
+                    controlsContainer: ".owl-nav",
                     responsive: getResponsiveSettings(),
                   }}
                 >
@@ -264,7 +266,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                           <div className='listing-card-four__content__btn'>
                             <div className='listing-card-four__price'>
                               <span className='listing-card-four__price__sub'>
-                                Per Day
+                                Start from
                               </span>
                               <span className='listing-card-four__price__number'>
                                 {item.price}

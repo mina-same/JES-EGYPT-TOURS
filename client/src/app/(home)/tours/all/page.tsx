@@ -18,7 +18,10 @@ export default function AllToursPage() {
      <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title='All Tours' subTitle='Tour Listing' />
+      <PageHeader
+        title='All Tours'
+        breadcrumbs={[{ label: 'Destination', href: '/tours' }]}
+      />
       <TourListing />
       <AboutOne extraclass='about-one--one' />
       <FooterOne />

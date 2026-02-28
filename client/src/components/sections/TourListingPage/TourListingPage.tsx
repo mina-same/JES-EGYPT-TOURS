@@ -8,6 +8,7 @@ import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import Link from "next/link";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 interface TourListingData {
   sectionTitle: string;
@@ -17,10 +18,12 @@ interface TourListingData {
     hotelTypes: string[];
     tourBudgets: string[];
     activities: string[];
+    hotelTypes2?: string[];
     reviews: string[];
     prices: string[];
   };
   tours: {
+    id: string;
     image: StaticImageData;
     title: string;
     location: string;
@@ -37,13 +40,15 @@ interface TourListingData {
 }
 
 const TourListingPage: React.FC = () => {
+  const data = tourListingPageData as any;
   const {
     sectionTitle,
     sectionTagline,
     filterOptions,
     tours,
     images,
-  }: TourListingData = tourListingPageData;
+  } = data;
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
 
@@ -203,7 +208,20 @@ const TourListingPage: React.FC = () => {
                             {tour.price}
                             <span>/Per day</span>
                           </h5>
-                          <i className='far fa-heart'></i>
+                          <button 
+                            type="button" 
+                            className="wishlist-btn"
+                            onClick={() => toggleWishlist(tour.id)}
+                            style={{ 
+                              background: 'none', 
+                              border: 'none', 
+                              padding: 0,
+                              cursor: 'pointer',
+                              color: isInWishlist(tour.id) ? '#e53e3e' : 'inherit'
+                            }}
+                          >
+                            <i className={isInWishlist(tour.id) ? 'fas fa-heart' : 'far fa-heart'}></i>
+                          </button>
                         </div>
                       </div>
                     </div>

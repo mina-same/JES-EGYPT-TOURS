@@ -81,11 +81,35 @@ html, body {
   padding: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   position: sticky;
-  top: 0; /* Adjust this to match your site header height if needed */
+  top: 0;
   z-index: 1000;
   background-color: #fff;
   width: 100%;
 }
+
+.tour-listing-details__sidebar {
+  position: sticky;
+  top: 75px;
+}
+
+/* Ensure tour slider items always stretch to full slide width */
+.tour-one__carousel .item,
+.tour-one__carousel .item > div,
+.tour-one__item {
+  width: 100%;
+}
+.listing-card-four__btns,
+.listing-card-four__btns__hover {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listing-card-four__btns a.is-active { background-color: #fff; border-color: #fff; }
+.listing-card-four__btns a.is-active i { color: #e53e3e; }
+
+.listing-card-four__meta { background-color: #f2c43c; color: #fff; border-radius: 18px; padding: 12px 18px; min-height: 56px; }
+.listing-card-four__meta .meta-text { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
 
 .tour-details-nav {
   display: flex;
@@ -142,7 +166,7 @@ html, body {
 }
 
 .tour-section {
-  scroll-margin-top: 140px;
+  scroll-margin-top: 120px;
   padding-top: 40px;
   padding-bottom: 40px;
   border-bottom: 1px solid #f0f0f0;
@@ -873,7 +897,7 @@ body {
   margin-bottom: 0;
 }
 
-@media (max-width: 991px) {
+@media (max-width: 575px) {
   .tour-listing-details__sidebar {
     position: relative;
     top: 0;
@@ -1358,4 +1382,21 @@ div[suppressHydrationWarning] {
 .tour-gallery-link:hover .tour-gallery-image {
   transform: scale(1.05);
   transition: transform 0.4s ease;
+}
+
+/* ==========================================================================
+   FIX: Bootstrap Accordion Collapse Visibility Issue
+   ========================================================================== */
+/* Override Bootstrap's .collapse class visibility to fix FAQ accordion content disappearing */
+.accordion-collapse.collapse {
+  visibility: visible !important;
+}
+
+.accordion-collapse.collapse.show {
+  visibility: visible !important;
+  display: block !important;
+}
+
+.accordion-collapse.collapsing {
+  visibility: visible !important;
 }

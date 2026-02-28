@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -175,10 +176,12 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <AuthProvider>
-              <NotificationProvider>
-                {children}
-                <Toaster />
-              </NotificationProvider>
+              <WishlistProvider>
+                <NotificationProvider>
+                  {children}
+                  <Toaster />
+                </NotificationProvider>
+              </WishlistProvider>
             </AuthProvider>
           </ThemeProvider>
         </ErrorBoundary>
