@@ -27,6 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
+      <head>
+        <meta name="robots" content="noindex, nofollow" />
+      </head>
       <body className={`${jakartaSans.variable} ${justAnotherHand.variable}`} suppressHydrationWarning>
         <Script
           id="strip-bis-attributes"

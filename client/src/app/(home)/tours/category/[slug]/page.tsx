@@ -19,6 +19,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI as tourApiForFetch } from "@/lib/api/tour";
 import { toast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
+import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
 
 // Reuse types from TourListing or define here
 
@@ -337,59 +338,23 @@ export default function TourCategoryPage({ params }: { params: Promise<{ slug: s
 
       {(() => {
         const sh = category?.sectionHeader;
+        const images = Array.isArray(sh?.images) && sh.images.length
+          ? sh.images
+          : (sh?.image?.url ? [sh.image] : []);
         const hasData =
           sh &&
           sh.isEnabled !== false &&
-          (!!sh?.title || !!sh?.description || !!sh?.image?.url || (!!sh?.button?.label && !!sh?.button?.href));
+          (!!sh?.title || !!sh?.description || images.length > 0 || (!!sh?.button?.label && !!sh?.button?.href));
 
         if (!hasData) return null;
 
         return (
-          <section className="section-space-top">
-            <Container>
-              <Row className="align-items-center gutter-y-30">
-                {sh?.image?.url && (
-                  <Col lg={5}>
-                    <div className="relative w-full" style={{ height: 320, borderRadius: 16, overflow: 'hidden' }}>
-                      <Image
-                        src={sh.image.url}
-                        alt={sh.image.alt || sh.image.title || sh.title || category.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  </Col>
-                )}
-
-                <Col lg={sh?.image?.url ? 7 : 12}>
-                  {sh?.title && (
-                    <h2 style={{ fontSize: 34, fontWeight: 800, marginBottom: 12 }}>{sh.title}</h2>
-                  )}
-
-                  {sh?.description && (
-                    <div
-                      className="text-gray-700 prose prose-sm max-w-none [&_a]:text-[#b79c5c] [&_a]:font-semibold [&_a]:no-underline hover:[&_a]:underline"
-                      dangerouslySetInnerHTML={{ __html: String(sh.description) }}
-                    />
-                  )}
-
-                  {sh?.button?.label && sh?.button?.href && (
-                    <div style={{ marginTop: 18 }}>
-                      <Link
-                        href={sh.button.href}
-                        className="gotur-btn"
-                        target={sh.button.newTab ? '_blank' : undefined}
-                        rel={sh.button.newTab ? 'noreferrer noopener' : undefined}
-                      >
-                        {sh.button.label}
-                      </Link>
-                    </div>
-                  )}
-                </Col>
-              </Row>
-            </Container>
-          </section>
+          <EnhancedSectionHeader
+            title={sh?.title}
+            descriptionHtml={sh?.description ? String(sh.description) : ''}
+            button={sh?.button}
+            images={images}
+          />
         );
       })()}
       

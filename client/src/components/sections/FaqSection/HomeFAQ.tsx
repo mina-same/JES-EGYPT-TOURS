@@ -3,91 +3,38 @@
 import React, { useEffect, useState } from "react";
 import { Container, Accordion } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
-import { HelpCircle, Loader2 } from "lucide-react";
+import { ChevronDown, HelpCircle, Loader2 } from "lucide-react";
 
 const HomeFAQ: React.FC = () => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeKey, setActiveKey] = useState<string | null>("0");
 
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
         setLoading(true);
-        const response = await faqService.getHomeFaqs(8);
-        
+        setError(null);
+
+        const response = await faqService.getAllFaqs({
+          isActive: true,
+          displayOnHome: true,
+          sort: "category,order",
+          limit: 8,
+        });
+
         if (response.success && response.data) {
           setFaqs(response.data);
-        } else {
-          // If no dedicated FAQs, fallback to tour FAQs (existing logic)
-          await fetchTourFaqs();
+          return;
         }
+
+        setFaqs([]);
       } catch (err) {
         console.error("Error fetching home FAQs:", err);
-        // Fallback to tour FAQs
-        await fetchTourFaqs();
+        setError("Failed to load FAQs");
       } finally {
         setLoading(false);
-      }
-    };
-
-    const fetchTourFaqs = async () => {
-      try {
-        const { tourAPI } = await import("@/lib/api/tour");
-        const response = await tourAPI.getFeatured();
-        if (response.success && response.data) {
-          const allFaqs: FAQ[] = [];
-          response.data.forEach((tour: any) => {
-            if (tour.faqs && Array.isArray(tour.faqs)) {
-              tour.faqs.forEach((f: any) => {
-                if (f.question && f.answer) {
-                  allFaqs.push({
-                    _id: `tour-${tour._id}-${f.question.slice(0, 10)}`,
-                    question: f.question,
-                    answer: f.answer,
-                    category: tour.heading || tour.name,
-                    isActive: true,
-                    order: 0,
-                    displayOnHome: true,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                  });
-                }
-              });
-            }
-          });
-          
-          // If we don't have enough FAQs, fetch regular tours
-          if (allFaqs.length < 5) {
-             const allToursResponse = await tourAPI.getAll({ limit: 20 });
-             if (allToursResponse.success && allToursResponse.data) {
-                allToursResponse.data.forEach((tour: any) => {
-                    if (tour.faqs && Array.isArray(tour.faqs)) {
-                        tour.faqs.forEach((f: any) => {
-                            if (f.question && f.answer && !allFaqs.some(existing => existing.question === f.question)) {
-                                allFaqs.push({
-                                  _id: `tour-${tour._id}-${f.question.slice(0, 10)}`,
-                                  question: f.question,
-                                  answer: f.answer,
-                                  category: tour.heading || tour.name,
-                                  isActive: true,
-                                  order: 0,
-                                  displayOnHome: true,
-                                  createdAt: new Date().toISOString(),
-                                  updatedAt: new Date().toISOString()
-                                });
-                            }
-                        });
-                    }
-                });
-             }
-          }
-
-          setFaqs(allFaqs.slice(0, 8));
-        }
-      } catch (tourErr) {
-        console.error("Error fetching tour FAQs:", tourErr);
-        setError("Failed to load FAQs");
       }
     };
 
@@ -116,40 +63,60 @@ const HomeFAQ: React.FC = () => {
         </div>
 
         <div className="faq-accordion mx-auto" style={{ maxWidth: '900px' }}>
-          <Accordion defaultActiveKey="0">
-            {faqs.map((faq, index) => (
-              <Accordion.Item eventKey={String(index)} key={faq._id}>
-                <Accordion.Header>
-                  <div className="faq-header-content d-flex align-items-center gap-3 w-100">
-                    <div className="faq-icon-box">
-                      <HelpCircle size={20} />
+          <Accordion
+            activeKey={activeKey ?? undefined}
+            onSelect={(eventKey) => setActiveKey(eventKey as string | null)}
+          >
+            {faqs.map((faq, index) => {
+              const eventKey = String(index);
+              const isOpen = activeKey === eventKey;
+
+              return (
+                <Accordion.Item eventKey={eventKey} key={faq._id}>
+                  <Accordion.Header>
+                    <div className="faq-header-content d-flex align-items-center gap-3 w-100">
+                      <div className="faq-icon-box">
+                        <HelpCircle size={20} />
+                      </div>
+                      <div className="faq-question-box text-start flex-grow-1">
+                        <h4 className="faq-question-title">
+                          {faq.question}
+                        </h4>
+                      </div>
+                      <div
+                        className="faq-chevron"
+                        style={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          alignItems: "center",
+                          transition: "transform 200ms ease",
+                          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                        }}
+                      >
+                        <ChevronDown size={18} />
+                      </div>
                     </div>
-                    <div className="faq-question-box text-start">
-                      <h4 className="faq-question-title">
-                        {faq.question}
-                      </h4>
+                  </Accordion.Header>
+                  <Accordion.Body>
+                    <div className="accordion-content">
+                      <div className="inner">
+                        <div
+                          className="inner__text"
+                          dangerouslySetInnerHTML={{ __html: faq.answer }}
+                        />
+                        {faq.category && (
+                          <div className="mt-3">
+                            <small className="text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px', color: '#b79c5c', fontWeight: '700' }}>
+                              Category: {faq.category}
+                            </small>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Accordion.Header>
-                <Accordion.Body>
-                  <div className="accordion-content">
-                    <div className="inner">
-                      <div 
-                        className="inner__text" 
-                        dangerouslySetInnerHTML={{ __html: faq.answer }} 
-                      />
-                      {faq.category && (
-                        <div className="mt-3">
-                          <small className="text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px', color: '#b79c5c', fontWeight: '700' }}>
-                            Category: {faq.category}
-                          </small>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Accordion.Body>
-              </Accordion.Item>
-            ))}
+                  </Accordion.Body>
+                </Accordion.Item>
+              );
+            })}
           </Accordion>
         </div>
       </Container>

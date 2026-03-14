@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,9 +18,13 @@ import AboutOne from "@/components/sections/AboutOne/AboutOne";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI as tourApiForFetch } from "@/lib/api/tour";
 import { toast } from "@/hooks/use-toast";
+import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function TourSubCategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [loading, setLoading] = useState(true);
   const [subcategory, setSubcategory] = useState<any>(null);
@@ -31,7 +35,104 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
   const [videoIds, setVideoIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sort, setSort] = useState<string>("-createdAt");
   const toursPerPage = 10;
+  const prevSlugRef = useRef<string | null>(null);
+
+  // Filters state (same as category page)
+  const [draftFilters, setDraftFilters] = useState({
+    search: "",
+    minPrice: "",
+    maxPrice: "",
+    tourType: "",
+    tourStyle: "",
+  });
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: "",
+    minPrice: "",
+    maxPrice: "",
+    tourType: "",
+    tourStyle: "",
+  });
+  const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
+  const [tourStyleOptions, setTourStyleOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fromQueryPage = Number(searchParams?.get("page") || "1");
+    const safePage = Number.isFinite(fromQueryPage) && fromQueryPage > 0 ? Math.floor(fromQueryPage) : 1;
+    const fromSort = searchParams?.get("sort") || "-createdAt";
+
+    const next = {
+      search: searchParams?.get("search") || "",
+      minPrice: searchParams?.get("minPrice") || "",
+      maxPrice: searchParams?.get("maxPrice") || "",
+      tourType: searchParams?.get("tourType") || "",
+      tourStyle: searchParams?.get("tourStyle") || "",
+    };
+
+    setCurrentPage(safePage);
+    setSort(fromSort);
+    setDraftFilters(next);
+    setAppliedFilters(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  const buildUrl = (overrides?: Partial<{ page: number; sort: string }> & Partial<typeof appliedFilters>) => {
+    const p = overrides?.page ?? currentPage;
+    const s = overrides?.sort ?? sort;
+    const f = {
+      ...appliedFilters,
+      ...overrides,
+    };
+
+    const sp = new URLSearchParams();
+    if (p && p !== 1) sp.set("page", String(p));
+    if (s && s !== "-createdAt") sp.set("sort", s);
+    if (f.search) sp.set("search", f.search);
+    if (f.minPrice) sp.set("minPrice", f.minPrice);
+    if (f.maxPrice) sp.set("maxPrice", f.maxPrice);
+    if (f.tourType) sp.set("tourType", f.tourType);
+    if (f.tourStyle) sp.set("tourStyle", f.tourStyle);
+
+    const qs = sp.toString();
+    return `/tours/subcategory/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    router.replace(buildUrl({ page }), { scroll: false } as any);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters(draftFilters);
+    setCurrentPage(1);
+    router.replace(buildUrl({
+      page: 1,
+      ...draftFilters,
+    }), { scroll: false } as any);
+  };
+
+  const handleResetFilters = () => {
+    const empty = {
+      search: "",
+      minPrice: "",
+      maxPrice: "",
+      tourType: "",
+      tourStyle: "",
+    };
+    setDraftFilters(empty);
+    setAppliedFilters(empty);
+    setSort("-createdAt");
+    setCurrentPage(1);
+    router.replace(`/tours/subcategory/${encodeURIComponent(slug)}`, { scroll: false } as any);
+  };
+
+  const handleSortChange = (nextSort: string) => {
+    setSort(nextSort);
+    setCurrentPage(1);
+    router.replace(buildUrl({ page: 1, sort: nextSort }), { scroll: false } as any);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -202,59 +303,23 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
 
       {(() => {
         const sh = subcategory?.sectionHeader;
+        const images = Array.isArray(sh?.images) && sh.images.length
+          ? sh.images
+          : (sh?.image?.url ? [sh.image] : []);
         const hasData =
           sh &&
           sh.isEnabled !== false &&
-          (!!sh?.title || !!sh?.description || !!sh?.image?.url || (!!sh?.button?.label && !!sh?.button?.href));
+          (!!sh?.title || !!sh?.description || images.length > 0 || (!!sh?.button?.label && !!sh?.button?.href));
 
         if (!hasData) return null;
 
         return (
-          <section className="section-space-top">
-            <Container>
-              <Row className="align-items-center gutter-y-30">
-                {sh?.image?.url && (
-                  <Col lg={5}>
-                    <div className="relative w-full" style={{ height: 320, borderRadius: 16, overflow: 'hidden' }}>
-                      <Image
-                        src={sh.image.url}
-                        alt={sh.image.alt || sh.image.title || sh.title || subcategory.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  </Col>
-                )}
-
-                <Col lg={sh?.image?.url ? 7 : 12}>
-                  {sh?.title && (
-                    <h2 style={{ fontSize: 34, fontWeight: 800, marginBottom: 12 }}>{sh.title}</h2>
-                  )}
-
-                  {sh?.description && (
-                    <div
-                      className="text-gray-700 prose prose-sm max-w-none [&_a]:text-[#b79c5c] [&_a]:font-semibold [&_a]:no-underline hover:[&_a]:underline"
-                      dangerouslySetInnerHTML={{ __html: String(sh.description) }}
-                    />
-                  )}
-
-                  {sh?.button?.label && sh?.button?.href && (
-                    <div style={{ marginTop: 18 }}>
-                      <Link
-                        href={sh.button.href}
-                        className="gotur-btn"
-                        target={sh.button.newTab ? '_blank' : undefined}
-                        rel={sh.button.newTab ? 'noreferrer noopener' : undefined}
-                      >
-                        {sh.button.label}
-                      </Link>
-                    </div>
-                  )}
-                </Col>
-              </Row>
-            </Container>
-          </section>
+          <EnhancedSectionHeader
+            title={sh?.title}
+            descriptionHtml={sh?.description ? String(sh.description) : ''}
+            button={sh?.button}
+            images={images}
+          />
         );
       })()}
 

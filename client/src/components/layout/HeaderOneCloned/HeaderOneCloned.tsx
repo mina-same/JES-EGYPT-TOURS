@@ -3,13 +3,13 @@ import React from "react";
 import Image from "next/image";
 
 import Link from "next/link"; // Assuming we're using Next.js for routing
-import { navItems, headerOneNavItems } from "@/data/navItems"; // Import the navItems data
 import DemoPages from "@/components/common/DemoPages/DemoPages";
 import main_logo from "@/assets/images/logo-dark.png";
 import { usePathname } from "next/navigation";
 import useStore from "@/store/useStore";
 import useScrollUp from "@/hooks/useScrollUp";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 interface NavItem {
   id: number;
   title: string;
@@ -20,18 +20,26 @@ interface NavItem {
 const HeaderOneCloned: React.FC = () => {
   const scrollToTop = useScrollUp(500);
   const pathname = usePathname();
+  const { menu } = useHeaderMenu("header-main");
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
     changeSideBarDrawerStatus,
   } = useStore();
   const { wishlist } = useWishlist();
-  const renderSubMenu = (subMenu: NavItem[]) => (
+  const renderSubMenu = (subMenu: any[]) => (
     <ul className=''>
       {subMenu.map((item: any, index: number) => (
-        <li key={index} className={item.subMenu ? "dropdown" : ""}>
-          <Link href={item.link}>{item.title}</Link>
-          {item.subMenu && renderSubMenu(item.subMenu)}
+        <li
+          key={index}
+          className={(Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0)
+            ? "dropdown"
+            : ""}
+        >
+          <Link href={item.url || item.link || "#"}>{item.label || item.title}</Link>
+          {((Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0))
+            ? renderSubMenu(item.children || item.subMenu)
+            : null}
         </li>
       ))}
     </ul>
@@ -40,10 +48,7 @@ const HeaderOneCloned: React.FC = () => {
     changeMobileDrawerStatus();
     console.log("clicked");
   };
-  const nav =
-    pathname === "/home1-one" || pathname === "/home3-one"
-      ? headerOneNavItems
-      : navItems;
+  const nav = Array.isArray(menu?.items) ? menu!.items : [];
   return (
     <header
       className={`main-header main-header--one sticky-header sticky-header--normal sticky-header--cloned ${
@@ -58,25 +63,30 @@ const HeaderOneCloned: React.FC = () => {
             </Link>
           </div>
 
-          <div className='main-header__right'>
-            <nav className='main-header__nav main-menu'>
-              <ul className='main-menu__list'>
+          <div className='main-header__right' style={{ display: "flex", alignItems: "center" }}>
+            <nav className='main-header__nav main-menu' style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+              <ul className='main-menu__list' style={{ justifyContent: "center" }}>
                 {/* Render Home menu with showcase */}
                 <li className='dropdown megamenu'>
                   <Link href='/'>Home</Link>
                   <DemoPages />
                 </li>
 
-                {nav.map((item: NavItem) => (
+                {nav.map((item: any) => (
+                  (() => {
+                    const hasChildren = (Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0);
+                    return (
                   <li
-                    className={`${item.subMenu ? "dropdown" : ""} ${
-                      pathname === item.link ? "current" : ""
+                    className={`${hasChildren ? "dropdown" : ""} ${
+                      pathname === (item.url || item.link) ? "current" : ""
                     }`}
-                    key={item.id}
+                    key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={item.link || "#"}>{item.title}</Link>
-                    {item.subMenu && renderSubMenu(item.subMenu)}
+                    <Link href={item.url || item.link || "#"}>{item.label || item.title}</Link>
+                    {hasChildren ? renderSubMenu(item.children || item.subMenu) : null}
                   </li>
+                    );
+                  })()
                 ))}
               </ul>
             </nav>

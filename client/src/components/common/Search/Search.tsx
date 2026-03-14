@@ -2,9 +2,11 @@
 
 import useStore from "@/store/useStore";
 import React, { useEffect, useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 const Search: React.FC = () => {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
@@ -18,7 +20,10 @@ const Search: React.FC = () => {
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    console.log(formData.get("search"));
+    const raw = formData.get("search");
+    const q = typeof raw === "string" ? raw.trim() : "";
+    const url = q ? `/search?q=${encodeURIComponent(q)}` : "/search";
+    router.push(url);
     changeSearchPopupStatus();
   };
 

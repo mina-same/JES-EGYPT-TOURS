@@ -23,6 +23,7 @@ import {
   Calendar,
   Database,
   Layout,
+  Menu as MenuIcon,
   Sun,
   Moon,
 } from "lucide-react"
@@ -161,6 +162,12 @@ const menuItems = [
     title: 'Content Management',
     icon: Database,
     items: [
+      {
+        id: 'menus',
+        title: 'Menus',
+        icon: MenuIcon,
+        url: '/admin/content-management/menus',
+      },
       {
         id: 'slider-content',
         title: 'Slider Content',

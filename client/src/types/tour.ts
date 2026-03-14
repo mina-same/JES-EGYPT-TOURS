@@ -24,6 +24,7 @@ export interface ISectionHeaderButton {
 export interface ISectionHeader {
   isEnabled?: boolean;
   image?: IImage;
+  images?: IImage[];
   title?: string;
   description?: any;
   button?: ISectionHeaderButton;

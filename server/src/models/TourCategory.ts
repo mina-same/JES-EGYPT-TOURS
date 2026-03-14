@@ -19,6 +19,7 @@ export interface ISectionHeaderButton {
 export interface ISectionHeader {
   isEnabled?: boolean;
   image?: IImage;
+  images?: IImage[];
   title?: string;
   description?: any;
   button?: ISectionHeaderButton;
@@ -93,6 +94,10 @@ const SectionHeaderSchema = new Schema<ISectionHeader>(
     },
     image: {
       type: ImageSchema,
+      required: false,
+    },
+    images: {
+      type: [ImageSchema],
       required: false,
     },
     title: {

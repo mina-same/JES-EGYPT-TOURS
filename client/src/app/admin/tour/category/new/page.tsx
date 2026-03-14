@@ -75,6 +75,9 @@ export default function NewCategoryPage() {
       console.log('Fetched category data:', response);
       if (response.success && response.data) {
         const data = response.data as any;
+        const sectionHeaderImages = Array.isArray(data.sectionHeader?.images) && data.sectionHeader.images.length
+          ? data.sectionHeader.images
+          : (data.sectionHeader?.image?.url ? [data.sectionHeader.image] : []);
         setFormData({
           name: data.name || '',
           slug: data.slug || '',
@@ -125,14 +128,7 @@ export default function NewCategoryPage() {
           sectionHeader: data.sectionHeader
             ? {
                 isEnabled: data.sectionHeader.isEnabled !== undefined ? !!data.sectionHeader.isEnabled : true,
-                image: data.sectionHeader.image?.url
-                  ? {
-                      url: data.sectionHeader.image.url || '',
-                      fileName: data.sectionHeader.image.fileName || '',
-                      title: data.sectionHeader.image.title || '',
-                      alt: data.sectionHeader.image.alt || '',
-                    }
-                  : undefined,
+                images: sectionHeaderImages,
                 title: data.sectionHeader.title || '',
                 description: data.sectionHeader.description || '',
                 button: data.sectionHeader.button
@@ -273,13 +269,28 @@ export default function NewCategoryPage() {
       if (cleanData.sectionHeader) {
         const sh: any = { ...cleanData.sectionHeader };
 
-        // Only include image if it has a real URL
-        if (sh.image?.url) {
-          // Ensure fileName is present if URL exists
-          if (!sh.image.fileName) {
-            sh.image.fileName = sh.image.url.split('/').pop() || 'image';
-          }
-        } else {
+        if (Array.isArray(sh.images)) {
+          sh.images = sh.images
+            .filter((img: any) => !!img?.url)
+            .map((img: any) => {
+              const next = { ...img };
+              if (!next.fileName) next.fileName = String(next.url).split('/').pop() || 'image';
+              return next;
+            });
+          if (sh.images.length === 0) delete sh.images;
+        }
+
+        // Backward compatibility: keep sectionHeader.image as the first image
+        if (!sh.image && Array.isArray(sh.images) && sh.images[0]?.url) {
+          sh.image = sh.images[0];
+        }
+
+        // If image exists, ensure fileName
+        if (sh.image?.url && !sh.image.fileName) {
+          sh.image.fileName = sh.image.url.split('/').pop() || 'image';
+        }
+
+        if (sh.image && !sh.image.url) {
           delete sh.image;
         }
 
@@ -292,6 +303,7 @@ export default function NewCategoryPage() {
           !!sh.title ||
           !!sh.description ||
           !!sh.image?.url ||
+          (Array.isArray(sh.images) && sh.images.length > 0) ||
           !!sh.button;
 
         if (hasSectionHeaderData) {
@@ -589,47 +601,61 @@ export default function NewCategoryPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Section Header Image</Label>
+              <Label>Section Header Images</Label>
               <ImageUpload
-                images={formData.sectionHeader?.image ? [{
-                  url: formData.sectionHeader.image.url || '',
-                  title: formData.sectionHeader.image.title || '',
-                  alt: formData.sectionHeader.image.alt || '',
-                  fileName: formData.sectionHeader.image.fileName || '',
-                }] : []}
+                images={Array.isArray(formData.sectionHeader?.images) ? formData.sectionHeader!.images!.map((img: any) => ({
+                  url: img?.url || '',
+                  title: img?.title || '',
+                  alt: img?.alt || '',
+                  fileName: img?.fileName || '',
+                })) : []}
                 onAdd={() => {
-                  handleChange('sectionHeader.image', { url: '', title: '', alt: '', fileName: '' });
+                  const next = Array.isArray(formData.sectionHeader?.images) ? [...(formData.sectionHeader!.images as any[])] : [];
+                  next.push({ url: '', title: '', alt: '', fileName: '' });
+                  handleChange('sectionHeader.images', next);
                 }}
-                onRemove={() => {
-                  handleChange('sectionHeader.image', undefined);
+                onRemove={(index) => {
+                  const next = Array.isArray(formData.sectionHeader?.images) ? [...(formData.sectionHeader!.images as any[])] : [];
+                  next.splice(index, 1);
+                  handleChange('sectionHeader.images', next);
                 }}
                 onUpdate={(index, field, value) => {
                   setFormData(prev => {
                     const currentSH = (prev.sectionHeader || { isEnabled: true }) as any;
-                    const currentImage = currentSH.image || { url: '', title: '', alt: '', fileName: '' };
+                    const currentImages = Array.isArray(currentSH.images) ? [...currentSH.images] : [];
+                    const currentImage = currentImages[index] || { url: '', title: '', alt: '', fileName: '' };
+                    currentImages[index] = { ...currentImage, [field]: value };
                     return {
                       ...prev,
                       sectionHeader: {
                         ...currentSH,
-                        image: {
-                          ...currentImage,
-                          [field]: value,
-                        },
+                        images: currentImages,
                       },
                     };
                   });
                 }}
                 onUpload={async (file, index) => {
                   const result = await handleImageUpload(file);
-                  if (result && index === 0) {
-                    handleChange('sectionHeader.image.url', result.url);
-                    handleChange('sectionHeader.image.fileName', result.fileName);
+                  if (result) {
+                    setFormData(prev => {
+                      const currentSH = (prev.sectionHeader || { isEnabled: true }) as any;
+                      const currentImages = Array.isArray(currentSH.images) ? [...currentSH.images] : [];
+                      const current = currentImages[index] || { url: '', title: '', alt: '', fileName: '' };
+                      currentImages[index] = { ...current, url: result.url, fileName: result.fileName };
+                      return {
+                        ...prev,
+                        sectionHeader: {
+                          ...currentSH,
+                          images: currentImages,
+                        },
+                      };
+                    });
                   }
                   return result;
                 }}
                 title="Section Header Image"
                 description="Optional image shown in the section header"
-                maxImages={1}
+                maxImages={6}
               />
             </div>
 

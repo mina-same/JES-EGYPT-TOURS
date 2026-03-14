@@ -48,6 +48,55 @@ export const TinySliderWrapper = forwardRef<any, TinySliderWrapperProps>(
       };
     }, []);
 
+    useEffect(() => {
+      if (!isMounted) return;
+
+      let cancelled = false;
+
+      const patchDestroy = () => {
+        if (cancelled) return;
+
+        const sliderInstance = internalRef.current?.slider;
+        if (!sliderInstance) {
+          requestAnimationFrame(patchDestroy);
+          return;
+        }
+
+        if (sliderInstance.__safeDestroyPatched) return;
+
+        const originalDestroy =
+          typeof sliderInstance.destroy === "function"
+            ? sliderInstance.destroy.bind(sliderInstance)
+            : null;
+
+        if (originalDestroy) {
+          sliderInstance.destroy = (...args: any[]) => {
+            try {
+              if (sliderInstance.container && !sliderInstance.container.parentNode) {
+                return;
+              }
+            } catch {
+              return;
+            }
+
+            try {
+              return originalDestroy(...args);
+            } catch {
+              return;
+            }
+          };
+        }
+
+        sliderInstance.__safeDestroyPatched = true;
+      };
+
+      patchDestroy();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [isMounted]);
+
     // Don't render anything until client-side hydration is complete
     if (!isMounted) {
       return <div className={className || "tiny-slider-placeholder"}>{children}</div>;

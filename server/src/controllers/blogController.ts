@@ -16,7 +16,8 @@ export const getAllBlogs = async (
       limit = 10, 
       tags,
       isFeatured,
-      search 
+      search,
+      sort
     } = req.query;
 
     const query: any = { status: 'published' };
@@ -45,10 +46,13 @@ export const getAllBlogs = async (
 
     const skip = (Number(page) - 1) * Number(limit);
 
+    const sortParam = String(sort || '').toLowerCase();
+    const sortExpr = sortParam === 'popular' ? '-viewCount -publishedAt' : '-publishedAt';
+
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
       .select('-comments') // Exclude comments from list view
-      .sort({ publishedAt: -1 })
+      .sort(sortExpr)
       .skip(skip)
       .limit(Number(limit));
 

@@ -25,10 +25,6 @@ import Preloader from "@/components/common/Preloader/Preloader";
  const Drawer = dynamic(() => import("@/components/layout/Drawer/Drawer"), {
    ssr: false,
  });
- const DrawerTwo = dynamic(
-   () => import("@/components/layout/DrawerTwo/DrawerTwo"),
-   { ssr: false }
- );
  const Sidebar = dynamic(() => import("@/components/common/Sidebar/Sidebar"), {
    ssr: false,
  });
@@ -136,7 +132,6 @@ export default function RootLayout({
             <>
               <LayoutObserver />
               <Drawer />
-              <DrawerTwo />
               <Sidebar />
               <Search />
             </>

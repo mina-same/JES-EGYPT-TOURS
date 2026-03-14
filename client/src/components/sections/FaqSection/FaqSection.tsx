@@ -4,7 +4,7 @@ import { Accordion, Col, Container, Row } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
-import { HelpCircle, Loader2 } from "lucide-react";
+import { ChevronDown, HelpCircle, Loader2 } from "lucide-react";
 import image from "@/assets/images/resources/faq-sidebar.png";
 // types.ts
 interface Faq {
@@ -26,6 +26,59 @@ interface FaqTabContent {
     faqs: Faq[];
   }[];
 }
+
+const AnimatedFaqAccordion: React.FC<{ faqs: Faq[] }> = ({ faqs }) => {
+  const [activeKey, setActiveKey] = useState<string | null>("0");
+
+  return (
+    <Accordion
+      activeKey={activeKey ?? undefined}
+      onSelect={(eventKey) => setActiveKey(eventKey as string | null)}
+      className=' wow fadeInUp'
+      data-wow-duration='1500ms'
+      data-wow-delay='500ms'
+    >
+      {faqs.map((faq, idx) => {
+        const eventKey = idx.toString();
+        const isOpen = activeKey === eventKey;
+
+        return (
+          <Accordion.Item eventKey={eventKey} key={idx}>
+            <Accordion.Header>
+              <div className="faq-header-content d-flex align-items-center gap-3 w-100">
+                <div className="faq-icon-box">
+                  <HelpCircle size={20} />
+                </div>
+                <div className="faq-question-box text-start flex-grow-1">
+                  <h4 className="faq-question-title">{faq.question}</h4>
+                </div>
+                <div
+                  className="faq-chevron"
+                  style={{
+                    marginLeft: "auto",
+                    display: "flex",
+                    alignItems: "center",
+                    transition: "transform 200ms ease",
+                    transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  }}
+                >
+                  <ChevronDown size={18} />
+                </div>
+              </div>
+            </Accordion.Header>
+            <Accordion.Body>
+              <div className='accordion-content'>
+                <div className='inner'>
+                  <p className='inner__text'>{faq.answer}</p>
+                </div>
+              </div>
+            </Accordion.Body>
+          </Accordion.Item>
+        );
+      })}
+    </Accordion>
+  );
+};
 
 export interface FaqData {
   title: string;
@@ -60,14 +113,18 @@ const FaqSection: React.FC = () => {
 
         const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
-        const grouped = response.data.reduce((acc, faq) => {
+        const faqsForFaqPage = response.data.filter((f) => !f.displayOnHome);
+
+        const grouped = faqsForFaqPage.reduce((acc, faq) => {
           const category = faq.category || "General";
           if (!acc[category]) acc[category] = [];
           acc[category].push(faq);
           return acc;
         }, {} as Record<string, FAQ[]>);
 
-        const categories = Object.keys(grouped);
+        const categories = Object.keys(grouped).sort((a, b) =>
+          a.localeCompare(b, undefined, { sensitivity: "base" })
+        );
 
         const tabs: FaqTab[] = categories.map((category, index) => ({
           id: String(index + 1),
@@ -233,41 +290,7 @@ const FaqSection: React.FC = () => {
                           >
                             {faq.title}
                           </div>
-                          <Accordion
-                            defaultActiveKey='0'
-                            className=' wow fadeInUp'
-                            data-wow-duration='1500ms'
-                            data-wow-delay='500ms'
-                          >
-                            {faq.faqs.map((faq, idx) => (
-                              <Accordion.Item
-                                eventKey={idx.toString()}
-                                key={idx}
-                              >
-                                <Accordion.Header>
-                                  <div className="faq-header-content d-flex align-items-center gap-3 w-100">
-                                    <div className="faq-icon-box">
-                                      <HelpCircle size={20} />
-                                    </div>
-                                    <div className="faq-question-box text-start">
-                                      <h4 className="faq-question-title">
-                                        {faq.question}
-                                      </h4>
-                                    </div>
-                                  </div>
-                                </Accordion.Header>
-                                <Accordion.Body>
-                                  <div className='accordion-content'>
-                                    <div className='inner'>
-                                      <p className='inner__text'>
-                                        {faq.answer}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </Accordion.Body>
-                              </Accordion.Item>
-                            ))}
-                          </Accordion>
+                          <AnimatedFaqAccordion faqs={faq.faqs} />
                         </div>
                       ))}
                     </div>

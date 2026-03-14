@@ -4,9 +4,9 @@ import useStore from "@/store/useStore";
 import Link from "next/link";
 import Image, { StaticImageData } from "next/image";
 import logo from "@/assets/images/logo-light.png";
-import { navItems } from "@/data/navItems";
 import { demoPages } from "@/data/demoPages";
 import { Col, Container, Row } from "react-bootstrap";
+import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 
 interface SubMenu {
   id: number;
@@ -40,6 +40,7 @@ const Drawer: React.FC = () => {
     changeMobileDrawerStatus,
     setMobileDrawerStatus,
   } = useStore();
+  const { menu } = useHeaderMenu('header-main');
   const [isItems, setIsItems] = useState<number | null>(null);
   const [isSubItems, setIsSubItems] = useState<number | null>(null);
   const [openNavItemId, setOpenNavItemId] = useState<number | null>(null);
@@ -153,53 +154,54 @@ const Drawer: React.FC = () => {
               </ul>
             </li>
 
-            {navItems.map((item: NavItem) => (
+            {(Array.isArray(menu?.items) ? (menu!.items as any[]) : []).map((item: any, idx: number) => (
+              (() => {
+                const children = item.children || item.subMenu;
+                const hasChildren = Array.isArray(children) && children.length > 0;
+                return (
               <li
-                key={item.id}
-                className={`${item.subMenu ? "dropdown" : ""} ${
-                  isItems === item.id ? "open" : ""
+                key={item._id || item.id || `${item.label || item.title}-${idx}`}
+                className={`${hasChildren ? "dropdown" : ""} ${
+                  isItems === idx ? "open" : ""
                 }`}
               >
                 <Link
-                  href={item.link || "#"}
-                  className={`${isItems === item.id ? "expanded" : ""}`}
+                  href={item.url || item.link || "#"}
+                  className={`${isItems === idx ? "expanded" : ""}`}
                 >
-                  {item.title}
-                  {item.subMenu && (
+                  {item.label || item.title}
+                  {hasChildren && (
                     <button
-                      onClick={() => toggleDropdown(item.id)}
-                      className={`${isItems === item.id ? "expanded" : ""}`}
+                      onClick={() => toggleDropdown(idx)}
+                      className={`${isItems === idx ? "expanded" : ""}`}
                     >
                       <i className='fa fa-angle-down'></i>
                     </button>
                   )}
                 </Link>
 
-                <ul
-                  className={`close ${openNavItemId === item.id ? "open" : ""}`}
-                >
-                  {item.subMenu?.map((subMenu: SubMenu) => (
+                {hasChildren ? (
+                  <ul
+                    className={`close ${openNavItemId === idx ? "open" : ""}`}
+                  >
+                    {children.map((subMenu: any, sidx: number) => (
                     <li
-                      key={subMenu.id}
-                      className={`${subMenu.subMenu ? "dropdown" : ""} ${
-                        isSubItems === subMenu.id ? "open" : ""
+                      key={subMenu._id || subMenu.id || `${subMenu.label || subMenu.title}-${sidx}`}
+                      className={`${(subMenu.children || subMenu.subMenu) ? "dropdown" : ""} ${
+                        isSubItems === sidx ? "open" : ""
                       }`}
                     >
                       <div className=' main-menu__list__wrapper'>
                         <Link
-                          href={subMenu.link || "#"}
-                          className={`${
-                            isSubItems === subMenu.id ? "expanded" : ""
-                          }`}
+                          href={subMenu.url || subMenu.link || "#"}
+                          className={`${isSubItems === sidx ? "expanded" : ""}`}
                         >
-                          {subMenu.title}{" "}
+                          {subMenu.label || subMenu.title}{" "}
                         </Link>
-                        {subMenu.subMenu && (
+                        {(subMenu.children || subMenu.subMenu) && (
                           <button
-                            onClick={() => toggleSubItemDropdown(subMenu.id)}
-                            className={`${
-                              isSubItems === subMenu.id ? "expanded" : ""
-                            }`}
+                            onClick={() => toggleSubItemDropdown(sidx)}
+                            className={`${isSubItems === sidx ? "expanded" : ""}`}
                           >
                             <i className='fa fa-angle-down'></i>
                           </button>
@@ -207,22 +209,23 @@ const Drawer: React.FC = () => {
                       </div>
 
                       <ul
-                        className={`close ${
-                          openSubItemId === subMenu.id ? "open" : ""
-                        }`}
+                        className={`close ${openSubItemId === sidx ? "open" : ""}`}
                       >
-                        {subMenu.subMenu?.map((subSubItem: SubMenu) => (
-                          <li key={subSubItem.id}>
-                            <Link href={subSubItem.link || "#"}>
-                              {subSubItem.title}
+                        {(subMenu.children || subMenu.subMenu)?.map((subSubItem: any, ssidx: number) => (
+                          <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
+                            <Link href={subSubItem.url || subSubItem.link || "#"}>
+                              {subSubItem.label || subSubItem.title}
                             </Link>
                           </li>
                         ))}
                       </ul>
                     </li>
                   ))}
-                </ul>
+                  </ul>
+                ) : null}
               </li>
+                );
+              })()
             ))}
           </ul>
         </div>

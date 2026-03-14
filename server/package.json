@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "seed": "ts-node src/scripts/seedAdmin.ts",
     "seed:blogs": "ts-node src/scripts/seedBlogs.ts",
+    "seed:menus": "ts-node src/scripts/seedMenus.ts",
     "seed:tours": "ts-node src/seeds/tourSeeder.ts",
     "seed:general-content": "ts-node src/seeds/generalContentSeeder.ts",
     "seed:video-reviews": "ts-node src/seeds/videoReviewSeeder.ts",
