@@ -7,7 +7,7 @@ import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { Loader2, ChevronRight } from "lucide-react";
+import { Loader2, ChevronRight, Check } from "lucide-react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -364,29 +364,42 @@ export default function TourCategoryPage({ params }: { params: Promise<{ slug: s
           <Container>
             <div className="subcategory-slider-wrapper">
               <div className="subcategory-slider">
-                {subcategories.map((sub) => (
-                  <div key={sub._id} className="subcategory-slide">
-                    <Link href={`/tours/subcategory/${sub.slug}`} className="subcategory-card-link">
-                      <div className="subcategory-card">
-                        <div className="subcategory-card__image-box">
-                          <Image
-                            src={sub.image?.url || "/assets/images/resources/tour-1-1.jpg"}
-                            alt={sub.name}
-                            fill
-                            className="subcategory-card__image"
-                          />
-                          <div className="subcategory-card__overlay" />
+                {subcategories.map((sub: any) => {
+                  const isActive = appliedFilters.subcategoryId === sub._id;
+                  return (
+                    <div key={sub._id} className="subcategory-slide">
+                      <Link 
+                        href={isActive 
+                          ? `/tours/category/${slug}` 
+                          : `/tours/subcategory/${sub.slug}`
+                        } 
+                        className="subcategory-card-link"
+                      >
+                        <div className={`subcategory-card${isActive ? " is-active" : ""}`}>
+                          <div className="subcategory-card__image-box">
+                            <Image
+                              src={sub.image?.url || "/assets/images/resources/tour-1-1.jpg"}
+                              alt={sub.name}
+                              fill
+                              className="subcategory-card__image"
+                            />
+                            <div className="subcategory-card__overlay" />
+                          </div>
+                          <div className="subcategory-card__content">
+                            <h3 className="subcategory-card__title">{sub.name}</h3>
+                            <span className="subcategory-card__icon">
+                              {isActive ? (
+                                <Check className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </span>
+                          </div>
                         </div>
-                        <div className="subcategory-card__content">
-                          <h3 className="subcategory-card__title">{sub.name}</h3>
-                          <span className="subcategory-card__icon">
-                            <ChevronRight className="w-4 h-4" />
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                ))}
+                      </Link>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </Container>
@@ -823,65 +836,22 @@ export default function TourCategoryPage({ params }: { params: Promise<{ slug: s
           flex: 0 0 auto;
           width: 180px;
         }
-        .subcategory-card {
-          border-radius: 12px;
-          overflow: hidden;
-          background: #fff;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-          transition: transform 0.2s, box-shadow 0.2s;
-          cursor: pointer;
-          height: 140px;
-          display: flex;
-          flex-direction: column;
+
+        .subcategory-card.is-active {
+          box-shadow: 0 0 0 2px var(--gotur-primary, #b79c5c), 0 6px 16px rgba(0,0,0,0.12);
         }
-        .subcategory-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .subcategory-card.is-active .subcategory-card__content {
+          background: var(--gotur-primary, #b79c5c);
         }
-        .subcategory-card__image-box {
-          position: relative;
-          flex: 1;
-          min-height: 0;
+        .subcategory-card.is-active .subcategory-card__title {
+          color: #1d231f;
         }
-        .subcategory-card__image {
-          object-fit: cover;
+        .subcategory-card.is-active .subcategory-card__icon {
+          background: rgba(255,255,255,0.9);
+          color: #1d231f;
         }
-        .subcategory-card__overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
-        }
-        .subcategory-card__content {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          color: white;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-        }
-        .subcategory-card__title {
-          font-size: 14px;
-          font-weight: 700;
-          margin: 0;
-          line-height: 1.2;
-        }
-        .subcategory-card__icon {
-          width: 24px;
-          height: 24px;
-          background: rgba(255,255,255,0.2);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 0.3s ease;
-        }
-        .subcategory-card-link {
-          text-decoration: none;
-          color: inherit;
+        .subcategory-card.is-active:hover .subcategory-card__icon {
+          background: rgba(255,255,255,1);
         }
       `}</style>
       <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />

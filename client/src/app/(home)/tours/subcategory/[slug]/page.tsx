@@ -7,7 +7,7 @@ import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { tourAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, Check } from "lucide-react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -26,7 +26,8 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
   const [subcategory, setSubcategory] = useState<any>(null);
   const [siblingSubcategories, setSiblingSubcategories] = useState<any[]>([]);
   const [tours, setTours] = useState<any[]>([]);
@@ -137,14 +138,26 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        // 1. Fetch Subcategory
+        const isNewSlug = prevSlugRef.current !== slug;
+        if (isNewSlug) {
+          prevSlugRef.current = slug;
+        }
+
+        const isInitial = isNewSlug || subcategory === null;
+        if (isInitial) {
+          setInitialLoading(true);
+        } else {
+          setPageLoading(true);
+        }
+
         const subResponse = await tourSubcategoryAPI.getBySlug(slug);
         if (!subResponse.success || !subResponse.data) {
           setError("Subcategory not found");
-          setLoading(false);
+          setInitialLoading(false);
+          setPageLoading(false);
           return;
         }
+
         setSubcategory(subResponse.data);
 
         const categoryId =
@@ -163,54 +176,87 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
           setSiblingSubcategories([]);
         }
 
-        // 2. Fetch Tours by Subcategory ID with Pagination
-        const toursResponse = await tourAPI.getAll({ 
+        const toursResponse = await tourAPI.getAll({
           subcategory: subResponse.data._id,
           page: currentPage,
-          limit: toursPerPage
+          limit: toursPerPage,
+          sort,
+          ...(appliedFilters.search ? { search: appliedFilters.search } : {}),
+          ...(appliedFilters.minPrice ? { minPrice: Number(appliedFilters.minPrice) } : {}),
+          ...(appliedFilters.maxPrice ? { maxPrice: Number(appliedFilters.maxPrice) } : {}),
+          ...(appliedFilters.tourType ? { tourType: appliedFilters.tourType } : {}),
+          ...(appliedFilters.tourStyle ? { tourStyle: appliedFilters.tourStyle } : {}),
         });
-        
+
         if (toursResponse.success && toursResponse.data) {
           setTotalPages(toursResponse.totalPages || 1);
-          // Map tours
-           const mappedTours = toursResponse.data.map((tour: any) => {
+          const mappedTours = toursResponse.data.map((tour: any) => {
             const galleryImages = [
               ...(tour.images || []).map((img: any) => img.url),
-              ...(tour.gallery || []).map((img: any) => img.url)
+              ...(tour.gallery || []).map((img: any) => img.url),
             ].filter(Boolean);
             const uniqueImages = Array.from(new Set(galleryImages));
 
             return {
               id: tour._id,
               slug: tour.slug,
-              image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg", 
-              allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+              image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+              allImages:
+                uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
               title: tour.heading || tour.name,
               link: `/tours/${tour.slug}`,
               price: tour.priceStartingFrom || 0,
               rating: 5,
               reviews: tour.reviews?.length || 0,
-              videoId: tour.videoLink || "", 
-              discount: "", 
+              videoId: tour.videoLink || "",
+              discount: "",
               meta: [
-                { id: 1, title: `${tour.duration || '3 Days'}`, icon: "icon-clock" },
-                { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
+                { id: 1, title: `${tour.duration || "3 Days"}`, icon: "icon-clock" },
+                { id: 2, title: `${tour.minAge || "12"} +`, icon: "icon-user" },
                 { id: 3, title: tour.tourLocation || "Location", icon: "icon-location" },
-              ]
+              ],
             };
           });
           setTours(mappedTours);
+
+          const types = Array.from(
+            new Set(
+              toursResponse.data
+                .map((t: any) => String(t?.tourType || "").trim())
+                .filter(Boolean)
+            )
+          ).sort();
+          const styles = Array.from(
+            new Set(
+              toursResponse.data
+                .map((t: any) => String(t?.tourStyle || "").trim())
+                .filter(Boolean)
+            )
+          ).sort();
+          setTourTypeOptions(types);
+          setTourStyleOptions(styles);
         }
       } catch (err: any) {
         console.error("Error fetching data:", err);
         setError("An error occurred");
       } finally {
-        setLoading(false);
+        setInitialLoading(false);
+        setPageLoading(false);
       }
     };
 
     fetchData();
-  }, [slug, currentPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    slug,
+    currentPage,
+    sort,
+    appliedFilters.search,
+    appliedFilters.minPrice,
+    appliedFilters.maxPrice,
+    appliedFilters.tourType,
+    appliedFilters.tourStyle,
+  ]);
 
   const getYouTubeVideoId = (url: string): string => {
     if (!url) return "";
@@ -249,12 +295,7 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  if (loading) {
+  if (initialLoading) {
     return (
      <Layout>
       <TopbarOne />
@@ -346,7 +387,11 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
                           <div className="subcategory-card__content">
                             <h3 className="subcategory-card__title">{sub.name}</h3>
                             <span className="subcategory-card__icon">
-                              <ChevronRight className="w-4 h-4" />
+                              {isActive ? (
+                                <Check className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
                             </span>
                           </div>
                         </div>
@@ -362,7 +407,160 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
       
       <section className='tour-listing-page section-space'>
         <Container>
-          <Row className='gutter-y-30 gutter-x-30'>
+          <Row className='gutter-y-40'>
+            {/* Sidebar with filters */}
+            <Col lg={4} xl={3}>
+              <aside className='listing__sidebar'>
+                <div>
+                  <div className='listing__sidebar__item__inner' style={{ borderRadius: 14, border: "1px solid #eee", background: "#fff" }}>
+                    <div style={{ padding: 18, borderBottom: "1px solid #f0f0f0" }}>
+                      <h3 className='listing__sidebar__title' style={{ margin: 0 }}>Filters</h3>
+                    </div>
+
+                    <div style={{ padding: 18, display: "grid", gap: 14 }}>
+                      <div>
+                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Search</label>
+                        <input
+                          className='form-control'
+                          value={draftFilters.search}
+                          onChange={(e) => setDraftFilters((p) => ({ ...p, search: e.target.value }))}
+                          placeholder="Search tours"
+                        />
+                      </div>
+
+                      <div className='row g-2 align-items-end'>
+                        <div className='col-6'>
+                          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Min Price</label>
+                          <div className='input-group'>
+                            <span className='input-group-text'>$</span>
+                            <input
+                              className='form-control'
+                              value={draftFilters.minPrice}
+                              onChange={(e) => setDraftFilters((p) => ({ ...p, minPrice: e.target.value.replace(/[^0-9.]/g, "") }))}
+                              inputMode="decimal"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                        <div className='col-6'>
+                          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Max Price</label>
+                          <div className='input-group'>
+                            <span className='input-group-text'>$</span>
+                            <input
+                              className='form-control'
+                              value={draftFilters.maxPrice}
+                              onChange={(e) => setDraftFilters((p) => ({ ...p, maxPrice: e.target.value.replace(/[^0-9.]/g, "") }))}
+                              inputMode="decimal"
+                              placeholder="9999"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Tour Type</label>
+                        <select
+                          className='form-select'
+                          value={draftFilters.tourType}
+                          onChange={(e) => setDraftFilters((p) => ({ ...p, tourType: e.target.value }))}
+                        >
+                          <option value="">All</option>
+                          {tourTypeOptions.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Tour Style</label>
+                        <select
+                          className='form-select'
+                          value={draftFilters.tourStyle}
+                          onChange={(e) => setDraftFilters((p) => ({ ...p, tourStyle: e.target.value }))}
+                        >
+                          <option value="">All</option>
+                          {tourStyleOptions.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: 18, borderTop: "1px solid #f0f0f0" }}>
+                      <div className='row g-2'>
+                        <div className='col-6'>
+                          <button
+                            type="button"
+                            onClick={handleApplyFilters}
+                            className='gotur-btn'
+                            style={{ width: "100%" }}
+                          >
+                            Apply
+                          </button>
+                        </div>
+                        <div className='col-6'>
+                          <button
+                            type="button"
+                            onClick={handleResetFilters}
+                            className='gotur-btn'
+                            style={{ width: "100%", background: "transparent", color: "#111", border: "1px solid #e5e5e5" }}
+                          >
+                            Reset
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+            </Col>
+
+            {/* Main content area */}
+            <Col lg={8} xl={9}>
+              {/* Sort and filter status bar */}
+              <div className="d-flex flex-wrap justify-content-between align-items-center" style={{ gap: 12, marginBottom: 16 }}>
+                <div style={{ fontSize: 14, color: "#666" }}>
+                  {appliedFilters.search || appliedFilters.minPrice || appliedFilters.maxPrice || appliedFilters.tourType || appliedFilters.tourStyle ? (
+                    <span>
+                      Showing results with filters
+                      <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        style={{ marginLeft: 10, background: "none", border: "none", color: "#b79c5c", fontWeight: 700 }}
+                      >
+                        Clear
+                      </button>
+                    </span>
+                  ) : (
+                    <span>Showing all tours</span>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>Sort by</span>
+                  <select
+                    value={sort}
+                    onChange={(e) => handleSortChange(e.target.value)}
+                    style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e5e5", background: "#fff", minWidth: 220 }}
+                  >
+                    <option value="-createdAt">Newest</option>
+                    <option value="createdAt">Oldest</option>
+                    <option value="-viewCount">Most Viewed</option>
+                    <option value="heading">Name A-Z</option>
+                    <option value="tourLocation">Location A-Z</option>
+                    <option value="priceStartingFrom">Price (Low to High)</option>
+                    <option value="-priceStartingFrom">Price (High to Low)</option>
+                  </select>
+                </div>
+              </div>
+
+              {pageLoading && (
+                <div className="flex items-center justify-center mb-4" style={{ minHeight: 40 }}>
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              )}
+
+              <Row className='gutter-y-30 gutter-x-30'>
             {tours.length > 0 ? (
                 tours.map((item: any) => (
                 <Col lg={4} md={6} key={item.id}>
@@ -524,8 +722,10 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
               />
             </Col>
           </Row>
-        </Container>
-      </section>
+        </Col>
+      </Row>
+    </Container>
+  </section>
       <style jsx global>{`
         .subcategory-slider-wrapper {
           overflow-x: auto;
@@ -556,24 +756,21 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
           width: 180px;
         }
         .subcategory-card {
+          background: white;
           border-radius: 12px;
           overflow: hidden;
-          background: #fff;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-          transition: transform 0.2s, box-shadow 0.2s;
-          cursor: pointer;
-          height: 140px;
-          display: flex;
-          flex-direction: column;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+          transition: all 0.3s ease;
+          position: relative;
         }
         .subcategory-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
         .subcategory-card__image-box {
           position: relative;
-          flex: 1;
-          min-height: 0;
+          height: 180px;
+          width: 100%;
         }
         .subcategory-card__image {
           object-fit: cover;
@@ -581,30 +778,25 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
         .subcategory-card__overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+          background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
         }
         .subcategory-card__content {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 12px;
+          padding: 15px;
           display: flex;
-          align-items: center;
           justify-content: space-between;
-          color: white;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+          align-items: center;
+          background: white;
         }
         .subcategory-card__title {
-          font-size: 14px;
+          font-size: 18px;
           font-weight: 700;
           margin: 0;
-          line-height: 1.2;
+          color: #333;
         }
         .subcategory-card__icon {
-          width: 24px;
-          height: 24px;
-          background: rgba(255,255,255,0.2);
+          width: 28px;
+          height: 28px;
+          background: #f0f0f0;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -622,6 +814,19 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ slug
 
         .subcategory-card.is-active {
           box-shadow: 0 0 0 2px var(--gotur-primary, #b79c5c), 0 6px 16px rgba(0,0,0,0.12);
+        }
+        .subcategory-card.is-active .subcategory-card__content {
+          background: var(--gotur-primary, #b79c5c);
+        }
+        .subcategory-card.is-active .subcategory-card__title {
+          color: #1d231f;
+        }
+        .subcategory-card.is-active .subcategory-card__icon {
+          background: rgba(255,255,255,0.9);
+          color: #1d231f;
+        }
+        .subcategory-card.is-active:hover .subcategory-card__icon {
+          background: rgba(255,255,255,1);
         }
       `}</style>
       <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />

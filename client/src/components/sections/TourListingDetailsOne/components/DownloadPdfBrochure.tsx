@@ -103,10 +103,11 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
       if (!el) return;
 
       const canvas = await html2canvas(el, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         logging: false,
         windowWidth: 1200,
+        imageTimeout: 15000,
       });
 
       const pdf = new jsPDF('p', 'pt', 'a4');
@@ -143,9 +144,9 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
           tmpCanvas.height
         );
 
-        const sliceData = tmpCanvas.toDataURL('image/png', 1.0);
+        const sliceData = tmpCanvas.toDataURL('image/jpeg', 0.85);
         if (position > 0) pdf.addPage();
-        pdf.addImage(sliceData, 'PNG', 0, 0, imgWidth, effectiveSliceHeight);
+        pdf.addImage(sliceData, 'JPEG', 0, 0, imgWidth, effectiveSliceHeight, undefined, 'FAST');
 
         remaining -= sliceHeight;
         sourceY += sliceHeight;
@@ -156,6 +157,9 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
 
       // Generate and directly download the PDF
       pdf.save(fileName);
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert('Failed to generate PDF. Please try again.');
     } finally {
       setGenerating(false);
     }
