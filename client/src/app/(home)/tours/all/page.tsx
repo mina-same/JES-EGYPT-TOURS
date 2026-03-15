@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "All Tours || Gotur || Travel & Tour NextJS Template",
-  description: "View all our tours.",
+  title: "All Tours | JES Egypt Tours",
+  description: "Explore all our Egypt tours and experiences.",
 };
 
 export default function AllToursPage() {

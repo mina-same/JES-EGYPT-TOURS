@@ -1,0 +1,3513 @@
+{
+  "stats": {
+    "total_component_files": 225,
+    "used_components": 121,
+    "unused_components": 104,
+    "total_import_edges": 585,
+    "entrypoints_count": 60,
+    "by_folder": {
+      "common": {
+        "used": 19,
+        "unused": 5
+      },
+      "theme-provider.tsx": {
+        "used": 1,
+        "unused": 0
+      },
+      "auth": {
+        "used": 1,
+        "unused": 0
+      },
+      "dashboard": {
+        "used": 1,
+        "unused": 2
+      },
+      "ErrorBoundary.tsx": {
+        "used": 1,
+        "unused": 0
+      },
+      "sections": {
+        "used": 43,
+        "unused": 74
+      },
+      "layout": {
+        "used": 7,
+        "unused": 17
+      },
+      "Home": {
+        "used": 0,
+        "unused": 5
+      },
+      "admin": {
+        "used": 30,
+        "unused": 1
+      },
+      "ui": {
+        "used": 18,
+        "unused": 0
+      }
+    }
+  },
+  "used_components": [
+    "ErrorBoundary.tsx",
+    "admin/AdminHeader.tsx",
+    "admin/AdminPageSkeleton.tsx",
+    "admin/AdminRealtimeListener.tsx",
+    "admin/AdminTable.tsx",
+    "admin/BulkActionsBar.tsx",
+    "admin/ConfirmDeleteModal.tsx",
+    "admin/ContentBlockEditor.tsx",
+    "admin/DashboardKpiCard.tsx",
+    "admin/ImageUpload.tsx",
+    "admin/MiniBarChart.tsx",
+    "admin/PageSkeleton.tsx",
+    "admin/PaginationControls.tsx",
+    "admin/PricingPlansManager.tsx",
+    "admin/SubcategorySelect.tsx",
+    "admin/TagInput.tsx",
+    "admin/ThemeToggle.tsx",
+    "admin/VideoReviewForm.tsx",
+    "admin/app-sidebar.tsx",
+    "admin/skeletons/FiltersSkeleton.tsx",
+    "admin/skeletons/FormSkeleton.tsx",
+    "admin/skeletons/StatCardsSkeleton.tsx",
+    "admin/skeletons/TableSkeleton.tsx",
+    "admin/tour/DetailsTab.tsx",
+    "admin/tour/ItineraryTab.tsx",
+    "admin/tour/MediaTab.tsx",
+    "admin/tour/OverviewTab.tsx",
+    "admin/tour/PricingTab.tsx",
+    "admin/tour/ResourcesTab.tsx",
+    "admin/tour/SEOTab.tsx",
+    "admin/tour/index.ts",
+    "auth/ProtectedRoute.tsx",
+    "common/AnimatedText/TextAnimation.tsx",
+    "common/BlogSidebar/BlogSidebar.tsx",
+    "common/CustomReactSelecTwo/CustomReactSelectTwo.tsx",
+    "common/CustomReactSelect/CustomReactSelect.tsx",
+    "common/CustomSelect/CustomSelect.tsx",
+    "common/DateRangePicker/DateRangePicker.tsx",
+    "common/DemoPages/DemoPages.tsx",
+    "common/EmptyState/EmptyState.tsx",
+    "common/LanguageSelector/LanguageSelector.tsx",
+    "common/MegaMenu/MegaMenu.tsx",
+    "common/Pagination/Pagination.tsx",
+    "common/Preloader/Preloader.tsx",
+    "common/ScrollTop/ScrollTop.tsx",
+    "common/StatCard/StatCard.tsx",
+    "common/TinySliderWrapper.tsx",
+    "common/Toast/Toast.tsx",
+    "common/TopbarOne/TopbarOne.tsx",
+    "common/TourSidebar/TourSidebar.tsx",
+    "common/VideoModal/VideoModal.tsx",
+    "dashboard/UserManagement/DeleteConfirmModal.tsx",
+    "layout/FooterOne/FooterOne.tsx",
+    "layout/HeaderInner/HeaderInner.tsx",
+    "layout/HeaderInnerCloned/HeaderInnerCloned.tsx",
+    "layout/HeaderOne/HeaderOne.tsx",
+    "layout/HeaderOneCloned/HeaderOneCloned.tsx",
+    "layout/Layout/Layout.tsx",
+    "layout/SingleNavItems/SingleNavItems.tsx",
+    "sections/AboutOne/AboutOne.tsx",
+    "sections/AboutTestimonials/AboutTestimonials.tsx",
+    "sections/BannerForm/BannerForm.tsx",
+    "sections/BlogTwoTwo/BlogTwoTwo.tsx",
+    "sections/Calender/Calender.tsx",
+    "sections/ClientCarousel/ClientCarousel.tsx",
+    "sections/ContactPage/ContactPage.tsx",
+    "sections/ContactTop/ContactTop.tsx",
+    "sections/CtaTwo/CtaTwo.tsx",
+    "sections/DestinationCarouselTwo/DestinationCarouselTwo.tsx",
+    "sections/DynamicBlogDetails/DynamicBlogDetails.tsx",
+    "sections/DynamicBlogGrid/DynamicBlogGrid.tsx",
+    "sections/EnhancedSectionHeader/EnhancedSectionHeader.tsx",
+    "sections/Error404/Error404.tsx",
+    "sections/FaqSection/FaqSection.tsx",
+    "sections/FaqSection/FaqStructuredData.tsx",
+    "sections/FaqSection/HomeFAQ.tsx",
+    "sections/FeatureTwo/FeatureTwo.tsx",
+    "sections/HomeIntro/HomeIntro.tsx",
+    "sections/HowItWorks/HowItWorks.tsx",
+    "sections/InstagramOne/InstagramOne.tsx",
+    "sections/LoginSection/LoginSection.tsx",
+    "sections/MainSliderFour/MainSliderFour.tsx",
+    "sections/MasonryWrapper/MasonryWrapper.tsx",
+    "sections/OfferOne/OfferOne.tsx",
+    "sections/OfferTwo/OfferTwo.tsx",
+    "sections/PageHeader/PageHeader.tsx",
+    "sections/ReflectiveReviews/ReflectiveReviews.tsx",
+    "sections/SearchResultsPage/SearchResultsPage.tsx",
+    "sections/TestimonialsTwo/TestimonialsTwo.tsx",
+    "sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+    "sections/TourListingDetailsOne/components/BookingForm.tsx",
+    "sections/TourListingDetailsOne/components/DownloadPdfBrochure.tsx",
+    "sections/TourListingDetailsOne/components/PricingPlans.tsx",
+    "sections/TourListingDetailsOne/components/TourBrochure.tsx",
+    "sections/TourListingDetailsOne/components/TourCarousel.tsx",
+    "sections/TourListingDetailsOne/components/TourHeader.tsx",
+    "sections/TourListingDetailsOne/components/TourInfoBar.tsx",
+    "sections/TourListingDetailsOne/components/TourPlan.tsx",
+    "sections/TourListingDetailsOne/types.ts",
+    "sections/TourListingDetailsOne/useTourData.ts",
+    "sections/TourListingDetailsTwo/TourReviews2.tsx",
+    "sections/whyChooseUs/whyChoseeUs.tsx",
+    "theme-provider.tsx",
+    "ui/RichTextEditor.tsx",
+    "ui/badge.tsx",
+    "ui/button.tsx",
+    "ui/card.tsx",
+    "ui/collapsible.tsx",
+    "ui/dropdown-menu.tsx",
+    "ui/input.tsx",
+    "ui/label.tsx",
+    "ui/select.tsx",
+    "ui/separator.tsx",
+    "ui/sheet.tsx",
+    "ui/sidebar.tsx",
+    "ui/skeleton.tsx",
+    "ui/switch.tsx",
+    "ui/textarea.tsx",
+    "ui/toast.ts",
+    "ui/toaster.tsx",
+    "ui/tooltip.tsx"
+  ],
+  "unused_components": [
+    "Home/DemoSection/DemoSection.tsx",
+    "Home/FeatureOneDemo/FeatureOneDemo.tsx",
+    "Home/FeatureTwoDemo/FeatureTwoDemo.tsx",
+    "Home/FooterDemo/FooterDemo.tsx",
+    "Home/HeroSection/HeroSection.tsx",
+    "admin/NotFoundYet/NotFoundYet.tsx",
+    "common/AnimatedText/AnimatedText.tsx",
+    "common/AnimatedText/AnimationTwo.tsx",
+    "common/AnimatedText/SplitText.tsx",
+    "common/Search/Search.tsx",
+    "common/Sidebar/Sidebar.tsx",
+    "dashboard/UserManagement/UserModal.tsx",
+    "dashboard/UserManagement/UserTable.tsx",
+    "layout/BoxWrapper/BoxWrapper.tsx",
+    "layout/Drawer/Drawer.tsx",
+    "layout/DrawerTwo/DrawerTwo.tsx",
+    "layout/HeaderFour/HeaderFour.tsx",
+    "layout/HeaderFour/HeaderFourSingle.tsx",
+    "layout/HeaderFourCloned/HeaderFourCloned copy.tsx",
+    "layout/HeaderFourCloned/HeaderFourCloned.tsx",
+    "layout/HeaderInner/HeaderInnerSingle.tsx",
+    "layout/HeaderInnerCloned/HeaderInnerSingleCloned.tsx",
+    "layout/HeaderOne/HeaderOneSingle.tsx",
+    "layout/HeaderOneCloned/HeaderOneSingleCloned.tsx",
+    "layout/HeaderTwo/HeaderTwo.tsx",
+    "layout/HeaderTwo/HeaderTwoSingle.tsx",
+    "layout/HeaderTwoCloned/HeaderTwoCloned.tsx",
+    "layout/HeaderTwoCloned/HeaderTwoSingleCloned.tsx",
+    "layout/LayoutObserver/LayoutObserver.tsx",
+    "layout/StyleSwitcher/StyleSwitcher.tsx",
+    "sections/AboutFive/AboutFive.tsx",
+    "sections/AboutFiveTwo/AboutFiveTwo.tsx",
+    "sections/AboutOneThree/AboutOneThree.tsx",
+    "sections/AboutOneTwo/AboutOneTwo.tsx",
+    "sections/AboutTestimonialsTwo/AboutTestimonialsTwo.tsx",
+    "sections/AboutTwo/AboutTwo.tsx",
+    "sections/BlogCarousel/BlogCarousel.tsx",
+    "sections/BlogDetails/BlogDetails.tsx",
+    "sections/BlogFive/BlogFive.tsx",
+    "sections/BlogGrid/BlogGrid.tsx",
+    "sections/BlogLeft/BlogLeft.tsx",
+    "sections/BlogList/BlogList.tsx",
+    "sections/BlogListLeft/BlogListLeft.tsx",
+    "sections/BlogListright/BlogListRight.tsx",
+    "sections/BlogRight/BlogRight.tsx",
+    "sections/BlogThree/BlogThree.tsx",
+    "sections/BlogTwo/BlogTwo.tsx",
+    "sections/CheckoutSection/CheckoutSection.tsx",
+    "sections/CtaFive/CtaFive.tsx",
+    "sections/CtaFour/CtaFour.tsx",
+    "sections/CtaThree/CtaThree.tsx",
+    "sections/DestinationDetails/DestinationDetails.tsx",
+    "sections/DestinationFilter/DestinationFilter.tsx",
+    "sections/DestinationOne/DestinationOne.tsx",
+    "sections/DestinationOneLeft/DestinationOneLeft.tsx",
+    "sections/DestinationOneRight/DestinationOneRight.tsx",
+    "sections/DestinationTwo/DestinationTwo.tsx",
+    "sections/DestinationTwoCarousel/DestinationTwoCarousel.tsx",
+    "sections/DestinationTwoLeft/DestinationTwoLeft.tsx",
+    "sections/DestinationTwoRight/DestinationTwoRight.tsx",
+    "sections/DestinationsOneCarousel/DestinationOneCarousel.tsx",
+    "sections/DestinationsThree/DestinationThree.tsx",
+    "sections/FaqSection/FaqSearch.tsx",
+    "sections/FeatureOne/FeatureOne.tsx",
+    "sections/Gallery/Gallery.tsx",
+    "sections/GalleryFilter/GalleryFilter.tsx",
+    "sections/MainSliderOne/MainSliderOne.tsx",
+    "sections/MainSliderThree/MainSliderThree.tsx",
+    "sections/MainSliderTwo/MainSliderTwo.tsx",
+    "sections/PopularDestination/PopularDestination.tsx",
+    "sections/PricingOne/PricingOne.tsx",
+    "sections/TeamCarousel/TeamCarousel.tsx",
+    "sections/TeamDetails/TeamDetails.tsx",
+    "sections/TeamPage/TeamPage.tsx",
+    "sections/TeamSkillOne/TeamSkillOne.tsx",
+    "sections/TestimonialsPage/TestimonialsPage.tsx",
+    "sections/TestimonialsPageCarousel/TestimonialsPageCarousel.tsx",
+    "sections/TestimonialsThree/TestimonialsThree.tsx",
+    "sections/TourListing/TourListing.tsx",
+    "sections/TourListingDetailsOne/components/BookWithConfidence.tsx",
+    "sections/TourListingDetailsOne/components/DownloadPdf.tsx",
+    "sections/TourListingDetailsOne/components/RelatedTours.tsx",
+    "sections/TourListingDetailsOne/components/ReviewsSection.tsx",
+    "sections/TourListingDetailsOne/components/TourAmenitiesSection.tsx",
+    "sections/TourListingDetailsOne/components/TourDescriptionSection.tsx",
+    "sections/TourListingDetailsOne/components/TourFaqSection.tsx",
+    "sections/TourListingDetailsOne/components/TourGallerySection.tsx",
+    "sections/TourListingDetailsOne/components/TourHonestReviews.tsx",
+    "sections/TourListingDetailsOne/components/TourNavigation.tsx",
+    "sections/TourListingDetailsOne/components/TourReviews2.tsx",
+    "sections/TourListingDetailsOne/components/TourSidebar.tsx",
+    "sections/TourListingDetailsOne/components/TourStructuredData.tsx",
+    "sections/TourListingDetailsOne/hooks/useScrollSpy.ts",
+    "sections/TourListingDetailsOne/index.ts",
+    "sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+    "sections/TourListingList/TourListingList.tsx",
+    "sections/TourListingOneCarousel/TourListingOneCarousel.tsx",
+    "sections/TourListingOneLeft/TourListingOneLeft.tsx",
+    "sections/TourListingOneRight/TourListingOneRight.tsx",
+    "sections/TourListingPage/TourListingPage.tsx",
+    "sections/TourListingTwoCarousel/TourListingTwoCarousel.tsx",
+    "sections/TourListingTwoLeft/TourListingTwoLeft.tsx",
+    "sections/TourListingTwoPage/TourListingTwoPage.tsx",
+    "sections/TourListingTwoRight/TourListingTwoRight.tsx"
+  ],
+  "import_edges": [
+    {
+      "from": "app/layout.tsx",
+      "to": "ErrorBoundary.tsx"
+    },
+    {
+      "from": "app/layout.tsx",
+      "to": "ui/toaster.tsx"
+    },
+    {
+      "from": "app/layout.tsx",
+      "to": "theme-provider.tsx"
+    },
+    {
+      "from": "hooks/use-toast.ts",
+      "to": "ui/toast.ts"
+    },
+    {
+      "from": "components/ui/toaster.tsx",
+      "to": "ui/toast.ts"
+    },
+    {
+      "from": "components/ui/sidebar.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/ui/sidebar.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/ui/sidebar.tsx",
+      "to": "ui/separator.tsx"
+    },
+    {
+      "from": "components/ui/sidebar.tsx",
+      "to": "ui/sheet.tsx"
+    },
+    {
+      "from": "components/ui/sidebar.tsx",
+      "to": "ui/skeleton.tsx"
+    },
+    {
+      "from": "components/ui/sidebar.tsx",
+      "to": "ui/tooltip.tsx"
+    },
+    {
+      "from": "components/auth/ProtectedRoute.tsx",
+      "to": "admin/PageSkeleton.tsx"
+    },
+    {
+      "from": "components/admin/ContentBlockEditor.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/ContentBlockEditor.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/ContentBlockEditor.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "components/admin/ContentBlockEditor.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/ContentBlockEditor.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "components/admin/ContentBlockEditor.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "components/admin/ContentBlockEditor.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/DashboardKpiCard.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/ImageUpload.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/ImageUpload.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/ImageUpload.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/app-sidebar.tsx",
+      "to": "admin/ThemeToggle.tsx"
+    },
+    {
+      "from": "components/admin/app-sidebar.tsx",
+      "to": "ui/sidebar.tsx"
+    },
+    {
+      "from": "components/admin/app-sidebar.tsx",
+      "to": "ui/dropdown-menu.tsx"
+    },
+    {
+      "from": "components/admin/app-sidebar.tsx",
+      "to": "ui/collapsible.tsx"
+    },
+    {
+      "from": "components/admin/AdminHeader.tsx",
+      "to": "ui/sidebar.tsx"
+    },
+    {
+      "from": "components/admin/AdminHeader.tsx",
+      "to": "ui/separator.tsx"
+    },
+    {
+      "from": "components/admin/AdminHeader.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/AdminHeader.tsx",
+      "to": "ui/dropdown-menu.tsx"
+    },
+    {
+      "from": "components/admin/PaginationControls.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/PaginationControls.tsx",
+      "to": "ui/select.tsx"
+    },
+    {
+      "from": "components/admin/AdminPageSkeleton.tsx",
+      "to": "admin/skeletons/StatCardsSkeleton.tsx"
+    },
+    {
+      "from": "components/admin/AdminPageSkeleton.tsx",
+      "to": "admin/skeletons/FiltersSkeleton.tsx"
+    },
+    {
+      "from": "components/admin/AdminPageSkeleton.tsx",
+      "to": "admin/skeletons/TableSkeleton.tsx"
+    },
+    {
+      "from": "components/admin/PricingPlansManager.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/PricingPlansManager.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/PricingPlansManager.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "components/admin/PricingPlansManager.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/PricingPlansManager.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/PricingPlansManager.tsx",
+      "to": "ui/select.tsx"
+    },
+    {
+      "from": "components/common/TopbarOne/TopbarOne.tsx",
+      "to": "common/LanguageSelector/LanguageSelector.tsx"
+    },
+    {
+      "from": "components/common/TourSidebar/TourSidebar.tsx",
+      "to": "common/CustomSelect/CustomSelect.tsx"
+    },
+    {
+      "from": "components/common/DateRangePicker/DateRangePicker.tsx",
+      "to": "common/DateRangePicker/DateRangePicker.tsx"
+    },
+    {
+      "from": "components/dashboard/UserManagement/UserTable.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "components/dashboard/UserManagement/UserTable.tsx",
+      "to": "dashboard/UserManagement/DeleteConfirmModal.tsx"
+    },
+    {
+      "from": "components/admin/tour/ItineraryTab.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/tour/ItineraryTab.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/tour/ItineraryTab.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/tour/ItineraryTab.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/tour/ItineraryTab.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "components/admin/tour/ItineraryTab.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "components/admin/tour/OverviewTab.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/tour/OverviewTab.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/tour/OverviewTab.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/tour/OverviewTab.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "components/admin/tour/OverviewTab.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "components/admin/tour/OverviewTab.tsx",
+      "to": "admin/SubcategorySelect.tsx"
+    },
+    {
+      "from": "components/admin/tour/DetailsTab.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/tour/DetailsTab.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/tour/DetailsTab.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/tour/DetailsTab.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "components/admin/tour/DetailsTab.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/tour/DetailsTab.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "components/admin/tour/SEOTab.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/tour/SEOTab.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/tour/SEOTab.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/tour/SEOTab.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "components/admin/tour/SEOTab.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "components/admin/tour/SEOTab.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "components/admin/tour/MediaTab.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/tour/MediaTab.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/tour/MediaTab.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/tour/MediaTab.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "components/admin/tour/MediaTab.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/tour/PricingTab.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/tour/PricingTab.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/tour/PricingTab.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/tour/PricingTab.tsx",
+      "to": "admin/PricingPlansManager.tsx"
+    },
+    {
+      "from": "components/admin/tour/index.ts",
+      "to": "admin/tour/OverviewTab.tsx"
+    },
+    {
+      "from": "components/admin/tour/index.ts",
+      "to": "admin/tour/MediaTab.tsx"
+    },
+    {
+      "from": "components/admin/tour/index.ts",
+      "to": "admin/tour/ItineraryTab.tsx"
+    },
+    {
+      "from": "components/admin/tour/index.ts",
+      "to": "admin/tour/DetailsTab.tsx"
+    },
+    {
+      "from": "components/admin/tour/index.ts",
+      "to": "admin/tour/PricingTab.tsx"
+    },
+    {
+      "from": "components/admin/tour/index.ts",
+      "to": "admin/tour/ResourcesTab.tsx"
+    },
+    {
+      "from": "components/admin/tour/index.ts",
+      "to": "admin/tour/SEOTab.tsx"
+    },
+    {
+      "from": "components/admin/tour/ResourcesTab.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "components/admin/tour/ResourcesTab.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "components/admin/tour/ResourcesTab.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "components/admin/tour/ResourcesTab.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "components/admin/tour/ResourcesTab.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "components/layout/HeaderFourCloned/HeaderFourCloned.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderFourCloned/HeaderFourCloned copy.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderFourCloned/HeaderFourCloned copy.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/BoxWrapper/BoxWrapper.tsx",
+      "to": "common/ScrollTop/ScrollTop.tsx"
+    },
+    {
+      "from": "components/layout/HeaderFour/HeaderFourSingle.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderFour/HeaderFourSingle.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/HeaderFour/HeaderFour.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/Layout/Layout.tsx",
+      "to": "common/ScrollTop/ScrollTop.tsx"
+    },
+    {
+      "from": "components/layout/HeaderTwoCloned/HeaderTwoCloned.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderTwoCloned/HeaderTwoSingleCloned.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderTwoCloned/HeaderTwoSingleCloned.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/HeaderOneCloned/HeaderOneSingleCloned.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderOneCloned/HeaderOneSingleCloned.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/HeaderOneCloned/HeaderOneCloned.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderOne/HeaderOneSingle.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderOne/HeaderOneSingle.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/HeaderInner/HeaderInnerSingle.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderInner/HeaderInnerSingle.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/HeaderInner/HeaderInner.tsx",
+      "to": "common/MegaMenu/MegaMenu.tsx"
+    },
+    {
+      "from": "components/layout/HeaderTwo/HeaderTwo.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderTwo/HeaderTwoSingle.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderTwo/HeaderTwoSingle.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/HeaderInnerCloned/HeaderInnerSingleCloned.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderInnerCloned/HeaderInnerSingleCloned.tsx",
+      "to": "layout/SingleNavItems/SingleNavItems.tsx"
+    },
+    {
+      "from": "components/layout/HeaderInnerCloned/HeaderInnerCloned.tsx",
+      "to": "common/DemoPages/DemoPages.tsx"
+    },
+    {
+      "from": "components/layout/HeaderInnerCloned/HeaderInnerCloned.tsx",
+      "to": "common/MegaMenu/MegaMenu.tsx"
+    },
+    {
+      "from": "components/layout/DrawerTwo/DrawerTwo.tsx",
+      "to": "common/MegaMenu/MegaMenu.tsx"
+    },
+    {
+      "from": "components/sections/AboutTestimonialsTwo/AboutTestimonialsTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/AboutTestimonialsTwo/AboutTestimonialsTwo.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/BlogGrid/BlogGrid.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/ClientCarousel/ClientCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/PopularDestination/PopularDestination.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/TeamCarousel/TeamCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/BlogFive/BlogFive.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/BlogRight/BlogRight.tsx",
+      "to": "common/BlogSidebar/BlogSidebar.tsx"
+    },
+    {
+      "from": "components/sections/BlogRight/BlogRight.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/BlogCarousel/BlogCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderTwo/MainSliderTwo.tsx",
+      "to": "sections/BannerForm/BannerForm.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderTwo/MainSliderTwo.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoRight/TourListingTwoRight.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoRight/TourListingTwoRight.tsx",
+      "to": "common/TourSidebar/TourSidebar.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoRight/TourListingTwoRight.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/CtaFour/CtaFour.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/AboutFiveTwo/AboutFiveTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/AboutFiveTwo/AboutFiveTwo.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/DynamicBlogDetails/DynamicBlogDetails.tsx",
+      "to": "common/BlogSidebar/BlogSidebar.tsx"
+    },
+    {
+      "from": "components/sections/DestinationDetails/DestinationDetails.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/BlogListLeft/BlogListLeft.tsx",
+      "to": "common/BlogSidebar/BlogSidebar.tsx"
+    },
+    {
+      "from": "components/sections/BlogListLeft/BlogListLeft.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoPage/TourListingTwoPage.tsx",
+      "to": "common/CustomReactSelect/CustomReactSelect.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoPage/TourListingTwoPage.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoPage/TourListingTwoPage.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/CtaTwo/CtaTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderOne/MainSliderOne.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderOne/MainSliderOne.tsx",
+      "to": "sections/BannerForm/BannerForm.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderOne/MainSliderOne.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/DestinationCarouselTwo/DestinationCarouselTwo.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/TestimonialsPageCarousel/TestimonialsPageCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/Gallery/Gallery.tsx",
+      "to": "sections/MasonryWrapper/MasonryWrapper.tsx"
+    },
+    {
+      "from": "components/sections/BlogList/BlogList.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/BlogDetails/BlogDetails.tsx",
+      "to": "common/BlogSidebar/BlogSidebar.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoLeft/TourListingTwoLeft.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoLeft/TourListingTwoLeft.tsx",
+      "to": "common/TourSidebar/TourSidebar.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoLeft/TourListingTwoLeft.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/DestinationsOneCarousel/DestinationOneCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/TourListingList/TourListingList.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/TourListingList/TourListingList.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TourListingList/TourListingList.tsx",
+      "to": "common/TourSidebar/TourSidebar.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderFour/MainSliderFour.tsx",
+      "to": "sections/BannerForm/BannerForm.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderFour/MainSliderFour.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoCarousel/TourListingTwoCarousel.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TourListingTwoCarousel/TourListingTwoCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/AboutFive/AboutFive.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/AboutFive/AboutFive.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/DestinationFilter/DestinationFilter.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/GalleryFilter/GalleryFilter.tsx",
+      "to": "sections/MasonryWrapper/MasonryWrapper.tsx"
+    },
+    {
+      "from": "components/sections/CheckoutSection/CheckoutSection.tsx",
+      "to": "common/CustomReactSelecTwo/CustomReactSelectTwo.tsx"
+    },
+    {
+      "from": "components/sections/BannerForm/BannerForm.tsx",
+      "to": "common/CustomSelect/CustomSelect.tsx"
+    },
+    {
+      "from": "components/sections/BannerForm/BannerForm.tsx",
+      "to": "common/DateRangePicker/DateRangePicker.tsx"
+    },
+    {
+      "from": "components/sections/AboutOne/AboutOne.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/FeatureOne/FeatureOne.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/FeatureOne/FeatureOne.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/FeatureOne/FeatureOne.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/AboutTestimonials/AboutTestimonials.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/AboutTestimonials/AboutTestimonials.tsx",
+      "to": "sections/ClientCarousel/ClientCarousel.tsx"
+    },
+    {
+      "from": "components/sections/AboutTestimonials/AboutTestimonials.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "to": "sections/Calender/Calender.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "to": "sections/TourListingDetailsOne/types.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "to": "sections/TourListingDetailsTwo/TourReviews2.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "to": "sections/TourListingDetailsOne/useTourData.ts"
+    },
+    {
+      "from": "components/sections/BlogThree/BlogThree.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/TourListingOneLeft/TourListingOneLeft.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TourListingOneLeft/TourListingOneLeft.tsx",
+      "to": "common/TourSidebar/TourSidebar.tsx"
+    },
+    {
+      "from": "components/sections/BlogLeft/BlogLeft.tsx",
+      "to": "common/BlogSidebar/BlogSidebar.tsx"
+    },
+    {
+      "from": "components/sections/BlogLeft/BlogLeft.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/HowItWorks/HowItWorks.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/TourListingOneCarousel/TourListingOneCarousel.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TourListingOneCarousel/TourListingOneCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/FeatureTwo/FeatureTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/FeatureTwo/FeatureTwo.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/FeatureTwo/FeatureTwo.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/AboutTwo/AboutTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/AboutTwo/AboutTwo.tsx",
+      "to": "sections/ClientCarousel/ClientCarousel.tsx"
+    },
+    {
+      "from": "components/sections/DestinationsThree/DestinationThree.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/AboutOneThree/AboutOneThree.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/TourListing/TourListing.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TourListing/TourListing.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "common/EmptyState/EmptyState.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/types.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/useTourData.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/components/TourHeader.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/components/TourInfoBar.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/components/BookingForm.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/components/TourPlan.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/components/PricingPlans.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/components/TourCarousel.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsOne/components/DownloadPdfBrochure.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/TourListingDetailsTwo/TourReviews2.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "to": "sections/FeatureTwo/FeatureTwo.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/index.ts",
+      "to": "sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/index.ts",
+      "to": "sections/TourListingDetailsOne/types.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/index.ts",
+      "to": "sections/TourListingDetailsOne/useTourData.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/useTourData.ts",
+      "to": "sections/TourListingDetailsOne/types.ts"
+    },
+    {
+      "from": "components/sections/TestimonialsThree/TestimonialsThree.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/BlogListright/BlogListRight.tsx",
+      "to": "common/BlogSidebar/BlogSidebar.tsx"
+    },
+    {
+      "from": "components/sections/BlogListright/BlogListRight.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/SearchResultsPage/SearchResultsPage.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/SearchResultsPage/SearchResultsPage.tsx",
+      "to": "sections/DynamicBlogGrid/DynamicBlogGrid.tsx"
+    },
+    {
+      "from": "components/sections/BlogTwoTwo/BlogTwoTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderThree/MainSliderThree.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderThree/MainSliderThree.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/MainSliderThree/MainSliderThree.tsx",
+      "to": "sections/BannerForm/BannerForm.tsx"
+    },
+    {
+      "from": "components/sections/OfferOne/OfferOne.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/CtaThree/CtaThree.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/DestinationOne/DestinationOne.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "components/sections/TourListingOneRight/TourListingOneRight.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TourListingOneRight/TourListingOneRight.tsx",
+      "to": "common/TourSidebar/TourSidebar.tsx"
+    },
+    {
+      "from": "components/sections/TourListingPage/TourListingPage.tsx",
+      "to": "common/CustomReactSelect/CustomReactSelect.tsx"
+    },
+    {
+      "from": "components/sections/TourListingPage/TourListingPage.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/TourListingPage/TourListingPage.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "components/sections/TestimonialsTwo/TestimonialsTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/TestimonialsTwo/TestimonialsTwo.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/whyChooseUs/whyChoseeUs.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/whyChooseUs/whyChoseeUs.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/DestinationTwoCarousel/DestinationTwoCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/OfferTwo/OfferTwo.tsx",
+      "to": "common/AnimatedText/TextAnimation.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/TourSidebar.tsx",
+      "to": "sections/TourListingDetailsOne/components/BookingForm.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/DownloadPdf.tsx",
+      "to": "sections/TourListingDetailsOne/types.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/TourGallerySection.tsx",
+      "to": "common/EmptyState/EmptyState.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/TourCarousel.tsx",
+      "to": "common/TinySliderWrapper.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/TourAmenitiesSection.tsx",
+      "to": "common/EmptyState/EmptyState.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/TourBrochure.tsx",
+      "to": "sections/TourListingDetailsOne/types.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/TourFaqSection.tsx",
+      "to": "common/EmptyState/EmptyState.tsx"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/DownloadPdfBrochure.tsx",
+      "to": "sections/TourListingDetailsOne/types.ts"
+    },
+    {
+      "from": "components/sections/TourListingDetailsOne/components/DownloadPdfBrochure.tsx",
+      "to": "sections/TourListingDetailsOne/components/TourBrochure.tsx"
+    },
+    {
+      "from": "app/(home)/layout.tsx",
+      "to": "common/Preloader/Preloader.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/AboutOne/AboutOne.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/FeatureTwo/FeatureTwo.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/OfferTwo/OfferTwo.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/OfferOne/OfferOne.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/DestinationCarouselTwo/DestinationCarouselTwo.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/TestimonialsTwo/TestimonialsTwo.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/InstagramOne/InstagramOne.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/BlogTwoTwo/BlogTwoTwo.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/MainSliderFour/MainSliderFour.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/whyChooseUs/whyChoseeUs.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/ClientCarousel/ClientCarousel.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/ReflectiveReviews/ReflectiveReviews.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/FaqSection/HomeFAQ.tsx"
+    },
+    {
+      "from": "app/(home)/page.tsx",
+      "to": "sections/HomeIntro/HomeIntro.tsx"
+    },
+    {
+      "from": "app/(home)/not-found.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/not-found.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/not-found.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/not-found.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/not-found.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/not-found.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/not-found.tsx",
+      "to": "sections/Error404/Error404.tsx"
+    },
+    {
+      "from": "app/admin/layout.tsx",
+      "to": "admin/app-sidebar.tsx"
+    },
+    {
+      "from": "app/admin/layout.tsx",
+      "to": "admin/AdminHeader.tsx"
+    },
+    {
+      "from": "app/admin/layout.tsx",
+      "to": "auth/ProtectedRoute.tsx"
+    },
+    {
+      "from": "app/admin/layout.tsx",
+      "to": "admin/AdminRealtimeListener.tsx"
+    },
+    {
+      "from": "app/admin/layout.tsx",
+      "to": "ui/sidebar.tsx"
+    },
+    {
+      "from": "app/admin/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/page.tsx",
+      "to": "ui/badge.tsx"
+    },
+    {
+      "from": "app/admin/page.tsx",
+      "to": "admin/DashboardKpiCard.tsx"
+    },
+    {
+      "from": "app/admin/page.tsx",
+      "to": "admin/MiniBarChart.tsx"
+    },
+    {
+      "from": "app/admin/users/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/users/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/users/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/users/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/users/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/users/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/notifications/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/content-management/video-management/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/content-management/video-management/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/content-management/video-management/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/content-management/menus/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/content-management/menus/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/content-management/menus/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/content-management/slider-content/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/content-management/slider-content/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/content-management/slider-content/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/content-management/slider-content/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/new/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/new/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/content-management/menus/[id]/edit/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/content-management/menus/[id]/edit/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/new/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/new/page.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/new/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/content-management/video-management/new/page.tsx",
+      "to": "admin/VideoReviewForm.tsx"
+    },
+    {
+      "from": "app/admin/content-management/video-management/[id]/edit/page.tsx",
+      "to": "admin/VideoReviewForm.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/tour/booking/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/tour/booking/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/tour/booking/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/tour/booking/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/tour/booking/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/tour/booking/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "ui/separator.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "app/admin/tour/subcategory/new/page.tsx",
+      "to": "admin/skeletons/FormSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/new/page.tsx",
+      "to": "admin/tour/index.ts"
+    },
+    {
+      "from": "app/admin/tour/tour/[id]/edit/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/tour/tour/[id]/edit/page.tsx",
+      "to": "admin/tour/index.ts"
+    },
+    {
+      "from": "app/admin/tour/tour/[id]/reviews/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "ui/separator.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/tour/category/new/page.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "app/admin/users/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/users/new/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/users/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/users/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/users/new/page.tsx",
+      "to": "ui/select.tsx"
+    },
+    {
+      "from": "app/admin/users/[id]/edit/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/users/[id]/edit/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/users/[id]/edit/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/users/[id]/edit/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/users/[id]/edit/page.tsx",
+      "to": "ui/select.tsx"
+    },
+    {
+      "from": "app/admin/users/[id]/edit/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/tailor-made/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/tailor-made/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/tailor-made/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/tailor-made/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/tailor-made/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/contact-form/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/contact-form/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/contact-form/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/contact-form/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/contact-form/page.tsx",
+      "to": "admin/AdminPageSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/contact-forms/contact-form/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/page.tsx",
+      "to": "common/StatCard/StatCard.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/page.tsx",
+      "to": "admin/AdminTable.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/page.tsx",
+      "to": "admin/BulkActionsBar.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/page.tsx",
+      "to": "admin/ConfirmDeleteModal.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/page.tsx",
+      "to": "admin/PaginationControls.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/separator.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/select.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "app/admin/blogs/subcategory/new/page.tsx",
+      "to": "admin/skeletons/FormSkeleton.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "ui/select.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "admin/ContentBlockEditor.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/new/page.tsx",
+      "to": "admin/TagInput.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/textarea.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "ui/select.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "admin/ContentBlockEditor.tsx"
+    },
+    {
+      "from": "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "to": "admin/TagInput.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "ui/button.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "ui/input.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "ui/card.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "ui/label.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "ui/switch.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "ui/separator.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "ui/RichTextEditor.tsx"
+    },
+    {
+      "from": "app/admin/blogs/category/new/page.tsx",
+      "to": "admin/ImageUpload.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/tours/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/tours/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/tours/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "sections/ContactTop/ContactTop.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "sections/ContactPage/ContactPage.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/contact/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "sections/FaqSection/FaqSection.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/faq/page.tsx",
+      "to": "sections/FaqSection/FaqStructuredData.tsx"
+    },
+    {
+      "from": "app/(home)/tailorMade/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/tailorMade/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/tailorMade/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/tailorMade/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/tailorMade/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/tailorMade/page.tsx",
+      "to": "common/Toast/Toast.tsx"
+    },
+    {
+      "from": "app/(home)/tailorMade/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "sections/InstagramOne/InstagramOne.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "sections/AboutOne/AboutOne.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "sections/CtaTwo/CtaTwo.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "sections/HowItWorks/HowItWorks.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "sections/AboutTestimonials/AboutTestimonials.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "layout/HeaderInner/HeaderInner.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "layout/HeaderInnerCloned/HeaderInnerCloned.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/about/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/search/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/search/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/search/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/search/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/search/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/search/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/search/page.tsx",
+      "to": "sections/SearchResultsPage/SearchResultsPage.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "sections/LoginSection/LoginSection.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "layout/HeaderInner/HeaderInner.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "layout/HeaderInnerCloned/HeaderInnerCloned.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/login/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/wishlist/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/wishlist/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/wishlist/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/wishlist/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/wishlist/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/wishlist/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/wishlist/page.tsx",
+      "to": "sections/FeatureTwo/FeatureTwo.tsx"
+    },
+    {
+      "from": "app/(home)/tours/[slug]/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/tours/[slug]/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/[slug]/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/[slug]/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/tours/[slug]/page.tsx",
+      "to": "sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/[slug]/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "sections/AboutOne/AboutOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "to": "sections/EnhancedSectionHeader/EnhancedSectionHeader.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "common/VideoModal/VideoModal.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "common/Pagination/Pagination.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "sections/AboutOne/AboutOne.tsx"
+    },
+    {
+      "from": "app/(home)/tours/category/[slug]/page.tsx",
+      "to": "sections/EnhancedSectionHeader/EnhancedSectionHeader.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/all/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/all/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/all/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/all/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/all/page.tsx",
+      "to": "sections/DynamicBlogGrid/DynamicBlogGrid.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/all/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/all/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/[slug]/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/[slug]/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/[slug]/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/[slug]/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/[slug]/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/[slug]/page.tsx",
+      "to": "sections/DynamicBlogDetails/DynamicBlogDetails.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/[slug]/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "to": "sections/DynamicBlogGrid/DynamicBlogGrid.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/category/[slug]/page.tsx",
+      "to": "common/TopbarOne/TopbarOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/category/[slug]/page.tsx",
+      "to": "layout/FooterOne/FooterOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/category/[slug]/page.tsx",
+      "to": "layout/Layout/Layout.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/category/[slug]/page.tsx",
+      "to": "sections/PageHeader/PageHeader.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/category/[slug]/page.tsx",
+      "to": "sections/DynamicBlogGrid/DynamicBlogGrid.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/category/[slug]/page.tsx",
+      "to": "layout/HeaderOne/HeaderOne.tsx"
+    },
+    {
+      "from": "app/(home)/blogs/category/[slug]/page.tsx",
+      "to": "layout/HeaderOneCloned/HeaderOneCloned.tsx"
+    }
+  ],
+  "entrypoints": [
+    "app/(home)/404/page.tsx",
+    "app/(home)/about/page.tsx",
+    "app/(home)/blogs/[slug]/page.tsx",
+    "app/(home)/blogs/all/page.tsx",
+    "app/(home)/blogs/category/[slug]/page.tsx",
+    "app/(home)/blogs/page.tsx",
+    "app/(home)/blogs/subcategory/[slug]/page.tsx",
+    "app/(home)/contact/page.tsx",
+    "app/(home)/faq/page.tsx",
+    "app/(home)/layout.tsx",
+    "app/(home)/login/page.tsx",
+    "app/(home)/page.tsx",
+    "app/(home)/search/page.tsx",
+    "app/(home)/tailorMade/page.tsx",
+    "app/(home)/tours/[slug]/page.tsx",
+    "app/(home)/tours/all/page.tsx",
+    "app/(home)/tours/category/[slug]/page.tsx",
+    "app/(home)/tours/page.tsx",
+    "app/(home)/tours/subcategory/[slug]/page.tsx",
+    "app/(home)/wishlist/page.tsx",
+    "app/admin/blogs/blog/[id]/edit/page.tsx",
+    "app/admin/blogs/blog/new/page.tsx",
+    "app/admin/blogs/blog/page.tsx",
+    "app/admin/blogs/category/new/page.tsx",
+    "app/admin/blogs/category/page.tsx",
+    "app/admin/blogs/subcategory/new/page.tsx",
+    "app/admin/blogs/subcategory/page.tsx",
+    "app/admin/contact-forms/contact-form/page.tsx",
+    "app/admin/contact-forms/tailor-made/page.tsx",
+    "app/admin/content-management/faq/[id]/edit/page.tsx",
+    "app/admin/content-management/faq/new/page.tsx",
+    "app/admin/content-management/faq/page.tsx",
+    "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+    "app/admin/content-management/general-content/new/page.tsx",
+    "app/admin/content-management/general-content/page.tsx",
+    "app/admin/content-management/menus/[id]/edit/page.tsx",
+    "app/admin/content-management/menus/new/page.tsx",
+    "app/admin/content-management/menus/page.tsx",
+    "app/admin/content-management/slider-content/[id]/edit/page.tsx",
+    "app/admin/content-management/slider-content/new/page.tsx",
+    "app/admin/content-management/slider-content/page.tsx",
+    "app/admin/content-management/video-management/[id]/edit/page.tsx",
+    "app/admin/content-management/video-management/new/page.tsx",
+    "app/admin/content-management/video-management/page.tsx",
+    "app/admin/layout.tsx",
+    "app/admin/notifications/page.tsx",
+    "app/admin/page.tsx",
+    "app/admin/tour/booking/page.tsx",
+    "app/admin/tour/category/new/page.tsx",
+    "app/admin/tour/category/page.tsx",
+    "app/admin/tour/subcategory/new/page.tsx",
+    "app/admin/tour/subcategory/page.tsx",
+    "app/admin/tour/tour/[id]/edit/page.tsx",
+    "app/admin/tour/tour/[id]/reviews/page.tsx",
+    "app/admin/tour/tour/new/page.tsx",
+    "app/admin/tour/tour/page.tsx",
+    "app/admin/users/[id]/edit/page.tsx",
+    "app/admin/users/new/page.tsx",
+    "app/admin/users/page.tsx",
+    "app/layout.tsx"
+  ],
+  "imported_by": {
+    "ErrorBoundary.tsx": [
+      "app/layout.tsx"
+    ],
+    "ui/toaster.tsx": [
+      "app/layout.tsx"
+    ],
+    "theme-provider.tsx": [
+      "app/layout.tsx"
+    ],
+    "ui/toast.ts": [
+      "hooks/use-toast.ts",
+      "components/ui/toaster.tsx"
+    ],
+    "ui/button.tsx": [
+      "components/ui/sidebar.tsx",
+      "components/admin/ContentBlockEditor.tsx",
+      "components/admin/ImageUpload.tsx",
+      "components/admin/AdminHeader.tsx",
+      "components/admin/PaginationControls.tsx",
+      "components/admin/PricingPlansManager.tsx",
+      "components/admin/tour/ItineraryTab.tsx",
+      "components/admin/tour/DetailsTab.tsx",
+      "components/admin/tour/MediaTab.tsx",
+      "components/admin/tour/ResourcesTab.tsx",
+      "app/admin/page.tsx",
+      "app/admin/content-management/general-content/new/page.tsx",
+      "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "app/admin/content-management/menus/[id]/edit/page.tsx",
+      "app/admin/content-management/faq/new/page.tsx",
+      "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/tour/new/page.tsx",
+      "app/admin/tour/tour/[id]/edit/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/users/new/page.tsx",
+      "app/admin/users/[id]/edit/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "ui/input.tsx": [
+      "components/ui/sidebar.tsx",
+      "components/admin/ContentBlockEditor.tsx",
+      "components/admin/ImageUpload.tsx",
+      "components/admin/PricingPlansManager.tsx",
+      "components/admin/tour/ItineraryTab.tsx",
+      "components/admin/tour/OverviewTab.tsx",
+      "components/admin/tour/DetailsTab.tsx",
+      "components/admin/tour/SEOTab.tsx",
+      "components/admin/tour/MediaTab.tsx",
+      "components/admin/tour/PricingTab.tsx",
+      "components/admin/tour/ResourcesTab.tsx",
+      "app/admin/content-management/general-content/new/page.tsx",
+      "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "app/admin/content-management/menus/[id]/edit/page.tsx",
+      "app/admin/content-management/faq/new/page.tsx",
+      "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/users/new/page.tsx",
+      "app/admin/users/[id]/edit/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "ui/separator.tsx": [
+      "components/ui/sidebar.tsx",
+      "components/admin/AdminHeader.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "ui/sheet.tsx": [
+      "components/ui/sidebar.tsx"
+    ],
+    "ui/skeleton.tsx": [
+      "components/ui/sidebar.tsx"
+    ],
+    "ui/tooltip.tsx": [
+      "components/ui/sidebar.tsx"
+    ],
+    "admin/PageSkeleton.tsx": [
+      "components/auth/ProtectedRoute.tsx"
+    ],
+    "ui/textarea.tsx": [
+      "components/admin/ContentBlockEditor.tsx",
+      "components/admin/PricingPlansManager.tsx",
+      "components/admin/tour/OverviewTab.tsx",
+      "components/admin/tour/DetailsTab.tsx",
+      "components/admin/tour/SEOTab.tsx",
+      "components/admin/tour/MediaTab.tsx",
+      "app/admin/content-management/faq/new/page.tsx",
+      "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx"
+    ],
+    "ui/label.tsx": [
+      "components/admin/ContentBlockEditor.tsx",
+      "components/admin/ImageUpload.tsx",
+      "components/admin/PricingPlansManager.tsx",
+      "components/admin/tour/ItineraryTab.tsx",
+      "components/admin/tour/OverviewTab.tsx",
+      "components/admin/tour/DetailsTab.tsx",
+      "components/admin/tour/SEOTab.tsx",
+      "components/admin/tour/MediaTab.tsx",
+      "components/admin/tour/PricingTab.tsx",
+      "components/admin/tour/ResourcesTab.tsx",
+      "app/admin/content-management/general-content/new/page.tsx",
+      "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "app/admin/content-management/faq/new/page.tsx",
+      "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/users/new/page.tsx",
+      "app/admin/users/[id]/edit/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "ui/RichTextEditor.tsx": [
+      "components/admin/ContentBlockEditor.tsx",
+      "components/admin/tour/ItineraryTab.tsx",
+      "components/admin/tour/OverviewTab.tsx",
+      "components/admin/tour/DetailsTab.tsx",
+      "components/admin/tour/SEOTab.tsx",
+      "components/admin/tour/ResourcesTab.tsx",
+      "app/admin/content-management/general-content/new/page.tsx",
+      "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "admin/ImageUpload.tsx": [
+      "components/admin/ContentBlockEditor.tsx",
+      "components/admin/tour/ItineraryTab.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "ui/card.tsx": [
+      "components/admin/ContentBlockEditor.tsx",
+      "components/admin/DashboardKpiCard.tsx",
+      "components/admin/PricingPlansManager.tsx",
+      "components/admin/tour/ItineraryTab.tsx",
+      "components/admin/tour/OverviewTab.tsx",
+      "components/admin/tour/DetailsTab.tsx",
+      "components/admin/tour/SEOTab.tsx",
+      "components/admin/tour/MediaTab.tsx",
+      "components/admin/tour/PricingTab.tsx",
+      "components/admin/tour/ResourcesTab.tsx",
+      "app/admin/page.tsx",
+      "app/admin/content-management/faq/new/page.tsx",
+      "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/users/new/page.tsx",
+      "app/admin/users/[id]/edit/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "admin/ThemeToggle.tsx": [
+      "components/admin/app-sidebar.tsx"
+    ],
+    "ui/sidebar.tsx": [
+      "components/admin/app-sidebar.tsx",
+      "components/admin/AdminHeader.tsx",
+      "app/admin/layout.tsx"
+    ],
+    "ui/dropdown-menu.tsx": [
+      "components/admin/app-sidebar.tsx",
+      "components/admin/AdminHeader.tsx"
+    ],
+    "ui/collapsible.tsx": [
+      "components/admin/app-sidebar.tsx"
+    ],
+    "ui/select.tsx": [
+      "components/admin/PaginationControls.tsx",
+      "components/admin/PricingPlansManager.tsx",
+      "app/admin/users/new/page.tsx",
+      "app/admin/users/[id]/edit/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx"
+    ],
+    "admin/skeletons/StatCardsSkeleton.tsx": [
+      "components/admin/AdminPageSkeleton.tsx"
+    ],
+    "admin/skeletons/FiltersSkeleton.tsx": [
+      "components/admin/AdminPageSkeleton.tsx"
+    ],
+    "admin/skeletons/TableSkeleton.tsx": [
+      "components/admin/AdminPageSkeleton.tsx"
+    ],
+    "common/LanguageSelector/LanguageSelector.tsx": [
+      "components/common/TopbarOne/TopbarOne.tsx"
+    ],
+    "common/CustomSelect/CustomSelect.tsx": [
+      "components/common/TourSidebar/TourSidebar.tsx",
+      "components/sections/BannerForm/BannerForm.tsx"
+    ],
+    "common/DateRangePicker/DateRangePicker.tsx": [
+      "components/common/DateRangePicker/DateRangePicker.tsx",
+      "components/sections/BannerForm/BannerForm.tsx"
+    ],
+    "admin/AdminTable.tsx": [
+      "components/dashboard/UserManagement/UserTable.tsx",
+      "app/admin/users/page.tsx",
+      "app/admin/content-management/video-management/page.tsx",
+      "app/admin/content-management/faq/page.tsx",
+      "app/admin/content-management/menus/page.tsx",
+      "app/admin/content-management/slider-content/page.tsx",
+      "app/admin/content-management/general-content/page.tsx",
+      "app/admin/tour/category/page.tsx",
+      "app/admin/tour/booking/page.tsx",
+      "app/admin/tour/tour/page.tsx",
+      "app/admin/tour/subcategory/page.tsx",
+      "app/admin/contact-forms/tailor-made/page.tsx",
+      "app/admin/contact-forms/contact-form/page.tsx",
+      "app/admin/blogs/category/page.tsx",
+      "app/admin/blogs/blog/page.tsx",
+      "app/admin/blogs/subcategory/page.tsx"
+    ],
+    "dashboard/UserManagement/DeleteConfirmModal.tsx": [
+      "components/dashboard/UserManagement/UserTable.tsx"
+    ],
+    "admin/SubcategorySelect.tsx": [
+      "components/admin/tour/OverviewTab.tsx"
+    ],
+    "ui/switch.tsx": [
+      "components/admin/tour/SEOTab.tsx",
+      "app/admin/content-management/general-content/new/page.tsx",
+      "app/admin/content-management/general-content/[slug]/edit/page.tsx",
+      "app/admin/content-management/faq/new/page.tsx",
+      "app/admin/content-management/faq/[id]/edit/page.tsx",
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/tour/category/new/page.tsx",
+      "app/admin/users/[id]/edit/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx",
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx",
+      "app/admin/blogs/category/new/page.tsx"
+    ],
+    "admin/PricingPlansManager.tsx": [
+      "components/admin/tour/PricingTab.tsx"
+    ],
+    "admin/tour/OverviewTab.tsx": [
+      "components/admin/tour/index.ts"
+    ],
+    "admin/tour/MediaTab.tsx": [
+      "components/admin/tour/index.ts"
+    ],
+    "admin/tour/ItineraryTab.tsx": [
+      "components/admin/tour/index.ts"
+    ],
+    "admin/tour/DetailsTab.tsx": [
+      "components/admin/tour/index.ts"
+    ],
+    "admin/tour/PricingTab.tsx": [
+      "components/admin/tour/index.ts"
+    ],
+    "admin/tour/ResourcesTab.tsx": [
+      "components/admin/tour/index.ts"
+    ],
+    "admin/tour/SEOTab.tsx": [
+      "components/admin/tour/index.ts"
+    ],
+    "common/DemoPages/DemoPages.tsx": [
+      "components/layout/HeaderFourCloned/HeaderFourCloned.tsx",
+      "components/layout/HeaderFourCloned/HeaderFourCloned copy.tsx",
+      "components/layout/HeaderFour/HeaderFourSingle.tsx",
+      "components/layout/HeaderFour/HeaderFour.tsx",
+      "components/layout/HeaderTwoCloned/HeaderTwoCloned.tsx",
+      "components/layout/HeaderTwoCloned/HeaderTwoSingleCloned.tsx",
+      "components/layout/HeaderOneCloned/HeaderOneSingleCloned.tsx",
+      "components/layout/HeaderOneCloned/HeaderOneCloned.tsx",
+      "components/layout/HeaderOne/HeaderOneSingle.tsx",
+      "components/layout/HeaderInner/HeaderInnerSingle.tsx",
+      "components/layout/HeaderTwo/HeaderTwo.tsx",
+      "components/layout/HeaderTwo/HeaderTwoSingle.tsx",
+      "components/layout/HeaderInnerCloned/HeaderInnerSingleCloned.tsx",
+      "components/layout/HeaderInnerCloned/HeaderInnerCloned.tsx"
+    ],
+    "layout/SingleNavItems/SingleNavItems.tsx": [
+      "components/layout/HeaderFourCloned/HeaderFourCloned copy.tsx",
+      "components/layout/HeaderFour/HeaderFourSingle.tsx",
+      "components/layout/HeaderTwoCloned/HeaderTwoSingleCloned.tsx",
+      "components/layout/HeaderOneCloned/HeaderOneSingleCloned.tsx",
+      "components/layout/HeaderOne/HeaderOneSingle.tsx",
+      "components/layout/HeaderInner/HeaderInnerSingle.tsx",
+      "components/layout/HeaderTwo/HeaderTwoSingle.tsx",
+      "components/layout/HeaderInnerCloned/HeaderInnerSingleCloned.tsx"
+    ],
+    "common/ScrollTop/ScrollTop.tsx": [
+      "components/layout/BoxWrapper/BoxWrapper.tsx",
+      "components/layout/Layout/Layout.tsx"
+    ],
+    "common/MegaMenu/MegaMenu.tsx": [
+      "components/layout/HeaderInner/HeaderInner.tsx",
+      "components/layout/HeaderInnerCloned/HeaderInnerCloned.tsx",
+      "components/layout/DrawerTwo/DrawerTwo.tsx"
+    ],
+    "common/AnimatedText/TextAnimation.tsx": [
+      "components/sections/AboutTestimonialsTwo/AboutTestimonialsTwo.tsx",
+      "components/sections/PopularDestination/PopularDestination.tsx",
+      "components/sections/BlogFive/BlogFive.tsx",
+      "components/sections/CtaFour/CtaFour.tsx",
+      "components/sections/AboutFiveTwo/AboutFiveTwo.tsx",
+      "components/sections/CtaTwo/CtaTwo.tsx",
+      "components/sections/MainSliderOne/MainSliderOne.tsx",
+      "components/sections/AboutFive/AboutFive.tsx",
+      "components/sections/DestinationFilter/DestinationFilter.tsx",
+      "components/sections/AboutOne/AboutOne.tsx",
+      "components/sections/FeatureOne/FeatureOne.tsx",
+      "components/sections/AboutTestimonials/AboutTestimonials.tsx",
+      "components/sections/BlogThree/BlogThree.tsx",
+      "components/sections/HowItWorks/HowItWorks.tsx",
+      "components/sections/FeatureTwo/FeatureTwo.tsx",
+      "components/sections/AboutTwo/AboutTwo.tsx",
+      "components/sections/DestinationsThree/DestinationThree.tsx",
+      "components/sections/AboutOneThree/AboutOneThree.tsx",
+      "components/sections/BlogTwoTwo/BlogTwoTwo.tsx",
+      "components/sections/MainSliderThree/MainSliderThree.tsx",
+      "components/sections/OfferOne/OfferOne.tsx",
+      "components/sections/CtaThree/CtaThree.tsx",
+      "components/sections/TourListingPage/TourListingPage.tsx",
+      "components/sections/TestimonialsTwo/TestimonialsTwo.tsx",
+      "components/sections/whyChooseUs/whyChoseeUs.tsx",
+      "components/sections/OfferTwo/OfferTwo.tsx"
+    ],
+    "common/TinySliderWrapper.tsx": [
+      "components/sections/AboutTestimonialsTwo/AboutTestimonialsTwo.tsx",
+      "components/sections/ClientCarousel/ClientCarousel.tsx",
+      "components/sections/TeamCarousel/TeamCarousel.tsx",
+      "components/sections/BlogCarousel/BlogCarousel.tsx",
+      "components/sections/MainSliderTwo/MainSliderTwo.tsx",
+      "components/sections/DestinationDetails/DestinationDetails.tsx",
+      "components/sections/MainSliderOne/MainSliderOne.tsx",
+      "components/sections/DestinationCarouselTwo/DestinationCarouselTwo.tsx",
+      "components/sections/TestimonialsPageCarousel/TestimonialsPageCarousel.tsx",
+      "components/sections/DestinationsOneCarousel/DestinationOneCarousel.tsx",
+      "components/sections/MainSliderFour/MainSliderFour.tsx",
+      "components/sections/TourListingTwoCarousel/TourListingTwoCarousel.tsx",
+      "components/sections/FeatureOne/FeatureOne.tsx",
+      "components/sections/AboutTestimonials/AboutTestimonials.tsx",
+      "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "components/sections/TourListingOneCarousel/TourListingOneCarousel.tsx",
+      "components/sections/FeatureTwo/FeatureTwo.tsx",
+      "components/sections/TestimonialsThree/TestimonialsThree.tsx",
+      "components/sections/TestimonialsTwo/TestimonialsTwo.tsx",
+      "components/sections/whyChooseUs/whyChoseeUs.tsx",
+      "components/sections/DestinationTwoCarousel/DestinationTwoCarousel.tsx",
+      "components/sections/TourListingDetailsOne/components/TourCarousel.tsx"
+    ],
+    "common/Pagination/Pagination.tsx": [
+      "components/sections/BlogGrid/BlogGrid.tsx",
+      "components/sections/BlogRight/BlogRight.tsx",
+      "components/sections/TourListingTwoRight/TourListingTwoRight.tsx",
+      "components/sections/BlogListLeft/BlogListLeft.tsx",
+      "components/sections/TourListingTwoPage/TourListingTwoPage.tsx",
+      "components/sections/BlogList/BlogList.tsx",
+      "components/sections/TourListingTwoLeft/TourListingTwoLeft.tsx",
+      "components/sections/TourListingList/TourListingList.tsx",
+      "components/sections/BlogLeft/BlogLeft.tsx",
+      "components/sections/TourListing/TourListing.tsx",
+      "components/sections/BlogListright/BlogListRight.tsx",
+      "components/sections/SearchResultsPage/SearchResultsPage.tsx",
+      "components/sections/DestinationOne/DestinationOne.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx"
+    ],
+    "common/BlogSidebar/BlogSidebar.tsx": [
+      "components/sections/BlogRight/BlogRight.tsx",
+      "components/sections/DynamicBlogDetails/DynamicBlogDetails.tsx",
+      "components/sections/BlogListLeft/BlogListLeft.tsx",
+      "components/sections/BlogDetails/BlogDetails.tsx",
+      "components/sections/BlogLeft/BlogLeft.tsx",
+      "components/sections/BlogListright/BlogListRight.tsx"
+    ],
+    "sections/BannerForm/BannerForm.tsx": [
+      "components/sections/MainSliderTwo/MainSliderTwo.tsx",
+      "components/sections/MainSliderOne/MainSliderOne.tsx",
+      "components/sections/MainSliderFour/MainSliderFour.tsx",
+      "components/sections/MainSliderThree/MainSliderThree.tsx"
+    ],
+    "common/TourSidebar/TourSidebar.tsx": [
+      "components/sections/TourListingTwoRight/TourListingTwoRight.tsx",
+      "components/sections/TourListingTwoLeft/TourListingTwoLeft.tsx",
+      "components/sections/TourListingList/TourListingList.tsx",
+      "components/sections/TourListingOneLeft/TourListingOneLeft.tsx",
+      "components/sections/TourListingOneRight/TourListingOneRight.tsx"
+    ],
+    "common/VideoModal/VideoModal.tsx": [
+      "components/sections/TourListingTwoRight/TourListingTwoRight.tsx",
+      "components/sections/AboutFiveTwo/AboutFiveTwo.tsx",
+      "components/sections/TourListingTwoPage/TourListingTwoPage.tsx",
+      "components/sections/TourListingTwoLeft/TourListingTwoLeft.tsx",
+      "components/sections/TourListingList/TourListingList.tsx",
+      "components/sections/TourListingTwoCarousel/TourListingTwoCarousel.tsx",
+      "components/sections/AboutFive/AboutFive.tsx",
+      "components/sections/FeatureOne/FeatureOne.tsx",
+      "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "components/sections/TourListingOneLeft/TourListingOneLeft.tsx",
+      "components/sections/TourListingOneCarousel/TourListingOneCarousel.tsx",
+      "components/sections/FeatureTwo/FeatureTwo.tsx",
+      "components/sections/TourListing/TourListing.tsx",
+      "components/sections/MainSliderThree/MainSliderThree.tsx",
+      "components/sections/TourListingOneRight/TourListingOneRight.tsx",
+      "components/sections/TourListingPage/TourListingPage.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx"
+    ],
+    "common/CustomReactSelect/CustomReactSelect.tsx": [
+      "components/sections/TourListingTwoPage/TourListingTwoPage.tsx",
+      "components/sections/TourListingPage/TourListingPage.tsx"
+    ],
+    "sections/MasonryWrapper/MasonryWrapper.tsx": [
+      "components/sections/Gallery/Gallery.tsx",
+      "components/sections/GalleryFilter/GalleryFilter.tsx"
+    ],
+    "common/CustomReactSelecTwo/CustomReactSelectTwo.tsx": [
+      "components/sections/CheckoutSection/CheckoutSection.tsx"
+    ],
+    "sections/ClientCarousel/ClientCarousel.tsx": [
+      "components/sections/AboutTestimonials/AboutTestimonials.tsx",
+      "components/sections/AboutTwo/AboutTwo.tsx",
+      "app/(home)/page.tsx"
+    ],
+    "sections/Calender/Calender.tsx": [
+      "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx"
+    ],
+    "sections/TourListingDetailsOne/types.ts": [
+      "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "components/sections/TourListingDetailsOne/index.ts",
+      "components/sections/TourListingDetailsOne/useTourData.ts",
+      "components/sections/TourListingDetailsOne/components/DownloadPdf.tsx",
+      "components/sections/TourListingDetailsOne/components/TourBrochure.tsx",
+      "components/sections/TourListingDetailsOne/components/DownloadPdfBrochure.tsx"
+    ],
+    "sections/TourListingDetailsTwo/TourReviews2.tsx": [
+      "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    ],
+    "sections/TourListingDetailsOne/useTourData.ts": [
+      "components/sections/TourListingDetailsTwo/TourListingDetailsTwo.tsx",
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "components/sections/TourListingDetailsOne/index.ts"
+    ],
+    "common/EmptyState/EmptyState.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "components/sections/TourListingDetailsOne/components/TourGallerySection.tsx",
+      "components/sections/TourListingDetailsOne/components/TourAmenitiesSection.tsx",
+      "components/sections/TourListingDetailsOne/components/TourFaqSection.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/TourHeader.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/TourInfoBar.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/BookingForm.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "components/sections/TourListingDetailsOne/components/TourSidebar.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/TourPlan.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/PricingPlans.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/TourCarousel.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/DownloadPdfBrochure.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx"
+    ],
+    "sections/FeatureTwo/FeatureTwo.tsx": [
+      "components/sections/TourListingDetailsOne/TourListingDetailsOne.tsx",
+      "app/(home)/page.tsx",
+      "app/(home)/wishlist/page.tsx"
+    ],
+    "sections/TourListingDetailsOne/TourListingDetailsOne.tsx": [
+      "components/sections/TourListingDetailsOne/index.ts",
+      "app/(home)/tours/[slug]/page.tsx"
+    ],
+    "sections/DynamicBlogGrid/DynamicBlogGrid.tsx": [
+      "components/sections/SearchResultsPage/SearchResultsPage.tsx",
+      "app/(home)/blogs/all/page.tsx",
+      "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "app/(home)/blogs/category/[slug]/page.tsx"
+    ],
+    "sections/TourListingDetailsOne/components/TourBrochure.tsx": [
+      "components/sections/TourListingDetailsOne/components/DownloadPdfBrochure.tsx"
+    ],
+    "common/Preloader/Preloader.tsx": [
+      "app/(home)/layout.tsx"
+    ],
+    "layout/Layout/Layout.tsx": [
+      "app/(home)/page.tsx",
+      "app/(home)/not-found.tsx",
+      "app/(home)/blogs/page.tsx",
+      "app/(home)/tours/page.tsx",
+      "app/(home)/contact/page.tsx",
+      "app/(home)/faq/page.tsx",
+      "app/(home)/tailorMade/page.tsx",
+      "app/(home)/about/page.tsx",
+      "app/(home)/search/page.tsx",
+      "app/(home)/login/page.tsx",
+      "app/(home)/wishlist/page.tsx",
+      "app/(home)/tours/[slug]/page.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx",
+      "app/(home)/blogs/all/page.tsx",
+      "app/(home)/blogs/[slug]/page.tsx",
+      "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "app/(home)/blogs/category/[slug]/page.tsx"
+    ],
+    "common/TopbarOne/TopbarOne.tsx": [
+      "app/(home)/page.tsx",
+      "app/(home)/not-found.tsx",
+      "app/(home)/blogs/page.tsx",
+      "app/(home)/tours/page.tsx",
+      "app/(home)/contact/page.tsx",
+      "app/(home)/faq/page.tsx",
+      "app/(home)/tailorMade/page.tsx",
+      "app/(home)/about/page.tsx",
+      "app/(home)/search/page.tsx",
+      "app/(home)/login/page.tsx",
+      "app/(home)/wishlist/page.tsx",
+      "app/(home)/tours/[slug]/page.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx",
+      "app/(home)/blogs/all/page.tsx",
+      "app/(home)/blogs/[slug]/page.tsx",
+      "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "app/(home)/blogs/category/[slug]/page.tsx"
+    ],
+    "layout/FooterOne/FooterOne.tsx": [
+      "app/(home)/page.tsx",
+      "app/(home)/not-found.tsx",
+      "app/(home)/blogs/page.tsx",
+      "app/(home)/tours/page.tsx",
+      "app/(home)/contact/page.tsx",
+      "app/(home)/faq/page.tsx",
+      "app/(home)/tailorMade/page.tsx",
+      "app/(home)/about/page.tsx",
+      "app/(home)/search/page.tsx",
+      "app/(home)/login/page.tsx",
+      "app/(home)/wishlist/page.tsx",
+      "app/(home)/tours/[slug]/page.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx",
+      "app/(home)/blogs/all/page.tsx",
+      "app/(home)/blogs/[slug]/page.tsx",
+      "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "app/(home)/blogs/category/[slug]/page.tsx"
+    ],
+    "layout/HeaderOne/HeaderOne.tsx": [
+      "app/(home)/page.tsx",
+      "app/(home)/not-found.tsx",
+      "app/(home)/blogs/page.tsx",
+      "app/(home)/tours/page.tsx",
+      "app/(home)/contact/page.tsx",
+      "app/(home)/faq/page.tsx",
+      "app/(home)/tailorMade/page.tsx",
+      "app/(home)/about/page.tsx",
+      "app/(home)/search/page.tsx",
+      "app/(home)/login/page.tsx",
+      "app/(home)/wishlist/page.tsx",
+      "app/(home)/tours/[slug]/page.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx",
+      "app/(home)/blogs/all/page.tsx",
+      "app/(home)/blogs/[slug]/page.tsx",
+      "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "app/(home)/blogs/category/[slug]/page.tsx"
+    ],
+    "sections/AboutOne/AboutOne.tsx": [
+      "app/(home)/page.tsx",
+      "app/(home)/about/page.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx"
+    ],
+    "sections/OfferTwo/OfferTwo.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/OfferOne/OfferOne.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/DestinationCarouselTwo/DestinationCarouselTwo.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/TestimonialsTwo/TestimonialsTwo.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/InstagramOne/InstagramOne.tsx": [
+      "app/(home)/page.tsx",
+      "app/(home)/about/page.tsx"
+    ],
+    "sections/BlogTwoTwo/BlogTwoTwo.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "layout/HeaderOneCloned/HeaderOneCloned.tsx": [
+      "app/(home)/page.tsx",
+      "app/(home)/not-found.tsx",
+      "app/(home)/blogs/page.tsx",
+      "app/(home)/tours/page.tsx",
+      "app/(home)/contact/page.tsx",
+      "app/(home)/faq/page.tsx",
+      "app/(home)/tailorMade/page.tsx",
+      "app/(home)/about/page.tsx",
+      "app/(home)/search/page.tsx",
+      "app/(home)/login/page.tsx",
+      "app/(home)/wishlist/page.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx",
+      "app/(home)/blogs/all/page.tsx",
+      "app/(home)/blogs/[slug]/page.tsx",
+      "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "app/(home)/blogs/category/[slug]/page.tsx"
+    ],
+    "sections/MainSliderFour/MainSliderFour.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/whyChooseUs/whyChoseeUs.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/ReflectiveReviews/ReflectiveReviews.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/FaqSection/HomeFAQ.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/HomeIntro/HomeIntro.tsx": [
+      "app/(home)/page.tsx"
+    ],
+    "sections/PageHeader/PageHeader.tsx": [
+      "app/(home)/not-found.tsx",
+      "app/(home)/blogs/page.tsx",
+      "app/(home)/tours/page.tsx",
+      "app/(home)/contact/page.tsx",
+      "app/(home)/faq/page.tsx",
+      "app/(home)/tailorMade/page.tsx",
+      "app/(home)/about/page.tsx",
+      "app/(home)/search/page.tsx",
+      "app/(home)/login/page.tsx",
+      "app/(home)/wishlist/page.tsx",
+      "app/(home)/tours/[slug]/page.tsx",
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx",
+      "app/(home)/blogs/all/page.tsx",
+      "app/(home)/blogs/[slug]/page.tsx",
+      "app/(home)/blogs/subcategory/[slug]/page.tsx",
+      "app/(home)/blogs/category/[slug]/page.tsx"
+    ],
+    "sections/Error404/Error404.tsx": [
+      "app/(home)/not-found.tsx"
+    ],
+    "admin/app-sidebar.tsx": [
+      "app/admin/layout.tsx"
+    ],
+    "admin/AdminHeader.tsx": [
+      "app/admin/layout.tsx"
+    ],
+    "auth/ProtectedRoute.tsx": [
+      "app/admin/layout.tsx"
+    ],
+    "admin/AdminRealtimeListener.tsx": [
+      "app/admin/layout.tsx"
+    ],
+    "ui/badge.tsx": [
+      "app/admin/page.tsx"
+    ],
+    "admin/DashboardKpiCard.tsx": [
+      "app/admin/page.tsx"
+    ],
+    "admin/MiniBarChart.tsx": [
+      "app/admin/page.tsx"
+    ],
+    "common/StatCard/StatCard.tsx": [
+      "app/admin/users/page.tsx",
+      "app/admin/content-management/video-management/page.tsx",
+      "app/admin/content-management/faq/page.tsx",
+      "app/admin/content-management/menus/page.tsx",
+      "app/admin/content-management/slider-content/page.tsx",
+      "app/admin/content-management/general-content/page.tsx",
+      "app/admin/tour/category/page.tsx",
+      "app/admin/tour/booking/page.tsx",
+      "app/admin/tour/tour/page.tsx",
+      "app/admin/tour/subcategory/page.tsx",
+      "app/admin/contact-forms/tailor-made/page.tsx",
+      "app/admin/contact-forms/contact-form/page.tsx",
+      "app/admin/blogs/category/page.tsx",
+      "app/admin/blogs/blog/page.tsx",
+      "app/admin/blogs/subcategory/page.tsx"
+    ],
+    "admin/BulkActionsBar.tsx": [
+      "app/admin/users/page.tsx",
+      "app/admin/content-management/faq/page.tsx",
+      "app/admin/content-management/slider-content/page.tsx",
+      "app/admin/tour/category/page.tsx",
+      "app/admin/tour/booking/page.tsx",
+      "app/admin/tour/tour/page.tsx",
+      "app/admin/tour/subcategory/page.tsx",
+      "app/admin/contact-forms/tailor-made/page.tsx",
+      "app/admin/contact-forms/contact-form/page.tsx",
+      "app/admin/blogs/category/page.tsx",
+      "app/admin/blogs/blog/page.tsx",
+      "app/admin/blogs/subcategory/page.tsx"
+    ],
+    "admin/ConfirmDeleteModal.tsx": [
+      "app/admin/users/page.tsx",
+      "app/admin/content-management/video-management/page.tsx",
+      "app/admin/content-management/faq/page.tsx",
+      "app/admin/content-management/menus/page.tsx",
+      "app/admin/content-management/slider-content/page.tsx",
+      "app/admin/content-management/general-content/page.tsx",
+      "app/admin/tour/category/page.tsx",
+      "app/admin/tour/booking/page.tsx",
+      "app/admin/tour/tour/page.tsx",
+      "app/admin/tour/subcategory/page.tsx",
+      "app/admin/tour/tour/[id]/reviews/page.tsx",
+      "app/admin/contact-forms/tailor-made/page.tsx",
+      "app/admin/contact-forms/contact-form/page.tsx",
+      "app/admin/blogs/category/page.tsx",
+      "app/admin/blogs/blog/page.tsx",
+      "app/admin/blogs/subcategory/page.tsx"
+    ],
+    "admin/AdminPageSkeleton.tsx": [
+      "app/admin/users/page.tsx",
+      "app/admin/notifications/page.tsx",
+      "app/admin/content-management/faq/page.tsx",
+      "app/admin/tour/category/page.tsx",
+      "app/admin/tour/booking/page.tsx",
+      "app/admin/tour/tour/page.tsx",
+      "app/admin/contact-forms/tailor-made/page.tsx",
+      "app/admin/contact-forms/contact-form/page.tsx"
+    ],
+    "admin/PaginationControls.tsx": [
+      "app/admin/users/page.tsx",
+      "app/admin/content-management/faq/page.tsx",
+      "app/admin/tour/category/page.tsx",
+      "app/admin/tour/booking/page.tsx",
+      "app/admin/tour/tour/page.tsx",
+      "app/admin/tour/subcategory/page.tsx",
+      "app/admin/contact-forms/contact-form/page.tsx",
+      "app/admin/blogs/category/page.tsx",
+      "app/admin/blogs/blog/page.tsx",
+      "app/admin/blogs/subcategory/page.tsx"
+    ],
+    "admin/VideoReviewForm.tsx": [
+      "app/admin/content-management/video-management/new/page.tsx",
+      "app/admin/content-management/video-management/[id]/edit/page.tsx"
+    ],
+    "admin/skeletons/FormSkeleton.tsx": [
+      "app/admin/tour/subcategory/new/page.tsx",
+      "app/admin/blogs/subcategory/new/page.tsx"
+    ],
+    "admin/tour/index.ts": [
+      "app/admin/tour/tour/new/page.tsx",
+      "app/admin/tour/tour/[id]/edit/page.tsx"
+    ],
+    "admin/ContentBlockEditor.tsx": [
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx"
+    ],
+    "admin/TagInput.tsx": [
+      "app/admin/blogs/blog/new/page.tsx",
+      "app/admin/blogs/blog/[id]/edit/page.tsx"
+    ],
+    "sections/ContactTop/ContactTop.tsx": [
+      "app/(home)/contact/page.tsx"
+    ],
+    "sections/ContactPage/ContactPage.tsx": [
+      "app/(home)/contact/page.tsx"
+    ],
+    "sections/FaqSection/FaqSection.tsx": [
+      "app/(home)/faq/page.tsx"
+    ],
+    "sections/FaqSection/FaqStructuredData.tsx": [
+      "app/(home)/faq/page.tsx"
+    ],
+    "common/Toast/Toast.tsx": [
+      "app/(home)/tailorMade/page.tsx"
+    ],
+    "sections/CtaTwo/CtaTwo.tsx": [
+      "app/(home)/about/page.tsx"
+    ],
+    "sections/HowItWorks/HowItWorks.tsx": [
+      "app/(home)/about/page.tsx"
+    ],
+    "sections/AboutTestimonials/AboutTestimonials.tsx": [
+      "app/(home)/about/page.tsx"
+    ],
+    "layout/HeaderInner/HeaderInner.tsx": [
+      "app/(home)/about/page.tsx",
+      "app/(home)/login/page.tsx"
+    ],
+    "layout/HeaderInnerCloned/HeaderInnerCloned.tsx": [
+      "app/(home)/about/page.tsx",
+      "app/(home)/login/page.tsx"
+    ],
+    "sections/SearchResultsPage/SearchResultsPage.tsx": [
+      "app/(home)/search/page.tsx"
+    ],
+    "sections/LoginSection/LoginSection.tsx": [
+      "app/(home)/login/page.tsx"
+    ],
+    "sections/EnhancedSectionHeader/EnhancedSectionHeader.tsx": [
+      "app/(home)/tours/subcategory/[slug]/page.tsx",
+      "app/(home)/tours/category/[slug]/page.tsx"
+    ],
+    "sections/DynamicBlogDetails/DynamicBlogDetails.tsx": [
+      "app/(home)/blogs/[slug]/page.tsx"
+    ]
+  }
+}

@@ -9,9 +9,9 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 
 export const metadata = {
-  title: "Sign In || Gotur || Travel & Tour NextJS Template",
+  title: "Sign In | JES Egypt Tours",
   description:
-    "Gotur is a modern travel & tour booking NextJS Template. It is perfect for travel agencies, tour operators, trip holiday booking websites, adventure and booking companies looking for a unique and intuitive search function and all other travel & tourism websites and businesses.",
+    "Sign in to your JES Egypt Tours account to manage your bookings and wishlist.",
   icons: {
     icon: "/favicon-32x32.png",
   },

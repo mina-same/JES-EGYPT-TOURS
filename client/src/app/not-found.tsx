@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
 
 export const metadata = {
-  title: "Error Page || Gotur || Travel & Tour NextJS Template",
+  title: "Page Not Found | JES Egypt Tours",
   description:
-    "Gotur is a modern travel & tour booking NextJS Template. It is perfect for travel agencies, tour operators, trip holiday booking websites, adventure and booking companies looking for a unique and intuitive search function and all other travel & tourism websites and businesses.",
+    "The page you're looking for could not be found. Explore our Egypt tours and experiences.",
   icons: {
     icon: "/favicon-32x32.png",
   },

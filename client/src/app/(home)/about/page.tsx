@@ -13,9 +13,9 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 
 export const metadata = {
-  title: "About Us || Gotur || Travel & Tour NextJS Template",
+  title: "About Us | JES Egypt Tours",
   description:
-    "Gotur is a modern travel & tour booking NextJS Template. It is perfect for travel agencies, tour operators, trip holiday booking websites, adventure and booking companies looking for a unique and intuitive search function and all other travel & tourism websites and businesses.",
+    "JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences. Explore the land of pharaohs with our expert-led tours.",
   icons: {
     icon: "/favicon-32x32.png",
   },
