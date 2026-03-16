@@ -27,8 +27,15 @@ import notificationRoutes from './routes/notificationRoutes';
 import faqRoutes from './routes/faqRoutes';
 import menuRoutes from './routes/menuRoutes';
 import { errorHandler } from './middleware/errorHandler';
+import connectDB from './config/database';
 
 const app: Application = express();
+
+// Behind Vercel/any reverse proxy, enable trust proxy so rate-limit + IP detection works.
+app.set('trust proxy', 1);
+
+// Ensure database connection is initialized in serverless environments (Vercel)
+void connectDB();
 
 // CORS configuration - MUST be before helmet
 const allowedOrigins = [

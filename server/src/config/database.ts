@@ -2,13 +2,28 @@ import mongoose from 'mongoose';
 
 const connectDB = async (): Promise<void> => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI as string);
-    
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) {
+      throw new Error('MONGODB_URI is not set');
+    }
+
+    // In serverless environments we may be invoked multiple times.
+    // Reuse existing connection if it is already established.
+    if (mongoose.connection.readyState === 1) {
+      return;
+    }
+
+    const conn = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 20000,
+    });
+
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📦 Database: ${conn.connection.name}`);
   } catch (error) {
     console.error('❌ MongoDB connection error:', error);
-    process.exit(1);
+    // Do not exit the process in serverless (Vercel); allow the request to fail gracefully.
+    // Throwing lets callers handle it and returns 500 instead of crashing the runtime.
+    throw error;
   }
 };
 
