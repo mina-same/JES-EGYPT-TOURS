@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TourFormData, ITourSubcategory } from '@/types/tour';
 import { tourSubcategoryAPI } from '@/lib/api/tour';
+import { API_URL } from '@/config/api';
 
 export function useTourForm(initialData?: Partial<TourFormData>) {
   const [formData, setFormData] = useState<TourFormData>({
@@ -256,7 +257,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     uploadFormData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:5001/api/upload', {
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: uploadFormData,
       });
