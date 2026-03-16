@@ -348,11 +348,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   height: 'fit-content',
                 }}
               >
-                <BookingForm tourId={id || ''} onSubmit={handleBookingSubmit} />
+                <BookingForm tourId={String(tourData.id || '')} onSubmit={handleBookingSubmit} />
 
                 <div
                   className='tour-listing-details__sidebar__item tour-listing-details__sidebar__item-location wow fadeInUp animated'
-                  data-wow-delay='0.4s'
+                  data-wow-delay='0.5s'
                   data-wow-duration='1500ms'
                 >
                   <div className='tour-listing-details__sidebar__item-box'>

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import Booking from '../models/Booking';
 import Tour from '../models/Tour';
+import Notification from '../models/Notification';
 import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
 
 /**
@@ -46,6 +47,14 @@ export const createBooking = async (
       title: `Booking from ${booking.name}`,
       entityId: booking._id.toString(),
       createdAt: booking.createdAt?.toISOString?.() || new Date().toISOString(),
+    });
+
+    // Save notification to database (supports polling fallback on Vercel)
+    await Notification.create({
+      type: 'booking',
+      title: 'New Booking',
+      message: `Booking from ${booking.name} (${booking.email})`,
+      entityId: booking._id,
     });
 
     void emitDashboardStatsUpdate();
