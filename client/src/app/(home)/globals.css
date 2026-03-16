@@ -101,9 +101,6 @@ a {
   text-decoration: none;
 }
 
-/* PhotoSwipe styles */
-@import 'photoswipe/dist/photoswipe.css';
-
 /* FAQ Section Styling */
 .faq-accordion .accordion-item {
   border: 1px solid #e5e7eb !important;

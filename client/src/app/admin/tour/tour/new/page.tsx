@@ -89,7 +89,7 @@ export default function NewTourPage() {
       try {
         const response = await getAllBlogs({ search: blogSearchQuery, limit: 5 });
         if (response.success && response.data) {
-          setBlogSearchResults(response.data.blogs);
+          setBlogSearchResults(response.data);
         }
       } catch (error) {
         console.error('Failed to search blogs:', error);

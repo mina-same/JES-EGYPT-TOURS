@@ -1,7 +1,7 @@
 import React from "react";
 import { Accordion } from "react-bootstrap";
 import Image from "next/image";
-import { Itinerary } from "./types";
+import { Itinerary } from "../types";
 
 interface TourPlanProps {
   itinerary?: Itinerary;
