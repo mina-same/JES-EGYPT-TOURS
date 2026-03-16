@@ -9,6 +9,7 @@ import { useTailorMade } from "@/contexts/TailorMadeContext";
 import { useRouter } from "next/navigation";
 import { Mail, ChevronRight, Calendar, MessageSquare } from "lucide-react";
 import { getAdminSocket } from "@/lib/realtime/adminSocket";
+import { API_ENDPOINTS } from "@/config/api";
 
 type AdminNotificationType = "booking" | "tailorMade" | "contact";
 
@@ -89,6 +90,7 @@ export default function AdminRealtimeListener() {
   useEffect(() => {
     let unlockCleanup: (() => void) | null = null;
     let socket: Socket | null = null;
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
 
     const unlock = () => {
       void ensureAudioContext();
@@ -104,12 +106,6 @@ export default function AdminRealtimeListener() {
     };
 
     socket = getAdminSocket();
-    if (!socket) {
-      return () => {
-        unlockCleanup?.();
-      };
-    }
-
     socketRef.current = socket;
 
     const onConnect = () => {
@@ -216,12 +212,136 @@ export default function AdminRealtimeListener() {
       console.warn("Admin realtime connect_error", err);
     };
 
-    socket.on("connect", onConnect);
-    socket.on("notification:new", onNotificationNew);
-    socket.on("connect_error", onConnectError);
+    if (socket) {
+      socket.on("connect", onConnect);
+      socket.on("notification:new", onNotificationNew);
+      socket.on("connect_error", onConnectError);
+    }
+
+    const poll = async () => {
+      try {
+        const token = window.localStorage.getItem("authToken") || window.localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}?status=unread&limit=1`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "no-store",
+        });
+
+        if (!res.ok) return;
+        const json = await res.json();
+        const latest = Array.isArray(json?.data) ? json.data[0] : undefined;
+        const id = latest?._id as string | undefined;
+        if (!id) return;
+
+        const type = latest?.type as AdminNotificationType | undefined;
+        const entityId = (latest?.entityId as string | undefined) || id;
+        const title = (latest?.title as string | undefined) || "New notification";
+        const key = `${type || "notification"}:${entityId}`;
+
+        if (seenRef.current.has(key)) return;
+        seenRef.current.add(key);
+
+        void playNotificationSound();
+
+        if (type === "booking") {
+          toast({
+            title: (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-emerald-600 text-white">
+                  <Calendar size={16} />
+                </span>
+                <span className="text-sm font-semibold">New Booking</span>
+              </div>
+            ),
+            description: (
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <span className="text-sm opacity-90 line-clamp-2">{title}</span>
+                <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
+                  Open
+                  <ChevronRight size={14} />
+                </span>
+              </div>
+            ),
+            variant: "success",
+            className: "cursor-pointer hover:bg-emerald-100",
+            onClick: () => {
+              router.push("/admin/tour/booking");
+            },
+          });
+          refreshBookingCount();
+          return;
+        }
+
+        if (type === "tailorMade") {
+          toast({
+            title: (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-amber-600 text-white">
+                  <MessageSquare size={16} />
+                </span>
+                <span className="text-sm font-semibold">New Tailor-Made</span>
+              </div>
+            ),
+            description: (
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <span className="text-sm opacity-90 line-clamp-2">{title}</span>
+                <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
+                  Open
+                  <ChevronRight size={14} />
+                </span>
+              </div>
+            ),
+            variant: "warning",
+            className: "cursor-pointer hover:bg-amber-100",
+            onClick: () => {
+              router.push("/admin/contact-forms/tailor-made");
+            },
+          });
+          void refreshUnreadCount();
+          return;
+        }
+
+        toast({
+          title: (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 text-white">
+                <Mail size={16} />
+              </span>
+              <span className="text-sm font-semibold">New Contact Form</span>
+            </div>
+          ),
+          description: (
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <span className="text-sm opacity-90 line-clamp-2">{title}</span>
+              <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
+                Open
+                <ChevronRight size={14} />
+              </span>
+            </div>
+          ),
+          variant: "info",
+          className: "cursor-pointer hover:bg-blue-100",
+          onClick: () => {
+            router.push("/admin/contact-forms/contact-form");
+          },
+        });
+        refreshContactCount();
+      } catch (e) {
+        console.warn("Admin notifications polling failed", e);
+      }
+    };
+
+    void poll();
+    pollInterval = setInterval(() => {
+      void poll();
+    }, 15000);
 
     return () => {
       unlockCleanup?.();
+      if (pollInterval) clearInterval(pollInterval);
       socket?.off("connect", onConnect);
       socket?.off("notification:new", onNotificationNew);
       socket?.off("connect_error", onConnectError);
