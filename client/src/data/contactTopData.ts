@@ -13,7 +13,7 @@ export const contactItems = [
   {
     icon: "icon-call-3",
     title: "Hot: +208-666-0112",
-    text: "Call us for any support, we are here to help.",
+    text: "Call us for any support.",
     link: "tel:+208-666-0112",
   },
 ];
