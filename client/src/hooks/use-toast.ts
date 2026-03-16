@@ -135,6 +135,8 @@ type Toast = Omit<ToasterToast, "id">
 function toast({ ...props }: Toast) {
   const id = genId()
 
+  const onOpenChangeFromProps = props.onOpenChange
+
   const update = (props: ToasterToast) =>
     dispatch({
       type: "UPDATE_TOAST",
@@ -149,6 +151,7 @@ function toast({ ...props }: Toast) {
       id,
       open: true,
       onOpenChange: (open: boolean) => {
+        onOpenChangeFromProps?.(open)
         if (!open) dismiss()
       },
     },

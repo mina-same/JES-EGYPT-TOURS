@@ -29,6 +29,44 @@ export default function AdminRealtimeListener() {
   const socketRef = useRef<Socket | null>(null);
   const seenRef = useRef<Set<string>>(new Set());
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const activeOscRef = useRef<OscillatorNode | null>(null);
+  const activeGainRef = useRef<GainNode | null>(null);
+
+  const stopNotificationSound = () => {
+    try {
+      const osc = activeOscRef.current;
+      const gain = activeGainRef.current;
+      const ctx = audioCtxRef.current;
+      if (gain && ctx) {
+        const t = ctx.currentTime;
+        gain.gain.cancelScheduledValues(t);
+        gain.gain.setValueAtTime(gain.gain.value || 0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.02);
+      }
+      if (osc) {
+        try {
+          osc.stop();
+        } catch {
+          // ignore
+        }
+        try {
+          osc.disconnect();
+        } catch {
+          // ignore
+        }
+      }
+      if (gain) {
+        try {
+          gain.disconnect();
+        } catch {
+          // ignore
+        }
+      }
+    } finally {
+      activeOscRef.current = null;
+      activeGainRef.current = null;
+    }
+  };
 
   const ensureAudioContext = async () => {
     if (typeof window === "undefined") return null;
@@ -57,6 +95,8 @@ export default function AdminRealtimeListener() {
       const ctx = await ensureAudioContext();
       if (!ctx) return;
 
+      stopNotificationSound();
+
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -79,6 +119,17 @@ export default function AdminRealtimeListener() {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+
+      activeOscRef.current = osc;
+      activeGainRef.current = gain;
+      osc.onended = () => {
+        if (activeOscRef.current === osc) {
+          activeOscRef.current = null;
+        }
+        if (activeGainRef.current === gain) {
+          activeGainRef.current = null;
+        }
+      };
 
       osc.start();
       osc.stop(t0 + totalDurationSeconds + 0.1);
@@ -144,7 +195,11 @@ export default function AdminRealtimeListener() {
             ),
             variant: "success",
             className: "cursor-pointer hover:bg-emerald-100",
+            onOpenChange: (open) => {
+              if (!open) stopNotificationSound();
+            },
             onClick: () => {
+              stopNotificationSound();
               router.push("/admin/tour/booking");
             },
           });
@@ -173,7 +228,11 @@ export default function AdminRealtimeListener() {
             ),
             variant: "warning",
             className: "cursor-pointer hover:bg-amber-100",
+            onOpenChange: (open) => {
+              if (!open) stopNotificationSound();
+            },
             onClick: () => {
+              stopNotificationSound();
               router.push("/admin/contact-forms/tailor-made");
             },
           });
@@ -201,7 +260,11 @@ export default function AdminRealtimeListener() {
           ),
           variant: "info",
           className: "cursor-pointer hover:bg-blue-100",
+          onOpenChange: (open) => {
+            if (!open) stopNotificationSound();
+          },
           onClick: () => {
+            stopNotificationSound();
             router.push("/admin/contact-forms/contact-form");
           },
         });
@@ -267,7 +330,11 @@ export default function AdminRealtimeListener() {
             ),
             variant: "success",
             className: "cursor-pointer hover:bg-emerald-100",
+            onOpenChange: (open) => {
+              if (!open) stopNotificationSound();
+            },
             onClick: () => {
+              stopNotificationSound();
               router.push("/admin/tour/booking");
             },
           });
@@ -296,7 +363,11 @@ export default function AdminRealtimeListener() {
             ),
             variant: "warning",
             className: "cursor-pointer hover:bg-amber-100",
+            onOpenChange: (open) => {
+              if (!open) stopNotificationSound();
+            },
             onClick: () => {
+              stopNotificationSound();
               router.push("/admin/contact-forms/tailor-made");
             },
           });
@@ -324,7 +395,11 @@ export default function AdminRealtimeListener() {
           ),
           variant: "info",
           className: "cursor-pointer hover:bg-blue-100",
+          onOpenChange: (open) => {
+            if (!open) stopNotificationSound();
+          },
           onClick: () => {
+            stopNotificationSound();
             router.push("/admin/contact-forms/contact-form");
           },
         });
@@ -346,6 +421,7 @@ export default function AdminRealtimeListener() {
       socket?.off("notification:new", onNotificationNew);
       socket?.off("connect_error", onConnectError);
       socketRef.current = null;
+      stopNotificationSound();
     };
   }, [refreshUnreadCount, refreshContactCount, refreshBookingCount]);
 
