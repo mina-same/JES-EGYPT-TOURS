@@ -61,9 +61,9 @@ export default function AdminRealtimeListener() {
       const gain = ctx.createGain();
 
       const t0 = ctx.currentTime;
-      const totalDurationSeconds = 3;
-      const beepIntervalSeconds = 0.5;
-      const beepDurationSeconds = 0.22;
+      const totalDurationSeconds = 60;
+      const beepIntervalSeconds = 0.6;
+      const beepDurationSeconds = 0.28;
       const beepCount = Math.max(1, Math.floor(totalDurationSeconds / beepIntervalSeconds));
 
       osc.type = "triangle";
