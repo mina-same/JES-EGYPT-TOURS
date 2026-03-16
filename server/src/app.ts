@@ -100,6 +100,26 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// Root route (useful for Vercel base URL checks)
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'JES Egypt Tours API is running',
+    health: '/health',
+    apiBase: '/api',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Convenience health check under /api as well
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'API is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
