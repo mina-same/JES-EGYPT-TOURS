@@ -35,7 +35,7 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:3000',
   'http://192.168.1.33:3000',
-  'https://jes-egypt-tours-rlc9.vercel.app/'
+  'https://jes-egypt-tours-rlc9.vercel.app'
 ].filter(Boolean) as string[];
 
 app.use(
