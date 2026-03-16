@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import TailorMadeRequest from '../models/TailorMadeRequest';
+import Notification from '../models/Notification';
 import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
 
 /**
@@ -32,6 +33,14 @@ export const createTailorMadeRequest = async (
       title: `Tailor-made request from ${tailorMadeRequest.fullName}`,
       entityId: tailorMadeRequest._id.toString(),
       createdAt: tailorMadeRequest.createdAt?.toISOString?.() || new Date().toISOString(),
+    });
+
+    // Save notification to database (supports polling fallback on Vercel)
+    await Notification.create({
+      type: 'tailorMade',
+      title: 'New Tailor-Made',
+      message: `Tailor-made request from ${tailorMadeRequest.fullName} (${tailorMadeRequest.email})`,
+      entityId: tailorMadeRequest._id,
     });
 
     void emitDashboardStatsUpdate();
