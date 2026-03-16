@@ -35,6 +35,7 @@ const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:3000',
   'http://192.168.1.33:3000',
+  'https://jes-egypt-tours-rlc9.vercel.app/'
 ].filter(Boolean) as string[];
 
 app.use(
@@ -116,6 +117,16 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: 'API is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Base API route (useful when opening /api in browser)
+app.get(['/api', '/api/'], (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'JES Egypt Tours API base',
+    health: '/api/health',
     timestamp: new Date().toISOString(),
   });
 });
