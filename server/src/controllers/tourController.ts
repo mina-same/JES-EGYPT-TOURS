@@ -164,7 +164,7 @@ export const getAllTours = async (
 
     // Apply field selection if specified
     if (fields) {
-      query = query.select(fields);
+      query.select(fields);
     }
 
     // Execute query with count
