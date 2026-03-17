@@ -11,12 +11,14 @@ import {
   Image as ImageIcon,
   Loader2,
   Save,
+  Upload,
   XCircle,
 } from 'lucide-react';
 
 import { useToast } from '@/hooks/use-toast';
 import { SliderItem } from '@/types/slider';
 import { API_ENDPOINTS } from '@/config/api';
+import { uploadAPI } from '@/lib/api/upload';
 
 type SliderApiResponse<T> = {
   success: boolean;
@@ -101,6 +103,7 @@ export default function EditSliderContentPage() {
 
   const [initialLoading, setInitialLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<SliderItem>(() => getEmptySliderItem(id));
 
@@ -165,6 +168,52 @@ export default function EditSliderContentPage() {
         [field]: value,
       },
     }));
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate file size (max 2MB)
+    const MAX_FILE_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: 'File too large',
+        description: 'Image must be less than 2MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const response = await uploadAPI.uploadFile(file);
+      if (response.success && response.data?.url) {
+        updateImageField('url', response.data.url);
+        if (response.data.fileName) {
+          updateImageField('fileName', response.data.fileName);
+        }
+        toast({
+          title: 'Upload successful',
+          description: 'Image uploaded successfully.',
+          variant: 'success',
+        });
+      } else {
+        toast({
+          title: 'Upload failed',
+          description: response.error || 'Failed to upload image',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: 'Upload error',
+        description: 'An error occurred during upload',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const validate = () => {
@@ -399,11 +448,31 @@ export default function EditSliderContentPage() {
 
             <label className='block text-xs text-gray-600 mb-3'>
               <div className='mb-1'>Image URL</div>
-              <input
-                className='w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#63ab45]'
-                value={formData.image.url}
-                onChange={(e) => updateImageField('url', e.target.value)}
-              />
+              <div className='flex gap-2'>
+                <input
+                  className='flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#63ab45]'
+                  value={formData.image.url}
+                  onChange={(e) => updateImageField('url', e.target.value)}
+                />
+                <label className='inline-flex items-center gap-2 rounded-lg bg-[#63ab45] px-3 py-2 text-sm font-medium text-white cursor-pointer hover:bg-[#529938] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    className='hidden'
+                    disabled={uploading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) await handleImageUpload(file);
+                    }}
+                  />
+                  {uploading ? (
+                    <Loader2 size={16} className='animate-spin' />
+                  ) : (
+                    <Upload size={16} />
+                  )}
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </label>
+              </div>
             </label>
 
             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
