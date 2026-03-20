@@ -68,9 +68,9 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
             </Link>
           </div>
 
-          <div className='main-header__right' style={{ display: "flex", alignItems: "center" }}>
-            <nav className='main-header__nav main-menu' style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-              <ul className='main-menu__list' style={{ justifyContent: "center" }}>
+          <div className='main-header__right' style={{ display: "flex", alignItems: "center", flex: 1, justifyContent: "flex-end", position: "relative" }}>
+            <nav className='main-header__nav main-menu' style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+              <ul className='main-menu__list'>
                 {/* Render Home menu with showcase */}
                 <li className='dropdown megamenu'>
                   <Link href='/'>Home</Link>

@@ -6326,7 +6326,7 @@ body.megamenu-popup-active .mobile-nav__content {
   font-style: normal;
   font-weight: 400;
   font-size: 50px;
-  line-height: 56%;
+  line-height: 1.2;
 }
 @media (max-width: 767px) {
   .main-slider-four__subtitle {

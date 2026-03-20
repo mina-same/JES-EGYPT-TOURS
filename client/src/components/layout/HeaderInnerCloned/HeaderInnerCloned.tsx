@@ -4,7 +4,6 @@ import Image from "next/image";
 
 import Link from "next/link"; // Assuming we're using Next.js for routing
 import { navItems, headerTwoNavItems } from "@/data/navItems"; // Import the navItems data
-import DemoPages from "@/components/common/DemoPages/DemoPages";
 import main_logo from "@/assets/images/logo-dark.png";
 import { usePathname } from "next/navigation";
 import useStore from "@/store/useStore";

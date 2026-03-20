@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 
-import mainSliderFourData from "@/data/mainSliderFourData";
 import LineShape from "@/assets/images/shapes/line-shape.png";
 import Link from "next/link";
 import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
@@ -69,21 +68,6 @@ const mapApiSlideToVm = (item: ApiSliderItem): SlideVM => {
   };
 };
 
-const getFallbackSlides = (): SlideVM[] => {
-  return (mainSliderFourData || []).map((item: any) => ({
-    id: String(item.id),
-    subtitle: item.subtitle,
-    title: item.title,
-    titleSpan: item.titleSpan,
-    titleEnd: item.titleEnd,
-    imageUrl: item.imageSrc?.src,
-    imageAlt: item.imageAlt,
-    buttonText: "Explore Tours",
-    buttonLink: "/tours",
-    buttonTarget: "_self",
-  }));
-};
-
 const settings = {
   loop: true,
   autoplay: true,
@@ -105,7 +89,7 @@ const settings = {
 
 const MainSliderFour: React.FC = () => {
   const [promo, setPromo] = React.useState<SliderUnderPromo | null>(null);
-  const [slides, setSlides] = React.useState<SlideVM[]>(() => getFallbackSlides());
+  const [slides, setSlides] = React.useState<SlideVM[]>([]);
 
   React.useEffect(() => {
     // Inject custom styles for dots
@@ -124,9 +108,9 @@ const MainSliderFour: React.FC = () => {
         const items = await sliderService.getActiveSliderContent();
         const mapped = (items || []).map(mapApiSlideToVm).filter((s) => !!s.imageUrl);
 
-        setSlides(mapped.length ? mapped : getFallbackSlides());
+        setSlides(mapped);
       } catch {
-        setSlides(getFallbackSlides());
+        setSlides([]);
       }
     };
 
@@ -142,6 +126,10 @@ const MainSliderFour: React.FC = () => {
     loadSlides();
     loadPromo();
   }, []);
+
+  if (!slides.length) {
+    return null;
+  }
 
   return (
     <section className='main-slider-four' id='home'>

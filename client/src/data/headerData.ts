@@ -18,27 +18,7 @@ export const headerData = {
   navItems: [
     {
       label: "Home",
-      link: "/",  
-      dropdown: [
-        {
-          label: "Home Page 01",
-          link: "/",  
-          options: [
-            { label: "Multi Page", link: "/" },  
-            { label: "One Page", link: "index-one-page" },  
-            { imageSrc: homeShowcase1, alt: "Home Showcase 1" },
-          ],
-        },
-        {
-          label: "Home Page 02",
-          link: "home2",  
-          options: [
-            { label: "Multi Page", link: "home2" },  
-            { label: "One Page", link: "index-2-one-page" },  
-            { imageSrc: homeShowcase2, alt: "Home Showcase 2" },
-          ],
-        },
-      ],
+      link: "/", 
     },
     {
       label: "About Us",
