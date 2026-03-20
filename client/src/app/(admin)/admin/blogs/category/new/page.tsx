@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Image as ImageIcon } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import ImageUpload from '@/components/admin/ImageUpload';
+import LocalizedField from '@/components/admin/LocalizedField';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import { ILocalizedString } from '@/types/blog';
 import { useToast } from '@/hooks/use-toast';
@@ -348,14 +349,22 @@ export default function NewBlogCategoryPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Category Name ({activeLanguage.toUpperCase()}) *</Label>
-                <Input
-                  id="name"
-                  value={formData.name[activeLanguage] || ''}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder={`e.g., Travel Guides in ${activeLanguage}`}
-                  required={activeLanguage === 'en'}
-                />
+                <LocalizedField
+                  label="Category Name"
+                  value={formData.name}
+                  onChange={(lang, val) => handleChange('name', val)}
+                  globalLanguage={activeLanguage}
+                >
+                  {(lang, value, onChange) => (
+                    <Input
+                      id="name"
+                      value={value}
+                      onChange={(e) => onChange(e.target.value)}
+                      placeholder={`e.g., Travel Guides in ${lang.toUpperCase()}`}
+                      required={lang === 'en'}
+                    />
+                  )}
+                </LocalizedField>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="slug">URL Slug (Always EN) *</Label>
@@ -370,14 +379,22 @@ export default function NewBlogCategoryPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description">Description ({activeLanguage.toUpperCase()})</Label>
-              <RichTextEditor
-                key={`editor-${activeLanguage}`}
-                value={formData.description[activeLanguage] || ''}
-                onChange={(value: string) => handleChange('description', value)}
-                placeholder="Describe this category..."
-                className="bg-white dark:bg-slate-900"
-              />
+              <LocalizedField
+                label="Description"
+                value={formData.description}
+                onChange={(lang, val) => handleChange('description', val)}
+                globalLanguage={activeLanguage}
+              >
+                {(lang, value, onChange) => (
+                  <RichTextEditor
+                    key={`editor-${lang}`}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={`Describe this category in ${lang.toUpperCase()}...`}
+                    className="bg-white dark:bg-slate-900"
+                  />
+                )}
+              </LocalizedField>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -440,17 +457,27 @@ export default function NewBlogCategoryPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="metaTitle">Meta Title ({activeLanguage.toUpperCase()})</Label>
-                <Input
-                  id="metaTitle"
-                  value={formData.seo?.metaTitle[activeLanguage] || ''}
-                  onChange={(e) => handleChange('seo.metaTitle', e.target.value)}
-                  placeholder="Travel Guides - JES Egypt Tours"
-                  maxLength={70}
-                />
-                <p className="text-xs text-gray-500">
-                  {(formData.seo?.metaTitle[activeLanguage] || '').length}/70 characters
-                </p>
+                <LocalizedField
+                  label="Meta Title"
+                  value={formData.seo?.metaTitle}
+                  onChange={(lang, val) => handleChange('seo.metaTitle', val)}
+                  globalLanguage={activeLanguage}
+                >
+                  {(lang, value, onChange) => (
+                    <>
+                      <Input
+                        id="metaTitle"
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        placeholder="Travel Guides - JES Egypt Tours"
+                        maxLength={70}
+                      />
+                      <p className="text-xs text-gray-500">
+                        {value.length}/70 characters
+                      </p>
+                    </>
+                  )}
+                </LocalizedField>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="metaKeywords">Keywords (comma-separated)</Label>
@@ -464,15 +491,25 @@ export default function NewBlogCategoryPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="metaDescription">Meta Description ({activeLanguage.toUpperCase()})</Label>
-              <RichTextEditor
-                key={`seo-editor-${activeLanguage}`}
-                value={formData.seo?.metaDescription[activeLanguage] || ''}
-                onChange={(value: string) => handleChange('seo.metaDescription', value)}
-                placeholder="Explore our comprehensive travel guides..."
-                className="bg-white dark:bg-slate-900"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">Keep it concise for SEO (recommended: 150-160 characters)</p>
+              <LocalizedField
+                label="Meta Description"
+                value={formData.seo?.metaDescription}
+                onChange={(lang, val) => handleChange('seo.metaDescription', val)}
+                globalLanguage={activeLanguage}
+              >
+                {(lang, value, onChange) => (
+                  <>
+                    <RichTextEditor
+                      key={`seo-editor-${lang}`}
+                      value={value}
+                      onChange={onChange}
+                      placeholder="Explore our comprehensive travel guides..."
+                      className="bg-white dark:bg-slate-900"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Keep it concise for SEO (recommended: 150-160 characters)</p>
+                  </>
+                )}
+              </LocalizedField>
             </div>
 
             <Separator />

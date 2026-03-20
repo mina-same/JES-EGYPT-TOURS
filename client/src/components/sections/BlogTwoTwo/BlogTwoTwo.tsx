@@ -120,8 +120,8 @@ const BlogTwoTwo = () => {
                 <div className='blog-card-two__image'>
                   <Image
                     src={post.image}
-                    alt={post.imageAlt || post.title}
-                    className='img-fluid'
+                    alt={post.imageAlt || post.title || "Blog post image"}
+                    className="img-fluid"
                     width={600}
                     height={450}
                     style={{ width: "100%", height: "260px", objectFit: "cover" }}
@@ -172,7 +172,7 @@ const BlogTwoTwo = () => {
       </Container>
 
       <div className='blog-two__element'>
-        <Image src={shape} alt='' />
+        <Image src={shape} alt='element shape' />
       </div>
     </section>
   );

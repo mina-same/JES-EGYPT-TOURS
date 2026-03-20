@@ -21,6 +21,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
+import LocalizedField from '@/components/admin/LocalizedField';
 import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
 import TagInput from '@/components/admin/TagInput';
 import { useToast } from '@/hooks/use-toast';
@@ -69,6 +70,7 @@ export default function NewBlogPage() {
     excerpt: { en: '', de: '', it: '', es: '' },
     contentBlocks: [
       {
+        id: 'initial-block',
         type: 'html',
         content: { en: '', de: '', it: '', es: '' },
       }
@@ -382,14 +384,22 @@ export default function NewBlogPage() {
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="title">Title ({activeLanguage.toUpperCase()}) *</Label>
-                        <Input
-                          id="title"
-                          value={formData.title[activeLanguage] || ''}
-                          onChange={(e) => handleChange('title', e.target.value)}
-                          placeholder={`e.g., Amazing Travel Tips for Egypt in ${activeLanguage}`}
-                          required={activeLanguage === 'en'}
-                        />
+                        <LocalizedField
+                          label="Title"
+                          value={formData.title}
+                          onChange={(lang, val) => handleChange('title', val)}
+                          globalLanguage={activeLanguage}
+                        >
+                          {(lang, value, onChange) => (
+                            <Input
+                              id="title"
+                              value={value}
+                              onChange={(e) => onChange(e.target.value)}
+                              placeholder={`e.g., Amazing Travel Tips for Egypt in ${lang.toUpperCase()}`}
+                              required={lang === 'en'}
+                            />
+                          )}
+                        </LocalizedField>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="slug">URL Slug (Always EN) *</Label>
@@ -404,14 +414,22 @@ export default function NewBlogPage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="excerpt">Excerpt ({activeLanguage.toUpperCase()})</Label>
-                      <Textarea
-                        id="excerpt"
-                        value={formData.excerpt[activeLanguage] || ''}
-                        onChange={(e) => handleChange('excerpt', e.target.value)}
-                        placeholder="Brief description of the blog post..."
-                        rows={3}
-                      />
+                      <LocalizedField
+                        label="Excerpt"
+                        value={formData.excerpt}
+                        onChange={(lang, val) => handleChange('excerpt', val)}
+                        globalLanguage={activeLanguage}
+                      >
+                        {(lang, value, onChange) => (
+                          <Textarea
+                            id="excerpt"
+                            value={value}
+                            onChange={(e) => onChange(e.target.value)}
+                            placeholder={`Brief description of the blog post in ${lang.toUpperCase()}...`}
+                            rows={3}
+                          />
+                        )}
+                      </LocalizedField>
                     </div>
 
                     <div className="space-y-2">
@@ -503,36 +521,60 @@ export default function NewBlogPage() {
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="metaTitle">Meta Title ({activeLanguage.toUpperCase()})</Label>
-                        <Input
-                          id="metaTitle"
-                          value={formData.metaTitle[activeLanguage] || ''}
-                          onChange={(e) => handleChange('metaTitle', e.target.value)}
-                          placeholder="SEO title (60 characters max)"
-                          maxLength={60}
-                        />
+                        <LocalizedField
+                          label="Meta Title"
+                          value={formData.metaTitle}
+                          onChange={(lang, val) => handleChange('metaTitle', val)}
+                          globalLanguage={activeLanguage}
+                        >
+                          {(lang, value, onChange) => (
+                            <Input
+                              id="metaTitle"
+                              value={value}
+                              onChange={(e) => onChange(e.target.value)}
+                              placeholder="SEO title (60 characters max)"
+                              maxLength={60}
+                            />
+                          )}
+                        </LocalizedField>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="focusKeyword">Focus Keyword ({activeLanguage.toUpperCase()})</Label>
-                        <Input
-                          id="focusKeyword"
-                          value={formData.focusKeyword[activeLanguage] || ''}
-                          onChange={(e) => handleChange('focusKeyword', e.target.value)}
-                          placeholder="Main keyword for SEO"
-                        />
+                        <LocalizedField
+                          label="Focus Keyword"
+                          value={formData.focusKeyword}
+                          onChange={(lang, val) => handleChange('focusKeyword', val)}
+                          globalLanguage={activeLanguage}
+                        >
+                          {(lang, value, onChange) => (
+                            <Input
+                              id="focusKeyword"
+                              value={value}
+                              onChange={(e) => onChange(e.target.value)}
+                              placeholder={`Main keyword for SEO in ${lang.toUpperCase()}`}
+                            />
+                          )}
+                        </LocalizedField>
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="metaDescription">Meta Description ({activeLanguage.toUpperCase()})</Label>
-                      <Textarea
-                        id="metaDescription"
-                        value={formData.metaDescription[activeLanguage] || ''}
-                        onChange={(e) => handleChange('metaDescription', e.target.value)}
-                        placeholder="SEO description (160 characters max)"
-                        maxLength={160}
-                        rows={3}
-                      />
+                      <LocalizedField
+                        label="Meta Description"
+                        value={formData.metaDescription}
+                        onChange={(lang, val) => handleChange('metaDescription', val)}
+                        globalLanguage={activeLanguage}
+                      >
+                        {(lang, value, onChange) => (
+                          <Textarea
+                            id="metaDescription"
+                            value={value}
+                            onChange={(e) => onChange(e.target.value)}
+                            placeholder={`SEO description in ${lang.toUpperCase()} (160 characters max)`}
+                            maxLength={160}
+                            rows={3}
+                          />
+                        )}
+                      </LocalizedField>
                     </div>
 
                     <div className="space-y-2">

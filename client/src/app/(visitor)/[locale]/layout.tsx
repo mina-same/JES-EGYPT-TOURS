@@ -7,6 +7,33 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { Metadata } from "next";
+
+const locales = ["en", "de", "it", "es"];
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  const languages: Record<string, string> = {};
+  locales.forEach((l) => {
+    languages[l] = `${baseUrl}/${l}`;
+  });
+
+  return {
+    alternates: {
+      canonical: `${baseUrl}/${locale}`,
+      languages: {
+        ...languages,
+        "x-default": `${baseUrl}/en`,
+      },
+    },
+  };
+}
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",

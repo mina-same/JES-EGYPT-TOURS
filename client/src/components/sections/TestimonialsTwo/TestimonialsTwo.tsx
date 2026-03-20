@@ -146,7 +146,7 @@ const TestimonialsTwo = () => {
         </Row>
       </Container>
       <div className='testimonials-two__element'>
-        <Image src={elementImage} alt='' />
+        <Image src={elementImage} alt='testimonial background element' />
       </div>
     </section>
   );

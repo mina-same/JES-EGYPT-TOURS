@@ -26,6 +26,7 @@ import {
   GripVertical, Plus, Trash2, Copy, Settings, ChevronDown, ChevronUp,
   Type, Quote, Images, X
 } from 'lucide-react';
+import LocalizedField from './LocalizedField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -93,7 +94,7 @@ function SortableBlockItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: block.id });
+  } = useSortable({ id: block.id || `temp-${index}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -220,36 +221,62 @@ function BlockContent({
     case 'html':
       return (
         <div className="space-y-2">
-          <Label className="dark:text-slate-300">Content ({activeLanguage.toUpperCase()})</Label>
-          <RichTextEditor
-            key={`rich-editor-${activeLanguage}-${index}`}
-            value={currentContent}
-            onChange={(value) => handleLocalizedUpdate('content', value)}
-            placeholder="Write your content here..."
-            className="min-h-[200px] dark:bg-slate-900 dark:border-slate-800"
-          />
+          <LocalizedField
+            label="Content"
+            value={block.content}
+            onChange={(lang, val) => handleLocalizedUpdate('content', val)}
+            globalLanguage={activeLanguage}
+          >
+            {(lang, value, onChange) => (
+              <RichTextEditor
+                key={`rich-editor-${lang}-${index}`}
+                value={value}
+                onChange={onChange}
+                placeholder="Write your content here..."
+                className="min-h-[200px] dark:bg-slate-900 dark:border-slate-800"
+              />
+            )}
+          </LocalizedField>
         </div>
       );
 
     case 'blockquote':
       return (
-        <div className="space-y-2">
-          <Label className="dark:text-slate-300">Quote Content ({activeLanguage.toUpperCase()})</Label>
-          <Textarea
-            value={currentContent}
-            onChange={(e) => handleLocalizedUpdate('content', e.target.value)}
-            placeholder="Enter the quote text here..."
-            rows={4}
-            className="resize-none border-l-4 border-blue-500 dark:bg-slate-900 dark:border-slate-800"
-          />
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="dark:text-slate-300">Attribution (Optional) ({activeLanguage.toUpperCase()})</Label>
-            <Input
-              value={currentTitle}
-              onChange={(e) => handleLocalizedUpdate('title', e.target.value)}
-              placeholder="— Author or source"
-              className="dark:bg-slate-900 dark:border-slate-800"
-            />
+            <LocalizedField
+              label="Quote Content"
+              value={block.content}
+              onChange={(lang, val) => handleLocalizedUpdate('content', val)}
+              globalLanguage={activeLanguage}
+            >
+              {(lang, value, onChange) => (
+                <Textarea
+                  value={value}
+                  onChange={(e) => onChange(e.target.value)}
+                  placeholder="Enter the quote text here..."
+                  rows={4}
+                  className="resize-none border-l-4 border-blue-500 dark:bg-slate-900 dark:border-slate-800"
+                />
+              )}
+            </LocalizedField>
+          </div>
+          <div className="space-y-2">
+            <LocalizedField
+              label="Attribution (Optional)"
+              value={block.title}
+              onChange={(lang, val) => handleLocalizedUpdate('title', val)}
+              globalLanguage={activeLanguage}
+            >
+              {(lang, value, onChange) => (
+                <Input
+                  value={value}
+                  onChange={(e) => onChange(e.target.value)}
+                  placeholder="— Author or source"
+                  className="dark:bg-slate-900 dark:border-slate-800"
+                />
+              )}
+            </LocalizedField>
           </div>
         </div>
       );
@@ -274,12 +301,10 @@ function BlockContent({
               onUpdate(index, 'images', newImages);
             }}
             onUpdate={(imageIndex, field, value) => {
-              console.log('🔍 Image onUpdate:', { imageIndex, field, value });
               const newImages = [...(block.images || [])];
               if (newImages[imageIndex]) {
                 newImages[imageIndex] = { ...newImages[imageIndex], [field]: value };
               }
-              console.log('🔍 Updated images array:', newImages);
               onUpdate(index, 'images', newImages);
             }}
             onUpload={async (file, imageIndex) => {
@@ -396,10 +421,8 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
   }, [blocks, onChange]);
 
   const updateBlock = useCallback((index: number, field: string, value: any) => {
-    console.log(`updateBlock: index=${index}, field=${field}, value=`, value);
     const newBlocks = [...blocks];
     newBlocks[index] = { ...newBlocks[index], [field]: value };
-    console.log('Updated blocks:', newBlocks);
     onChange(newBlocks);
   }, [blocks, onChange]);
 
@@ -474,12 +497,12 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={blocks.map((b, i) => b.id || `sort-${i}`)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
             <AnimatePresence>
               {blocks.map((block, index) => (
                 <motion.div
-                  key={block.id}
+                  key={block.id || `div-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}

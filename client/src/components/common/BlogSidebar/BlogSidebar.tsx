@@ -99,7 +99,7 @@ const BlogSidebar: React.FC = () => {
                   >
                     <Image
                       src={post.image}
-                  alt={post.imageAlt || post.title}
+                      alt={post.imageAlt || post.title || "Blog post image"}
                       width={600}
                       height={400}
                       style={{ width: "100%", height: "auto", objectFit: "cover" }}

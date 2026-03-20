@@ -134,7 +134,7 @@ const OfferOne: React.FC<OfferOneProps> = ({ homeThree }) => {
       </Container>
 
       <div className='offer-one__element'>
-        <Image src={element} alt='' />
+        <Image src={element} alt='offer background element' />
       </div>
     </section>
   );

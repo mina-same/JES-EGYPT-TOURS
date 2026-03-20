@@ -7,6 +7,15 @@ import i18n from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
+
+const FLAG_COMPONENTS: Record<string, any> = {
+  en: GB,
+  de: DE,
+  it: IT,
+  es: ES,
+};
 
 const LanguageSelector: React.FC = () => {
   const { t } = useTranslation("common");
@@ -26,10 +35,10 @@ const LanguageSelector: React.FC = () => {
     return pathname || "/";
   }, [pathname]);
   const options = useMemo(() => [
-    { value: "en", label: t("language.english") },
-    { value: "de", label: t("language.german") },
-    { value: "it", label: t("language.italian") },
-    { value: "es", label: t("language.spanish") },
+    { value: "en", label: t("language.english"), flag: "en" },
+    { value: "de", label: t("language.german"), flag: "de" },
+    { value: "it", label: t("language.italian"), flag: "it" },
+    { value: "es", label: t("language.spanish"), flag: "es" },
   ], [t]);
   const [mounted, setMounted] = useState(false);
   const [selectedOption, setSelectedOption] = useState(options[0]);
@@ -39,7 +48,48 @@ const LanguageSelector: React.FC = () => {
     const current = (pathLocale || i18n.language || "en").split("-")[0];
     const found = options.find(o => o.value === current) || options[0];
     setSelectedOption(found);
-  }, [options]);
+
+    // Filter and log user country/timezone
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const inferredCountry = timezone.split('/')[1]?.replace(/_/g, ' ') || timezone;
+      console.log("%cUser Location Info:", "color: #b79c5c; font-weight: bold;", {
+        timezone,
+        browserLanguage: navigator.language,
+        userCountry: inferredCountry,
+        timestamp: new Date().toLocaleString()
+      });
+      console.log(`%cDetected Country: ${inferredCountry}`, "color: #b79c5c; font-weight: bold; font-size: 14px;");
+
+      // Automatic Language Detection (only on first visit if no preference is saved)
+      const hasPreference = localStorage.getItem("i18nextLng");
+      if (!hasPreference) {
+          let detectedLocale = 'en'; // Default
+          
+          // Detection using timezone (as requested)
+          const tz = timezone.toLowerCase();
+          if (tz.includes('berlin') || tz.includes('zurich') || tz.includes('vienna') || tz.includes('germany') || tz.includes('europe/london') === false && (navigator.language.startsWith('de'))) {
+            detectedLocale = 'de';
+          } else if (tz.includes('rome') || tz.includes('milan') || tz.includes('venice') || (navigator.language.startsWith('it'))) {
+            detectedLocale = 'it';
+          } else if (tz.includes('madrid') || tz.includes('barcelona') || tz.includes('sevilla') || (navigator.language.startsWith('es'))) {
+            detectedLocale = 'es';
+          }
+
+          // If detected non-english and we are currently on default 'en'
+          if (detectedLocale !== 'en' && pathLocale === 'en') {
+             const target = `/${detectedLocale}${normalizedPath === "/" ? "/" : normalizedPath}`;
+             console.log(`%cAuto-detecting language: ${detectedLocale}. Redirecting...`, "color: #b79c5c;");
+             i18n.changeLanguage(detectedLocale);
+             localStorage.setItem("i18nextLng", detectedLocale);
+             document.cookie = `NEXT_LOCALE=${detectedLocale};path=/`;
+             router.push(target);
+          }
+      }
+    } catch (e) {
+      console.error("Location/Detection failed", e);
+    }
+  }, [options, pathLocale, normalizedPath, router]);
 
   if (!mounted) {
     return <div style={{ width: '120px', height: '40px' }} />;
@@ -50,7 +100,7 @@ const LanguageSelector: React.FC = () => {
       <Select
         classNamePrefix="custom-select"
         value={selectedOption}
-        onChange={(option) => {
+        onChange={(option: any) => {
           if (!option) return;
           setSelectedOption(option);
           i18n.changeLanguage(option.value);
@@ -66,9 +116,86 @@ const LanguageSelector: React.FC = () => {
         options={options}
         isSearchable={false}
         components={{
-          IndicatorSeparator: () => null, // removes the separator
+          IndicatorSeparator: () => null,
+          Option: (props: any) => {
+            const Flag = FLAG_COMPONENTS[props.data.flag] || GB;
+            return (
+              <div
+                {...props.innerProps}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors text-sm",
+                  props.isFocused ? "bg-[#b79c5c]/10 text-[#b79c5c]" : "text-white hover:bg-[#b79c5c]/10 hover:text-[#b79c5c]",
+                  props.isSelected ? "bg-[#b79c5c] text-white" : ""
+                )}
+              >
+                <Flag className="w-5 h-3.5 rounded-sm object-cover shadow-sm" />
+                <span>{props.data.label}</span>
+              </div>
+            );
+          },
+          SingleValue: (props: any) => {
+            const Flag = FLAG_COMPONENTS[props.data.flag] || GB;
+            return (
+              <div className="flex items-center gap-2 text-white whitespace-nowrap overflow-visible">
+                <Flag className="w-5 h-3.5 rounded-sm object-cover shadow-sm flex-shrink-0" />
+                <span className="font-medium whitespace-nowrap">{props.data.label}</span>
+              </div>
+            );
+          }
         }}
-        
+        styles={{
+          control: (base) => ({
+            ...base,
+            backgroundColor: 'transparent',
+            border: '1px solid rgba(183, 156, 92, 0.3)',
+            borderRadius: '8px',
+            minHeight: '38px',
+            height: '38px',
+            display: 'flex !important',
+            flexDirection: 'row !important' as any,
+            flexWrap: 'nowrap !important' as any,
+            alignItems: 'center !important' as any,
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            boxShadow: 'none',
+            '&:hover': {
+              borderColor: '#b79c5c'
+            }
+          }),
+          menu: (base) => ({
+            ...base,
+            backgroundColor: '#1a1a1a',
+            border: '1px solid rgba(183, 156, 92, 0.2)',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            zIndex: 999
+          }),
+          valueContainer: (base) => ({
+            ...base,
+            padding: '0 8px',
+            display: 'flex !important',
+            flexDirection: 'row !important' as any,
+            flexWrap: 'nowrap !important' as any,
+            alignItems: 'center !important' as any,
+            gap: '8px',
+            overflow: 'visible',
+            flex: '1',
+          }),
+          indicatorsContainer: (base) => ({
+            ...base,
+            height: '38px',
+            alignItems: 'center',
+            paddingRight: '4px'
+          }),
+          dropdownIndicator: (base) => ({
+            ...base,
+            color: '#b79c5c',
+            '&:hover': {
+              color: '#d4bb7d'
+            }
+          })
+        }}
       />
     </div>
   );
