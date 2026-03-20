@@ -5,6 +5,8 @@ import { faqService, type FAQ } from "@/services/faqService";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { ChevronDown, HelpCircle, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
 import image from "@/assets/images/resources/faq-sidebar.png";
 // types.ts
 interface Faq {
@@ -89,6 +91,8 @@ export interface FaqData {
 }
 
 const FaqSection: React.FC = () => {
+  const { i18n } = useTranslation();
+  const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it';
   const [activeTab, setActiveTab] = useState<string>("1");
   const [faqData, setFaqData] = useState<FaqData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,8 +145,8 @@ const FaqSection: React.FC = () => {
                 id: `content-${tab.id}`,
                 title: tab.title,
                 faqs: faqsForCategory.map((f) => ({
-                  question: f.question,
-                  answer: stripHtml(f.answer),
+                  question: getLocalizedValue(f.question, currentLang),
+                  answer: stripHtml(getLocalizedValue(f.answer, currentLang)),
                 })),
               },
             ],
@@ -171,7 +175,7 @@ const FaqSection: React.FC = () => {
     };
 
     fetchFaqs();
-  }, []);
+  }, [currentLang]);
 
   const handleTabSelect = (tabId: string) => {
     setActiveTab(tabId);

@@ -61,6 +61,21 @@ export const upsertContent = async (req: Request, res: Response) => {
   try {
     const { slug, title, subtitle, content, isActive } = req.body;
 
+    // Validation for English fields
+    if (!title?.en?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'English title is required',
+      });
+    }
+
+    if (!content?.en?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'English content is required',
+      });
+    }
+
     const updatedContent = await GeneralContent.findOneAndUpdate(
       { slug },
       { title, subtitle, content, isActive },

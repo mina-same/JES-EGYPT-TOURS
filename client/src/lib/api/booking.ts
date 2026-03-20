@@ -3,12 +3,14 @@ import { API_URL } from '@/config/api';
 
 const BASE_URL = `${API_URL}/bookings`;
 
+import { ILocalizedString } from '@/types/tour';
+
 export interface IBooking {
   _id?: string;
   id?: string;
   tour: string | {
     _id: string;
-    heading: string;
+    heading: ILocalizedString | string;
     slug: string;
     images?: Array<{ url: string; fileName: string }>;
   };

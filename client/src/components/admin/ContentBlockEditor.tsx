@@ -35,17 +35,19 @@ import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { AdminLanguage } from './AdminLanguageTabs';
+import { ILocalizedString } from '@/types/shared';
 
 export interface ContentBlock {
   id: string;
   type: 'html' | 'blockquote' | 'imageRow';
-  content?: string;
-  images?: ImageData[];
+  content?: ILocalizedString;
+  images?: any[]; // Should be localized images
   image?: string;
   url?: string;
-  alt?: string;
-  caption?: string;
-  title?: string;
+  alt?: ILocalizedString;
+  caption?: ILocalizedString;
+  title?: ILocalizedString; // Attribution for blockquote
   fileName?: string;
 }
 
@@ -53,6 +55,7 @@ interface ContentBlockEditorProps {
   blocks: ContentBlock[];
   onChange: (blocks: ContentBlock[]) => void;
   onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
+  activeLanguage: AdminLanguage;
 }
 
 const BLOCK_TYPES = [
@@ -62,15 +65,16 @@ const BLOCK_TYPES = [
 ] as const;
 
 // Sortable Block Item
-function SortableBlockItem({ 
-  block, 
-  index, 
-  onUpdate, 
-  onRemove, 
-  onDuplicate, 
+function SortableBlockItem({
+  block,
+  index,
+  onUpdate,
+  onRemove,
+  onDuplicate,
   onImageUpload,
   isCollapsed,
-  onToggleCollapse 
+  onToggleCollapse,
+  activeLanguage
 }: {
   block: ContentBlock;
   index: number;
@@ -80,6 +84,7 @@ function SortableBlockItem({
   onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
   isCollapsed: boolean;
   onToggleCollapse: (index: number) => void;
+  activeLanguage: AdminLanguage;
 }) {
   const {
     attributes,
@@ -175,6 +180,7 @@ function SortableBlockItem({
                 onUpdate={onUpdate}
                 onImageUpload={onImageUpload}
                 canRemoveImage={(imageIndex) => block.type === 'imageRow' ? (block.images?.length || 0) > 1 : true}
+                activeLanguage={activeLanguage}
               />
             </div>
           </motion.div>
@@ -190,22 +196,35 @@ function BlockContent({
   index, 
   onUpdate, 
   onImageUpload,
+  activeLanguage,
   canRemoveImage
 }: {
   block: ContentBlock;
   index: number;
   onUpdate: (index: number, field: string, value: any) => void;
   onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
+  activeLanguage: AdminLanguage;
   canRemoveImage?: (imageIndex: number) => boolean;
 }) {
+  const handleLocalizedUpdate = (field: string, value: string) => {
+    const current = (block as any)[field] || { en: '', de: '', it: '', es: '' };
+    onUpdate(index, field, {
+        ...current,
+        [activeLanguage]: value
+    });
+  };
+
+  const currentContent = (block.content as any)?.[activeLanguage] || '';
+  const currentTitle = (block.title as any)?.[activeLanguage] || '';
   switch (block.type) {
     case 'html':
       return (
         <div className="space-y-2">
-          <Label className="dark:text-slate-300">Content</Label>
+          <Label className="dark:text-slate-300">Content ({activeLanguage.toUpperCase()})</Label>
           <RichTextEditor
-            value={block.content || ''}
-            onChange={(value) => onUpdate(index, 'content', value)}
+            key={`rich-editor-${activeLanguage}-${index}`}
+            value={currentContent}
+            onChange={(value) => handleLocalizedUpdate('content', value)}
             placeholder="Write your content here..."
             className="min-h-[200px] dark:bg-slate-900 dark:border-slate-800"
           />
@@ -215,19 +234,19 @@ function BlockContent({
     case 'blockquote':
       return (
         <div className="space-y-2">
-          <Label className="dark:text-slate-300">Quote Content</Label>
+          <Label className="dark:text-slate-300">Quote Content ({activeLanguage.toUpperCase()})</Label>
           <Textarea
-            value={block.content || ''}
-            onChange={(e) => onUpdate(index, 'content', e.target.value)}
+            value={currentContent}
+            onChange={(e) => handleLocalizedUpdate('content', e.target.value)}
             placeholder="Enter the quote text here..."
             rows={4}
             className="resize-none border-l-4 border-blue-500 dark:bg-slate-900 dark:border-slate-800"
           />
           <div className="space-y-2">
-            <Label className="dark:text-slate-300">Attribution (Optional)</Label>
+            <Label className="dark:text-slate-300">Attribution (Optional) ({activeLanguage.toUpperCase()})</Label>
             <Input
-              value={block.title || ''}
-              onChange={(e) => onUpdate(index, 'title', e.target.value)}
+              value={currentTitle}
+              onChange={(e) => handleLocalizedUpdate('title', e.target.value)}
               placeholder="— Author or source"
               className="dark:bg-slate-900 dark:border-slate-800"
             />
@@ -331,7 +350,7 @@ function AddBlockModal({
   );
 }
 
-export default function ContentBlockEditor({ blocks, onChange, onImageUpload }: ContentBlockEditorProps) {
+export default function ContentBlockEditor({ blocks, onChange, onImageUpload, activeLanguage }: ContentBlockEditorProps) {
   const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -366,11 +385,11 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload }: 
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
-      content: type === 'html' || type === 'blockquote' ? '' : undefined,
+      content: type === 'html' || type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
       images: type === 'imageRow' ? [
-        { url: '', fileName: '', title: '', alt: '' }
+        { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
       ] : undefined,
-      title: type === 'blockquote' ? '' : undefined,
+      title: type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
     };
 
     onChange([...blocks, newBlock]);
@@ -475,6 +494,7 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload }: 
                     onImageUpload={onImageUpload}
                     isCollapsed={collapsedBlocks.has(block.id)}
                     onToggleCollapse={toggleCollapse}
+                    activeLanguage={activeLanguage}
                   />
                 </motion.div>
               ))}

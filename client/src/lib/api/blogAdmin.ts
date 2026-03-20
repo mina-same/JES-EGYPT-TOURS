@@ -29,39 +29,36 @@ export interface ApiResponse<T> {
   hasPrevPage?: boolean;
 }
 
-// Unified Image Interface (matches backend IImage)
-export interface IImage {
-  url: string;
-  fileName: string;
-  title?: string;
-  alt?: string;
-}
+import { ILocalizedString, ILocalizedMixed, IImage } from '@/types/shared';
+// We'll keep the local interfaces but update them to use localized types where needed
+// or just import from @/types/blog if possible. 
+// For now, let's just update the ones here to be safe and consistent.
 
 export interface BlogFormData {
-  title: string;
+  title: ILocalizedString;
   slug: string;
   author: string;
   featuredImage: IImage;
-  excerpt?: string;
+  excerpt?: ILocalizedString;
   contentBlocks: ContentBlock[];
-  tags: string[];
+  tags: ILocalizedMixed;
   status: 'draft' | 'published' | 'scheduled';
   isFeatured: boolean;
   publishedAt?: Date;
   scheduledAt?: Date;
-  metaTitle?: string;
-  metaDescription?: string;
-  metaKeywords?: string[];
+  metaTitle?: ILocalizedString;
+  metaDescription?: ILocalizedString;
+  metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
-  ogTitle?: string;
-  ogDescription?: string;
+  ogTitle?: ILocalizedString;
+  ogDescription?: ILocalizedString;
   ogImage?: string;
   ogType?: string;
   noIndex?: boolean;
   noFollow?: boolean;
-  focusKeyword?: string;
+  focusKeyword?: ILocalizedString;
   breadcrumbs?: {
-    name: string;
+    name: ILocalizedString;
     url: string;
   }[];
   relatedPosts?: string[];
@@ -70,13 +67,13 @@ export interface BlogFormData {
 export interface ContentBlock {
   id?: string;
   type: 'html' | 'imageRow' | 'blockquote' | 'video' | 'image';
-  content?: string;
-  title?: string;
+  content?: ILocalizedString;
+  title?: ILocalizedString;
   images?: {
     url: string;
-    alt: string;
-    title?: string;
-    caption?: string;
+    alt: ILocalizedString;
+    title?: ILocalizedString;
+    caption?: ILocalizedString;
     fileName?: string;
     width?: number;
     height?: number;
@@ -84,8 +81,8 @@ export interface ContentBlock {
   image?: string;
   url?: string;
   thumbnail?: string;
-  alt?: string;
-  caption?: string;
+  alt?: ILocalizedString;
+  caption?: ILocalizedString;
 }
 
 // ==================== BLOG CATEGORY API ====================

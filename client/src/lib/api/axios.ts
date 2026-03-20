@@ -12,13 +12,14 @@ const axiosInstance = axios.create({
   withCredentials: true, // Send cookies with requests
 });
 
-// Request interceptor to add token
+// Request interceptor to add token and locale
 axiosInstance.interceptors.request.use(
-  (config) => {
+  async (config) => {
     if (typeof window === 'undefined') {
       return config;
     }
 
+    // 1. Add Auth Token
     let token: string | null = null;
     try {
       token = window.localStorage.getItem('authToken');
@@ -29,6 +30,21 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // 2. Add Locale from i18n
+    try {
+      const { default: i18n } = await import('../i18n');
+      const isAdmin = window.location.pathname.includes('/admin');
+      
+      config.headers = config.headers ?? {};
+      if (isAdmin) {
+        config.headers['X-Locale'] = 'bypass'; // Ensure RAW data for admin
+      } else if (i18n.language) {
+        config.headers['X-Locale'] = i18n.language;
+      }
+    } catch (err) {
+      console.warn('Failed to load i18n for axios interceptor', err);
     }
 
     return config;

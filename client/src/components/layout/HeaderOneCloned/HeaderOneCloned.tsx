@@ -9,6 +9,8 @@ import useStore from "@/store/useStore";
 import useScrollUp from "@/hooks/useScrollUp";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
+import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
 interface NavItem {
   id: number;
   title: string;
@@ -17,6 +19,7 @@ interface NavItem {
 }
 
 const HeaderOneCloned: React.FC = () => {
+  const { i18n } = useTranslation();
   const scrollToTop = useScrollUp(500);
   const pathname = usePathname();
   const { menu } = useHeaderMenu("header-main");
@@ -26,6 +29,7 @@ const HeaderOneCloned: React.FC = () => {
     changeSideBarDrawerStatus,
   } = useStore();
   const { wishlist } = useWishlist();
+
   const renderSubMenu = (subMenu: any[]) => (
     <ul className=''>
       {subMenu.map((item: any, index: number) => (
@@ -35,7 +39,9 @@ const HeaderOneCloned: React.FC = () => {
             ? "dropdown"
             : ""}
         >
-          <Link href={item.url || item.link || "#"}>{item.label || item.title}</Link>
+          <Link href={item.url || item.link || "#"}>
+            {getLocalizedValue(item.label || item.title, i18n.language)}
+          </Link>
           {((Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0))
             ? renderSubMenu(item.children || item.subMenu)
             : null}
@@ -80,7 +86,9 @@ const HeaderOneCloned: React.FC = () => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={item.url || item.link || "#"}>{item.label || item.title}</Link>
+                    <Link href={item.url || item.link || "#"}>
+                      {getLocalizedValue(item.label || item.title, i18n.language)}
+                    </Link>
                     {hasChildren ? renderSubMenu(item.children || item.subMenu) : null}
                   </li>
                     );

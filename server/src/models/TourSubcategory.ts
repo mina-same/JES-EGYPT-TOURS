@@ -1,17 +1,24 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
+import { IFAQ, FAQSchema } from './shared/FaqSchema';
+import { 
+  ILocalizedString, 
+  ILocalizedMixed, 
+  LocalizedStringSchema, 
+  LocalizedMixedSchema 
+} from './shared/LocalizedSchema';
 
 // ==================== INTERFACES ====================
 
 export interface ISEO {
-  metaTitle?: string;
-  metaDescription?: string;
-  metaKeywords?: string[];
+  metaTitle?: ILocalizedString;
+  metaDescription?: ILocalizedString;
+  metaKeywords?: ILocalizedString;
   metaImage?: IImage;
 }
 
 export interface ISectionHeaderButton {
-  label?: string;
+  label?: ILocalizedString;
   href?: string;
   newTab?: boolean;
 }
@@ -20,19 +27,20 @@ export interface ISectionHeader {
   isEnabled?: boolean;
   image?: IImage;
   images?: IImage[];
-  title?: string;
-  description?: any;
+  title?: ILocalizedString;
+  description?: ILocalizedMixed;
   button?: ISectionHeaderButton;
 }
 
 export interface ITourSubcategory extends Document {
   category: Types.ObjectId;
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any; // HTML content (Schema.Types.Mixed)
+  description?: ILocalizedMixed; // Localized HTML content
   image?: IImage;
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
+  faqs?: IFAQ[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -44,21 +52,14 @@ export { IImage };
 const SEOSchema = new Schema<ISEO>(
   {
     metaTitle: {
-      type: String,
-      trim: true,
-      maxlength: [70, 'Meta title should not exceed 70 characters'],
+      type: LocalizedStringSchema,
     },
     metaDescription: {
-      type: String,
-      trim: true,
-      maxlength: [160, 'Meta description should not exceed 160 characters'],
+      type: LocalizedStringSchema,
     },
-    metaKeywords: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    metaKeywords: {
+      type: LocalizedStringSchema,
+    },
     metaImage: {
       type: ImageSchema,
       required: false,
@@ -70,9 +71,7 @@ const SEOSchema = new Schema<ISEO>(
 const SectionHeaderButtonSchema = new Schema<ISectionHeaderButton>(
   {
     label: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'Button label should not exceed 100 characters'],
+      type: LocalizedStringSchema,
     },
     href: {
       type: String,
@@ -102,12 +101,10 @@ const SectionHeaderSchema = new Schema<ISectionHeader>(
       required: false,
     },
     title: {
-      type: String,
-      trim: true,
-      maxlength: [150, 'Section header title should not exceed 150 characters'],
+      type: LocalizedStringSchema,
     },
     description: {
-      type: Schema.Types.Mixed,
+      type: LocalizedMixedSchema,
     },
     button: {
       type: SectionHeaderButtonSchema,
@@ -126,10 +123,8 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
       index: true,
     },
     name: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Subcategory name is required'],
-      trim: true,
-      maxlength: [100, 'Subcategory name should not exceed 100 characters'],
     },
     slug: {
       type: String,
@@ -142,8 +137,8 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
       ],
     },
     description: {
-      type: Schema.Types.Mixed,
-      // HTML content - can be string or structured HTML
+      type: LocalizedMixedSchema,
+      // Localized HTML content
     },
     image: {
       type: ImageSchema,
@@ -155,6 +150,10 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
     },
     sectionHeader: {
       type: SectionHeaderSchema,
+      required: false,
+    },
+    faqs: {
+      type: [FAQSchema],
       required: false,
     },
     isActive: {
@@ -197,8 +196,8 @@ TourSubcategorySchema.pre<ITourSubcategory>('save', function (next) {
   }
 
   // Auto-populate metaTitle from name if not provided
-  if (!this.seo.metaTitle) {
-    this.seo.metaTitle = this.name;
+  if (!this.seo.metaTitle?.en && this.name?.en) {
+    this.seo.metaTitle = { ...this.name };
   }
 
   // Auto-populate metaImage from image if not provided

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /* i18n configuration removed since we're using the App Router and middleware.ts */
   webpack: (config, { isServer, dev }) => {
     config.module.rules.push({
       test: /\.(mjs|cjs)$/,

@@ -24,15 +24,19 @@
  import RichTextEditor from '@/components/ui/RichTextEditor';
  import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
  import { cn } from '@/lib/utils';
- import { ChevronDown, ChevronUp, Copy, GripVertical, Plus, Trash2, X } from 'lucide-react';
+ import { ChevronDown, ChevronUp, Copy, GripVertical, Image as ImageIcon, Plus, Trash2, Upload, X } from 'lucide-react';
+
+import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import LocalizedField from '@/components/admin/LocalizedField';
 
 interface ItineraryTabProps {
   formData: any;
   handleChange: (field: string, value: any) => void;
   addItineraryDay: () => void;
   removeItineraryDay: (index: number) => void;
-  updateItineraryDay: (index: number, field: string, value: any) => void;
+  updateItineraryDay: (index: number, field: string, value: any, lang?: AdminLanguage) => void;
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
+  activeLanguage: AdminLanguage;
 }
 
 function normalizeDays(days: any[]) {
@@ -47,10 +51,10 @@ function getActivityId(dayNumber: number, activityIndex: number) {
   return `${dayNumber}-activity-${activityIndex}`;
 }
 
-function getDaySummary(day: any) {
+function getDaySummary(day: any, lang: AdminLanguage) {
   const activities = Array.isArray(day.activities) ? day.activities : [];
-  const first = activities[0]?.heading || '';
-  const second = activities[1]?.heading || '';
+  const first = activities[0]?.heading?.[lang] || '';
+  const second = activities[1]?.heading?.[lang] || '';
   const parts = [first, second].filter(Boolean);
   return {
     activitiesCount: activities.length,
@@ -115,6 +119,7 @@ export default function ItineraryTab({
   removeItineraryDay,
   updateItineraryDay,
   handleImageUpload,
+  activeLanguage,
 }: ItineraryTabProps) {
   const days = formData.itinerary?.days || [];
   const dayIds = useMemo<string[]>(() => days.map(getDayId), [days]);
@@ -189,7 +194,11 @@ export default function ItineraryTab({
       if (!current) return;
 
       const cloned = JSON.parse(JSON.stringify(current));
-      cloned.title = current.title ? `${current.title} (Copy)` : '';
+      const titleObj = current.title || { en: '', de: '', it: '', es: '' };
+      cloned.title = { 
+        ...titleObj,
+        en: titleObj.en ? `${titleObj.en} (Copy)` : 'New Day'
+      };
 
       const nextDays = [...days];
       nextDays.splice(dayIndex + 1, 0, cloned);
@@ -223,26 +232,32 @@ export default function ItineraryTab({
       {/* General Description */}
       <Card>
         <CardHeader>
-          <CardTitle>General Itinerary Description</CardTitle>
-          <CardDescription>Overview of the tour itinerary</CardDescription>
+          <CardTitle>General Itinerary Description ({activeLanguage.toUpperCase()})</CardTitle>
+          <CardDescription>Overview of the tour itinerary in the selected language</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="itinerary.generalDescription">General Description</Label>
-            <RichTextEditor
-              value={formData.itinerary?.generalDescription || ''}
-              onChange={(value: string) => handleChange('itinerary.generalDescription', value)}
-              placeholder="Provide an overview of the tour itinerary..."
-            />
-          </div>
+          <LocalizedField
+            label="General Description"
+            value={formData.itinerary?.generalDescription}
+            globalLanguage={activeLanguage}
+            onChange={(lang, val) => handleChange(`itinerary.generalDescription.${lang}`, val)}
+          >
+            {(lang, currentValue, handleLang) => (
+              <RichTextEditor
+                value={currentValue}
+                onChange={handleLang}
+                placeholder={`Provide an overview of the tour itinerary in ${lang}...`}
+              />
+            )}
+          </LocalizedField>
         </CardContent>
       </Card>
 
       {/* Itinerary Days */}
       <Card>
         <CardHeader>
-          <CardTitle>Daily Itinerary</CardTitle>
-          <CardDescription>Add day-by-day tour schedule</CardDescription>
+          <CardTitle>Daily Itinerary ({activeLanguage.toUpperCase()})</CardTitle>
+          <CardDescription>Add day-by-day tour schedule for the selected language</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-end">
@@ -256,7 +271,7 @@ export default function ItineraryTab({
               <div className="space-y-4">
                 {days.map((day: any, dayIndex: number) => {
                   const dayId = getDayId(day);
-                  const summary = getDaySummary(day);
+                  const summary = getDaySummary(day, activeLanguage);
                   const isCollapsed = collapsedDays[dayId] ?? true;
 
                   const activities = Array.isArray(day.activities) ? day.activities : [];
@@ -294,7 +309,11 @@ export default function ItineraryTab({
                   const addActivity = () => {
                     const nextActivities = [
                       ...activities,
-                      { heading: '', description: '', image: null },
+                      { 
+                        heading: { en: '', de: '', it: '', es: '' }, 
+                        description: { en: '', de: '', it: '', es: '' }, 
+                        image: null 
+                      },
                     ];
                     updateItineraryDay(dayIndex, 'activities', nextActivities);
                   };
@@ -313,10 +332,23 @@ export default function ItineraryTab({
                     updateItineraryDay(dayIndex, 'activities', next);
                   };
 
-                  const updateActivity = (actIndex: number, field: string, value: any) => {
+                  const updateActivity = (actIndex: number, field: string, value: any, lang?: AdminLanguage) => {
                     const next = [...activities];
-                    const current = next[actIndex] || { heading: '', description: '', image: null };
-                    next[actIndex] = { ...current, [field]: value };
+                    const current = next[actIndex] || { 
+                      heading: { en: '', de: '', it: '', es: '' }, 
+                      description: { en: '', de: '', it: '', es: '' }, 
+                      image: null 
+                    };
+                    
+                    if (lang && (field === 'heading' || field === 'description')) {
+                      next[actIndex] = { 
+                        ...current, 
+                        [field]: { ...current[field], [lang]: value } 
+                      };
+                    } else {
+                      next[actIndex] = { ...current, [field]: value };
+                    }
+                    
                     updateItineraryDay(dayIndex, 'activities', next);
                   };
 
@@ -346,12 +378,12 @@ export default function ItineraryTab({
                                   <span
                                     className={cn(
                                       'text-sm truncate',
-                                      day.title ? 'text-foreground' : 'text-muted-foreground'
+                                      day.title?.[activeLanguage] ? 'text-foreground' : 'text-muted-foreground'
                                     )}
                                   >
-                                    {day.title || 'Untitled day'}
+                                    {day.title?.[activeLanguage] || 'Untitled day'}
                                   </span>
-                                  {!day.title && <span className="text-xs text-red-600 shrink-0">Required</span>}
+                                  {!day.title?.[activeLanguage] && <span className="text-xs text-red-600 shrink-0">Required</span>}
                                 </div>
                                 <div className="text-xs text-muted-foreground truncate">
                                   {summary.activitiesCount} activities
@@ -397,26 +429,36 @@ export default function ItineraryTab({
 
                           {!isCollapsed && (
                             <div className="p-4 space-y-5">
-                              <div className="space-y-2">
-                                <Label>Day Title *</Label>
-                                <Input
-                                  value={day.title || ''}
-                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                    updateItineraryDay(dayIndex, 'title', e.target.value)
-                                  }
-                                  placeholder="e.g., Arrival in Cairo"
-                                  required
-                                />
-                              </div>
+                              <LocalizedField
+                                label="Day Title"
+                                value={day.title}
+                                globalLanguage={activeLanguage}
+                                onChange={(lang, val) => updateItineraryDay(dayIndex, 'title', val, lang)}
+                              >
+                                {(lang, currentValue, handleLang) => (
+                                  <Input
+                                    value={currentValue}
+                                    onChange={(e) => handleLang(e.target.value)}
+                                    placeholder={`e.g., Arrival in Cairo (${lang})`}
+                                    required={lang === 'en'}
+                                  />
+                                )}
+                              </LocalizedField>
 
-                              <div className="space-y-2">
-                                <Label>Day Description *</Label>
-                                <RichTextEditor
-                                  value={day.description || ''}
-                                  onChange={(value: string) => updateItineraryDay(dayIndex, 'description', value)}
-                                  placeholder="Describe what happens on this day..."
-                                />
-                              </div>
+                              <LocalizedField
+                                label="Day Description"
+                                value={day.description}
+                                globalLanguage={activeLanguage}
+                                onChange={(lang, val) => updateItineraryDay(dayIndex, 'description', val, lang)}
+                              >
+                                {(lang, currentValue, handleLang) => (
+                                  <RichTextEditor
+                                    value={currentValue}
+                                    onChange={handleLang}
+                                    placeholder={`Describe what happens on this day in ${lang}...`}
+                                  />
+                                )}
+                              </LocalizedField>
 
                               {/* Activities */}
                               <div className="space-y-3">
@@ -439,7 +481,7 @@ export default function ItineraryTab({
                                         const activityId = getActivityId(day.day, actIndex);
                                         const collapseKey = `${dayId}-${activityId}`;
                                         const isActivityCollapsed = collapsedActivities[collapseKey] ?? true;
-                                        const activityTitle = activity.heading || '';
+                                        const activityTitle = activity.heading?.[activeLanguage] || '';
                                         const activityBg =
                                           ACTIVITY_BG_CLASSES[actIndex % ACTIVITY_BG_CLASSES.length];
 
@@ -511,65 +553,153 @@ export default function ItineraryTab({
 
                                                 {!isActivityCollapsed && (
                                                   <div className="p-3 space-y-3">
-                                                    <div className="space-y-2">
-                                                      <Label>Activity Heading</Label>
-                                                      <Input
-                                                        value={activity.heading || ''}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                          updateActivity(actIndex, 'heading', e.target.value)
-                                                        }
-                                                        placeholder="e.g., Visit the Pyramids"
-                                                      />
-                                                    </div>
+                                                    <LocalizedField
+                                                      label="Activity Heading"
+                                                      value={activity.heading}
+                                                      globalLanguage={activeLanguage}
+                                                      onChange={(lang, val) => updateActivity(actIndex, 'heading', val, lang)}
+                                                    >
+                                                      {(lang, currentValue, handleLang) => (
+                                                        <Input
+                                                          value={currentValue}
+                                                          onChange={(e) => handleLang(e.target.value)}
+                                                          placeholder={`e.g., Visit the Pyramids (${lang})`}
+                                                        />
+                                                      )}
+                                                    </LocalizedField>
 
-                                                    <div className="space-y-2">
-                                                      <Label>Activity Description</Label>
-                                                      <RichTextEditor
-                                                        value={activity.description || ''}
-                                                        onChange={(value: string) =>
-                                                          updateActivity(actIndex, 'description', value)
-                                                        }
-                                                        placeholder="Describe this activity..."
-                                                      />
-                                                    </div>
+                                                    <LocalizedField
+                                                      label="Activity Description"
+                                                      value={activity.description}
+                                                      globalLanguage={activeLanguage}
+                                                      onChange={(lang, val) => updateActivity(actIndex, 'description', val, lang)}
+                                                    >
+                                                      {(lang, currentValue, handleLang) => (
+                                                        <RichTextEditor
+                                                          value={currentValue}
+                                                          onChange={handleLang}
+                                                          placeholder={`Describe this activity in ${lang}...`}
+                                                        />
+                                                      )}
+                                                    </LocalizedField>
 
-                                                    <div className="space-y-2">
-                                                      <ImageUpload
-                                                        images={image ? [image] : []}
-                                                        title="Activity Image"
-                                                        description="Upload an image for this activity"
-                                                        maxImages={1}
-                                                        onAdd={() => {
-                                                          const nextImage: ImageData = {
-                                                            url: '',
-                                                            title: activity.heading || '',
-                                                            alt: activity.heading || '',
-                                                            fileName: '',
-                                                          };
-                                                          updateActivity(actIndex, 'image', nextImage);
-                                                        }}
-                                                        onRemove={() => {
-                                                          updateActivity(actIndex, 'image', null);
-                                                        }}
-                                                        onUpdate={(_, field, value) => {
-                                                          const currentImage: ImageData = (activity?.image || {
-                                                            url: '',
-                                                          }) as ImageData;
-
-                                                          const nextImage: ImageData = {
-                                                            ...currentImage,
-                                                            [field]: value,
-                                                          };
-
-                                                          if (!nextImage.title) nextImage.title = activity.heading || '';
-                                                          if (!nextImage.alt) nextImage.alt = activity.heading || '';
-
-                                                          updateActivity(actIndex, 'image', nextImage);
-                                                        }}
-                                                        onUpload={async (file: File, _index: number) => {
-                                                          return handleImageUpload(file);
-                                                        }}
-                                                      />
+                                                    <div className="space-y-4 pt-2 border-t mt-4">
+                                                      <div className="flex items-center gap-2">
+                                                        <ImageIcon className="w-4 h-4 text-primary" />
+                                                        <Label className="font-semibold">Activity Image</Label>
+                                                      </div>
+                                                      
+                                                      {image?.url ? (
+                                                        <div className="flex flex-col md:flex-row gap-4 items-start">
+                                                          <div className="relative group aspect-video w-full md:w-48 rounded-lg overflow-hidden bg-gray-100 border shrink-0">
+                                                            <img
+                                                              src={image.url}
+                                                              alt={(image as any)?.alt?.[activeLanguage] || 'Preview'}
+                                                              className="w-full h-full object-cover"
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                                              <label className="cursor-pointer bg-white rounded-full p-2 shadow-lg scale-90 group-hover:scale-100 transition-transform">
+                                                                <input
+                                                                  type="file"
+                                                                  accept="image/*"
+                                                                  className="hidden"
+                                                                  onChange={async (e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) {
+                                                                      const result = await handleImageUpload(file);
+                                                                      if (result) {
+                                                                        updateActivity(actIndex, 'image', { ...image, url: result.url, fileName: result.fileName });
+                                                                      }
+                                                                    }
+                                                                  }}
+                                                                />
+                                                                <Upload className="h-5 w-5 text-primary" />
+                                                              </label>
+                                                              <Button
+                                                                type="button"
+                                                                variant="destructive"
+                                                                size="icon"
+                                                                className="h-9 w-9 rounded-full ml-2 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform"
+                                                                onClick={() => updateActivity(actIndex, 'image', undefined)}
+                                                              >
+                                                                <Trash2 className="h-5 w-5" />
+                                                              </Button>
+                                                            </div>
+                                                          </div>
+                                                          
+                                                          <div className="flex-1 space-y-3 w-full">
+                                                            <Input
+                                                              value={image.url || ''}
+                                                              onChange={(e) => updateActivity(actIndex, 'image', { ...image, url: e.target.value })}
+                                                              placeholder="Image URL"
+                                                              className="h-8 text-xs"
+                                                            />
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                              <LocalizedField
+                                                                label="Image Title"
+                                                                value={image.title}
+                                                                globalLanguage={activeLanguage}
+                                                                onChange={(lang, val) => {
+                                                                  const nextImage = { ...image, title: { ...(image.title as any || {}), [lang]: val } };
+                                                                  updateActivity(actIndex, 'image', nextImage);
+                                                                }}
+                                                              >
+                                                                {(lang, currentValue, handleLang) => (
+                                                                  <Input
+                                                                    value={currentValue}
+                                                                    onChange={(e) => handleLang(e.target.value)}
+                                                                    placeholder={`Title (${lang})`}
+                                                                    className="h-8 text-xs font-semibold"
+                                                                  />
+                                                                )}
+                                                              </LocalizedField>
+                                                              <LocalizedField
+                                                                label="Alt Text"
+                                                                value={image.alt}
+                                                                globalLanguage={activeLanguage}
+                                                                onChange={(lang, val) => {
+                                                                  const nextImage = { ...image, alt: { ...(image.alt as any || {}), [lang]: val } };
+                                                                  updateActivity(actIndex, 'image', nextImage);
+                                                                }}
+                                                              >
+                                                                {(lang, currentValue, handleLang) => (
+                                                                  <Input
+                                                                    value={currentValue}
+                                                                    onChange={(e) => handleLang(e.target.value)}
+                                                                    placeholder={`Alt test (${lang})`}
+                                                                    className="h-8 text-xs"
+                                                                  />
+                                                                )}
+                                                              </LocalizedField>
+                                                            </div>
+                                                          </div>
+                                                        </div>
+                                                      ) : (
+                                                        <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                                                          <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={async (e) => {
+                                                              const file = e.target.files?.[0];
+                                                              if (file) {
+                                                                const result = await handleImageUpload(file);
+                                                                if (result) {
+                                                                  updateActivity(actIndex, 'image', { 
+                                                                    url: result.url, 
+                                                                    fileName: result.fileName,
+                                                                    title: { en: activity.heading?.en || '', de: '', it: '', es: '' },
+                                                                    alt: { en: activity.heading?.en || '', de: '', it: '', es: '' }
+                                                                  });
+                                                                }
+                                                              }
+                                                            }}
+                                                          />
+                                                          <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                                                          <span className="text-sm font-medium">Click to upload activity image</span>
+                                                          <span className="text-xs text-muted-foreground mt-1 tracking-tight">Max size 2MB</span>
+                                                        </label>
+                                                      )}
                                                     </div>
                                                   </div>
                                                 )}

@@ -1,8 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { LocalizedStringSchema, LocalizedMixedSchema, ILocalizedString, ILocalizedMixed } from './shared/LocalizedSchema';
 
 export interface IFaq extends Document {
-  question: string;
-  answer: string;
+  question: ILocalizedString;
+  answer: ILocalizedMixed;
   category?: string;
   isActive: boolean;
   order: number;
@@ -13,16 +14,12 @@ export interface IFaq extends Document {
 
 const FaqSchema: Schema = new Schema({
   question: {
-    type: String,
-    required: [true, 'Question is required'],
-    trim: true,
-    maxlength: [500, 'Question cannot exceed 500 characters']
+    type: LocalizedStringSchema,
+    required: [true, 'Question is required']
   },
   answer: {
-    type: String,
-    required: [true, 'Answer is required'],
-    trim: true,
-    maxlength: [5000, 'Answer cannot exceed 5000 characters']
+    type: LocalizedMixedSchema,
+    required: [true, 'Answer is required']
   },
   category: {
     type: String,

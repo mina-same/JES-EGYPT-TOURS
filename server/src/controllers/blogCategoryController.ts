@@ -25,11 +25,11 @@ const buildQueryFilter = (queryParams: QueryParams): FilterQuery<IBlogCategory> 
     filter.isActive = queryParams.isActive === 'true';
   }
 
-  // Search by name or description
+  // Search by name or description (target English by default for admin search)
   if (queryParams.search) {
     filter.$or = [
-      { name: { $regex: queryParams.search, $options: 'i' } },
-      { description: { $regex: queryParams.search, $options: 'i' } },
+      { 'name.en': { $regex: queryParams.search, $options: 'i' } },
+      { 'description.en': { $regex: queryParams.search, $options: 'i' } },
     ];
   }
 
@@ -210,6 +210,17 @@ export const createCategory = async (
   res: Response
 ): Promise<void> => {
   try {
+    const { name } = req.body;
+
+    // Validation
+    if (!name || !name.en) {
+      res.status(400).json({
+        success: false,
+        error: 'English name is required',
+      });
+      return;
+    }
+
     const category = await BlogCategory.create(req.body);
 
     res.status(201).json({
@@ -259,6 +270,17 @@ export const updateCategory = async (
   res: Response
 ): Promise<void> => {
   try {
+    const { name } = req.body;
+
+    // Validation if name is being updated
+    if (name !== undefined && (!name || !name.en)) {
+      res.status(400).json({
+        success: false,
+        error: 'English name is required',
+      });
+      return;
+    }
+
     const category = await BlogCategory.findByIdAndUpdate(
       req.params.id,
       req.body,

@@ -4,12 +4,15 @@ import React, { useEffect, useState } from "react";
 import { Container, Accordion } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
 import { ChevronDown, HelpCircle, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
 
 const HomeFAQ: React.FC = () => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeKey, setActiveKey] = useState<string | null>("0");
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     const fetchFaqs = async () => {
@@ -80,7 +83,7 @@ const HomeFAQ: React.FC = () => {
                       </div>
                       <div className="faq-question-box text-start flex-grow-1">
                         <h4 className="faq-question-title">
-                          {faq.question}
+                          {getLocalizedValue(faq.question, i18n.language)}
                         </h4>
                       </div>
                       <div
@@ -102,7 +105,7 @@ const HomeFAQ: React.FC = () => {
                       <div className="inner">
                         <div
                           className="inner__text"
-                          dangerouslySetInnerHTML={{ __html: faq.answer }}
+                          dangerouslySetInnerHTML={{ __html: getLocalizedValue(faq.answer, i18n.language) || "" }}
                         />
                         {faq.category && (
                           <div className="mt-3">

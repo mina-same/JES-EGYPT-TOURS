@@ -61,11 +61,18 @@ const SubcategorySelect: React.FC<SubcategorySelectProps> = ({
   onChange,
   placeholder = 'Select a subcategory',
 }) => {
-  const options: SubcategoryOption[] = subcategories.map((sub) => ({
-    value: sub._id,
-    label: sub.name,
-    imageUrl: sub.image?.url,
-  }));
+  const options: SubcategoryOption[] = subcategories.map((sub) => {
+    // Handle localized name object or legacy string
+    const label = typeof sub.name === 'object' 
+      ? (sub.name.en || sub.name.de || sub.name.it || 'Unnamed Subcategory')
+      : (sub.name || 'Unnamed Subcategory');
+      
+    return {
+      value: sub._id,
+      label: label,
+      imageUrl: sub.image?.url,
+    };
+  });
 
   const selectedOption = options.find((opt) => opt.value === value) || null;
 

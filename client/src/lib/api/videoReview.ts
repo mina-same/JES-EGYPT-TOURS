@@ -1,11 +1,12 @@
 import axiosInstance from './axios';
+import { ILocalizedString } from '@/types/tour';
 
 export interface VideoReview {
   _id?: string;
-  title: string;
+  title: ILocalizedString;
   url: string;
   videoId: string;
-  tourName: string;
+  tourName: ILocalizedString;
   thumbnail?: string;
   isActive: boolean;
   order: number;

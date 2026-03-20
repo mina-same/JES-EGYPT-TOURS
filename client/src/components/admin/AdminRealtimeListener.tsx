@@ -11,11 +11,13 @@ import { Mail, ChevronRight, Calendar, MessageSquare } from "lucide-react";
 import { getAdminSocket } from "@/lib/realtime/adminSocket";
 import { API_ENDPOINTS } from "@/config/api";
 
+import { ILocalizedString } from "@/types/tour";
+
 type AdminNotificationType = "booking" | "tailorMade" | "contact";
 
 interface AdminNotificationPayload {
   type: AdminNotificationType;
-  title: string;
+  title: string | ILocalizedString;
   entityId: string;
   createdAt: string;
 }
@@ -186,7 +188,9 @@ export default function AdminRealtimeListener() {
             ),
             description: (
               <div className="mt-1 flex items-center justify-between gap-3">
-                <span className="text-sm opacity-90 line-clamp-2">{payload.title}</span>
+                <span className="text-sm opacity-90 line-clamp-2">
+                  {typeof payload.title === 'object' ? payload.title.en : payload.title}
+                </span>
                 <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
                   Open
                   <ChevronRight size={14} />
@@ -219,7 +223,9 @@ export default function AdminRealtimeListener() {
             ),
             description: (
               <div className="mt-1 flex items-center justify-between gap-3">
-                <span className="text-sm opacity-90 line-clamp-2">{payload.title}</span>
+                <span className="text-sm opacity-90 line-clamp-2">
+                  {typeof payload.title === 'object' ? payload.title.en : payload.title}
+                </span>
                 <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
                   Open
                   <ChevronRight size={14} />
@@ -251,7 +257,9 @@ export default function AdminRealtimeListener() {
           ),
           description: (
             <div className="mt-1 flex items-center justify-between gap-3">
-              <span className="text-sm opacity-90 line-clamp-2">{payload.title}</span>
+              <span className="text-sm opacity-90 line-clamp-2">
+                {typeof payload.title === 'object' ? payload.title.en : payload.title}
+              </span>
               <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
                 Open
                 <ChevronRight size={14} />
@@ -321,7 +329,9 @@ export default function AdminRealtimeListener() {
             ),
             description: (
               <div className="mt-1 flex items-center justify-between gap-3">
-                <span className="text-sm opacity-90 line-clamp-2">{title}</span>
+                <span className="text-sm opacity-90 line-clamp-2">
+                  {typeof title === 'object' ? (title as any).en : title}
+                </span>
                 <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
                   Open
                   <ChevronRight size={14} />
@@ -354,7 +364,9 @@ export default function AdminRealtimeListener() {
             ),
             description: (
               <div className="mt-1 flex items-center justify-between gap-3">
-                <span className="text-sm opacity-90 line-clamp-2">{title}</span>
+                <span className="text-sm opacity-90 line-clamp-2">
+                  {typeof title === 'object' ? (title as any).en : title}
+                </span>
                 <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
                   Open
                   <ChevronRight size={14} />
@@ -386,7 +398,9 @@ export default function AdminRealtimeListener() {
           ),
           description: (
             <div className="mt-1 flex items-center justify-between gap-3">
-              <span className="text-sm opacity-90 line-clamp-2">{title}</span>
+              <span className="text-sm opacity-90 line-clamp-2">
+                {typeof title === 'object' ? (title as any).en : title}
+              </span>
               <span className="inline-flex items-center gap-1 text-xs font-medium opacity-80">
                 Open
                 <ChevronRight size={14} />

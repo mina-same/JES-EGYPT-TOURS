@@ -8,30 +8,30 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     name: '',
     slug: '',
     description: {
-      header: '',
-      text: '',
+      header: { en: '', de: '', it: '', es: '' },
+      text: { en: '', de: '', it: '', es: '' },
     },
     subcategory: '',
     images: [],
     gallery: [],
     idExternal: '',
-    heading: '',
-    tourLocation: '',
-    tourAvailability: '',
-    pickupAndDropOff: '',
-    tourType: '',
-    tourStyle: '',
+    heading: { en: '', de: '', it: '', es: '' },
+    tourLocation: { en: '', de: '', it: '', es: '' },
+    tourAvailability: { en: '', de: '', it: '', es: '' },
+    pickupAndDropOff: { en: '', de: '', it: '', es: '' },
+    tourType: { en: '', de: '', it: '', es: '' },
+    tourStyle: { en: '', de: '', it: '', es: '' },
     isFeatured: false,
     isActive: true,
     seo: {
-      metaTitle: '',
-      metaDescription: '',
+      metaTitle: { en: '', de: '', it: '', es: '' },
+      metaDescription: { en: '', de: '', it: '', es: '' },
       metaKeywords: [],
       metaImage: {
         url: '',
         fileName: '',
-        title: '',
-        alt: '',
+        title: { en: '', de: '', it: '', es: '' },
+        alt: { en: '', de: '', it: '', es: '' },
       },
     },
     tourHighlights: [],
@@ -42,9 +42,9 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     whatToPack: [],
     tourMapIframe: '',
     mapSchema: undefined,
-    whatYouWillLoveHtml: '',
+    whatYouWillLoveHtml: { en: '', de: '', it: '', es: '' },
     itinerary: {
-      generalDescription: '',
+      generalDescription: { en: '', de: '', it: '', es: '' },
       days: [],
     },
     faqs: [],
@@ -52,9 +52,9 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     relatedTours: [],
     reviews: [],
     priceStartingFrom: undefined,
-    duration: '',
-    meetingPoint: '',
-    cancellationPolicy: '',
+    duration: { en: '', de: '', it: '', es: '' },
+    meetingPoint: { en: '', de: '', it: '', es: '' },
+    cancellationPolicy: { en: '', de: '', it: '', es: '' },
     tags: [],
     ...initialData,
   });
@@ -101,11 +101,16 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
         updated[field] = value;
       }
 
-      if (field === 'name') {
+      // Auto-update slug and SEO metaTitle if name (English) changes
+      if (field === 'name' || field === 'heading.en') {
+        const nameVal = field === 'name' ? value : value;
+        if (field === 'heading.en') updated.name = value;
+        
         updated.slug = generateSlug(value);
-        if (!updated.seo?.metaTitle) {
+        if (!updated.seo?.metaTitle?.en) {
           if (!updated.seo) updated.seo = {};
-          updated.seo.metaTitle = value;
+          if (!updated.seo.metaTitle) updated.seo.metaTitle = { en: '', de: '', it: '', es: '' };
+          updated.seo.metaTitle.en = value;
         }
       }
 
@@ -114,24 +119,50 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
   };
 
   // Handle keywords
-  const handleKeywordsChange = (value: string) => {
-    const keywords = value.split(',').map(k => k.trim()).filter(k => k);
-    setFormData(prev => ({
-      ...prev,
-      seo: {
-        ...prev.seo,
-        metaKeywords: keywords,
-      },
-    }));
+  const handleKeywordsChange = (value: string, lang: 'en' | 'de' | 'it' | 'es' = 'en') => {
+    const items = value.split(',').map(k => k.trim()).filter(k => k);
+    setFormData(prev => {
+      const currentList = prev.seo?.metaKeywords || [];
+      const updatedKeywords = items.map((text, idx) => {
+        const existing = currentList[idx] || { en: '', de: '', it: '', es: '' };
+        return { ...existing, [lang]: text };
+      });
+      
+      return {
+        ...prev,
+        seo: {
+          ...prev.seo,
+          metaKeywords: updatedKeywords,
+        },
+      } as TourFormData;
+    });
   };
 
-  // Handle array fields
-  const handleArrayFieldChange = (field: string, value: string) => {
+  // Handle array fields (Highlights, inclusions, exclusions, what to pack)
+  const handleArrayFieldChange = (field: string, value: string, lang: 'en' | 'de' | 'it' | 'es' = 'en') => {
     const items = value.split(',').map(k => k.trim()).filter(k => k);
-    setFormData(prev => ({
-      ...prev,
-      [field]: items,
-    }));
+    
+    setFormData(prev => {
+      const updated = { ...prev } as any;
+      
+      // Handle nested fields like 'seo.someField'
+      let target = updated;
+      const keys = field.split('.');
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!target[keys[i]]) target[keys[i]] = {};
+        target = target[keys[i]];
+      }
+      
+      const lastKey = keys[keys.length - 1];
+      const currentList = target[lastKey] || [];
+      
+      target[lastKey] = items.map((text, idx) => {
+        const existing = currentList[idx] || { en: '', de: '', it: '', es: '' };
+        return { ...existing, [lang]: text };
+      });
+      
+      return updated as TourFormData;
+    });
   };
 
   // Itinerary handlers
@@ -139,10 +170,15 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     setFormData(prev => ({
       ...prev,
       itinerary: {
-        generalDescription: prev.itinerary?.generalDescription || '',
+        generalDescription: prev.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' },
         days: [
           ...(prev.itinerary?.days || []),
-          { day: (prev.itinerary?.days?.length || 0) + 1, title: '', description: '', activities: [] }
+          { 
+            day: (prev.itinerary?.days?.length || 0) + 1, 
+            title: { en: '', de: '', it: '', es: '' }, 
+            description: { en: '', de: '', it: '', es: '' }, 
+            activities: [] 
+          }
         ],
       },
     }));
@@ -152,22 +188,37 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     setFormData(prev => ({
       ...prev,
       itinerary: {
-        generalDescription: prev.itinerary?.generalDescription || '',
+        generalDescription: prev.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' },
         days: prev.itinerary?.days?.filter((_, i) => i !== index) || [],
       },
     }));
   };
 
-  const updateItineraryDay = (index: number, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      itinerary: {
-        generalDescription: prev.itinerary?.generalDescription || '',
-        days: prev.itinerary?.days?.map((day, i) => 
-          i === index ? { ...day, [field]: value } : day
-        ) || [],
-      },
-    }));
+  const updateItineraryDay = (index: number, field: string, value: any, lang?: 'en' | 'de' | 'it' | 'es') => {
+    setFormData(prev => {
+      const updatedDays = (prev.itinerary?.days || []).map((day, i) => {
+        if (i !== index) return day;
+        
+        if (lang && (field === 'title' || field === 'description')) {
+          return {
+            ...day,
+            [field]: {
+              ...((day as any)[field] || { en: '', de: '', it: '', es: '' }),
+              [lang]: value
+            }
+          };
+        }
+        return { ...day, [field]: value };
+      });
+
+      return {
+        ...prev,
+        itinerary: {
+          generalDescription: prev.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' },
+          days: updatedDays,
+        },
+      };
+    });
   };
 
   // Image handlers
@@ -176,7 +227,12 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
       ...prev,
       images: [
         ...(prev.images || []),
-        { url: '', fileName: '', title: '', alt: '' }
+        { 
+          url: '', 
+          fileName: '', 
+          title: { en: '', de: '', it: '', es: '' }, 
+          alt: { en: '', de: '', it: '', es: '' } 
+        }
       ],
     }));
   };
@@ -188,12 +244,22 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateImage = (index: number, field: string, value: string) => {
+  const updateImage = (index: number, field: string, value: string, lang?: 'en' | 'de' | 'it' | 'es') => {
     setFormData(prev => ({
       ...prev,
-      images: prev.images?.map((img, i) => 
-        i === index ? { ...img, [field]: value } : img
-      ) || [],
+      images: prev.images?.map((img, i) => {
+        if (i !== index) return img;
+        if (lang && (field === 'title' || field === 'alt')) {
+          return {
+            ...img,
+            [field]: {
+              ...((img as any)[field] || { en: '', de: '', it: '', es: '' }),
+              [lang]: value
+            }
+          };
+        }
+        return { ...img, [field]: value };
+      }) || [],
     }));
   };
 
@@ -203,7 +269,12 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
       ...prev,
       gallery: [
         ...(prev.gallery || []),
-        { url: '', fileName: '', title: '', alt: '' }
+        { 
+          url: '', 
+          fileName: '', 
+          title: { en: '', de: '', it: '' }, 
+          alt: { en: '', de: '', it: '' } 
+        }
       ],
     }));
   };
@@ -215,12 +286,22 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateGalleryImage = (index: number, field: string, value: string) => {
+  const updateGalleryImage = (index: number, field: string, value: string, lang?: 'en' | 'de' | 'it' | 'es') => {
     setFormData(prev => ({
       ...prev,
-      gallery: prev.gallery?.map((img, i) => 
-        i === index ? { ...img, [field]: value } : img
-      ) || [],
+      gallery: prev.gallery?.map((img, i) => {
+        if (i !== index) return img;
+        if (lang && (field === 'title' || field === 'alt')) {
+          return {
+            ...img,
+            [field]: {
+              ...((img as any)[field] || { en: '', de: '', it: '', es: '' }),
+              [lang]: value
+            }
+          };
+        }
+        return { ...img, [field]: value };
+      }) || [],
     }));
   };
 
@@ -230,7 +311,10 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
       ...prev,
       notes: [
         ...(prev.notes || []),
-        { title: '', text: '' }
+        { 
+          title: { en: '', de: '', it: '', es: '' }, 
+          text: { en: '', de: '', it: '', es: '' } 
+        }
       ],
     }));
   };
@@ -242,12 +326,22 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateTourNote = (index: number, field: string, value: string) => {
+  const updateTourNote = (index: number, field: string, value: string, lang?: 'en' | 'de' | 'it' | 'es') => {
     setFormData(prev => ({
       ...prev,
-      notes: prev.notes?.map((note, i) => 
-        i === index ? { ...note, [field]: value } : note
-      ) || [],
+      notes: prev.notes?.map((note, i) => {
+        if (i !== index) return note;
+        if (lang) {
+          return {
+            ...note,
+            [field]: {
+              ...((note as any)[field] || { en: '', de: '', it: '', es: '' }),
+              [lang]: value
+            }
+          };
+        }
+        return { ...note, [field]: value };
+      }) || [],
     }));
   };
 

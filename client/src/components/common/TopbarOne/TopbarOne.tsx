@@ -6,6 +6,8 @@ import { topbarOne } from "@/data/topbarOne";
 
 import Link from "next/link";
 import LanguageSelector from "../LanguageSelector/LanguageSelector";
+import { useTranslation } from "react-i18next";
+import { usePathname } from "next/navigation";
 
 interface ContactInfoItem {
   type: string;
@@ -43,6 +45,13 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
   useEffect(() => {
     setMounted(true);
   }, []);
+  const { t } = useTranslation("common");
+  const pathname = usePathname();
+  const locales = ["en", "de", "it"];
+  const prefix = (() => {
+    const seg = (pathname || "/").split("/")[1] || "";
+    return locales.includes(seg) ? `/${seg}` : "";
+  })();
 
   return (
     <div className={`top-one ${extraClass || ""}`} suppressHydrationWarning>
@@ -78,9 +87,13 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
 
             {/* Links Section */}
             <div className='top-one__social' suppressHydrationWarning>
-              <Link href='/faq'>FAQ</Link>
-              <Link href='/about'>About</Link>
-              <Link href='/contact'>Contact</Link>
+              {mounted && (
+                <>
+                  <Link href={`${prefix}/faq`}>{t("links.faq")}</Link>
+                  <Link href={`${prefix}/about`}>{t("links.about")}</Link>
+                  <Link href={`${prefix}/contact`}>{t("links.contact")}</Link>
+                </>
+              )}
             </div>
           </div>
         </div>

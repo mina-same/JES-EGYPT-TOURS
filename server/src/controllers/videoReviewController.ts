@@ -67,6 +67,13 @@ export const upsertVideoReview = async (req: Request, res: Response) => {
       });
     }
 
+    if (!title?.en || !tourName?.en) {
+      return res.status(400).json({
+        success: false,
+        message: 'English Title and English Tour Name are required'
+      });
+    }
+
     const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
     let review;

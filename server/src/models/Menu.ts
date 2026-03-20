@@ -1,8 +1,9 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
+import { LocalizedStringSchema, ILocalizedString } from './shared/LocalizedSchema';
 
 export interface IMenuItem {
   _id: Types.ObjectId;
-  label: string;
+  label: ILocalizedString;
   url?: string;
   isActive: boolean;
   order: number;
@@ -11,7 +12,7 @@ export interface IMenuItem {
 
 export interface IMenu extends Document {
   key: string;
-  title: string;
+  title: ILocalizedString;
   isActive: boolean;
   items: IMenuItem[];
   createdAt: Date;
@@ -21,9 +22,8 @@ export interface IMenu extends Document {
 const MenuItemSchema = new Schema<IMenuItem>(
   {
     label: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Label is required'],
-      trim: true,
     },
     url: {
       type: String,
@@ -55,9 +55,8 @@ const MenuSchema = new Schema<IMenu>(
       lowercase: true,
     },
     title: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Title is required'],
-      trim: true,
     },
     isActive: {
       type: Boolean,

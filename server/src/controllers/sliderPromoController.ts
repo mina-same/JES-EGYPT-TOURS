@@ -4,8 +4,8 @@ import SliderPromoConfig from '../models/SliderPromoConfig';
 const GLOBAL_KEY = 'global' as const;
 
 type UnderPromoPayload = {
-  text: string;
-  linkText: string;
+  text: any;
+  linkText: any;
   link: string;
   linkDirection?: '_blank' | '_self';
 };
@@ -62,10 +62,10 @@ export const upsertSliderPromoAdmin = async (req: Request, res: Response) => {
       });
     }
 
-    if (!underPromo?.text || !underPromo?.linkText || !underPromo?.link) {
+    if (!underPromo?.text?.en?.trim() || !underPromo?.linkText?.en?.trim() || !underPromo?.link) {
       return res.status(400).json({
         success: false,
-        message: 'Promo text, linkText, and link are required',
+        message: 'English Promo text, linkText, and link are required',
       });
     }
 

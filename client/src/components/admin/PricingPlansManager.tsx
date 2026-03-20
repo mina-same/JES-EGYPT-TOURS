@@ -25,11 +25,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Copy, GripVertical, Plus, Trash2, X, Calendar, DollarSign, Users } from 'lucide-react';
-import { IPricingPlan, IPricingSeason, IPricingNote } from '@/types/tour';
+import { IPricingPlan, IPricingSeason, IPricingNote, ILocalizedString, ILocalizedMixed } from '@/types/tour';
+import { type AdminLanguage } from './AdminLanguageTabs';
+import LocalizedField from './LocalizedField';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
   onChange: (plans: IPricingPlan[]) => void;
+  activeLanguage: AdminLanguage;
 }
 
 function getPlanId(plan: any, index: number) {
@@ -86,7 +89,7 @@ function SortableItemWrapper({
   );
 }
 
-export default function PricingPlansManager({ pricingPlans, onChange }: PricingPlansManagerProps) {
+export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage }: PricingPlansManagerProps) {
   const PLAN_OPTIONS = [
     'AFFORDABLE',
     'GOLD (5 STAR STANDARD)', 
@@ -230,7 +233,10 @@ export default function PricingPlansManager({ pricingPlans, onChange }: PricingP
 
   // Add note to season
   const addSeasonNote = (planIndex: number, seasonIndex: number) => {
-    const newNote: IPricingNote = { title: '', text: '' };
+    const newNote: IPricingNote = { 
+      title: { en: '', de: '', it: '', es: '' }, 
+      text: { en: '', de: '', it: '', es: '' } 
+    };
     const updated = pricingPlans.map((plan, i) => 
       i === planIndex 
         ? {
@@ -264,7 +270,14 @@ export default function PricingPlansManager({ pricingPlans, onChange }: PricingP
   };
 
   // Update season note
-  const updateSeasonNote = <K extends keyof IPricingNote>(planIndex: number, seasonIndex: number, noteIndex: number, field: K, value: IPricingNote[K]) => {
+  const updateSeasonNote = (
+    planIndex: number, 
+    seasonIndex: number, 
+    noteIndex: number, 
+    field: keyof IPricingNote, 
+    value: string,
+    lang: AdminLanguage = activeLanguage
+  ) => {
     const updated = pricingPlans.map((plan, i) => 
       i === planIndex 
         ? {
@@ -273,9 +286,16 @@ export default function PricingPlansManager({ pricingPlans, onChange }: PricingP
               j === seasonIndex 
                 ? {
                     ...season,
-                    notes: season.notes.map((note, k) => 
-                      k === noteIndex ? { ...note, [field]: value } : note
-                    )
+                    notes: season.notes.map((note, k) => {
+                      if (k !== noteIndex) return note;
+                      return {
+                        ...note,
+                        [field]: {
+                          ...((note as any)[field] || { en: '', de: '', it: '', es: '' }),
+                          [lang]: value
+                        }
+                      } as IPricingNote;
+                    })
                   }
                 : season
             )
@@ -547,21 +567,40 @@ export default function PricingPlansManager({ pricingPlans, onChange }: PricingP
                                                         <X className="w-3 h-3" />
                                                       </Button>
                                                       <div className="space-y-2">
-                                                        <div className="flex items-center gap-2">
-                                                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                                          <Input
-                                                            className="h-7 text-xs border-0 bg-transparent p-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 font-semibold pr-6"
-                                                            value={note.title}
-                                                            onChange={(e) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'title', e.target.value)}
-                                                            placeholder="Note Title"
-                                                          />
-                                                        </div>
-                                                        <Input
-                                                          className="h-6 text-xs border-0 bg-transparent p-0 placeholder:text-muted-foreground/50 focus-visible:ring-0"
+                                                        <LocalizedField
+                                                          label="Note Title"
+                                                          value={note.title}
+                                                          globalLanguage={activeLanguage}
+                                                          onChange={(lang, val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'title', val, lang)}
+                                                        >
+                                                          {(lang, currentValue, handleLang) => (
+                                                            <div className="flex items-center gap-2">
+                                                              <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                                                              <Input
+                                                                className="h-7 text-xs border-0 bg-transparent p-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 font-semibold pr-6"
+                                                                value={currentValue}
+                                                                onChange={(e) => handleLang(e.target.value)}
+                                                                placeholder={`Note Title (${lang})`}
+                                                              />
+                                                            </div>
+                                                          )}
+                                                        </LocalizedField>
+
+                                                        <LocalizedField
+                                                          label="Note Description"
                                                           value={note.text}
-                                                          onChange={(e) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'text', e.target.value)}
-                                                          placeholder="Note Description"
-                                                        />
+                                                          globalLanguage={activeLanguage}
+                                                          onChange={(lang, val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'text', val, lang)}
+                                                        >
+                                                          {(lang, currentValue, handleLang) => (
+                                                            <Input
+                                                              className="h-6 text-xs border-0 bg-transparent p-0 placeholder:text-muted-foreground/50 focus-visible:ring-0"
+                                                              value={currentValue}
+                                                              onChange={(e) => handleLang(e.target.value)}
+                                                              placeholder={`Description (${lang})`}
+                                                            />
+                                                          )}
+                                                        </LocalizedField>
                                                       </div>
                                                     </div>
                                                   ))}

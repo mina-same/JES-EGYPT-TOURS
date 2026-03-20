@@ -2,18 +2,31 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import { Plus, X } from 'lucide-react';
 
+import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import LocalizedField from '@/components/admin/LocalizedField';
+
 interface DetailsTabProps {
   formData: any;
-  handleArrayFieldChange: (field: string, value: string) => void;
+  handleArrayFieldChange: (field: string, value: string, lang: AdminLanguage) => void;
   addTourNote: () => void;
   removeTourNote: (index: number) => void;
-  updateTourNote: (index: number, field: string, value: string) => void;
+  updateTourNote: (index: number, field: string, value: string, lang: AdminLanguage) => void;
+  activeLanguage: AdminLanguage;
 }
+
+/** Build a localized object from an array of ILocalizedString so LocalizedField can display it */
+const arrayToLocalizedDisplay = (arr: any[]) => {
+  const langs: AdminLanguage[] = ['en', 'de', 'it', 'es'];
+  const result: any = { en: '', de: '', it: '', es: '' };
+  langs.forEach((lang) => {
+    result[lang] = arr.map((item: any) => item?.[lang] || '').filter(Boolean).join(', ');
+  });
+  return result;
+};
 
 export default function DetailsTab({
   formData,
@@ -21,6 +34,7 @@ export default function DetailsTab({
   addTourNote,
   removeTourNote,
   updateTourNote,
+  activeLanguage,
 }: DetailsTabProps) {
   return (
     <div className="space-y-6">
@@ -28,20 +42,27 @@ export default function DetailsTab({
       <Card>
         <CardHeader>
           <CardTitle>Tour Highlights</CardTitle>
-          <CardDescription>Key features and attractions (comma-separated)</CardDescription>
+          <CardDescription>Key features and attractions (comma-separated per language)</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="tourHighlights">Highlights</Label>
-            <Textarea
-              id="tourHighlights"
-              value={formData.tourHighlights?.join(', ') || ''}
-              onChange={(e) => handleArrayFieldChange('tourHighlights', e.target.value)}
-              placeholder="Visit the Pyramids, Sphinx, Egyptian Museum..."
-              rows={4}
-            />
-            <p className="text-sm text-muted-foreground">Separate each highlight with a comma.</p>
-          </div>
+          <LocalizedField
+            value={arrayToLocalizedDisplay(formData.tourHighlights || [])}
+            globalLanguage={activeLanguage}
+            onChange={(lang, val) => handleArrayFieldChange('tourHighlights', val, lang)}
+          >
+            {(lang, currentValue, handleLang) => (
+              <>
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  rows={4}
+                  value={currentValue}
+                  onChange={(e) => handleLang(e.target.value)}
+                  placeholder={`Visit the Pyramids, Sphinx, Egyptian Museum... (${lang})`}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Separate each highlight with a comma.</p>
+              </>
+            )}
+          </LocalizedField>
         </CardContent>
       </Card>
 
@@ -53,16 +74,21 @@ export default function DetailsTab({
             <CardDescription>What is included in the price</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="inclusion">Inclusions (comma-separated)</Label>
-              <Textarea
-                id="inclusion"
-                value={formData.inclusion?.join(', ') || ''}
-                onChange={(e) => handleArrayFieldChange('inclusion', e.target.value)}
-                placeholder="Hotel pickup, Lunch, Guide..."
-                rows={6}
-              />
-            </div>
+            <LocalizedField
+              value={arrayToLocalizedDisplay(formData.inclusion || [])}
+              globalLanguage={activeLanguage}
+              onChange={(lang, val) => handleArrayFieldChange('inclusion', val, lang)}
+            >
+              {(lang, currentValue, handleLang) => (
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  rows={6}
+                  value={currentValue}
+                  onChange={(e) => handleLang(e.target.value)}
+                  placeholder={`Hotel pickup, Lunch, Guide... (${lang})`}
+                />
+              )}
+            </LocalizedField>
           </CardContent>
         </Card>
 
@@ -72,16 +98,21 @@ export default function DetailsTab({
             <CardDescription>What is NOT included</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="exclusion">Exclusions (comma-separated)</Label>
-              <Textarea
-                id="exclusion"
-                value={formData.exclusion?.join(', ') || ''}
-                onChange={(e) => handleArrayFieldChange('exclusion', e.target.value)}
-                placeholder="Tips, Personal expenses, Drinks..."
-                rows={6}
-              />
-            </div>
+            <LocalizedField
+              value={arrayToLocalizedDisplay(formData.exclusion || [])}
+              globalLanguage={activeLanguage}
+              onChange={(lang, val) => handleArrayFieldChange('exclusion', val, lang)}
+            >
+              {(lang, currentValue, handleLang) => (
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  rows={6}
+                  value={currentValue}
+                  onChange={(e) => handleLang(e.target.value)}
+                  placeholder={`Tips, Personal expenses, Drinks... (${lang})`}
+                />
+              )}
+            </LocalizedField>
           </CardContent>
         </Card>
       </div>
@@ -93,16 +124,21 @@ export default function DetailsTab({
           <CardDescription>Recommended items for travelers</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="whatToPack">Items (comma-separated)</Label>
-            <Textarea
-              id="whatToPack"
-              value={formData.whatToPack?.join(', ') || ''}
-              onChange={(e) => handleArrayFieldChange('whatToPack', e.target.value)}
-              placeholder="Sunscreen, Hat, Comfortable shoes..."
-              rows={3}
-            />
-          </div>
+          <LocalizedField
+            value={arrayToLocalizedDisplay(formData.whatToPack || [])}
+            globalLanguage={activeLanguage}
+            onChange={(lang, val) => handleArrayFieldChange('whatToPack', val, lang)}
+          >
+            {(lang, currentValue, handleLang) => (
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                rows={3}
+                value={currentValue}
+                onChange={(e) => handleLang(e.target.value)}
+                placeholder={`Sunscreen, Hat, Comfortable shoes... (${lang})`}
+              />
+            )}
+          </LocalizedField>
         </CardContent>
       </Card>
 
@@ -123,56 +159,64 @@ export default function DetailsTab({
                 Add important notes like policies, warnings, meeting point details, or special requirements.
               </p>
               <Button type="button" onClick={addTourNote}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="w-4 h-4 mr-2" />
                 Add First Note
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
               {formData.notes.map((note: any, index: number) => (
-                <div key={index} className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold truncate">
-                        {note?.title || `Note ${index + 1}`}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Additional information, policies, or warnings
-                      </div>
+                <div key={index} className="rounded-lg border p-4 space-y-3 shadow-sm bg-card/50">
+                  <div className="flex items-center justify-between gap-3 border-b pb-2 mb-2">
+                    <div className="text-sm font-semibold truncate">
+                      {note?.title?.en || note?.title?.[activeLanguage] || `Note ${index + 1}`}
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => removeTourNote(index)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Title</Label>
-                      <Input
-                        value={note.title}
-                        onChange={(e) => updateTourNote(index, 'title', e.target.value)}
-                        placeholder="Note Title (e.g., Visa Info)"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Content</Label>
-                      <RichTextEditor
-                        value={note.text}
-                        onChange={(value) => updateTourNote(index, 'text', value)}
-                        placeholder="Note content..."
-                      />
-                    </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <LocalizedField
+                      label="Title"
+                      value={note.title}
+                      globalLanguage={activeLanguage}
+                      onChange={(lang, val) => updateTourNote(index, 'title', val, lang)}
+                    >
+                      {(lang, currentValue, handleLang) => (
+                        <Input
+                          value={currentValue}
+                          onChange={(e) => handleLang(e.target.value)}
+                          placeholder={`Note Title (e.g., Visa Info) - ${lang}`}
+                        />
+                      )}
+                    </LocalizedField>
+
+                    <LocalizedField
+                      label="Content"
+                      value={note.text}
+                      globalLanguage={activeLanguage}
+                      onChange={(lang, val) => updateTourNote(index, 'text', val, lang)}
+                    >
+                      {(lang, currentValue, handleLang) => (
+                        <RichTextEditor
+                          value={currentValue}
+                          onChange={handleLang}
+                          placeholder={`Note content (${lang})...`}
+                        />
+                      )}
+                    </LocalizedField>
                   </div>
                 </div>
               ))}
 
-              <Button type="button" onClick={addTourNote} variant="outline" className="w-full">
+              <Button type="button" onClick={addTourNote} variant="outline" className="w-full border-dashed">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Note
               </Button>

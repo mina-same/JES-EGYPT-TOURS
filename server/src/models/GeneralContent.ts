@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { LocalizedStringSchema, LocalizedMixedSchema, ILocalizedString, ILocalizedMixed } from './shared/LocalizedSchema';
 
 export interface IGeneralContent extends Document {
   slug: string; // unique identifier like 'home-intro'
-  title: string;
-  subtitle?: string;
-  content: string; // HTML content
+  title: ILocalizedString;
+  subtitle?: ILocalizedString;
+  content: ILocalizedMixed; // HTML content
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -20,16 +21,14 @@ const GeneralContentSchema = new Schema<IGeneralContent>(
       lowercase: true,
     },
     title: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Title is required'],
-      trim: true,
     },
     subtitle: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     content: {
-      type: String,
+      type: LocalizedMixedSchema,
       required: [true, 'Content is required'],
     },
     isActive: {

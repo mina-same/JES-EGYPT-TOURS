@@ -3,6 +3,7 @@ import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
 import { ITour } from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
+import { localize } from '../utils/localize';
 
 // ==================== INTERFACES ====================
 
@@ -53,12 +54,17 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
     filter.isFeatured = queryParams.isFeatured === 'true';
   }
 
-  // Search by heading or description
+  // Search by heading or description in all languages
   if (queryParams.search) {
+    const searchRegex = { $regex: queryParams.search, $options: 'i' };
     filter.$or = [
-      { heading: { $regex: queryParams.search, $options: 'i' } },
-      { 'Description.text': { $regex: queryParams.search, $options: 'i' } },
-      { tourLocation: { $regex: queryParams.search, $options: 'i' } },
+      { 'heading.en': searchRegex },
+      { 'heading.de': searchRegex },
+      { 'heading.it': searchRegex },
+      { 'Description.text.en': searchRegex },
+      { 'Description.text.de': searchRegex },
+      { 'Description.text.it': searchRegex },
+      { tourLocation: searchRegex },
     ];
   }
 
@@ -186,7 +192,7 @@ export const getAllTours = async (
       totalPages,
       hasNextPage,
       hasPrevPage,
-      data: tours,
+      data: localize(tours, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tours:', error);
@@ -220,7 +226,7 @@ export const getFeaturedTours = async (
     res.status(200).json({
       success: true,
       count: tours.length,
-      data: tours,
+      data: localize(tours, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching featured tours:', error);
@@ -254,7 +260,7 @@ export const getPopularTours = async (
     res.status(200).json({
       success: true,
       count: tours.length,
-      data: tours,
+      data: localize(tours, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching popular tours:', error);
@@ -307,7 +313,7 @@ export const getToursBySubcategory = async (
       total,
       page: pageNum,
       totalPages,
-      data: tours,
+      data: localize(tours, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tours by subcategory:', error);
@@ -359,7 +365,7 @@ export const getTourById = async (
 
     res.status(200).json({
       success: true,
-      data: tour,
+      data: localize(tour, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour:', error);
@@ -414,7 +420,7 @@ export const getTourBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: tour,
+      data: localize(tour, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour by slug:', error);
@@ -450,7 +456,7 @@ export const getTourByExternalId = async (
 
     res.status(200).json({
       success: true,
-      data: tour,
+      data: localize(tour, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour by external ID:', error);
@@ -596,6 +602,33 @@ export const updateTour = async (
       req.body.gallery = req.body.gallery.filter((item: any) => 
         item && item.fileName && item.fileName.trim() !== ''
       );
+    }
+
+    // Sanitize pricingPlans: remove empty date objects from seasons
+    if (req.body.pricingPlans && Array.isArray(req.body.pricingPlans)) {
+      const isEmptyDateObj = (val: any): boolean => {
+        if (val === null || val === undefined) return false;
+        if (val instanceof Date) return false;
+        if (typeof val !== 'object') return false;
+        return Object.keys(val).length === 0;
+      };
+
+      req.body.pricingPlans = req.body.pricingPlans.map((plan: any) => {
+        if (!plan.seasons || !Array.isArray(plan.seasons)) return plan;
+        return {
+          ...plan,
+          seasons: plan.seasons.map((season: any) => {
+            const cleaned: any = { ...season };
+            if (!cleaned.startDate || isEmptyDateObj(cleaned.startDate)) {
+              delete cleaned.startDate;
+            }
+            if (!cleaned.endDate || isEmptyDateObj(cleaned.endDate)) {
+              delete cleaned.endDate;
+            }
+            return cleaned;
+          }),
+        };
+      });
     }
 
     const tour = await Tour.findByIdAndUpdate(

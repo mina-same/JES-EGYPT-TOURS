@@ -1,8 +1,9 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchema';
 
 export interface ISliderUnderPromoConfig {
-  text: string;
-  linkText: string;
+  text: ILocalizedString;
+  linkText: ILocalizedString;
   link: string;
   linkDirection: '_blank' | '_self';
 }
@@ -16,8 +17,8 @@ export interface ISliderPromoConfig extends Document {
 
 const SliderUnderPromoConfigSchema = new Schema<ISliderUnderPromoConfig>(
   {
-    text: { type: String, trim: true },
-    linkText: { type: String, trim: true },
+    text: { type: LocalizedStringSchema },
+    linkText: { type: LocalizedStringSchema },
     link: { type: String, trim: true },
     linkDirection: { type: String, enum: ['_blank', '_self'], default: '_self' },
   },

@@ -1,11 +1,12 @@
 import axiosInstance from '@/lib/api/axios';
+import { ILocalizedString, ILocalizedMixed } from '@/types/tour';
 
 export interface GeneralContentItem {
   _id: string;
   slug: string;
-  title: string;
-  subtitle?: string;
-  content: string;
+  title: ILocalizedString;
+  subtitle?: ILocalizedString;
+  content: ILocalizedMixed;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

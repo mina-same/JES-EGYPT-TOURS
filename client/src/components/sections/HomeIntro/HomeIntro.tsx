@@ -5,14 +5,17 @@ import { Container, Row, Col } from "react-bootstrap";
 import { generalContentAPI } from "@/lib/api/generalContent";
 import { Loader2, ChevronDown, ChevronUp, MapPin, Star, ShieldCheck } from "lucide-react";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
 
 interface HomeContent {
-  title: string;
-  subtitle?: string;
-  content: string;
+  title: any;
+  subtitle?: any;
+  content: any;
 }
 
 const HomeIntro: React.FC = () => {
+  const { i18n } = useTranslation();
   const [content, setContent] = useState<HomeContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -32,7 +35,11 @@ const HomeIntro: React.FC = () => {
       .replace(/data:/gi, "");
   };
 
-  const sanitizedContent = sanitizeHTML(content?.content || "");
+  const localizedTitle = getLocalizedValue(content?.title, i18n.language);
+  const localizedSubtitle = getLocalizedValue(content?.subtitle, i18n.language);
+  const localizedContent = getLocalizedValue(content?.content, i18n.language);
+
+  const sanitizedContent = sanitizeHTML(localizedContent || "");
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -60,10 +67,10 @@ const HomeIntro: React.FC = () => {
   }
 
   if (!content) return null;
-
+  
   // Split title to style the part after colon differently
-  const titleParts = content.title.split(':');
-  const mainTitle = titleParts[0];
+  const titleParts = localizedTitle ? localizedTitle.split(':') : [];
+  const mainTitle = titleParts[0] || "";
   const highlightTitle = titleParts[1] ? titleParts[1].trim() : "";
 
   return (
@@ -84,7 +91,7 @@ const HomeIntro: React.FC = () => {
                 <div className="inline-flex items-center gap-3">
                   <div className="w-12 h-[2px] bg-[#b79c5c] rounded-full"></div>
                   <span className="text-[#b79c5c] font-black uppercase tracking-[0.25em] text-[10px] md:text-xs">
-                    {content.subtitle || "The Ultimate Egyptian Journey"}
+                    {localizedSubtitle || "The Ultimate Egyptian Journey"}
                   </span>
                 </div>
 

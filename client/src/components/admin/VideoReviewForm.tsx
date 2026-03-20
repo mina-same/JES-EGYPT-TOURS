@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { videoReviewService, VideoReviewItem } from '@/services/videoReviewService';
 import Link from 'next/link';
 import Image from 'next/image';
+import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import LocalizedField from '@/components/admin/LocalizedField';
 
 interface VideoReviewFormProps {
   initialData?: VideoReviewItem;
@@ -20,10 +22,18 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  
+  // Map legacy string data to localized objects if needed
+  const mapToLocalized = (val: any) => {
+    if (typeof val === 'string') return { en: val, de: '', it: '', es: '' };
+    return val || { en: '', de: '', it: '', es: '' };
+  };
+
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
+    title: mapToLocalized(initialData?.title),
     url: initialData?.url || '',
-    tourName: initialData?.tourName || '',
+    tourName: mapToLocalized(initialData?.tourName),
     order: initialData?.order || 0,
     isActive: initialData?.isActive ?? true,
   });
@@ -50,10 +60,10 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.url || !formData.tourName) {
+    if (!formData.title.en || !formData.url || !formData.tourName.en) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields.',
+        description: 'Please fill in English Title, URL, and English Tour Name.',
         variant: 'destructive',
       });
       return;
@@ -103,6 +113,9 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
             </p>
           </div>
         </div>
+        <div className="mb-6">
+          <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
@@ -118,35 +131,45 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
 
             <div className='space-y-6'>
               <div>
-                <label className='block text-xs font-black uppercase tracking-widest text-gray-400 mb-2'>
-                  Review Title <span className='text-red-500'>*</span>
-                </label>
-                <input 
-                  type='text'
+                <LocalizedField
+                  label="Review Title"
                   value={formData.title}
-                  onChange={e => setFormData({...formData, title: e.target.value})}
-                  className='w-full px-5 py-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-slate-900 focus:border-[#b79c5c] outline-none transition-all font-medium'
-                  placeholder='e.g., An Unforgettable Journey through Giza'
-                  required
-                />
+                  globalLanguage={activeLanguage}
+                  onChange={(lang, val) => setFormData({ ...formData, title: { ...formData.title, [lang]: val } })}
+                >
+                  {(lang, currentValue, handleLang) => (
+                    <input 
+                      type='text'
+                      value={currentValue || ''}
+                      onChange={e => handleLang(e.target.value)}
+                      className='w-full px-5 py-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-slate-900 focus:border-[#b79c5c] outline-none transition-all font-medium'
+                      placeholder={`Title in ${lang}`}
+                    />
+                  )}
+                </LocalizedField>
               </div>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 <div>
-                  <label className='block text-xs font-black uppercase tracking-widest text-gray-400 mb-2'>
-                    Tour Name <span className='text-red-500'>*</span>
-                  </label>
-                  <div className='relative'>
-                    <MapPin className='absolute left-4 top-3.5 text-gray-300' size={18} />
-                    <input 
-                      type='text'
-                      value={formData.tourName}
-                      onChange={e => setFormData({...formData, tourName: e.target.value})}
-                      className='w-full pl-12 pr-5 py-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-slate-900 focus:border-[#b79c5c] outline-none transition-all font-medium text-sm'
-                      placeholder='e.g., Cairo & Giza 2 Days'
-                      required
-                    />
-                  </div>
+                  <LocalizedField
+                    label="Tour Name"
+                    value={formData.tourName}
+                    globalLanguage={activeLanguage}
+                    onChange={(lang, val) => setFormData({ ...formData, tourName: { ...formData.tourName, [lang]: val } })}
+                  >
+                    {(lang, currentValue, handleLang) => (
+                      <div className='relative'>
+                        <MapPin className='absolute left-4 top-3.5 text-gray-300' size={18} />
+                        <input 
+                          type='text'
+                          value={currentValue || ''}
+                          onChange={e => handleLang(e.target.value)}
+                          className='w-full pl-12 pr-5 py-3 rounded-2xl border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-gray-100 focus:bg-white dark:focus:bg-slate-900 focus:border-[#b79c5c] outline-none transition-all font-medium text-sm'
+                          placeholder={`Tour Name in ${lang}`}
+                        />
+                      </div>
+                    )}
+                  </LocalizedField>
                 </div>
 
                 <div>
@@ -239,9 +262,13 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
              )}
 
              <div className='mt-5'>
-                <p className='text-white font-bold text-sm truncate'>{formData.title || 'Review Title Here'}</p>
-                <p className='text-[#b79c5c] text-[10px] font-black uppercase tracking-widest mt-1'>{formData.tourName || 'Tour Location'}</p>
-             </div>
+                <p className='text-white font-bold text-sm truncate'>
+                  {typeof formData.title === 'string' ? formData.title : (formData.title[activeLanguage] || formData.title.en || 'Review Title Here')}
+                </p>
+                <p className='text-[#b79c5c] text-[10px] font-black uppercase tracking-widest mt-1'>
+                  {typeof formData.tourName === 'string' ? formData.tourName : (formData.tourName[activeLanguage] || formData.tourName.en || 'Tour Location')}
+                </p>
+              </div>
           </div>
 
           <button 

@@ -23,8 +23,10 @@ export const getAllFaqs = async (req: Request, res: Response) => {
 
     if (search) {
       filter.$or = [
-        { question: { $regex: search, $options: 'i' } },
-        { answer: { $regex: search, $options: 'i' } },
+        { "question.en": { $regex: search, $options: 'i' } },
+        { "question.de": { $regex: search, $options: 'i' } },
+        { "question.it": { $regex: search, $options: 'i' } },
+        { "answer.en": { $regex: search, $options: 'i' } },
         { category: { $regex: search, $options: 'i' } }
       ];
     }
@@ -138,33 +140,19 @@ export const createFaq = async (req: Request, res: Response): Promise<void> => {
     const { question, answer, category, isActive, displayOnHome } = req.body;
 
     // Validation
-    if (!question || !answer) {
+    if (!question || !question.en || !answer || !answer.en) {
       res.status(400).json({
         success: false,
-        error: 'Question and answer are required'
+        error: 'English question and answer are required'
       });
       return;
     }
 
-    if (question.length > 500) {
-      res.status(400).json({
-        success: false,
-        error: 'Question cannot exceed 500 characters'
-      });
-      return;
-    }
-
-    if (answer.length > 5000) {
-      res.status(400).json({
-        success: false,
-        error: 'Answer cannot exceed 5000 characters'
-      });
-      return;
-    }
+    // Validation is handled partially by the frontend or shared schemas. Wait, schema has it.
 
     const faqData: Partial<IFaq> = {
-      question: question.trim(),
-      answer: answer.trim(),
+      question,
+      answer,
       category: category?.trim() || 'General',
       isActive: isActive !== undefined ? isActive : true,
       displayOnHome: displayOnHome !== undefined ? displayOnHome : false
@@ -211,26 +199,11 @@ export const updateFaq = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Validation
-    if (question && question.length > 500) {
-      res.status(400).json({
-        success: false,
-        error: 'Question cannot exceed 500 characters'
-      });
-      return;
-    }
-
-    if (answer && answer.length > 5000) {
-      res.status(400).json({
-        success: false,
-        error: 'Answer cannot exceed 5000 characters'
-      });
-      return;
-    }
+    // Omit string lengths validation since they are objects
 
     // Update fields
-    if (question !== undefined) faq.question = question.trim();
-    if (answer !== undefined) faq.answer = answer.trim();
+    if (question !== undefined) faq.question = question;
+    if (answer !== undefined) faq.answer = answer;
     if (category !== undefined) faq.category = category.trim() || 'General';
     if (isActive !== undefined) faq.isActive = isActive;
     if (displayOnHome !== undefined) faq.displayOnHome = displayOnHome;

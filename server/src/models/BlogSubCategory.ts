@@ -1,16 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchema';
 
 export interface IBlogSubCategory extends Document {
   // Basic Info
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: string;
+  description?: ILocalizedString;
   image?: string;
   category: mongoose.Types.ObjectId;
   
   // SEO Meta Tags
-  metaTitle?: string;
-  metaDescription?: string;
+  metaTitle?: ILocalizedString;
+  metaDescription?: ILocalizedString;
   metaKeywords?: string[];
   metaImage?: {
     url: string;
@@ -20,8 +21,8 @@ export interface IBlogSubCategory extends Document {
   };
   
   // Open Graph (Facebook, LinkedIn)
-  ogTitle?: string;
-  ogDescription?: string;
+  ogTitle?: ILocalizedString;
+  ogDescription?: ILocalizedString;
   ogImage?: string;
   ogType?: string;
   
@@ -31,7 +32,7 @@ export interface IBlogSubCategory extends Document {
   
   // Breadcrumbs
   breadcrumbs?: Array<{
-    name: string;
+    name: ILocalizedString;
     url: string;
   }>;
   
@@ -47,9 +48,8 @@ const BlogSubCategorySchema: Schema = new Schema(
   {
     // === BASIC INFO ===
     name: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'SubCategory name is required'],
-      trim: true,
     },
     slug: {
       type: String,
@@ -58,8 +58,7 @@ const BlogSubCategorySchema: Schema = new Schema(
       trim: true,
     },
     description: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     image: {
       type: String,
@@ -73,14 +72,10 @@ const BlogSubCategorySchema: Schema = new Schema(
     
     // === SEO META TAGS ===
     metaTitle: {
-      type: String,
-      trim: true,
-      maxlength: [60, 'Meta title should not exceed 60 characters'],
+      type: LocalizedStringSchema,
     },
     metaDescription: {
-      type: String,
-      trim: true,
-      maxlength: [160, 'Meta description should not exceed 160 characters'],
+      type: LocalizedStringSchema,
     },
     metaKeywords: [{
       type: String,
@@ -92,8 +87,7 @@ const BlogSubCategorySchema: Schema = new Schema(
         trim: true,
       },
       alt: {
-        type: String,
-        trim: true,
+        type: LocalizedStringSchema,
       },
       width: {
         type: Number,
@@ -107,12 +101,10 @@ const BlogSubCategorySchema: Schema = new Schema(
     
     // === OPEN GRAPH (SOCIAL MEDIA) ===
     ogTitle: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     ogDescription: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     ogImage: {
       type: String,
@@ -136,7 +128,7 @@ const BlogSubCategorySchema: Schema = new Schema(
     // === BREADCRUMBS ===
     breadcrumbs: [{
       name: {
-        type: String,
+        type: LocalizedStringSchema,
         required: true,
       },
       url: {
@@ -164,15 +156,15 @@ BlogSubCategorySchema.index({ name: 'text', description: 'text' });
 // Pre-save middleware to auto-populate SEO fields
 BlogSubCategorySchema.pre<IBlogSubCategory>('save', function (next) {
   // Auto-populate metaTitle from name if not provided
-  if (!this.metaTitle) {
+  if (!this.metaTitle || (!this.metaTitle.en && !this.metaTitle.de && !this.metaTitle.it)) {
     this.metaTitle = this.name;
   }
   
   // Auto-populate OG fields from meta fields if not provided
-  if (!this.ogTitle) {
+  if (!this.ogTitle || (!this.ogTitle.en && !this.ogTitle.de && !this.ogTitle.it)) {
     this.ogTitle = this.metaTitle;
   }
-  if (!this.ogDescription) {
+  if (!this.ogDescription || (!this.ogDescription.en && !this.ogDescription.de && !this.ogDescription.it)) {
     this.ogDescription = this.metaDescription;
   }
   if (!this.ogImage) {

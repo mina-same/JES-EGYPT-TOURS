@@ -99,10 +99,10 @@ export const adminGetMenuById = async (req: Request, res: Response): Promise<voi
 export const adminCreateMenu = async (req: Request, res: Response): Promise<void> => {
   try {
     const key = String(req.body?.key || '').toLowerCase().trim();
-    const title = String(req.body?.title || '').trim();
+    const { title, isActive, items } = req.body;
 
-    if (!key || !title) {
-      res.status(400).json({ success: false, error: 'key and title are required' });
+    if (!key || !title?.en) {
+      res.status(400).json({ success: false, error: 'key and English title are required' });
       return;
     }
 
@@ -115,8 +115,8 @@ export const adminCreateMenu = async (req: Request, res: Response): Promise<void
     const menu = await Menu.create({
       key,
       title,
-      isActive: req.body?.isActive !== false,
-      items: Array.isArray(req.body?.items) ? req.body.items : [],
+      isActive: isActive !== false,
+      items: Array.isArray(items) ? items : [],
     });
 
     res.status(201).json({ success: true, message: 'Menu created', data: menu });
@@ -134,7 +134,7 @@ export const adminCreateMenu = async (req: Request, res: Response): Promise<void
 export const adminUpdateMenu = async (req: Request, res: Response): Promise<void> => {
   try {
     const updates: any = {};
-    if (req.body?.title !== undefined) updates.title = String(req.body.title).trim();
+    if (req.body?.title !== undefined) updates.title = req.body.title;
     if (req.body?.isActive !== undefined) updates.isActive = !!req.body.isActive;
     if (req.body?.items !== undefined) updates.items = Array.isArray(req.body.items) ? req.body.items : [];
 

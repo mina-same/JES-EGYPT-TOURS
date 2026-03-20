@@ -4,6 +4,8 @@ import useStore from "@/store/useStore";
 import Link from "next/link";
 import Image, { StaticImageData } from "next/image";
 import logo from "@/assets/images/logo-light.png";
+import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
 import { demoPages } from "@/data/demoPages";
 import { Col, Container, Row } from "react-bootstrap";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
@@ -33,6 +35,7 @@ interface Page {
 }
 
 const Drawer: React.FC = () => {
+  const { i18n } = useTranslation();
   const [isMegaMenu, setIsMegaMenu] = useState(false);
   const [isHomeDrop, setIsHomeDrop] = useState(false);
   const {
@@ -134,7 +137,7 @@ const Drawer: React.FC = () => {
                   href={item.url || item.link || "#"}
                   className={`${isItems === idx ? "expanded" : ""}`}
                 >
-                  {item.label || item.title}
+                  {getLocalizedValue(item.label || item.title, i18n.language)}
                   {hasChildren && (
                     <button
                       onClick={() => toggleDropdown(idx)}
@@ -161,7 +164,7 @@ const Drawer: React.FC = () => {
                           href={subMenu.url || subMenu.link || "#"}
                           className={`${isSubItems === sidx ? "expanded" : ""}`}
                         >
-                          {subMenu.label || subMenu.title}{" "}
+                          {getLocalizedValue(subMenu.label || subMenu.title, i18n.language)}{" "}
                         </Link>
                         {(subMenu.children || subMenu.subMenu) && (
                           <button
@@ -179,7 +182,7 @@ const Drawer: React.FC = () => {
                         {(subMenu.children || subMenu.subMenu)?.map((subSubItem: any, ssidx: number) => (
                           <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
                             <Link href={subSubItem.url || subSubItem.link || "#"}>
-                              {subSubItem.label || subSubItem.title}
+                              {getLocalizedValue(subSubItem.label || subSubItem.title, i18n.language)}
                             </Link>
                           </li>
                         ))}

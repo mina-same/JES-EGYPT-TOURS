@@ -1,0 +1,64 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+const locales = ['en', 'de', 'it'];
+const defaultLocale = 'en';
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // 1. Skip internal next.js requests, API routes, and static files
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.includes('.') ||
+    pathname === '/favicon.ico'
+  ) {
+    return;
+  }
+
+  // 2. EXCLUDE root Admin routes from any locale handling
+  // We want /admin to remain exactly as is at the root level.
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return;
+  }
+
+  // 3. Check if the current path already has a locale prefix
+  const pathnameHasLocale = locales.some(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+  );
+
+  if (pathnameHasLocale) {
+    // Handle special case: localized admin routes (e.g. /de/admin)
+    // We want to redirect these back to the plain /admin version
+    const firstSegment = pathname.split('/')[1];
+    const subPath = pathname.replace(`/${firstSegment}`, '') || '/';
+    if (subPath === '/admin' || subPath.startsWith('/admin/')) {
+        return NextResponse.redirect(new URL(subPath, request.url));
+    }
+    
+    // Valid localized path: Let Next.js handle it via the [locale] file structure
+    return;
+  }
+
+  // 4. No locale prefix found: Determine the target locale and redirect
+  // We check for the NEXT_LOCALE cookie first, then fall back to default Locale
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
+  const locale = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale;
+
+  const targetPath = `/${locale}${pathname === '/' ? '' : pathname}`;
+  
+  // Redirect to the localized version (e.g. / -> /en, /about -> /en/about)
+  return NextResponse.redirect(new URL(targetPath, request.url));
+}
+
+export const config = {
+  matcher: [
+    // Match all request paths except internal ones:
+    // - _next/static (static files)
+    // - _next/image (image optimization files)
+    // - favicon.ico (favicon file)
+    // - api (API routes)
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};

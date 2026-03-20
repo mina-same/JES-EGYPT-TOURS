@@ -1,4 +1,5 @@
 import axiosInstance from './axios';
+import { ILocalizedString, ILocalizedMixed } from '@/types/tour';
 
 export const generalContentAPI = {
   /**
@@ -19,9 +20,9 @@ export const generalContentAPI = {
    */
   upsert: async (data: {
     slug: string;
-    title: string;
-    subtitle?: string;
-    content: string;
+    title: ILocalizedString;
+    subtitle?: ILocalizedString;
+    content: ILocalizedMixed;
     isActive?: boolean;
   }) => {
     try {

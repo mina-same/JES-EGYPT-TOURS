@@ -1,25 +1,26 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
+import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
 
 // Content Block Types
 interface IImageBlock {
   url: string;
-  alt: string;
-  title?: string;
-  caption?: string;
+  alt: ILocalizedString;
+  title?: ILocalizedString;
+  caption?: ILocalizedString;
   width?: number;
   height?: number;
 }
 
 interface IContentBlock {
   type: 'html' | 'imageRow' | 'blockquote' | 'video' | 'image';
-  content?: string;
+  content?: ILocalizedString;
   images?: IImageBlock[];
   image?: string;
   url?: string;
   thumbnail?: string;
-  alt?: string;
-  caption?: string;
+  alt?: ILocalizedString;
+  caption?: ILocalizedString;
 }
 
 interface IComment {
@@ -32,30 +33,30 @@ interface IComment {
 }
 
 interface IBreadcrumb {
-  name: string;
+  name: ILocalizedString;
   url: string;
 }
 
 export interface IBlog extends Document {
   // Basic Info
-  title: string;
+  title: ILocalizedString;
   slug: string;
   author: mongoose.Types.ObjectId | string;
   featuredImage: IImage;
-  excerpt?: string;
+  excerpt?: ILocalizedString;
   
   // Rich Content
   contentBlocks: IContentBlock[];
   
   // SEO Meta Tags
-  metaTitle?: string;
-  metaDescription?: string;
-  metaKeywords?: string[];
+  metaTitle?: ILocalizedString;
+  metaDescription?: ILocalizedString;
+  metaKeywords?: ILocalizedMixed; // Array of localized strings or single object? Usually tags/keywords are simpler. I'll use ILocalizedMixed for consistency if they need translation.
   metaImage?: IImage;
   
   // Open Graph (Facebook, LinkedIn)
-  ogTitle?: string;
-  ogDescription?: string;
+  ogTitle?: ILocalizedString;
+  ogDescription?: ILocalizedString;
   ogImage?: string;
   ogType?: string;
   
@@ -72,7 +73,7 @@ export interface IBlog extends Document {
   breadcrumbs?: IBreadcrumb[];
   
   // Tags
-  tags: string[];
+  tags: ILocalizedMixed; // Localized tags array
   
   // Publishing
   status: 'draft' | 'published' | 'scheduled';
@@ -106,9 +107,8 @@ const BlogSchema: Schema = new Schema(
   {
     // === BASIC INFO ===
     title: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Blog title is required'],
-      trim: true,
     },
     slug: {
       type: String,
@@ -127,9 +127,7 @@ const BlogSchema: Schema = new Schema(
       required: [true, 'Featured image is required'],
     },
     excerpt: {
-      type: String,
-      trim: true,
-      maxlength: [300, 'Excerpt should not exceed 300 characters'],
+      type: LocalizedStringSchema,
     },
     
     // === RICH CONTENT ===
@@ -139,37 +137,32 @@ const BlogSchema: Schema = new Schema(
         enum: ['html', 'imageRow', 'blockquote', 'video', 'image'],
         required: true,
       },
-      content: String,
+      content: LocalizedStringSchema,
       images: [{
         url: { type: String, required: true },
-        alt: { type: String, required: true },
-        title: String,
-        caption: String,
+        alt: { type: LocalizedStringSchema, required: true },
+        title: LocalizedStringSchema,
+        caption: LocalizedStringSchema,
         width: Number,
         height: Number,
       }],
       image: String,
       url: String,
       thumbnail: String,
-      alt: String,
-      caption: String,
+      alt: LocalizedStringSchema,
+      caption: LocalizedStringSchema,
     }],
     
     // === SEO META TAGS ===
     metaTitle: {
-      type: String,
-      trim: true,
-      maxlength: [60, 'Meta title should not exceed 60 characters'],
+      type: LocalizedStringSchema,
     },
     metaDescription: {
-      type: String,
-      trim: true,
-      maxlength: [160, 'Meta description should not exceed 160 characters'],
+      type: LocalizedStringSchema,
     },
-    metaKeywords: [{
-      type: String,
-      trim: true,
-    }],
+    metaKeywords: {
+      type: LocalizedMixedSchema,
+    },
     metaImage: {
       type: ImageSchema,
       required: false,
@@ -177,12 +170,10 @@ const BlogSchema: Schema = new Schema(
     
     // === OPEN GRAPH (SOCIAL MEDIA) ===
     ogTitle: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     ogDescription: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     ogImage: {
       type: String,
@@ -221,7 +212,7 @@ const BlogSchema: Schema = new Schema(
     // === BREADCRUMBS ===
     breadcrumbs: [{
       name: {
-        type: String,
+        type: LocalizedStringSchema,
         required: true,
       },
       url: {
@@ -231,10 +222,9 @@ const BlogSchema: Schema = new Schema(
     }],
     
     // === TAGS ===
-    tags: [{
-      type: String,
-      trim: true,
-    }],
+    tags: {
+      type: LocalizedMixedSchema,
+    },
     
     // === PUBLISHING ===
     status: {
@@ -338,26 +328,30 @@ BlogSchema.pre<IBlog>('save', function (next) {
   this.lastModified = new Date();
   
   // Auto-populate metaTitle from title if not provided
-  if (!this.metaTitle) {
+  if (!this.metaTitle || (!this.metaTitle.en && !this.metaTitle.de && !this.metaTitle.it)) {
     this.metaTitle = this.title;
   }
   
   // Auto-populate featuredImage alt from title if not provided
   if (this.featuredImage && !this.featuredImage.alt) {
-    this.featuredImage.alt = this.title;
+    this.featuredImage.alt = this.title as any;
   }
   
   // Ensure fileName is set if not provided (for backward compatibility)
+  if (this.featuredImage && !this.featuredImage.url && (this.featuredImage as any).url) {
+    // This part looks like it was handling legacy strings, but featuredImage is IImage
+  }
+
   if (this.featuredImage && !this.featuredImage.fileName && this.featuredImage.url) {
     const urlParts = this.featuredImage.url.split('/');
     this.featuredImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
   }
   
   // Auto-populate OG fields from meta fields if not provided
-  if (!this.ogTitle) {
+  if (!this.ogTitle || (!this.ogTitle.en && !this.ogTitle.de && !this.ogTitle.it)) {
     this.ogTitle = this.metaTitle;
   }
-  if (!this.ogDescription) {
+  if (!this.ogDescription || (!this.ogDescription.en && !this.ogDescription.de && !this.ogDescription.it)) {
     this.ogDescription = this.metaDescription;
   }
   if (!this.ogImage) {
@@ -366,7 +360,7 @@ BlogSchema.pre<IBlog>('save', function (next) {
   
   // Auto-populate metaImage alt from title if not provided
   if (this.metaImage && this.metaImage.url && !this.metaImage.alt) {
-    this.metaImage.alt = this.title;
+    this.metaImage.alt = this.title as any;
   }
   
   // Ensure metaImage fileName is set if not provided
@@ -375,33 +369,36 @@ BlogSchema.pre<IBlog>('save', function (next) {
     this.metaImage.fileName = urlParts[urlParts.length - 1] || 'meta-image.jpg';
   }
   
-  // Calculate reading time (average 200 words per minute)
+  // Calculate reading time (average 200 words per minute) - using English as base
   if (this.contentBlocks && this.contentBlocks.length > 0) {
     let totalWords = 0;
     this.contentBlocks.forEach(block => {
-      if (block.type === 'html' && block.content) {
+      const content = (block.content as any)?.en || (typeof block.content === 'string' ? block.content : '');
+      if (block.type === 'html' && content) {
         // Strip HTML tags and count words
-        const text = block.content.replace(/<[^>]*>/g, ' ');
+        const text = content.replace(/<[^>]*>/g, ' ');
         const words = text.trim().split(/\s+/).length;
         totalWords += words;
       }
-      if (block.type === 'blockquote' && block.content) {
-        const words = block.content.trim().split(/\s+/).length;
+      if (block.type === 'blockquote' && content) {
+        const words = content.trim().split(/\s+/).length;
         totalWords += words;
       }
     });
     this.readingTime = Math.ceil(totalWords / 200);
   }
   
-  // Calculate focus keyword density
-  if (this.focusKeyword && this.contentBlocks && this.contentBlocks.length > 0) {
+  // Calculate focus keyword density - using English
+  const focusKeywordEn = (this.focusKeyword as any)?.en || (typeof this.focusKeyword === 'string' ? this.focusKeyword : '');
+  if (focusKeywordEn && this.contentBlocks && this.contentBlocks.length > 0) {
     let totalWords = 0;
     let keywordCount = 0;
-    const keyword = this.focusKeyword.toLowerCase();
+    const keyword = focusKeywordEn.toLowerCase();
     
     this.contentBlocks.forEach(block => {
-      if (block.type === 'html' && block.content) {
-        const text = block.content.replace(/<[^>]*>/g, ' ').toLowerCase();
+      const content = (block.content as any)?.en || (typeof block.content === 'string' ? block.content : '');
+      if (block.type === 'html' && content) {
+        const text = content.replace(/<[^>]*>/g, ' ').toLowerCase();
         const words = text.trim().split(/\s+/);
         totalWords += words.length;
         keywordCount += text.split(keyword).length - 1;

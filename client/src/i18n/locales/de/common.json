@@ -1,0 +1,13 @@
+ {
+   "links": {
+     "faq": "FAQ",
+     "about": "Über uns",
+     "contact": "Kontakt"
+   },
+   "language": {
+     "english": "English",
+     "german": "Deutsch",
+     "italian": "Italienisch",
+     "spanish": "Spanisch"
+   }
+ }

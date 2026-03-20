@@ -1,35 +1,29 @@
+import type { ILocalizedString, ILocalizedMixed, IImage } from './shared';
+export type { ILocalizedString, ILocalizedMixed, IImage };
+
 // ==================== SHARED INTERFACES ====================
 
-export interface IImage {
-  url: string;
-  fileName?: string;
-  title?: string;
-  alt?: string;
-  width?: number;
-  height?: number;
-}
-
 export interface ISEO {
-  metaTitle?: string;
-  metaDescription?: string;
-  metaKeywords?: string[];
+  metaTitle?: ILocalizedString;
+  metaDescription?: ILocalizedString;
+  metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
-  ogTitle?: string;
-  ogDescription?: string;
+  ogTitle?: ILocalizedString;
+  ogDescription?: ILocalizedString;
   ogImage?: string;
   ogType?: string;
   noIndex?: boolean;
   noFollow?: boolean;
-  focusKeyword?: string;
+  focusKeyword?: ILocalizedString;
 }
 
 // ==================== BLOG CATEGORY ====================
 
 export interface IBlogCategory {
   _id: string;
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any; // HTML content
+  description?: ILocalizedString; // Localized content
   image?: IImage;
   seo?: ISEO;
   isActive: boolean;
@@ -42,10 +36,10 @@ export interface IBlogCategory {
 
 export interface IBlogSubcategory {
   _id: string;
-  category: string; // ObjectId as string
-  name: string;
+  category: any; // ObjectId or populated object
+  name: ILocalizedString;
   slug: string;
-  description?: any; // HTML content
+  description?: ILocalizedString; // Localized content
   image?: IImage;
   seo?: ISEO;
   isActive: boolean;
@@ -58,20 +52,20 @@ export interface IBlogSubcategory {
 
 export interface IContentBlock {
   type: 'html' | 'imageRow' | 'blockquote' | 'video' | 'image';
-  content?: string;
+  content?: ILocalizedString;
   images?: IImage[];
   image?: string;
   url?: string;
   thumbnail?: string;
-  alt?: string;
-  caption?: string;
+  alt?: ILocalizedString;
+  caption?: ILocalizedString;
 }
 
 // ==================== BLOG POST ====================
 
 export interface IBlogPost {
   _id: string;
-  title: string;
+  title: ILocalizedString;
   slug: string;
   subCategory: IBlogSubcategory | string;
   author: {
@@ -79,11 +73,11 @@ export interface IBlogPost {
     name: string;
     email: string;
   } | string;
-  featuredImage: string;
-  featuredImageAlt?: string;
-  excerpt?: string;
+  featuredImage: any;
+  featuredImageAlt?: ILocalizedString;
+  excerpt?: ILocalizedString;
   contentBlocks: IContentBlock[];
-  tags: string[];
+  tags: ILocalizedMixed;
   status: 'draft' | 'published' | 'scheduled';
   publishedAt?: Date | string;
   scheduledAt?: Date | string;
@@ -115,41 +109,41 @@ export interface IComment {
 }
 
 export interface IBreadcrumb {
-  name: string;
+  name: ILocalizedString;
   url: string;
 }
 
 // ==================== FORM DATA TYPES ====================
 
 export interface BlogCategoryFormData {
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any;
-  image?: IImage;
+  description?: ILocalizedString;
+  image?: string;
   seo?: ISEO;
   isActive: boolean;
 }
 
 export interface BlogSubcategoryFormData {
   category: string;
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any;
-  image?: IImage;
+  description?: ILocalizedString;
+  image?: string;
   seo?: ISEO;
   isActive: boolean;
 }
 
 export interface BlogFormData {
-  title: string;
+  title: ILocalizedString;
   slug: string;
   subCategory: string;
   author: string;
-  featuredImage: string;
-  featuredImageAlt?: string;
-  excerpt?: string;
+  featuredImage: any;
+  featuredImageAlt?: ILocalizedString;
+  excerpt?: ILocalizedString;
   contentBlocks: IContentBlock[];
-  tags: string[];
+  tags: ILocalizedMixed;
   status: 'draft' | 'published' | 'scheduled';
   publishedAt?: Date;
   scheduledAt?: Date;

@@ -1,6 +1,8 @@
 "use client";
 import React from 'react';
 import { FAQ } from '@/services/faqService';
+import { useTranslation } from 'react-i18next';
+import { getLocalizedValue } from '@/lib/localize';
 
 interface FaqStructuredDataProps {
   faqs: FAQ[];
@@ -22,17 +24,24 @@ export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({
   title, 
   description 
 }) => {
+  const { i18n } = useTranslation();
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": faqs.map(faq => ({
-      "@type": "Question",
-      "name": faq.question,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": faq.answer.replace(/<[^>]*>/g, '') // Strip HTML for schema
-      }
-    }))
+    "mainEntity": faqs.map(faq => {
+      const q = getLocalizedValue(faq.question, i18n.language) || '';
+      const a = getLocalizedValue(faq.answer, i18n.language) || '';
+
+      return {
+        "@type": "Question",
+        "name": q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": a.replace(/<[^>]*>/g, '') // Strip HTML for schema
+        }
+      };
+    })
   };
 
   return (

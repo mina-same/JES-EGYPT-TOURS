@@ -1,4 +1,5 @@
 import { Schema } from 'mongoose';
+import { ILocalizedString, LocalizedStringSchema } from './LocalizedSchema';
 
 /**
  * Unified Image Interface used across all models
@@ -7,8 +8,8 @@ import { Schema } from 'mongoose';
 export interface IImage {
   url: string;
   fileName: string;
-  title?: string;
-  alt?: string;
+  title?: ILocalizedString;
+  alt?: ILocalizedString;
 }
 
 /**
@@ -28,12 +29,10 @@ export const ImageSchema = new Schema<IImage>(
       trim: true,
     },
     title: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     alt: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
   },
   { _id: false }

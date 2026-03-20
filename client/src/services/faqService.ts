@@ -1,9 +1,10 @@
 import { API_ENDPOINTS } from '@/config/api';
+import { ILocalizedString, ILocalizedMixed } from '@/types/tour';
 
 export interface FAQ {
   _id: string;
-  question: string;
-  answer: string;
+  question: ILocalizedString;
+  answer: ILocalizedMixed;
   category?: string;
   isActive: boolean;
   order: number;
@@ -29,8 +30,8 @@ export interface FAQSingleResponse {
 }
 
 export interface FAQCreateRequest {
-  question: string;
-  answer: string;
+  question: ILocalizedString;
+  answer: ILocalizedMixed;
   category?: string;
   isActive?: boolean;
   displayOnHome?: boolean;

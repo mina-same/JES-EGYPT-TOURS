@@ -1,22 +1,16 @@
-// ==================== SHARED INTERFACES ====================
-
-export interface IImage {
-  url: string;
-  fileName: string;
-  title?: string;
-  alt?: string;
-}
+import { ILocalizedString, ILocalizedMixed, IImage } from './shared';
+export type { ILocalizedString, ILocalizedMixed, IImage };
 
 export interface ISEO {
-  metaTitle?: string;
-  metaDescription?: string;
-  metaKeywords?: string[];
+  metaTitle?: ILocalizedString;
+  metaDescription?: ILocalizedString;
+  metaKeywords?: ILocalizedString[];
   metaImage?: IImage;
   mapSchema?: any;
 }
 
 export interface ISectionHeaderButton {
-  label?: string;
+  label?: ILocalizedString;
   href?: string;
   newTab?: boolean;
 }
@@ -25,8 +19,8 @@ export interface ISectionHeader {
   isEnabled?: boolean;
   image?: IImage;
   images?: IImage[];
-  title?: string;
-  description?: any;
+  title?: ILocalizedString;
+  description?: ILocalizedMixed;
   button?: ISectionHeaderButton;
 }
 
@@ -34,9 +28,9 @@ export interface ISectionHeader {
 
 export interface ITourCategory {
   _id: string;
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any; // HTML content
+  description?: ILocalizedMixed; // HTML content
   image?: IImage;
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
@@ -51,9 +45,9 @@ export interface ITourCategory {
 export interface ITourSubcategory {
   _id: string;
   category: string; // ObjectId as string
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any; // HTML content
+  description?: ILocalizedMixed; // HTML content
   image?: IImage;
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
@@ -69,20 +63,23 @@ export interface ITour {
   _id: string;
   name: string;
   slug: string;
-  description?: any; // HTML content
+  Description?: ITourDescription;
   subcategory: string | ITourSubcategory; // Can be populated or just ID
-  heading?: string;
-  images?: IImage[];
+  heading: ILocalizedString;
+  images: IImage[];
+  gallery?: IImage[];
   price?: number;
   priceStartingFrom?: number;
-  duration?: string;
-  location?: string;
-  tourType?: string;
-  tourStyle?: string;
+  duration?: ILocalizedString;
+  tourLocation?: ILocalizedString;
+  tourAvailability?: ILocalizedString;
+  pickupAndDropOff?: ILocalizedString;
+  tourType?: ILocalizedString;
+  tourStyle?: ILocalizedString;
   isFeatured: boolean;
   isActive: boolean;
   seo?: ISEO;
-  externalId?: string;
+  idExternal?: string;
   viewCount?: number;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -91,9 +88,9 @@ export interface ITour {
 // ==================== FORM DATA TYPES ====================
 
 export interface TourCategoryFormData {
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any;
+  description?: ILocalizedMixed;
   image?: IImage;
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
@@ -102,9 +99,9 @@ export interface TourCategoryFormData {
 
 export interface TourSubcategoryFormData {
   category: string;
-  name: string;
+  name: ILocalizedString;
   slug: string;
-  description?: any;
+  description?: ILocalizedMixed;
   image?: IImage;
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
@@ -113,8 +110,8 @@ export interface TourSubcategoryFormData {
 
 // Pricing interfaces
 export interface IPricingNote {
-  title: string;
-  text: any; // HTML content to match backend
+  title: ILocalizedString;
+  text: ILocalizedMixed;
 }
 
 export interface IPricingSeason {
@@ -137,31 +134,33 @@ export interface IPricingPlan {
 
 export interface IItineraryActivity {
   name: string;
-  heading: string;
-  description: string;
+  heading: ILocalizedString;
+  description: ILocalizedMixed;
   image?: IImage;
 }
 
 export interface IItineraryDay {
   day: number;
-  title: string;
-  description: string;
+  title: ILocalizedString;
+  description: ILocalizedMixed;
   activities: IItineraryActivity[];
 }
 
 export interface IItinerary {
-  generalDescription: string;
+  generalDescription: ILocalizedMixed;
   days: IItineraryDay[];
 }
 
 export interface IFAQ {
-  question: string;
-  answer: any; // HTML content
+  question: ILocalizedString;
+  answer: ILocalizedMixed;
+  isActive?: boolean;
+  order?: number;
 }
 
 export interface ITourDescription {
-  header: string;
-  text: string;
+  header: ILocalizedString;
+  text: ILocalizedMixed;
 }
 
 export interface TourFormData {
@@ -172,34 +171,34 @@ export interface TourFormData {
   images?: IImage[];
   gallery?: IImage[];
   idExternal?: string;
-  heading?: string;
-  tourLocation?: string;
-  tourAvailability?: string;
-  pickupAndDropOff?: string;
-  tourType?: string;
-  tourStyle?: string;
+  heading?: ILocalizedString;
+  tourLocation?: ILocalizedString;
+  tourAvailability?: ILocalizedString;
+  pickupAndDropOff?: ILocalizedString;
+  tourType?: ILocalizedString;
+  tourStyle?: ILocalizedString;
   isFeatured: boolean;
   isActive: boolean;
   seo?: ISEO;
   // Comprehensive tour details
-  tourHighlights?: string[];
-  inclusion?: string[];
-  exclusion?: string[];
+  tourHighlights?: ILocalizedString[];
+  inclusion?: ILocalizedString[];
+  exclusion?: ILocalizedString[];
   pricingPlans?: IPricingPlan[];
   notes?: IPricingNote[];
-  whatToPack?: string[];
+  whatToPack?: ILocalizedString[];
   tourMapIframe?: string;
   mapSchema?: any;
-  whatYouWillLoveHtml?: string;
+  whatYouWillLoveHtml?: ILocalizedMixed;
   itinerary?: IItinerary;
   faqs?: IFAQ[];
   blogReferences?: { id: string; title: string }[];
   relatedTours?: { id: string; title: string }[];
-  reviews?: { type: string; url: string; title: string }[];
+  reviews?: { type: string; url?: string; title: ILocalizedString; content?: ILocalizedMixed }[];
   // Additional tour details
   priceStartingFrom?: number;
-  duration?: string;
-  meetingPoint?: string;
-  cancellationPolicy?: string;
+  duration?: ILocalizedString;
+  meetingPoint?: ILocalizedString;
+  cancellationPolicy?: ILocalizedString;
   tags?: string[];
 }

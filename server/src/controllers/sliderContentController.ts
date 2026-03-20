@@ -182,10 +182,10 @@ export const createSliderContent = async (req: Request, res: Response) => {
     } = req.body;
 
     // Validation
-    if (!subtitle || !title || !titleSpan || !titleEnd) {
+    if (!subtitle?.en?.trim() || !title?.en?.trim() || !titleSpan?.en?.trim() || !titleEnd?.en?.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Subtitle, title, titleSpan, and titleEnd are required',
+        message: 'English Subtitle, title, titleSpan, and titleEnd are required',
       });
     }
 
@@ -204,10 +204,10 @@ export const createSliderContent = async (req: Request, res: Response) => {
     }
 
     if (underPromo !== undefined && underPromo !== null) {
-      if (!underPromo.text || !underPromo.linkText || !underPromo.link) {
+      if (!underPromo.text?.en?.trim() || !underPromo.linkText?.en?.trim() || !underPromo.link) {
         return res.status(400).json({
           success: false,
-          message: 'Promo text, linkText, and link are required when underPromo is provided',
+          message: 'English Promo text, linkText, and a link are required when underPromo is provided',
         });
       }
     }
@@ -277,10 +277,10 @@ export const updateSliderContent = async (req: Request, res: Response) => {
     }
 
     if (updateData.underPromo !== undefined && updateData.underPromo !== null) {
-      if (!updateData.underPromo.text || !updateData.underPromo.linkText || !updateData.underPromo.link) {
+      if (!updateData.underPromo.text?.en?.trim() || !updateData.underPromo.linkText?.en?.trim() || !updateData.underPromo.link) {
         return res.status(400).json({
           success: false,
-          message: 'Promo text, linkText, and link are required when underPromo is provided',
+          message: 'English Promo text, linkText, and a link are required when underPromo is provided',
         });
       }
     }

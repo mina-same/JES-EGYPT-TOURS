@@ -1,26 +1,27 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
+import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchema';
 
 // ==================== INTERFACES ====================
 
 export interface ISliderButton {
-  text: string;
+  text: ILocalizedString;
   link: string;
   linkDirection: '_blank' | '_self'; // Controls how the link opens
 }
 
 export interface ISliderUnderPromo {
-  text: string;
-  linkText: string;
+  text: ILocalizedString;
+  linkText: ILocalizedString;
   link: string;
   linkDirection: '_blank' | '_self';
 }
 
 export interface ISliderContent extends Document {
-  subtitle: string;
-  title: string;
-  titleSpan: string;
-  titleEnd: string;
+  subtitle: ILocalizedString;
+  title: ILocalizedString;
+  titleSpan: ILocalizedString;
+  titleEnd: ILocalizedString;
   image: IImage;
   lineShape?: IImage;
   button?: ISliderButton;
@@ -36,10 +37,8 @@ export interface ISliderContent extends Document {
 const SliderButtonSchema = new Schema<ISliderButton>(
   {
     text: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Button text is required'],
-      trim: true,
-      maxlength: [100, 'Button text cannot exceed 100 characters'],
     },
     link: {
       type: String,
@@ -58,16 +57,12 @@ const SliderButtonSchema = new Schema<ISliderButton>(
 const SliderUnderPromoSchema = new Schema<ISliderUnderPromo>(
   {
     text: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Promo text is required'],
-      trim: true,
-      maxlength: [500, 'Promo text cannot exceed 500 characters'],
     },
     linkText: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Promo link text is required'],
-      trim: true,
-      maxlength: [100, 'Promo link text cannot exceed 100 characters'],
     },
     link: {
       type: String,
@@ -86,28 +81,20 @@ const SliderUnderPromoSchema = new Schema<ISliderUnderPromo>(
 const SliderContentSchema = new Schema<ISliderContent>(
   {
     subtitle: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Subtitle is required'],
-      trim: true,
-      maxlength: [200, 'Subtitle cannot exceed 200 characters'],
     },
     title: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Title is required'],
-      trim: true,
-      maxlength: [200, 'Title cannot exceed 200 characters'],
     },
     titleSpan: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Title span is required'],
-      trim: true,
-      maxlength: [200, 'Title span cannot exceed 200 characters'],
     },
     titleEnd: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Title end is required'],
-      trim: true,
-      maxlength: [200, 'Title end cannot exceed 200 characters'],
     },
     image: {
       type: ImageSchema,

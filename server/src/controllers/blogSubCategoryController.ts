@@ -32,11 +32,11 @@ const buildQueryFilter = (queryParams: QueryParams): FilterQuery<IBlogSubCategor
     filter.isActive = queryParams.isActive === 'true';
   }
 
-  // Search by name or description
+  // Search by name or description (target English by default for admin search)
   if (queryParams.search) {
     filter.$or = [
-      { name: { $regex: queryParams.search, $options: 'i' } },
-      { description: { $regex: queryParams.search, $options: 'i' } },
+      { 'name.en': { $regex: queryParams.search, $options: 'i' } },
+      { 'description.en': { $regex: queryParams.search, $options: 'i' } },
     ];
   }
 
@@ -275,6 +275,17 @@ export const createSubcategory = async (
   res: Response
 ): Promise<void> => {
   try {
+    const { name } = req.body;
+
+    // Validation
+    if (!name || !name.en) {
+      res.status(400).json({
+        success: false,
+        error: 'English name is required',
+      });
+      return;
+    }
+
     const subcategory = await BlogSubCategory.create(req.body);
 
     // Populate category details
@@ -335,6 +346,17 @@ export const updateSubcategory = async (
   res: Response
 ): Promise<void> => {
   try {
+    const { name } = req.body;
+
+    // Validation if name is being updated
+    if (name !== undefined && (!name || !name.en)) {
+      res.status(400).json({
+        success: false,
+        error: 'English name is required',
+      });
+      return;
+    }
+
     const subcategory = await BlogSubCategory.findByIdAndUpdate(
       req.params.id,
       req.body,

@@ -5,8 +5,11 @@ import { Container, Row, Col, Modal } from "react-bootstrap";
 import { videoReviewAPI, VideoReview } from "@/lib/api/videoReview";
 import { Loader2, Play, X } from "lucide-react";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
 
 const ReflectiveReviews: React.FC = () => {
+  const { i18n } = useTranslation();
   const [videos, setVideos] = useState<VideoReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [playingVideo, setPlayingVideo] = useState<VideoReview | null>(null);
@@ -66,7 +69,7 @@ const ReflectiveReviews: React.FC = () => {
                 <div className="relative aspect-video overflow-hidden cursor-pointer" onClick={() => handlePlay(v)}>
                   <Image 
                     src={v.thumbnail || `https://img.youtube.com/vi/${v.videoId}/maxresdefault.jpg`}
-                    alt={v.title}
+                    alt={getLocalizedValue(v.title, i18n.language)}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                   />
@@ -86,9 +89,13 @@ const ReflectiveReviews: React.FC = () => {
                 <div className="p-8 flex flex-col flex-grow">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#b79c5c]"></div>
-                    <span className="text-[#b79c5c] text-[11px] font-black uppercase tracking-widest">{v.tourName}</span>
+                    <span className="text-[#b79c5c] text-[11px] font-black uppercase tracking-widest">
+                      {getLocalizedValue(v.tourName, i18n.language)}
+                    </span>
                   </div>
-                  <h5 className="text-[#1a1a1a] font-bold text-xl leading-snug mb-4 flex-grow">{v.title}</h5>
+                  <h5 className="text-[#1a1a1a] font-bold text-xl leading-snug mb-4 flex-grow">
+                    {getLocalizedValue(v.title, i18n.language)}
+                  </h5>
                   
                   <button 
                     onClick={() => handlePlay(v)}
@@ -123,7 +130,7 @@ const ReflectiveReviews: React.FC = () => {
           {playingVideo && (
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${playingVideo.videoId}?autoplay=1`}
-              title={playingVideo.title}
+              title={getLocalizedValue(playingVideo.title, i18n.language)}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               className="absolute inset-0 w-full h-full border-0"

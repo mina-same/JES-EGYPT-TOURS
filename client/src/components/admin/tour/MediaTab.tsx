@@ -6,16 +6,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Plus, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 
+import { type AdminLanguage } from '../AdminLanguageTabs';
+import LocalizedField from '../LocalizedField';
+
 interface MediaTabProps {
   formData: any;
   handleChange: (field: string, value: any) => void;
   addImage: () => void;
   removeImage: (index: number) => void;
-  updateImage: (index: number, field: string, value: string) => void;
+  updateImage: (index: number, field: string, value: string, lang?: AdminLanguage) => void;
   addGalleryImage: () => void;
   removeGalleryImage: (index: number) => void;
-  updateGalleryImage: (index: number, field: string, value: string) => void;
+  updateGalleryImage: (index: number, field: string, value: string, lang?: AdminLanguage) => void;
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
+  activeLanguage: AdminLanguage;
 }
 
 export default function MediaTab({
@@ -28,6 +32,7 @@ export default function MediaTab({
   removeGalleryImage,
   updateGalleryImage,
   handleImageUpload,
+  activeLanguage,
 }: MediaTabProps) {
   const [uploadingIndex, setUploadingIndex] = useState<{ type: 'main' | 'gallery', index: number } | null>(null);
 
@@ -148,24 +153,36 @@ export default function MediaTab({
                       className="h-8 text-xs"
                     />
                   </div>
-                  <div>
-                    <Label className="text-xs">Title</Label>
-                    <Input
-                      value={image.title}
-                      onChange={(e) => updateImage(index, 'title', e.target.value)}
-                      placeholder="Image title"
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Alt Text</Label>
-                    <Input
-                      value={image.alt}
-                      onChange={(e) => updateImage(index, 'alt', e.target.value)}
-                      placeholder="Image description"
-                      className="h-8 text-xs"
-                    />
-                  </div>
+                  <LocalizedField
+                    label="Title"
+                    value={image.title}
+                    globalLanguage={activeLanguage}
+                    onChange={(lang, val) => updateImage(index, 'title', val, lang)}
+                  >
+                    {(lang, currentValue, handleLang) => (
+                      <Input
+                        value={currentValue}
+                        onChange={(e) => handleLang(e.target.value)}
+                        placeholder={`Image title in ${lang}`}
+                        className="h-8 text-xs"
+                      />
+                    )}
+                  </LocalizedField>
+                  <LocalizedField
+                    label="Alt Text"
+                    value={image.alt}
+                    globalLanguage={activeLanguage}
+                    onChange={(lang, val) => updateImage(index, 'alt', val, lang)}
+                  >
+                    {(lang, currentValue, handleLang) => (
+                      <Input
+                        value={currentValue}
+                        onChange={(e) => handleLang(e.target.value)}
+                        placeholder={`Alt text in ${lang}`}
+                        className="h-8 text-xs"
+                      />
+                    )}
+                  </LocalizedField>
                 </div>
               </div>
             ))}
@@ -266,24 +283,36 @@ export default function MediaTab({
                       className="h-8 text-xs"
                     />
                   </div>
-                  <div>
-                    <Label className="text-xs">Title</Label>
-                    <Input
-                      value={image.title}
-                      onChange={(e) => updateGalleryImage(index, 'title', e.target.value)}
-                      placeholder="Image title"
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Alt Text</Label>
-                    <Input
-                      value={image.alt}
-                      onChange={(e) => updateGalleryImage(index, 'alt', e.target.value)}
-                      placeholder="Image description"
-                      className="h-8 text-xs"
-                    />
-                  </div>
+                  <LocalizedField
+                    label="Title"
+                    value={image.title}
+                    globalLanguage={activeLanguage}
+                    onChange={(lang, val) => updateGalleryImage(index, 'title', val, lang)}
+                  >
+                    {(lang, currentValue, handleLang) => (
+                      <Input
+                        value={currentValue}
+                        onChange={(e) => handleLang(e.target.value)}
+                        placeholder={`Image title in ${lang}`}
+                        className="h-8 text-xs"
+                      />
+                    )}
+                  </LocalizedField>
+                  <LocalizedField
+                    label="Alt Text"
+                    value={image.alt}
+                    globalLanguage={activeLanguage}
+                    onChange={(lang, val) => updateGalleryImage(index, 'alt', val, lang)}
+                  >
+                    {(lang, currentValue, handleLang) => (
+                      <Input
+                        value={currentValue}
+                        onChange={(e) => handleLang(e.target.value)}
+                        placeholder={`Alt text in ${lang}`}
+                        className="h-8 text-xs"
+                      />
+                    )}
+                  </LocalizedField>
                 </div>
               </div>
             ))}

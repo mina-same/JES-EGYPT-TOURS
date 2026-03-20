@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
 import { reviewsAPI } from "@/lib/api/reviews";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
@@ -25,6 +26,9 @@ function getYouTubeVideoId(url: string): string {
 }
 
 export const useTourData = (id?: string) => {
+  const { i18n } = useTranslation();
+  const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it';
+
   const [tourData, setTourData] = useState<TourDetailsOneData>({ 
     ...tourDetailsOneData, 
     map: "" 
@@ -33,11 +37,20 @@ export const useTourData = (id?: string) => {
   const [error, setError] = useState<string | null>(null);
 
   const safeArray = <T,>(value: any): T[] => (Array.isArray(value) ? value : []);
-  const safeString = (value: any): string => (typeof value === 'string' ? value : '');
+  
+  const safeString = (value: any): string => {
+    if (typeof value === 'string') return value;
+    if (value && typeof value === 'object') {
+      return value[currentLang] || value.en || '';
+    }
+    return '';
+  };
+
   const safeHtmlString = (value: any): string => {
     if (typeof value === 'string') return value;
     if (value && typeof value === 'object') {
-      return safeString(value.html || value.text);
+      // Handle LocalizedMixed or LocalizedString
+      return value[currentLang] || value.en || '';
     }
     return '';
   };
@@ -63,18 +76,18 @@ export const useTourData = (id?: string) => {
           const fetchedReviews = reviewsResponse.success ? safeArray<any>(reviewsResponse.data) : [];
           const fetchedRelatedTours = relatedToursResponse.success ? safeArray<any>(relatedToursResponse.data) : [];
           const sliderImages = safeArray<any>(tour.images)
-            .map((img: any) => safeString(img?.url))
+            .map((img: any) => img?.url)
             .filter(Boolean);
 
           const galleryImages = safeArray<any>(tour.gallery)
-            .map((img: any) => safeString(img?.url))
+            .map((img: any) => img?.url)
             .filter(Boolean);
 
           const fallbackImage = 'https://placehold.co/600x400?text=No+Image';
 
           const reviewVideos = safeArray<any>(tour.reviews)
             .map((r: any) => {
-              const url = safeString(r?.url);
+              const url = typeof r?.url === 'string' ? r.url : '';
               const videoId = getYouTubeVideoId(url);
               return {
                 title: safeString(r?.title) || 'Review',
@@ -99,12 +112,12 @@ export const useTourData = (id?: string) => {
             overviewTitle: safeString(tour.Description?.header) || "Overview",
             topDestinations: "",
             sliderImages,
-            highlightList: safeArray<string>(tour.tourHighlights),
-            amenities: safeArray<string>(tour.inclusion),
-            amenitiesTwo: safeArray<string>(tour.exclusion),
+            highlightList: safeArray<any>(tour.tourHighlights).map(h => safeString(h)).filter(Boolean),
+            amenities: safeArray<any>(tour.inclusion).map(i => safeString(i)).filter(Boolean),
+            amenitiesTwo: safeArray<any>(tour.exclusion).map(e => safeString(e)).filter(Boolean),
             relatedTours: fetchedRelatedTours.map((t: any) => ({
               id: t._id,
-              image: safeString(t?.images?.[0]?.url) || fallbackImage,
+              image: t?.images?.[0]?.url || fallbackImage,
               title: safeString(t?.name) || "Related Tour",
               link: `/tours/${t.slug}`,
               price: t.priceStartingFrom,
@@ -136,7 +149,7 @@ export const useTourData = (id?: string) => {
                 activities: safeArray<any>(d?.activities).map((a: any) => ({
                   heading: safeString(a?.heading),
                   description: safeHtmlString(a?.description),
-                  image: safeString(a?.image?.url) ? { url: safeString(a?.image?.url) } : undefined
+                  image: a?.image?.url ? { url: a.image.url } : undefined
                 }))
               }))
             },
@@ -149,7 +162,7 @@ export const useTourData = (id?: string) => {
                 prices: season?.prices || {},
                 notes: safeArray<any>(season?.notes).map((n: any) => ({
                   title: safeString(n?.title),
-                  text: safeString(n?.text)
+                  text: safeHtmlString(n?.text)
                 }))
               }))
             })),
@@ -170,7 +183,7 @@ export const useTourData = (id?: string) => {
     };
 
     fetchTourAndReviews();
-  }, [id]);
+  }, [id, currentLang]);
 
   return { tourData, loading, error };
 };

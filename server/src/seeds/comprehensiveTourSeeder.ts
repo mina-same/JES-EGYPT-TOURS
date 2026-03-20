@@ -93,21 +93,78 @@ const seedCategories = async (): Promise<Map<string, mongoose.Types.ObjectId>> =
     
     const categories = [
       {
-        name: 'Egypt Tours',
+        name: { en: 'Egypt Tours', de: 'Ägypten Touren', it: 'Tour in Egitto' },
         slug: 'egypt-tours',
-        description: 'Explore the wonders of ancient Egypt',
+        description: {
+          en: '<div class="category-description"><h2>Wonders of Ancient Egypt</h2><p>With over 10 years of experience, we provide the most authentic Egyptian experiences.</p></div>',
+          de: '<div class="category-description"><h2>Wunder des alten Ägyptens</h2><p>Mit über 10 Jahren Erfahrung bieten wir die authentischsten ägyptischen Erlebnisse.</p></div>',
+          it: '<div class="category-description"><h2>Meraviglie dell\'antico Egitto</h2><p>Con oltre 10 anni di esperienza, offriamo le esperienze egiziane più autentiche.</p></div>'
+        },
+        faqs: [
+          {
+            question: { en: 'What is the best time to visit Egypt?', de: 'Was ist die beste Reisezeit für Ägypten?', it: 'Qual è il momento migliore per visitare l\'Egitto?' },
+            answer: {
+              en: '<p>The best time to visit Egypt is from October to April when the temperatures are cooler.</p>',
+              de: '<p>Die beste Reisezeit für Ägypten ist von Oktober bis April, wenn die Temperaturen kühler sind.</p>',
+              it: '<p>Il periodo migliore per visitare l\'Egitto è da ottobre ad aprile, quando le temperature sono più fresche.</p>'
+            }
+          }
+          ],
+          seo: {
+            metaTitle: { en: 'Egypt Tours 2026 - Best Ancient Egypt Experiences', de: 'Ägypten Touren 2026 - Beste Erlebnisse im alten Ägypten', it: 'Tour in Egitto 2026 - Le migliori esperienze nell\'antico Egitto' },
+            metaDescription: { en: 'Book your Egypt tour with 10+ years of expertise.', de: 'Buchen Sie Ihre Ägypten-Tour mit über 10 Jahren Erfahrung.', it: 'Prenota il tuo tour in Egitto con oltre 10 anni di esperienza.' },
+            metaKeywords: { en: 'Egypt, Tours, 2026, Ancient Egypt', de: 'Ägypten, Touren, 2026, Altes Ägypten', it: 'Egitto, Tour, 2026, Antico Egitto' }
+          },
         isActive: true,
       },
       {
-        name: 'Nile Cruises',
+        name: { en: 'Nile Cruises', de: 'Nilkreuzfahrten', it: 'Crociere sul Nilo' },
         slug: 'nile-cruises',
-        description: 'Luxury cruises along the Nile River',
+        description: {
+          en: '<div class="category-description"><h2>Luxury Nile Cruises</h2><p>Experience the Nile like never before with our 10 years of expertise.</p></div>',
+          de: '<div class="category-description"><h2>Luxus-Nilkreuzfahrten</h2><p>Erleben Sie den Nil wie nie zuvor mit unserer 10-jährigen Erfahrung.</p></div>',
+          it: '<div class="category-description"><h2>Crociere di lusso sul Nilo</h2><p>Vivi il Nilo come mai prima d\'ora con i nostri 10 anni di esperienza.</p></div>'
+        },
+        faqs: [
+          {
+            question: { en: 'Are all meals included on the cruise?', de: 'Sind alle Mahlzeiten auf der Kreuzfahrt inbegriffen?', it: 'Tutti i pasti sono inclusi nella crociera?' },
+            answer: {
+              en: '<p>Yes, all our Nile cruises include full board (breakfast, lunch, and dinner).</p>',
+              de: '<p>Ja, alle unsere Nilkreuzfahrten beinhalten Vollpension (Frühstück, Mittag- und Abendessen).</p>',
+              it: '<p>Sì, tutte le nostre crociere sul Nilo includono la pensione completa (colazione, pranzo e cena).</p>'
+            }
+          }
+          ],
+          seo: {
+            metaTitle: { en: 'Luxury Nile Cruises - 5-Star Experiences', de: 'Luxus-Nilkreuzfahrten - 5-Sterne-Erlebnisse', it: 'Crociere di lusso sul Nilo - Esperienze a 5 stelle' },
+            metaDescription: { en: 'Experience the Nile with our 10+ years of excellence.', de: 'Erleben Sie den Nil mit unserer über 10-jährigen Exzellenz.', it: 'Vivi il Nilo con la nostra eccellenza decennale.' },
+            metaKeywords: { en: 'Nile Cruise, Luxury, Egypt', de: 'Nilkreuzfahrt, Luxus, Ägypten', it: 'Crociera sul Nilo, Lusso, Egitto' }
+          },
         isActive: true,
       },
       {
-        name: 'Desert Adventures',
+        name: { en: 'Desert Adventures', de: 'Wüstenabenteuer', it: 'Avventure nel deserto' },
         slug: 'desert-adventures',
-        description: 'Experience the Egyptian deserts',
+        description: {
+          en: '<div class="category-description"><h2>Thrilling Desert Safaris</h2><p>Unforgettable desert experiences backed by 10 years of professional guiding.</p></div>',
+          de: '<div class="category-description"><h2>Spannende Wüstensafaris</h2><p>Unvergessliche Wüstenerlebnisse, unterstützt durch 10 Jahre professionelle Führung.</p></div>',
+          it: '<div class="category-description"><h2>Emozionanti safari nel deserto</h2><p>Esperienze indimenticabili nel deserto, supportate da 10 anni di guida professionale.</p></div>'
+        },
+        faqs: [
+          {
+            question: { en: 'Is desert camping safe?', de: 'Ist Camping in der Wüste sicher?', it: 'Il campeggio nel deserto è sicuro?' },
+            answer: {
+              en: '<p>Yes, our expert guides with 10+ years experience ensure a safe and memorable desert stay.</p>',
+              de: '<p>Ja, unsere erfahrenen Guides mit über 10 Jahren Erfahrung sorgen für einen sicheren und unvergesslichen Aufenthalt in der Wüste.</p>',
+              it: '<p>Sì, le nostre guide esperte con oltre 10 anni di esperienza garantiscono un soggiorno nel deserto sicuro e memorabile.'
+            }
+          }
+          ],
+          seo: {
+            metaTitle: { en: 'Desert Adventures Egypt - Safari & Camping', de: 'Wüstenabenteuer Ägypten - Safari & Camping', it: 'Avventure nel deserto Egitto - Safari e campeggio' },
+            metaDescription: { en: 'Expert-led desert tours with 10 years of adventure expertise.', de: 'Von Experten geführte Wüstentouren mit 10 Jahren Abenteuererfahrung.', it: 'Tour nel deserto guidati da esperti con 10 anni di esperienza in avventure.' },
+            metaKeywords: { en: 'Desert, Safari, Egypt, Camping', de: 'Wüste, Safari, Ägypten, Camping', it: 'Deserto, Safari, Egitto, Campeggio' }
+          },
         isActive: true,
       },
     ];
@@ -116,8 +173,8 @@ const seedCategories = async (): Promise<Map<string, mongoose.Types.ObjectId>> =
     
     for (const cat of categories) {
       const category = await TourCategory.create(cat);
-      categoryMap.set(cat.slug, category._id);
-      log.success(`Category created: ${category.name}`);
+      categoryMap.set(cat.slug, category._id as mongoose.Types.ObjectId);
+      log.success(`Category created: ${(category.name as any).en}`);
     }
     
     return categoryMap;
@@ -138,43 +195,100 @@ const seedSubcategories = async (
     
     const subcategories = [
       {
-        name: 'Cairo Tours',
+        name: { en: 'Cairo Tours', de: 'Kairo Touren', it: 'Tour del Cairo' },
         slug: 'cairo-tours',
         category: categoryMap.get('egypt-tours')!,
-        description: 'Discover the capital city',
-        image: { url: sampleImages.cairo, fileName: 'cairo.jpg', title: 'Cairo', alt: 'Cairo cityscape' },
+        description: {
+          en: 'Discover the heart of Egypt with our expert Cairo guides (10+ years experience).',
+          de: 'Entdecken Sie das Herz Ägyptens mit unseren erfahrenen Kairo-Guides (über 10 Jahre Erfahrung).',
+          it: 'Scopri il cuore dell\'Egitto con le nostre esperte guide del Cairo (oltre 10 anni di esperienza).'
+        },
+        image: { url: sampleImages.cairo, fileName: 'cairo.jpg', title: { en: 'Cairo', de: 'Kairo', it: 'Il Cairo' }, alt: { en: 'Cairo cityscape', de: 'Stadtbild von Kairo', it: 'Panorama del Cairo' } },
+        faqs: [
+          {
+            question: { en: 'How many days do I need for Cairo?', de: 'Wie viele Tage brauche ich für Kairo?', it: 'Quanti giorni mi servono per il Cairo?' },
+            answer: {
+              en: '<p>We recommend at least 2-3 days to see the main highlights like Pyramids, Museum, and Old Cairo.</p>',
+              de: '<p>Wir empfehlen mindestens 2-3 Tage, um die wichtigsten Highlights wie die Pyramiden, das Museum und das alte Kairo zu sehen.</p>',
+              it: '<p>Ti consigliamo almeno 2-3 giorni per vedere i principali punti di interesse come le Piramidi, il Museo e la Città Vecchia del Cairo.</p>'
+            }
+          }
+        ],
+        seo: {
+          metaTitle: { en: 'Cairo Tours - Pyramids & Culture', de: 'Kairo Touren - Pyramiden & Kultur', it: 'Tour del Cairo - Piramidi e cultura' },
+          metaDescription: { en: 'Expert Cairo tours with 10+ years of local knowledge.', de: 'Erfahrene Kairo-Touren mit über 10 Jahren lokalem Wissen.', it: 'Tour esperti del Cairo con oltre 10 anni di conoscenza locale.' },
+          metaKeywords: { en: 'Cairo, Pyramids, Sphinx, Culture', de: 'Kairo, Pyramiden, Sphinx, Kultur', it: 'Il Cairo, Piramidi, Sfinge, Cultura' }
+        },
         isActive: true,
       },
       {
-        name: 'Luxor Tours',
+        name: { en: 'Luxor Tours', de: 'Luxor Touren', it: 'Tour di Luxor' },
         slug: 'luxor-tours',
         category: categoryMap.get('egypt-tours')!,
-        description: 'Ancient temples and tombs',
-        image: { url: sampleImages.luxor, fileName: 'luxor.jpg', title: 'Luxor', alt: 'Luxor temples' },
+        description: {
+          en: 'Uncover the treasures of the world\'s greatest open-air museum.',
+          de: 'Entdecken Sie die Schätze des weltgrößten Freilichtmuseums.',
+          it: 'Scopri i tesori del più grande museo all\'aperto del mondo.'
+        },
+        image: { url: sampleImages.luxor, fileName: 'luxor.jpg', title: { en: 'Luxor', de: 'Luxor', it: 'Luxor' }, alt: { en: 'Luxor temples', de: 'Luxor Tempel', it: 'Templi di Luxor' } },
+        faqs: [
+          {
+            question: { en: 'Is the Valley of the Kings included?', de: 'Ist das Tal der Könige inbegriffen?', it: 'La Valle dei Re è inclusa?' },
+            answer: {
+              en: '<p>Most of our Luxor tours include the Valley of the Kings with 3 tombs.</p>',
+              de: '<p>Die meisten unserer Luxor-Touren beinhalten das Tal der Könige mit 3 Gräbern.</p>',
+              it: '<p>La maggiorità dei nostri tour di Luxor include la Valle dei Re con 3 tombe.</p>'
+            }
+          }
+        ],
+        seo: {
+          metaTitle: { en: 'Luxor Tours - Valley of the Kings & Temples', de: 'Luxor Touren - Tal der Könige & Tempel', it: 'Tour di Luxor - Valle dei Re e Templi' },
+          metaDescription: { en: 'Explore ancient Thebes with 10+ years experienced guides.', de: 'Erkunden Sie das alte Theben mit erfahrenen Guides.', it: 'Esplora l\'antica Tebe con guide esperte.' },
+          metaKeywords: { en: 'Luxor, Valley of the Kings, Karnak, Egypt', de: 'Luxor, Tal der Könige, Karnak, Ägypten', it: 'Luxor, Valle dei Re, Karnak, Egitto' }
+        },
         isActive: true,
       },
       {
-        name: 'Aswan Tours',
+        name: { en: 'Aswan Tours', de: 'Assuan Touren', it: 'Tour di Assuan' },
         slug: 'aswan-tours',
         category: categoryMap.get('egypt-tours')!,
-        description: 'Nubian culture and monuments',
-        image: { url: sampleImages.aswan, fileName: 'aswan.jpg', title: 'Aswan', alt: 'Aswan monuments' },
+        description: {
+          en: 'Experience the beauty and serenity of the Nile in Aswan.',
+          de: 'Erleben Sie die Schönheit und Gelassenheit des Nils in Assuan.',
+          it: 'Vivi la bellezza e la serenità del Nilo ad Assuan.'
+        },
+        image: { url: sampleImages.aswan, fileName: 'aswan.jpg', title: { en: 'Aswan', de: 'Assuan', it: 'Assuan' }, alt: { en: 'Aswan monuments', de: 'Assuan Monumente', it: 'Monumenti di Assuan' } },
+        seo: {
+          metaTitle: { en: 'Aswan Tours - Philae Temple & High Dam', de: 'Assuan Touren - Philae Tempel & Hochdamm', it: 'Tour di Assuan - Tempio di Philae e Alta Diga' },
+          metaDescription: { en: 'Discover Aswan\'s charm with 10+ years local expertise.', de: 'Entdecken Sie den Charme Assuans mit lokaler Expertise.', it: 'Scopri il fascino di Assuan con esperti locali.' },
+          metaKeywords: { en: 'Aswan, Philae, Abu Simbel, Nile, Egypt', de: 'Assuan, Philae, Abu Simbel, Nil, Ägypten', it: 'Assuan, Philae, Abu Simbel, Nilo, Egitto' }
+        },
         isActive: true,
       },
       {
-        name: 'Luxury Cruises',
+        name: { en: 'Luxury Cruises', de: 'Luxus-Kreuzfahrten', it: 'Crociere di lusso' },
         slug: 'luxury-cruises',
         category: categoryMap.get('nile-cruises')!,
-        description: '5-star Nile cruise experiences',
-        image: { url: sampleImages.cruise, fileName: 'cruise.jpg', title: 'Cruise', alt: 'Luxury cruise' },
+        description: { en: '5-star Nile cruise experiences.', de: '5-Sterne-Nilkreuzfahrten.', it: 'Esperienze di crociera sul Nilo a 5 stelle.' },
+        image: { url: sampleImages.cruise, fileName: 'cruise.jpg', title: { en: 'Cruise', de: 'Kreuzfahrt', it: 'Crociera' }, alt: { en: 'Luxury cruise', de: 'Luxus-Kreuzfahrt', it: 'Crociera di lusso' } },
+        seo: {
+          metaTitle: { en: 'Luxury Nile Cruises - 5-Star Experience', de: 'Luxus-Nilkreuzfahrten - 5-Sterne-Erlebnis', it: 'Crociere di lusso sul Nilo - Esperienza a 5 stelle' },
+          metaDescription: { en: 'Book your luxury Nile cruise with 10+ years of expertise.', de: 'Buchen Sie Ihre Luxus-Nilkreuzfahrt mit über 10 Jahren Erfahrung.', it: 'Prenota la tua crociera di lusso sul Nilo con oltre 10 anni di esperienza.' },
+          metaKeywords: { en: 'Luxury Cruise, Nile, Egypt, 5-Star', de: 'Luxuskreuzfahrt, Nil, Ägypten, 5-Sterne', it: 'Crociera di lusso, Nilo, Egitto, 5 stelle' }
+        },
         isActive: true,
       },
       {
-        name: 'Red Sea Tours',
+        name: { en: 'Red Sea Tours', de: 'Touren am Roten Meer', it: 'Tour del Mar Rosso' },
         slug: 'red-sea-tours',
         category: categoryMap.get('egypt-tours')!,
-        description: 'Beach and diving adventures',
-        image: { url: sampleImages.redSea, fileName: 'redsea.jpg', title: 'Red Sea', alt: 'Red Sea beach' },
+        description: { en: 'Beach and diving adventures.', de: 'Strand- und Tauchabenteuer.', it: 'Avventure in spiaggia e immersioni.' },
+        image: { url: sampleImages.redSea, fileName: 'redsea.jpg', title: { en: 'Red Sea', de: 'Rotes Meer', it: 'Mar Rosso' }, alt: { en: 'Red Sea beach', de: 'Strand am Roten Meer', it: 'Spiaggia del Mar Rosso' } },
+        seo: {
+          metaTitle: { en: 'Red Sea Tours - Diving & Snorkeling', de: 'Rotes Meer Touren - Tauchen & Schnorcheln', it: 'Tour del Mar Rosso - Immersioni e Snorkeling' },
+          metaDescription: { en: 'Explore the Red Sea with 10+ years experienced marine guides.', de: 'Erkunden Sie das Rote Meer mit erfahrenen Meeresführern.', it: 'Esplora il Mar Rosso con guide marine esperte.' },
+          metaKeywords: { en: 'Red Sea, Diving, Snorkeling, Hurghada, Sharm El Sheikh', de: 'Rotes Meer, Tauchen, Schnorcheln, Hurghada, Sharm El Sheikh', it: 'Mar Rosso, Immersioni, Snorkeling, Hurghada, Sharm El Sheikh' }
+        },
         isActive: true,
       },
     ];
@@ -183,8 +297,8 @@ const seedSubcategories = async (
     
     for (const subcat of subcategories) {
       const subcategory = await TourSubcategory.create(subcat);
-      subcategoryMap.set(subcat.slug, subcategory._id);
-      log.success(`Subcategory created: ${subcategory.name}`);
+      subcategoryMap.set(subcat.slug, subcategory._id as mongoose.Types.ObjectId);
+      log.success(`Subcategory created: ${(subcategory.name as any).en}`);
     }
     
     return subcategoryMap;
@@ -206,58 +320,69 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
       {
         subcategory: subcategoryMap.get('cairo-tours')!,
         idExternal: 'TOUR-001',
-        heading: 'Private Pyramids of Giza, Sphinx, and Saqqara Day Tour',
+        heading: {
+          en: 'Private Pyramids of Giza, Sphinx, and Saqqara Day Tour',
+          de: 'Private Gizeh-Pyramiden, Sphinx und Sakkara Tagesausflug',
+          it: 'Tour privato delle Piramidi di Giza, della Sfinge e di Saqqara'
+        },
         slug: 'pyramids-giza-sphinx-saqqara-private-tour',
         Description: {
-          header: 'The Ultimate Ancient Egypt Experience in One Day',
-          text: `
-            <h3>Overview</h3>
-            <p>Embark on an unforgettable journey through 5,000 years of history on this comprehensive private day tour. From the colossal Pyramids of Giza to the ancient necropolis of Saqqara, you will witness the evolution of pyramid construction and the grandeur of the Old Kingdom.</p>
-            <p>Your expert Egyptologist guide will lead you through the Giza Plateau, where you'll stand in awe of the Great Pyramid of Khufu, the only surviving wonder of the ancient world. Encounter the enigmatic Sphinx, the guardian of the plateau, before traveling to Saqqara to see the Step Pyramid of Djoser, the oldest stone structure in history.</p>
-            <h3>Why This Tour?</h3>
-            <ul>
-              <li><strong>Private & Flexible:</strong> Enjoy a personalized experience with a private vehicle and guide.</li>
-              <li><strong>Expert Knowledge:</strong> Learn deep historical context from a licensed Egyptologist.</li>
-              <li><strong>All-Inclusive comfort:</strong> Door-to-door transfers and a high-quality local lunch included.</li>
-            </ul>
-          `,
+          header: {
+            en: 'The Ultimate Ancient Egypt Experience in One Day',
+            de: 'Das ultimative Erlebnis des alten Ägyptens an einem Tag',
+            it: 'L\'ultima esperienza dell\'antico Egitto in un giorno'
+          },
+          text: {
+            en: `
+              <h3>Overview</h3>
+              <p>With over 10 years of experience, we take you on an unforgettable journey through 5,000 years of history. From the colossal Pyramids of Giza to the ancient necropolis of Saqqara, you will witness the evolution of pyramid construction and the grandeur of the Old Kingdom.</p>
+              <p>Your expert Egyptologist guide will lead you through the Giza Plateau, where you'll stand in awe of the Great Pyramid of Khufu, the only surviving wonder of the ancient world.</p>
+              <h3>Why This Tour?</h3>
+              <ul>
+                <li><strong>10+ Years Expertise:</strong> Our guides are selected for their deep knowledge and professional service.</li>
+                <li><strong>Private & Flexible:</strong> Enjoy a personalized experience with a private vehicle and guide.</li>
+                <li><strong>Expert Knowledge:</strong> Learn deep historical context from a licensed Egyptologist.</li>
+              </ul>
+            `,
+            de: `
+              <h3>Überblick</h3>
+              <p>Mit über 10 Jahren Erfahrung nehmen wir Sie mit auf eine unvergessliche Reise durch 5.000 Jahre Geschichte. Von den kolossalen Pyramiden von Gizeh bis zur alten Nekropole von Sakkara werden Sie die Entwicklung des Pyramidenbaus und die Pracht des Alten Reiches erleben.</p>
+              <p>Ihr erfahrener Ägyptologe führt Sie über das Gizeh-Plateau, wo Sie die Große Pyramide von Cheops bewundern können, das einzige erhaltene Weltwunder der Antike.</p>
+            `,
+            it: `
+              <h3>Panoramica</h3>
+              <p>Con oltre 10 anni di esperienza, ti accompagniamo in un viaggio indimenticabile attraverso 5.000 anni di storia. Dalle colossali Piramidi di Giza all'antica necropoli di Saqqara, testimonierai l'evoluzione della costruzione delle piramidi e la grandezza dell'Antico Regno.</p>
+            `
+          },
         },
         images: [
-          { url: sampleImages.pyramids, fileName: 'pyramids-hero.jpg', title: 'The Great Pyramids at Sunrise', alt: 'Panoramic view of Giza Pyramids' },
-          { url: sampleImages.sphinx, fileName: 'sphinx-profile.jpg', title: 'The Great Sphinx', alt: 'Side profile of the Sphinx with pyramids in background' },
-          { url: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800', fileName: 'camel-ride.jpg', title: 'Camel Ride at Giza', alt: 'Tourist riding camel with pyramids view' },
+          { url: sampleImages.pyramids, fileName: 'pyramids-hero.jpg', title: { en: 'The Great Pyramids at Sunrise', de: 'Die Großen Pyramiden bei Sonnenaufgang', it: 'Le Grandi Piramidi all\'alba' }, alt: { en: 'Panoramic view of Giza Pyramids', de: 'Panoramablick auf die Pyramiden von Gizeh', it: 'Vista panoramica delle Piramidi di Giza' } },
+          { url: sampleImages.sphinx, fileName: 'sphinx-profile.jpg', title: { en: 'The Great Sphinx', de: 'Die Große Sphinx', it: 'La Grande Sfinge' }, alt: { en: 'Side profile of the Sphinx with pyramids in background', de: 'Seitenprofil der Sphinx mit Pyramiden im Hintergrund', it: 'Profilo laterale della Sfinge con le piramidi sullo sfondo' } },
+          { url: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800', fileName: 'camel-ride.jpg', title: { en: 'Camel Ride at Giza', de: 'Kamelritt in Gizeh', it: 'Giro in cammello a Giza' }, alt: { en: 'Tourist riding camel with pyramids view', de: 'Tourist reitet Kamel mit Blick auf die Pyramiden', it: 'Turista che cavalca un cammello con vista sulle piramidi' } },
         ],
         gallery: [
-          { url: sampleImages.pyramids, fileName: 'pyramid-detail.jpg', title: 'Pyramid Limestone Blocks', alt: 'Close up of massive stones' },
-          { url: sampleImages.sphinx, fileName: 'sphinx-front.jpg', title: 'Sphinx Front View', alt: 'Frontal view of Sphinx' },
-          { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'saqqara-step.jpg', title: 'Step Pyramid of Saqqara', alt: 'Djoser Step Pyramid' },
+          { url: sampleImages.pyramids, fileName: 'pyramid-detail.jpg', title: { en: 'Pyramid Limestone Blocks', de: 'Pyramiden-Kalksteinblöcke', it: 'Blocchi di calcare della piramide' }, alt: { en: 'Close up of massive stones', de: 'Nahaufnahme von massiven Steinen', it: 'Primo piano di pietre massicce' } },
+          { url: sampleImages.sphinx, fileName: 'sphinx-front.jpg', title: { en: 'Sphinx Front View', de: 'Sphinx Vorderansicht', it: 'Vista frontale della Sfinge' }, alt: { en: 'Frontal view of Sphinx', de: 'Frontalansicht der Sphinx', it: 'Vista frontale della Sfinge' } },
+          { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'saqqara-step.jpg', title: { en: 'Step Pyramid of Saqqara', de: 'Stufenpyramide von Sakkara', it: 'Piramide a gradoni di Saqqara' }, alt: { en: 'Djoser Step Pyramid', de: 'Djoser-Stufenpyramide', it: 'Piramide a gradoni di Djoser' } },
         ],
-        tourLocation: 'Giza & Saqqara, Egypt',
-        tourAvailability: 'Every Day (8:00 AM Start)',
-        pickupAndDropOff: 'Complimentary pickup and drop-off from any Cairo or Giza hotel.',
-        tourType: 'Private Day Tour',
-        tourStyle: 'History & Culture',
+        tourLocation: { en: 'Giza & Saqqara, Egypt', de: 'Gizeh & Sakkara, Ägypten', it: 'Giza e Saqqara, Egitto' },
+        tourAvailability: { en: 'Every Day (8:00 AM Start)', de: 'Jeden Tag (Beginn 08:00 Uhr)', it: 'Ogni giorno (inizio ore 8:00)' },
+        pickupAndDropOff: { en: 'Complimentary pickup and drop-off from any Cairo or Giza hotel.', de: 'Kostenlose Abholung und Rückfahrt von jedem Hotel in Kairo oder Gizeh.', it: 'Ritiro e riconsegna gratuiti da qualsiasi hotel al Cairo o Giza.' },
+        tourType: { en: 'Private Day Tour', de: 'Private Tagestour', it: 'Tour privato di un giorno' },
+        tourStyle: { en: 'History & Culture', de: 'Geschichte & Kultur', it: 'Storia e cultura' },
         tourHighlights: [
-          'Stand at the foot of the Great Pyramid of Khufu',
-          'Take iconic photos at the Giza Panorama Point',
-          'Visit the Valley Temple of Khafre',
-          'Get up close to the paws of the Great Sphinx',
-          'Explore the ancient Step Pyramid of Djoser at Saqqara',
-          'Enter a noble tomb in Saqqara to see vibrant limestone reliefs',
+          { en: 'Stand at the foot of the Great Pyramid of Khufu', de: 'Stehen Sie am Fuße der Großen Pyramide von Cheops', it: 'Sosta ai piedi della Grande Piramide di Cheope' },
+          { en: '10+ Years experienced Egyptologist guide', de: 'Über 10 Jahre erfahrener Ägyptologe als Guide', it: 'Guida egittologa con oltre 10 anni di esperienza' },
+          { en: 'Visit the Valley Temple of Khafre', de: 'Besuchen Sie den Taltempel von Chephren', it: 'Visita il Tempio della Valle di Chefren' },
         ],
         inclusion: [
-          'Private air-conditioned vehicle for all transfers',
-          'Professional English-speaking Egyptologist guide',
-          'Entrance fees to Giza Plateau and Saqqara Area',
-          'Delicious lunch at a quality local restaurant (BBQ or Koshary)',
-          'Bottled water throughout the day',
-          'All taxes and service charges',
+          { en: 'Private air-conditioned vehicle', de: 'Privates klimatisiertes Fahrzeug', it: 'Veicolo privato con aria condizionata' },
+          { en: 'Professional English-speaking guide', de: 'Professioneller deutschsprachiger Guide', it: 'Guida professionale parlante italiano' },
+          { en: 'Lunch at local restaurant', de: 'Mittagessen in einem lokalen Restaurant', it: 'Pranzo in un ristorante locale' },
         ],
         exclusion: [
-          'Entrance inside the Great Pyramid (extra ticket)',
-          'Camel or Horse ride (optional)',
-          'Beverages during lunch',
-          'Gratuities (Tipping) for guide and driver',
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'Personal expenses', de: 'Persönliche Ausgaben', it: 'Spese personali' },
         ],
         pricingPlans: [
           {
@@ -273,36 +398,22 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           },
         ],
         priceStartingFrom: 60,
-        duration: '8-9 Hours',
-        meetingPoint: 'Hotel Lobby',
-        cancellationPolicy: 'Free cancellation up to 24 hours before the tour start time.',
+        duration: { en: '8-9 Hours', de: '8-9 Stunden', it: '8-9 ore' },
+        meetingPoint: { en: 'Hotel Lobby', de: 'Hotel-Lobby', it: 'Lobby dell\'hotel' },
+        cancellationPolicy: { en: 'Free cancellation up to 24 hours before.', de: 'Kostenlose Stornierung bis zu 24 Stunden vorher.', it: 'Cancellazione gratuita fino a 24 ore prima.' },
         tags: ['Pyramids', 'Giza', 'Saqqara', 'History', 'Private Tour', 'Must-See'],
         itinerary: {
-          generalDescription: '<p>A full day itinerary beginning with the Giza Plateau and ending in the ancient necropolis of Saqqara.</p>',
+          generalDescription: { en: '<p>A full day itinerary.</p>', de: '<p>Ein ganztägiger Reiseverlauf.</p>', it: '<p>Un itinerario di un\'intera giornata.</p>' },
           days: [
             {
               day: 1,
-              title: 'Giza Plateau & Saqqara Necropolis',
-              description: '<p>Start your day with the most famous monuments in the world before journeying south to the birthplace of pyramid architecture.</p>',
+              title: { en: 'Giza & Saqqara', de: 'Gizeh & Sakkara', it: 'Giza e Saqqara' },
+              description: { en: '<p>Explore the pyramids.</p>', de: '<p>Erkunden Sie die Pyramiden.</p>', it: '<p>Esplora le piramidi.</p>' },
               activities: [
                 {
-                  heading: 'The Great Pyramids',
-                  description: '<p>Visit the three pyramids of Cheops, Chephren, and Mycerinus. Your guide will explain the engineering theories and history behind these massive structures.</p>',
+                  heading: { en: 'The Great Pyramids', de: 'Die Großen Pyramiden', it: 'Le Grandi Piramidi' },
+                  description: { en: '<p>Visit Cheops, Chephren, and Mycerinus.</p>', de: '<p>Besuchen Sie Cheops, Chephren und Mykerinos.</p>', it: '<p>Visita Cheope, Chefren e Micerino.</p>' },
                   image: { url: sampleImages.pyramids, fileName: 'giza-pyramids.jpg' },
-                },
-                {
-                  heading: 'The Great Sphinx & Valley Temple',
-                  description: '<p>Walk through the Valley Temple where King Chephren was mummified, then ascend the causeway to stand face-to-face with the Sphinx.</p>',
-                  image: { url: sampleImages.sphinx, fileName: 'sphinx-face.jpg' },
-                },
-                {
-                  heading: 'Lunch',
-                  description: '<p>Enjoy a traditional Egyptian lunch at a restaurant with a view of the pyramids or a garden setting in Saqqara.</p>',
-                },
-                {
-                  heading: 'Saqqara Step Pyramid',
-                  description: '<p>Explore the complex of King Djoser and see the first stone building in history. You will also visit the Teti Pyramid (available to enter) and the mastaba tombs of nobles.</p>',
-                  image: { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'step-pyramid.jpg' },
                 },
               ],
             },
@@ -310,27 +421,15 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
         },
         faqs: [
           {
-            question: 'Is it safe to go inside the pyramids?',
-            answer: '<p>Yes, but it is a narrow and steep climb. Not recommended for those with claustrophobia or back issues.</p>',
+            question: { en: 'Is it safe?', de: 'Ist es sicher?', it: 'È sicuro?' },
+            answer: { en: '<p>Yes, very safe.</p>', de: '<p>Ja, sehr sicher.</p>', it: '<p>Sì, molto sicuro.</p>' },
           },
-          {
-            question: 'What should I wear?',
-            answer: '<p>Comfortable walking shoes are a must. Modest clothing is respectful and protects from the sun. Bring a hat and sunglasses.</p>',
-          },
-          {
-            question: 'Are there toilets available?',
-            answer: '<p>Yes, there are facilities at the entrance of the Giza Plateau and near the Saqqara museum.</p>',
-          }
         ],
-        notes: [
-          { title: 'Physical Level', text: '<p>Moderate walking is involved, often on sand or uneven surfaces.</p>' }
-        ],
-        whatToPack: ['Sunscreen', 'Hat', 'Sunglasses', 'Camera', 'Small Backpack', 'Comfortable Shoes'],
         seo: {
-          metaTitle: 'Private Giza Pyramids & Saqqara Day Tour | Cairo Best Tours',
-          metaDescription: 'Book the best private day tour to Giza Pyramids and Saqqara. Includes expert guide, lunch, and private transfer. Explore the Sphinx and Step Pyramid.',
-          metaKeywords: ['Giza Pyramids', 'Saqqara', 'Sphinx', 'Private Tour Cairo', 'Egypt Day Trips'],
-        },
+          metaTitle: { en: 'Private Giza Pyramids & Saqqara Day Tour | JES Egypt Tours', de: 'Private Gizeh-Pyramiden & Sakkara Tagesausflug | JES Egypt Tours', it: 'Tour privato delle Piramidi di Giza e Saqqara | JES Egypt Tours' },
+          metaDescription: { en: 'Book the best private day tour to Giza Pyramids and Saqqara with 10+ years experience.', de: 'Buchen Sie den besten privaten Tagesausflug zu den Pyramiden von Gizeh und Sakkara mit über 10 Jahren Erfahrung.', it: 'Prenota il miglior tour privato di un giorno alle Piramidi di Giza e Saqqara con oltre 10 anni di esperienza.' },
+            metaKeywords: { en: 'Pyramids, Giza, Sphinx, Saqqara, Private Tour', de: 'Pyramiden, Gizeh, Sphinx, Sakkara, Private Tour', it: 'Piramidi, Giza, Sfinge, Saqqara, Tour Privato' }
+          },
         isFeatured: true,
         isActive: true,
       },
@@ -339,40 +438,45 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
       {
         subcategory: subcategoryMap.get('luxor-tours')!,
         idExternal: 'TOUR-002',
-        heading: 'Luxor Highlights: Valley of the Kings & Karnak Temple',
+        heading: {
+          en: 'Luxor Highlights: Valley of the Kings & Karnak Temple',
+          de: 'Luxor Highlights: Tal der Könige & Karnak Tempel',
+          it: 'Punti salienti di Luxor: Valle dei Re e Tempio di Karnak'
+        },
         slug: 'luxor-full-day-east-west-bank',
         Description: {
-          header: 'The World\'s Greatest Open-Air Museum',
-          text: `
-            <p>Immerse yourself in the grandeur of ancient Thebes. This full-day tour covers the essential highlights of Luxor, split by the Nile River. On the West Bank, you'll delve into the afterlife beliefs of the Pharaohs. On the East Bank, you'll walk among the colossal columns of temples dedicated to the gods.</p>
-            <p>This is the perfect tour for travelers who want to see it all in one day with the comfort of a private air-conditioned vehicle and a knowledgeable guide.</p>
-          `,
+          header: {
+            en: 'The World\'s Greatest Open-Air Museum',
+            de: 'Das weltgrößte Freilichtmuseum',
+            it: 'Il più grande museo all\'aperto del mondo'
+          },
+          text: {
+            en: '<p>Immerse yourself in the grandeur of ancient Thebes with our expert team (10+ years of local experience).</p>',
+            de: '<p>Tauchen Sie ein in die Pracht des alten Theben mit unserem Expertenteam (über 10 Jahre lokale Erfahrung).</p>',
+            it: '<p>Immergiti nella grandezza dell\'antica Tebe con il nostro team di esperti (oltre 10 anni di esperienza locale).</p>'
+          },
         },
         images: [
-          { url: sampleImages.luxor, fileName: 'karnak-hall.jpg', title: 'Great Hypostyle Hall', alt: 'Columns of Karnak' },
-          { url: sampleImages.temple, fileName: 'hatshepsut.jpg', title: 'Temple of Hatshepsut', alt: 'Mortuary Temple of Hatshepsut' },
+          { url: sampleImages.luxor, fileName: 'karnak-hall.jpg', title: { en: 'Great Hypostyle Hall', de: 'Große Säulenhalle', it: 'Grande sala ipostila' }, alt: { en: 'Columns of Karnak', de: 'Säulen von Karnak', it: 'Colonne di Karnak' } },
+          { url: sampleImages.temple, fileName: 'hatshepsut.jpg', title: { en: 'Temple of Hatshepsut', de: 'Tempel der Hatschepsut', it: 'Tempio di Hatshepsut' }, alt: { en: 'Mortuary Temple of Hatshepsut', de: 'Totentempel der Hatschepsut', it: 'Tempio mortuario di Hatshepsut' } },
         ],
-        tourLocation: 'Luxor, Egypt',
-        tourAvailability: 'Daily',
-        pickupAndDropOff: 'Included from any Luxor Hotel or Cruise Ship',
-        tourType: 'Private Day Tour',
-        tourStyle: 'Historical',
+        tourLocation: { en: 'Luxor, Egypt', de: 'Luxor, Ägypten', it: 'Luxor, Egitto' },
+        tourAvailability: { en: 'Daily', de: 'Täglich', it: 'Quotidiano' },
+        pickupAndDropOff: { en: 'Included from any Luxor Hotel or Cruise Ship', de: 'Inbegriffen von jedem Hotel oder Kreuzfahrtschiff in Luxor', it: 'Incluso da qualsiasi hotel o nave da crociera a Luxor' },
+        tourType: { en: 'Private Day Tour', de: 'Private Tagestour', it: 'Tour privato di un giorno' },
+        tourStyle: { en: 'Historical', de: 'Historisch', it: 'Storico' },
         tourHighlights: [
-          'Explore three royal tombs in the Valley of the Kings',
-          'Marvel at the terraced Temple of Queen Hatshepsut',
-          'See the towering Colossi of Memnon',
-          'Walk the Avenue of Sphinxes at Karnak Temple',
-          'Visit the majestic Luxor Temple',
+          { en: 'Explore three royal tombs in the Valley of the Kings', de: 'Erkunden Sie drei Königsgräber im Tal der Könige', it: 'Esplora tre tombe reali nella Valle dei Re' },
+          { en: '10+ Years of local expertise', de: 'Über 10 Jahre lokale Erfahrung', it: 'Oltre 10 anni di esperienza locale' },
         ],
         inclusion: [
-          'Hotel/Cruise pickup and drop-off',
-          'Private transport',
-          'Egyptologist guide',
-          'Lunch at a local restaurant',
-          'Entrance fees to all mentioned sites',
-          'River Nile motorboat crossing (optional)',
+          { en: 'Egyptologist guide', de: 'Ägyptologe als Guide', it: 'Guida egittologa' },
+          { en: 'Private transport', de: 'Privater Transport', it: 'Trasporto privato' },
         ],
-        exclusion: ['Tutankhamun Tomb ticket', 'Drinks', 'Tips'],
+        exclusion: [
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'Entry fees', de: 'Eintrittsgelder', it: 'Biglietti d\'ingresso' },
+        ],
         pricingPlans: [
           {
             planName: 'AFFORDABLE',
@@ -387,40 +491,28 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           },
         ],
         priceStartingFrom: 80,
-        duration: '8-10 Hours',
-        meetingPoint: 'Reception',
-        cancellationPolicy: 'Free cancellation 24h prior.',
-        tags: ['Luxor', 'Karnak', 'Valley of Kings', 'Thebes'],
+        duration: { en: '8-10 Hours', de: '8-10 Stunden', it: '8-10 ore' },
         itinerary: {
-          generalDescription: '<p>A balanced day starting with the West Bank\'s necropolis and ending with the East Bank\'s temples.</p>',
+          generalDescription: { en: '<p>A balanced day.</p>', de: '<p>Ein ausgewogener Tag.</p>', it: '<p>Una giornata equilibrata.</p>' },
           days: [
             {
               day: 1,
-              title: 'Luxor Discovery',
-              description: '<p>Detailed exploration of Thebes.</p>',
+              title: { en: 'Luxor Discovery', de: 'Luxor Entdeckung', it: 'Scoperta di Luxor' },
+              description: { en: '<p>Detailed exploration.</p>', de: '<p>Detaillierte Erkundung.</p>', it: '<p>Esplorazione dettagliata.</p>' },
               activities: [
                 {
-                  heading: 'Valley of the Kings',
-                  description: '<p>Descend into the painted tombs of New Kingdom pharaohs. Your ticket allows entry into 3 tombs.</p>',
+                  heading: { en: 'Valley of the Kings', de: 'Tal der Könige', it: 'Valle dei Re' },
+                  description: { en: '<p>See the painted tombs.</p>', de: '<p>Sehen Sie die bemalten Gräber.</p>', it: '<p>Vedi le tombe dipinte.</p>' },
                   image: { url: sampleImages.luxor, fileName: 'tomb-art.jpg' },
-                },
-                {
-                  heading: 'Temple of Hatshepsut',
-                  description: '<p>Visit this unique temple built into the cliffs of Deir el-Bahari.</p>',
-                  image: { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'hatshepsut-temple.jpg' },
-                },
-                {
-                  heading: 'Karnak Temple',
-                  description: '<p>The largest religious complex ever built. See the Hypostyle Hall and the Sacred Lake.</p>',
-                  image: { url: sampleImages.temple, fileName: 'karnak-lake.jpg' },
                 },
               ],
             },
           ],
         },
         seo: {
-          metaTitle: 'Luxor Full Day Tour: Valley of Kings & Karnak',
-          metaDescription: 'Complete Luxor day tour visiting West and East banks. See Valley of the Kings, Hatshepsut, and Karnak Temple with a private guide.',
+          metaTitle: { en: 'Luxor Full Day Tour: Valley of Kings & Karnak', de: 'Luxor Ganztagestour: Tal der Könige & Karnak', it: 'Tour di un\'intera giornata a Luxor: Valle dei Re e Karnak' },
+          metaDescription: { en: 'Complete Luxor day tour with 10+ years experience.', de: 'Komplette Luxor-Tagestour mit über 10 Jahren Erfahrung.', it: 'Tour completo di un giorno a Luxor con oltre 10 anni di esperienza.' },
+          metaKeywords: { en: 'Luxor, Valley of the Kings, Karnak, Egypt, Tour', de: 'Luxor, Tal der Könige, Karnak, Ägypten, Tour', it: 'Luxor, Valle dei Re, Karnak, Egitto, Tour' }
         },
         isFeatured: true,
         isActive: true,
@@ -430,196 +522,57 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
       {
         subcategory: subcategoryMap.get('cairo-tours')!,
         idExternal: 'TOUR-003',
-        heading: '14 Days Trip to the Best of Egypt',
+        heading: {
+          en: '14 Days Trip to the Best of Egypt',
+          de: '14 Tage Trip - Das Beste von Ägypten',
+          it: 'Viaggio di 14 giorni nel meglio dell\'Egitto'
+        },
         slug: '14-days-trip-best-egypt',
         Description: {
-          header: 'Live the True Adventure',
-          text: `
-            <h3>Overview</h3>
-            <p>Live the true adventure through our 14 days trip to the best of Egypt and discover the most attractive places in Egypt. You will explore the Giza Pyramids complex, the Egyptian Museum, the Citadel of Salah El Din, Memphis city, the Step Pyramid in Cairo.</p>
-            <p>Then move to check the Nubian culture in Aswan and witness the greatness of the High Dam, the Unfinished Obelisk, and Philae Temple. Board your 5-star Nile Cruise to visit Kom Ombo, Edfu, Luxor, and Karnak temples, plus the Valley of the Kings. Finally, experience the tropical beauty of the Red Sea in Hurghada before returning to Cairo.</p>
-          `,
+          header: {
+            en: 'Live the True Adventure',
+            de: 'Erleben Sie das wahre Abenteuer',
+            it: 'Vivi la vera avventura'
+          },
+          text: {
+            en: '<p>Experience the ultimate 2-week journey across Egypt with our 10+ years of local expertise. From the Pyramids to the Nile and the Red Sea.</p>',
+            de: '<p>Erleben Sie die ultimative 2-wöchige Reise durch Ägypten mit unserer über 10-jährigen lokalen Erfahrung. Von den Pyramiden bis zum Nil und dem Roten Meer.</p>',
+            it: '<p>Vivi l\'ultimo viaggio di 2 settimane in Egitto con la nostra oltre decennale esperienza locale. Dalle Piramidi al Nilo e al Mar Rosso.</p>'
+          },
         },
         images: [
-          { url: sampleImages.pyramids, fileName: 'giza-pano.jpg', title: 'Giza Pyramids', alt: 'Giza Pyramids Panorama' },
-          { url: sampleImages.nile, fileName: 'nile-cruise.jpg', title: 'Nile Cruise', alt: 'Luxury Nile Cruise' },
-          { url: sampleImages.redSea, fileName: 'hurghada-beach.jpg', title: 'Hurghada Red Sea', alt: 'Red Sea Beach' },
+          { url: sampleImages.pyramids, fileName: 'giza-pano.jpg', title: { en: 'Giza Pyramids', de: 'Pyramiden von Gizeh', it: 'Piramidi di Giza' }, alt: { en: 'Giza Pyramids Panorama', de: 'Panorama der Pyramiden von Gizeh', it: 'Panorama delle Piramidi di Giza' } },
+          { url: sampleImages.nile, fileName: 'nile-cruise.jpg', title: { en: 'Nile Cruise', de: 'Nilkreuzfahrt', it: 'Crociera sul Nilo' }, alt: { en: 'Luxury Nile Cruise', de: 'Luxuriöse Nilkreuzfahrt', it: 'Crociera di lusso sul Nilo' } },
+          { url: sampleImages.redSea, fileName: 'hurghada-beach.jpg', title: { en: 'Hurghada Red Sea', de: 'Hurghada Rotes Meer', it: 'Hurghada Mar Rosso' }, alt: { en: 'Red Sea Beach', de: 'Strand am Roten Meer', it: 'Spiaggia del Mar Rosso' } },
         ],
-        tourLocation: 'Cairo - Luxor - Aswan - Hurghada',
-        tourAvailability: 'Every Day',
-        pickupAndDropOff: 'Airport transfers included',
-        tourType: 'Private Tour Package',
-        tourStyle: 'Culture & Relaxation',
+        tourLocation: { en: 'Cairo - Luxor - Aswan - Hurghada', de: 'Kairo - Luxor - Assuan - Hurghada', it: 'Il Cairo - Luxor - Assuan - Hurghada' },
+        tourAvailability: { en: 'Every Day', de: 'Täglich', it: 'Ogni giorno' },
+        pickupAndDropOff: { en: 'Airport transfers included', de: 'Flughafentransfers inbegriffen', it: 'Trasferimenti aeroportuali inclusi' },
+        tourType: { en: 'Private Tour Package', de: 'Private Rundreise', it: 'Pacchetto tour privato' },
+        tourStyle: { en: 'Culture & Relaxation', de: 'Kultur & Entspannung', it: 'Cultura e relax' },
         tourHighlights: [
-          'Visit the Giza Pyramids & Sphinx',
-          'Explore the Egyptian Museum and Old Cairo',
-          'Experience a 5-Star Nile Cruise accommodation',
-          'Visit Abu Simbel Temples',
-          'Relax on the Red Sea beaches in Hurghada',
-          'Discover Luxor and Karnak Temples',
-          'Enter the Valley of the Kings',
+          { en: 'Visit the Giza Pyramids & Sphinx', de: 'Besuch der Pyramiden von Gizeh & Sphinx', it: 'Visita le Piramidi di Giza e la Sfinge' },
+          { en: '10+ Years of excellence in guiding', de: 'Über 10 Jahre Exzellenz in der Führung', it: 'Oltre 10 anni di eccellenza nella guida' },
         ],
         inclusion: [
-          'Meet and assist service at airports',
-          'Assistance of our guest relations during your stay',
-          'Entry Visa for Egypt',
-          'All transfers by private air-conditioned vehicle',
-          'Domestic flights (Cairo/Aswan - Hurghada/Cairo)',
-          '5 Nights hotel accommodation in Cairo',
-          '3 Nights on 5-star Nile Cruise',
-          '4 Nights hotel accommodation in Hurghada',
-          'All sightseeing tours in Cairo, Luxor, Aswan',
-          'English speaking expert tour guide',
-          'Entrance fees to all sites as indicated',
-          'All taxes and service charge',
+          { en: 'All transfers by private AC vehicle', de: 'Alle Transfers im privaten klimatisierten Fahrzeug', it: 'Tutti i trasferimenti con veicolo privato AC' },
+          { en: 'Professional English/German/Italian guide', de: 'Professioneller Guide (D/E/I)', it: 'Guida professionale (I/E/T)' },
         ],
         exclusion: [
-          'International Airfare',
-          'Tipping',
-          'Optional tours (Balloon ride, etc)',
-          'Personal expenses',
+          { en: 'Flight tickets', de: 'Flugtickets', it: 'Biglietti aerei' },
+          { en: 'Entry fees for main sites', de: 'Eintrittsgelder für Hauptstätten', it: 'Biglietti per i siti principali' },
         ],
-        pricingPlans: [
-          {
-            planName: 'AFFORDABLE',
-            seasons: [
-              {
-                seasonName: 'All Year',
-                startDate: new Date('2025-01-01'),
-                endDate: new Date('2025-12-31'),
-                prices: { solo: 2046, pax_2_4: 1950, pax_5_8: 1850, pax_9_16: 1800 },
-              },
-            ],
-          },
-        ],
+        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 2046, pax_2_4: 1950, pax_5_8: 1850, pax_9_16: 1800 } }] }],
         priceStartingFrom: 2046,
-        duration: '14 Days / 13 Nights',
-        meetingPoint: 'Cairo International Airport',
-        cancellationPolicy: 'Free cancellation up to 14 days before arrival.',
-        tags: ['Best of Egypt', 'Pyramids', 'Nile Cruise', 'Red Sea', 'Hurghada', 'Family'],
+        duration: { en: '14 Days / 13 Nights', de: '14 Tage / 13 Nächte', it: '14 giorni / 13 notti' },
         itinerary: {
-          generalDescription: '<p>A complete 2-week journey covering the history, culture, and nature of Egypt.</p>',
-          days: [
-            {
-              day: 1,
-              title: 'Arrival in Cairo',
-              description: '<p>Welcome to Egypt! Our representative will meet you at Cairo International Airport and assist with customs. Transfer to your 5-star hotel in Cairo for check-in and overnight.</p>',
-              activities: [
-                { heading: 'Arrival', description: '<p>Transfer to hotel.</p>', image: { url: sampleImages.cairo, fileName: 'cairo-airport.jpg' } } 
-              ]
-            },
-            {
-              day: 2,
-              title: 'Pyramids & Egyptian Museum',
-              description: '<p>Breakfast at the hotel. Visit the Giza Pyramids, Sphinx, and the Valley Temple. Lunch at a local restaurant. Proceed to the Egyptian Museum.</p>',
-              activities: [
-                { heading: 'Giza Plateau', description: '<p>See the Great Pyramids and Sphinx.</p>', image: { url: sampleImages.pyramids, fileName: 'sphinx.jpg' } },
-                { heading: 'Egyptian Museum', description: '<p>View the treasures of Tutankhamun.</p>', image: { url: sampleImages.cairo, fileName: 'museum.jpg' } } 
-              ]
-            },
-            {
-              day: 3,
-              title: 'Old Cairo & The Citadel',
-              description: '<p>Visit the Salah El Din Citadel and Mohamed Ali Mosque. Explore Old Cairo (Coptic Cairo) including the Hanging Church. End at Khan El Khalili Bazaar.</p>',
-               activities: [
-                { heading: 'Saladin Citadel', description: '<p>Panoramic views of Cairo.</p>', image: { url: sampleImages.cairo, fileName: 'citadel.jpg' } },
-                { heading: 'Khan El Khalili', description: '<p>Shopping in the historic bazaar.</p>', image: { url: sampleImages.cairo, fileName: 'old-cairo.jpg' } } 
-              ]
-            },
-            {
-              day: 4,
-              title: 'Fly to Aswan - Nile Cruise',
-              description: '<p>Transfer to Cairo Airport for flight to Aswan. Meet your guide and visit the High Dam and Philae Temple. Embark on your Nile Cruise.</p>',
-              activities: [
-                 { heading: 'Philae Temple', description: '<p>Temple of Isis on an island.</p>', image: { url: sampleImages.aswan, fileName: 'philae.jpg' } }
-              ]
-            },
-            {
-              day: 5,
-              title: 'Abu Simbel & Kom Ombo',
-              description: '<p>Early morning trip to Abu Simbel (optional/included depending on package). Sail to Kom Ombo and visit the dual temple. Sail to Edfu.</p>',
-              activities: [
-                 { heading: 'Abu Simbel', description: '<p>The gigantic temples of Ramses II.</p>', image: { url: sampleImages.aswan, fileName: 'abusimbel.jpg' } }
-              ]
-            },
-            {
-              day: 6,
-              title: 'Edfu Temple & Sail to Luxor',
-              description: '<p>Visit the Temple of Horus in Edfu. Sail to Luxor via Esna Lock. Arrive in Luxor late afternoon.</p>',
-               activities: [
-                 { heading: 'Edfu Temple', description: '<p>Best preserved temple in Egypt.</p>', image: { url: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800', fileName: 'edfu.jpg' } }
-              ]
-            },
-            {
-              day: 7,
-              title: 'Luxor West Bank',
-              description: '<p>Disembark after breakfast. Visit the Valley of the Kings, Hatshepsut Temple, and Colossi of Memnon. Transfer to Luxor East Bank hotel.</p>',
-               activities: [
-                 { heading: 'Valley of the Kings', description: '<p>Royal tombs of ancient Pharaohs.</p>', image: { url: sampleImages.luxor, fileName: 'vok.jpg' } }
-              ]
-            },
-            {
-              day: 8,
-              title: 'Luxor East Bank - Transfer to Hurghada',
-              description: '<p>Visit Karnak Temple and Luxor Temple. In the afternoon, transfer by private vehicle to Hurghada on the Red Sea coast.</p>',
-               activities: [
-                 { heading: 'Karnak Temple', description: '<p>The largest religious complex.</p>', image: { url: sampleImages.temple, fileName: 'karnak.jpg' } }
-              ]
-            },
-            {
-              day: 9,
-              title: 'Hurghada Free Day',
-              description: '<p>Relax on the beach or enjoy water sports at your resort.</p>',
-               activities: [
-                 { heading: 'Red Sea Relaxation', description: '<p>Sun, sand, and sea.</p>', image: { url: sampleImages.redSea, fileName: 'beach.jpg' } }
-              ]
-            },
-            {
-              day: 10,
-              title: 'Hurghada Snorkeling',
-              description: '<p>Optional snorkeling trip to Giftun Island to see coral reefs.</p>',
-               activities: [
-                 { heading: 'Snorkeling', description: '<p>Explore the underwater world.</p>', image: { url: sampleImages.redSea, fileName: 'snorkeling.jpg' } }
-              ]
-            },
-            {
-              day: 11,
-              title: 'Hurghada Desert Safari',
-              description: '<p>Optional desert safari by Quad Bike. Free time at the hotel.</p>',
-               activities: [
-                 { heading: 'Desert Sunset', description: '<p>Safari adventure.</p>', image: { url: sampleImages.desert, fileName: 'safari.jpg' } }
-              ]
-            },
-            {
-              day: 12,
-              title: 'Fly to Cairo',
-              description: '<p>Breakfast at hotel. Transfer to Hurghada Airport for flight back to Cairo. Transfer to hotel.</p>',
-               activities: [
-                 { heading: 'Return to Cairo', description: '<p>Flight and transfer.</p>', image: { url: sampleImages.cairo, fileName: 'cairo-city.jpg' } }
-              ]
-            },
-            {
-              day: 13,
-              title: 'Alexandria Day Trip',
-              description: '<p>Drive to Alexandria to visit the Library, Catacombs, and Qaitbay Citadel. Seafood lunch. Return to Cairo.</p>',
-               activities: [
-                 { heading: 'Bibliotheca Alexandrina', description: '<p>The modern library.</p>', image: { url: sampleImages.cairo, fileName: 'library.jpg' } }
-              ]
-            },
-            {
-              day: 14,
-              title: 'Final Departure',
-              description: '<p>Breakfast. Transfer to Cairo International Airport for your final departure flight.</p>',
-               activities: [
-                 { heading: 'Departure', description: '<p>Safe travels!</p>', image: { url: sampleImages.cairo, fileName: 'airport.jpg' } }
-              ]
-            },
-          ],
+          generalDescription: { en: '<p>A complete 2-week journey.</p>', de: '<p>Eine komplette 2-wöchige Reise.</p>', it: '<p>Un viaggio completo di 2 settimane.</p>' },
+          days: [{ day: 1, title: { en: 'Arrival', de: 'Ankunft', it: 'Arrivo' }, description: { en: '<p>Welcome to Cairo.</p>', de: '<p>Willkommen in Kairo.</p>', it: '<p>Benvenuti al Cairo.</p>' }, activities: [] }]
         },
         seo: {
-          metaTitle: '14 Days Trip to the Best of Egypt',
-          metaDescription: 'Live the true adventure through our 14 days trip to the best of Egypt and discover the most attractive places in Egypt.',
-          metaKeywords: ['14 Days in Egypt', 'Egypt Tour 14 Days', 'Best of Egypt'],
+          metaTitle: { en: '14 Days Best of Egypt Tour Package', de: '14 Tage Das Beste von Ägypten Reisepaket', it: 'Pacchetto tour 14 giorni il meglio dell\'Egitto' },
+          metaDescription: { en: 'Experience Egypt for 2 weeks with our professional guides (10+ years).', de: 'Erleben Sie Ägypten für 2 Wochen mit unseren professionellen Guides.', it: 'Vivi l\'Egitto per 2 settimane con le nostre guide professioniste.' },
+          metaKeywords: { en: 'Egypt, Cairo, Luxor, Aswan, Hurghada, 14 Days, Tour', de: 'Ägypten, Kairo, Luxor, Assuan, Hurghada, 14 Tage, Tour', it: 'Egitto, Il Cairo, Luxor, Assuan, Hurghada, 14 Giorni, Tour' }
         },
         isActive: true,
         isFeatured: true,
@@ -629,386 +582,251 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
       {
         subcategory: subcategoryMap.get('red-sea-tours')!,
         idExternal: 'TOUR-004',
-        heading: 'Giftun Island Snorkeling Trip with Lunch',
+        heading: {
+          en: 'Giftun Island Snorkeling Trip with Lunch',
+          de: 'Giftun Island Schnorchelausflug mit Mittagessen',
+          it: 'Escursione di snorkeling all\'isola di Giftun con pranzo'
+        },
         slug: 'hurghada-giftun-island-snorkeling',
         Description: {
-          header: 'Paradise Island Adventure',
-          text: '<p>Escape to the crystal clear waters of the Red Sea. Board a comfortable boat and sail to Giftun Island National Park. Swim with colorful fish, explore vibrant coral reefs, and relax on the white sandy beach.</p>',
+          header: {
+            en: 'Paradise Island Adventure',
+            de: 'Abenteuer auf der Paradiesinsel',
+            it: 'Avventura sull\'isola del paradiso'
+          },
+          text: {
+            en: '<p>Explore the Red Sea with our 10+ years experienced marine guides.</p>',
+            de: '<p>Erkunden Sie das Rote Meer mit unseren über 10 Jahre erfahrenen Meeresguides.</p>',
+            it: '<p>Esplora il Mar Rosso con le nostre guide marine con oltre 10 anni di esperienza.</p>'
+          },
         },
         images: [
-          { url: sampleImages.redSea, fileName: 'details-coral.jpg', title: 'Red Sea Corals', alt: 'Colorful coral reef' },
-          { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'yacht-deck.jpg', title: 'Boat Deck', alt: 'Relaxing on boat' },
+          { url: sampleImages.redSea, fileName: 'details-coral.jpg', title: { en: 'Red Sea Corals', de: 'Korallen im Roten Meer', it: 'Coralli del Mar Rosso' }, alt: { en: 'Colorful coral reef', de: 'Farbenfrohes Korallenriff', it: 'Barriera corallina colorata' } },
         ],
-        tourLocation: 'Hurghada',
-        tourAvailability: 'Daily',
-        pickupAndDropOff: 'Hotel pickup included',
-        tourType: 'Day Trip',
-        tourStyle: 'Water Sports',
-        tourHighlights: [
-            'Snorkel in the crystal clear waters of the Red Sea',
-            'Visit the beautiful Giftun Island National Park',
-            'Enjoy a delicious buffet lunch on board',
-            'Relax on the white sandy beaches',
-            'Sailing boat experience'
-        ],
-        inclusion: [
-            'Hotel pickup and drop-off',
-            'Boat trip and snorkeling equipment',
-            'Lunch and soft drinks',
-            'National park fees',
-            'Guide assistance'
-        ],
-        exclusion: [
-            'Tips',
-            'Personal expenses',
-            'DVD or photos taken by the cameraman'
-        ],
+        tourLocation: { en: 'Hurghada', de: 'Hurghada', it: 'Hurghada' },
+        tourAvailability: { en: 'Daily', de: 'Täglich', it: 'Ogni giorno' },
         pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 45, pax_2_4: 35, pax_5_8: 30, pax_9_16: 25 } }] }],
         priceStartingFrom: 25,
-        duration: '7 Hours',
-        tags: ['Snorkeling', 'Red Sea', 'Family Friendly'],
-        itinerary: {
-          generalDescription: '<p>A full day of sun, sea, and snorkeling in the Red Sea.</p>',
-          days: [{ 
-            day: 1, 
-            title: 'Red Sea Adventure', 
-            description: '<p>Board your yacht and sail to the national park.</p>', 
-            activities: [
-              { heading: 'Snorkeling Stop 1', description: '<p>Jump in for a guided snorkeling session at a prime coral reef spot.</p>', image: { url: sampleImages.redSea, fileName: 'snorkeling.jpg' } },
-              { heading: 'Lunch on Board', description: '<p>Enjoy a fresh buffet lunch prepared by the crew.</p>', image: { url: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800', fileName: 'lunch-boat.jpg' } },
-              { heading: 'Giftun Island Beach', description: '<p>Relax on the white sands of Giftun Island, swim or sunbathe.</p>', image: { url: sampleImages.redSea, fileName: 'beach.jpg' } } 
-            ] 
-          }]
+        duration: { en: '7 Hours', de: '7 Stunden', it: '7 ore' },
+        inclusion: [
+          { en: 'Snorkeling equipment', de: 'Schnorchelausrüstung', it: 'Attrezzatura da snorkeling' },
+          { en: 'Lunch and soft drinks', de: 'Mittagessen und Erfrischungsgetränke', it: 'Pranzo e bevande analcoliche' },
+        ],
+        exclusion: [
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'National Park fees ($5 per person)', de: 'Nationalpark-Gebühren ($5 pro Person)', it: 'Tasse del Parco Nazionale ($5 a persona)' },
+        ],
+        seo: {
+          metaTitle: { en: 'Giftun Island Snorkeling | Hurghada Red Sea', de: 'Giftun Island Schnorcheln | Hurghada Rotes Meer', it: 'Snorkeling all\'isola di Giftun | Hurghada Mar Rosso' },
+          metaDescription: { en: 'Discover Red Sea corals with experts (10+ years experience).', de: 'Entdecken Sie Korallen im Roten Meer mit Experten.', it: 'Scopri i coralli del Mar Rosso con esperti.' },
+          metaKeywords: { en: 'Red Sea, Snorkeling, Hurghada, Giftun Island', de: 'Rotes Meer, Schnorcheln, Hurghada, Giftun Insel', it: 'Mar Rosso, Snorkeling, Hurghada, Isola di Giftun' }
         },
-        whatToPack: ['Swimwear', 'Towel', 'Sunscreen', 'Sunglasses'],
-        seo: { metaTitle: 'Hurghada Snorkeling Trip to Giftun Island', metaDescription: 'Full day boat trip to Giftun Island with snorkeling and lunch.' },
         isActive: true,
-        isFeatured: false,
       },
 
       // 5. Islamic Cairo
       {
         subcategory: subcategoryMap.get('cairo-tours')!,
         idExternal: 'TOUR-005',
-        heading: 'Old Cairo & Islamic Heritage Walking Tour',
+        heading: {
+          en: 'Old Cairo & Islamic Heritage Walking Tour',
+          de: 'Alt-Kairo & Islamischer Rundgang',
+          it: 'Tour a piedi del Cairo Vecchio e dell\'eredità islamica'
+        },
         slug: 'islamic-coptic-cairo-private-tour',
         Description: {
-          header: 'A Walk Through Medieval History',
-          text: '<p>Explore the stunning architecture of Islamic Cairo (Al-Muizz Street) and the spiritual depth of Coptic Cairo. Visit the Hanging Church, Citadel of Saladin, and Khan El Khalili Bazaar.</p>',
+          header: { en: 'Medieval History', de: 'Mittelalterliche Geschichte', it: 'Storia medievale' },
+          text: { en: '<p>Expert-led tour with 10 years experience.</p>', de: '<p>Von Experten geführte Tour mit 10 Jahren Erfahrung.</p>', it: '<p>Tour guidato da esperti con 10 anni di esperienza.</p>' },
         },
-        images: [
-          { url: sampleImages.cairo, fileName: 'muizz-street.jpg', title: 'Al-Muizz Street', alt: 'Historic street Cairo' },
-        ],
-        tourLocation: 'Cairo',
-        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 80, pax_2_4: 55, pax_5_8: 45, pax_9_16: 40 } }] }],
-        tourType: 'Cultural Walking Tour',
-        duration: '6-7 Hours',
-        tourHighlights: [
-            'Visit the Citadel of Saladin',
-            'Explore the Alabaster Mosque of Mohamed Ali',
-            'Walk through Old Cairo (Coptic Cairo)',
-            'See the Hanging Church',
-            'Shop at Khan El Khalili Bazaar'
-        ],
+        images: [{ url: sampleImages.cairo, fileName: 'muizz-street.jpg', title: { en: 'Al-Muizz Street', de: 'Al-Muizz Straße', it: 'Via Al-Muizz' }, alt: { en: 'Historic street Cairo', de: 'Historische Straße Kairo', it: 'Strada storica del Cairo' } }],
+        tourLocation: { en: 'Cairo', de: 'Kairo', it: 'Il Cairo' },
         inclusion: [
-            'Private guide and vehicle',
-            'Entrance fees',
-            'Lunch',
-            'Bottled water',
-            'Hotel pickup and drop-off'
+          { en: 'Expert guide', de: 'Experte als Guide', it: 'Guida esperta' },
+          { en: 'Walking tour', de: 'Rundgang', it: 'Tour a piedi' },
         ],
         exclusion: [
-            'Tips',
-            'Personal items',
-            'Drinks during lunch'
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'Entry fees', de: 'Eintrittsgelder', it: 'Biglietti d\'ingresso' },
         ],
-        itinerary: { 
-          generalDescription: '<p>Discover the diverse religious history of Cairo.</p>',
-          days: [{ 
-            day: 1, 
-            title: 'Historic Cairo', 
-            description: '<p>Visit the most iconic religious sites in the city.</p>', 
-            activities: [
-              { heading: 'Citadel of Saladin', description: '<p>Visit the alabaster mosque of Mohamed Ali and enjoy panoramic city views.</p>', image: { url: sampleImages.cairo, fileName: 'citadel.jpg' } },
-              { heading: 'Coptic Cairo', description: '<p>Walk the narrow ancient lanes to see the Hanging Church and Abu Serga Church.</p>', image: { url: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800', fileName: 'coptic.jpg' } },
-              { heading: 'Khan el-Khalili', description: '<p>End the day at the famous old bazaar.</p>', image: { url: sampleImages.cairo, fileName: 'bazaar.jpg' } }
-            ] 
-          }] 
+        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 80, pax_2_4: 55, pax_5_8: 45, pax_9_16: 40 } }] }],
+        duration: { en: '6-7 Hours', de: '6-7 Stunden', it: '6-7 ore' },
+        seo: {
+          metaTitle: { en: 'Old Cairo & Islamic Heritage Walk', de: 'Alt-Kairo & Islamisches Erbe Rundgang', it: 'Passeggiata nel Cairo Vecchio e nell\'eredità islamica' },
+          metaDescription: { en: 'Medieval Cairo history with 10 years experienced guides.', de: 'Geschichte des mittelalterlichen Kairo mit erfahrenen Guides.', it: 'Storia del Cairo medievale con guide esperte.' },
+          metaKeywords: { en: 'Old Cairo, Islamic Cairo, Heritage, Walking Tour', de: 'Alt-Kairo, Islamisches Kairo, Erbe, Rundgang', it: 'Cairo Vecchio, Cairo Islamico, Eredità, Tour a piedi' }
         },
         isActive: true,
-        isFeatured: false,
-        seo: { metaTitle: 'Islamic and Coptic Cairo Private Tour', metaDescription: 'Discover the Citadel, Hanging Church, and Khan El Khalili.' },
       },
 
       // 6. Aswan Abu Simbel
       {
         subcategory: subcategoryMap.get('aswan-tours')!,
         idExternal: 'TOUR-006',
-        heading: 'Aswan & Abu Simbel Private Day Tour',
+        heading: {
+          en: 'Aswan & Abu Simbel Private Day Tour',
+          de: 'Privater Tagesausflug nach Assuan & Abu Simbel',
+          it: 'Tour privato di un giorno ad Assuan e Abu Simbel'
+        },
         slug: 'aswan-abu-simbel-day-tour',
         Description: {
-          header: 'Giants of the South',
-          text: '<p>A long but rewarding day. Drive south to Abu Simbel to see the massive temples of Ramses II. Return to Aswan to visit the High Dam and Philae Temple.</p>',
+          header: { en: 'Giants of the South', de: 'Giganten des Südens', it: 'Giganti del Sud' },
+          text: { en: '<p>10+ years expertise in southern tours.</p>', de: '<p>Über 10 Jahre Erfahrung in südlichen Touren.</p>', it: '<p>Oltre 10 anni di esperienza nei tour del sud.</p>' },
         },
-        images: [
-          { url: sampleImages.aswan, fileName: 'abusimbel-main.jpg', title: 'Abu Simbel Facade', alt: 'Four statues of Ramses' },
-        ],
-        tourLocation: 'Aswan/Abu Simbel',
-        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 180, pax_2_4: 130, pax_5_8: 115, pax_9_16: 100 } }] }],
-        tourType: 'Private Tour',
-        duration: '10-11 Hours',
-        tourHighlights: [
-            'Visit the Abu Simbel Temples',
-            'Explore Philae Temple on Isis Island',
-            'See the Aswan High Dam',
-            'Private air-conditioned transport',
-            'Expert Egyptologist guide'
-        ],
+        images: [{ url: sampleImages.aswan, fileName: 'abusimbel-main.jpg', title: { en: 'Abu Simbel Facade', de: 'Abu Simbel Fassade', it: 'Facciata di Abu Simbel' }, alt: { en: 'Four statues of Ramses', de: 'Vier Statuen von Ramses', it: 'Quattro statue di Ramses' } }],
+        tourLocation: { en: 'Aswan/Abu Simbel', de: 'Assuan/Abu Simbel', it: 'Assuan/Abu Simbel' },
         inclusion: [
-            'All transfers by private vehicle',
-            'Private guide',
-            'Entrance fees',
-            'Lunch in Aswan',
-            'Bottled water'
+          { en: 'Private transport', de: 'Privater Transport', it: 'Trasporto privato' },
+          { en: 'Lunch', de: 'Mittagessen', it: 'Pranzo' },
         ],
         exclusion: [
-            'Tips',
-            'Personal expenses',
-            'Drinks'
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'Entry fees', de: 'Eintrittsgelder', it: 'Biglietti d\'ingresso' },
         ],
-        itinerary: { 
-          generalDescription: '<p>A combo tour of the most impressive southern monuments.</p>',
-          days: [{ 
-            day: 1, 
-            title: 'Abu Simbel & Aswan', 
-            description: '<p>Early morning drive to Abu Simbel followed by Aswan sightseeing.</p>', 
-            activities: [
-              { heading: 'Abu Simbel Temples', description: '<p>Explore the Great Temple of Ramses II and the Temple of Nefertari.</p>', image: { url: sampleImages.aswan, fileName: 'abusimbel.jpg' } },
-              { heading: 'Philae Temple', description: '<p>Return to Aswan to visit the beautiful island temple of Isis.</p>', image: { url: sampleImages.aswan, fileName: 'philae.jpg' } },
-              { heading: 'Aswan High Dam', description: '<p>See the modern engineering marvel that controls the Nile.</p>', image: { url: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800', fileName: 'dam.jpg' } } 
-            ] 
-          }] 
+        duration: { en: '10-11 Hours', de: '10-11 Stunden', it: '10-11 ore' },
+        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 180, pax_2_4: 130, pax_5_8: 115, pax_9_16: 100 } }] }],
+        seo: {
+          metaTitle: { en: 'Aswan & Abu Simbel Private Day Tour', de: 'Assuan & Abu Simbel Privattour', it: 'Tour privato di un giorno ad Assuan e Abu Simbel' },
+          metaDescription: { en: 'Visit the giants of the south with 10+ years experts.', de: 'Besuchen Sie die Giganten des Südens mit Experten.', it: 'Visita i giganti del sud con esperti.' },
+          metaKeywords: { en: 'Aswan, Abu Simbel, Private Tour, Egypt', de: 'Assuan, Abu Simbel, Privattour, Ägypten', it: 'Assuan, Abu Simbel, Tour Privato, Egitto' }
         },
-        whatToPack: ['Breakfast box from hotel', 'Comfortable clothes', 'Water'],
         isActive: true,
         isFeatured: true,
-        seo: { metaTitle: 'Abu Simbel Tour from Aswan', metaDescription: 'Private day trip to Abu Simbel and Philae Temple from Aswan.' },
       },
 
       // 7. White Desert
       {
         subcategory: subcategoryMap.get('cairo-tours')!,
         idExternal: 'TOUR-007',
-        heading: '2-Day White Desert Camping Adventure',
+        heading: {
+          en: '2-Day White Desert Camping Adventure',
+          de: '2-tägiges Wüstencamping-Abenteuer',
+          it: 'Avventura in campeggio nel deserto bianco di 2 giorni'
+        },
         slug: 'white-desert-camping-2-days',
         Description: {
-          header: 'A Night Under the Galaxy',
-          text: '<p>Leave the chaos of the city for the serenity of the White Desert. See the Mushroom Rock, Crystal Mountain, and camp under a blanket of stars.</p>',
+          header: { en: 'A Night Under the Galaxy', de: 'Eine Nacht unter der Galaxie', it: 'Una notte sotto la galassia' },
+          text: { en: '<p>Safely camp with guides having 10+ years experience.</p>', de: '<p>Sicher campen mit Guides, die über 10 Jahre Erfahrung haben.</p>', it: '<p>Campeggia in sicurezza con guide che hanno oltre 10 anni di esperienza.</p>' },
         },
-        images: [
-          { url: sampleImages.desert, fileName: 'white-desert-night.jpg', title: 'Camping under stars', alt: 'Tent in White Desert' },
-        ],
-        tourLocation: 'Bahariya Oasis',
-        tourType: 'Adventure/Camping',
-        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 250, pax_2_4: 160, pax_5_8: 140, pax_9_16: 130 } }] }],
-        tourHighlights: ['4x4 Dune Bashing', 'Camping', 'BBQ Dinner', 'Hot Springs'],
-        duration: '2 Days / 1 Night',
+        images: [{ url: sampleImages.desert, fileName: 'white-desert-night.jpg', title: { en: 'Camping under stars', de: 'Camping unter Sternen', it: 'Campeggio sotto le stelle' }, alt: { en: 'Tent in White Desert', de: 'Zelt in der Weißen Wüste', it: 'Tenda nel deserto bianco' } }],
+        tourLocation: { en: 'Bahariya Oasis', de: 'Bahariya Oase', it: 'Oasi di Bahariya' },
         inclusion: [
-            'transfers from Cairo to Bahariya',
-            '4x4 Jeep for desert safari',
-            'Camping equipment (tents, sleeping bags)',
-            'All meals (Breakfast, Lunch, Dinner)',
-            'Guide and driver'
+          { en: 'Camping gear', de: 'Campingausrüstung', it: 'Attrezzatura da campeggio' },
+          { en: 'Meals and water', de: 'Mahlzeiten und Wasser', it: 'Pasti e acqua' },
         ],
         exclusion: [
-            'Tips',
-            'Personal beverages',
-            'Travel insurance'
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'National Park fees', de: 'Nationalpark-Gebühren', it: 'Tasse del Parco Nazionale' },
         ],
-        itinerary: { 
-          generalDescription: '<p>A thrilling desert safari and overnight camping experience.</p>',
-          days: [
-            { 
-              day: 1, 
-              title: 'Cairo to the White Desert', 
-              description: 'Drive to Bahariya, transfer to 4x4, and head into the surreal landscapes.', 
-              activities: [
-                { heading: 'Black Desert', description: '<p>Stop at the volcanic Black Desert and climb the English Mountain.</p>', image: { url: sampleImages.desert, fileName: 'black-desert.jpg' } },
-                { heading: 'Crystal Mountain', description: '<p>See the sparkling quartz crystals.</p>', image: { url: sampleImages.desert, fileName: 'crystal.jpg' } },
-                { heading: 'Camping & BBQ', description: '<p>Set up camp among the white chalk formations and enjoy a BBQ dinner.</p>', image: { url: sampleImages.desert, fileName: 'camp.jpg' } }
-              ] 
-            }, 
-            { 
-              day: 2, 
-              title: 'Sunrise & Return', 
-              description: 'Wake up to a magical sunrise before returning to Cairo.', 
-              activities: [
-                 { heading: 'Sunrise Photography', description: '<p>Capture the desert in the soft morning light.</p>', image: { url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800', fileName: 'sunrise-desert.jpg' } },
-                 { heading: 'Return Drive', description: '<p>Drive back to Bahariya for lunch, then to Cairo.</p>', image: { url: sampleImages.desert, fileName: 'jeep.jpg' } }
-              ] 
-            }
-          ] 
+        duration: { en: '2 Days / 1 Night', de: '2 Tage / 1 Nacht', it: '2 giorni / 1 notte' },
+        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 250, pax_2_4: 160, pax_5_8: 140, pax_9_16: 130 } }] }],
+        seo: {
+          metaTitle: { en: 'White Desert Camping Adventure | 2-Day Tour', de: 'Wüstencamping-Abenteuer | 2-Tage-Tour', it: 'Avventura in campeggio nel deserto bianco | Tour di 2 giorni' },
+          metaDescription: { en: 'Unforgettable camping in the White Desert with 10+ years experience.', de: 'Unvergessliches Camping in der Weißen Wüste.', it: 'Campeggio indimenticabile nel deserto bianco.' },
+          metaKeywords: { en: 'White Desert, Camping, Bahariya Oasis, Adventure', de: 'Weiße Wüste, Camping, Oase Bahariya, Abenteuer', it: 'Deserto Bianco, Campeggio, Oasi di Bahariya, Avventura' }
         },
         isActive: true,
-        isFeatured: false,
-        seo: { metaTitle: 'White Desert Camping Tour from Cairo', metaDescription: 'Overnight camping trip to the White Desert.' },
       },
 
       // 8. Alexandria
       {
         subcategory: subcategoryMap.get('cairo-tours')!,
         idExternal: 'TOUR-008',
-        heading: 'Alexandria Day Trip: The Pearl of the Mediterranean',
+        heading: {
+          en: 'Alexandria Day Trip: The Pearl of the Mediterranean',
+          de: 'Alexandria Tagesausflug: Perle des Mittelmeers',
+          it: 'Escursione di un giorno ad Alessandria: la perla del Mediterraneo'
+        },
         slug: 'alexandria-day-tour-from-cairo',
         Description: {
-          header: 'Greco-Roman History by the Sea',
-          text: '<p>Drive north to Alexandria. Visit the Catacombs, Pompey\'s Pillar, Qaitbay Citadel (outside), and the modern Library of Alexandria. Enjoy a fresh seafood lunch.</p>',
+          header: { en: 'Greco-Roman History', de: 'Griechisch-römische Geschichte', it: 'Storia greco-romana' },
+          text: { en: '<p>Discover Alexandria with our 10+ years experienced guides.</p>', de: '<p>Entdecken Sie Alexandria mit unseren Guides, die über 10 Jahre Erfahrung haben.', it: '<p>Scopri Alessandria con le nostre guide con oltre 10 anni di esperienza.' },
         },
-        images: [
-          { url: sampleImages.cairo, fileName: 'alex-citadel.jpg', title: 'Qaitbay Citadel', alt: 'Fortress by the sea' },
-        ],
-        tourLocation: 'Alexandria',
-        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 130, pax_2_4: 90, pax_5_8: 80, pax_9_16: 70 } }] }],
-        tourType: 'Private Day Trip',
-        duration: '10-11 Hours',
-        tourHighlights: [
-            'Visit the Bibliotheca Alexandrina',
-            'See the Catacombs of Kom El Shoqafa',
-            'View the Citadel of Qaitbay',
-            'Enjoy a seafood lunch with sea view',
-            'Private transportation'
-        ],
+        images: [{ url: sampleImages.cairo, fileName: 'alex-citadel.jpg', title: { en: 'Qaitbay Citadel', de: 'Qaitbay-Zitadelle', it: 'Cittadella di Qaitbay' }, alt: { en: 'Fortress by the sea', de: 'Festung am Meer', it: 'Fortezza sul mare' } }],
+        tourLocation: { en: 'Alexandria', de: 'Alexandria', it: 'Alessandria' },
         inclusion: [
-            'Private vehicle transfers',
-            'Professional guide',
-            'Entrance fees',
-            'Seafood lunch',
-            'Bottled water'
+          { en: 'Private transport', de: 'Privater Transport', it: 'Trasporto privato' },
+          { en: 'Expert guide', de: 'Experte als Guide', it: 'Guida esperta' },
         ],
         exclusion: [
-            'Tips',
-            'Personal expenses',
-            'Drinks during lunch'
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'Lunch', de: 'Mittagessen', it: 'Pranzo' },
         ],
-        itinerary: { 
-          generalDescription: '<p>Explore the city founded by Alexander the Great.</p>',
-          days: [{ 
-            day: 1, 
-            title: 'Alexandria Highlights', 
-            description: 'Full day sightseeing in the Mediterranean city.', 
-            activities: [
-               { heading: 'Catacombs of Kom El Shoqafa', description: '<p>Descend into the largest Roman burial site in Egypt.</p>', image: { url: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800', fileName: 'catacombs.jpg' } },
-               { heading: 'Qaitbay Citadel', description: '<p>Built on the site of the ancient Lighthouse of Alexandria.</p>', image: { url: sampleImages.cairo, fileName: 'qaitbay.jpg' } },
-               { heading: 'Bibliotheca Alexandrina', description: '<p>Visit the modern library and its museums.</p>', image: { url: sampleImages.cairo, fileName: 'library.jpg' } } 
-            ] 
-          }] 
+        duration: { en: '10-11 Hours', de: '10-11 Stunden', it: '10-11 ore' },
+        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 130, pax_2_4: 90, pax_5_8: 80, pax_9_16: 70 } }] }],
+        seo: {
+          metaTitle: { en: 'Alexandria Day Trip from Cairo', de: 'Alexandria Tagesausflug von Kairo', it: 'Escursione di un giorno ad Alessandria dal Cairo' },
+          metaDescription: { en: 'Discover the Pearl of the Mediterranean with expert guides.', de: 'Entdecken Sie die Perle des Mittelmeers.', it: 'Scopri la perla del Mediterraneo.' },
+          metaKeywords: { en: 'Alexandria, Cairo, Day Trip, History', de: 'Alexandria, Kairo, Tagesausflug, Geschichte', it: 'Alessandria, Il Cairo, Escursione, Storia' }
         },
         isActive: true,
-        isFeatured: false,
-        seo: { metaTitle: 'Alexandria Day Trip from Cairo', metaDescription: 'Private tour to Alexandria visiting Library, Catacombs, and Citadel.' },
       },
 
       // 9. Memphis Saqqara
       {
         subcategory: subcategoryMap.get('cairo-tours')!,
         idExternal: 'TOUR-009',
-        heading: 'Half-Day Saqqara & Memphis Tour',
+        heading: {
+          en: 'Half-Day Saqqara & Memphis Tour',
+          de: 'Halbtagesausflug Sakkara & Memphis',
+          it: 'Tour di mezza giornata a Saqqara e Menfi'
+        },
         slug: 'saqqara-memphis-half-day',
         Description: {
-          header: 'Short Trip to Ancient Origins',
-          text: '<p>Perfect for those with limited time. Visit the Step Pyramid complex and the open-air museum of Memphis.</p>',
+          header: { en: 'Ancient Origins', de: 'Antike Ursprünge', it: 'Origini antiche' },
+          text: { en: '<p>Compact tour with professional expertise (10+ years).</p>', de: '<p>Kompakte Tour mit professioneller Kompetenz (über 10 Jahre).</p>', it: '<p>Tour compatto con competenza professionale (oltre 10 anni).</p>' },
         },
-        images: [
-          { url: sampleImages.pyramids, fileName: 'memphis-statue.jpg', title: 'Ramses II Statue', alt: 'Colossus of Ramses' },
-        ],
-        tourLocation: 'Giza',
-        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 70, pax_2_4: 50, pax_5_8: 45, pax_9_16: 40 } }] }],
-        tourType: 'Private Half-Day',
-        duration: '5 Hours',
-        tourHighlights: [
-            'See the Step Pyramid of Djoser',
-            'Visit the ancient capital of Memphis',
-            'See the colossal statue of Ramses II',
-            'Short and convenient tour'
-        ],
+        images: [{ url: sampleImages.pyramids, fileName: 'memphis-statue.jpg', title: { en: 'Ramses II Statue', de: 'Ramses II Statue', it: 'Statua di Ramses II' }, alt: { en: 'Colossus of Ramses', de: 'Koloss von Ramses', it: 'Colosso di Ramses' } }],
+        tourLocation: { en: 'Giza', de: 'Gizeh', it: 'Giza' },
         inclusion: [
-            'Private vehicle and driver',
-            'Expert guide',
-            'Entrance fees',
-            'Bottled water',
-            'Hotel pickup/drop-off'
+          { en: 'Private transport', de: 'Privater Transport', it: 'Trasporto privato' },
+          { en: 'Expert guide', de: 'Experte als Guide', it: 'Guida esperta' },
         ],
         exclusion: [
-            'Tips',
-            'Meals',
-            'Personal spending'
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'Entry fees', de: 'Eintrittsgelder', it: 'Biglietti d\'ingresso' },
         ],
-        itinerary: { 
-          generalDescription: '<p>A journey to the earliest capitals of Egypt.</p>',
-          days: [{ 
-            day: 1, 
-            title: 'Saqqara & Memphis', 
-            description: 'Visit the Step Pyramid and the Memphis Open Air Museum.', 
-            activities: [
-               { heading: 'Step Pyramid of Djoser', description: '<p>See the first stone pyramid ever built.</p>', image: { url: sampleImages.pyramids, fileName: 'step-pyr.jpg' } },
-               { heading: 'Memphis Museum', description: '<p>Marvel at the colossal statue of Ramses II.</p>', image: { url: sampleImages.pyramids, fileName: 'memphis-colossus.jpg' } }
-            ] 
-          }] 
+        duration: { en: '5 Hours', de: '5 Stunden', it: '5 ore' },
+        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 70, pax_2_4: 50, pax_5_8: 45, pax_9_16: 40 } }] }],
+        seo: {
+          metaTitle: { en: 'Saqqara & Memphis Half-Day Tour', de: 'Sakkara & Memphis Halbtagestour', it: 'Tour di mezza giornata a Saqqara e Menfi' },
+          metaDescription: { en: 'Compact ancient Egypt tour with professional expertise.', de: 'Antike Ägypten-Tour mit professioneller Kompetenz.', it: 'Tour dell\'antico Egitto con competenza professionale.' },
+          metaKeywords: { en: 'Saqqara, Memphis, Ancient Egypt, Half-Day Tour', de: 'Sakkara, Memphis, Altes Ägypten, Halbtagestour', it: 'Saqqara, Menfi, Antico Egitto, Tour di mezza giornata' }
         },
         isActive: true,
-        isFeatured: false,
-        seo: { metaTitle: 'Saqqara and Memphis Half Day Tour', metaDescription: 'Visit the Step Pyramid of Djoser and Memphis City.' },
       },
 
       // 10. Felucca
       {
         subcategory: subcategoryMap.get('aswan-tours')!,
         idExternal: 'TOUR-010',
-        heading: 'Sunset Felucca Ride & Nubian Village',
+        heading: {
+          en: 'Sunset Felucca Ride & Nubian Village',
+          de: 'Sonnenuntergang Feluka-Fahrt & Nubisches Dorf',
+          it: 'Giro in feluca al tramonto e villaggio nubiano'
+        },
         slug: 'aswan-felucca-nubian-culture',
         Description: {
-          header: 'Sail and Smile',
-          text: '<p>Enjoy a peaceful sailboat ride on the Nile at sunset. Visit a Nubian family house, see the crocodiles, and enjoy tea.</p>',
+          header: { en: 'Sail and Smile', de: 'Segeln und Lächeln', it: 'Vela e sorriso' },
+          text: { en: '<p>Traditional experience with 10+ years of excellence.</p>', de: '<p>Traditionelles Erlebnis mit über 10 Jahren Exzellenz.</p>', it: '<p>Esperienza tradizionale con oltre 10 anni di eccellenza.</p>' },
         },
-        images: [
-          { url: sampleImages.nile, fileName: 'nubian-house.jpg', title: 'Nubian House', alt: 'Colorful Nubian village' },
-        ],
-        tourLocation: 'Aswan',
-        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 45, pax_2_4: 30, pax_5_8: 25, pax_9_16: 20 } }] }],
-        tourType: 'Experience',
-        duration: '3-4 Hours',
-        tourHighlights: [
-            'Sailing on a traditional Felucca',
-            'Beautiful sunset views',
-            'Visit a local Nubian family',
-            'Experience Nubian culture and hospitality'
-        ],
+        images: [{ url: sampleImages.nile, fileName: 'nubian-house.jpg', title: { en: 'Nubian House', de: 'Nubisches Haus', it: 'Casa nubiana' }, alt: { en: 'Colorful Nubian village', de: 'Buntes nubisches Dorf', it: 'Colorato villaggio nubiano' } }],
+        tourLocation: { en: 'Aswan', de: 'Assuan', it: 'Assuan' },
         inclusion: [
-            'Hotel/Cruise pickup and drop-off',
-            'Felucca boat ride',
-            'Motorboat to Nubian village',
-            'Tea/Coffee hospitality',
-            'Guide assistance'
+          { en: 'Felucca ride', de: 'Felluckenfahrt', it: 'Giro in feluca' },
+          { en: 'Village visit', de: 'Dorfbesuch', it: 'Visita al villaggio' },
         ],
         exclusion: [
-            'Tips',
-            'Personal purchases'
+          { en: 'Tipping', de: 'Trinkgelder', it: 'Mance' },
+          { en: 'Drinks', de: 'Getränke', it: 'Bevande' },
         ],
-        itinerary: { 
-          generalDescription: '<p>A cultural experience on the Nile.</p>',
-          days: [{ 
-            day: 1, 
-            title: 'Felucca & Nubian Culture', 
-            description: 'Relaxing sailing followed by cultural immersion.', 
-            activities: [
-               { heading: 'Felucca Ride', description: '<p>Let the wind guide you along the Nile at sunset.</p>', image: { url: sampleImages.nile, fileName: 'felucca-sunset.jpg' } },
-               { heading: 'Nubian Village', description: '<p>Meet locals, see the colorful houses, and drink mint tea.</p>', image: { url: sampleImages.nile, fileName: 'nubian.jpg' } } 
-            ] 
-          }] 
+        duration: { en: '3-4 Hours', de: '3-4 Stunden', it: '3-4 ore' },
+        pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 45, pax_2_4: 30, pax_5_8: 25, pax_9_16: 20 } }] }],
+        seo: {
+          metaTitle: { en: 'Sunset Felucca Ride & Nubian Village', de: 'Sonnenuntergang Feluka-Fahrt & Nubisches Dorf', it: 'Giro in feluca al tramonto e villaggio nubiano' },
+          metaDescription: { en: 'Traditional Nile experience with 10+ years excellence.', de: 'Traditionelles Nil-Erlebnis mit Exzellenz.', it: 'Esperienza tradizionale sul Nilo con eccellenza.' },
+          metaKeywords: { en: 'Aswan, Felucca, Nubian Village, Nile, Sunset', de: 'Assuan, Feluka, Nubisches Dorf, Nil, Sonnenuntergang', it: 'Assuan, Feluca, Villaggio Nubiano, Nilo, Tramonto' }
         },
         isActive: true,
-        isFeatured: false,
-        seo: { metaTitle: 'Felucca Ride to Nubian Village Aswan', metaDescription: 'Sail the Nile and visit a Nubian Village in Aswan.' },
       }
     ];
 
@@ -1016,7 +834,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
     for (const tourData of tours) {
       const tour = await Tour.create(tourData);
       createdCount++;
-      log.success(`Tour ${createdCount}/${tours.length}: ${tour.heading}`);
+        log.success(`Tour ${createdCount}/${tours.length}: ${tour.heading.en}`);
     }
     
     log.success(`Created ${createdCount} tours successfully`);

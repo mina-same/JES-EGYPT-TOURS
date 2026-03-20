@@ -1,5 +1,7 @@
+import { ILocalizedString } from "./tour";
+
 export interface SliderButton {
-  text: string;
+  text: ILocalizedString;
   link: string;
   linkDirection: '_blank' | '_self';
 }
@@ -7,13 +9,13 @@ export interface SliderButton {
 export interface SliderImage {
   url: string;
   fileName: string;
-  title?: string;
-  alt?: string;
+  title?: ILocalizedString;
+  alt?: ILocalizedString;
 }
 
 export interface SliderUnderPromo {
-  text: string;
-  linkText: string;
+  text: ILocalizedString;
+  linkText: ILocalizedString;
   link: string;
   linkDirection: '_blank' | '_self';
 }
@@ -22,10 +24,10 @@ export type GlobalSliderPromo = SliderUnderPromo;
 
 export interface SliderItem {
   _id: string;
-  subtitle: string;
-  title: string;
-  titleSpan: string;
-  titleEnd: string;
+  subtitle: ILocalizedString;
+  title: ILocalizedString;
+  titleSpan: ILocalizedString;
+  titleEnd: ILocalizedString;
   image: SliderImage;
   lineShape?: SliderImage;
   button?: SliderButton;

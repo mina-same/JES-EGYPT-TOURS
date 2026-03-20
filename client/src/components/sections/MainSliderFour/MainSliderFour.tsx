@@ -5,7 +5,8 @@ import LineShape from "@/assets/images/shapes/line-shape.png";
 import Link from "next/link";
 import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
 import { sliderService } from "@/services/sliderService";
-// import BannerForm from "../BannerForm/BannerForm";
+import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
 
 // Add custom styles for dots
 const dotsStyles = `
@@ -53,16 +54,16 @@ type SlideVM = {
   buttonTarget?: "_blank" | "_self";
 };
 
-const mapApiSlideToVm = (item: ApiSliderItem): SlideVM => {
+const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => {
   return {
     id: item._id,
-    subtitle: item.subtitle,
-    title: item.title,
-    titleSpan: item.titleSpan,
-    titleEnd: item.titleEnd,
+    subtitle: getLocalizedValue(item.subtitle, lang),
+    title: getLocalizedValue(item.title, lang),
+    titleSpan: getLocalizedValue(item.titleSpan, lang),
+    titleEnd: getLocalizedValue(item.titleEnd, lang),
     imageUrl: item.image?.url,
-    imageAlt: item.image?.alt || item.image?.title || "slider image",
-    buttonText: item.button?.text,
+    imageAlt: getLocalizedValue(item.image?.alt, lang) || getLocalizedValue(item.image?.title, lang) || "slider image",
+    buttonText: item.button?.text ? getLocalizedValue(item.button.text, lang) : undefined,
     buttonLink: item.button?.link,
     buttonTarget: item.button?.linkDirection,
   };
@@ -88,6 +89,7 @@ const settings = {
 };
 
 const MainSliderFour: React.FC = () => {
+  const { i18n } = useTranslation();
   const [promo, setPromo] = React.useState<SliderUnderPromo | null>(null);
   const [slides, setSlides] = React.useState<SlideVM[]>([]);
 
@@ -106,7 +108,7 @@ const MainSliderFour: React.FC = () => {
     const loadSlides = async () => {
       try {
         const items = await sliderService.getActiveSliderContent();
-        const mapped = (items || []).map(mapApiSlideToVm).filter((s) => !!s.imageUrl);
+        const mapped = (items || []).map((item) => mapApiSlideToVm(item, i18n.language)).filter((s) => !!s.imageUrl);
 
         setSlides(mapped);
       } catch {
@@ -125,7 +127,7 @@ const MainSliderFour: React.FC = () => {
 
     loadSlides();
     loadPromo();
-  }, []);
+  }, [i18n.language]);
 
   if (!slides.length) {
     return null;
@@ -141,6 +143,8 @@ const MainSliderFour: React.FC = () => {
                 <div className='main-slider-four__item'>
                   <div
                     className='main-slider-four__bg'
+                    role="img"
+                    aria-label={item.imageAlt}
                     style={{
                       backgroundImage: `url(${item.imageUrl})`,
                     }}
@@ -203,14 +207,14 @@ const MainSliderFour: React.FC = () => {
             {promo?.text && promo?.link && promo?.linkText && (
               <div className='main-slider-four__promo-wrapper'>
                 <span className='main-slider-four__promo-text'>
-                  🎉 {promo.text}{' '}
+                  🎉 {getLocalizedValue(promo.text, i18n.language)}{' '}
                   <Link
                     href={promo.link}
                     target={promo.linkDirection === '_blank' ? '_blank' : undefined}
                     rel={promo.linkDirection === '_blank' ? 'noopener noreferrer' : undefined}
                     className='main-slider-four__promo-btn'
                   >
-                    {promo.linkText} →
+                    {getLocalizedValue(promo.linkText, i18n.language)} →
                   </Link>
                 </span>
               </div>

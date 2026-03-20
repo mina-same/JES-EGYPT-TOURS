@@ -28,8 +28,12 @@ import faqRoutes from './routes/faqRoutes';
 import menuRoutes from './routes/menuRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import connectDB from './config/database';
+import { i18nMiddleware } from './middleware/i18n';
 
 const app: Application = express();
+
+// Set up locale based on request headers
+app.use(i18nMiddleware);
 
 // Behind Vercel/any reverse proxy, enable trust proxy so rate-limit + IP detection works.
 app.set('trust proxy', 1);
@@ -59,8 +63,8 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Locale'],
+    exposedHeaders: ['Content-Type', 'Authorization', 'X-Locale'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
   })

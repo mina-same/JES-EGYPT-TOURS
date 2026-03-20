@@ -36,11 +36,11 @@ export const getAllBlogs = async (
       query.tags = { $in: tagArray };
     }
 
-    // Search in title and excerpt
+    // Search in title and excerpt (English)
     if (search) {
       query.$or = [
-        { title: { $regex: search as string, $options: 'i' } },
-        { excerpt: { $regex: search as string, $options: 'i' } },
+        { 'title.en': { $regex: search as string, $options: 'i' } },
+        { 'excerpt.en': { $regex: search as string, $options: 'i' } },
       ];
     }
 
@@ -324,6 +324,17 @@ export const createBlog = async (
   res: Response
 ): Promise<void> => {
   try {
+    const { title } = req.body;
+
+    // Validation
+    if (!title || !title.en) {
+      res.status(400).json({
+        success: false,
+        error: 'English title is required',
+      });
+      return;
+    }
+
     // Normalize image fields for backward compatibility
     const body = { ...req.body };
     
@@ -375,6 +386,17 @@ export const updateBlog = async (
   res: Response
 ): Promise<void> => {
   try {
+    const { title } = req.body;
+
+    // Validation if title is being updated
+    if (title !== undefined && (!title || !title.en)) {
+      res.status(400).json({
+        success: false,
+        error: 'English title is required',
+      });
+      return;
+    }
+
     // Normalize image fields for backward compatibility
     const body = { ...req.body };
     

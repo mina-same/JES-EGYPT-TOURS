@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { LocalizedStringSchema, ILocalizedString } from './shared/LocalizedSchema';
 
 export interface IVideoReview extends Document {
-  title: string;
+  title: ILocalizedString;
   url: string;
   videoId: string;
-  tourName: string;
+  tourName: ILocalizedString;
   thumbnail?: string;
   isActive: boolean;
   order: number;
@@ -14,9 +15,8 @@ export interface IVideoReview extends Document {
 
 const VideoReviewSchema: Schema = new Schema({
   title: {
-    type: String,
+    type: LocalizedStringSchema,
     required: [true, 'Title is required'],
-    trim: true,
   },
   url: {
     type: String,
@@ -29,9 +29,8 @@ const VideoReviewSchema: Schema = new Schema({
     trim: true,
   },
   tourName: {
-    type: String,
+    type: LocalizedStringSchema,
     required: [true, 'Tour Name is required'],
-    trim: true,
   },
   thumbnail: {
     type: String,

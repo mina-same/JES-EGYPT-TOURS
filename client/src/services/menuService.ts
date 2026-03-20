@@ -1,8 +1,9 @@
 import axiosInstance from '@/lib/api/axios';
+import { ILocalizedString } from '@/types/tour';
 
 export interface MenuItem {
   _id?: string;
-  label: string;
+  label: ILocalizedString;
   url?: string;
   isActive: boolean;
   order: number;
@@ -12,7 +13,7 @@ export interface MenuItem {
 export interface Menu {
   _id: string;
   key: string;
-  title: string;
+  title: ILocalizedString;
   isActive: boolean;
   items: MenuItem[];
   createdAt: string;
