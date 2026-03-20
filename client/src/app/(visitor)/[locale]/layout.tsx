@@ -33,9 +33,14 @@ export async function generateMetadata({
         "x-default": `${baseUrl}/en`,
       },
     },
+    icons: {
+      icon: "/favicon-logo.png",
+      apple: "/favicon-logo.png",
+    },
     robots: "noindex, nofollow",
   };
 }
+
 
 
 const jakartaSans = Plus_Jakarta_Sans({
