@@ -292,18 +292,30 @@ function BlockContent({
               onUpdate(index, 'images', [...currentImages, {
                 url: '',
                 fileName: '',
-                title: '',
-                alt: ''
+                title: { en: '', de: '', it: '', es: '' },
+                alt: { en: '', de: '', it: '', es: '' }
               }]);
             }}
             onRemove={(imageIndex) => {
               const newImages = block.images?.filter((_, i) => i !== imageIndex) || [];
               onUpdate(index, 'images', newImages);
             }}
-            onUpdate={(imageIndex, field, value) => {
+            onUpdate={(imageIndex, field, value, lang) => {
               const newImages = [...(block.images || [])];
               if (newImages[imageIndex]) {
-                newImages[imageIndex] = { ...newImages[imageIndex], [field]: value };
+                const targetLang = lang || activeLanguage;
+                if (['alt', 'title'].includes(field)) {
+                    const currentVal = newImages[imageIndex][field] || { en: '', de: '', it: '', es: '' };
+                    newImages[imageIndex] = { 
+                        ...newImages[imageIndex], 
+                        [field]: { 
+                            ...(typeof currentVal === 'string' ? { en: currentVal, de: '', it: '', es: '' } : currentVal),
+                            [targetLang]: value 
+                        } 
+                    };
+                } else {
+                    newImages[imageIndex] = { ...newImages[imageIndex], [field]: value };
+                }
               }
               onUpdate(index, 'images', newImages);
             }}
@@ -314,9 +326,11 @@ function BlockContent({
             title="Image Gallery"
             description="Upload single or multiple images for a gallery layout"
             maxImages={6}
+            activeLanguage={activeLanguage}
           />
         </div>
       );
+
 
     default:
       return null;

@@ -27,8 +27,8 @@ interface BlogCategoryFormData {
   image?: {
     url: string;
     fileName: string;
-    title: string;
-    alt: string;
+    title: ILocalizedString;
+    alt: ILocalizedString;
   };
   seo?: {
     metaTitle: ILocalizedString;
@@ -37,8 +37,8 @@ interface BlogCategoryFormData {
     metaImage?: {
       url: string;
       fileName: string;
-      title: string;
-      alt: string;
+      title: ILocalizedString;
+      alt: ILocalizedString;
     };
   };
   isActive: boolean;
@@ -63,8 +63,8 @@ export default function NewBlogCategoryPage() {
     image: {
       url: '',
       fileName: '',
-      title: '',
-      alt: '',
+      title: { en: '', de: '', it: '', es: '' },
+      alt: { en: '', de: '', it: '', es: '' },
     },
     seo: {
       metaTitle: { en: '', de: '', it: '', es: '' },
@@ -73,8 +73,8 @@ export default function NewBlogCategoryPage() {
       metaImage: {
         url: '',
         fileName: '',
-        title: '',
-        alt: '',
+        title: { en: '', de: '', it: '', es: '' },
+        alt: { en: '', de: '', it: '', es: '' },
       },
     },
     isActive: true,
@@ -96,13 +96,6 @@ export default function NewBlogCategoryPage() {
       if (response.success && response.data) {
         const data = response.data;
         
-        // Handle image which might be a string (URL) in backend response but form expects object structure for ImageUpload
-        // Ideally backend returns string for BlogCategory.image
-        // We need to adapt it. If it's a string, we put it in url.
-        const imageObj = typeof data.image === 'string' 
-          ? { url: data.image, fileName: '', title: '', alt: '' }
-          : (data.image || { url: '', fileName: '', title: '', alt: '' });
-
         const mapToLocalized = (val: any): ILocalizedString => {
           if (!val) return { en: '', de: '', it: '', es: '' };
           if (typeof val === 'string') return { en: val, de: '', it: '', es: '' };
@@ -114,6 +107,15 @@ export default function NewBlogCategoryPage() {
           };
         };
 
+        const imageObj = typeof data.image === 'string' 
+          ? { url: data.image, fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
+          : {
+              url: data.image?.url || '',
+              fileName: data.image?.fileName || '',
+              title: mapToLocalized(data.image?.title),
+              alt: mapToLocalized(data.image?.alt),
+            };
+
         setFormData({
           name: mapToLocalized(data.name),
           slug: data.slug || '',
@@ -123,16 +125,17 @@ export default function NewBlogCategoryPage() {
             metaTitle: mapToLocalized(data.metaTitle),
             metaDescription: mapToLocalized(data.metaDescription),
             metaKeywords: Array.isArray(data.metaKeywords) ? data.metaKeywords : [],
-            metaImage: data.metaImage || {
-              url: '',
-              fileName: '',
-              title: '',
-              alt: '',
+            metaImage: {
+              url: data.metaImage?.url || '',
+              fileName: data.metaImage?.fileName || '',
+              title: mapToLocalized(data.metaImage?.title),
+              alt: mapToLocalized(data.metaImage?.alt),
             },
           },
           isActive: data.isActive !== undefined ? !!data.isActive : true,
         });
       }
+
     } catch (err: any) {
       setError(err.message || 'Failed to fetch category data');
       console.error('Error fetching category:', err);
@@ -150,7 +153,8 @@ export default function NewBlogCategoryPage() {
   };
 
   // Handle form field changes
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: any, lang?: AdminLanguage) => {
+    const targetLang = lang || activeLanguage;
     setFormData(prev => {
       const updated = { ...prev } as any;
       
@@ -158,11 +162,11 @@ export default function NewBlogCategoryPage() {
       if (['name', 'description'].includes(field)) {
         updated[field] = {
           ...(updated[field] || { en: '', de: '', it: '', es: '' }),
-          [activeLanguage]: value,
+          [targetLang]: value,
         };
         
         // Auto-generate slug when English name changes
-        if (field === 'name' && activeLanguage === 'en') {
+        if (field === 'name' && targetLang === 'en') {
           updated.slug = generateSlug(value);
         }
       } 
@@ -172,7 +176,7 @@ export default function NewBlogCategoryPage() {
         if (['metaTitle', 'metaDescription'].includes(seoField)) {
           updated.seo[seoField] = {
             ...(updated.seo[seoField] || { en: '', de: '', it: '', es: '' }),
-            [activeLanguage]: value,
+            [targetLang]: value,
           };
         } else {
           updated.seo[seoField] = value;
@@ -181,10 +185,20 @@ export default function NewBlogCategoryPage() {
       // Handle nested fields (e.g. image.url)
       else if (field.includes('.')) {
         const [parent, child] = field.split('.');
-        updated[parent] = {
-          ...(updated[parent] || {}),
-          [child]: value,
-        };
+        const lastKey = child;
+        
+        if (['alt', 'title'].includes(lastKey)) {
+             if (!updated[parent]) updated[parent] = {};
+             updated[parent][lastKey] = {
+                 ...(updated[parent][lastKey] || { en: '', de: '', it: '', es: '' }),
+                 [targetLang]: value,
+             };
+        } else {
+            updated[parent] = {
+              ...(updated[parent] || {}),
+              [child]: value,
+            };
+        }
       } else {
         updated[field] = value;
       }
@@ -192,6 +206,7 @@ export default function NewBlogCategoryPage() {
       return updated as BlogCategoryFormData;
     });
   };
+
 
   // Handle keywords
   const handleKeywordsChange = (value: string) => {
@@ -427,17 +442,8 @@ export default function NewBlogCategoryPage() {
               onRemove={() => {
                 handleChange('image', { url: '', title: '', alt: '', fileName: '' });
               }}
-              onUpdate={(index, field, value) => {
-                setFormData(prev => {
-                  const currentImage = prev.image || { url: '', title: '', alt: '', fileName: '' };
-                  return {
-                    ...prev,
-                    image: {
-                      ...currentImage,
-                      [field]: value,
-                    },
-                  };
-                });
+              onUpdate={(index, field, value, lang) => {
+                handleChange(`image.${field}`, value, lang);
               }}
               onUpload={async (file) => {
                 return await handleImageUpload(file);
@@ -445,7 +451,9 @@ export default function NewBlogCategoryPage() {
               title="Category Image"
               description="Upload an image for this category"
               maxImages={1}
+              activeLanguage={activeLanguage}
             />
+
           </CardContent>
         </Card>
 
@@ -528,25 +536,8 @@ export default function NewBlogCategoryPage() {
                 onRemove={() => {
                   handleChange('seo.metaImage', undefined);
                 }}
-                onUpdate={(index, field, value) => {
-                  setFormData(prev => {
-                    const currentSeo = prev.seo || { 
-                      metaTitle: { en: '', de: '', it: '', es: '' }, 
-                      metaDescription: { en: '', de: '', it: '', es: '' }, 
-                      metaKeywords: [] as string[] 
-                    };
-                    const currentImage = currentSeo.metaImage || { url: '', title: '', alt: '', fileName: '' };
-                    return {
-                      ...prev,
-                      seo: {
-                        ...currentSeo,
-                        metaImage: {
-                          ...currentImage,
-                          [field]: value,
-                        },
-                      },
-                    };
-                  });
+                onUpdate={(index, field, value, lang) => {
+                  handleChange(`seo.metaImage.${field}`, value, lang);
                 }}
                 onUpload={async (file) => {
                   return await handleImageUpload(file);
@@ -554,7 +545,9 @@ export default function NewBlogCategoryPage() {
                 title="SEO Image (Optional)"
                 description="Image for social media sharing and SEO"
                 maxImages={1}
+                activeLanguage={activeLanguage}
               />
+
             </div>
           </CardContent>
         </Card>

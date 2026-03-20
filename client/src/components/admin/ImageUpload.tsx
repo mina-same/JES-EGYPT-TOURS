@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
  import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+ import { type AdminLanguage } from './AdminLanguageTabs';
+import LocalizedField from './LocalizedField';
 
 export interface ImageData {
   url: string;
-  title?: string;
-  alt?: string;
+  title?: string | any;
+  alt?: string | any;
   fileName?: string;
 }
 
@@ -18,13 +20,15 @@ interface ImageUploadProps {
   images: ImageData[];
   onAdd: () => void;
   onRemove: (index: number) => void;
-  onUpdate: (index: number, field: keyof ImageData, value: string) => void;
+  onUpdate: (index: number, field: keyof ImageData, value: string, lang?: AdminLanguage) => void;
   onUpload: (file: File, index: number) => Promise<{ url: string, fileName: string } | null>;
   title?: string;
   description?: string;
   required?: boolean;
   maxImages?: number;
+  activeLanguage?: AdminLanguage;
 }
+
 
 export default function ImageUpload({
   images = [],
@@ -36,6 +40,7 @@ export default function ImageUpload({
   description = "Upload and manage images",
   required = false,
   maxImages,
+  activeLanguage,
 }: ImageUploadProps) {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -160,7 +165,7 @@ export default function ImageUpload({
               <div className="relative aspect-video max-h-[160px] mx-auto mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
                 <img
                   src={image.url}
-                  alt={image.alt || 'Preview'}
+                  alt={(activeLanguage && typeof image.alt === 'object' ? image.alt[activeLanguage] : image.alt) || 'Preview'}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"%3E%3Crect width="600" height="400" fill="%231F2937"/%3E%3Cpath d="M300 180V220M280 200H320" stroke="%234B5563" stroke-width="4" stroke-linecap="round"/%3E%3Ctext x="300" y="260" font-family="sans-serif" font-size="20" fill="%239CA3AF" text-anchor="middle"%3EImage Failed to Load%3C/text%3E%3C/svg%3E';
@@ -225,24 +230,62 @@ export default function ImageUpload({
                   required={required && index === 0}
                 />
               </div>
-              <div>
-                <Label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">Title</Label>
-                <Input
-                  value={image.title || ''}
-                  onChange={(e) => onUpdate(index, 'title', e.target.value)}
-                  placeholder="Image title"
-                  className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
-                />
-              </div>
-              <div>
-                <Label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">Alt Text</Label>
-                <Input
-                  value={image.alt || ''}
-                  onChange={(e) => onUpdate(index, 'alt', e.target.value)}
-                  placeholder="Accessibility description"
-                  className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
-                />
-              </div>
+
+              {activeLanguage ? (
+                <>
+                  <LocalizedField
+                    label="Title"
+                    value={image.title}
+                    globalLanguage={activeLanguage}
+                    onChange={(lang, val) => onUpdate(index, 'title', val, lang)}
+                  >
+                    {(lang, currentValue, handleLang) => (
+                      <Input
+                        value={currentValue}
+                        onChange={(e) => handleLang(e.target.value)}
+                        placeholder={`Title (${lang.toUpperCase()})`}
+                        className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
+                      />
+                    )}
+                  </LocalizedField>
+                  <LocalizedField
+                    label="Alt Text"
+                    value={image.alt}
+                    globalLanguage={activeLanguage}
+                    onChange={(lang, val) => onUpdate(index, 'alt', val, lang)}
+                  >
+                    {(lang, currentValue, handleLang) => (
+                      <Input
+                        value={currentValue}
+                        onChange={(e) => handleLang(e.target.value)}
+                        placeholder={`Alt (${lang.toUpperCase()})`}
+                        className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
+                      />
+                    )}
+                  </LocalizedField>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">Title</Label>
+                    <Input
+                      value={image.title || ''}
+                      onChange={(e) => onUpdate(index, 'title', e.target.value)}
+                      placeholder="Image title"
+                      className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500">Alt Text</Label>
+                    <Input
+                      value={image.alt || ''}
+                      onChange={(e) => onUpdate(index, 'alt', e.target.value)}
+                      placeholder="Accessibility description"
+                      className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ))}

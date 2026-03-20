@@ -509,7 +509,9 @@ export default function NewBlogPage() {
                       description="Main image for the blog post"
                       required={true}
                       maxImages={1}
+                      activeLanguage={activeLanguage}
                     />
+
                   </CardContent>
                 </Card>
 
@@ -620,7 +622,9 @@ export default function NewBlogPage() {
                         title="Meta / Social Image"
                         description="Used for SEO and social sharing previews"
                         maxImages={1}
+                        activeLanguage={activeLanguage}
                       />
+
                     </div>
 
                     <div className="flex items-center space-x-4">
