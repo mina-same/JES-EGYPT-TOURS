@@ -7,6 +7,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import SEOProvider from "@/components/common/SEO/SEOProvider";
 import { Metadata } from "next";
 
 const locales = ["en", "de", "it", "es"];
@@ -32,8 +33,10 @@ export async function generateMetadata({
         "x-default": `${baseUrl}/en`,
       },
     },
+    robots: "noindex, nofollow",
   };
 }
+
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -213,6 +216,7 @@ export default async function RootLayout({
               <WishlistProvider>
                 <NotificationProvider>
                   <I18nProvider>
+                    <SEOProvider locale={locale} />
                     {children}
                     <Toaster />
                   </I18nProvider>
