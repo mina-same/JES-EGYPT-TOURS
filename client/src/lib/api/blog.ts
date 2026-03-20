@@ -1,43 +1,40 @@
 import { API_URL } from '@/config/api';
+import { ILocalizedString } from '@/types/shared';
+import { ISEO } from '@/types/blog';
 
 export interface BlogCategory {
+
   _id: string;
-  name: string;
+  name: string | ILocalizedString;
   slug: string;
-  description?: string;
+  description?: string | ILocalizedString;
   image?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-  metaImage?: {
-    url: string;
-    alt?: string;
-  };
+  seo?: ISEO;
   isActive: boolean;
   subcategoriesCount?: number;
 }
 
 export interface BlogSubCategory {
   _id: string;
-  name: string;
+  name: string | ILocalizedString;
   slug: string;
-  description?: string;
+  description?: string | ILocalizedString;
   image?: string;
   category: BlogCategory | string;
-  metaTitle?: string;
-  metaDescription?: string;
+  seo?: ISEO;
   isActive: boolean;
 }
 
 export interface ImageObject {
   url: string;
   fileName?: string;
-  title?: string;
-  alt?: string;
+  title?: string | ILocalizedString;
+  alt?: string | ILocalizedString;
 }
 
 export interface BlogPost {
   _id: string;
-  title: string;
+  title: string | ILocalizedString;
   slug: string;
   subCategory: BlogSubCategory;
   author: {
@@ -46,21 +43,19 @@ export interface BlogPost {
     email: string;
   };
   featuredImage: string | ImageObject;
-  excerpt?: string;
+  excerpt?: string | ILocalizedString;
   contentBlocks: ContentBlock[];
   tags: string[];
   status: 'draft' | 'published' | 'scheduled';
   publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
   viewCount: number;
   readingTime?: number;
   comments: Comment[];
   commentsEnabled: boolean;
   relatedPosts?: BlogPost[];
-  metaTitle?: string;
-  metaDescription?: string;
-  metaImage?: ImageObject;
-  createdAt: string;
-  updatedAt: string;
+  seo?: ISEO;
 }
 
 export interface ContentBlock {

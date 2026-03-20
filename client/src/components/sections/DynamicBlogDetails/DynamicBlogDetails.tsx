@@ -6,6 +6,7 @@ import { BlogPost, formatBlogDate } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
 import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 interface DynamicBlogDetailsProps {
   blog: BlogPost;
@@ -16,21 +17,30 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   blog, 
   showSidebar = 'right' 
 }) => {
+  const { i18n } = useTranslation();
+  const locale = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
+
   const [commentForm, setCommentForm] = useState({
     name: '',
     email: '',
     message: ''
   });
 
+  const getLocalizedValue = (value: any): string => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value[locale] || value.en || "";
+  };
+
   const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt);
   const author =
     blog.author && typeof blog.author === 'object'
       ? (blog.author as any).name || 'Admin'
       : 'Admin';
+  
+  const title = getLocalizedValue(blog.title);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
-  const featuredImageAlt = typeof blog.featuredImage === 'object' && blog.featuredImage?.alt
-    ? blog.featuredImage.alt
-    : blog.title;
+  const featuredImageAlt = getLocalizedValue(typeof blog.featuredImage === 'object' ? blog.featuredImage?.alt : undefined) || title;
   
   const approvedComments = blog.comments?.filter(c => c.isApproved) || [];
 
@@ -49,6 +59,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const renderContentBlock = (block: any, index: number) => {
+    const content = getLocalizedValue(block.content);
     switch (block.type) {
       case 'html':
         return (
@@ -57,7 +68,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
             className='blog-details-card__text wow fadeInUp'
             data-wow-delay='300ms'
             data-wow-duration='1500ms'
-            dangerouslySetInnerHTML={{ __html: block.content }}
+            dangerouslySetInnerHTML={{ __html: content }}
           />
         );
       
@@ -86,7 +97,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     <div style={{ height: '250px', overflow: 'hidden' }}>
                       <Image 
                         src={img.url} 
-                        alt={img.alt || 'Blog image'}
+                        alt={getLocalizedValue(img.alt) || 'Blog image'}
                         width={img.width || 800}
                         height={300}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -96,18 +107,19 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 </div>
               ))}
             </div>
-            {block.content && (
+            {content && (
               <div className='blog-details__inner__content'>
                 <p
                   className='blog-details__inner__text wow fadeInUp animated'
                   data-wow-delay='300ms'
                   data-wow-duration='1500ms'
-                  dangerouslySetInnerHTML={{ __html: block.content }}
+                  dangerouslySetInnerHTML={{ __html: content }}
                 />
               </div>
             )}
           </div>
         );
+
       
       case 'blockquote':
         // Check if this blockquote should be inside blog-details__inner__content (after imageRow)
@@ -122,7 +134,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 data-wow-delay='300ms'
                 data-wow-duration='1500ms'
               >
-                {block.content}
+                {content}
                 {block.image && (
                   <Image
                     className='blog-details__inner__image'
@@ -144,7 +156,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
             data-wow-delay='300ms'
             data-wow-duration='1500ms'
           >
-            {block.content}
+            {content}
             {block.image && (
               <Image
                 className='blog-details__inner__image'
@@ -156,22 +168,24 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
             )}
           </blockquote>
         );
+
       
       case 'image':
         return (
           <div key={index} className='blog-details__inner__image wow fadeInUp'>
             <Image 
               src={block.url || ''} 
-              alt={block.alt || 'Blog image'}
+              alt={getLocalizedValue(block.alt) || 'Blog image'}
               width={1200}
               height={800}
               style={{ width: '100%', height: 'auto' }}
             />
             {block.caption && (
-              <p className='blog-details__inner__caption'>{block.caption}</p>
+              <p className='blog-details__inner__caption'>{getLocalizedValue(block.caption)}</p>
             )}
           </div>
         );
+
       
       default:
         return null;
@@ -251,8 +265,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     data-wow-delay='300ms'
                     data-wow-duration='1500ms'
                   >
-                    {blog.title}
+                    {title}
                   </h3>
+
 
                   {/* Render Content Blocks */}
                   <div className='blog-details-card__content__inner'>

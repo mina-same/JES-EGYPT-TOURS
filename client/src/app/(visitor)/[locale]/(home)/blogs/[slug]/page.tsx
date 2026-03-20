@@ -10,6 +10,12 @@ import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
 
+function getLocalizedValue(value: any, locale: string): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return value[locale] || value.en || "";
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -18,13 +24,14 @@ export async function generateMetadata({
   try {
     const { slug, locale } = await params;
     const blog = await getBlogBySlug(slug);
+    
     const featuredImageUrl =
       typeof blog.featuredImage === "string"
         ? blog.featuredImage
         : blog.featuredImage?.url;
 
-    const title = blog.metaTitle || blog.title;
-    const description = blog.metaDescription || blog.excerpt;
+    const title = getLocalizedValue(blog.seo?.metaTitle, locale) || getLocalizedValue(blog.title, locale) || "Blog Details";
+    const description = getLocalizedValue(blog.seo?.metaDescription, locale) || getLocalizedValue(blog.excerpt, locale) || "";
 
     return {
       title: `${title} | JES Egypt Tours`,
@@ -38,14 +45,11 @@ export async function generateMetadata({
           es: `${baseUrl}/es/blogs/${slug}`,
         },
       },
-      icons: {
-        icon: "/favicon-32x32.png",
-      },
       openGraph: {
         title,
         description,
-        images: blog.metaImage?.url
-          ? [blog.metaImage.url]
+        images: blog.seo?.metaImage?.url
+          ? [blog.seo.metaImage.url]
           : [featuredImageUrl || "https://placehold.co/1200x630?text=Image"],
         type: "article",
       },
@@ -53,14 +57,16 @@ export async function generateMetadata({
         card: "summary_large_image",
         title,
         description,
-        images: blog.metaImage?.url
-          ? [blog.metaImage.url]
+        images: blog.seo?.metaImage?.url
+          ? [blog.seo.metaImage.url]
           : [featuredImageUrl || "https://placehold.co/1200x630?text=Image"],
       },
+      robots: "noindex, nofollow",
     };
   } catch (error) {
     return {
       title: "Blog Details | JES Egypt Tours",
+      robots: "noindex, nofollow",
     };
   }
 }
@@ -71,35 +77,44 @@ export default async function BlogDetailsPage({
   params: Promise<{ slug: string; locale: string }>;
 }) {
   try {
-    const { slug } = await params;
+    const { slug, locale } = await params;
     const blog = await getBlogBySlug(slug);
 
-    // Blog Schema (JSON-LD)
+    const title = getLocalizedValue(blog.title, locale);
+    const description = getLocalizedValue(blog.excerpt, locale) || getLocalizedValue(blog.seo?.metaDescription, locale) || "";
+    const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
+
+    // Professional Blog Schema (JSON-LD)
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
-      headline: blog.title,
-      image: typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url,
-      author: {
+      "headline": title,
+      "image": [
+        featuredImageUrl,
+        ...(blog.contentBlocks?.map((block: any) => block.url || block.image).filter(Boolean) || [])
+      ].filter(Boolean),
+      "author": {
         "@type": "Person",
-        name: blog.author?.name || "JES Egypt Tours",
+        "name": blog.author?.name || "JES Egypt Tours",
       },
-      description: blog.excerpt || blog.metaDescription,
-      datePublished: blog.publishedAt || blog.createdAt,
-      dateModified: blog.updatedAt || blog.createdAt,
-      publisher: {
+      "description": description.replace(/<[^>]*>/g, ""),
+      "datePublished": blog.publishedAt || blog.createdAt,
+      "dateModified": blog.updatedAt || blog.createdAt,
+      "publisher": {
         "@type": "Organization",
-        name: "JES Egypt Tours",
-        logo: {
+        "name": "JES Egypt Tours",
+        "logo": {
           "@type": "ImageObject",
-          url: `${baseUrl}/logo-dark.png`,
+          "url": `${baseUrl}/logo-dark.png`,
         },
+        "@id": `${baseUrl}/#organization`
       },
-      mainEntityOfPage: {
+      "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": `${baseUrl}/blogs/${slug}`,
+        "@id": `${baseUrl}/${locale}/blogs/${slug}`,
       },
     };
+
 
     return (
       <>
@@ -111,14 +126,16 @@ export default async function BlogDetailsPage({
           <TopbarOne />
           <HeaderOne linkTheme="light" />
           <HeaderOneCloned />
-          <PageHeader title={blog.title} subTitle='Blog Details' />
+          <PageHeader title={title} subTitle='Blog Details' />
           <DynamicBlogDetails blog={blog} showSidebar='right' />
           <FooterOne />
         </Layout>
       </>
     );
   } catch (error) {
+    console.error("Error loading blog page:", error);
     notFound();
   }
 }
+
 
