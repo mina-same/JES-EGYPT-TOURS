@@ -1,6 +1,7 @@
 import { API_URL } from '@/config/api';
-import { ILocalizedString } from '@/types/shared';
+import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import { ISEO } from '@/types/blog';
+
 
 export interface BlogCategory {
 
@@ -45,7 +46,8 @@ export interface BlogPost {
   featuredImage: string | ImageObject;
   excerpt?: string | ILocalizedString;
   contentBlocks: ContentBlock[];
-  tags: string[];
+  tags: ILocalizedMixed;
+
   status: 'draft' | 'published' | 'scheduled';
   publishedAt?: string;
   createdAt: string;

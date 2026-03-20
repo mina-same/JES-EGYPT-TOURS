@@ -5,6 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCategories, getSubCategoriesByCategory } from "@/lib/api/blog";
 import { Loader2, ChevronRight, Hash } from "lucide-react";
+import { getLocalizedValue } from "@/lib/localize";
+import { useTranslation } from "react-i18next";
+
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -22,9 +25,12 @@ interface BlogCategoryWithSubs {
 }
 
 export default function BlogCategoriesPage() {
+  const { i18n } = useTranslation();
+  const currentLocale = i18n.language || 'en';
   const [categories, setCategories] = useState<BlogCategoryWithSubs[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -95,16 +101,18 @@ export default function BlogCategoriesPage() {
                   <div className="blog-cat-card__content">
                     <div className="blog-cat-card__header">
                        <h3 className="blog-cat-card__title">
-                         <Link href={`/blogs/category/${category.slug}`}>{category.name}</Link>
+                         <Link href={`/blogs/category/${category.slug}`}>{getLocalizedValue(category.name, currentLocale)}</Link>
                        </h3>
+
                        <span className="blog-cat-card__count">{category.subcategories.length} Topics</span>
                     </div>
                     
                     {category.description && (
                       <p className="blog-cat-card__text">
-                        {category.description.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                        {getLocalizedValue(category.description, currentLocale).replace(/<[^>]*>/g, '').substring(0, 100)}...
                       </p>
                     )}
+
 
                     <div className="blog-cat-card__subs mt-4">
                       <ul className="blog-cat-card__list">
@@ -112,7 +120,8 @@ export default function BlogCategoriesPage() {
                           <li key={sub._id}>
                             <Link href={`/blogs/subcategory/${sub.slug}`} className="flex items-center gap-2">
                                <Hash className="w-3 h-3" />
-                               {sub.name}
+                               {getLocalizedValue(sub.name, currentLocale)}
+
                             </Link>
                           </li>
                         ))}

@@ -5,6 +5,9 @@ import Image from "next/image";
 import { Col, Container, Row } from "react-bootstrap";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getLocalizedValue } from "@/lib/localize";
+import { useTranslation } from "react-i18next";
+
 
 interface DynamicBlogGridProps {
   blogs: BlogPost[];
@@ -14,6 +17,9 @@ interface DynamicBlogGridProps {
 
 const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, basePath }) => {
   const router = useRouter();
+  const { i18n } = useTranslation();
+  const currentLocale = i18n.language || 'en';
+
 
   const handlePageChange = (page: number) => {
     const separator = basePath.includes("?") ? "&" : "?";
@@ -28,8 +34,9 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
             const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
             const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
             const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
-              ? post.featuredImage.alt
-              : post.title;
+              ? getLocalizedValue(post.featuredImage.alt, currentLocale)
+              : getLocalizedValue(post.title, currentLocale);
+
 
             const authorName =
               post.author && typeof post.author === 'object'
@@ -58,8 +65,9 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                       />
                     </div>
                     <Link href={blogUrl} className='blog-card-two__image__link'>
-                      <span className='sr-only'>{post.title}</span>
+                      <span className='sr-only'>{getLocalizedValue(post.title, currentLocale)}</span>
                     </Link>
+
                   </div>
                   <div className='blog-card__content'>
                     <div className='blog-card__content__top'>
@@ -76,24 +84,26 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                             By {authorName}
                           </Link>
                         </li>
-                        {post.tags && post.tags.length > 0 && (
+                        {post.tags && (getLocalizedValue(post.tags, currentLocale) as string[]).length > 0 && (
                           <li>
                             <Link href={blogUrl}>
                               <span className='blog-card__meta__icon'>
                                 <i className='icon-price-tag'></i>
                               </span>
-                              {post.tags[0]}
+                              {(getLocalizedValue(post.tags, currentLocale) as string[])[0]}
                             </Link>
                           </li>
                         )}
+
                       </ul>
                     </div>
                     <h3 className='blog-card__title'>
-                      <Link href={blogUrl}>{post.title}</Link>
+                      <Link href={blogUrl}>{getLocalizedValue(post.title, currentLocale)}</Link>
                     </h3>
                     {post.excerpt && (
-                      <p className='blog-card__text'>{post.excerpt}</p>
+                      <p className='blog-card__text'>{getLocalizedValue(post.excerpt, currentLocale)}</p>
                     )}
+
                     <Link href={blogUrl} className='blog-card__content__btn'>
                       Read More <i className='icon-arrow-right'></i>
                     </Link>

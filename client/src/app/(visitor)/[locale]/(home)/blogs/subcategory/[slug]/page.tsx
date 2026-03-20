@@ -7,14 +7,23 @@ import { getBlogsBySubCategory, getSubCategoryBySlug, BlogCategory } from "@/lib
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { notFound } from "next/navigation";
+import { getLocalizedValue } from "@/lib/localize";
+
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   try {
     const subcategory = await getSubCategoryBySlug(params.slug);
+    const title = getLocalizedValue(subcategory.seo?.metaTitle) ||
+      (getLocalizedValue(subcategory.name) ? `${getLocalizedValue(subcategory.name)} - Travel Blog | JES Egypt Tours` : '');
+    const description = getLocalizedValue(subcategory.seo?.metaDescription) ||
+      getLocalizedValue(subcategory.description);
+
     return {
-      title: subcategory.metaTitle || `${subcategory.name} - Travel Blog | JES Egypt Tours`,
-      description: subcategory.metaDescription || subcategory.description,
+      title,
+      description,
+      robots: "noindex, nofollow",
     };
+
   } catch (error) {
     return {
       title: "Subcategory Not Found",
@@ -43,16 +52,18 @@ export default async function BlogSubCategoryPage({
     notFound();
   }
 
-  const parentName = typeof subcategory.category === 'object' ? (subcategory.category as any).name : '';
+  const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name) : '';
+
 
   return (
     <Layout>
-      <TopbarOne/>
+      <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title={subcategory.name} subTitle={parentName || 'Blog Category'} />
-      <DynamicBlogGrid 
-        blogs={blogsData.data} 
+      <PageHeader title={getLocalizedValue(subcategory.name)} subTitle={parentName || 'Blog Category'} />
+
+      <DynamicBlogGrid
+        blogs={blogsData.data}
         pagination={blogsData.pagination}
         basePath={`/blogs/subcategory/${slug}`}
       />

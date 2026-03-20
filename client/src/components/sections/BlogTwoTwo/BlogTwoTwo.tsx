@@ -10,6 +10,9 @@ import Link from "next/link";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { API_URL } from "@/config/api";
 import { BlogPost, BlogResponse, formatBlogDate } from "@/lib/api/blog";
+import { getLocalizedValue } from "@/lib/localize";
+import { useTranslation } from "react-i18next";
+
 interface BlogData {
   tagline: string;
   title: string;
@@ -20,7 +23,10 @@ interface BlogData {
 }
 const BlogTwoTwo = () => {
   const { tagline, title, link, linkLabel, shape }: BlogData = blogTwoInfo;
+  const { i18n } = useTranslation();
+  const currentLocale = i18n.language || 'en';
   const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>([]);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -59,25 +65,30 @@ const BlogTwoTwo = () => {
           : post.featuredImage?.url || "https://placehold.co/600x400?text=Image";
       const imageAlt =
         typeof post.featuredImage === "object" && post.featuredImage?.alt
-          ? post.featuredImage.alt
-          : post.title;
+          ? getLocalizedValue(post.featuredImage.alt, currentLocale)
+          : getLocalizedValue(post.title, currentLocale);
+
 
       const authorName =
         post.author && typeof post.author === "object"
           ? (post.author as any).name || "Admin"
           : "Admin";
 
+      const localizedTags = getLocalizedValue(post.tags, currentLocale);
+      const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : "";
+
       return {
         id: post._id,
-        title: post.title,
+        title: getLocalizedValue(post.title, currentLocale),
         image,
         imageAlt,
         day,
         month,
         author: authorName,
-        category: post.tags && post.tags.length > 0 ? post.tags[0] : "",
+        category,
         link: `/blogs/${post.slug}`,
       };
+
     });
   }, [featuredBlogs]);
 

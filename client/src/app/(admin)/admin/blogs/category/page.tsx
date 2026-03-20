@@ -160,9 +160,10 @@ export default function BlogCategoriesPage() {
           {category.image && (
             <img
               src={category.image}
-              alt={category.name}
+              alt={getLocalizedValue(category.name)}
               className="category-image"
             />
+
           )}
           <div className="category-details">
             <div className="category-name">{getLocalizedValue(category.name)}</div>

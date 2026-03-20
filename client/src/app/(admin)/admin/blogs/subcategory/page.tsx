@@ -156,9 +156,10 @@ export default function BlogSubCategoriesPage() {
           {subcategory.image && (
             <img
               src={subcategory.image}
-              alt={subcategory.name}
+              alt={getLocalizedValue(subcategory.name)}
               className="category-image"
             />
+
           )}
           <div className="category-details">
             <div className="category-name">{getLocalizedValue(subcategory.name)}</div>

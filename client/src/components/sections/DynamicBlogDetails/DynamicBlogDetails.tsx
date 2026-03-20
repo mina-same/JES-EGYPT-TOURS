@@ -7,6 +7,8 @@ import { Col, Container, Row } from "react-bootstrap";
 import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { getLocalizedValue } from "@/lib/localize";
+
 
 interface DynamicBlogDetailsProps {
   blog: BlogPost;
@@ -18,7 +20,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   showSidebar = 'right' 
 }) => {
   const { i18n } = useTranslation();
-  const locale = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
+  const locale = (i18n.language || 'en');
 
   const [commentForm, setCommentForm] = useState({
     name: '',
@@ -26,11 +28,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     message: ''
   });
 
-  const getLocalizedValue = (value: any): string => {
-    if (!value) return "";
-    if (typeof value === "string") return value;
-    return value[locale] || value.en || "";
-  };
+
 
   const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt);
   const author =
@@ -38,9 +36,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       ? (blog.author as any).name || 'Admin'
       : 'Admin';
   
-  const title = getLocalizedValue(blog.title);
+  const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
-  const featuredImageAlt = getLocalizedValue(typeof blog.featuredImage === 'object' ? blog.featuredImage?.alt : undefined) || title;
+  const featuredImageAlt = getLocalizedValue(typeof blog.featuredImage === 'object' ? blog.featuredImage?.alt : undefined, locale) || title;
+
   
   const approvedComments = blog.comments?.filter(c => c.isApproved) || [];
 
@@ -59,7 +58,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const renderContentBlock = (block: any, index: number) => {
-    const content = getLocalizedValue(block.content);
+    const content = getLocalizedValue(block.content, locale);
+
     switch (block.type) {
       case 'html':
         return (
@@ -97,7 +97,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     <div style={{ height: '250px', overflow: 'hidden' }}>
                       <Image 
                         src={img.url} 
-                        alt={getLocalizedValue(img.alt) || 'Blog image'}
+                        alt={getLocalizedValue(img.alt, locale) || 'Blog image'}
+
                         width={img.width || 800}
                         height={300}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -175,13 +176,15 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           <div key={index} className='blog-details__inner__image wow fadeInUp'>
             <Image 
               src={block.url || ''} 
-              alt={getLocalizedValue(block.alt) || 'Blog image'}
+              alt={getLocalizedValue(block.alt, locale) || 'Blog image'}
+
               width={1200}
               height={800}
               style={{ width: '100%', height: 'auto' }}
             />
             {block.caption && (
-              <p className='blog-details__inner__caption'>{getLocalizedValue(block.caption)}</p>
+              <p className='blog-details__inner__caption'>{getLocalizedValue(block.caption, locale)}</p>
+
             )}
           </div>
         );
@@ -248,16 +251,17 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                         {approvedComments.length} Comments
                       </Link>
                     </li>
-                    {blog.tags && blog.tags.length > 0 && (
+                    {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
                       <li>
                         <Link href='#'>
                           <span className='blog-card__meta__icon'>
                             <i className='icon-price-tag'></i>
                           </span>
-                          {blog.tags[0]}
+                          {(getLocalizedValue(blog.tags) as any)[0]}
                         </Link>
                       </li>
                     )}
+
                   </ul>
 
                   <h3
@@ -277,7 +281,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               </div>
 
               {/* Blog Tags */}
-              {blog.tags && blog.tags.length > 0 && (
+              {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
                 <div className='blog-details__meta'>
                   <div
                     className='blog-details__categories wow fadeInUp'
@@ -286,7 +290,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                   >
                     <h4 className='blog-details__meta__title'>Tags:</h4>
                     <div className='blog-details__categories__box'>
-                      {blog.tags.map((tag, index) => (
+                      {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
                         <Link
                           href={`/blogs?tag=${encodeURIComponent(tag)}`}
                           key={index}
@@ -297,6 +301,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       ))}
                     </div>
                   </div>
+
 
                   {/* Social Share Links */}
                   <div

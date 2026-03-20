@@ -4,10 +4,16 @@ import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { BlogPost, BlogResponse } from "@/lib/api/blog";
 import { API_URL } from "@/config/api";
+import { getLocalizedValue } from "@/lib/localize";
+import { useTranslation } from "react-i18next";
+
 
 const BlogSidebar: React.FC = () => {
+  const { i18n } = useTranslation();
+  const currentLocale = i18n.language || 'en';
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
   const [tags, setTags] = useState<string[]>([]);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -34,11 +40,15 @@ const BlogSidebar: React.FC = () => {
         const posts = blogsResponse.data || [];
         setRecentPosts(posts.slice(0, 3));
 
-        const uniqueTags = Array.from(
-          new Set(posts.flatMap((p) => (p.tags ? p.tags : [])))
-        ).slice(0, 20);
+        const allLocalizedTags = posts.flatMap((p) => {
+          const localizedTags = getLocalizedValue(p.tags, currentLocale);
+          return Array.isArray(localizedTags) ? localizedTags : [];
+        });
+
+        const uniqueTags = Array.from(new Set(allLocalizedTags)).slice(0, 20);
 
         setTags(uniqueTags);
+
       } catch (error) {
         console.error("Failed to load blog sidebar data:", error);
       }
@@ -65,12 +75,14 @@ const BlogSidebar: React.FC = () => {
           : post.featuredImage?.url || "https://placehold.co/600x400?text=Image";
       const imageAlt =
         typeof post.featuredImage === "object" && post.featuredImage?.alt
-          ? post.featuredImage.alt
-          : post.title;
+          ? getLocalizedValue(post.featuredImage.alt, currentLocale)
+          : getLocalizedValue(post.title, currentLocale);
+
 
       return {
         id: post._id,
-        title: post.title,
+        title: getLocalizedValue(post.title, currentLocale),
+
         date: dateLabel,
         image,
         imageAlt,
