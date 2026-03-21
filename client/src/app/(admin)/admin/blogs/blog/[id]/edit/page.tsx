@@ -24,11 +24,15 @@ import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import LocalizedField from '@/components/admin/LocalizedField';
 import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
 import TagInput from '@/components/admin/TagInput';
+import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
 import { uploadAPI } from '@/lib/api/upload';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import { ILocalizedString, ILocalizedMixed, IImage } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
+import { useFormDraft } from '@/hooks/useFormDraft';
+import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 
 // Tab definitions
 const TABS = [
@@ -49,52 +53,47 @@ const TAG_SUGGESTIONS = [
   'Hieroglyphics', 'Pharaohs', 'Mummies', 'Archaeology', 'Antiquities'
 ];
 
+const INITIAL_BLOG_EDIT: any = {
+  title: { en: '', de: '', it: '', es: '' },
+  slug: '',
+  author: '',
+  featuredImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  excerpt: { en: '', de: '', it: '', es: '' },
+  contentBlocks: [],
+  tags: { en: [], de: [], it: [], es: [] },
+  status: 'draft',
+  isFeatured: false,
+  metaTitle: { en: '', de: '', it: '', es: '' },
+  metaDescription: { en: '', de: '', it: '', es: '' },
+  metaKeywords: { en: [], de: [], it: [], es: [] },
+  metaImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  ogTitle: { en: '', de: '', it: '', es: '' },
+  ogDescription: { en: '', de: '', it: '', es: '' },
+  ogImage: '',
+  ogType: 'article',
+  noIndex: false,
+  noFollow: false,
+  focusKeyword: { en: '', de: '', it: '', es: '' },
+  breadcrumbs: [],
+  relatedPosts: [],
+};
+
 export default function EditBlogPage() {
   const router = useRouter();
   const { toast } = useToast();
   const params = useParams();
   const blogId = params.id as string;
-  
+
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeTab, setActiveTab] = useState('content');
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
-  
-  const [formData, setFormData] = useState<any>({
-    title: { en: '', de: '', it: '', es: '' },
-    slug: '',
-    author: '',
-    featuredImage: {
-      url: '',
-      fileName: '',
-      title: { en: '', de: '', it: '', es: '' },
-      alt: { en: '', de: '', it: '', es: '' },
-    },
-    excerpt: { en: '', de: '', it: '', es: '' },
-    contentBlocks: [],
-    tags: { en: [], de: [], it: [], es: [] },
-    status: 'draft',
-    isFeatured: false,
-    metaTitle: { en: '', de: '', it: '', es: '' },
-    metaDescription: { en: '', de: '', it: '', es: '' },
-    metaKeywords: { en: [], de: [], it: [], es: [] },
-    metaImage: {
-      url: '',
-      fileName: '',
-      title: { en: '', de: '', it: '', es: '' },
-      alt: { en: '', de: '', it: '', es: '' },
-    },
-    ogTitle: { en: '', de: '', it: '', es: '' },
-    ogDescription: { en: '', de: '', it: '', es: '' },
-    ogImage: '',
-    ogType: 'article',
-    noIndex: false,
-    noFollow: false,
-    focusKeyword: { en: '', de: '', it: '', es: '' },
-    breadcrumbs: [],
-    relatedPosts: [],
-  });
+
+  const { formData, setFormData, clearDraft } = useFormDraft<any>(
+    `draft_blog_edit_${blogId}`,
+    INITIAL_BLOG_EDIT
+  );
 
   // Generate slug from title
   const generateSlug = (title: string) => {
@@ -177,7 +176,7 @@ export default function EditBlogPage() {
   const fetchBlog = async () => {
     try {
       setInitialLoading(true);
-      setError(null);
+      setFormErrors([]);
 
       const response = await blogAPI.getById(blogId);
       
@@ -265,10 +264,10 @@ export default function EditBlogPage() {
           relatedPosts: blog.relatedPosts?.map((post: any) => post._id || post) || [],
         });
       } else {
-        setError(response.error || 'Failed to fetch blog post');
+        setFormErrors([{ field: 'Server', message: response.error || 'Failed to fetch blog post' }]);
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      setFormErrors([{ field: 'Server', message: err.message || 'An error occurred' }]);
     } finally {
       setInitialLoading(false);
     }
@@ -281,15 +280,15 @@ export default function EditBlogPage() {
     
     try {
       setLoading(true);
-      setError(null);
+      setFormErrors([]);
 
-      // Validation
-      if (!formData.title?.en) {
-        toast({
-          title: "Validation Error",
-          description: "English title is required",
-          variant: "destructive"
-        });
+      // ── Client-side validation ──────────────────────
+      const validationErrors: FormErrorItem[] = [];
+      if (!formData.title?.en?.trim()) {
+        validationErrors.push({ field: 'Blog Title', message: 'English title is required', lang: 'en', path: 'title-en' });
+      }
+      if (validationErrors.length > 0) {
+        setFormErrors(validationErrors);
         setLoading(false);
         return;
       }
@@ -326,20 +325,34 @@ export default function EditBlogPage() {
         };
       });
 
-      // Remove empty arrays
-      cleanData.tags = Array.isArray(cleanData.tags)
-        ? cleanData.tags.map((t: any) => String(t).trim()).filter(Boolean)
-        : [];
+      // Process localized tags and meta keywords
+      const processLocalizedMixed = (val: any) => {
+        if (!val || typeof val !== 'object') return { en: [], de: [], it: [], es: [] };
+        const result: any = {};
+        const langs = ['en', 'de', 'it', 'es'];
+        langs.forEach(lang => {
+          if (Array.isArray((val as any)[lang])) {
+            result[lang] = (val as any)[lang].map((item: any) => String(item).trim()).filter(Boolean);
+          } else {
+            result[lang] = [];
+          }
+        });
+        return result;
+      };
 
-      cleanData.metaKeywords = Array.isArray(cleanData.metaKeywords)
-        ? cleanData.metaKeywords.map((k: any) => String(k).trim()).filter(Boolean)
-        : [];
+      cleanData.tags = processLocalizedMixed(cleanData.tags);
+      cleanData.metaKeywords = processLocalizedMixed(cleanData.metaKeywords);
 
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
 
-      // Remove empty optional fields
-      if (!cleanData.excerpt?.trim()) delete cleanData.excerpt;
+      // Remove empty optional fields (localized)
+      const isLocalizedStringEmpty = (val: any) => {
+        if (!val || typeof val !== 'object') return true;
+        return !Object.values(val).some(v => typeof v === 'string' && v.trim() !== '');
+      };
+
+      if (isLocalizedStringEmpty(cleanData.excerpt)) delete cleanData.excerpt;
 
       // IMPORTANT: avoid sending invalid author (causes CastError). If missing/invalid, keep existing author.
       if (typeof (cleanData as any).author !== 'string' || !/^[a-f\d]{24}$/i.test((cleanData as any).author.trim())) {
@@ -356,13 +369,16 @@ export default function EditBlogPage() {
         }
       }
 
-      if (!cleanData.metaTitle?.trim()) delete cleanData.metaTitle;
-      if (!cleanData.metaDescription?.trim()) delete cleanData.metaDescription;
-      if (!cleanData.ogTitle?.trim()) delete cleanData.ogTitle;
-      if (!cleanData.ogDescription?.trim()) delete cleanData.ogDescription;
-      if (!cleanData.ogImage?.trim()) delete cleanData.ogImage;
-      if (!cleanData.focusKeyword?.trim()) delete cleanData.focusKeyword;
+      // Remove empty optional fields (localized)
+      if (isLocalizedStringEmpty(cleanData.metaTitle)) delete cleanData.metaTitle;
+      if (isLocalizedStringEmpty(cleanData.metaDescription)) delete cleanData.metaDescription;
+      if (isLocalizedStringEmpty(cleanData.ogTitle)) delete cleanData.ogTitle;
+      if (isLocalizedStringEmpty(cleanData.ogDescription)) delete cleanData.ogDescription;
+      if (isLocalizedStringEmpty(cleanData.focusKeyword)) delete cleanData.focusKeyword;
 
+      // Handle ogImage (plain string)
+      if (typeof cleanData.ogImage === 'string' && !cleanData.ogImage.trim()) delete cleanData.ogImage;
+      
       // Remove empty metaImage if no URL
       if (!cleanData.metaImage?.url?.trim()) {
         delete cleanData.metaImage;
@@ -374,26 +390,18 @@ export default function EditBlogPage() {
       const response = await blogAPI.update(blogId, cleanData);
       
       if (response.success) {
-        toast({
-          title: "Blog post updated",
-          description: `"${formData.title.en}" has been updated successfully.`,
-        });
+        toast({ title: 'Blog post updated', description: 'Blog post saved successfully.' });
+        clearDraft();
         router.push('/admin/blogs/blog');
       } else {
-        setError(response.error || 'Failed to update blog post');
-        toast({
-          title: "Update failed",
-          description: response.error || 'Failed to update blog post',
-          variant: "destructive",
-        });
+        const parsed = parseApiError(response);
+        setFormErrors(parsed);
+        toast({ title: 'Save failed', description: `${parsed.length} issue(s) found. See error panel.`, variant: 'destructive' });
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
-      toast({
-        title: "Error",
-        description: err.message || 'An error occurred while updating the blog post',
-        variant: "destructive",
-      });
+      const parsed = parseApiError(err?.response?.data || { message: err.message });
+      setFormErrors(parsed);
+      toast({ title: 'Error', description: err.message || 'An error occurred', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -428,11 +436,9 @@ export default function EditBlogPage() {
         <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
+      {/* Detailed Error Panel */}
+      {formErrors.length > 0 && (
+        <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
       {/* Tabs Navigation */}

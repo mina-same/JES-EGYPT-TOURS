@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { TourFormData, ITourSubcategory } from '@/types/tour';
 import { tourSubcategoryAPI } from '@/lib/api/tour';
 import { API_URL } from '@/config/api';
+import { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 
 export function useTourForm(initialData?: Partial<TourFormData>) {
   const [formData, setFormData] = useState<TourFormData>({
     name: '',
-    slug: '',
+    slug: { en: '', de: '', it: '', es: '' },
     description: {
       header: { en: '', de: '', it: '', es: '' },
       text: { en: '', de: '', it: '', es: '' },
@@ -26,7 +27,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     seo: {
       metaTitle: { en: '', de: '', it: '', es: '' },
       metaDescription: { en: '', de: '', it: '', es: '' },
-      metaKeywords: [],
+      metaKeywords: { en: [], de: [], it: [], es: [] },
       metaImage: {
         url: '',
         fileName: '',
@@ -34,12 +35,12 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
         alt: { en: '', de: '', it: '', es: '' },
       },
     },
-    tourHighlights: [],
-    inclusion: [],
-    exclusion: [],
+    tourHighlights: { en: [], de: [], it: [], es: [] },
+    inclusion: { en: [], de: [], it: [], es: [] },
+    exclusion: { en: [], de: [], it: [], es: [] },
     pricingPlans: [],
     notes: [],
-    whatToPack: [],
+    whatToPack: { en: [], de: [], it: [], es: [] },
     tourMapIframe: '',
     mapSchema: undefined,
     whatYouWillLoveHtml: { en: '', de: '', it: '', es: '' },
@@ -55,7 +56,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     duration: { en: '', de: '', it: '', es: '' },
     meetingPoint: { en: '', de: '', it: '', es: '' },
     cancellationPolicy: { en: '', de: '', it: '', es: '' },
-    tags: [],
+    tags: { en: [], de: [], it: [], es: [] },
     ...initialData,
   });
 
@@ -102,15 +103,19 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
       }
 
       // Auto-update slug and SEO metaTitle if name (English) changes
-      if (field === 'name' || field === 'heading.en') {
-        const nameVal = field === 'name' ? value : value;
-        if (field === 'heading.en') updated.name = value;
+      if (field === 'name' || field.startsWith('heading.')) {
+        const lang = field.startsWith('heading.') ? field.split('.')[1] as any : 'en';
+        const val = value;
         
-        updated.slug = generateSlug(value);
-        if (!updated.seo?.metaTitle?.en) {
-          if (!updated.seo) updated.seo = {};
-          if (!updated.seo.metaTitle) updated.seo.metaTitle = { en: '', de: '', it: '', es: '' };
-          updated.seo.metaTitle.en = value;
+        if (field === 'name' || field === 'heading.en') updated.name = value;
+        
+        if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
+        updated.slug[lang] = generateSlug(value);
+
+        if (!updated.seo) updated.seo = {};
+        if (!updated.seo.metaTitle) updated.seo.metaTitle = { en: '', de: '', it: '', es: '' };
+        if (!updated.seo.metaTitle[lang]) {
+          updated.seo.metaTitle[lang] = value;
         }
       }
 
@@ -119,29 +124,21 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
   };
 
   // Handle keywords
-  const handleKeywordsChange = (value: string, lang: 'en' | 'de' | 'it' | 'es' = 'en') => {
-    const items = value.split(',').map(k => k.trim()).filter(k => k);
-    setFormData(prev => {
-      const currentList = prev.seo?.metaKeywords || [];
-      const updatedKeywords = items.map((text, idx) => {
-        const existing = currentList[idx] || { en: '', de: '', it: '', es: '' };
-        return { ...existing, [lang]: text };
-      });
-      
-      return {
-        ...prev,
-        seo: {
-          ...prev.seo,
-          metaKeywords: updatedKeywords,
+  const handleKeywordsChange = (value: string[], lang: AdminLanguage = 'en') => {
+    setFormData(prev => ({
+      ...prev,
+      seo: {
+        ...prev.seo,
+        metaKeywords: {
+          ...(prev.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }),
+          [lang]: value,
         },
-      } as TourFormData;
-    });
+      },
+    }) as TourFormData);
   };
 
   // Handle array fields (Highlights, inclusions, exclusions, what to pack)
-  const handleArrayFieldChange = (field: string, value: string, lang: 'en' | 'de' | 'it' | 'es' = 'en') => {
-    const items = value.split(',').map(k => k.trim()).filter(k => k);
-    
+  const handleArrayFieldChange = (field: string, value: string[], lang: AdminLanguage = 'en') => {
     setFormData(prev => {
       const updated = { ...prev } as any;
       
@@ -154,12 +151,12 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
       }
       
       const lastKey = keys[keys.length - 1];
-      const currentList = target[lastKey] || [];
+      if (!target[lastKey]) target[lastKey] = { en: [], de: [], it: [], es: [] };
       
-      target[lastKey] = items.map((text, idx) => {
-        const existing = currentList[idx] || { en: '', de: '', it: '', es: '' };
-        return { ...existing, [lang]: text };
-      });
+      target[lastKey] = {
+        ...target[lastKey],
+        [lang]: value
+      };
       
       return updated as TourFormData;
     });
@@ -194,7 +191,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateItineraryDay = (index: number, field: string, value: any, lang?: 'en' | 'de' | 'it' | 'es') => {
+  const updateItineraryDay = (index: number, field: string, value: any, lang?: AdminLanguage) => {
     setFormData(prev => {
       const updatedDays = (prev.itinerary?.days || []).map((day, i) => {
         if (i !== index) return day;
@@ -244,7 +241,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateImage = (index: number, field: string, value: string, lang?: 'en' | 'de' | 'it' | 'es') => {
+  const updateImage = (index: number, field: string, value: string, lang?: AdminLanguage) => {
     setFormData(prev => ({
       ...prev,
       images: prev.images?.map((img, i) => {
@@ -286,7 +283,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateGalleryImage = (index: number, field: string, value: string, lang?: 'en' | 'de' | 'it' | 'es') => {
+  const updateGalleryImage = (index: number, field: string, value: string, lang?: AdminLanguage) => {
     setFormData(prev => ({
       ...prev,
       gallery: prev.gallery?.map((img, i) => {
@@ -326,7 +323,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateTourNote = (index: number, field: string, value: string, lang?: 'en' | 'de' | 'it' | 'es') => {
+  const updateTourNote = (index: number, field: string, value: string, lang?: AdminLanguage) => {
     setFormData(prev => ({
       ...prev,
       notes: prev.notes?.map((note, i) => {

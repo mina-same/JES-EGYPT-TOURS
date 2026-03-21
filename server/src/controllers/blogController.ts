@@ -17,10 +17,16 @@ export const getAllBlogs = async (
       tags,
       isFeatured,
       search,
-      sort
+      sort,
+      subCategory
     } = req.query;
 
     const query: any = { status: 'published' };
+
+    // Filter by subCategory
+    if (subCategory) {
+      query.subCategory = subCategory;
+    }
 
     // Filter by featured status (if false or not provided, show non-featured only)
     if (isFeatured === 'true') {
@@ -193,9 +199,15 @@ export const getBlogBySlug = async (
   res: Response
 ): Promise<void> => {
   try {
+    const { slug } = req.params;
     const blog = await Blog.findOne({ 
-      slug: req.params.slug,
-      status: 'published' 
+      status: 'published',
+      $or: [
+        { 'slug.en': slug },
+        { 'slug.de': slug },
+        { 'slug.it': slug },
+        { 'slug.es': slug },
+      ]
     })
       .populate('author', 'name email')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags');

@@ -43,8 +43,8 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                 ? (post.author as any).name || 'Admin'
                 : 'Admin';
             
-            // Build blog URL - using ID instead of slug for reliability
-            const blogUrl = `/blogs/${post.slug}`;
+            // Build blog URL using localized slug
+            const blogUrl = `/blogs/${getLocalizedValue(post.slug, currentLocale)}`;
 
             return (
               <Col lg={4} md={6} key={post._id}>

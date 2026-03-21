@@ -13,9 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  ArrowLeft, Save, Loader2, Plus, X, 
-  LayoutDashboard, Image as ImageIcon, FileText, 
+import {
+  ArrowLeft, Save, Loader2, Plus, X,
+  LayoutDashboard, Image as ImageIcon, FileText,
   Settings, Eye, Calendar, Tag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,11 +24,15 @@ import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import LocalizedField from '@/components/admin/LocalizedField';
 import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
 import TagInput from '@/components/admin/TagInput';
+import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
 import { uploadAPI } from '@/lib/api/upload';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import { ILocalizedString, ILocalizedMixed } from '@/types/blog';
 import { getLocalizedValue } from '@/lib/localize';
+import { useFormDraft } from '@/hooks/useFormDraft';
+import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 
 // Tab definitions
 const TABS = [
@@ -49,54 +53,43 @@ const TAG_SUGGESTIONS = [
   'Hieroglyphics', 'Pharaohs', 'Mummies', 'Archaeology', 'Antiquities'
 ];
 
+const INITIAL_BLOG_POST = {
+  title: { en: '', de: '', it: '', es: '' },
+  slug: { en: '', de: '', it: '', es: '' },
+  author: '',
+  featuredImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  excerpt: { en: '', de: '', it: '', es: '' },
+  contentBlocks: [{ id: 'initial-block', type: 'html', content: { en: '', de: '', it: '', es: '' } }],
+  tags: { en: [], de: [], it: [], es: [] },
+  status: 'draft',
+  isFeatured: false,
+  metaTitle: { en: '', de: '', it: '', es: '' },
+  metaDescription: { en: '', de: '', it: '', es: '' },
+  metaKeywords: { en: [], de: [], it: [], es: [] },
+  metaImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  ogTitle: { en: '', de: '', it: '', es: '' },
+  ogDescription: { en: '', de: '', it: '', es: '' },
+  ogImage: '',
+  ogType: 'article',
+  noIndex: false,
+  noFollow: false,
+  focusKeyword: { en: '', de: '', it: '', es: '' },
+  breadcrumbs: [],
+  relatedPosts: [],
+};
+
 export default function NewBlogPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeTab, setActiveTab] = useState('content');
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
-  
-  const [formData, setFormData] = useState<any>({
-    title: { en: '', de: '', it: '', es: '' },
-    slug: '',
-    author: '',
-    featuredImage: {
-      url: '',
-      fileName: '',
-      title: { en: '', de: '', it: '', es: '' },
-      alt: { en: '', de: '', it: '', es: '' },
-    },
-    excerpt: { en: '', de: '', it: '', es: '' },
-    contentBlocks: [
-      {
-        id: 'initial-block',
-        type: 'html',
-        content: { en: '', de: '', it: '', es: '' },
-      }
-    ],
-    tags: { en: [], de: [], it: [], es: [] },
-    status: 'draft',
-    isFeatured: false,
-    metaTitle: { en: '', de: '', it: '', es: '' },
-    metaDescription: { en: '', de: '', it: '', es: '' },
-    metaKeywords: { en: [], de: [], it: [], es: [] },
-    metaImage: {
-      url: '',
-      fileName: '',
-      title: { en: '', de: '', it: '', es: '' },
-      alt: { en: '', de: '', it: '', es: '' },
-    },
-    ogTitle: { en: '', de: '', it: '', es: '' },
-    ogDescription: { en: '', de: '', it: '', es: '' },
-    ogImage: '',
-    ogType: 'article',
-    noIndex: false,
-    noFollow: false,
-    focusKeyword: { en: '', de: '', it: '', es: '' },
-    breadcrumbs: [],
-    relatedPosts: [],
-  });
+
+  const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<any>(
+    'draft_blog_new',
+    INITIAL_BLOG_POST
+  );
 
   // Generate slug from title
   const generateSlug = (title: string) => {
@@ -110,7 +103,7 @@ export default function NewBlogPage() {
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => {
       const updated = { ...prev } as any;
-      
+
       // Handle localized fields
       const localizedFields = ['title', 'excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
       const localizedMixedFields = ['tags', 'metaKeywords'];
@@ -120,14 +113,17 @@ export default function NewBlogPage() {
           ...(updated[field] || { en: '', de: '', it: '', es: '' }),
           [activeLanguage]: value,
         };
-        
-        // Auto-generate slug and SEO titles when English title changes
-        if (field === 'title' && activeLanguage === 'en') {
-          updated.slug = generateSlug(value);
-          if (!updated.metaTitle?.en) updated.metaTitle = { ...updated.metaTitle, en: value };
-          if (!updated.ogTitle?.en) updated.ogTitle = { ...updated.ogTitle, en: value };
+
+        // Auto-generate slug and SEO titles when title changes for the active language
+        if (field === 'title') {
+          updated.slug = {
+            ...updated.slug,
+            [activeLanguage]: generateSlug(value),
+          };
+          if (!updated.metaTitle?.[activeLanguage]) updated.metaTitle = { ...updated.metaTitle, [activeLanguage]: value };
+          if (!updated.ogTitle?.[activeLanguage]) updated.ogTitle = { ...updated.ogTitle, [activeLanguage]: value };
         }
-      } 
+      }
       else if (localizedMixedFields.includes(field)) {
         updated[field] = {
           ...(updated[field] || { en: [], de: [], it: [], es: [] }),
@@ -139,19 +135,19 @@ export default function NewBlogPage() {
         const keys = field.split('.');
         let current = updated;
         for (let i = 0; i < keys.length - 1; i++) {
-            if (!current[keys[i]]) current[keys[i]] = {};
-            current = current[keys[i]];
+          if (!current[keys[i]]) current[keys[i]] = {};
+          current = current[keys[i]];
         }
-        
+
         const lastKey = keys[keys.length - 1];
         // Special case for localized image fields like featuredImage.alt
         if (['alt', 'title'].includes(lastKey) && (keys[0] === 'featuredImage' || keys[0] === 'metaImage')) {
-            current[lastKey] = {
-                ...(current[lastKey] || { en: '', de: '', it: '', es: '' }),
-                [activeLanguage]: value,
-            };
+          current[lastKey] = {
+            ...(current[lastKey] || { en: '', de: '', it: '', es: '' }),
+            [activeLanguage]: value,
+          };
         } else {
-            current[lastKey] = value;
+          current[lastKey] = value;
         }
       } else {
         updated[field] = value;
@@ -180,25 +176,34 @@ export default function NewBlogPage() {
   // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
-      setError(null);
+      setFormErrors([]);
 
-      // Validation
-      if (!formData.title?.en) {
-        toast({
-          title: "Validation Error",
-          description: "English title is required",
-          variant: "destructive"
-        });
+      // ── Client-side validation ──────────────────────
+      const validationErrors: FormErrorItem[] = [];
+      if (!formData.title?.en?.trim()) {
+        validationErrors.push({ field: 'Blog Title', message: 'English title is required', lang: 'en', path: 'title-en' });
+      }
+      if (!formData.slug?.en?.trim()) {
+        validationErrors.push({ field: 'URL Slug', message: 'English slug is required', lang: 'en', path: 'slug-en' });
+      }
+      if (!formData.author?.trim()) {
+        validationErrors.push({ field: 'Author', message: 'An author must be selected', path: 'author' });
+      }
+      if (!formData.featuredImage?.url?.trim()) {
+        validationErrors.push({ field: 'Featured Image', message: 'A featured image is required', path: 'featuredImage-url' });
+      }
+      if (validationErrors.length > 0) {
+        setFormErrors(validationErrors);
         setLoading(false);
         return;
       }
 
       // Clean up empty fields
       const cleanData = { ...formData };
-      
+
       // Remove empty content blocks
       cleanData.contentBlocks = cleanData.contentBlocks.filter((block: any) => {
         if (block.type === 'html') return block.content?.en?.trim() || block.content?.de?.trim() || block.content?.it?.trim() || block.content?.es?.trim();
@@ -228,21 +233,43 @@ export default function NewBlogPage() {
         };
       });
 
-      // Remove empty arrays
-      cleanData.tags = Array.isArray(cleanData.tags)
-        ? cleanData.tags.map((t: any) => String(t).trim()).filter(Boolean)
-        : [];
+      // Process localized tags and meta keywords
+      const processLocalizedMixed = (val: any) => {
+        if (!val || typeof val !== 'object') return { en: [], de: [], it: [], es: [] };
+        const result: any = {};
+        for (const lang in val) {
+          if (Array.isArray(val[lang])) {
+            result[lang] = val[lang].map((item: any) => String(item).trim()).filter(Boolean);
+          } else {
+            result[lang] = [];
+          }
+        }
+        return result;
+      };
 
-      cleanData.metaKeywords = Array.isArray(cleanData.metaKeywords)
-        ? cleanData.metaKeywords.map((k: any) => String(k).trim()).filter(Boolean)
-        : [];
+      cleanData.tags = processLocalizedMixed(cleanData.tags);
+      cleanData.metaKeywords = processLocalizedMixed(cleanData.metaKeywords);
 
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
 
-      // Remove empty optional fields
-      if (!cleanData.excerpt?.trim()) delete cleanData.excerpt;
-      
+      // Helper to check if localized string is empty
+      const isLocalizedStringEmpty = (val: any) => {
+        if (!val || typeof val !== 'object') return true;
+        return !Object.values(val).some(v => typeof v === 'string' && v.trim() !== '');
+      };
+
+      // Remove empty optional fields (localized)
+      if (isLocalizedStringEmpty(cleanData.excerpt)) delete cleanData.excerpt;
+      if (isLocalizedStringEmpty(cleanData.metaTitle)) delete cleanData.metaTitle;
+      if (isLocalizedStringEmpty(cleanData.metaDescription)) delete cleanData.metaDescription;
+      if (isLocalizedStringEmpty(cleanData.ogTitle)) delete cleanData.ogTitle;
+      if (isLocalizedStringEmpty(cleanData.ogDescription)) delete cleanData.ogDescription;
+      if (isLocalizedStringEmpty(cleanData.focusKeyword)) delete cleanData.focusKeyword;
+
+      // Handle ogImage (plain string)
+      if (typeof cleanData.ogImage === 'string' && !cleanData.ogImage.trim()) delete cleanData.ogImage;
+
       // Ensure featuredImage has required fields
       if (cleanData.featuredImage) {
         if (!cleanData.featuredImage.url && !cleanData.featuredImage.fileName) {
@@ -269,13 +296,6 @@ export default function NewBlogPage() {
           alt: '',
         };
       }
-      if (!cleanData.metaTitle?.trim()) delete cleanData.metaTitle;
-      if (!cleanData.metaDescription?.trim()) delete cleanData.metaDescription;
-      if (!cleanData.ogTitle?.trim()) delete cleanData.ogTitle;
-      if (!cleanData.ogDescription?.trim()) delete cleanData.ogDescription;
-      if (!cleanData.ogImage?.trim()) delete cleanData.ogImage;
-      if (!cleanData.focusKeyword?.trim()) delete cleanData.focusKeyword;
-
       // Remove empty metaImage if no URL
       if (!cleanData.metaImage?.url?.trim()) {
         delete cleanData.metaImage;
@@ -289,28 +309,20 @@ export default function NewBlogPage() {
       cleanData.author = '507f1f77bcf86cd799439011'; // Replace with actual user ID
 
       const response = await blogAPI.create(cleanData);
-      
+
       if (response.success) {
-        toast({
-          title: "Blog post created",
-          description: `"${cleanData.title}" has been created successfully.`,
-        });
+        toast({ title: "Blog post created", description: 'Blog post published successfully.' });
+        clearDraft();
         router.push('/admin/blogs/blog');
       } else {
-        setError(response.error || 'Failed to create blog post');
-        toast({
-          title: "Creation failed",
-          description: response.error || 'Failed to create blog post',
-          variant: "destructive",
-        });
+        const parsed = parseApiError(response);
+        setFormErrors(parsed);
+        toast({ title: 'Save failed', description: `${parsed.length} issue(s) found. See error panel.`, variant: 'destructive' });
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
-      toast({
-        title: "Error",
-        description: err.message || 'An error occurred while creating the blog post',
-        variant: "destructive",
-      });
+      const parsed = parseApiError(err?.response?.data || { message: err.message });
+      setFormErrors(parsed);
+      toast({ title: 'Error', description: err.message || 'An error occurred', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -334,11 +346,14 @@ export default function NewBlogPage() {
         <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
+      {/* Draft Banner */}
+      {hasDraft && (
+        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_BLOG_POST); }} />
+      )}
+
+      {/* Detailed Error Panel */}
+      {formErrors.length > 0 && (
+        <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
       {/* Tabs Navigation */}
@@ -352,8 +367,8 @@ export default function NewBlogPage() {
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap",
-                isActive 
-                  ? "bg-primary text-primary-foreground" 
+                isActive
+                  ? "bg-primary text-primary-foreground"
                   : "hover:bg-muted text-foreground"
               )}
             >
@@ -402,17 +417,25 @@ export default function NewBlogPage() {
                         </LocalizedField>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="slug">URL Slug (Always EN) *</Label>
-                        <Input
-                          id="slug"
+                        <LocalizedField
+                          label="URL Slug"
                           value={formData.slug}
-                          onChange={(e) => handleChange('slug', e.target.value)}
-                          placeholder="amazing-travel-tips-for-egypt"
-                          required
-                        />
+                          onChange={(lang, val) => handleChange('slug', val)}
+                          globalLanguage={activeLanguage}
+                        >
+                          {(lang, value, onChange) => (
+                            <Input
+                              id="slug"
+                              value={value}
+                              onChange={(e) => onChange(e.target.value)}
+                              placeholder={`e.g., amazing-travel-tips-in-${lang}`}
+                              required={lang === 'en'}
+                            />
+                          )}
+                        </LocalizedField>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <LocalizedField
                         label="Excerpt"
@@ -558,7 +581,7 @@ export default function NewBlogPage() {
                         </LocalizedField>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <LocalizedField
                         label="Meta Description"

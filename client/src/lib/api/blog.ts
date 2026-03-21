@@ -6,9 +6,9 @@ import { ISEO } from '@/types/blog';
 export interface BlogCategory {
 
   _id: string;
-  name: string | ILocalizedString;
-  slug: string;
-  description?: string | ILocalizedString;
+  name: ILocalizedString;
+  slug: ILocalizedString;
+  description?: ILocalizedString;
   image?: string;
   seo?: ISEO;
   isActive: boolean;
@@ -17,9 +17,9 @@ export interface BlogCategory {
 
 export interface BlogSubCategory {
   _id: string;
-  name: string | ILocalizedString;
-  slug: string;
-  description?: string | ILocalizedString;
+  name: ILocalizedString;
+  slug: ILocalizedString;
+  description?: ILocalizedString;
   image?: string;
   category: BlogCategory | string;
   seo?: ISEO;
@@ -35,8 +35,8 @@ export interface ImageObject {
 
 export interface BlogPost {
   _id: string;
-  title: string | ILocalizedString;
-  slug: string;
+  title: ILocalizedString;
+  slug: ILocalizedString;
   subCategory: BlogSubCategory;
   author: {
     _id: string;
@@ -148,6 +148,20 @@ export async function getCategoryBySlug(slug: string): Promise<BlogCategory> {
 // Fetch subcategories by category slug
 export async function getSubCategoriesByCategory(categorySlug: string): Promise<BlogSubCategory[]> {
   const res = await fetch(`${API_URL}/blog/categories/${categorySlug}/subcategories`, {
+    next: { revalidate: 3600 },
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch subcategories by category');
+  }
+  
+  const json: SubCategoriesResponse = await res.json();
+  return json.data;
+}
+
+// Fetch all subcategories
+export async function getAllSubCategories(): Promise<BlogSubCategory[]> {
+  const res = await fetch(`${API_URL}/blog/subcategories`, {
     next: { revalidate: 3600 },
   });
   

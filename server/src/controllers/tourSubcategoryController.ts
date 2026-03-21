@@ -235,7 +235,14 @@ export const getSubcategoryBySlug = async (
     const { slug } = req.params;
     const { category } = req.query;
 
-    const filter: FilterQuery<ITourSubcategory> = { slug };
+    const filter: FilterQuery<ITourSubcategory> = {
+      $or: [
+        { 'slug.en': slug },
+        { 'slug.de': slug },
+        { 'slug.it': slug },
+        { 'slug.es': slug },
+      ],
+    };
     
     // Optionally filter by category to ensure uniqueness
     if (category) {

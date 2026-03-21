@@ -40,7 +40,7 @@ interface IBreadcrumb {
 export interface IBlog extends Document {
   // Basic Info
   title: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   author: mongoose.Types.ObjectId | string;
   featuredImage: IImage;
   excerpt?: ILocalizedString;
@@ -111,11 +111,8 @@ const BlogSchema: Schema = new Schema(
       required: [true, 'Blog title is required'],
     },
     slug: {
-      type: String,
+      type: LocalizedStringSchema,
       required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
     },
     author: {
       type: Schema.Types.ObjectId,
@@ -312,7 +309,10 @@ const BlogSchema: Schema = new Schema(
 );
 
 // Indexes for faster queries
-BlogSchema.index({ slug: 1 });
+BlogSchema.index({ 'slug.en': 1 }, { sparse: true, unique: true });
+BlogSchema.index({ 'slug.de': 1 }, { sparse: true, unique: true });
+BlogSchema.index({ 'slug.it': 1 }, { sparse: true, unique: true });
+BlogSchema.index({ 'slug.es': 1 }, { sparse: true, unique: true });
 BlogSchema.index({ status: 1, publishedAt: -1 });
 BlogSchema.index({ isFeatured: 1, status: 1 });
 BlogSchema.index({ author: 1, status: 1 });

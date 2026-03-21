@@ -5,28 +5,20 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import { Plus, X } from 'lucide-react';
+import TagInput from '@/components/admin/TagInput';
 
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
 
 interface DetailsTabProps {
   formData: any;
-  handleArrayFieldChange: (field: string, value: string, lang: AdminLanguage) => void;
+  handleArrayFieldChange: (field: string, value: string[], lang: AdminLanguage) => void;
   addTourNote: () => void;
   removeTourNote: (index: number) => void;
   updateTourNote: (index: number, field: string, value: string, lang: AdminLanguage) => void;
   activeLanguage: AdminLanguage;
 }
 
-/** Build a localized object from an array of ILocalizedString so LocalizedField can display it */
-const arrayToLocalizedDisplay = (arr: any[]) => {
-  const langs: AdminLanguage[] = ['en', 'de', 'it', 'es'];
-  const result: any = { en: '', de: '', it: '', es: '' };
-  langs.forEach((lang) => {
-    result[lang] = arr.map((item: any) => item?.[lang] || '').filter(Boolean).join(', ');
-  });
-  return result;
-};
 
 export default function DetailsTab({
   formData,
@@ -46,21 +38,16 @@ export default function DetailsTab({
         </CardHeader>
         <CardContent>
           <LocalizedField
-            value={arrayToLocalizedDisplay(formData.tourHighlights || [])}
+            value={formData.tourHighlights}
             globalLanguage={activeLanguage}
             onChange={(lang, val) => handleArrayFieldChange('tourHighlights', val, lang)}
           >
             {(lang, currentValue, handleLang) => (
-              <>
-                <textarea
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  rows={4}
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder={`Visit the Pyramids, Sphinx, Egyptian Museum... (${lang})`}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Separate each highlight with a comma.</p>
-              </>
+              <TagInput
+                tags={currentValue || []}
+                onChange={handleLang}
+                placeholder={`Visit the Pyramids, Sphinx, Egyptian Museum... (${lang})`}
+              />
             )}
           </LocalizedField>
         </CardContent>
@@ -75,16 +62,14 @@ export default function DetailsTab({
           </CardHeader>
           <CardContent>
             <LocalizedField
-              value={arrayToLocalizedDisplay(formData.inclusion || [])}
+              value={formData.inclusion}
               globalLanguage={activeLanguage}
               onChange={(lang, val) => handleArrayFieldChange('inclusion', val, lang)}
             >
               {(lang, currentValue, handleLang) => (
-                <textarea
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  rows={6}
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
+                <TagInput
+                  tags={currentValue || []}
+                  onChange={handleLang}
                   placeholder={`Hotel pickup, Lunch, Guide... (${lang})`}
                 />
               )}
@@ -99,16 +84,14 @@ export default function DetailsTab({
           </CardHeader>
           <CardContent>
             <LocalizedField
-              value={arrayToLocalizedDisplay(formData.exclusion || [])}
+              value={formData.exclusion}
               globalLanguage={activeLanguage}
               onChange={(lang, val) => handleArrayFieldChange('exclusion', val, lang)}
             >
               {(lang, currentValue, handleLang) => (
-                <textarea
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  rows={6}
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
+                <TagInput
+                  tags={currentValue || []}
+                  onChange={handleLang}
                   placeholder={`Tips, Personal expenses, Drinks... (${lang})`}
                 />
               )}
@@ -125,16 +108,14 @@ export default function DetailsTab({
         </CardHeader>
         <CardContent>
           <LocalizedField
-            value={arrayToLocalizedDisplay(formData.whatToPack || [])}
+            value={formData.whatToPack}
             globalLanguage={activeLanguage}
             onChange={(lang, val) => handleArrayFieldChange('whatToPack', val, lang)}
           >
             {(lang, currentValue, handleLang) => (
-              <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                rows={3}
-                value={currentValue}
-                onChange={(e) => handleLang(e.target.value)}
+              <TagInput
+                tags={currentValue || []}
+                onChange={handleLang}
                 placeholder={`Sunscreen, Hat, Comfortable shoes... (${lang})`}
               />
             )}

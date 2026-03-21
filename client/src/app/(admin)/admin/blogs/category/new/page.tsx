@@ -11,18 +11,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Loader2, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Image as ImageIcon, X } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import ImageUpload from '@/components/admin/ImageUpload';
 import LocalizedField from '@/components/admin/LocalizedField';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import TagInput from '@/components/admin/TagInput';
+import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import DraftBanner from '@/components/admin/DraftBanner';
 import { ILocalizedString } from '@/types/blog';
 import { useToast } from '@/hooks/use-toast';
+import { useFormDraft } from '@/hooks/useFormDraft';
+import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 
 // Define form data type locally or reuse from types if available
+interface ILocalizedMixed {
+  en?: string[];
+  de?: string[];
+  it?: string[];
+  es?: string[];
+}
+
 interface BlogCategoryFormData {
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description: ILocalizedString;
   image?: {
     url: string;
@@ -33,7 +45,7 @@ interface BlogCategoryFormData {
   seo?: {
     metaTitle: ILocalizedString;
     metaDescription: ILocalizedString;
-    metaKeywords: string[];
+    metaKeywords: ILocalizedMixed;
     metaImage?: {
       url: string;
       fileName: string;
@@ -44,41 +56,48 @@ interface BlogCategoryFormData {
   isActive: boolean;
 }
 
+const INITIAL_BLOG_CATEGORY: BlogCategoryFormData = {
+  name: { en: '', de: '', it: '', es: '' },
+  slug: { en: '', de: '', it: '', es: '' },
+  description: { en: '', de: '', it: '', es: '' },
+  image: {
+    url: '',
+    fileName: '',
+    title: { en: '', de: '', it: '', es: '' },
+    alt: { en: '', de: '', it: '', es: '' },
+  },
+  seo: {
+    metaTitle: { en: '', de: '', it: '', es: '' },
+    metaDescription: { en: '', de: '', it: '', es: '' },
+    metaKeywords: { en: [], de: [], it: [], es: [] },
+    metaImage: {
+      url: '',
+      fileName: '',
+      title: { en: '', de: '', it: '', es: '' },
+      alt: { en: '', de: '', it: '', es: '' },
+    },
+  },
+  isActive: true,
+};
+
 export default function NewBlogCategoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const categoryId = searchParams.get('id');
   const isEditMode = !!categoryId;
-  
+
+  const draftKey = isEditMode ? `draft_blog_cat_edit_${categoryId}` : 'draft_blog_cat_new';
+
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(isEditMode);
-  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
-  
-  const [formData, setFormData] = useState<BlogCategoryFormData>({
-    name: { en: '', de: '', it: '', es: '' },
-    slug: '',
-    description: { en: '', de: '', it: '', es: '' },
-    image: {
-      url: '',
-      fileName: '',
-      title: { en: '', de: '', it: '', es: '' },
-      alt: { en: '', de: '', it: '', es: '' },
-    },
-    seo: {
-      metaTitle: { en: '', de: '', it: '', es: '' },
-      metaDescription: { en: '', de: '', it: '', es: '' },
-      metaKeywords: [],
-      metaImage: {
-        url: '',
-        fileName: '',
-        title: { en: '', de: '', it: '', es: '' },
-        alt: { en: '', de: '', it: '', es: '' },
-      },
-    },
-    isActive: true,
-  });
+
+  const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<BlogCategoryFormData>(
+    draftKey,
+    INITIAL_BLOG_CATEGORY
+  );
 
   // Fetch category data if editing
   useEffect(() => {
@@ -90,7 +109,8 @@ export default function NewBlogCategoryPage() {
   const fetchCategoryData = async (id: string) => {
     try {
       setFetchingData(true);
-      setError(null);
+      // Clear errors when reloading data
+      setFormErrors([]);
       const response: any = await blogCategoryAPI.getById(id);
       
       if (response.success && response.data) {
@@ -107,6 +127,16 @@ export default function NewBlogCategoryPage() {
           };
         };
 
+        const mapToLocalizedMixed = (val: any): ILocalizedMixed => {
+          if (!val) return { en: [], de: [], it: [], es: [] };
+          return {
+            en: val.en || [],
+            de: val.de || [],
+            it: val.it || [],
+            es: val.es || [],
+          };
+        };
+
         const imageObj = typeof data.image === 'string' 
           ? { url: data.image, fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
           : {
@@ -118,13 +148,13 @@ export default function NewBlogCategoryPage() {
 
         setFormData({
           name: mapToLocalized(data.name),
-          slug: data.slug || '',
+          slug: mapToLocalized(data.slug),
           description: mapToLocalized(data.description),
           image: imageObj,
           seo: {
             metaTitle: mapToLocalized(data.metaTitle),
             metaDescription: mapToLocalized(data.metaDescription),
-            metaKeywords: Array.isArray(data.metaKeywords) ? data.metaKeywords : [],
+            metaKeywords: mapToLocalizedMixed(data.metaKeywords),
             metaImage: {
               url: data.metaImage?.url || '',
               fileName: data.metaImage?.fileName || '',
@@ -137,7 +167,7 @@ export default function NewBlogCategoryPage() {
       }
 
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch category data');
+      setFormErrors([{ field: 'Server', message: err.message || 'Failed to fetch category data' }]);
       console.error('Error fetching category:', err);
     } finally {
       setFetchingData(false);
@@ -159,15 +189,18 @@ export default function NewBlogCategoryPage() {
       const updated = { ...prev } as any;
       
       // Handle localized fields
-      if (['name', 'description'].includes(field)) {
+      if (['name', 'description', 'slug'].includes(field)) {
         updated[field] = {
           ...(updated[field] || { en: '', de: '', it: '', es: '' }),
           [targetLang]: value,
         };
         
-        // Auto-generate slug when English name changes
-        if (field === 'name' && targetLang === 'en') {
-          updated.slug = generateSlug(value);
+        // Auto-generate slug when name changes
+        if (field === 'name') {
+          updated.slug = {
+            ...updated.slug,
+            [targetLang]: generateSlug(value),
+          };
         }
       } 
       // Handle SEO localized fields
@@ -209,19 +242,21 @@ export default function NewBlogCategoryPage() {
 
 
   // Handle keywords
-  const handleKeywordsChange = (value: string) => {
-    const keywords = value.split(',').map(k => k.trim()).filter(k => k);
+  const handleKeywordsChange = (lang: AdminLanguage, value: string[]) => {
     setFormData(prev => ({
       ...prev,
       seo: {
         ...(prev.seo || { 
           metaTitle: { en: '', de: '', it: '', es: '' }, 
           metaDescription: { en: '', de: '', it: '', es: '' }, 
-          metaKeywords: [] 
+          metaKeywords: { en: [], de: [], it: [], es: [] } 
         }),
-        metaKeywords: keywords,
+        metaKeywords: {
+          ...(prev.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }),
+          [lang]: value,
+        },
       },
-    }));
+    } as BlogCategoryFormData));
   };
 
   // Handle Image Upload
@@ -246,15 +281,21 @@ export default function NewBlogCategoryPage() {
     
     try {
       setLoading(true);
-      setError(null);
+      setFormErrors([]);
 
-      // Validation
-      if (!formData.name.en) {
-        toast({
-          title: 'Validation Error',
-          description: 'English name is required',
-          variant: 'destructive',
-        });
+      // ── Client-side validation ──────────────────────
+      const validationErrors: FormErrorItem[] = [];
+      if (!formData.name?.en?.trim()) {
+        validationErrors.push({ field: 'Category Name', message: 'English name is required', lang: 'en', path: 'name-en' });
+      }
+      if (!formData.slug?.en?.trim()) {
+        validationErrors.push({ field: 'URL Slug', message: 'English slug is required', lang: 'en', path: 'slug-en' });
+      }
+      if (formData.slug?.en && !/^[a-z0-9-]+$/.test(formData.slug.en)) {
+        validationErrors.push({ field: 'URL Slug', message: 'Only lowercase letters, numbers, and hyphens allowed', lang: 'en', path: 'slug-en' });
+      }
+      if (validationErrors.length > 0) {
+        setFormErrors(validationErrors);
         setLoading(false);
         return;
       }
@@ -272,7 +313,7 @@ export default function NewBlogCategoryPage() {
         // Backend BlogCategory model has flat SEO fields
         metaTitle: cleanData.seo?.metaTitle,
         metaDescription: cleanData.seo?.metaDescription,
-        metaKeywords: cleanData.seo?.metaKeywords,
+        metaKeywords: cleanData.seo?.metaKeywords, // Now ILocalizedMixed
         metaImage: cleanData.seo?.metaImage?.url ? cleanData.seo.metaImage : undefined,
       };
 
@@ -291,24 +332,24 @@ export default function NewBlogCategoryPage() {
         toast({
             title: isEditMode ? 'Category Updated' : 'Category Created',
             description: `Blog category ${isEditMode ? 'updated' : 'created'} successfully.`,
-            variant: 'success',
         });
+        clearDraft();
         router.push('/admin/blogs/category');
       } else {
-        const msg = response.error || `Failed to ${isEditMode ? 'update' : 'create'} category`;
-        setError(msg);
+        const parsed = parseApiError(response);
+        setFormErrors(parsed);
         toast({
-            title: 'Error',
-            description: msg,
+            title: 'Save failed',
+            description: `${parsed.length} issue(s) found. See the error panel for details.`,
             variant: 'destructive',
         });
       }
     } catch (err: any) {
-      const msg = err.message || 'An error occurred';
-      setError(msg);
+      const parsed = parseApiError(err?.response?.data || { message: err.message });
+      setFormErrors(parsed);
       toast({
         title: 'Error',
-        description: msg,
+        description: err.message || 'An error occurred',
         variant: 'destructive',
       });
     } finally {
@@ -348,11 +389,14 @@ export default function NewBlogCategoryPage() {
         <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
+      {/* Draft Banner */}
+      {hasDraft && !isEditMode && (
+        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_BLOG_CATEGORY); }} />
+      )}
+
+      {/* Detailed Error Panel */}
+      {formErrors.length > 0 && (
+        <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -382,14 +426,22 @@ export default function NewBlogCategoryPage() {
                 </LocalizedField>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug (Always EN) *</Label>
-                <Input
-                  id="slug"
+                <LocalizedField
+                  label="URL Slug"
                   value={formData.slug}
-                  onChange={(e) => handleChange('slug', e.target.value)}
-                  placeholder="travel-guides"
-                  required
-                />
+                  onChange={(lang, val) => handleChange('slug', val)}
+                  globalLanguage={activeLanguage}
+                >
+                  {(lang, value, onChange) => (
+                    <Input
+                      id="slug"
+                      value={value}
+                      onChange={(e) => onChange(e.target.value)}
+                      placeholder={`e.g., travel-guides-in-${lang}`}
+                      required={lang === 'en'}
+                    />
+                  )}
+                </LocalizedField>
               </div>
             </div>
             
@@ -488,13 +540,20 @@ export default function NewBlogCategoryPage() {
                 </LocalizedField>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="metaKeywords">Keywords (comma-separated)</Label>
-                <Input
-                  id="metaKeywords"
-                  value={formData.seo?.metaKeywords?.join(', ') || ''}
-                  onChange={(e) => handleKeywordsChange(e.target.value)}
-                  placeholder="guides, travel, tips"
-                />
+                <LocalizedField
+                  label="Keywords"
+                  value={formData.seo?.metaKeywords}
+                  globalLanguage={activeLanguage}
+                  onChange={(lang, val) => handleKeywordsChange(lang, val)}
+                >
+                  {(lang, currentValue, handleLang) => (
+                    <TagInput
+                      tags={currentValue || []}
+                      onChange={handleLang}
+                      placeholder={`Keywords in ${lang}`}
+                    />
+                  )}
+                </LocalizedField>
               </div>
             </div>
             

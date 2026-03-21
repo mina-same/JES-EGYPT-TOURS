@@ -5,7 +5,8 @@ import Link from "next/link";
 import Image, { StaticImageData } from "next/image";
 import logo from "@/assets/images/logo-light.png";
 import { useTranslation } from "react-i18next";
-import { getLocalizedValue } from "@/lib/localize";
+import { getLocalizedValue, formatUrl } from "@/lib/localize";
+
 import { demoPages } from "@/data/demoPages";
 import { Col, Container, Row } from "react-bootstrap";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
@@ -134,10 +135,11 @@ const Drawer: React.FC = () => {
                 }`}
               >
                 <Link
-                  href={item.url || item.link || "#"}
+                  href={formatUrl(item.url || item.link)}
                   className={`${isItems === idx ? "expanded" : ""}`}
                 >
                   {getLocalizedValue(item.label || item.title, i18n.language)}
+
                   {hasChildren && (
                     <button
                       onClick={() => toggleDropdown(idx)}
@@ -161,11 +163,12 @@ const Drawer: React.FC = () => {
                     >
                       <div className=' main-menu__list__wrapper'>
                         <Link
-                          href={subMenu.url || subMenu.link || "#"}
+                          href={formatUrl(subMenu.url || subMenu.link)}
                           className={`${isSubItems === sidx ? "expanded" : ""}`}
                         >
                           {getLocalizedValue(subMenu.label || subMenu.title, i18n.language)}{" "}
                         </Link>
+
                         {(subMenu.children || subMenu.subMenu) && (
                           <button
                             onClick={() => toggleSubItemDropdown(sidx)}
@@ -181,10 +184,11 @@ const Drawer: React.FC = () => {
                       >
                         {(subMenu.children || subMenu.subMenu)?.map((subSubItem: any, ssidx: number) => (
                           <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
-                            <Link href={subSubItem.url || subSubItem.link || "#"}>
+                            <Link href={formatUrl(subSubItem.url || subSubItem.link)}>
                               {getLocalizedValue(subSubItem.label || subSubItem.title, i18n.language)}
                             </Link>
                           </li>
+
                         ))}
                       </ul>
                     </li>

@@ -182,10 +182,19 @@ export default function TourSubcategoriesPage() {
 
   // Filter subcategories by search
   const filteredSubcategories = subcategories.filter(subcategory => {
-    const name = typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name;
+    const searchLower = searchTerm.toLowerCase();
+    const name = subcategory.name;
+    const slug = subcategory.slug;
+    
     return (
-      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      subcategory.slug.toLowerCase().includes(searchTerm.toLowerCase())
+      (name?.en || '').toLowerCase().includes(searchLower) ||
+      (name?.de || '').toLowerCase().includes(searchLower) ||
+      (name?.it || '').toLowerCase().includes(searchLower) ||
+      (name?.es || '').toLowerCase().includes(searchLower) ||
+      (slug?.en || '').toLowerCase().includes(searchLower) ||
+      (slug?.de || '').toLowerCase().includes(searchLower) ||
+      (slug?.it || '').toLowerCase().includes(searchLower) ||
+      (slug?.es || '').toLowerCase().includes(searchLower)
     );
   });
 
@@ -220,9 +229,10 @@ export default function TourSubcategoriesPage() {
     },
     {
       header: 'Slug',
-      render: (subcategory) => (
-        <div className="subcategory-slug">/{subcategory.slug}</div>
-      ),
+      render: (subcategory) => {
+        const slug = typeof subcategory.slug === 'object' ? subcategory.slug.en : subcategory.slug;
+        return <div className="subcategory-slug">/{slug}</div>;
+      },
     },
     {
       header: 'Status',

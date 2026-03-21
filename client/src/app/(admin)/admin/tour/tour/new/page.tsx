@@ -116,6 +116,11 @@ export default function NewTourPage() {
       // Clean up empty fields
       const cleanData = { ...tourForm.formData };
       
+      const isMixedEmpty = (mixed: any) => {
+        if (!mixed) return true;
+        return !mixed.en?.length && !mixed.de?.length && !mixed.it?.length && !mixed.es?.length;
+      };
+      
       // Remove empty images
       if (cleanData.images) {
         cleanData.images = cleanData.images.filter(img => img.url);
@@ -134,7 +139,7 @@ export default function NewTourPage() {
       
       if (cleanData.seo) {
         if (!cleanData.seo.metaTitle && !cleanData.seo.metaDescription && 
-            (!cleanData.seo.metaKeywords || cleanData.seo.metaKeywords.length === 0)) {
+            isMixedEmpty(cleanData.seo.metaKeywords)) {
           delete cleanData.seo;
         } else if (!cleanData.seo.metaImage?.url) {
           delete cleanData.seo.metaImage;
@@ -152,13 +157,14 @@ export default function NewTourPage() {
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
       
       // Remove empty arrays
-      if (!cleanData.tourHighlights?.length) delete cleanData.tourHighlights;
-      if (!cleanData.inclusion?.length) delete cleanData.inclusion;
-      if (!cleanData.exclusion?.length) delete cleanData.exclusion;
-      if (!cleanData.whatToPack?.length) delete cleanData.whatToPack;
+      if (isMixedEmpty(cleanData.tourHighlights)) delete cleanData.tourHighlights;
+      if (isMixedEmpty(cleanData.inclusion)) delete cleanData.inclusion;
+      if (isMixedEmpty(cleanData.exclusion)) delete cleanData.exclusion;
+      if (isMixedEmpty(cleanData.whatToPack)) delete cleanData.whatToPack;
       if (!cleanData.pricingPlans?.length) delete cleanData.pricingPlans;
       if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;
       if (!cleanData.relatedTours?.length) delete cleanData.relatedTours;
+      if (isMixedEmpty(cleanData.tags)) delete cleanData.tags;
       if (!cleanData.reviews?.length) delete cleanData.reviews;
 
       // Sanitize ID fields to ensure they are strings, not objects

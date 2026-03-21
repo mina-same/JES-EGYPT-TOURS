@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const EMPTY_ARRAY: any[] = [];
 
 interface TagInputProps {
   tags: string[];
@@ -19,7 +21,7 @@ export default function TagInput({
   placeholder = "Add a tag and press Enter...",
   className,
   maxTags = 20,
-  suggestions = []
+  suggestions = EMPTY_ARRAY
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -36,14 +38,23 @@ export default function TagInput({
           suggestion.toLowerCase().includes(inputValue.toLowerCase()) &&
           !tags.includes(suggestion)
       );
-      setFilteredSuggestions(filtered);
+      
+      // Only update if the values actually changed to avoid infinite loops
+      // with potentially unstable array references from props
+      setFilteredSuggestions(prev => {
+        if (prev.length === filtered.length && prev.every((v, i) => v === filtered[i])) {
+          return prev;
+        }
+        return filtered;
+      });
+      
       setShowSuggestions(filtered.length > 0);
       setHighlightedIndex(-1);
     } else {
-      setShowSuggestions(false);
-      setFilteredSuggestions([]);
+      if (showSuggestions) setShowSuggestions(false);
+      setFilteredSuggestions(prev => prev.length === 0 ? prev : EMPTY_ARRAY);
     }
-  }, [inputValue, tags, suggestions]);
+  }, [inputValue, tags, suggestions, showSuggestions]);
 
   // Handle click outside to close suggestions
   useEffect(() => {

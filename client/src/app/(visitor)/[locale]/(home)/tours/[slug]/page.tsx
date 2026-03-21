@@ -1,4 +1,5 @@
 import { tourAPI } from "@/lib/api/tour";
+import { getLocalizedValue } from "@/lib/localize";
 import { reviewsAPI } from "@/lib/api/reviews";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -9,6 +10,7 @@ import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import TourListingOneDetails from "@/components/sections/TourListingDetailsOne/TourListingDetailsOne";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import { SlugManager } from "@/components/common/SlugManager";
 
 interface PageProps {
   params: Promise<{
@@ -56,10 +58,10 @@ export async function generateMetadata({
       alternates: {
         canonical: `${baseUrl}/${locale}/tours/${slug}`,
         languages: {
-          en: `${baseUrl}/en/tours/${slug}`,
-          de: `${baseUrl}/de/tours/${slug}`,
-          it: `${baseUrl}/it/tours/${slug}`,
-          es: `${baseUrl}/es/tours/${slug}`,
+          en: `${baseUrl}/en/tours/${tour.slug?.en || slug}`,
+          de: `${baseUrl}/de/tours/${tour.slug?.de || slug}`,
+          it: `${baseUrl}/it/tours/${tour.slug?.it || slug}`,
+          es: `${baseUrl}/es/tours/${tour.slug?.es || slug}`,
         },
       },
       openGraph: {
@@ -117,14 +119,14 @@ export default async function TourListingDetailsPage({ params }: PageProps) {
   if (category?.name?.[locale as any] || category?.name) {
     breadcrumbs.push({
       label: (category.name?.[locale as any] || category.name) as string,
-      href: category.slug ? `/tours/category/${category.slug}` : undefined,
+      href: category.slug ? `/tours/category/${getLocalizedValue(category.slug, locale)}` : undefined,
     });
   }
 
   if (subcategory?.name?.[locale as any] || subcategory?.name) {
     breadcrumbs.push({
       label: (subcategory.name?.[locale as any] || subcategory.name) as string,
-      href: subcategory.slug ? `/tours/subcategory/${subcategory.slug}` : undefined,
+      href: subcategory.slug ? `/tours/subcategory/${getLocalizedValue(subcategory.slug, locale)}` : undefined,
     });
   }
   breadcrumbs.push({ label: name as string });
@@ -215,6 +217,7 @@ export default async function TourListingDetailsPage({ params }: PageProps) {
 
   return (
     <>
+      <SlugManager slugs={tour.slug as any} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

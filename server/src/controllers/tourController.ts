@@ -396,7 +396,14 @@ export const getTourBySlug = async (
   res: Response
 ): Promise<void> => {
   try {
-    const tour = await Tour.findOne({ slug: req.params.slug })
+    const tour = await Tour.findOne({
+      $or: [
+        { 'slug.en': req.params.slug },
+        { 'slug.de': req.params.slug },
+        { 'slug.it': req.params.slug },
+        { 'slug.es': req.params.slug },
+      ],
+    })
       .populate('subcategory', 'name slug description category')
       .populate({
         path: 'subcategory',

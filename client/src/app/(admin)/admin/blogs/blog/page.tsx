@@ -21,7 +21,7 @@ import { getLocalizedValue } from '@/lib/localize';
 interface BlogPost {
   _id: string;
   title: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   author: {
     _id: string;
     name: string;
@@ -33,7 +33,7 @@ interface BlogPost {
     title?: ILocalizedString;
     alt?: ILocalizedString;
   } | string;
-  featuredImageAlt?: string;
+  featuredImageAlt?: ILocalizedString;
   excerpt?: ILocalizedString;
   status: 'draft' | 'published' | 'scheduled';
   isFeatured: boolean;

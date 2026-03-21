@@ -5,6 +5,7 @@ export interface ILocalizedString {
   de?: string;
   it?: string;
   es?: string;
+  [key: string]: string | undefined;
 }
 
 export interface ILocalizedMixed {

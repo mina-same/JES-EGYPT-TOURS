@@ -21,6 +21,8 @@ import { toast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
 import { getLocalizedValue } from "@/lib/localize";
+import TourCard from "@/components/common/TourCard/TourCard";
+import { SlugManager } from "@/components/common/SlugManager";
 
 // Reuse types from TourListing or define here
 
@@ -163,11 +165,11 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
 
             return {
               id: tour._id,
-              slug: tour.slug,
+              slug: getLocalizedValue(tour.slug, locale),
               image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg", 
               allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
               title: getLocalizedValue(tour.heading || tour.name, locale),
-              link: `/tours/${tour.slug}`,
+              link: `/tours/${getLocalizedValue(tour.slug, locale)}`,
               price: tour.priceStartingFrom || 0,
               rating: 5,
               reviews: tour.reviews?.length || 0,
@@ -326,6 +328,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
 
   return (
     <Layout>
+      {category?.slug && <SlugManager slugs={category.slug} />}
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
@@ -379,7 +382,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                       <Link 
                         href={isActive 
                           ? `/tours/category/${slug}` 
-                          : `/tours/subcategory/${sub.slug}`
+                          : `/tours/subcategory/${getLocalizedValue(sub.slug, locale)}`
                         } 
                         className="subcategory-card-link"
                       >
@@ -573,159 +576,21 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                   </select>
                 </div>
               </div>
-
               {pageLoading && (
                 <div className="flex items-center justify-center mb-4" style={{ minHeight: 40 }}>
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               )}
-
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
                     tours.map((item: any) => (
                     <Col lg={4} md={6} key={item.id}>
-                        <PhotoSwipeGallery>
-                        <div className='item'>
-                            <div
-                            className='listing-card-four wow fadeInUp'
-                            data-wow-duration='1500ms'
-                            >
-                            <div className='listing-card-four__image'>
-                                <div className="relative w-full" style={{ height: '257px' }}>
-                                <Image 
-                                    src={item.image} 
-                                    alt={item.title} 
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className="object-cover"
-                                />
-                                </div>
-                                <div className='listing-card-four__btn-group'>
-                                {item.discount && (
-                                    <div className='listing-card-four__discount'>
-                                    -{item.discount}% off
-                                    </div>
-                                )}
-                                <div className='listing-card-four__featured'>
-                                    Featured
-                                </div>
-                                </div>
-                                <div className='listing-card-four__btns'>
-                                <Link
-                                  href="#"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    toggleWishlist(item.id);
-                                  }}
-                                  aria-label={isInWishlist(item.id) ? "Remove from wishlist" : "Add to wishlist"}
-                                  className={isInWishlist(item.id) ? 'is-active' : undefined}
-                                >
-                                  <i className={isInWishlist(item.id) ? 'fas fa-heart' : 'far fa-heart'}></i>
-                                </Link>
-                                <div className='listing-card-four__btns__hover'>
-                                    {/* Primary Image Item (Visible Toggle) */}
-                                    <Item
-                                    original={item.allImages[0]}
-                                    thumbnail={item.allImages[0]}
-                                    width='1200'
-                                    height='800'
-                                    >
-                                    {({ ref, open }) => (
-                                        <Link
-                                        href='#'
-                                        className='listing-card-four__popup card__popup'
-                                        ref={ref as any}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            open(e);
-                                        }}
-                                        >
-                                        <span className='icon-image'></span>
-                                        </Link>
-                                    )}
-                                    </Item>
-
-                                    {/* Hidden Image Items for the Swipe Gallery */}
-                                    {item.allImages.slice(1).map((imgUrl: string, idx: number) => (
-                                    <Item
-                                        key={idx}
-                                        original={imgUrl}
-                                        thumbnail={imgUrl}
-                                        width='1200'
-                                        height='800'
-                                    >
-                                        {({ ref }) => (
-                                        <div ref={ref as any} style={{ display: 'none' }} />
-                                        )}
-                                    </Item>
-                                    ))}
-
-                                    <Link
-                                    className='video-popup'
-                                    href='#'
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        openVideoReviews(item.slug);
-                                    }}
-                                    >
-                                    <span className='icon-video'></span>
-                                    </Link>
-                                </div>
-                                </div>
-                                <ul className='listing-card-four__meta list-unstyled'>
-                                {item.meta.map((meta: any) => {
-                                  const isLocation = meta.icon === "icon-location";
-                                  const fullText = String(meta.title || "");
-                                  const firstWord = isLocation
-                                    ? (fullText.split(/[, ]+/).filter(Boolean)[0] || fullText)
-                                    : fullText;
-                                  return (
-                                    <li key={meta.id}>
-                                      <Link href={item.link} title={isLocation ? fullText : undefined}>
-                                        <span className='listing-card-four__meta__icon'>
-                                          <i className={meta.icon}></i>
-                                        </span>
-                                        <span className={isLocation ? 'meta-text' : undefined}>{firstWord}</span>
-                                      </Link>
-                                    </li>
-                                  );
-                                })}
-                                </ul>
-                            </div>
-                            <div className='listing-card-four__content'>
-                                <div className='listing-card-four__rating'>
-                                <span>({item.reviews} Review)</span>
-                                {[...Array(item.rating)].map((_, i) => (
-                                    <i key={i} className='icon-star'></i>
-                                ))}
-                                </div>
-                                <h3 className='listing-card-four__title'>
-                                <Link href={item.link}>{item.title}</Link>
-                                </h3>
-
-                                <div className='listing-card-four__content__btn'>
-                                <div className='listing-card-four__price'>
-                                    <span className='listing-card-four__price__sub'>
-                                    Start from
-                                    </span>
-                                    <span className='listing-card-four__price__number'>
-                                    ${item.price}
-                                    </span>
-                                </div>
-                                <Link
-                                    href={item.link}
-                                    className='listing-card-four__btn gotur-btn'
-                                >
-                                    Book Now{" "}
-                                    <span className='icon'>
-                                    <i className='icon-right'></i>{" "}
-                                    </span>
-                                </Link>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-                        </PhotoSwipeGallery>
+                        <TourCard 
+                          item={item}
+                          toggleWishlist={toggleWishlist}
+                          isInWishlist={isInWishlist}
+                          openVideoReviews={openVideoReviews}
+                        />
                     </Col>
                     ))
                 ) : (

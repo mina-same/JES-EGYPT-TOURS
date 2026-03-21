@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchema';
+import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
 
 export interface IBlogSubCategory extends Document {
   // Basic Info
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedString;
   image?: string;
   category: mongoose.Types.ObjectId;
@@ -12,7 +12,7 @@ export interface IBlogSubCategory extends Document {
   // SEO Meta Tags
   metaTitle?: ILocalizedString;
   metaDescription?: ILocalizedString;
-  metaKeywords?: string[];
+  metaKeywords?: ILocalizedMixed;
   metaImage?: {
     url: string;
     alt?: string;
@@ -52,10 +52,8 @@ const BlogSubCategorySchema: Schema = new Schema(
       required: [true, 'SubCategory name is required'],
     },
     slug: {
-      type: String,
+      type: LocalizedStringSchema,
       required: true,
-      lowercase: true,
-      trim: true,
     },
     description: {
       type: LocalizedStringSchema,
@@ -77,10 +75,9 @@ const BlogSubCategorySchema: Schema = new Schema(
     metaDescription: {
       type: LocalizedStringSchema,
     },
-    metaKeywords: [{
-      type: String,
-      trim: true,
-    }],
+    metaKeywords: {
+      type: LocalizedMixedSchema,
+    },
     metaImage: {
       url: {
         type: String,
@@ -149,7 +146,10 @@ const BlogSubCategorySchema: Schema = new Schema(
 );
 
 // Compound index for category + slug uniqueness
-BlogSubCategorySchema.index({ category: 1, slug: 1 }, { unique: true });
+BlogSubCategorySchema.index({ category: 1, 'slug.en': 1 }, { unique: true, sparse: true });
+BlogSubCategorySchema.index({ category: 1, 'slug.de': 1 }, { unique: true, sparse: true });
+BlogSubCategorySchema.index({ category: 1, 'slug.it': 1 }, { unique: true, sparse: true });
+BlogSubCategorySchema.index({ category: 1, 'slug.es': 1 }, { unique: true, sparse: true });
 BlogSubCategorySchema.index({ category: 1, isActive: 1 });
 BlogSubCategorySchema.index({ name: 'text', description: 'text' });
 

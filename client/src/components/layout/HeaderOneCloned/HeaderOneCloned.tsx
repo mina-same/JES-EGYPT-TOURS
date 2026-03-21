@@ -10,7 +10,8 @@ import useScrollUp from "@/hooks/useScrollUp";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
-import { getLocalizedValue } from "@/lib/localize";
+import { getLocalizedValue, formatUrl } from "@/lib/localize";
+
 interface NavItem {
   id: number;
   title: string;
@@ -39,9 +40,10 @@ const HeaderOneCloned: React.FC = () => {
             ? "dropdown"
             : ""}
         >
-          <Link href={item.url || item.link || "#"}>
+          <Link href={formatUrl(item.url || item.link)}>
             {getLocalizedValue(item.label || item.title, i18n.language)}
           </Link>
+
           {((Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0))
             ? renderSubMenu(item.children || item.subMenu)
             : null}
@@ -86,9 +88,10 @@ const HeaderOneCloned: React.FC = () => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={item.url || item.link || "#"}>
+                    <Link href={formatUrl(item.url || item.link)}>
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
+
                     {hasChildren ? renderSubMenu(item.children || item.subMenu) : null}
                   </li>
                     );
@@ -149,7 +152,8 @@ const HeaderOneCloned: React.FC = () => {
               <i className='icon-menu-bar'></i>
             </div>
 
-            <Link href='/contact' className='gotur-btn main-header__btn'>
+            <Link href='/tailorMade' className='gotur-btn main-header__btn'>
+
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>
 

@@ -140,7 +140,19 @@ export default function BlogCategoriesPage() {
   };
 
   // Filter categories by search (client-side backup filtering if server search fails or for instant feedback)
-  const filteredCategories = categories;
+  const filteredCategories = categories.filter(category => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (category.name?.en || '').toLowerCase().includes(searchLower) ||
+      (category.name?.de || '').toLowerCase().includes(searchLower) ||
+      (category.name?.it || '').toLowerCase().includes(searchLower) ||
+      (category.name?.es || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.en || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.de || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.it || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.es || '').toLowerCase().includes(searchLower)
+    );
+  });
 
   // Calculate stats
   const stats = {
@@ -174,7 +186,7 @@ export default function BlogCategoriesPage() {
     {
       header: 'Slug',
       render: (category) => (
-        <div className="category-slug">/{category.slug}</div>
+        <div className="category-slug">/{category.slug?.en || ''}</div>
       ),
     },
     {

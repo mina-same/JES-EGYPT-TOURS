@@ -6,11 +6,12 @@ import { Switch } from '@/components/ui/switch';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
+import TagInput from '@/components/admin/TagInput';
 
 interface SEOTabProps {
   formData: any;
   handleChange: (field: string, value: any) => void;
-  handleKeywordsChange: (value: string, lang?: AdminLanguage) => void;
+  handleKeywordsChange: (value: string[], lang: AdminLanguage) => void;
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
 }
@@ -22,15 +23,6 @@ export default function SEOTab({
   handleImageUpload,
   activeLanguage,
 }: SEOTabProps) {
-  const keywordsAsLocalized = () => {
-    const keywords = formData.seo?.metaKeywords || [];
-    const langs: AdminLanguage[] = ['en', 'de', 'it', 'es'];
-    const result: any = { en: '', de: '', it: '', es: '' };
-    langs.forEach((lang) => {
-      result[lang] = keywords.map((k: any) => k?.[lang] || '').filter(Boolean).join(', ');
-    });
-    return result;
-  };
 
   return (
     <div className="space-y-6">
@@ -110,21 +102,16 @@ export default function SEOTab({
 
           <LocalizedField
             label="Keywords (comma-separated)"
-            value={keywordsAsLocalized()}
+            value={formData.seo?.metaKeywords}
             globalLanguage={activeLanguage}
             onChange={(lang, val) => handleKeywordsChange(val, lang)}
           >
             {(lang, currentValue, handleLang) => (
-              <>
-                <textarea
-                  className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  rows={2}
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder={`egypt tours, cairo, pyramids... (${lang})`}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Comma-separated keywords for {lang}</p>
-              </>
+              <TagInput
+                tags={currentValue || []}
+                onChange={handleLang}
+                placeholder={`egypt tours, cairo, pyramids... (${lang})`}
+              />
             )}
           </LocalizedField>
           

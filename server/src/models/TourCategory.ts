@@ -13,7 +13,7 @@ import {
 export interface ISEO {
   metaTitle?: ILocalizedString;
   metaDescription?: ILocalizedString;
-  metaKeywords?: ILocalizedString;
+  metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
 }
 
@@ -34,7 +34,7 @@ export interface ISectionHeader {
 
 export interface ITourCategory extends Document {
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedMixed; // Localized HTML content
   image?: IImage;
   seo?: ISEO;
@@ -57,7 +57,7 @@ const SEOSchema = new Schema<ISEO>(
       type: LocalizedStringSchema,
     },
     metaKeywords: {
-      type: LocalizedStringSchema,
+      type: LocalizedMixedSchema,
     },
     metaImage: {
       type: ImageSchema,
@@ -120,15 +120,8 @@ const TourCategorySchema = new Schema<ITourCategory>(
       required: [true, 'Category name is required'],
     },
     slug: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Slug is required'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [
-        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-        'Slug must be URL-friendly (lowercase, hyphens only)',
-      ],
     },
     description: {
       type: LocalizedMixedSchema,
@@ -163,8 +156,12 @@ const TourCategorySchema = new Schema<ITourCategory>(
 );
 
 // ==================== INDEXES ====================
+TourCategorySchema.index({ 'slug.en': 1 }, { unique: true, sparse: true });
+TourCategorySchema.index({ 'slug.de': 1 }, { unique: true, sparse: true });
+TourCategorySchema.index({ 'slug.it': 1 }, { unique: true, sparse: true });
+TourCategorySchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
 
-// Indexes for faster queries (slug already indexed via unique: true)
+// Indexes for faster queries
 TourCategorySchema.index({ isActive: 1 });
 TourCategorySchema.index({ name: 'text', description: 'text' });
 TourCategorySchema.index({ createdAt: -1 });

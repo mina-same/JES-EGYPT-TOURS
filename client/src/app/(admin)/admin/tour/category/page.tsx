@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { tourCategoryAPI } from '@/lib/api/tour';
 import { ITourCategory } from '@/types/tour';
-import { 
-  Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
-  Search, Filter, RefreshCw, Layers, CheckCircle, 
+import {
+  Loader2, Plus, Edit2, Trash2, Eye, EyeOff,
+  Search, Filter, RefreshCw, Layers, CheckCircle,
   XCircle, FolderTree
 } from 'lucide-react';
 import Image from 'next/image';
@@ -42,19 +42,19 @@ export default function TourCategoriesPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const params: any = {
         page,
         limit: 10,
         search: searchTerm || undefined,
       };
-      
+
       if (statusFilter !== 'all') {
         params.isActive = statusFilter === 'active';
       }
 
       const response = await tourCategoryAPI.getAll(params);
-      
+
       if (response.success && response.data) {
         setCategories(response.data);
         setTotalPages(response.totalPages || 1);
@@ -127,9 +127,9 @@ export default function TourCategoriesPage() {
     try {
       setToggling(id);
       const response = await tourCategoryAPI.toggleStatus(id);
-      
+
       if (response.success && response.data) {
-        setCategories(categories.map((c: ITourCategory) => 
+        setCategories(categories.map((c: ITourCategory) =>
           c._id === id ? { ...c, isActive: response.data.isActive } : c
         ));
       } else {
@@ -143,12 +143,19 @@ export default function TourCategoriesPage() {
   };
 
   // Filter categories by search
-  const filteredCategories = categories.filter(category => 
-    (category.name?.en || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (category.name?.de || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (category.name?.it || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (category.slug || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCategories = categories.filter(category => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (category.name?.en || '').toLowerCase().includes(searchLower) ||
+      (category.name?.de || '').toLowerCase().includes(searchLower) ||
+      (category.name?.it || '').toLowerCase().includes(searchLower) ||
+      (category.name?.es || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.en || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.de || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.it || '').toLowerCase().includes(searchLower) ||
+      (category.slug?.es || '').toLowerCase().includes(searchLower)
+    );
+  });
 
   // Calculate stats
   const stats = {
@@ -180,9 +187,10 @@ export default function TourCategoriesPage() {
     },
     {
       header: 'Slug',
-      render: (category) => (
-        <div className="category-slug">/{category.slug}</div>
-      ),
+      render: (category) => {
+        const slug = typeof category.slug === 'object' ? category.slug.en : category.slug;
+        return <div className="category-slug">/{slug}</div>;
+      },
     },
     {
       header: 'Status',
@@ -344,7 +352,7 @@ export default function TourCategoriesPage() {
           totalItems={stats.total}
           itemsPerPage={10}
           onPageChange={setPage}
-          onItemsPerPageChange={() => {}}
+          onItemsPerPageChange={() => { }}
           disableLimitChange={true}
         />
       </div>

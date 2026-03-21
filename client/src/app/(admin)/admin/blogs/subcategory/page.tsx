@@ -139,7 +139,19 @@ export default function BlogSubCategoriesPage() {
     }
   };
 
-  const filteredSubcategories = subcategories;
+  const filteredSubcategories = subcategories.filter(subcategory => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (subcategory.name?.en || '').toLowerCase().includes(searchLower) ||
+      (subcategory.name?.de || '').toLowerCase().includes(searchLower) ||
+      (subcategory.name?.it || '').toLowerCase().includes(searchLower) ||
+      (subcategory.name?.es || '').toLowerCase().includes(searchLower) ||
+      (subcategory.slug?.en || '').toLowerCase().includes(searchLower) ||
+      (subcategory.slug?.de || '').toLowerCase().includes(searchLower) ||
+      (subcategory.slug?.it || '').toLowerCase().includes(searchLower) ||
+      (subcategory.slug?.es || '').toLowerCase().includes(searchLower)
+    );
+  });
 
   // Calculate stats
   const stats = {
@@ -182,7 +194,7 @@ export default function BlogSubCategoriesPage() {
     {
       header: 'Slug',
       render: (subcategory) => (
-        <div className="category-slug">/{subcategory.slug}</div>
+        <div className="category-slug">/{subcategory.slug?.en || ''}</div>
       ),
     },
     {

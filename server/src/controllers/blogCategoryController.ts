@@ -174,7 +174,15 @@ export const getCategoryBySlug = async (
   res: Response
 ): Promise<void> => {
   try {
-    const category = await BlogCategory.findOne({ slug: req.params.slug })
+    const { slug } = req.params;
+    const category = await BlogCategory.findOne({ 
+      $or: [
+        { 'slug.en': slug },
+        { 'slug.de': slug },
+        { 'slug.it': slug },
+        { 'slug.es': slug },
+      ]
+    })
       .populate('subcategoriesCount')
       .lean();
 

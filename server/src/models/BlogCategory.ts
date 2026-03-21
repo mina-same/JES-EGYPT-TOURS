@@ -1,17 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchema';
+import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
 
 export interface IBlogCategory extends Document {
   // Basic Info
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedString;
   image?: string;
   
   // SEO Meta Tags
   metaTitle?: ILocalizedString;
   metaDescription?: ILocalizedString;
-  metaKeywords?: string[];
+  metaKeywords?: ILocalizedMixed;
   metaImage?: {
     url: string;
     alt?: string;
@@ -45,11 +45,8 @@ const BlogCategorySchema: Schema = new Schema(
       required: [true, 'Category name is required'],
     },
     slug: {
-      type: String,
+      type: LocalizedStringSchema,
       required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
     },
     description: {
       type: LocalizedStringSchema,
@@ -66,10 +63,9 @@ const BlogCategorySchema: Schema = new Schema(
     metaDescription: {
       type: LocalizedStringSchema,
     },
-    metaKeywords: [{
-      type: String,
-      trim: true,
-    }],
+    metaKeywords: {
+      type: LocalizedMixedSchema,
+    },
     metaImage: {
       url: {
         type: String,
@@ -126,7 +122,10 @@ const BlogCategorySchema: Schema = new Schema(
 );
 
 // Indexes for faster queries
-BlogCategorySchema.index({ slug: 1 });
+BlogCategorySchema.index({ 'slug.en': 1 }, { sparse: true, unique: true });
+BlogCategorySchema.index({ 'slug.de': 1 }, { sparse: true, unique: true });
+BlogCategorySchema.index({ 'slug.it': 1 }, { sparse: true, unique: true });
+BlogCategorySchema.index({ 'slug.es': 1 }, { sparse: true, unique: true });
 BlogCategorySchema.index({ isActive: 1 });
 BlogCategorySchema.index({ name: 'text', description: 'text' });
 

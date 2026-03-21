@@ -20,6 +20,7 @@ import {
   Wand2,
 } from 'lucide-react';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import LocalizedInput from '@/components/admin/LocalizedInput';
 import { getLocalizedValue } from '@/lib/localize';
 
 import { useToast } from '@/hooks/use-toast';
@@ -380,14 +381,12 @@ export default function EditMenuPage() {
             {open ? (
               <div className="grid gap-4 p-3 md:grid-cols-12">
               <div className="md:col-span-5">
-                <label className="text-sm font-medium">Label ({activeLanguage})</label>
-                <div className="mt-2">
-                  <Input 
-                    value={it.label[activeLanguage] || ''} 
-                    onChange={(e) => updateItem(path, { label: { ...it.label, [activeLanguage]: e.target.value } })} 
-                    placeholder={`Name in ${activeLanguage}`} 
-                  />
-                </div>
+                <LocalizedInput
+                  label="Label"
+                  value={it.label}
+                  onChange={(val) => updateItem(path, { label: val as any })}
+                  placeholder="Menu label"
+                />
               </div>
               <div className="md:col-span-5">
                 <label className="flex items-center gap-2 text-sm font-medium">
@@ -496,7 +495,6 @@ export default function EditMenuPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
           <div className="flex flex-wrap gap-2">
             <Button variant="destructive" onClick={handleDelete}>
               <Trash2 className="h-4 w-4" />
@@ -520,14 +518,12 @@ export default function EditMenuPage() {
         </div>
         <div className="grid gap-4 p-4 md:grid-cols-3">
           <div className="md:col-span-2">
-            <label className="text-sm font-medium">Title ({activeLanguage})</label>
-            <div className="mt-2">
-              <Input 
-                value={title[activeLanguage] || ''} 
-                onChange={(e) => setTitle({ ...title, [activeLanguage]: e.target.value })} 
-                placeholder={`Menu Title in ${activeLanguage}`}
-              />
-            </div>
+            <LocalizedInput
+              label="Menu Title"
+              value={title}
+              onChange={(val) => setTitle(val as any)}
+              placeholder="Main Menu Name"
+            />
           </div>
           <div>
             <label className="text-sm font-medium">Active</label>

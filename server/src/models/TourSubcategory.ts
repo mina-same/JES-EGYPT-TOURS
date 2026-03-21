@@ -13,7 +13,7 @@ import {
 export interface ISEO {
   metaTitle?: ILocalizedString;
   metaDescription?: ILocalizedString;
-  metaKeywords?: ILocalizedString;
+  metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
 }
 
@@ -35,7 +35,7 @@ export interface ISectionHeader {
 export interface ITourSubcategory extends Document {
   category: Types.ObjectId;
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedMixed; // Localized HTML content
   image?: IImage;
   seo?: ISEO;
@@ -58,7 +58,7 @@ const SEOSchema = new Schema<ISEO>(
       type: LocalizedStringSchema,
     },
     metaKeywords: {
-      type: LocalizedStringSchema,
+      type: LocalizedMixedSchema,
     },
     metaImage: {
       type: ImageSchema,
@@ -127,14 +127,8 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
       required: [true, 'Subcategory name is required'],
     },
     slug: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Slug is required'],
-      lowercase: true,
-      trim: true,
-      match: [
-        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-        'Slug must be URL-friendly (lowercase, hyphens only)',
-      ],
     },
     description: {
       type: LocalizedMixedSchema,
@@ -170,9 +164,11 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
 
 // ==================== INDEXES ====================
 
-// Compound index: slug must be unique within a category
-TourSubcategorySchema.index({ category: 1, slug: 1 }, { unique: true });
-// Note: slug index removed as it's covered by compound index above
+// Compound indexes: slug must be unique within a category for each language
+TourSubcategorySchema.index({ category: 1, 'slug.en': 1 }, { unique: true, sparse: true });
+TourSubcategorySchema.index({ category: 1, 'slug.de': 1 }, { unique: true, sparse: true });
+TourSubcategorySchema.index({ category: 1, 'slug.it': 1 }, { unique: true, sparse: true });
+TourSubcategorySchema.index({ category: 1, 'slug.es': 1 }, { unique: true, sparse: true });
 TourSubcategorySchema.index({ isActive: 1 });
 TourSubcategorySchema.index({ name: 'text', description: 'text' });
 TourSubcategorySchema.index({ createdAt: -1 });

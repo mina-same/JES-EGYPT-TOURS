@@ -175,7 +175,14 @@ export const getCategoryBySlug = async (
   res: Response
 ): Promise<void> => {
   try {
-    const category = await TourCategory.findOne({ slug: req.params.slug })
+    const category = await TourCategory.findOne({
+      $or: [
+        { 'slug.en': req.params.slug },
+        { 'slug.de': req.params.slug },
+        { 'slug.it': req.params.slug },
+        { 'slug.es': req.params.slug },
+      ],
+    })
       .populate('subcategoriesCount')
       .lean();
 

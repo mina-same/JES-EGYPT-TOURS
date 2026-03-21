@@ -83,6 +83,17 @@ export default function EditTourPage() {
             };
           };
 
+          const toLocalizedMixed = (val: any) => {
+            if (!val) return { en: [], de: [], it: [], es: [] };
+            if (Array.isArray(val)) return { en: val, de: [], it: [], es: [] };
+            return {
+              en: val.en || [],
+              de: val.de || [],
+              it: val.it || [],
+              es: val.es || [],
+            };
+          };
+
           const toLocalizedArray = (arr: any[]) => {
             if (!arr || !Array.isArray(arr)) return [];
             return arr.map(item => toLocalized(item));
@@ -120,20 +131,20 @@ export default function EditTourPage() {
             seo: {
               metaTitle: toLocalized(tour.seo?.metaTitle),
               metaDescription: toLocalized(tour.seo?.metaDescription),
-              metaKeywords: toLocalizedArray(tour.seo?.metaKeywords || []),
+              metaKeywords: toLocalizedMixed(tour.seo?.metaKeywords),
               metaImage: tour.seo?.metaImage 
                 ? toLocalizedImage(tour.seo.metaImage) 
                 : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
             },
-            tourHighlights: toLocalizedArray(tour.tourHighlights || []),
-            inclusion: toLocalizedArray(tour.inclusion || []),
-            exclusion: toLocalizedArray(tour.exclusion || []),
+            tourHighlights: toLocalizedMixed(tour.tourHighlights),
+            inclusion: toLocalizedMixed(tour.inclusion),
+            exclusion: toLocalizedMixed(tour.exclusion),
             pricingPlans: tour.pricingPlans || [],
             notes: (tour.notes || []).map((n: any) => ({
               title: toLocalized(n.title),
               text: toLocalized(n.text),
             })),
-            whatToPack: toLocalizedArray(tour.whatToPack || []),
+            whatToPack: toLocalizedMixed(tour.whatToPack),
             tourMapIframe: tour.tourMapIframe || '',
             mapSchema: tour.mapSchema,
             whatYouWillLoveHtml: toLocalized(tour.whatYouWillLoveHtml),
@@ -240,6 +251,11 @@ export default function EditTourPage() {
       // Clean up empty fields
       const cleanData = { ...tourForm.formData };
       
+      const isMixedEmpty = (mixed: any) => {
+        if (!mixed) return true;
+        return !mixed.en?.length && !mixed.de?.length && !mixed.it?.length && !mixed.es?.length;
+      };
+      
       // Remove empty images
       if (cleanData.images) {
         cleanData.images = cleanData.images.filter((img: any) => img.url);
@@ -258,7 +274,7 @@ export default function EditTourPage() {
       
       if (cleanData.seo) {
         if (!cleanData.seo.metaTitle && !cleanData.seo.metaDescription && 
-            (!cleanData.seo.metaKeywords || cleanData.seo.metaKeywords.length === 0)) {
+            isMixedEmpty(cleanData.seo.metaKeywords)) {
           delete cleanData.seo;
         } else if (!cleanData.seo.metaImage?.url) {
           delete cleanData.seo.metaImage;
@@ -276,13 +292,14 @@ export default function EditTourPage() {
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
       
       // Remove empty arrays
-      if (!cleanData.tourHighlights?.length) delete cleanData.tourHighlights;
-      if (!cleanData.inclusion?.length) delete cleanData.inclusion;
-      if (!cleanData.exclusion?.length) delete cleanData.exclusion;
-      if (!cleanData.whatToPack?.length) delete cleanData.whatToPack;
+      if (isMixedEmpty(cleanData.tourHighlights)) delete cleanData.tourHighlights;
+      if (isMixedEmpty(cleanData.inclusion)) delete cleanData.inclusion;
+      if (isMixedEmpty(cleanData.exclusion)) delete cleanData.exclusion;
+      if (isMixedEmpty(cleanData.whatToPack)) delete cleanData.whatToPack;
       if (!cleanData.pricingPlans?.length) delete cleanData.pricingPlans;
       if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;
       if (!cleanData.relatedTours?.length) delete cleanData.relatedTours;
+      if (isMixedEmpty(cleanData.tags)) delete cleanData.tags;
       if (!cleanData.reviews?.length) delete cleanData.reviews;
 
       // Sanitize ID fields to ensure they are strings, not objects

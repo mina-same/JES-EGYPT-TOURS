@@ -12,20 +12,25 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import ImageUpload from '@/components/admin/ImageUpload';
 import LocalizedField from '@/components/admin/LocalizedField';
 import { useToast } from '@/hooks/use-toast';
 import { uploadAPI } from '@/lib/api/upload';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import TagInput from '@/components/admin/TagInput';
+import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import DraftBanner from '@/components/admin/DraftBanner';
 import { ILocalizedString, ILocalizedMixed } from '@/types/blog';
 import { FormSkeleton } from '@/components/admin/skeletons/FormSkeleton';
 import { getLocalizedValue } from '@/lib/localize';
+import { useFormDraft } from '@/hooks/useFormDraft';
+import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 
 interface BlogSubCategoryFormData {
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   category: string; // ID of parent category
   description: ILocalizedString;
   image?: {
@@ -37,7 +42,7 @@ interface BlogSubCategoryFormData {
   seo?: {
     metaTitle: ILocalizedString;
     metaDescription: ILocalizedString;
-    metaKeywords: string[];
+    metaKeywords: ILocalizedMixed;
     metaImage?: {
       url: string;
       fileName: string;
@@ -48,44 +53,41 @@ interface BlogSubCategoryFormData {
   isActive: boolean;
 }
 
+const INITIAL_BLOG_SUBCAT: BlogSubCategoryFormData = {
+  name: { en: '', de: '', it: '', es: '' },
+  slug: { en: '', de: '', it: '', es: '' },
+  category: '',
+  description: { en: '', de: '', it: '', es: '' },
+  image: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  seo: {
+    metaTitle: { en: '', de: '', it: '', es: '' },
+    metaDescription: { en: '', de: '', it: '', es: '' },
+    metaKeywords: { en: [], de: [], it: [], es: [] },
+    metaImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  },
+  isActive: true,
+};
+
 export default function NewBlogSubCategoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const subcategoryId = searchParams.get('id');
   const isEditMode = !!subcategoryId;
-  
+
+  const draftKey = isEditMode ? `draft_blog_subcat_edit_${subcategoryId}` : 'draft_blog_subcat_new';
+
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(isEditMode);
   const [fetchingCategories, setFetchingCategories] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
-  
-  const [formData, setFormData] = useState<BlogSubCategoryFormData>({
-    name: { en: '', de: '', it: '', es: '' },
-    slug: '',
-    category: '',
-    description: { en: '', de: '', it: '', es: '' },
-    image: {
-      url: '',
-      fileName: '',
-      title: { en: '', de: '', it: '', es: '' },
-      alt: { en: '', de: '', it: '', es: '' },
-    },
-    seo: {
-      metaTitle: { en: '', de: '', it: '', es: '' },
-      metaDescription: { en: '', de: '', it: '', es: '' },
-      metaKeywords: [],
-      metaImage: {
-        url: '',
-        fileName: '',
-        title: { en: '', de: '', it: '', es: '' },
-        alt: { en: '', de: '', it: '', es: '' },
-      },
-    },
-    isActive: true,
-  });
+
+  const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<BlogSubCategoryFormData>(
+    draftKey,
+    INITIAL_BLOG_SUBCAT
+  );
 
   // Fetch categories and subcategory data (if editing)
   useEffect(() => {
@@ -130,14 +132,14 @@ export default function NewBlogSubCategoryPage() {
 
           setFormData({
             name: mapToLocalized(data.name),
-            slug: data.slug || '',
+            slug: mapToLocalized(data.slug),
             category: categoryId,
             description: mapToLocalized(data.description),
             image: imageObj,
             seo: {
               metaTitle: mapToLocalized(data.metaTitle),
               metaDescription: mapToLocalized(data.metaDescription),
-              metaKeywords: Array.isArray(data.metaKeywords) ? data.metaKeywords : [],
+              metaKeywords: data.seo?.metaKeywords || { en: [], de: [], it: [], es: [] },
               metaImage: {
                 url: data.metaImage?.url || '',
                 fileName: data.metaImage?.fileName || '',
@@ -181,15 +183,18 @@ export default function NewBlogSubCategoryPage() {
       const updated = { ...prev } as any;
       
       // Handle localized fields
-      if (['name', 'description'].includes(field)) {
+      if (['name', 'description', 'slug'].includes(field)) {
         updated[field] = {
           ...(updated[field] || { en: '', de: '', it: '', es: '' }),
           [targetLang]: value,
         };
         
-        // Auto-generate slug when English name changes
-        if (field === 'name' && targetLang === 'en') {
-          updated.slug = generateSlug(value);
+        // Auto-generate slug when name changes for the active language
+        if (field === 'name') {
+          updated.slug = {
+            ...updated.slug,
+            [targetLang]: generateSlug(value),
+          };
         }
       } 
       // Handle SEO localized fields
@@ -231,19 +236,21 @@ export default function NewBlogSubCategoryPage() {
 
 
   // Handle keywords
-  const handleKeywordsChange = (value: string) => {
-    const keywords = value.split(',').map(k => k.trim()).filter(k => k);
+  const handleKeywordsChange = (lang: AdminLanguage, value: string[]) => {
     setFormData(prev => ({
       ...prev,
       seo: {
         ...(prev.seo || { 
           metaTitle: { en: '', de: '', it: '', es: '' }, 
           metaDescription: { en: '', de: '', it: '', es: '' }, 
-          metaKeywords: [] 
+          metaKeywords: { en: [], de: [], it: [], es: [] } 
         }),
-        metaKeywords: keywords,
+        metaKeywords: {
+          ...(prev.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }),
+          [lang]: value,
+        },
       },
-    }));
+    } as BlogSubCategoryFormData));
   };
 
   // Handle Image Upload
@@ -266,26 +273,26 @@ export default function NewBlogSubCategoryPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.category) {
-        toast({
-            title: "Validation Error",
-            description: "Please select a parent category.",
-            variant: "destructive"
-        });
-        return;
-    }
-
     try {
       setLoading(true);
-      setError(null);
+      setFormErrors([]);
 
-      // Validation
-      if (!formData.name.en) {
-        toast({
-          title: 'Validation Error',
-          description: 'English name is required',
-          variant: 'destructive',
-        });
+      // ── Client-side validation ──────────────────────
+      const validationErrors: FormErrorItem[] = [];
+      if (!formData.category) {
+        validationErrors.push({ field: 'Parent Category', message: 'A parent category must be selected', path: 'category' });
+      }
+      if (!formData.name?.en?.trim()) {
+        validationErrors.push({ field: 'Subcategory Name', message: 'English name is required', lang: 'en', path: 'name-en' });
+      }
+      if (!formData.slug?.en?.trim()) {
+        validationErrors.push({ field: 'URL Slug', message: 'English slug is required', lang: 'en', path: 'slug-en' });
+      }
+      if (formData.slug?.en && !/^[a-z0-9-]+$/.test(formData.slug.en)) {
+        validationErrors.push({ field: 'URL Slug', message: 'Only lowercase letters, numbers, and hyphens allowed', lang: 'en', path: 'slug-en' });
+      }
+      if (validationErrors.length > 0) {
+        setFormErrors(validationErrors);
         setLoading(false);
         return;
       }
@@ -320,24 +327,24 @@ export default function NewBlogSubCategoryPage() {
         toast({
             title: isEditMode ? 'Subcategory Updated' : 'Subcategory Created',
             description: `Blog subcategory ${isEditMode ? 'updated' : 'created'} successfully.`,
-            variant: 'success',
         });
+        clearDraft();
         router.push('/admin/blogs/subcategory');
       } else {
-        const msg = response.error || `Failed to ${isEditMode ? 'update' : 'create'} subcategory`;
-        setError(msg);
+        const parsed = parseApiError(response);
+        setFormErrors(parsed);
         toast({
-            title: 'Error',
-            description: msg,
+            title: 'Save failed',
+            description: `${parsed.length} issue(s) found. See the error panel for details.`,
             variant: 'destructive',
         });
       }
     } catch (err: any) {
-      const msg = err.message || 'An error occurred';
-      setError(msg);
+      const parsed = parseApiError(err?.response?.data || { message: err.message });
+      setFormErrors(parsed);
       toast({
         title: 'Error',
-        description: msg,
+        description: err.message || 'An error occurred',
         variant: 'destructive',
       });
     } finally {
@@ -370,11 +377,14 @@ export default function NewBlogSubCategoryPage() {
         <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
+      {/* Draft Banner */}
+      {hasDraft && !isEditMode && (
+        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_BLOG_SUBCAT); }} />
+      )}
+
+      {/* Detailed Error Panel */}
+      {formErrors.length > 0 && (
+        <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -423,14 +433,22 @@ export default function NewBlogSubCategoryPage() {
                 </LocalizedField>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug (Always EN) *</Label>
-                <Input
-                  id="slug"
+                <LocalizedField
+                  label="URL Slug"
                   value={formData.slug}
-                  onChange={(e) => handleChange('slug', e.target.value)}
-                  placeholder="food-and-drink"
-                  required
-                />
+                  onChange={(lang, val) => handleChange('slug', val)}
+                  globalLanguage={activeLanguage}
+                >
+                  {(lang, value, onChange) => (
+                    <Input
+                      id="slug"
+                      value={value}
+                      onChange={(e) => onChange(e.target.value)}
+                      placeholder={`e.g., food-and-drink-in-${lang}`}
+                      required={lang === 'en'}
+                    />
+                  )}
+                </LocalizedField>
               </div>
             </div>
             
@@ -529,13 +547,20 @@ export default function NewBlogSubCategoryPage() {
                 </LocalizedField>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="metaKeywords">Keywords (comma-separated)</Label>
-                <Input
-                  id="metaKeywords"
-                  value={formData.seo?.metaKeywords?.join(', ') || ''}
-                  onChange={(e) => handleKeywordsChange(e.target.value)}
-                  placeholder="food, drink, culinary, local"
-                />
+                <LocalizedField
+                  label="Keywords"
+                  value={formData.seo?.metaKeywords}
+                  globalLanguage={activeLanguage}
+                  onChange={(lang, val) => handleKeywordsChange(lang, val)}
+                >
+                  {(lang, currentValue, handleLang) => (
+                    <TagInput
+                      tags={currentValue || []}
+                      onChange={handleLang}
+                      placeholder={`Keywords in ${lang}`}
+                    />
+                  )}
+                </LocalizedField>
               </div>
             </div>
             

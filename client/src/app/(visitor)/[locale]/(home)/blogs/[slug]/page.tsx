@@ -7,6 +7,7 @@ import DynamicBlogDetails from "@/components/sections/DynamicBlogDetails/Dynamic
 import { getBlogBySlug } from "@/lib/api/blog";
 import { notFound } from "next/navigation";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import { SlugManager } from "@/components/common/SlugManager";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
 
@@ -39,10 +40,10 @@ export async function generateMetadata({
       alternates: {
         canonical: `${baseUrl}/${locale}/blogs/${slug}`,
         languages: {
-          en: `${baseUrl}/en/blogs/${slug}`,
-          de: `${baseUrl}/de/blogs/${slug}`,
-          it: `${baseUrl}/it/blogs/${slug}`,
-          es: `${baseUrl}/es/blogs/${slug}`,
+          en: `${baseUrl}/en/blogs/${blog.slug?.en || slug}`,
+          de: `${baseUrl}/de/blogs/${blog.slug?.de || slug}`,
+          it: `${baseUrl}/it/blogs/${blog.slug?.it || slug}`,
+          es: `${baseUrl}/es/blogs/${blog.slug?.es || slug}`,
         },
       },
       openGraph: {
@@ -115,6 +116,7 @@ export default async function BlogDetailsPage({
       },
     };
 
+    const localizedSlugs = typeof blog.slug === 'object' ? blog.slug : { en: slug };
 
     return (
       <>
@@ -122,6 +124,7 @@ export default async function BlogDetailsPage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <SlugManager slugs={localizedSlugs} />
         <Layout>
           <TopbarOne />
           <HeaderOne linkTheme="light" />

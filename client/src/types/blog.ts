@@ -22,7 +22,7 @@ export interface ISEO {
 export interface IBlogCategory {
   _id: string;
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedString; // Localized content
   image?: IImage;
   seo?: ISEO;
@@ -38,7 +38,7 @@ export interface IBlogSubcategory {
   _id: string;
   category: any; // ObjectId or populated object
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedString; // Localized content
   image?: IImage;
   seo?: ISEO;
@@ -66,7 +66,7 @@ export interface IContentBlock {
 export interface IBlogPost {
   _id: string;
   title: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   subCategory: IBlogSubcategory | string;
   author: {
     _id: string;
@@ -117,7 +117,7 @@ export interface IBreadcrumb {
 
 export interface BlogCategoryFormData {
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedString;
   image?: string;
   seo?: ISEO;
@@ -127,7 +127,7 @@ export interface BlogCategoryFormData {
 export interface BlogSubcategoryFormData {
   category: string;
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedString;
   image?: string;
   seo?: ISEO;
@@ -136,7 +136,7 @@ export interface BlogSubcategoryFormData {
 
 export interface BlogFormData {
   title: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   subCategory: string;
   author: string;
   featuredImage: any;

@@ -8,6 +8,7 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { notFound } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
+import { SlugManager } from "@/components/common/SlugManager";
 
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
@@ -57,6 +58,7 @@ export default async function BlogCategoryPage({
       <TopbarOne/>
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
+      <SlugManager slugs={typeof category.slug === 'object' ? category.slug : { en: slug }} />
       <PageHeader title={getLocalizedValue(category.name)} subTitle='Blog Category' />
 
       <DynamicBlogGrid 

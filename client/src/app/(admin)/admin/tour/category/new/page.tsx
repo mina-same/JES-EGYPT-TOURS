@@ -14,54 +14,54 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Image as ImageIcon, Upload, X, Plus } from 'lucide-react';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import ImageUpload from '@/components/admin/ImageUpload';
+import TagInput from '@/components/admin/TagInput';
+import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import DraftBanner from '@/components/admin/DraftBanner';
 import { uploadAPI } from '@/lib/api/upload';
 import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
+import { useFormDraft } from '@/hooks/useFormDraft';
+import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import { useToast } from '@/hooks/use-toast';
+
+const INITIAL_TOUR_CATEGORY: TourCategoryFormData = {
+  name: { en: '', de: '', it: '', es: '' },
+  slug: { en: '', de: '', it: '', es: '' },
+  description: { en: '', de: '', it: '', es: '' },
+  image: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  seo: {
+    metaTitle: { en: '', de: '', it: '', es: '' },
+    metaDescription: { en: '', de: '', it: '', es: '' },
+    metaKeywords: { en: [], de: [], it: [], es: [] },
+    metaImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  },
+  sectionHeader: {
+    isEnabled: true,
+    title: { en: '', de: '', it: '', es: '' },
+    description: { en: '', de: '', it: '', es: '' },
+    button: { label: { en: '', de: '', it: '', es: '' }, href: '', newTab: false },
+  },
+  isActive: true,
+};
 
 export default function NewCategoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const categoryId = searchParams.get('id');
   const isEditMode = !!categoryId;
-  
+
+  const draftKey = isEditMode ? `draft_tour_cat_edit_${categoryId}` : 'draft_tour_cat_new';
+
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(isEditMode);
-  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
-  
-  const [formData, setFormData] = useState<TourCategoryFormData>({
-    name: { en: '', de: '', it: '', es: '' },
-    slug: '',
-    description: { en: '', de: '', it: '', es: '' },
-    image: {
-      url: '',
-      fileName: '',
-      title: { en: '', de: '', it: '', es: '' },
-      alt: { en: '', de: '', it: '', es: '' },
-    },
-    seo: {
-      metaTitle: { en: '', de: '', it: '', es: '' },
-      metaDescription: { en: '', de: '', it: '', es: '' },
-      metaKeywords: [],
-      metaImage: {
-        url: '',
-        fileName: '',
-        title: { en: '', de: '', it: '', es: '' },
-        alt: { en: '', de: '', it: '', es: '' },
-      },
-    },
-    sectionHeader: {
-      isEnabled: true,
-      title: { en: '', de: '', it: '', es: '' },
-      description: { en: '', de: '', it: '', es: '' },
-      button: {
-        label: { en: '', de: '', it: '', es: '' },
-        href: '',
-        newTab: false,
-      },
-    },
-    isActive: true,
-  });
+
+  const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<TourCategoryFormData>(
+    draftKey,
+    INITIAL_TOUR_CATEGORY
+  );
 
   // Fetch category data if editing
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function NewCategoryPage() {
   const fetchCategoryData = async (id: string) => {
     try {
       setFetchingData(true);
-      setError(null);
+      setFormErrors([]);
       const response = await tourCategoryAPI.getById(id);
       console.log('Fetched category data:', response);
       if (response.success && response.data) {
@@ -97,7 +97,7 @@ export default function NewCategoryPage() {
 
         setFormData({
           name: ensureLocalized(data.name),
-          slug: data.slug || '',
+          slug: ensureLocalized(data.slug),
           description: ensureLocalized(data.description, true),
           image: data.image
             ? {
@@ -116,7 +116,7 @@ export default function NewCategoryPage() {
             ? {
                 metaTitle: ensureLocalized(data.seo.metaTitle),
                 metaDescription: ensureLocalized(data.seo.metaDescription),
-                metaKeywords: Array.isArray(data.seo.metaKeywords) ? data.seo.metaKeywords : [],
+                metaKeywords: data.seo.metaKeywords || { en: [], de: [], it: [], es: [] },
                 metaImage: data.seo.metaImage
                   ? {
                       url: data.seo.metaImage.url || '',
@@ -134,7 +134,7 @@ export default function NewCategoryPage() {
             : {
                 metaTitle: { en: '', de: '', it: '', es: '' },
                 metaDescription: { en: '', de: '', it: '', es: '' },
-                metaKeywords: [],
+                metaKeywords: { en: [], de: [], it: [], es: [] },
                 metaImage: {
                   url: '',
                   fileName: '',
@@ -178,7 +178,7 @@ export default function NewCategoryPage() {
         });
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch category data');
+      setFormErrors([{ field: 'Server', message: err.response?.data?.error || 'Failed to fetch category data' }]);
       console.error('Error fetching category:', err);
     } finally {
       setFetchingData(false);
@@ -212,9 +212,11 @@ export default function NewCategoryPage() {
         updated[field] = value;
       }
 
-      // Auto-generate slug when English name changes
-      if (field === 'name.en') {
-        updated.slug = generateSlug(value);
+      // Auto-generate slug when name changes for a language
+      if (field.startsWith('name.')) {
+        const lang = field.split('.')[1] as AdminLanguage;
+        if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
+        updated.slug[lang] = generateSlug(value);
       }
 
       // Auto-populate SEO metaTitle for the active language
@@ -236,26 +238,19 @@ export default function NewCategoryPage() {
   };
 
   // Handle keywords
-  const handleKeywordsChange = (value: string, lang: AdminLanguage = activeLanguage) => {
-    const items = value.split(',').map(k => k.trim()).filter(k => k);
-    
-    setFormData(prev => {
-      const currentList = prev.seo?.metaKeywords || [];
-      const updatedKeywords = items.map((text, idx) => {
-        const existing = currentList[idx] || { en: '', de: '', it: '', es: '' };
-        return { ...existing, [lang]: text };
-      });
-      
-      return {
-        ...prev,
-        seo: {
-          ...prev.seo,
-          metaKeywords: updatedKeywords,
+  const handleKeywordsChange = (value: string[], lang: AdminLanguage = activeLanguage) => {
+    setFormData(prev => ({
+      ...prev,
+      seo: {
+        ...(prev.seo || { metaTitle: { en: '', de: '', it: '', es: '' }, metaDescription: { en: '', de: '', it: '', es: '' } }),
+        metaKeywords: {
+          ...(prev.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }),
+          [lang]: value,
         },
-      };
-    });
+      },
+    } as TourCategoryFormData));
   };
-
+  
   // Handle Image Upload
   const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
     try {
@@ -278,7 +273,7 @@ export default function NewCategoryPage() {
     
     try {
       setLoading(true);
-      setError(null);
+      setFormErrors([]);
 
       // Clean up empty fields and ensure correct structure for API
       const payload: any = {
@@ -298,7 +293,7 @@ export default function NewCategoryPage() {
         const seo: any = {};
         const hasSeoTitle = formData.seo.metaTitle?.en || formData.seo.metaTitle?.de || formData.seo.metaTitle?.it || formData.seo.metaTitle?.es;
         const hasSeoDesc = formData.seo.metaDescription?.en || formData.seo.metaDescription?.de || formData.seo.metaDescription?.it || formData.seo.metaDescription?.es;
-        const hasKeywords = formData.seo.metaKeywords && formData.seo.metaKeywords.length > 0;
+        const hasKeywords = formData.seo.metaKeywords && Object.values(formData.seo.metaKeywords).some(arr => Array.isArray(arr) && arr.length > 0);
         
         if (hasSeoTitle) seo.metaTitle = formData.seo.metaTitle;
         if (hasSeoDesc) seo.metaDescription = formData.seo.metaDescription;
@@ -339,19 +334,25 @@ export default function NewCategoryPage() {
           response = await tourCategoryAPI.create(payload);
         }
       } catch (err: any) {
-        console.error('Submit error:', err.response?.data || err);
-        const errMsg = err.response?.data?.messages ? err.response.data.messages.join('; ') : (err.response?.data?.error || err.message);
-        setError(errMsg || `Failed to ${isEditMode ? 'update' : 'create'} category`);
+        const parsed = parseApiError(err?.response?.data || { message: err.message });
+        setFormErrors(parsed);
+        toast({ title: 'Save failed', description: err.message || 'An error occurred', variant: 'destructive' });
+        setLoading(false);
         return;
       }
       
       if (response.success) {
+        toast({ title: isEditMode ? 'Category Updated' : 'Category Created', description: `Tour category ${isEditMode ? 'updated' : 'created'} successfully.` });
+        clearDraft();
         router.push('/admin/tour/category');
       } else {
-        setError(response.error || `Failed to ${isEditMode ? 'update' : 'create'} category`);
+        const parsed = parseApiError(response);
+        setFormErrors(parsed);
+        toast({ title: 'Save failed', description: `${parsed.length} issue(s) found.`, variant: 'destructive' });
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      const parsed = parseApiError(err?.response?.data || { message: err.message });
+      setFormErrors(parsed);
     } finally {
       setLoading(false);
     }
@@ -385,11 +386,14 @@ export default function NewCategoryPage() {
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
-        </div>
+      {/* Draft Banner */}
+      {hasDraft && !isEditMode && (
+        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_TOUR_CATEGORY); }} />
+      )}
+
+      {/* Detailed Error Panel */}
+      {formErrors.length > 0 && (
+        <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -416,18 +420,22 @@ export default function NewCategoryPage() {
                   />
                 )}
               </LocalizedField>
-              <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug *</Label>
-                <div className="flex gap-2">
+              <LocalizedField
+                label="URL Slug *"
+                value={formData.slug}
+                globalLanguage={activeLanguage}
+                onChange={(lang, val) => handleChange(`slug.${lang}`, val)}
+              >
+                {(lang, currentValue, handleLang) => (
                   <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => handleChange('slug', e.target.value)}
-                    placeholder="adventure-tours"
-                    required
+                    id={`slug-${lang}`}
+                    value={currentValue}
+                    onChange={(e) => handleLang(e.target.value)}
+                    placeholder={`adventure-tours-${lang}`}
+                    required={lang === 'en'}
                   />
-                </div>
-              </div>
+                )}
+              </LocalizedField>
             </div>
             
             <LocalizedField
@@ -604,25 +612,18 @@ export default function NewCategoryPage() {
                 )}
               </LocalizedField>
               <LocalizedField
-                label="Keywords (comma-separated)"
+                label="Keywords"
                 value={formData.seo?.metaKeywords}
                 globalLanguage={activeLanguage}
                 onChange={(lang, val) => handleKeywordsChange(val, lang)}
               >
-                {(lang, currentValue, handleLang) => {
-                  const keywords = (formData.seo?.metaKeywords || [])
-                    .map(k => (k as any)[lang] || '')
-                    .filter(k => k)
-                    .join(', ');
-                  return (
-                    <Input
-                      id={`metaKeywords-${lang}`}
-                      value={keywords}
-                      onChange={(e) => handleLang(e.target.value)}
-                      placeholder={`adventure, tours (${lang})`}
-                    />
-                  );
-                }}
+                {(lang, currentValue, handleLang) => (
+                  <TagInput
+                    tags={currentValue || []}
+                    onChange={handleLang}
+                    placeholder={`adventure, tours (${lang})`}
+                  />
+                )}
               </LocalizedField>
             </div>
             

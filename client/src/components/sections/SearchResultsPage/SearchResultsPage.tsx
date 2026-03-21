@@ -5,11 +5,16 @@ import { Container, Row, Col } from "react-bootstrap";
 import { Loader2 } from "lucide-react";
 
 import { tourAPI } from "@/lib/api/tour";
-import { getAllBlogs } from "@/lib/api/blog";
+import { getAllBlogs, getAllSubCategories, BlogSubCategory } from "@/lib/api/blog";
 import Pagination from "@/components/common/Pagination/Pagination";
 import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { toast } from "@/hooks/use-toast";
+import VideoModal from "@/components/common/VideoModal/VideoModal";
+import { getLocalizedValue } from "@/lib/localize";
+import TourCard from "@/components/common/TourCard/TourCard";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -52,14 +57,59 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const [blogsPagination, setBlogsPagination] = useState<any>({ page: 1, limit: 6, total: 0, pages: 1 });
   const [blogsLoading, setBlogsLoading] = useState(true);
   const [blogsError, setBlogsError] = useState<string | null>(null);
+  const [subCategories, setSubCategories] = useState<BlogSubCategory[]>([]);
 
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const { locale } = useParams() as { locale: string };
+  const { toggleWishlist, isInWishlist } = useWishlist();
+
+  // Filter options state
+  const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
+  const [tourStyleOptions, setTourStyleOptions] = useState<string[]>([]);
+
+  // Video reviews state
+  const [isOpen, setOpen] = useState(false);
+  const [videoIds, setVideoIds] = useState<string[]>([]);
+
+  const getYouTubeVideoId = (url: string): string => {
+    if (!url) return "";
+    const t = url.trim();
+    const s = t.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (s?.[1]) return s[1];
+    const w = t.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (w?.[1]) return w[1];
+    const e = t.match(/\/embed\/([a-zA-Z0-9_-]{6,})/); if (e?.[1]) return e[1];
+    const sh = t.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/); if (sh?.[1]) return sh[1];
+    return "";
+  };
+
+  const openVideoReviews = async (tourSlug: string) => {
+    try {
+      const res = await tourAPI.getBySlug(tourSlug);
+      if (res.success && res.data) {
+        const vids = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
+          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
+          .filter(Boolean);
+        if (vids.length > 0) {
+          setVideoIds(vids);
+          setOpen(true);
+        } else {
+          toast({
+            title: "No video reviews",
+            description: "This tour doesn’t have any reflective & honest review videos yet.",
+            variant: "info",
+          });
+        }
+      }
+    } catch {
+      toast({
+        title: "Failed to load videos",
+        description: "Network or server error. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const effectiveParams = useMemo(() => {
-    // Prefer live URL params (client navigation) but fall back to initial for first render.
     const current = searchParams;
     if (!current) return initialSearchParams;
-
     const obj: Record<string, string> = {};
     current.forEach((value, key) => {
       obj[key] = value;
@@ -67,41 +117,94 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     return obj;
   }, [searchParams, initialSearchParams]);
 
-  const q = toStr((effectiveParams as any).q) || "";
-  const page = toNum((effectiveParams as any).page, 1);
-  const sort = toStr((effectiveParams as any).sort) || "-createdAt";
-  const minPrice = toStr((effectiveParams as any).minPrice);
-  const maxPrice = toStr((effectiveParams as any).maxPrice);
-  const blogPage = toNum((effectiveParams as any).blogPage, 1);
-  const blogSort = toStr((effectiveParams as any).blogSort) || "newest";
+  const [draftFilters, setDraftFilters] = useState({
+    q: toStr((effectiveParams as any).q) || "",
+    minPrice: toStr((effectiveParams as any).minPrice) || "",
+    maxPrice: toStr((effectiveParams as any).maxPrice) || "",
+    tourType: toStr((effectiveParams as any).tourType) || "",
+    tourStyle: toStr((effectiveParams as any).tourStyle) || "",
+    blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
+    sort: toStr((effectiveParams as any).sort) || "-createdAt",
+    blogSort: toStr((effectiveParams as any).blogSort) || "newest",
+  });
 
-  const updateUrl = (patch: Record<string, string | undefined>) => {
-    const current: Record<string, string | undefined> = {
-      q: q || undefined,
-      page: String(page),
-      sort: sort || undefined,
-      minPrice,
-      maxPrice,
-      blogPage: String(blogPage),
-      blogSort,
+  const [appliedFilters, setAppliedFilters] = useState(draftFilters);
+
+  useEffect(() => {
+    const next = {
+      q: toStr((effectiveParams as any).q) || "",
+      minPrice: toStr((effectiveParams as any).minPrice) || "",
+      maxPrice: toStr((effectiveParams as any).maxPrice) || "",
+      tourType: toStr((effectiveParams as any).tourType) || "",
+      tourStyle: toStr((effectiveParams as any).tourStyle) || "",
+      blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
+      sort: toStr((effectiveParams as any).sort) || "-createdAt",
+      blogSort: toStr((effectiveParams as any).blogSort) || "newest",
+    };
+    setDraftFilters(next);
+    setAppliedFilters(next);
+  }, [effectiveParams]);
+
+  const q = appliedFilters.q;
+  const page = toNum((effectiveParams as any).page, 1);
+  const blogPage = toNum((effectiveParams as any).blogPage, 1);
+
+  const updateUrl = (patch: Partial<typeof appliedFilters> & { page?: string; blogPage?: string }) => {
+    const next: Record<string, string | undefined> = { 
+      ...appliedFilters, 
+      ...patch,
+      page: patch.page || String(page),
+      blogPage: patch.blogPage || String(blogPage)
     };
 
-    const next: Record<string, string | undefined> = { ...current, ...patch };
-
-    // Reset pages when query changes
-    if (patch.q !== undefined || patch.sort !== undefined || patch.minPrice !== undefined || patch.maxPrice !== undefined) {
+    // Reset pagination when searching or filtering
+    if (patch.q !== undefined || patch.minPrice !== undefined || patch.maxPrice !== undefined || patch.tourType !== undefined || patch.tourStyle !== undefined || patch.sort !== undefined) {
       next.page = "1";
     }
-    if (patch.q !== undefined || patch.blogSort !== undefined) {
+    if (patch.q !== undefined || patch.blogSubCategory !== undefined || patch.blogSort !== undefined) {
       next.blogPage = "1";
     }
 
     router.push(`/search${buildQueryString(next)}`);
   };
 
+  const handleApplyFilters = () => {
+    setAppliedFilters(draftFilters);
+    updateUrl({ ...draftFilters, page: "1", blogPage: "1" });
+  };
+
+  const handleResetFilters = () => {
+    const empty = {
+      q: "",
+      minPrice: "",
+      maxPrice: "",
+      tourType: "",
+      tourStyle: "",
+      blogSubCategory: "",
+      sort: "-createdAt",
+      blogSort: "newest",
+    };
+    setDraftFilters(empty);
+    setAppliedFilters(empty);
+    router.push("/search");
+  };
+
   useEffect(() => {
     setToursPage(page);
   }, [page]);
+
+  // Fetch subcategories
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      try {
+        const data = await getAllSubCategories();
+        setSubCategories(data);
+      } catch (e) {
+        console.error("Failed to fetch subcategories:", e);
+      }
+    };
+    void fetchSubCategories();
+  }, []);
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -113,9 +216,11 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           page,
           limit: 9,
           search: q || undefined,
-          sort: sort || undefined,
-          minPrice: minPrice ? Number(minPrice) : undefined,
-          maxPrice: maxPrice ? Number(maxPrice) : undefined,
+          sort: appliedFilters.sort || undefined,
+          minPrice: appliedFilters.minPrice ? Number(appliedFilters.minPrice) : undefined,
+          maxPrice: appliedFilters.maxPrice ? Number(appliedFilters.maxPrice) : undefined,
+          tourType: appliedFilters.tourType || undefined,
+          tourStyle: appliedFilters.tourStyle || undefined,
         });
 
         if (!res.success) {
@@ -130,22 +235,38 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             ...(tour.images || []).map((img: any) => img.url),
             ...(tour.gallery || []).map((img: any) => img.url),
           ].filter(Boolean);
-
           const uniqueImages = Array.from(new Set(galleryImages));
-
           return {
             id: tour._id,
-            slug: tour.slug,
+            slug: getLocalizedValue(tour.slug, locale),
             image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
-            title: tour.heading || tour.name,
-            link: `/tours/${tour.slug}`,
+            allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+            title: getLocalizedValue(tour.heading || tour.name, locale),
+            link: `/tours/${getLocalizedValue(tour.slug, locale)}`,
             price: tour.priceStartingFrom || 0,
-            location: tour.tourLocation || "",
+            rating: 5,
+            reviews: tour.reviews?.length || 0,
+            videoId: tour.videoLink || "",
+            discount: "",
+            meta: [
+              { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '3 Days'}`, icon: "icon-clock" },
+              { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
+              { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Location", icon: "icon-location" },
+            ]
           };
         });
 
         setTours(mapped);
         setToursTotalPages(res.totalPages || 1);
+
+        // Derive options if not already set or whenever we have new results
+        if (res.data && Array.isArray(res.data)) {
+            const types = Array.from(new Set(res.data.map((t: any) => getLocalizedValue(t.tourType, 'en')).filter(Boolean))).sort();
+            const styles = Array.from(new Set(res.data.map((t: any) => getLocalizedValue(t.tourStyle, 'en')).filter(Boolean))).sort();
+            setTourTypeOptions(prev => Array.from(new Set([...prev, ...types as string[]])));
+            setTourStyleOptions(prev => Array.from(new Set([...prev, ...styles as string[]])));
+        }
+
       } catch (e) {
         console.error(e);
         setToursError("An error occurred while loading tours");
@@ -157,7 +278,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     };
 
     void fetchTours();
-  }, [q, page, sort, minPrice, maxPrice]);
+  }, [q, page, appliedFilters.sort, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyle, locale]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -165,8 +286,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
         setBlogsLoading(true);
         setBlogsError(null);
 
-        const opts: any = { page: blogPage, limit: 6, search: q || undefined };
-        if (blogSort === "popular") {
+        const opts: any = { 
+          page: blogPage, 
+          limit: 6, 
+          search: q || undefined,
+          subCategory: appliedFilters.blogSubCategory || undefined 
+        };
+        if (appliedFilters.blogSort === "popular") {
           opts.sort = 'popular';
         }
 
@@ -184,217 +310,313 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     };
 
     void fetchBlogs();
-  }, [q, blogPage, blogSort]);
-
-  const tourSortOptions: Array<{ label: string; value: string }> = [
-    { label: "Newest", value: "-createdAt" },
-    { label: "Most Viewed", value: "-viewCount" },
-    { label: "Price: Low to High", value: "priceStartingFrom" },
-    { label: "Price: High to Low", value: "-priceStartingFrom" },
-  ];
+  }, [q, blogPage, appliedFilters.blogSort, appliedFilters.blogSubCategory]);
 
   return (
     <section className="section-space">
       <Container>
-        <Row className="mb-4">
-          <Col lg={12}>
-            <div className="d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between">
-              <div className="flex-grow-1">
-                <div className="d-flex gap-2 align-items-center">
-                  <input
-                    className="form-control"
-                    placeholder="Search tours and blogs..."
-                    defaultValue={q}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const value = (e.target as HTMLInputElement).value;
-                        updateUrl({ q: value || undefined });
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => {
-                      setFiltersOpen((v) => !v);
-                    }}
-                  >
-                    Filters
-                  </button>
-                </div>
-                <div className="text-muted mt-2" style={{ fontSize: 13 }}>
-                  {q ? (
-                    <>Showing results for <strong>{q}</strong></>
-                  ) : (
-                    <>Showing all tours and blogs</>
-                  )}
-                </div>
-              </div>
-
-              <div className="d-flex gap-2 align-items-center">
-                <select
-                  className="form-select"
-                  value={sort}
-                  onChange={(e) => updateUrl({ sort: e.target.value })}
-                  style={{ minWidth: 220 }}
+        {/* Keyword Search Bar at Top */}
+        <Row className="mb-5">
+          <Col lg={10} className="mx-auto">
+            <div className="search-box-wrapper">
+              <div className="input-group shadow-sm rounded-pill overflow-hidden border bg-white">
+                <input
+                  className="form-control border-0 px-4"
+                  placeholder="Universal keyword search..."
+                  value={draftFilters.q}
+                  onChange={(e) => setDraftFilters(p => ({ ...p, q: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleApplyFilters();
+                    }
+                  }}
+                  style={{ height: 60, fontSize: 18 }}
+                />
+                <button
+                  className="btn btn-primary px-4 d-flex align-items-center"
+                  onClick={handleApplyFilters}
                 >
-                  {tourSortOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  <i className="icon-search me-2"></i>
+                  Search
+                </button>
               </div>
             </div>
           </Col>
         </Row>
 
-        {filtersOpen ? (
-          <Row className="mb-4">
-            <Col lg={12}>
-              <div className="p-3 border rounded" style={{ background: "#fff" }}>
-                <div className="d-flex flex-column flex-lg-row gap-3">
-                  <div className="flex-grow-1">
-                    <label className="form-label">Min price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      defaultValue={minPrice || ""}
-                      onBlur={(e) => updateUrl({ minPrice: e.target.value ? e.target.value : undefined })}
-                    />
-                  </div>
-                  <div className="flex-grow-1">
-                    <label className="form-label">Max price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      defaultValue={maxPrice || ""}
-                      onBlur={(e) => updateUrl({ maxPrice: e.target.value ? e.target.value : undefined })}
-                    />
-                  </div>
-                  <div className="d-flex align-items-end gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary"
-                      onClick={() => updateUrl({ minPrice: undefined, maxPrice: undefined })}
-                    >
-                      Reset
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setFiltersOpen(false)}
-                    >
-                      Close
-                    </button>
-                  </div>
+        <Row className="gutter-y-40">
+          {/* SIDEBAR FILTERS */}
+          <Col lg={4} xl={3}>
+            <aside className="listing__sidebar">
+              <div className="listing__sidebar__item__inner" style={{ borderRadius: 14, border: "1px solid #eee", background: "#fff", position: 'sticky', top: 100 }}>
+                <div style={{ padding: 18, borderBottom: "1px solid #f0f0f0" }}>
+                  <h3 className="listing__sidebar__title" style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Filter Results</h3>
                 </div>
-              </div>
-            </Col>
-          </Row>
-        ) : null}
 
-        <Row className="mb-3">
-          <Col lg={12}>
-            <h2 style={{ fontSize: 24, marginBottom: 0 }}>Tours</h2>
-          </Col>
-        </Row>
+                <div style={{ padding: 18, display: "grid", gap: 16 }}>
+                  {/* TOURS FILTER SECTION */}
+                  <div className="filter-group">
+                    <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>Experiences</h4>
+                    
+                    <div className="mb-3">
+                      <label className="form-label font-weight-bold small">Sort Tours By</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={draftFilters.sort}
+                        onChange={(e) => setDraftFilters(p => ({ ...p, sort: e.target.value }))}
+                      >
+                        <option value="-createdAt">Newest</option>
+                        <option value="-viewCount">Popularity</option>
+                        <option value="priceStartingFrom">Price: Low to High</option>
+                        <option value="-priceStartingFrom">Price: High to Low</option>
+                      </select>
+                    </div>
 
-        {toursLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: 240 }}>
-            <Loader2 className="animate-spin" />
-          </div>
-        ) : toursError ? (
-          <div className="text-danger" style={{ minHeight: 120 }}>
-            {toursError}
-          </div>
-        ) : (
-          <>
-            <Row className="gutter-y-30">
-              {tours.map((t) => (
-                <Col lg={4} md={6} key={t.id}>
-                  <div className="listing-card-four" style={{ height: "100%" }}>
-                    <div className="listing-card-four__content" style={{ padding: 18 }}>
-                      <h3 className="listing-card-four__title" style={{ fontSize: 18 }}>
-                        <Link href={t.link}>{t.title}</Link>
-                      </h3>
-                      <div className="text-muted" style={{ fontSize: 13, marginTop: 6 }}>
-                        {t.location}
-                      </div>
-                      <div style={{ marginTop: 10, fontWeight: 700 }}>${t.price}</div>
-                      <div style={{ marginTop: 12 }}>
-                        <Link href={t.link} className="gotur-btn">
-                          View Tour
-                        </Link>
-                      </div>
+                    <div className="row g-2 mb-3">
+                       <div className="col-6">
+                         <label className="form-label font-weight-bold small">Min $</label>
+                         <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            value={draftFilters.minPrice}
+                            onChange={(e) => setDraftFilters(p => ({ ...p, minPrice: e.target.value }))}
+                            placeholder="0"
+                          />
+                       </div>
+                       <div className="col-6">
+                         <label className="form-label font-weight-bold small">Max $</label>
+                         <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            value={draftFilters.maxPrice}
+                            onChange={(e) => setDraftFilters(p => ({ ...p, maxPrice: e.target.value }))}
+                            placeholder="9999"
+                          />
+                       </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label font-weight-bold small">Tour Type</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={draftFilters.tourType}
+                        onChange={(e) => setDraftFilters(p => ({ ...p, tourType: e.target.value }))}
+                      >
+                        <option value="">Any Type</option>
+                        {tourTypeOptions.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label font-weight-bold small">Tour Style</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={draftFilters.tourStyle}
+                        onChange={(e) => setDraftFilters(p => ({ ...p, tourStyle: e.target.value }))}
+                      >
+                        <option value="">Any Style</option>
+                        {tourStyleOptions.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                </Col>
-              ))}
-            </Row>
 
-            <div className="mt-4">
-              <Pagination
-                currentPage={toursPage}
-                totalPages={toursTotalPages}
-                onPageChange={(p) => updateUrl({ page: String(p) })}
-              />
+                  <hr style={{ margin: '8px 0', opacity: 0.1 }} />
+
+                  {/* BLOGS FILTER SECTION */}
+                  <div className="filter-group">
+                    <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>Knowledge</h4>
+                    
+                    <div className="mb-3">
+                      <label className="form-label font-weight-bold small">Blog Category</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={draftFilters.blogSubCategory}
+                        onChange={(e) => setDraftFilters(p => ({ ...p, blogSubCategory: e.target.value }))}
+                      >
+                        <option value="">All Articles</option>
+                        {subCategories.map(sc => (
+                          <option key={sc._id} value={sc._id}>{getLocalizedValue(sc.name, locale)}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label font-weight-bold small">Sort Blogs By</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={draftFilters.blogSort}
+                        onChange={(e) => setDraftFilters(p => ({ ...p, blogSort: e.target.value }))}
+                      >
+                        <option value="newest">Newest First</option>
+                        <option value="popular">Most Popular</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ padding: 18, borderTop: "1px solid #f0f0f0", background: '#f9f9f9', borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }}>
+                  <div className="row g-2">
+                    <div className="col-8">
+                      <button
+                        className="gotur-btn w-100"
+                        onClick={handleApplyFilters}
+                        style={{ height: 42, fontSize: 14 }}
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
+                    <div className="col-4">
+                      <button
+                        className="gotur-btn w-100"
+                        onClick={handleResetFilters}
+                        style={{ height: 42, fontSize: 14, background: "transparent", color: "#111", border: "1px solid #ddd" }}
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </Col>
+
+          {/* RESULTS CONTENT */}
+          <Col lg={8} xl={9}>
+            {/* TOURS RESULTS */}
+            <div className="results-wrapper mb-5 pb-5">
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <h2 className="section-title mb-0" style={{ fontSize: 24 }}>Experiences Found</h2>
+                {tours.length > 0 && <span className="badge bg-light text-dark px-3 py-2 rounded-pill border">Showing {tours.length} results</span>}
+              </div>
+
+              {toursLoading ? (
+                <div className="text-center py-5">
+                  <Loader2 className="animate-spin h-10 w-10 text-primary mx-auto" />
+                </div>
+              ) : toursError ? (
+                <div className="alert alert-danger shadow-sm border-0">{toursError}</div>
+              ) : tours.length === 0 ? (
+                <div className="text-center py-5 border rounded bg-light shadow-inner">
+                  <i className="icon-search h1 text-muted d-block opacity-25"></i>
+                  <p className="mt-3 text-muted">No experiences match your specific filters.</p>
+                </div>
+              ) : (
+                <>
+                  <Row className="gutter-y-30">
+                    {tours.map((t) => (
+                      <Col lg={4} md={6} key={t.id}>
+                        <TourCard 
+                          item={t}
+                          toggleWishlist={toggleWishlist}
+                          isInWishlist={isInWishlist}
+                          openVideoReviews={openVideoReviews}
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                  <div className="mt-5 pt-3">
+                    <Pagination
+                      currentPage={toursPage}
+                      totalPages={toursTotalPages}
+                      onPageChange={(p) => updateUrl({ page: String(p) })}
+                    />
+                  </div>
+                </>
+              )}
             </div>
-          </>
-        )}
 
-        <div className="mt-5" />
+            {/* BLOGS RESULTS */}
+            <div className="results-wrapper mt-5 pt-5 border-top">
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <h2 className="section-title mb-0" style={{ fontSize: 24 }}>From Our Blog</h2>
+                {blogs.length > 0 && <span className="badge bg-light text-dark px-3 py-2 rounded-pill border">Showing {blogs.length} articles</span>}
+              </div>
 
-        <Row className="mb-3">
-          <Col lg={12} className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-2">
-            <h2 style={{ fontSize: 24, marginBottom: 0 }}>Blogs</h2>
-            <div className="d-flex gap-2 align-items-center">
-              <span className="text-muted" style={{ fontSize: 13 }}>Sort:</span>
-              <select
-                className="form-select"
-                value={blogSort}
-                onChange={(e) => updateUrl({ blogSort: e.target.value })}
-                style={{ minWidth: 200 }}
-              >
-                <option value="newest">Newest</option>
-                <option value="popular">Popular</option>
-              </select>
+              {blogsLoading ? (
+                <div className="text-center py-5">
+                  <Loader2 className="animate-spin h-10 w-10 text-primary mx-auto" />
+                </div>
+              ) : blogsError ? (
+                <div className="alert alert-danger shadow-sm border-0">{blogsError}</div>
+              ) : blogs.length === 0 ? (
+                <div className="text-center py-5 border rounded bg-light shadow-inner">
+                  <i className="icon-search h1 text-muted d-block opacity-25"></i>
+                  <p className="mt-3 text-muted">No articles found matching this search.</p>
+                </div>
+              ) : (
+                <>
+                  <DynamicBlogGrid
+                    blogs={blogs}
+                    pagination={{ ...blogsPagination, pages: 1 }}
+                    basePath={`/search${buildQueryString({
+                      ...appliedFilters,
+                      page: String(page),
+                    })}`}
+                  />
+                  <div className="mt-5 pt-3">
+                    <Pagination
+                      currentPage={blogPage}
+                      totalPages={blogsPagination?.pages || 1}
+                      onPageChange={(p) => updateUrl({ blogPage: String(p) })}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </Col>
         </Row>
 
-        {blogsLoading ? (
-          <div className="d-flex align-items-center justify-content-center" style={{ minHeight: 200 }}>
-            <Loader2 className="animate-spin" />
-          </div>
-        ) : blogsError ? (
-          <div className="text-danger" style={{ minHeight: 120 }}>
-            {blogsError}
-          </div>
-        ) : (
-          <>
-            <DynamicBlogGrid
-              blogs={blogs}
-              pagination={{ ...blogsPagination, pages: 1 }}
-              basePath={`/search${buildQueryString({
-                q: q || undefined,
-                page: String(page),
-                sort,
-                minPrice,
-                maxPrice,
-                blogSort,
-              })}`}
-            />
-            <div className="mt-4">
-              <Pagination
-                currentPage={blogPage}
-                totalPages={blogsPagination?.pages || 1}
-                onPageChange={(p) => updateUrl({ blogPage: String(p) })}
-              />
-            </div>
-          </>
-        )}
+        <VideoModal
+          isOpen={isOpen}
+          setOpen={setOpen}
+          ids={videoIds}
+        />
       </Container>
+      
+      <style jsx>{`
+        .section-title {
+          font-weight: 800;
+          color: #1a1a1a;
+          letter-spacing: -0.5px;
+        }
+        .filter-group label {
+          color: #666;
+          margin-bottom: 6px;
+        }
+        .form-select, .form-control {
+          border: 1px solid #e1e1e1;
+          border-radius: 8px;
+          height: 38px;
+        }
+        .form-select:focus, .form-control:focus {
+          border-color: #b79c5c;
+          box-shadow: 0 0 0 3px rgba(183,156,92,0.1);
+        }
+        .search-box-wrapper .btn-primary {
+          background-color: var(--thm-primary);
+          border-color: var(--thm-primary);
+          border-radius: 0 50px 50px 0;
+          font-weight: 700;
+        }
+        .search-box-wrapper .btn-primary:hover {
+          background-color: var(--thm-black);
+          border-color: var(--thm-black);
+        }
+        .listing__sidebar__item__inner {
+          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .animate-in {
+          animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </section>
   );
 };

@@ -35,3 +35,19 @@ export function getLocalizedSEO(seo: any, locale: string = 'en') {
     metaImage: seo.metaImage,
   };
 }
+
+/**
+ * Ensures a URL is absolute and properly formatted
+ */
+export function formatUrl(url: string | undefined): string {
+  if (!url || url === '#' || url === '') return '#';
+  
+  // If it's already an absolute URL (with protocol or leading slash), return as is
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+    return url;
+  }
+  
+  // Otherwise, prepend with a slash
+  return `/${url}`;
+}
+

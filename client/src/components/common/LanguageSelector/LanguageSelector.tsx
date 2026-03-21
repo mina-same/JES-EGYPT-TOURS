@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
+import { useSlugs } from "@/contexts/SlugContext";
 
 const FLAG_COMPONENTS: Record<string, any> = {
   en: GB,
@@ -19,6 +20,7 @@ const FLAG_COMPONENTS: Record<string, any> = {
 
 const LanguageSelector: React.FC = () => {
   const { t } = useTranslation("common");
+  const { localizedSlugs } = useSlugs();
   const router = useRouter();
   const pathname = usePathname();
   const locales = ["en", "de", "it", "es"];
@@ -110,7 +112,23 @@ const LanguageSelector: React.FC = () => {
           try {
             document.cookie = `NEXT_LOCALE=${option.value};path=/`;
           } catch {}
-          const target = `/${option.value}${normalizedPath === "/" ? "/" : normalizedPath}`;
+
+          let targetPath = normalizedPath;
+          
+          // If we have localized slugs, we need to replace the last segment of the path
+          if (localizedSlugs) {
+            const newSlug = localizedSlugs[option.value];
+            if (newSlug) {
+              const pathParts = normalizedPath.split("/");
+              // Assuming the slug is the last part of relevant paths (tours/slug, category/slug, etc.)
+              if (pathParts.length > 1) {
+                pathParts[pathParts.length - 1] = newSlug;
+                targetPath = pathParts.join("/");
+              }
+            }
+          }
+
+          const target = `/${option.value}${targetPath === "/" ? "/" : targetPath}`;
           router.push(target);
         }}
         options={options}

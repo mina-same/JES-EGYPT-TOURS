@@ -108,7 +108,7 @@ export interface IMapSchema {
 export interface ISEO {
   metaTitle?: ILocalizedString;
   metaDescription?: ILocalizedString;
-  metaKeywords?: ILocalizedString;
+  metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
   mapSchema?: IMapSchema;
 }
@@ -117,7 +117,7 @@ export interface ITour extends Document {
   subcategory: Types.ObjectId;
   idExternal?: string;
   heading: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   Description: IDescription;
   images: IImage[];
   gallery?: IImage[];
@@ -134,7 +134,7 @@ export interface ITour extends Document {
   duration?: ILocalizedString;
   meetingPoint?: ILocalizedString;
   cancellationPolicy?: ILocalizedString;
-  tags?: string[];
+  tags?: ILocalizedMixed;
   notes?: INote[];
   whatToPack?: ILocalizedString[];
   tourMapIframe?: string;
@@ -469,7 +469,7 @@ const SEOSchema = new Schema<ISEO>(
       type: LocalizedStringSchema,
     },
     metaKeywords: {
-      type: LocalizedStringSchema,
+      type: LocalizedMixedSchema,
     },
     metaImage: ImageSchema,
     mapSchema: MapSchemaSchema,
@@ -498,15 +498,8 @@ const TourSchema = new Schema<ITour>(
       required: [true, 'Tour heading is required'],
     },
     slug: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Slug is required'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [
-        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-        'Slug must be URL-friendly (lowercase, hyphens only)',
-      ],
     },
     Description: {
       type: DescriptionSchema,
@@ -587,12 +580,9 @@ const TourSchema = new Schema<ITour>(
     cancellationPolicy: {
       type: LocalizedStringSchema,
     },
-    tags: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    tags: {
+      type: LocalizedMixedSchema,
+    },
     notes: [NoteSchema],
     whatToPack: [
       {
@@ -636,7 +626,13 @@ const TourSchema = new Schema<ITour>(
 
 // ==================== INDEXES ====================
 
-// Note: slug and idExternal already indexed via unique: true
+// Localized slug indexes
+TourSchema.index({ 'slug.en': 1 }, { unique: true, sparse: true });
+TourSchema.index({ 'slug.de': 1 }, { unique: true, sparse: true });
+TourSchema.index({ 'slug.it': 1 }, { unique: true, sparse: true });
+TourSchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
+
+// Note: idExternal already indexed via unique: true
 // Note: subcategory already indexed via index: true in field definition
 TourSchema.index({ isActive: 1 });
 TourSchema.index({ isFeatured: 1 });

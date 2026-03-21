@@ -9,7 +9,8 @@ import useStore from "@/store/useStore";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
-import { getLocalizedValue } from "@/lib/localize";
+import { getLocalizedValue, formatUrl } from "@/lib/localize";
+
 interface NavItem {
   id: number;
   title: string;
@@ -43,9 +44,10 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
             ? "dropdown"
             : ""}
         >
-          <Link href={item.url || item.link || "#"}>
+          <Link href={formatUrl(item.url || item.link)}>
             {getLocalizedValue(item.label || item.title, i18n.language)}
           </Link>
+
           {((Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0))
             ? renderSubMenu(item.children || item.subMenu)
             : null}
@@ -74,7 +76,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
           </div>
 
           <div className='main-header__right' style={{ display: "flex", alignItems: "center", flex: 1, justifyContent: "flex-end", position: "relative" }}>
-            <nav className='main-header__nav main-menu' style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+            <nav className='main-header__nav main-menu'>
               <ul className='main-menu__list'>
                 {/* Render Home menu with showcase */}
                 <li className='dropdown megamenu'>
@@ -91,9 +93,10 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={item.url || item.link || "#"}>
+                    <Link href={formatUrl(item.url || item.link)}>
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
+
                     {hasChildren ? renderSubMenu(item.children || item.subMenu) : null}
                   </li>
                     );
@@ -149,7 +152,8 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
               <i className='icon-menu-bar'></i>
             </div>
 
-            <Link href='tailorMade' className='gotur-btn main-header__btn'>
+            <Link href='/tailorMade' className='gotur-btn main-header__btn'>
+
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>
 

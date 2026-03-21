@@ -4,7 +4,7 @@ export type { ILocalizedString, ILocalizedMixed, IImage };
 export interface ISEO {
   metaTitle?: ILocalizedString;
   metaDescription?: ILocalizedString;
-  metaKeywords?: ILocalizedString[];
+  metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
   mapSchema?: any;
 }
@@ -29,7 +29,7 @@ export interface ISectionHeader {
 export interface ITourCategory {
   _id: string;
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedMixed; // HTML content
   image?: IImage;
   seo?: ISEO;
@@ -46,7 +46,7 @@ export interface ITourSubcategory {
   _id: string;
   category: string; // ObjectId as string
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedMixed; // HTML content
   image?: IImage;
   seo?: ISEO;
@@ -62,7 +62,7 @@ export interface ITourSubcategory {
 export interface ITour {
   _id: string;
   name: string;
-  slug: string;
+  slug: ILocalizedString;
   Description?: ITourDescription;
   subcategory: string | ITourSubcategory; // Can be populated or just ID
   heading: ILocalizedString;
@@ -89,7 +89,7 @@ export interface ITour {
 
 export interface TourCategoryFormData {
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedMixed;
   image?: IImage;
   seo?: ISEO;
@@ -100,7 +100,7 @@ export interface TourCategoryFormData {
 export interface TourSubcategoryFormData {
   category: string;
   name: ILocalizedString;
-  slug: string;
+  slug: ILocalizedString;
   description?: ILocalizedMixed;
   image?: IImage;
   seo?: ISEO;
@@ -165,7 +165,7 @@ export interface ITourDescription {
 
 export interface TourFormData {
   name: string;
-  slug: string;
+  slug: ILocalizedString;
   description?: ITourDescription;
   subcategory: string;
   images?: IImage[];
@@ -181,12 +181,12 @@ export interface TourFormData {
   isActive: boolean;
   seo?: ISEO;
   // Comprehensive tour details
-  tourHighlights?: ILocalizedString[];
-  inclusion?: ILocalizedString[];
-  exclusion?: ILocalizedString[];
+  tourHighlights?: ILocalizedMixed;
+  inclusion?: ILocalizedMixed;
+  exclusion?: ILocalizedMixed;
   pricingPlans?: IPricingPlan[];
   notes?: IPricingNote[];
-  whatToPack?: ILocalizedString[];
+  whatToPack?: ILocalizedMixed;
   tourMapIframe?: string;
   mapSchema?: any;
   whatYouWillLoveHtml?: ILocalizedMixed;
@@ -200,5 +200,5 @@ export interface TourFormData {
   duration?: ILocalizedString;
   meetingPoint?: ILocalizedString;
   cancellationPolicy?: ILocalizedString;
-  tags?: string[];
+  tags?: ILocalizedMixed;
 }

@@ -6,9 +6,9 @@ import { type AdminLanguage } from "./AdminLanguageTabs";
 
 interface LocalizedFieldProps {
   /** The localized data object e.g. { en: 'hello', de: 'hallo', it: 'ciao' } */
-  value: Record<AdminLanguage, string> | any;
-  /** Called when the active language's value changes (for plain inputs/textareas) */
-  onChange?: (lang: AdminLanguage, value: string) => void;
+  value: Record<AdminLanguage, any> | any;
+  /** Called when the active language's value changes */
+  onChange?: (lang: AdminLanguage, value: any) => void;
   /** Label for the field */
   label?: string;
   /** If provided, syncs the active language with the global page language */
@@ -18,8 +18,8 @@ interface LocalizedFieldProps {
   /** Render the actual input/textarea/editor as a function-child, receiving the active language value and a change handler */
   children: (
     activeLang: AdminLanguage,
-    currentValue: string,
-    handleChange: (val: string) => void
+    currentValue: any,
+    handleChange: (val: any) => void
   ) => React.ReactNode;
 }
 
@@ -57,15 +57,18 @@ export function LocalizedField({
 
   const safeValue = value || {};
   const currentValue =
-    typeof safeValue === "object" ? safeValue[activeLang] || "" : "";
+    typeof safeValue === "object" ? safeValue[activeLang] : undefined;
 
   const hasContent = (lang: AdminLanguage) => {
     if (!safeValue || typeof safeValue !== "object") return false;
     const v = safeValue[lang];
-    return typeof v === "string" ? v.trim().length > 0 : false;
+    if (typeof v === "string") return v.trim().length > 0;
+    if (Array.isArray(v)) return v.length > 0;
+    if (v) return true;
+    return false;
   };
 
-  const handleChange = (val: string) => {
+  const handleChange = (val: any) => {
     if (onChange) onChange(activeLang, val);
   };
 

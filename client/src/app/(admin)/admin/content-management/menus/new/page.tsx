@@ -27,6 +27,7 @@ import { blogCategoryAPI } from '@/lib/api/blogAdmin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import LocalizedInput from '@/components/admin/LocalizedInput';
 import { getLocalizedValue } from '@/lib/localize';
 
 const makeItem = (): MenuItem => ({
@@ -285,10 +286,12 @@ export default function NewMenuPage() {
             {open ? (
               <div className="grid gap-4 p-3 md:grid-cols-12">
                 <div className="md:col-span-5">
-                  <label className="text-sm font-medium">Label ({activeLanguage})</label>
-                  <div className="mt-2">
-                    <Input value={it.label[activeLanguage] || ''} onChange={(e) => updateItem(path, { label: { ...it.label, [activeLanguage]: e.target.value } })} placeholder={`Name in ${activeLanguage}`} />
-                  </div>
+                  <LocalizedInput
+                    label="Label"
+                    value={it.label}
+                    onChange={(val) => updateItem(path, { label: val as any })}
+                    placeholder="Menu label"
+                  />
                 </div>
                 <div className="md:col-span-5">
                   <label className="flex items-center gap-2 text-sm font-medium"><LinkIcon className="h-4 w-4" />URL</label>
@@ -357,7 +360,6 @@ export default function NewMenuPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
           <Button onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save
@@ -380,11 +382,13 @@ export default function NewMenuPage() {
               <Input value={key} onChange={(e) => setKey(e.target.value)} placeholder="header-main" />
             </div>
           </div>
-          <div>
-            <label className="text-sm font-medium">Title ({activeLanguage})</label>
-            <div className="mt-2 text-sm">
-              <Input value={title[activeLanguage] || ''} onChange={(e) => setTitle({ ...title, [activeLanguage]: e.target.value })} placeholder={`Menu Title in ${activeLanguage}`} />
-            </div>
+          <div className="md:col-span-1">
+            <LocalizedInput
+              label="Menu Title"
+              value={title}
+              onChange={(val) => setTitle(val as any)}
+              placeholder="Main Menu Name"
+            />
           </div>
           <div>
             <label className="text-sm font-medium">Active</label>

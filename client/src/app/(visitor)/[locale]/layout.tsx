@@ -7,6 +7,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { SlugProvider } from "@/contexts/SlugContext";
 import SEOProvider from "@/components/common/SEO/SEOProvider";
 import { Metadata } from "next";
 
@@ -219,13 +220,15 @@ export default async function RootLayout({
           >
             <AuthProvider>
               <WishlistProvider>
-                <NotificationProvider>
-                  <I18nProvider>
-                    <SEOProvider locale={locale} />
-                    {children}
-                    <Toaster />
-                  </I18nProvider>
-                </NotificationProvider>
+                <SlugProvider>
+                  <NotificationProvider>
+                    <I18nProvider>
+                      <SEOProvider locale={locale} />
+                      {children}
+                      <Toaster />
+                    </I18nProvider>
+                  </NotificationProvider>
+                </SlugProvider>
               </WishlistProvider>
             </AuthProvider>
           </ThemeProvider>

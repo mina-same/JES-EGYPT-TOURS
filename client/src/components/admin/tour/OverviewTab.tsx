@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import RichTextEditor from '@/components/ui/RichTextEditor';
+import TagInput from '@/components/admin/TagInput';
 import SubcategorySelect from '@/components/admin/SubcategorySelect';
 import { ITourSubcategory } from '@/types/tour';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
@@ -37,15 +38,21 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug (Auto-generated)</Label>
-              <Input
-                id="slug"
-                value={formData.slug || ''}
-                onChange={(e) => handleChange('slug', e.target.value)}
-                placeholder="tour-slug"
-              />
-            </div>
+            <LocalizedField
+              label="Slug (Auto-generated)"
+              value={formData.slug}
+              globalLanguage={activeLanguage}
+              onChange={(lang, val) => handleChange(`slug.${lang}`, val)}
+            >
+              {(lang, currentValue, handleLang) => (
+                <Input
+                  id="slug"
+                  value={currentValue}
+                  onChange={(e) => handleLang(e.target.value)}
+                  placeholder={`Enter slug in ${lang}`}
+                />
+              )}
+            </LocalizedField>
           </div>
 
           <LocalizedField
@@ -83,6 +90,25 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
                 subcategories={subcategories}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <LocalizedField
+              label="Tour Tags"
+              value={formData.tags}
+              globalLanguage={activeLanguage}
+              onChange={(lang, val) => handleChange(`tags.${lang}`, val)}
+            >
+              {(lang, currentValue, handleLang) => (
+                <TagInput
+                  tags={currentValue || []}
+                  onChange={handleLang}
+                  placeholder={`Add a tag in ${lang} and press Enter...`}
+                  maxTags={15}
+                />
+              )}
+            </LocalizedField>
+            <p className="text-xs text-muted-foreground">General tags for this tour (e.g., Summer, Sale, New)</p>
           </div>
         </CardContent>
       </Card>
