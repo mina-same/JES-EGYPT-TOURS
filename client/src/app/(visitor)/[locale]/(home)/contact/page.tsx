@@ -6,24 +6,33 @@ import ContactTop from "@/components/sections/ContactTop/ContactTop";
 import ContactPage from "@/components/sections/ContactPage/ContactPage";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import { getServerTranslation } from "@/lib/i18n-server";
+import { Metadata } from "next";
 import './contact.css';
 
-export const metadata = {
-  title: "Contact Us | JES Egypt Tours",
-  description:
-    "Get in touch with JES Egypt Tours. We're here to help plan your perfect Egyptian adventure.",
-  icons: {
-    icon: "/favicon-32x32.png",
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const { t } = await getServerTranslation(locale, 'contact');
+  
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    icons: {
+      icon: "/favicon-32x32.png",
+    },
+  };
+}
 
-export default function Contact() {
+export default async function Contact({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const { t } = await getServerTranslation(locale, 'contact');
+  
   return (
     <Layout>
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title='Contact us' subTitle='Contact us' />
+      <PageHeader title={t('pageTitle')} subTitle={t('pageSubTitle')} />
       <ContactTop />
       <ContactPage />
       <FooterOne />

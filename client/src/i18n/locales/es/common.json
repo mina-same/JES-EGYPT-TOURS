@@ -1,13 +1,13 @@
- {
-   "links": {
-     "faq": "Preguntas frecuentes",
-     "about": "Sobre nosotros",
-     "contact": "Contacto"
-   },
-   "language": {
-     "english": "Inglés",
-     "german": "Alemán",
-     "italian": "Italiano",
-     "spanish": "Español"
-   }
- }
+{
+  "links": {
+    "faq": "Preguntas frecuentes",
+    "about": "Sobre nosotros",
+    "contact": "Contacto"
+  },
+  "language": {
+    "english": "Inglés",
+    "german": "Alemán",
+    "italian": "Italiano",
+    "spanish": "Español"
+  }
+}

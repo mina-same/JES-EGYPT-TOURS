@@ -1,0 +1,42 @@
+{
+  "metaTitle": "Contattaci | JES Egypt Tours",
+  "metaDescription": "Mettiti in contatto con JES Egypt Tours. Siamo qui per aiutarti a pianificare la tua avventura egiziana.",
+  "pageTitle": "Contattaci",
+  "pageSubTitle": "Contattaci",
+  "top": {
+    "addressTitle": "Il nostro Indirizzo",
+    "addressText": "Downtown Cairo, Egypt",
+    "emailTitle": "info@jesegypttours.com",
+    "emailText": "Scrivici in qualsiasi momento per ogni richiesta.",
+    "phoneTitle": "Numero Verde: +208-666-0112",
+    "phoneText": "Chiamaci per qualsiasi supporto."
+  },
+  "form": {
+    "title": "Pronto per iniziare?",
+    "text": "Ci piacerebbe sentirti. Ti preghiamo di compilare il modulo sottostante.",
+    "fields": {
+      "nameLabel": "Il tuo Nome*",
+      "namePlaceholder": "Il tuo Nome",
+      "emailLabel": "La tua Email*",
+      "emailPlaceholder": "La tua Email",
+      "messageLabel": "Messaggio*",
+      "messagePlaceholder": "Scrivi messaggio . ."
+    },
+    "errors": {
+      "nameRequired": "Il nome è obbligatorio",
+      "emailRequired": "L'email è obbligatoria",
+      "invalidEmail": "Si prega di fornire un'email valida",
+      "messageRequired": "Il messaggio è obbligatorio",
+      "sendFailed": "Invio fallito",
+      "failedMessage": "Impossibile inviare il messaggio"
+    },
+    "success": {
+      "sentTitle": "Messaggio inviato",
+      "sentMessage": "Il tuo messaggio è stato inviato con successo."
+    },
+    "buttons": {
+      "sending": "Invio in corso...",
+      "send": "Invia Messaggio"
+    }
+  }
+}

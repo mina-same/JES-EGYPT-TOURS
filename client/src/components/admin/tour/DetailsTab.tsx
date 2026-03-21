@@ -3,19 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import RichTextEditor from '@/components/ui/RichTextEditor';
+import LocalizedRichText from '../LocalizedRichText';
 import { Plus, X } from 'lucide-react';
-import TagInput from '@/components/admin/TagInput';
-
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import LocalizedField from '@/components/admin/LocalizedField';
+import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
+import LocalizedInput from '@/components/admin/LocalizedInput';
 
 interface DetailsTabProps {
   formData: any;
   handleArrayFieldChange: (field: string, value: string[], lang: AdminLanguage) => void;
   addTourNote: () => void;
   removeTourNote: (index: number) => void;
-  updateTourNote: (index: number, field: string, value: string, lang: AdminLanguage) => void;
+  updateTourNote: (index: number, field: string, value: any) => void; // Value is now full object
+  handleChange: (field: string, value: any) => void;
   activeLanguage: AdminLanguage;
 }
 
@@ -26,6 +26,7 @@ export default function DetailsTab({
   addTourNote,
   removeTourNote,
   updateTourNote,
+  handleChange,
   activeLanguage,
 }: DetailsTabProps) {
   return (
@@ -37,19 +38,11 @@ export default function DetailsTab({
           <CardDescription>Key features and attractions (comma-separated per language)</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedField
-            value={formData.tourHighlights}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleArrayFieldChange('tourHighlights', val, lang)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <TagInput
-                tags={currentValue || []}
-                onChange={handleLang}
-                placeholder={`Visit the Pyramids, Sphinx, Egyptian Museum... (${lang})`}
-              />
-            )}
-          </LocalizedField>
+          <LocalizedTagsInput
+            value={formData.tourHighlights || { en: [], de: [], it: [], es: [] }}
+            onChange={(val) => handleChange('tourHighlights', val)}
+            placeholder="Visit the Pyramids, Sphinx, Egyptian Museum..."
+          />
         </CardContent>
       </Card>
 
@@ -61,19 +54,11 @@ export default function DetailsTab({
             <CardDescription>What is included in the price</CardDescription>
           </CardHeader>
           <CardContent>
-            <LocalizedField
-              value={formData.inclusion}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleArrayFieldChange('inclusion', val, lang)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <TagInput
-                  tags={currentValue || []}
-                  onChange={handleLang}
-                  placeholder={`Hotel pickup, Lunch, Guide... (${lang})`}
-                />
-              )}
-            </LocalizedField>
+            <LocalizedTagsInput
+              value={formData.inclusion || { en: [], de: [], it: [], es: [] }}
+              onChange={(val) => handleChange('inclusion', val)}
+              placeholder="Hotel pickup, Lunch, Guide..."
+            />
           </CardContent>
         </Card>
 
@@ -83,19 +68,11 @@ export default function DetailsTab({
             <CardDescription>What is NOT included</CardDescription>
           </CardHeader>
           <CardContent>
-            <LocalizedField
-              value={formData.exclusion}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleArrayFieldChange('exclusion', val, lang)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <TagInput
-                  tags={currentValue || []}
-                  onChange={handleLang}
-                  placeholder={`Tips, Personal expenses, Drinks... (${lang})`}
-                />
-              )}
-            </LocalizedField>
+            <LocalizedTagsInput
+              value={formData.exclusion || { en: [], de: [], it: [], es: [] }}
+              onChange={(val) => handleChange('exclusion', val)}
+              placeholder="Tips, Personal expenses, Drinks..."
+            />
           </CardContent>
         </Card>
       </div>
@@ -107,19 +84,11 @@ export default function DetailsTab({
           <CardDescription>Recommended items for travelers</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedField
-            value={formData.whatToPack}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleArrayFieldChange('whatToPack', val, lang)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <TagInput
-                tags={currentValue || []}
-                onChange={handleLang}
-                placeholder={`Sunscreen, Hat, Comfortable shoes... (${lang})`}
-              />
-            )}
-          </LocalizedField>
+          <LocalizedTagsInput
+            value={formData.whatToPack || { en: [], de: [], it: [], es: [] }}
+            onChange={(val) => handleChange('whatToPack', val)}
+            placeholder="Sunscreen, Hat, Comfortable shoes..."
+          />
         </CardContent>
       </Card>
 
@@ -163,36 +132,20 @@ export default function DetailsTab({
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4">
-                    <LocalizedField
+                  <div className="grid grid-cols-1 gap-5">
+                    <LocalizedInput
                       label="Title"
-                      value={note.title}
-                      globalLanguage={activeLanguage}
-                      onChange={(lang, val) => updateTourNote(index, 'title', val, lang)}
-                    >
-                      {(lang, currentValue, handleLang) => (
-                        <Input
-                          value={currentValue}
-                          onChange={(e) => handleLang(e.target.value)}
-                          placeholder={`Note Title (e.g., Visa Info) - ${lang}`}
-                        />
-                      )}
-                    </LocalizedField>
+                      value={note.title || { en: '', de: '', it: '', es: '' }}
+                      onChange={(val) => updateTourNote(index, 'title', val)}
+                      placeholder="Note Title (e.g., Visa Info)"
+                    />
 
-                    <LocalizedField
+                    <LocalizedRichText
                       label="Content"
-                      value={note.text}
-                      globalLanguage={activeLanguage}
-                      onChange={(lang, val) => updateTourNote(index, 'text', val, lang)}
-                    >
-                      {(lang, currentValue, handleLang) => (
-                        <RichTextEditor
-                          value={currentValue}
-                          onChange={handleLang}
-                          placeholder={`Note content (${lang})...`}
-                        />
-                      )}
-                    </LocalizedField>
+                      value={note.text || { en: '', de: '', it: '', es: '' }}
+                      onChange={(val) => updateTourNote(index, 'text', val)}
+                      placeholder="Note content..."
+                    />
                   </div>
                 </div>
               ))}

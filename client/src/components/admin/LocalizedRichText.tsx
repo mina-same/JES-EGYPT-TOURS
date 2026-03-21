@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 import { AdminLanguage } from "./AdminLanguageTabs";
 
 const FLAG_COMPONENTS: Record<AdminLanguage, any> = {
@@ -20,30 +20,35 @@ const LANGUAGES: { id: AdminLanguage; label: string }[] = [
   { id: "es", label: "Spanish" },
 ];
 
-interface LocalizedInputProps {
+interface LocalizedRichTextProps {
   value: any;
   onChange: (value: any) => void;
   label?: string;
   placeholder?: string;
   className?: string;
-  type?: string;
 }
 
-const LocalizedInput: React.FC<LocalizedInputProps> = ({
-  value,
+const LocalizedRichText: React.FC<LocalizedRichTextProps> = ({
+  value = { en: "", de: "", it: "", es: "" },
   onChange,
   label,
   placeholder,
   className = "",
-  type = "text",
 }) => {
   const [activeLang, setActiveLang] = useState<AdminLanguage>("en");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEditorChange = (content: string) => {
     onChange({
       ...value,
-      [activeLang]: e.target.value,
+      [activeLang]: content,
     });
+  };
+
+  const hasContent = (val: string) => {
+    if (!val) return false;
+    // Strip HTML and check if anything remains
+    const textOnly = val.replace(/<[^>]*>/g, '').trim();
+    return textOnly.length > 0 || val.includes('<img');
   };
 
   return (
@@ -60,7 +65,7 @@ const LocalizedInput: React.FC<LocalizedInputProps> = ({
                 type="button"
                 onClick={() => setActiveLang(id)}
                 className={cn(
-                  "relative flex items-center gap-1.5 px-2.5 py-1 rounded-sm transition-all uppercase font-bold min-w-[38px] justify-center",
+                  "relative flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-all uppercase font-bold min-w-[38px] justify-center",
                   isActive
                     ? "bg-background text-foreground shadow-sm ring-1 ring-border"
                     : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
@@ -68,7 +73,7 @@ const LocalizedInput: React.FC<LocalizedInputProps> = ({
                 title={langLabel}
               >
                 {/* Green dot indicator for content */}
-                {value[id] && (
+                {hasContent(value[activeLang === id ? id : id]) && (
                   <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-background z-10" />
                 )}
                 <Flag className="w-3 h-2 rounded-[0.5px]" />
@@ -78,15 +83,13 @@ const LocalizedInput: React.FC<LocalizedInputProps> = ({
           })}
         </div>
       </div>
-      <Input
-        type={type}
+      <RichTextEditor
         value={value[activeLang] || ""}
-        onChange={handleInputChange}
-        placeholder={placeholder ? `${placeholder} (${activeLang})` : `Enter value in ${activeLang}`}
-        className="h-10 transition-all focus:ring-1 focus:ring-[#b79c5c]"
+        onChange={handleEditorChange}
+        placeholder={placeholder ? `${placeholder} (${activeLang})` : `Enter content in ${activeLang}`}
       />
     </div>
   );
 };
 
-export default LocalizedInput;
+export default LocalizedRichText;

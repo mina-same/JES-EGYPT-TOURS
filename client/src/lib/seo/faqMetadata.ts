@@ -1,22 +1,25 @@
 import { Metadata } from 'next';
+import { getServerTranslation } from '@/lib/i18n-server';
 
 interface FaqMetadataOptions {
   category?: string;
   totalFaqs?: number;
   baseUrl?: string;
+  locale?: string;
 }
 
 /**
  * Generate SEO-optimized metadata for FAQ pages
  */
-export function generateFaqMetadata(options: FaqMetadataOptions = {}): Metadata {
-  const { category, totalFaqs = 0, baseUrl = 'https://jesegypttours.com' } = options;
+export async function generateFaqMetadata(options: FaqMetadataOptions = {}): Promise<Metadata> {
+  const { category, totalFaqs = 0, baseUrl = 'https://jesegypttours.com', locale = 'en' } = options;
+  const { t } = await getServerTranslation(locale, 'faq');
   
   if (category) {
     // Category-specific FAQ page metadata
     const categoryTitle = `${category} FAQ | Egypt Travel Questions | JES Egypt Tours`;
     const categoryDescription = `Find answers to frequently asked questions about ${category.toLowerCase()} for Egypt travel. Expert advice on ${category.toLowerCase()} from JES Egypt Tours.`;
-    const categoryUrl = `${baseUrl}/faq/${category.toLowerCase().replace(/\s+/g, '-')}`;
+    const categoryUrl = `${baseUrl}/${locale}/faq/${category.toLowerCase().replace(/\\s+/g, '-')}`;
     
     return {
       title: categoryTitle,
@@ -28,10 +31,10 @@ export function generateFaqMetadata(options: FaqMetadataOptions = {}): Metadata 
         url: categoryUrl,
         siteName: 'JES Egypt Tours',
         type: 'website',
-        locale: 'en_US',
+        locale: locale === 'en' ? 'en_US' : locale,
         images: [
           {
-            url: `${baseUrl}/images/faq-${category.toLowerCase().replace(/\s+/g, '-')}.jpg`,
+            url: `${baseUrl}/images/faq-${category.toLowerCase().replace(/\\s+/g, '-')}.jpg`,
             width: 1200,
             height: 630,
             alt: `${category} FAQ - JES Egypt Tours`
@@ -42,7 +45,7 @@ export function generateFaqMetadata(options: FaqMetadataOptions = {}): Metadata 
         card: 'summary_large_image',
         title: categoryTitle,
         description: categoryDescription,
-        images: [`${baseUrl}/images/faq-${category.toLowerCase().replace(/\s+/g, '-')}.jpg`]
+        images: [`${baseUrl}/images/faq-${category.toLowerCase().replace(/\\s+/g, '-')}.jpg`]
       },
       alternates: {
         canonical: categoryUrl
@@ -62,21 +65,21 @@ export function generateFaqMetadata(options: FaqMetadataOptions = {}): Metadata 
   }
   
   // General FAQ page metadata
-  const faqSummary = totalFaqs > 0 
-    ? `Browse our comprehensive collection of ${totalFaqs} frequently asked questions`
-    : 'Browse our comprehensive collection of frequently asked questions';
+  const pageTitle = t('pageTitle');
+  const pageDescription = t('pageDescription');
+  const urlPath = `/${locale}/faq`;
   
   return {
-    title: 'Egypt Travel FAQ | Expert Answers | JES Egypt Tours',
-    description: `${faqSummary} about Egypt travel, tours, booking, safety, and more. Get expert answers from JES Egypt Tours to plan your perfect Egypt adventure.`,
+    title: pageTitle,
+    description: pageDescription,
     keywords: 'Egypt travel FAQ, Egypt tours, Cairo tours, Luxor temples, Nile cruise, Egypt visa, Egypt safety, Egypt booking, JES Egypt Tours, Egypt travel guide',
     openGraph: {
-      title: 'Egypt Travel FAQ | Expert Answers | JES Egypt Tours',
-      description: `${faqSummary} about Egypt travel, tours, booking, safety, and more. Get expert answers from JES Egypt Tours to plan your perfect Egypt adventure.`,
-      url: `${baseUrl}/faq`,
+      title: pageTitle,
+      description: pageDescription,
+      url: `${baseUrl}${urlPath}`,
       siteName: 'JES Egypt Tours',
       type: 'website',
-      locale: 'en_US',
+      locale: locale === 'en' ? 'en_US' : locale,
       images: [
         {
           url: `${baseUrl}/images/egypt-faq.jpg`,
@@ -88,12 +91,12 @@ export function generateFaqMetadata(options: FaqMetadataOptions = {}): Metadata 
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Egypt Travel FAQ | Expert Answers | JES Egypt Tours',
-      description: `${faqSummary} about Egypt travel, tours, booking, safety, and more. Get expert answers from JES Egypt Tours.`,
+      title: pageTitle,
+      description: pageDescription,
       images: [`${baseUrl}/images/egypt-faq.jpg`]
     },
     alternates: {
-      canonical: `${baseUrl}/faq`
+      canonical: `${baseUrl}${urlPath}`
     },
     robots: {
       index: true,

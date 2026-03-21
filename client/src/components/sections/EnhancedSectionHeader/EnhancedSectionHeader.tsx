@@ -196,6 +196,7 @@ export default function EnhancedSectionHeader({
                   rel={button!.newTab ? 'noreferrer noopener' : undefined}
                 >
                   {button!.label}
+                  <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
             ) : null}

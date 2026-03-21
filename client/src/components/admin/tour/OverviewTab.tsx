@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import RichTextEditor from '@/components/ui/RichTextEditor';
+import LocalizedRichText from '../LocalizedRichText';
 import TagInput from '@/components/admin/TagInput';
 import SubcategorySelect from '@/components/admin/SubcategorySelect';
 import { ITourSubcategory } from '@/types/tour';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import LocalizedField from '@/components/admin/LocalizedField';
+import LocalizedInput from '@/components/admin/LocalizedInput';
+import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
+import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 
 interface OverviewTabProps {
   formData: any;
@@ -38,39 +40,20 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
                 required
               />
             </div>
-            <LocalizedField
+            <LocalizedInput
               label="Slug (Auto-generated)"
-              value={formData.slug}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`slug.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  id="slug"
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder={`Enter slug in ${lang}`}
-                />
-              )}
-            </LocalizedField>
+              value={formData.slug || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('slug', val)}
+              placeholder="Enter slug"
+            />
           </div>
 
-          <LocalizedField
+          <LocalizedInput
             label="Tour Heading *"
-            value={formData.heading}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`heading.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <Input
-                id="heading"
-                value={currentValue}
-                onChange={(e) => handleLang(e.target.value)}
-                placeholder={`Enter tour heading in ${lang}`}
-                required={lang === 'en'}
-              />
-            )}
-          </LocalizedField>
+            value={formData.heading || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('heading', val)}
+            placeholder="Enter tour heading"
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -93,21 +76,12 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           </div>
 
           <div className="space-y-2">
-            <LocalizedField
+            <LocalizedTagsInput
               label="Tour Tags"
-              value={formData.tags}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`tags.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <TagInput
-                  tags={currentValue || []}
-                  onChange={handleLang}
-                  placeholder={`Add a tag in ${lang} and press Enter...`}
-                  maxTags={15}
-                />
-              )}
-            </LocalizedField>
+              value={formData.tags || { en: [], de: [], it: [], es: [] }}
+              onChange={(val) => handleChange('tags', val)}
+              placeholder="Add a tag and press Enter..."
+            />
             <p className="text-xs text-muted-foreground">General tags for this tour (e.g., Summer, Sale, New)</p>
           </div>
         </CardContent>
@@ -120,19 +94,12 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           <CardDescription>Brief catchy header for the selected language</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedField
-            value={formData.description?.header}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`description.header.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <Input
-                value={currentValue}
-                onChange={(e) => handleLang(e.target.value)}
-                placeholder={`Enter catchy header in ${lang}`}
-              />
-            )}
-          </LocalizedField>
+          <LocalizedInput
+            label="Catchy Header"
+            value={formData.description?.header || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('description.header', val)}
+            placeholder="Enter catchy header"
+          />
         </CardContent>
       </Card>
 
@@ -143,19 +110,12 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           <CardDescription>Main tour overview text</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedField
-            value={formData.description?.text}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`description.text.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <RichTextEditor
-                value={currentValue}
-                onChange={handleLang}
-                placeholder={`Tell us about the tour in ${lang}...`}
-              />
-            )}
-          </LocalizedField>
+          <LocalizedRichText
+            label="Description Content"
+            value={formData.description?.text || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('description.text', val)}
+            placeholder="Tell us about the tour..."
+          />
         </CardContent>
       </Card>
 
@@ -167,123 +127,60 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <LocalizedField
+            <LocalizedInput
               label="Location"
-              value={formData.tourLocation}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`tourLocation.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  id="tourLocation"
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder="Cairo, Egypt"
-                />
-              )}
-            </LocalizedField>
+              value={formData.tourLocation || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('tourLocation', val)}
+              placeholder="Cairo, Egypt"
+            />
 
-            <LocalizedField
+            <LocalizedInput
               label="Duration"
-              value={formData.duration}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`duration.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  id="duration"
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder="3 days / 2 nights"
-                />
-              )}
-            </LocalizedField>
+              value={formData.duration || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('duration', val)}
+              placeholder="3 days / 2 nights"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <LocalizedField
+            <LocalizedInput
               label="Availability"
-              value={formData.tourAvailability}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`tourAvailability.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  id="tourAvailability"
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder="Year-round"
-                />
-              )}
-            </LocalizedField>
+              value={formData.tourAvailability || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('tourAvailability', val)}
+              placeholder="Year-round"
+            />
 
-            <LocalizedField
+            <LocalizedInput
               label="Tour Type"
-              value={formData.tourType}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`tourType.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  id="tourType"
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder="Private / Group"
-                />
-              )}
-            </LocalizedField>
+              value={formData.tourType || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('tourType', val)}
+              placeholder="Private / Group"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <LocalizedField
+            <LocalizedInput
               label="Tour Style"
-              value={formData.tourStyle}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`tourStyle.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  id="tourStyle"
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder="Adventure, Cultural, Luxury"
-                />
-              )}
-            </LocalizedField>
+              value={formData.tourStyle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('tourStyle', val)}
+              placeholder="Adventure, Cultural, Luxury"
+            />
 
-            <LocalizedField
+            <LocalizedInput
               label="Meeting Point"
-              value={formData.meetingPoint}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`meetingPoint.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  id="meetingPoint"
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder="Hotel lobby"
-                />
-              )}
-            </LocalizedField>
+              value={formData.meetingPoint || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('meetingPoint', val)}
+              placeholder="Hotel lobby"
+            />
           </div>
 
-          <LocalizedField
+          <LocalizedTextArea
             label="Pickup & Drop-off"
-            value={formData.pickupAndDropOff}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`pickupAndDropOff.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <Textarea
-                id="pickupAndDropOff"
-                value={currentValue}
-                onChange={(e) => handleLang(e.target.value)}
-                placeholder="Pickup and drop-off details..."
-                rows={3}
-              />
-            )}
-          </LocalizedField>
+            value={formData.pickupAndDropOff || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('pickupAndDropOff', val)}
+            placeholder="Pickup and drop-off details..."
+            rows={3}
+          />
         </CardContent>
       </Card>
     </div>

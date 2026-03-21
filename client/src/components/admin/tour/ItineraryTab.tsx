@@ -21,20 +21,20 @@
  import { Label } from '@/components/ui/label';
  import { Input } from '@/components/ui/input';
  import { Button } from '@/components/ui/button';
- import RichTextEditor from '@/components/ui/RichTextEditor';
+ import LocalizedRichText from '../LocalizedRichText';
  import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
  import { cn } from '@/lib/utils';
  import { ChevronDown, ChevronUp, Copy, GripVertical, Image as ImageIcon, Plus, Trash2, Upload, X } from 'lucide-react';
 
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import LocalizedField from '@/components/admin/LocalizedField';
+import LocalizedInput from '@/components/admin/LocalizedInput';
 
 interface ItineraryTabProps {
   formData: any;
   handleChange: (field: string, value: any) => void;
   addItineraryDay: () => void;
   removeItineraryDay: (index: number) => void;
-  updateItineraryDay: (index: number, field: string, value: any, lang?: AdminLanguage) => void;
+  updateItineraryDay: (index: number, field: string, value: any) => void;
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
 }
@@ -236,20 +236,12 @@ export default function ItineraryTab({
           <CardDescription>Overview of the tour itinerary in the selected language</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedField
+          <LocalizedRichText
             label="General Description"
-            value={formData.itinerary?.generalDescription}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`itinerary.generalDescription.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <RichTextEditor
-                value={currentValue}
-                onChange={handleLang}
-                placeholder={`Provide an overview of the tour itinerary in ${lang}...`}
-              />
-            )}
-          </LocalizedField>
+            value={formData.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('itinerary.generalDescription', val)}
+            placeholder="Provide an overview of the tour itinerary..."
+          />
         </CardContent>
       </Card>
 
@@ -332,7 +324,7 @@ export default function ItineraryTab({
                     updateItineraryDay(dayIndex, 'activities', next);
                   };
 
-                  const updateActivity = (actIndex: number, field: string, value: any, lang?: AdminLanguage) => {
+                  const updateActivity = (actIndex: number, field: string, value: any) => {
                     const next = [...activities];
                     const current = next[actIndex] || { 
                       heading: { en: '', de: '', it: '', es: '' }, 
@@ -340,15 +332,7 @@ export default function ItineraryTab({
                       image: null 
                     };
                     
-                    if (lang && (field === 'heading' || field === 'description')) {
-                      next[actIndex] = { 
-                        ...current, 
-                        [field]: { ...current[field], [lang]: value } 
-                      };
-                    } else {
-                      next[actIndex] = { ...current, [field]: value };
-                    }
-                    
+                    next[actIndex] = { ...current, [field]: value };
                     updateItineraryDay(dayIndex, 'activities', next);
                   };
 
@@ -429,36 +413,19 @@ export default function ItineraryTab({
 
                           {!isCollapsed && (
                             <div className="p-4 space-y-5">
-                              <LocalizedField
+                              <LocalizedInput
                                 label="Day Title"
-                                value={day.title}
-                                globalLanguage={activeLanguage}
-                                onChange={(lang, val) => updateItineraryDay(dayIndex, 'title', val, lang)}
-                              >
-                                {(lang, currentValue, handleLang) => (
-                                  <Input
-                                    value={currentValue}
-                                    onChange={(e) => handleLang(e.target.value)}
-                                    placeholder={`e.g., Arrival in Cairo (${lang})`}
-                                    required={lang === 'en'}
-                                  />
-                                )}
-                              </LocalizedField>
+                                value={day.title || { en: '', de: '', it: '', es: '' }}
+                                onChange={(val) => updateItineraryDay(dayIndex, 'title', val)}
+                                placeholder="e.g., Arrival in Cairo"
+                              />
 
-                              <LocalizedField
+                              <LocalizedRichText
                                 label="Day Description"
-                                value={day.description}
-                                globalLanguage={activeLanguage}
-                                onChange={(lang, val) => updateItineraryDay(dayIndex, 'description', val, lang)}
-                              >
-                                {(lang, currentValue, handleLang) => (
-                                  <RichTextEditor
-                                    value={currentValue}
-                                    onChange={handleLang}
-                                    placeholder={`Describe what happens on this day in ${lang}...`}
-                                  />
-                                )}
-                              </LocalizedField>
+                                value={day.description || { en: '', de: '', it: '', es: '' }}
+                                onChange={(val) => updateItineraryDay(dayIndex, 'description', val)}
+                                placeholder="Describe what happens on this day..."
+                              />
 
                               {/* Activities */}
                               <div className="space-y-3">
@@ -553,35 +520,19 @@ export default function ItineraryTab({
 
                                                 {!isActivityCollapsed && (
                                                   <div className="p-3 space-y-3">
-                                                    <LocalizedField
+                                                    <LocalizedInput
                                                       label="Activity Heading"
-                                                      value={activity.heading}
-                                                      globalLanguage={activeLanguage}
-                                                      onChange={(lang, val) => updateActivity(actIndex, 'heading', val, lang)}
-                                                    >
-                                                      {(lang, currentValue, handleLang) => (
-                                                        <Input
-                                                          value={currentValue}
-                                                          onChange={(e) => handleLang(e.target.value)}
-                                                          placeholder={`e.g., Visit the Pyramids (${lang})`}
-                                                        />
-                                                      )}
-                                                    </LocalizedField>
+                                                      value={activity.heading || { en: '', de: '', it: '', es: '' }}
+                                                      onChange={(val) => updateActivity(actIndex, 'heading', val)}
+                                                      placeholder="e.g., Visit the Pyramids"
+                                                    />
 
-                                                    <LocalizedField
+                                                    <LocalizedRichText
                                                       label="Activity Description"
-                                                      value={activity.description}
-                                                      globalLanguage={activeLanguage}
-                                                      onChange={(lang, val) => updateActivity(actIndex, 'description', val, lang)}
-                                                    >
-                                                      {(lang, currentValue, handleLang) => (
-                                                        <RichTextEditor
-                                                          value={currentValue}
-                                                          onChange={handleLang}
-                                                          placeholder={`Describe this activity in ${lang}...`}
-                                                        />
-                                                      )}
-                                                    </LocalizedField>
+                                                      value={activity.description || { en: '', de: '', it: '', es: '' }}
+                                                      onChange={(val) => updateActivity(actIndex, 'description', val)}
+                                                      placeholder="Describe this activity..."
+                                                    />
 
                                                     <div className="space-y-4 pt-2 border-t mt-4">
                                                       <div className="flex items-center gap-2">
@@ -635,42 +586,18 @@ export default function ItineraryTab({
                                                               className="h-8 text-xs"
                                                             />
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                              <LocalizedField
+                                                              <LocalizedInput
                                                                 label="Image Title"
-                                                                value={image.title}
-                                                                globalLanguage={activeLanguage}
-                                                                onChange={(lang, val) => {
-                                                                  const nextImage = { ...image, title: { ...(image.title as any || {}), [lang]: val } };
-                                                                  updateActivity(actIndex, 'image', nextImage);
-                                                                }}
-                                                              >
-                                                                {(lang, currentValue, handleLang) => (
-                                                                  <Input
-                                                                    value={currentValue}
-                                                                    onChange={(e) => handleLang(e.target.value)}
-                                                                    placeholder={`Title (${lang})`}
-                                                                    className="h-8 text-xs font-semibold"
-                                                                  />
-                                                                )}
-                                                              </LocalizedField>
-                                                              <LocalizedField
+                                                                value={image.title || { en: '', de: '', it: '', es: '' }}
+                                                                onChange={(val) => updateActivity(actIndex, 'image', { ...image, title: val })}
+                                                                placeholder="Title"
+                                                              />
+                                                              <LocalizedInput
                                                                 label="Alt Text"
-                                                                value={image.alt}
-                                                                globalLanguage={activeLanguage}
-                                                                onChange={(lang, val) => {
-                                                                  const nextImage = { ...image, alt: { ...(image.alt as any || {}), [lang]: val } };
-                                                                  updateActivity(actIndex, 'image', nextImage);
-                                                                }}
-                                                              >
-                                                                {(lang, currentValue, handleLang) => (
-                                                                  <Input
-                                                                    value={currentValue}
-                                                                    onChange={(e) => handleLang(e.target.value)}
-                                                                    placeholder={`Alt test (${lang})`}
-                                                                    className="h-8 text-xs"
-                                                                  />
-                                                                )}
-                                                              </LocalizedField>
+                                                                value={image.alt || { en: '', de: '', it: '', es: '' }}
+                                                                onChange={(val) => updateActivity(actIndex, 'image', { ...image, alt: val })}
+                                                                placeholder="Alt text"
+                                                              />
                                                             </div>
                                                           </div>
                                                         </div>

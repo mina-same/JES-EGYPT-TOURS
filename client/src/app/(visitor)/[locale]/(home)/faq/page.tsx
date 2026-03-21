@@ -6,21 +6,28 @@ import FaqSection from "@/components/sections/FaqSection/FaqSection";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 
+import { getServerTranslation } from "@/lib/i18n-server";
 import { FaqStructuredData, FaqBreadcrumbStructuredData } from "@/components/sections/FaqSection/FaqStructuredData";
 import { generateFaqMetadata } from "@/lib/seo/faqMetadata";
 import { Metadata } from "next";
 
 // Generate dynamic metadata for SEO
-export const metadata: Metadata = generateFaqMetadata();
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  return await generateFaqMetadata({ locale });
+}
 
-export default function FaqPage() {
+export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const { t } = await getServerTranslation(locale, 'faq');
+  
   return (
     <>
       {/* Structured Data for SEO */}
       <FaqStructuredData 
         faqs={[]} // Will be populated dynamically by FaqSection
-        title="Egypt Travel FAQ | Expert Answers | JES Egypt Tours"
-        description="Get expert answers to frequently asked questions about Egypt travel, tours, booking, safety, and more. Plan your perfect Egypt trip with confidence."
+        title={t('pageTitle')}
+        description={t('pageDescription')}
       />
       <FaqBreadcrumbStructuredData />
       
@@ -29,8 +36,8 @@ export default function FaqPage() {
         <HeaderOne linkTheme="light" />
         <HeaderOneCloned />
         <PageHeader 
-          title='Egypt Travel FAQ' 
-          subTitle='Expert Answers to Your Egypt Travel Questions' 
+          title={t('sectionTitle')}
+          subTitle={t('sectionSubTitle')}
         />
         <FaqSection />
         <FooterOne />

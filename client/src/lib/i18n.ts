@@ -7,6 +7,16 @@
  import deCommon from "@/i18n/locales/de/common.json";
  import itCommon from "@/i18n/locales/it/common.json";
 import esCommon from "@/i18n/locales/es/common.json";
+
+import enFaq from "@/i18n/locales/en/faq.json";
+import deFaq from "@/i18n/locales/de/faq.json";
+import itFaq from "@/i18n/locales/it/faq.json";
+import esFaq from "@/i18n/locales/es/faq.json";
+
+import enContact from "@/i18n/locales/en/contact.json";
+import deContact from "@/i18n/locales/de/contact.json";
+import itContact from "@/i18n/locales/it/contact.json";
+import esContact from "@/i18n/locales/es/contact.json";
  
  if (!i18n.isInitialized) {
    i18n
@@ -14,15 +24,15 @@ import esCommon from "@/i18n/locales/es/common.json";
      .use(LanguageDetector)
      .init({
        resources: {
-         en: { common: enCommon },
-         de: { common: deCommon },
-         it: { common: itCommon },
-         es: { common: esCommon },
+         en: { common: enCommon, faq: enFaq, contact: enContact },
+         de: { common: deCommon, faq: deFaq, contact: deContact },
+         it: { common: itCommon, faq: itFaq, contact: itContact },
+         es: { common: esCommon, faq: esFaq, contact: esContact },
        },
        fallbackLng: "en",
        supportedLngs: ["en", "de", "it", "es"],
        defaultNS: "common",
-       ns: ["common"],
+       ns: ["common", "faq", "contact"],
        detection: {
          order: ["path", "cookie", "localStorage", "navigator"],
          caches: ["cookie", "localStorage"],

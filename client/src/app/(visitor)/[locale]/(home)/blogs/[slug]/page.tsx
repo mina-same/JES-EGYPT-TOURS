@@ -5,7 +5,7 @@ import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import DynamicBlogDetails from "@/components/sections/DynamicBlogDetails/DynamicBlogDetails";
 import { getBlogBySlug } from "@/lib/api/blog";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { SlugManager } from "@/components/common/SlugManager";
 
@@ -77,13 +77,28 @@ export default async function BlogDetailsPage({
 }: {
   params: Promise<{ slug: string; locale: string }>;
 }) {
-  try {
-    const { slug, locale } = await params;
-    const blog = await getBlogBySlug(slug);
+  let correctSlug = '';
+  let title = '';
+  let description = '';
+  let featuredImageUrl = '';
+  let blog: any = null;
 
-    const title = getLocalizedValue(blog.title, locale);
-    const description = getLocalizedValue(blog.excerpt, locale) || getLocalizedValue(blog.seo?.metaDescription, locale) || "";
-    const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
+  try {
+    const { slug: urlSlug, locale: urlLocale } = await params;
+    blog = await getBlogBySlug(urlSlug);
+    correctSlug = getLocalizedValue(blog.slug, urlLocale);
+    title = getLocalizedValue(blog.title, urlLocale);
+    description = getLocalizedValue(blog.excerpt, urlLocale) || getLocalizedValue(blog.seo?.metaDescription, urlLocale) || "";
+    featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
+  } catch (error) {
+    console.error("Error loading blog page:", error);
+    notFound();
+  }
+
+  const { slug, locale } = await params;
+  if (correctSlug && correctSlug !== slug && correctSlug !== '') {
+    permanentRedirect(`/${locale}/blogs/${correctSlug}`);
+  }
 
     // Professional Blog Schema (JSON-LD)
     const jsonLd = {
@@ -135,10 +150,6 @@ export default async function BlogDetailsPage({
         </Layout>
       </>
     );
-  } catch (error) {
-    console.error("Error loading blog page:", error);
-    notFound();
-  }
 }
 
 

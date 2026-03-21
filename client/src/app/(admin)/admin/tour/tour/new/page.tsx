@@ -314,6 +314,7 @@ export default function NewTourPage() {
               addTourNote={tourForm.addTourNote}
               removeTourNote={tourForm.removeTourNote}
               updateTourNote={tourForm.updateTourNote}
+              handleChange={tourForm.handleChange}
               activeLanguage={activeAdminLanguage}
             />
           )}

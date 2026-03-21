@@ -6,18 +6,18 @@ import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGr
 import { getBlogsBySubCategory, getSubCategoryBySlug, BlogCategory } from "@/lib/api/blog";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
 import { SlugManager } from "@/components/common/SlugManager";
 
-
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }) {
   try {
-    const subcategory = await getSubCategoryBySlug(params.slug);
-    const title = getLocalizedValue(subcategory.seo?.metaTitle) ||
-      (getLocalizedValue(subcategory.name) ? `${getLocalizedValue(subcategory.name)} - Travel Blog | JES Egypt Tours` : '');
-    const description = getLocalizedValue(subcategory.seo?.metaDescription) ||
-      getLocalizedValue(subcategory.description);
+    const { slug, locale } = await params;
+    const subcategory = await getSubCategoryBySlug(slug);
+    const title = getLocalizedValue(subcategory.seo?.metaTitle, locale) ||
+      (getLocalizedValue(subcategory.name, locale) ? `${getLocalizedValue(subcategory.name, locale)} - Travel Blog | JES Egypt Tours` : '');
+    const description = getLocalizedValue(subcategory.seo?.metaDescription, locale) ||
+      getLocalizedValue(subcategory.description, locale);
 
     return {
       title,
@@ -36,24 +36,30 @@ export default async function BlogSubCategoryPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string; locale: string }>;
   searchParams: Promise<{ page?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
   const page = Number(resolvedSearchParams.page) || 1;
-  const { slug } = params;
+  const { slug, locale } = await params;
 
   let subcategory: any;
   let blogsData;
 
+  let correctSlug = '';
   try {
     subcategory = await getSubCategoryBySlug(slug);
     blogsData = await getBlogsBySubCategory(slug, page, 9);
+    correctSlug = getLocalizedValue(subcategory.slug, locale);
   } catch (error) {
     notFound();
   }
 
-  const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name) : '';
+  if (correctSlug && correctSlug !== slug && correctSlug !== '') {
+    permanentRedirect(`/${locale}/blogs/subcategory/${correctSlug}`);
+  }
+
+  const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name, locale) : '';
 
 
   return (
@@ -62,7 +68,7 @@ export default async function BlogSubCategoryPage({
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <SlugManager slugs={typeof subcategory.slug === 'object' ? subcategory.slug : { en: slug }} />
-      <PageHeader title={getLocalizedValue(subcategory.name)} subTitle={parentName || 'Blog Category'} />
+      <PageHeader title={getLocalizedValue(subcategory.name, locale)} subTitle={parentName || 'Blog Category'} />
 
       <DynamicBlogGrid
         blogs={blogsData.data}

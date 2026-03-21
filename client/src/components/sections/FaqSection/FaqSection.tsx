@@ -91,7 +91,7 @@ export interface FaqData {
 }
 
 const FaqSection: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation('faq');
   const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it';
   const [activeTab, setActiveTab] = useState<string>("1");
   const [faqData, setFaqData] = useState<FaqData | null>(null);
@@ -111,7 +111,7 @@ const FaqSection: React.FC = () => {
         });
 
         if (!response.success || !response.data) {
-          setError("Failed to load FAQs");
+          setError(t('errorLoading'));
           return;
         }
 
@@ -120,7 +120,7 @@ const FaqSection: React.FC = () => {
         const faqsForFaqPage = response.data.filter((f) => !f.displayOnHome);
 
         const grouped = faqsForFaqPage.reduce((acc, faq) => {
-          const category = faq.category || "General";
+          const category = faq.category || t('categoryGeneral');
           if (!acc[category]) acc[category] = [];
           acc[category].push(faq);
           return acc;
@@ -154,9 +154,8 @@ const FaqSection: React.FC = () => {
         });
 
         const structured: FaqData = {
-          title: "Egypt Travel FAQ - Expert Answers",
-          subTitle:
-            "Find answers to frequently asked questions about Egypt travel, tours, booking, safety, and more.",
+          title: t('sectionTitle'),
+          subTitle: t('sectionSubTitle'),
           image,
           faqTabs: tabs,
           faqTabsContent: tabContents,
@@ -168,7 +167,7 @@ const FaqSection: React.FC = () => {
         }
       } catch (e) {
         console.error("Error fetching FAQs:", e);
-        setError("Failed to load FAQs. Please try again later.");
+        setError(t('errorLoading'));
       } finally {
         setLoading(false);
       }
@@ -187,7 +186,7 @@ const FaqSection: React.FC = () => {
         <Container>
           <div className='text-center py-5'>
             <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto" />
-            <p className="mt-2 text-muted">Loading FAQs...</p>
+            <p className="mt-2 text-muted">{t('loading')}</p>
           </div>
         </Container>
       </section>
@@ -199,7 +198,7 @@ const FaqSection: React.FC = () => {
       <section className='faq-page section-space tabs-box'>
         <Container>
           <div className='text-center py-5'>
-            <p className="text-danger">{error || "No FAQs available"}</p>
+            <p className="text-danger">{error || t('noFaqs')}</p>
           </div>
         </Container>
       </section>
@@ -255,7 +254,7 @@ const FaqSection: React.FC = () => {
                         href='/tour-listing-details-2'
                         className='gotur-btn'
                       >
-                        Book Now{" "}
+                        {t('bookNow')}{" "}
                         <span className='icon'>
                           <i className='icon-right'></i>
                         </span>

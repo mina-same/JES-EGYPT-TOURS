@@ -1,7 +1,7 @@
-// ContactTop.tsx
+"use client";
 import React from "react";
 import Link from "next/link";
-import { contactItems } from "@/data/contactTopData";
+import { useTranslation } from "react-i18next";
 
 interface ContactItem {
   icon: string;
@@ -9,7 +9,30 @@ interface ContactItem {
   text: string;
   link?: string;
 }
+
 const ContactTop: React.FC = () => {
+  const { t } = useTranslation('contact');
+
+  const contactItems: ContactItem[] = [
+    {
+      icon: "icon-pin",
+      title: t('top.addressTitle'),
+      text: t('top.addressText'),
+    },
+    {
+      icon: "icon-mail-3",
+      title: t('top.emailTitle'),
+      text: t('top.emailText'),
+      link: "mailto:info@jesegypttours.com",
+    },
+    {
+      icon: "icon-call-3",
+      title: t('top.phoneTitle'),
+      text: t('top.phoneText'),
+      link: "tel:+208-666-0112",
+    },
+  ];
+
   return (
     <section className='contact-top section-space'>
       <div className='container'>

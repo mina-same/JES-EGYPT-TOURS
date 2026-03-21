@@ -530,6 +530,7 @@ export default function EditTourPage() {
           {activeTab === 'details' && (
             <DetailsTab
               formData={tourForm.formData}
+              handleChange={tourForm.handleChange}
               handleArrayFieldChange={tourForm.handleArrayFieldChange}
               addTourNote={tourForm.addTourNote}
               removeTourNote={tourForm.removeTourNote}

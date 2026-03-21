@@ -1,9 +1,9 @@
-// ContactPage.tsx
 "use client";
 import React, { useState } from "react";
-import { contactFormFields, googleMapUrl } from "@/data/contactData"; // Import the data
+import { googleMapUrl } from "@/data/contactData"; // Import the data
 import { API_ENDPOINTS } from "@/config/api";
 import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface ContactFormField {
   name: string;
@@ -11,8 +11,29 @@ interface ContactFormField {
   placeholder: string;
   type: "text" | "email" | "textarea";
 }
+
 const ContactPage: React.FC = () => {
-  const formFields = contactFormFields as ContactFormField[];
+  const { t } = useTranslation('contact');
+  const formFields: ContactFormField[] = [
+    {
+      name: "name",
+      label: t('form.fields.nameLabel'),
+      placeholder: t('form.fields.namePlaceholder'),
+      type: "text",
+    },
+    {
+      name: "email",
+      label: t('form.fields.emailLabel'),
+      placeholder: t('form.fields.emailPlaceholder'),
+      type: "email",
+    },
+    {
+      name: "message",
+      label: t('form.fields.messageLabel'),
+      placeholder: t('form.fields.messagePlaceholder'),
+      type: "textarea",
+    },
+  ];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{
@@ -42,10 +63,10 @@ const ContactPage: React.FC = () => {
 
     // Basic client-side validation
     if (!data.name?.trim()) {
-      setStatus({ type: "error", message: "Name is required" });
+      setStatus({ type: "error", message: t('form.errors.nameRequired') });
       toast({
-        title: "Send failed",
-        description: "Name is required",
+        title: t('form.errors.sendFailed'),
+        description: t('form.errors.nameRequired'),
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -53,10 +74,10 @@ const ContactPage: React.FC = () => {
       return;
     }
     if (!data.email?.trim()) {
-      setStatus({ type: "error", message: "Email is required" });
+      setStatus({ type: "error", message: t('form.errors.emailRequired') });
       toast({
-        title: "Send failed",
-        description: "Email is required",
+        title: t('form.errors.sendFailed'),
+        description: t('form.errors.emailRequired'),
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -64,22 +85,22 @@ const ContactPage: React.FC = () => {
       return;
     }
     if (!data.message?.trim()) {
-      setStatus({ type: "error", message: "Message is required" });
+      setStatus({ type: "error", message: t('form.errors.messageRequired') });
       toast({
-        title: "Send failed",
-        description: "Message is required",
+        title: t('form.errors.sendFailed'),
+        description: t('form.errors.messageRequired'),
         variant: "destructive",
       });
       setIsSubmitting(false);
       setSubmittedOnce(false);
       return;
     }
-    const emailRegex = /^\S+@\S+\.\S+$/;
+    const emailRegex = /^\\S+@\\S+\\.\\S+$/;
     if (!emailRegex.test(data.email.trim())) {
-      setStatus({ type: "error", message: "Please provide a valid email" });
+      setStatus({ type: "error", message: t('form.errors.invalidEmail') });
       toast({
-        title: "Send failed",
-        description: "Please provide a valid email",
+        title: t('form.errors.sendFailed'),
+        description: t('form.errors.invalidEmail'),
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -107,11 +128,11 @@ const ContactPage: React.FC = () => {
       console.log('ContactPage: Response JSON:', json);
 
       if (!res.ok) {
-        const errMsg = json?.error || "Failed to send message";
+        const errMsg = json?.error || t('form.errors.failedMessage');
         console.log('ContactPage: Setting error message:', errMsg);
         setStatus({ type: "error", message: errMsg });
         toast({
-          title: "Send failed",
+          title: t('form.errors.sendFailed'),
           description: errMsg,
           variant: "destructive",
         });
@@ -121,11 +142,11 @@ const ContactPage: React.FC = () => {
       }
 
       successOccurred = true;
-      const okMsg = json?.message || "Your message has been sent successfully.";
+      const okMsg = json?.message || t('form.success.sentMessage');
       console.log('ContactPage: Setting success message:', okMsg);
       setStatus({ type: "success", message: okMsg });
       toast({
-        title: "Message sent",
+        title: t('form.success.sentTitle'),
         description: okMsg,
       });
       // Use the stored form reference to reset
@@ -133,10 +154,10 @@ const ContactPage: React.FC = () => {
     } catch (_err: any) {
       console.error('ContactPage: Catch block error:', _err);
       if (!successOccurred) {
-        const errMsg = _err.message || "Failed to send message";
+        const errMsg = _err.message || t('form.errors.failedMessage');
         setStatus({ type: "error", message: errMsg });
         toast({
-          title: "Send failed",
+          title: t('form.errors.sendFailed'),
           description: errMsg,
           variant: "destructive",
         });
@@ -176,10 +197,9 @@ const ContactPage: React.FC = () => {
             data-wow-delay='300ms'
           >
             <div className='contact-page__contact'>
-              <h2 className='contact-page__title'>Ready to Get Started?</h2>
+              <h2 className='contact-page__title'>{t('form.title')}</h2>
               <p className='contact-page__text'>
-                Nullam varius, erat quis iaculis dictum, eros urna varius eros,
-                ut blandit felis odio in turpis. Quisque rhoncus.
+                {t('form.text')}
               </p>
               <form
                 className='comments-form__form form-one'
@@ -230,7 +250,7 @@ const ContactPage: React.FC = () => {
                   ))}
                   <div className='form-one__control form-one__control--full'>
                     <button type='submit' className='gotur-btn gotur-btn--base' disabled={isSubmitting}>
-                      {isSubmitting ? 'Sending...' : 'Send Message'}{' '}
+                      {isSubmitting ? t('form.buttons.sending') : t('form.buttons.send')}{' '}
                       <i className='icon-arrow-right'></i>
                     </button>
                   </div>

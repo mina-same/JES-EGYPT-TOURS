@@ -21,9 +21,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
-import LocalizedField from '@/components/admin/LocalizedField';
-import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
-import TagInput from '@/components/admin/TagInput';
+import LocalizedInput from '@/components/admin/LocalizedInput';
+import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
+import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
+import LocalizedRichText from '@/components/admin/LocalizedRichText';
+import ContentBlockEditor from '@/components/admin/ContentBlockEditor';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
@@ -398,73 +400,38 @@ export default function NewBlogPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <LocalizedField
+                        <LocalizedInput
                           label="Title"
                           value={formData.title}
-                          onChange={(lang, val) => handleChange('title', val)}
-                          globalLanguage={activeLanguage}
-                        >
-                          {(lang, value, onChange) => (
-                            <Input
-                              id="title"
-                              value={value}
-                              onChange={(e) => onChange(e.target.value)}
-                              placeholder={`e.g., Amazing Travel Tips for Egypt in ${lang.toUpperCase()}`}
-                              required={lang === 'en'}
-                            />
-                          )}
-                        </LocalizedField>
-                      </div>
-                      <div className="space-y-2">
-                        <LocalizedField
+                          onChange={(val) => handleChange('title', val)}
+                          placeholder="e.g., Amazing Travel Tips for Egypt"
+                        />
+                        <LocalizedInput
                           label="URL Slug"
                           value={formData.slug}
-                          onChange={(lang, val) => handleChange('slug', val)}
-                          globalLanguage={activeLanguage}
-                        >
-                          {(lang, value, onChange) => (
-                            <Input
-                              id="slug"
-                              value={value}
-                              onChange={(e) => onChange(e.target.value)}
-                              placeholder={`e.g., amazing-travel-tips-in-${lang}`}
-                              required={lang === 'en'}
-                            />
-                          )}
-                        </LocalizedField>
-                      </div>
+                          onChange={(val) => handleChange('slug', val)}
+                          placeholder="amazing-travel-tips"
+                        />
                     </div>
 
                     <div className="space-y-2">
-                      <LocalizedField
+                      <LocalizedTextArea
                         label="Excerpt"
                         value={formData.excerpt}
-                        onChange={(lang, val) => handleChange('excerpt', val)}
-                        globalLanguage={activeLanguage}
-                      >
-                        {(lang, value, onChange) => (
-                          <Textarea
-                            id="excerpt"
-                            value={value}
-                            onChange={(e) => onChange(e.target.value)}
-                            placeholder={`Brief description of the blog post in ${lang.toUpperCase()}...`}
-                            rows={3}
-                          />
-                        )}
-                      </LocalizedField>
+                        onChange={(val) => handleChange('excerpt', val)}
+                        placeholder="Brief description of the blog post..."
+                        rows={3}
+                      />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="tags">Tags ({activeLanguage.toUpperCase()}) *</Label>
-                      <TagInput
-                        tags={formData.tags[activeLanguage] || []}
-                        onChange={(tags) => handleChange('tags', tags)}
-                        placeholder="Add a tag and press Enter..."
-                        suggestions={TAG_SUGGESTIONS}
-                        maxTags={15}
+                      <LocalizedTagsInput
+                        label="Tags"
+                        value={formData.tags}
+                        onChange={(val) => handleChange('tags', val)}
+                        placeholder="Add a tag..."
                       />
-                      <p className="text-sm text-muted-foreground">Type and press Enter to add tags. Tags are used for filtering and searching.</p>
+                      <p className="text-sm text-muted-foreground italic">Type and press Enter to add tags. Tags are localized.</p>
                     </div>
 
                     <div className="flex items-center justify-between space-x-2 p-4 border rounded-lg">
@@ -546,72 +513,41 @@ export default function NewBlogPage() {
                   <CardContent className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <LocalizedField
+                        <LocalizedInput
                           label="Meta Title"
                           value={formData.metaTitle}
-                          onChange={(lang, val) => handleChange('metaTitle', val)}
-                          globalLanguage={activeLanguage}
-                        >
-                          {(lang, value, onChange) => (
-                            <Input
-                              id="metaTitle"
-                              value={value}
-                              onChange={(e) => onChange(e.target.value)}
-                              placeholder="SEO title (60 characters max)"
-                              maxLength={60}
-                            />
-                          )}
-                        </LocalizedField>
+                          onChange={(val) => handleChange('metaTitle', val)}
+                          placeholder="SEO title"
+                        />
                       </div>
                       <div className="space-y-2">
-                        <LocalizedField
+                        <LocalizedInput
                           label="Focus Keyword"
                           value={formData.focusKeyword}
-                          onChange={(lang, val) => handleChange('focusKeyword', val)}
-                          globalLanguage={activeLanguage}
-                        >
-                          {(lang, value, onChange) => (
-                            <Input
-                              id="focusKeyword"
-                              value={value}
-                              onChange={(e) => onChange(e.target.value)}
-                              placeholder={`Main keyword for SEO in ${lang.toUpperCase()}`}
-                            />
-                          )}
-                        </LocalizedField>
+                          onChange={(val) => handleChange('focusKeyword', val)}
+                          placeholder="Main keyword"
+                        />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <LocalizedField
+                      <LocalizedTextArea
                         label="Meta Description"
                         value={formData.metaDescription}
-                        onChange={(lang, val) => handleChange('metaDescription', val)}
-                        globalLanguage={activeLanguage}
-                      >
-                        {(lang, value, onChange) => (
-                          <Textarea
-                            id="metaDescription"
-                            value={value}
-                            onChange={(e) => onChange(e.target.value)}
-                            placeholder={`SEO description in ${lang.toUpperCase()} (160 characters max)`}
-                            maxLength={160}
-                            rows={3}
-                          />
-                        )}
-                      </LocalizedField>
+                        onChange={(val) => handleChange('metaDescription', val)}
+                        placeholder="SEO description..."
+                        rows={3}
+                      />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="metaKeywords">Meta Keywords ({activeLanguage.toUpperCase()})</Label>
-                      <TagInput
-                        tags={formData.metaKeywords[activeLanguage] || []}
-                        onChange={(tags) => handleChange('metaKeywords', tags)}
-                        placeholder="Add a keyword and press Enter..."
-                        suggestions={TAG_SUGGESTIONS}
-                        maxTags={10}
+                      <LocalizedTagsInput
+                        label="Meta Keywords"
+                        value={formData.metaKeywords}
+                        onChange={(val) => handleChange('metaKeywords', val)}
+                        placeholder="Add a keyword..."
                       />
-                      <p className="text-sm text-muted-foreground">Type and press Enter to add keywords for SEO.</p>
+                      <p className="text-sm text-muted-foreground italic">Type and press Enter to add keywords for SEO.</p>
                     </div>
 
                     <div className="space-y-2">

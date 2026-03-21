@@ -27,7 +27,8 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Copy, GripVertical, Plus, Trash2, X, Calendar, DollarSign, Users } from 'lucide-react';
 import { IPricingPlan, IPricingSeason, IPricingNote, ILocalizedString, ILocalizedMixed } from '@/types/tour';
 import { type AdminLanguage } from './AdminLanguageTabs';
-import LocalizedField from './LocalizedField';
+import LocalizedInput from './LocalizedInput';
+import LocalizedTextArea from './LocalizedTextArea';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
@@ -275,8 +276,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
     seasonIndex: number, 
     noteIndex: number, 
     field: keyof IPricingNote, 
-    value: string,
-    lang: AdminLanguage = activeLanguage
+    value: any
   ) => {
     const updated = pricingPlans.map((plan, i) => 
       i === planIndex 
@@ -290,10 +290,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                       if (k !== noteIndex) return note;
                       return {
                         ...note,
-                        [field]: {
-                          ...((note as any)[field] || { en: '', de: '', it: '', es: '' }),
-                          [lang]: value
-                        }
+                        [field]: value
                       } as IPricingNote;
                     })
                   }
@@ -566,41 +563,21 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                       >
                                                         <X className="w-3 h-3" />
                                                       </Button>
-                                                      <div className="space-y-2">
-                                                        <LocalizedField
-                                                          label="Note Title"
-                                                          value={note.title}
-                                                          globalLanguage={activeLanguage}
-                                                          onChange={(lang, val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'title', val, lang)}
-                                                        >
-                                                          {(lang, currentValue, handleLang) => (
-                                                            <div className="flex items-center gap-2">
-                                                              <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                                                              <Input
-                                                                className="h-7 text-xs border-0 bg-transparent p-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 font-semibold pr-6"
-                                                                value={currentValue}
-                                                                onChange={(e) => handleLang(e.target.value)}
-                                                                placeholder={`Note Title (${lang})`}
-                                                              />
-                                                            </div>
-                                                          )}
-                                                        </LocalizedField>
+                                                      <div className="space-y-4">
+                                                        <LocalizedInput
+                                                           label="Note Title"
+                                                           value={note.title || { en: '', de: '', it: '', es: '' }}
+                                                           onChange={(val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'title', val)}
+                                                           placeholder="Note Title"
+                                                        />
 
-                                                        <LocalizedField
-                                                          label="Note Description"
-                                                          value={note.text}
-                                                          globalLanguage={activeLanguage}
-                                                          onChange={(lang, val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'text', val, lang)}
-                                                        >
-                                                          {(lang, currentValue, handleLang) => (
-                                                            <Input
-                                                              className="h-6 text-xs border-0 bg-transparent p-0 placeholder:text-muted-foreground/50 focus-visible:ring-0"
-                                                              value={currentValue}
-                                                              onChange={(e) => handleLang(e.target.value)}
-                                                              placeholder={`Description (${lang})`}
-                                                            />
-                                                          )}
-                                                        </LocalizedField>
+                                                        <LocalizedTextArea
+                                                           label="Note Description"
+                                                           value={note.text || { en: '', de: '', it: '', es: '' }}
+                                                           onChange={(val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'text', val)}
+                                                           placeholder="Description"
+                                                           rows={2}
+                                                        />
                                                       </div>
                                                     </div>
                                                   ))}

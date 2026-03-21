@@ -12,11 +12,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Image as ImageIcon, X } from 'lucide-react';
-import RichTextEditor from '@/components/ui/RichTextEditor';
+import LocalizedInput from '@/components/admin/LocalizedInput';
+import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
+import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
+import LocalizedRichText from '@/components/admin/LocalizedRichText';
+import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import ImageUpload from '@/components/admin/ImageUpload';
-import LocalizedField from '@/components/admin/LocalizedField';
-import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import TagInput from '@/components/admin/TagInput';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { ILocalizedString } from '@/types/blog';
@@ -407,62 +408,26 @@ export default function NewBlogCategoryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <LocalizedField
-                  label="Category Name"
-                  value={formData.name}
-                  onChange={(lang, val) => handleChange('name', val)}
-                  globalLanguage={activeLanguage}
-                >
-                  {(lang, value, onChange) => (
-                    <Input
-                      id="name"
-                      value={value}
-                      onChange={(e) => onChange(e.target.value)}
-                      placeholder={`e.g., Travel Guides in ${lang.toUpperCase()}`}
-                      required={lang === 'en'}
-                    />
-                  )}
-                </LocalizedField>
-              </div>
-              <div className="space-y-2">
-                <LocalizedField
-                  label="URL Slug"
-                  value={formData.slug}
-                  onChange={(lang, val) => handleChange('slug', val)}
-                  globalLanguage={activeLanguage}
-                >
-                  {(lang, value, onChange) => (
-                    <Input
-                      id="slug"
-                      value={value}
-                      onChange={(e) => onChange(e.target.value)}
-                      placeholder={`e.g., travel-guides-in-${lang}`}
-                      required={lang === 'en'}
-                    />
-                  )}
-                </LocalizedField>
-              </div>
+              <LocalizedInput
+                label="Category Name *"
+                value={formData.name}
+                onChange={(val) => handleChange('name', val)}
+                placeholder="Travel Guides"
+              />
+              <LocalizedInput
+                label="URL Slug *"
+                value={formData.slug}
+                onChange={(val) => handleChange('slug', val)}
+                placeholder="travel-guides"
+              />
             </div>
             
-            <div className="space-y-2">
-              <LocalizedField
-                label="Description"
-                value={formData.description}
-                onChange={(lang, val) => handleChange('description', val)}
-                globalLanguage={activeLanguage}
-              >
-                {(lang, value, onChange) => (
-                  <RichTextEditor
-                    key={`editor-${lang}`}
-                    value={value}
-                    onChange={onChange}
-                    placeholder={`Describe this category in ${lang.toUpperCase()}...`}
-                    className="bg-white dark:bg-slate-900"
-                  />
-                )}
-              </LocalizedField>
-            </div>
+            <LocalizedRichText
+              label="Description"
+              value={formData.description}
+              onChange={(val) => handleChange('description', val)}
+              placeholder="Describe this category..."
+            />
 
             <div className="flex items-center space-x-2">
               <Switch
@@ -517,66 +482,30 @@ export default function NewBlogCategoryPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <LocalizedField
+                <LocalizedInput
                   label="Meta Title"
-                  value={formData.seo?.metaTitle}
-                  onChange={(lang, val) => handleChange('seo.metaTitle', val)}
-                  globalLanguage={activeLanguage}
-                >
-                  {(lang, value, onChange) => (
-                    <>
-                      <Input
-                        id="metaTitle"
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        placeholder="Travel Guides - JES Egypt Tours"
-                        maxLength={70}
-                      />
-                      <p className="text-xs text-gray-500">
-                        {value.length}/70 characters
-                      </p>
-                    </>
-                  )}
-                </LocalizedField>
+                  value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('seo.metaTitle', val)}
+                  placeholder="SEO Title"
+                />
               </div>
               <div className="space-y-2">
-                <LocalizedField
+                <LocalizedTagsInput
                   label="Keywords"
-                  value={formData.seo?.metaKeywords}
-                  globalLanguage={activeLanguage}
-                  onChange={(lang, val) => handleKeywordsChange(lang, val)}
-                >
-                  {(lang, currentValue, handleLang) => (
-                    <TagInput
-                      tags={currentValue || []}
-                      onChange={handleLang}
-                      placeholder={`Keywords in ${lang}`}
-                    />
-                  )}
-                </LocalizedField>
+                  value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
+                  onChange={(val) => handleKeywordsChange(activeLanguage, val)}
+                  placeholder="Add keyword..."
+                />
               </div>
             </div>
             
             <div className="space-y-2">
-              <LocalizedField
-                label="Meta Description"
-                value={formData.seo?.metaDescription}
-                onChange={(lang, val) => handleChange('seo.metaDescription', val)}
-                globalLanguage={activeLanguage}
-              >
-                {(lang, value, onChange) => (
-                  <>
-                    <RichTextEditor
-                      key={`seo-editor-${lang}`}
-                      value={value}
-                      onChange={onChange}
-                      placeholder="Explore our comprehensive travel guides..."
-                      className="bg-white dark:bg-slate-900"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Keep it concise for SEO (recommended: 150-160 characters)</p>
-                  </>
-                )}
-              </LocalizedField>
+            <LocalizedRichText
+              label="Meta Description"
+              value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('seo.metaDescription', val)}
+              placeholder="SEO Description..."
+            />
             </div>
 
             <Separator />

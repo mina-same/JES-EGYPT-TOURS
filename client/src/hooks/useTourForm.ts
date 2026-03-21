@@ -124,17 +124,8 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
   };
 
   // Handle keywords
-  const handleKeywordsChange = (value: string[], lang: AdminLanguage = 'en') => {
-    setFormData(prev => ({
-      ...prev,
-      seo: {
-        ...prev.seo,
-        metaKeywords: {
-          ...(prev.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }),
-          [lang]: value,
-        },
-      },
-    }) as TourFormData);
+  const handleKeywordsChange = (value: any) => {
+    handleChange('seo.metaKeywords', value);
   };
 
   // Handle array fields (Highlights, inclusions, exclusions, what to pack)
@@ -241,24 +232,18 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateImage = (index: number, field: string, value: string, lang?: AdminLanguage) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images?.map((img, i) => {
-        if (i !== index) return img;
-        if (lang && (field === 'title' || field === 'alt')) {
-          return {
-            ...img,
-            [field]: {
-              ...((img as any)[field] || { en: '', de: '', it: '', es: '' }),
-              [lang]: value
-            }
-          };
-        }
-        return { ...img, [field]: value };
-      }) || [],
-    }));
+  const updateImage = (index: number, field: string, value: any) => {
+    setFormData(prev => {
+      const updated = { ...prev } as any;
+      if (!updated.images) updated.images = [];
+      const image = { ...updated.images[index] };
+      image[field] = value;
+      updated.images[index] = image;
+      return updated;
+    });
   };
+
+
 
   // Gallery handlers
   const addGalleryImage = () => {
@@ -269,8 +254,8 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
         { 
           url: '', 
           fileName: '', 
-          title: { en: '', de: '', it: '' }, 
-          alt: { en: '', de: '', it: '' } 
+          title: { en: '', de: '', it: '', es: '' }, 
+          alt: { en: '', de: '', it: '', es: '' } 
         }
       ],
     }));
@@ -283,23 +268,15 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateGalleryImage = (index: number, field: string, value: string, lang?: AdminLanguage) => {
-    setFormData(prev => ({
-      ...prev,
-      gallery: prev.gallery?.map((img, i) => {
-        if (i !== index) return img;
-        if (lang && (field === 'title' || field === 'alt')) {
-          return {
-            ...img,
-            [field]: {
-              ...((img as any)[field] || { en: '', de: '', it: '', es: '' }),
-              [lang]: value
-            }
-          };
-        }
-        return { ...img, [field]: value };
-      }) || [],
-    }));
+  const updateGalleryImage = (index: number, field: string, value: any) => {
+    setFormData(prev => {
+      const updated = { ...prev } as any;
+      if (!updated.gallery) updated.gallery = [];
+      const image = { ...updated.gallery[index] };
+      image[field] = value;
+      updated.gallery[index] = image;
+      return updated;
+    });
   };
 
   // Note handlers
@@ -323,23 +300,15 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     }));
   };
 
-  const updateTourNote = (index: number, field: string, value: string, lang?: AdminLanguage) => {
-    setFormData(prev => ({
-      ...prev,
-      notes: prev.notes?.map((note, i) => {
-        if (i !== index) return note;
-        if (lang) {
-          return {
-            ...note,
-            [field]: {
-              ...((note as any)[field] || { en: '', de: '', it: '', es: '' }),
-              [lang]: value
-            }
-          };
-        }
-        return { ...note, [field]: value };
-      }) || [],
-    }));
+  const updateTourNote = (index: number, field: string, value: any) => {
+    setFormData(prev => {
+      const updated = { ...prev } as any;
+      if (!updated.notes) updated.notes = [];
+      const note = { ...updated.notes[index] };
+      note[field] = value;
+      updated.notes[index] = note;
+      return updated;
+    });
   };
 
   // Image upload handler

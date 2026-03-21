@@ -99,7 +99,7 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ loca
     if (f.tourStyle) sp.set("tourStyle", f.tourStyle);
 
     const qs = sp.toString();
-    return `/tours/subcategory/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
+    return `/${locale}/tours/subcategory/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
   };
 
   const handlePageChange = (page: number) => {
@@ -129,7 +129,7 @@ export default function TourSubCategoryPage({ params }: { params: Promise<{ loca
     setAppliedFilters(empty);
     setSort("-createdAt");
     setCurrentPage(1);
-    router.replace(`/tours/subcategory/${encodeURIComponent(slug)}`, { scroll: false } as any);
+    router.replace(`/${locale}/tours/subcategory/${encodeURIComponent(slug)}`, { scroll: false } as any);
   };
 
   const handleSortChange = (nextSort: string) => {

@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import LocalizedField from '@/components/admin/LocalizedField';
-import TagInput from '@/components/admin/TagInput';
+import LocalizedInput from '@/components/admin/LocalizedInput';
+import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
+import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 
 interface SEOTabProps {
   formData: any;
   handleChange: (field: string, value: any) => void;
-  handleKeywordsChange: (value: string[], lang: AdminLanguage) => void;
+  handleKeywordsChange: (value: any) => void;
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
 }
@@ -67,53 +68,27 @@ export default function SEOTab({
           <CardDescription>Optimize for search engines — edit per language using the tabs</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <LocalizedField
+          <LocalizedInput
             label="Meta Title"
-            value={formData.seo?.metaTitle}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`seo.metaTitle.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <Input
-                id="seo.metaTitle"
-                value={currentValue}
-                onChange={(e) => handleLang(e.target.value)}
-                placeholder={`SEO Title in ${lang}...`}
-              />
-            )}
-          </LocalizedField>
+            value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('seo.metaTitle', val)}
+            placeholder="SEO Title"
+          />
 
-          <LocalizedField
+          <LocalizedTextArea
             label="Meta Description"
-            value={formData.seo?.metaDescription}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`seo.metaDescription.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <textarea
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                rows={3}
-                value={currentValue}
-                onChange={(e) => handleLang(e.target.value)}
-                placeholder={`Brief description for search results in ${lang}...`}
-              />
-            )}
-          </LocalizedField>
+            value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('seo.metaDescription', val)}
+            placeholder="Brief description for search results"
+            rows={3}
+          />
 
-          <LocalizedField
+          <LocalizedTagsInput
             label="Keywords (comma-separated)"
-            value={formData.seo?.metaKeywords}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleKeywordsChange(val, lang)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <TagInput
-                tags={currentValue || []}
-                onChange={handleLang}
-                placeholder={`egypt tours, cairo, pyramids... (${lang})`}
-              />
-            )}
-          </LocalizedField>
+            value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
+            onChange={(val) => handleKeywordsChange(val)}
+            placeholder="egypt tours, cairo, pyramids..."
+          />
           
           <div className="space-y-2">
             <Label>Social Share Image</Label>
@@ -153,36 +128,18 @@ export default function SEOTab({
             
             {(formData.seo?.metaImage?.url || formData.seo?.metaImage?.title || formData.seo?.metaImage?.alt) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <LocalizedField
+                <LocalizedInput
                   label="Social Image Title"
-                  value={formData.seo?.metaImage?.title}
-                  globalLanguage={activeLanguage}
-                  onChange={(lang, val) => handleChange(`seo.metaImage.title.${lang}`, val)}
-                >
-                  {(lang, currentValue, handleLang) => (
-                    <Input
-                      value={currentValue}
-                      onChange={(e) => handleLang(e.target.value)}
-                      placeholder={`Title for social share image in ${lang}`}
-                      className="h-8 text-xs font-semibold"
-                    />
-                  )}
-                </LocalizedField>
-                <LocalizedField
+                  value={formData.seo?.metaImage?.title || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('seo.metaImage.title', val)}
+                  placeholder="Title for social share image"
+                />
+                <LocalizedInput
                   label="Alt Text"
-                  value={formData.seo?.metaImage?.alt}
-                  globalLanguage={activeLanguage}
-                  onChange={(lang, val) => handleChange(`seo.metaImage.alt.${lang}`, val)}
-                >
-                  {(lang, currentValue, handleLang) => (
-                    <Input
-                      value={currentValue}
-                      onChange={(e) => handleLang(e.target.value)}
-                      placeholder={`Accessibility description in ${lang}`}
-                      className="h-8 text-xs"
-                    />
-                  )}
-                </LocalizedField>
+                  value={formData.seo?.metaImage?.alt || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('seo.metaImage.alt', val)}
+                  placeholder="Accessibility description"
+                />
               </div>
             )}
           </div>
@@ -196,19 +153,14 @@ export default function SEOTab({
           <CardDescription>Marketing content for the tour page</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedField
-            value={formData.whatYouWillLoveHtml}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`whatYouWillLoveHtml.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <RichTextEditor
-                value={currentValue}
-                onChange={handleLang}
-                placeholder={`Why travelers will love this tour in ${lang}...`}
-              />
-            )}
-          </LocalizedField>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Why travelers will love this tour</label>
+            <RichTextEditor
+              value={formData.whatYouWillLoveHtml?.[activeLanguage] || ''}
+              onChange={(val) => handleChange(`whatYouWillLoveHtml.${activeLanguage}`, val)}
+              placeholder={`Why travelers will love this tour in ${activeLanguage}...`}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

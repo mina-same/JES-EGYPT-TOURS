@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AdminLanguage } from "./AdminLanguageTabs";
 
 const FLAG_COMPONENTS: Record<AdminLanguage, any> = {
@@ -20,26 +20,26 @@ const LANGUAGES: { id: AdminLanguage; label: string }[] = [
   { id: "es", label: "Spanish" },
 ];
 
-interface LocalizedInputProps {
+interface LocalizedTextAreaProps {
   value: any;
   onChange: (value: any) => void;
   label?: string;
   placeholder?: string;
   className?: string;
-  type?: string;
+  rows?: number;
 }
 
-const LocalizedInput: React.FC<LocalizedInputProps> = ({
+const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
   value,
   onChange,
   label,
   placeholder,
   className = "",
-  type = "text",
+  rows = 4,
 }) => {
   const [activeLang, setActiveLang] = useState<AdminLanguage>("en");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange({
       ...value,
       [activeLang]: e.target.value,
@@ -78,15 +78,15 @@ const LocalizedInput: React.FC<LocalizedInputProps> = ({
           })}
         </div>
       </div>
-      <Input
-        type={type}
+      <Textarea
         value={value[activeLang] || ""}
-        onChange={handleInputChange}
+        onChange={handleTextChange}
         placeholder={placeholder ? `${placeholder} (${activeLang})` : `Enter value in ${activeLang}`}
-        className="h-10 transition-all focus:ring-1 focus:ring-[#b79c5c]"
+        rows={rows}
+        className="transition-all focus:ring-1 focus:ring-[#b79c5c]"
       />
     </div>
   );
 };
 
-export default LocalizedInput;
+export default LocalizedTextArea;

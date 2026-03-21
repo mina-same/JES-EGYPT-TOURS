@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import PricingPlansManager from '@/components/admin/PricingPlansManager';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import LocalizedField from '@/components/admin/LocalizedField';
+import LocalizedInput from '@/components/admin/LocalizedInput';
 
 interface PricingTabProps {
   formData: any;
@@ -34,21 +34,12 @@ export default function PricingTab({ formData, handleChange, activeLanguage }: P
             />
           </div>
 
-          <LocalizedField
+          <LocalizedInput
             label="Cancellation Policy"
-            value={formData.cancellationPolicy}
-            globalLanguage={activeLanguage}
-            onChange={(lang, val) => handleChange(`cancellationPolicy.${lang}`, val)}
-          >
-            {(lang, currentValue, handleLang) => (
-              <Input
-                id="cancellationPolicy"
-                value={currentValue}
-                onChange={(e) => handleLang(e.target.value)}
-                placeholder={`e.g., Free cancellation up to 24h before (${lang})`}
-              />
-            )}
-          </LocalizedField>
+            value={formData.cancellationPolicy || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('cancellationPolicy', val)}
+            placeholder="e.g., Free cancellation up to 24h before"
+          />
         </CardContent>
       </Card>
 

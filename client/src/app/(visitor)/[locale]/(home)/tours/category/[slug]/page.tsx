@@ -103,7 +103,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
     if (f.tourStyle) sp.set("tourStyle", f.tourStyle);
 
     const qs = sp.toString();
-    return `/tours/category/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
+    return `/${locale}/tours/category/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
   };
 
   useEffect(() => {
@@ -287,7 +287,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
     setAppliedFilters(empty);
     setSort("-createdAt");
     setCurrentPage(1);
-    router.replace(`/tours/category/${encodeURIComponent(slug)}`, { scroll: false } as any);
+    router.replace(`/${locale}/tours/category/${encodeURIComponent(slug)}`, { scroll: false } as any);
   };
 
   const handleSortChange = (nextSort: string) => {

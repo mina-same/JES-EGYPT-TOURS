@@ -1,0 +1,42 @@
+{
+  "metaTitle": "Kontaktiere uns | JES Egypt Tours",
+  "metaDescription": "Nehmen Sie Kontakt mit JES Egypt Tours auf. Wir sind hier, um Ihr perfektes ägyptisches Abenteuer zu planen.",
+  "pageTitle": "Kontaktiere uns",
+  "pageSubTitle": "Kontaktiere uns",
+  "top": {
+    "addressTitle": "Unsere Adresse",
+    "addressText": "Downtown Cairo, Egypt",
+    "emailTitle": "info@jesegypttours.com",
+    "emailText": "Mailen Sie uns jederzeit bei Fragen.",
+    "phoneTitle": "Hotline: +208-666-0112",
+    "phoneText": "Rufen Sie uns an für Unterstützung."
+  },
+  "form": {
+    "title": "Bereit loszulegen?",
+    "text": "Wir würden uns freuen, von Ihnen zu hören. Bitte füllen Sie das untenstehende Formular aus.",
+    "fields": {
+      "nameLabel": "Ihr Name*",
+      "namePlaceholder": "Ihr Name",
+      "emailLabel": "Ihre E-Mail*",
+      "emailPlaceholder": "Ihre E-Mail",
+      "messageLabel": "Nachricht*",
+      "messagePlaceholder": "Nachricht schreiben . ."
+    },
+    "errors": {
+      "nameRequired": "Name ist erforderlich",
+      "emailRequired": "E-Mail ist erforderlich",
+      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+      "messageRequired": "Nachricht ist erforderlich",
+      "sendFailed": "Senden fehlgeschlagen",
+      "failedMessage": "Nachricht konnte nicht gesendet werden"
+    },
+    "success": {
+      "sentTitle": "Nachricht gesendet",
+      "sentMessage": "Ihre Nachricht wurde erfolgreich gesendet."
+    },
+    "buttons": {
+      "sending": "Senden...",
+      "send": "Nachricht Senden"
+    }
+  }
+}

@@ -12,15 +12,16 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, Loader2, Image as ImageIcon, Upload, X, Plus } from 'lucide-react';
-import RichTextEditor from '@/components/ui/RichTextEditor';
-import ImageUpload from '@/components/admin/ImageUpload';
-import TagInput from '@/components/admin/TagInput';
+import LocalizedInput from '@/components/admin/LocalizedInput';
+import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
+import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
+import LocalizedRichText from '@/components/admin/LocalizedRichText';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { uploadAPI } from '@/lib/api/upload';
 import { FormSkeleton } from '@/components/admin/skeletons/FormSkeleton';
 import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import LocalizedField from '@/components/admin/LocalizedField';
+// import LocalizedField from '@/components/admin/LocalizedField';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { useToast } from '@/hooks/use-toast';
@@ -372,54 +373,26 @@ export default function NewSubcategoryPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <LocalizedField
+              <LocalizedInput
                 label="Subcategory Name *"
                 value={formData.name}
-                globalLanguage={activeLanguage}
-                onChange={(lang, val) => handleChange(`name.${lang}`, val)}
-              >
-                {(lang, currentValue, handleLang) => (
-                  <Input
-                    value={currentValue}
-                    onChange={(e) => handleLang(e.target.value)}
-                    placeholder={`Name in ${lang}`}
-                    required={lang === 'en'}
-                  />
-                )}
-              </LocalizedField>
-
-              <LocalizedField
+                onChange={(val) => handleChange('name', val)}
+                placeholder="Desert Safari"
+              />
+              <LocalizedInput
                 label="URL Slug *"
                 value={formData.slug}
-                globalLanguage={activeLanguage}
-                onChange={(lang, val) => handleChange(`slug.${lang}`, val)}
-              >
-                {(lang, currentValue, handleLang) => (
-                  <Input
-                    id={`slug-${lang}`}
-                    value={currentValue}
-                    onChange={(e) => handleLang(e.target.value)}
-                    placeholder={`e.g., desert-safari-${lang}`}
-                    required={lang === 'en'}
-                  />
-                )}
-              </LocalizedField>
+                onChange={(val) => handleChange('slug', val)}
+                placeholder="desert-safari"
+              />
             </div>
             
-            <LocalizedField
+            <LocalizedRichText
               label="Description"
               value={formData.description}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`description.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <RichTextEditor
-                  value={currentValue}
-                  onChange={handleLang}
-                  placeholder={`Description in ${lang}...`}
-                />
-              )}
-            </LocalizedField>
+              onChange={(val) => handleChange('description', val)}
+              placeholder="Describe this subcategory..."
+            />
 
             <div className="flex items-center space-x-2">
               <Switch
@@ -515,36 +488,18 @@ export default function NewSubcategoryPage() {
                     className="h-9 text-xs"
                   />
                 </div>
-                <LocalizedField
+                <LocalizedInput
                   label="Title"
-                  value={formData.image?.title}
-                  globalLanguage={activeLanguage}
-                  onChange={(lang, val) => handleChange(`image.title.${lang}`, val)}
-                >
-                  {(lang, currentValue, handleLang) => (
-                    <Input
-                      value={currentValue}
-                      onChange={(e) => handleLang(e.target.value)}
-                      placeholder={`Title in ${lang}`}
-                      className="h-9 text-xs"
-                    />
-                  )}
-                </LocalizedField>
-                <LocalizedField
+                  value={formData.image?.title || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('image.title', val)}
+                  placeholder="Title"
+                />
+                <LocalizedInput
                   label="Alt Text"
-                  value={formData.image?.alt}
-                  globalLanguage={activeLanguage}
-                  onChange={(lang, val) => handleChange(`image.alt.${lang}`, val)}
-                >
-                  {(lang, currentValue, handleLang) => (
-                    <Input
-                      value={currentValue}
-                      onChange={(e) => handleLang(e.target.value)}
-                      placeholder={`Alt in ${lang}`}
-                      className="h-9 text-xs"
-                    />
-                  )}
-                </LocalizedField>
+                  value={formData.image?.alt || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('image.alt', val)}
+                  placeholder="Alt text"
+                />
               </div>
             </div>
           </CardContent>
@@ -557,58 +512,26 @@ export default function NewSubcategoryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <LocalizedField
+              <LocalizedInput
                 label="Meta Title"
-                value={formData.seo?.metaTitle}
-                globalLanguage={activeLanguage}
-                onChange={(lang, val) => handleChange(`seo.metaTitle.${lang}`, val)}
-              >
-                {(lang, currentValue, handleLang) => (
-                  <div className="space-y-1">
-                    <Input
-                      value={currentValue}
-                      onChange={(e) => handleLang(e.target.value)}
-                      placeholder={`SEO Title in ${lang}`}
-                      maxLength={70}
-                    />
-                    <p className="text-[10px] text-gray-400">{(currentValue || '').length}/70 characters</p>
-                  </div>
-                )}
-              </LocalizedField>
-
-              <LocalizedField
+                value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
+                onChange={(val) => handleChange('seo.metaTitle', val)}
+                placeholder="SEO Title"
+              />
+              <LocalizedTagsInput
                 label="Keywords"
-                value={formData.seo?.metaKeywords}
-                globalLanguage={activeLanguage}
-                onChange={(lang, val) => handleKeywordsChange(lang, val)}
-              >
-                {(lang, currentValue, handleLang) => (
-                  <TagInput
-                    tags={currentValue || []}
-                    onChange={handleLang}
-                    placeholder={`Keywords in ${lang}`}
-                  />
-                )}
-              </LocalizedField>
+                value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
+                onChange={(val) => handleChange('seo.metaKeywords', val)}
+                placeholder="adventure, desert"
+              />
             </div>
             
-            <LocalizedField
+            <LocalizedRichText
               label="Meta Description"
-              value={formData.seo?.metaDescription}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`seo.metaDescription.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <div className="space-y-1">
-                  <RichTextEditor
-                    value={currentValue}
-                    onChange={handleLang}
-                    placeholder={`Meta description in ${lang}...`}
-                  />
-                  <p className="text-[10px] text-gray-400">Keep it concise for SEO (recommended: 150-160 characters)</p>
-                </div>
-              )}
-            </LocalizedField>
+              value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('seo.metaDescription', val)}
+              placeholder="Discover amazing tours..."
+            />
 
             <Separator />
             
@@ -687,36 +610,18 @@ export default function NewSubcategoryPage() {
                       className="h-8 text-xs"
                     />
                   </div>
-                  <LocalizedField
+                  <LocalizedInput
                     label="Title"
-                    value={formData.seo?.metaImage?.title}
-                    globalLanguage={activeLanguage}
-                    onChange={(lang, val) => handleChange(`seo.metaImage.title.${lang}`, val)}
-                  >
-                    {(lang, currentValue, handleLang) => (
-                      <Input
-                        value={currentValue}
-                        onChange={(e) => handleLang(e.target.value)}
-                        placeholder={`Title in ${lang}`}
-                        className="h-8 text-xs"
-                      />
-                    )}
-                  </LocalizedField>
-                  <LocalizedField
+                    value={formData.seo?.metaImage?.title || { en: '', de: '', it: '', es: '' }}
+                    onChange={(val) => handleChange('seo.metaImage.title', val)}
+                    placeholder="Title"
+                  />
+                  <LocalizedInput
                     label="Alt Text"
-                    value={formData.seo?.metaImage?.alt}
-                    globalLanguage={activeLanguage}
-                    onChange={(lang, val) => handleChange(`seo.metaImage.alt.${lang}`, val)}
-                  >
-                    {(lang, currentValue, handleLang) => (
-                      <Input
-                        value={currentValue}
-                        onChange={(e) => handleLang(e.target.value)}
-                        placeholder={`Alt in ${lang}`}
-                        className="h-8 text-xs"
-                      />
-                    )}
-                  </LocalizedField>
+                    value={formData.seo?.metaImage?.alt || { en: '', de: '', it: '', es: '' }}
+                    onChange={(val) => handleChange('seo.metaImage.alt', val)}
+                    placeholder="Alt text"
+                  />
                 </div>
               </div>
             </div>
@@ -797,44 +702,28 @@ export default function NewSubcategoryPage() {
                           className="h-7 text-[10px]"
                         />
                       </div>
-                      <LocalizedField
+                      <LocalizedInput
                         label="Title"
-                        value={img.title}
-                        globalLanguage={activeLanguage}
-                        onChange={(lang, val) => {
+                        value={img.title || { en: '', de: '', it: '', es: '' }}
+                        onChange={(val) => {
                           const next = [...(formData.sectionHeader?.images || [])];
-                          next[index] = { ...next[index], title: { ...(next[index].title || { en: '', de: '', it: '' }), [lang]: val } };
+                          next[index] = { ...next[index], title: val };
                           handleChange('sectionHeader.images', next);
                         }}
-                      >
-                        {(lang, currentValue, handleLang) => (
-                          <Input
-                            value={currentValue}
-                            onChange={(e) => handleLang(e.target.value)}
-                            className="h-7 text-[10px]"
-                            placeholder={`Title in ${lang}`}
-                          />
-                        )}
-                      </LocalizedField>
-                      <LocalizedField
+                        placeholder="Title"
+                        className="h-7 text-[10px]"
+                      />
+                      <LocalizedInput
                         label="Alt Text"
-                        value={img.alt}
-                        globalLanguage={activeLanguage}
-                        onChange={(lang, val) => {
+                        value={img.alt || { en: '', de: '', it: '', es: '' }}
+                        onChange={(val) => {
                           const next = [...(formData.sectionHeader?.images || [])];
-                          next[index] = { ...next[index], alt: { ...(next[index].alt || { en: '', de: '', it: '' }), [lang]: val } };
+                          next[index] = { ...next[index], alt: val };
                           handleChange('sectionHeader.images', next);
                         }}
-                      >
-                        {(lang, currentValue, handleLang) => (
-                          <Input
-                            value={currentValue}
-                            onChange={(e) => handleLang(e.target.value)}
-                            className="h-7 text-[10px]"
-                            placeholder={`Alt in ${lang}`}
-                          />
-                        )}
-                      </LocalizedField>
+                        placeholder="Alt text"
+                        className="h-7 text-[10px]"
+                      />
                     </div>
                   </div>
                 ))}
@@ -854,53 +743,29 @@ export default function NewSubcategoryPage() {
               </Button>
             </div>
 
-            <LocalizedField
+            <LocalizedInput
               label="Header Title"
-              value={formData.sectionHeader?.title}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`sectionHeader.title.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <Input
-                  value={currentValue}
-                  onChange={(e) => handleLang(e.target.value)}
-                  placeholder={`Header Title in ${lang}`}
-                />
-              )}
-            </LocalizedField>
+              value={formData.sectionHeader?.title || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('sectionHeader.title', val)}
+              placeholder="Header Title"
+            />
 
-            <LocalizedField
+            <LocalizedRichText
               label="Section Description"
-              value={formData.sectionHeader?.description}
-              globalLanguage={activeLanguage}
-              onChange={(lang, val) => handleChange(`sectionHeader.description.${lang}`, val)}
-            >
-              {(lang, currentValue, handleLang) => (
-                <RichTextEditor
-                  value={currentValue}
-                  onChange={handleLang}
-                  placeholder={`Section description in ${lang}...`}
-                />
-              )}
-            </LocalizedField>
+              value={formData.sectionHeader?.description || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('sectionHeader.description', val)}
+              placeholder="Section description..."
+            />
 
             <Separator />
 
             <div className="grid gap-4 md:grid-cols-2">
-              <LocalizedField
+              <LocalizedInput
                 label="Button Label"
-                value={formData.sectionHeader?.button?.label}
-                globalLanguage={activeLanguage}
-                onChange={(lang, val) => handleChange(`sectionHeader.button.label.${lang}`, val)}
-              >
-                {(lang, currentValue, handleLang) => (
-                  <Input
-                    value={currentValue}
-                    onChange={(e) => handleLang(e.target.value)}
-                    placeholder={`Label in ${lang}`}
-                  />
-                )}
-              </LocalizedField>
+                value={formData.sectionHeader?.button?.label || { en: '', de: '', it: '', es: '' }}
+                onChange={(val) => handleChange('sectionHeader.button.label', val)}
+                placeholder="Button Label"
+              />
 
               <div className="space-y-2">
                 <Label htmlFor="sectionHeaderBtnHref">Button Link</Label>

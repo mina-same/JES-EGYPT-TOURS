@@ -2,7 +2,7 @@ import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
 import { reviewsAPI } from "@/lib/api/reviews";
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -95,6 +95,13 @@ export default async function TourListingDetailsPage({ params }: PageProps) {
   }
 
   const tour = res.data;
+  
+  // Seo Redirect
+  const correctSlug = getLocalizedValue(tour.slug, locale);
+  if (correctSlug && correctSlug !== slug && correctSlug !== '') {
+    permanentRedirect(`/${locale}/tours/${correctSlug}`);
+  }
+
   const tourId = tour._id;
   const name = tour.heading?.[locale as any] || tour.name || "Tour Details";
 
