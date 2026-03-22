@@ -1,0 +1,17 @@
+{
+  "pageTitle": "Lista dei desideri",
+  "pageSubTitle": "I tuoi tour salvati",
+  "loading": "Caricamento...",
+  "error": "Impossibile caricare la lista dei desideri",
+  "emptyTitle": "La tua lista dei desideri è vuota",
+  "emptyText": "Sembra che tu non abbia ancora salvato alcun tour. Esplora i nostri tour più votati e trova la tua prossima avventura!",
+  "browseTours": "Sfoglia i tour",
+  "flexible": "Flessibile",
+  "location": "Posizione",
+  "review": "Recensione",
+  "startFrom": "A partire da",
+  "viewTour": "Vedi tour",
+  "more": "Più",
+  "tours": "Tour",
+  "youMayAlsoLike": "Potrebbe piacerti anche"
+}

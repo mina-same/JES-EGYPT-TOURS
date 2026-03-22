@@ -1,7 +1,7 @@
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import Layout from "@/components/layout/Layout/Layout";
-import PageHeader from "@/components/sections/PageHeader/PageHeader";
+import LocalizedPageHeader from "@/components/sections/PageHeader/LocalizedPageHeader";
 import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
 import { getBlogsByCategory, getCategoryBySlug } from "@/lib/api/blog";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -16,8 +16,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const category = await getCategoryBySlug(slug);
     const title = getLocalizedValue(category.seo?.metaTitle, locale) || 
                   (getLocalizedValue(category.name, locale) ? `${getLocalizedValue(category.name, locale)} - Travel Blog | JES Egypt Tours` : '');
-    const description = getLocalizedValue(category.seo?.metaDescription, locale) || 
+    const rawDesc = getLocalizedValue(category.seo?.metaDescription, locale) || 
                         getLocalizedValue(category.description, locale);
+    const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
     
     return {
       title,
@@ -65,7 +66,7 @@ export default async function BlogCategoryPage({
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <SlugManager slugs={typeof category.slug === 'object' ? category.slug : { en: slug }} />
-      <PageHeader title={getLocalizedValue(category.name, locale)} subTitle='Blog Category' />
+      <LocalizedPageHeader namespace="blogs" titleKey="blogCategory" subTitleKey="ourBlog" />
 
       <DynamicBlogGrid 
         blogs={blogsData.data} 

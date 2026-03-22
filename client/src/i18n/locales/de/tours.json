@@ -1,0 +1,113 @@
+{
+  "filters": {
+    "title": "Filter",
+    "search": "Suchen",
+    "searchPlaceholder": "Touren suchen",
+    "subcategory": "Unterkategorie",
+    "all": "Alle",
+    "minPrice": "Min. Preis",
+    "maxPrice": "Max. Preis",
+    "tourType": "Reiseart",
+    "tourStyle": "Reisestil",
+    "apply": "Anwenden",
+    "reset": "Zurücksetzen"
+  },
+  "listing": {
+    "showingWithFilters": "Ergebnisse mit Filtern",
+    "showingAll": "Alle Touren anzeigen",
+    "clear": "Löschen",
+    "sortBy": "Sortieren nach",
+    "sortOptions": {
+      "newest": "Neueste",
+      "oldest": "Älteste",
+      "mostViewed": "Meistgesehen",
+      "nameAsc": "Name A-Z",
+      "locationAsc": "Ort A-Z",
+      "priceAsc": "Preis (aufsteigend)",
+      "priceDesc": "Preis (absteigend)"
+    },
+    "noToursCategory": "Keine Touren in dieser Kategorie gefunden.",
+    "noToursSubcategory": "Keine Touren in dieser Unterkategorie gefunden."
+  },
+  "status": {
+    "loading": "Wird geladen...",
+    "notFound": "Nicht gefunden",
+    "categoryNotFound": "Kategorie nicht gefunden",
+    "subcategoryNotFound": "Unterkategorie nicht gefunden",
+    "noVideoInfo": "Für diese Tour gibt es noch keine Bewertungsvideos.",
+    "noVideoTitle": "Keine Bewertungsvideos",
+    "failedVideo": "Netzwerk- oder Serverfehler. Bitte versuchen Sie es erneut.",
+    "failedVideoTitle": "Fehler beim Laden von Videos",
+    "errorFetching": "Ein Fehler ist aufgetreten"
+  },
+  "breadcrumb": {
+    "destination": "Reiseziel",
+    "category": "Kategorie"
+  },
+  "fallback": {
+    "days": "3 Tage",
+    "location": "Standort"
+  },
+  "tourDetails": {
+    "reviewSuccess": "Bewertung erfolgreich eingereicht! Sie wird nach der Genehmigung angezeigt.",
+    "reviewFail": "Fehler beim Einreichen der Bewertung.",
+    "bookConfidence": "Buchen Sie mit Vertrauen",
+    "bookConfidenceDesc": "Ihr vertrauenswürdiger Partner für unvergessliche ägyptische Abenteuer",
+    "features": {
+      "monthly": "Monatliche Zahlung",
+      "support": "24/7 Support",
+      "prices": "Beste Preise",
+      "rating": "5-Sterne-Bewertung",
+      "fast": "Schnelle Buchung"
+    },
+    "nav": {
+      "description": "Beschreibung",
+      "tourPlan": "Reiseplan",
+      "amenities": "Ausstattung der Tour",
+      "pricing": "Preispläne",
+      "gallery": "Tourgalerie",
+      "brochure": "Broschüre herunterladen",
+      "faq": "Tour-FAQs",
+      "honestReviews": "Ehrliche und reflektierende Bewertungen",
+      "reviews": "Tourbewertungen"
+    },
+    "highlightList": "Highlight-Liste",
+    "amenitiesTitle": "Ausstattung der Tour",
+    "amenitiesSubtitle": "Umfassende Liste dessen, was für Ihre bequeme Reise bereitgestellt wird.",
+    "included": "Was ist inbegriffen",
+    "notIncluded": "Was nicht inbegriffen ist",
+    "empty": {
+      "amenitiesTitle": "Keine Informationen zu den Annehmlichkeiten",
+      "amenitiesDesc": "Für diese Tour sind derzeit keine Annehmlichkeiten oder Inklusivleistungen aufgeführt.",
+      "pricingTitle": "Keine Preispläne verfügbar",
+      "pricingDesc": "Derzeit sind für diese Tour keine Preispläne verfügbar.",
+      "galleryTitle": "Keine Galeriebilder",
+      "galleryDesc": "Für diese Tour sind derzeit keine Galeriebilder verfügbar.",
+      "faqTitle": "Keine FAQs verfügbar",
+      "faqDesc": "Derzeit gibt es keine häufig gestellten Fragen zu dieser Tour."
+    },
+    "pricingTitle": "Tourpreise",
+    "pricingSubtitle": "Finden Sie das perfekte Paket für Ihr Budget und Ihre Vorlieben.",
+    "galleryTitle": "Tourgalerie",
+    "gallerySubtitle": "Eine visuelle Reise durch die atemberaubenden Orte, die Sie besuchen werden.",
+    "faqTitle": "Häufig gestellte Fragen",
+    "faqSubtitle": "Häufige Fragen und Antworten für Ihre Vorbereitung.",
+    "honestReviewsTitle": "Ehrliche und reflektierende Bewertungen",
+    "honestReviewsSubtitle": "Sehen Sie echte Reiseberichte auf YouTube.",
+    "openYoutube": "Auf YouTube öffnen",
+    "relatedTours": {
+      "title": "Ähnliche Touren",
+      "span": "Touren",
+      "subtitle": "Diese Touren könnten Ihnen auch gefallen"
+    },
+    "moreTours": {
+      "title": "Mehr",
+      "span": "Touren",
+      "subtitle": "Entdecken Sie wunderbarere Erlebnisse"
+    },
+    "partners": {
+      "title": "Unsere Reisepartner",
+      "subtitle": "Wir arbeiten mit vertrauenswürdigen lokalen und internationalen Reisepartnern zusammen"
+    }
+  }
+}

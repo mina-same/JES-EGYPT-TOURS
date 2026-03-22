@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import LocalizedField from '@/components/admin/LocalizedField';
+import LocalizedInput from '@/components/admin/LocalizedInput';
 import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
 import TagInput from '@/components/admin/TagInput';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
@@ -55,7 +56,7 @@ const TAG_SUGGESTIONS = [
 
 const INITIAL_BLOG_EDIT: any = {
   title: { en: '', de: '', it: '', es: '' },
-  slug: '',
+  slug: { en: '', de: '', it: '', es: '' },
   author: '',
   featuredImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   excerpt: { en: '', de: '', it: '', es: '' },
@@ -119,15 +120,15 @@ export default function EditBlogPage() {
         };
         
         // Auto-generate slug when English title changes
-        if (field === 'title' && activeLanguage === 'en') {
-          updated.slug = generateSlug(value);
+        if (field === 'title') {
+          updated.slug = {
+            ...(updated.slug || { en: '', de: '', it: '', es: '' }),
+            [activeLanguage]: generateSlug(value),
+          };
         }
       } 
       else if (localizedMixedFields.includes(field)) {
-        updated[field] = {
-          ...(updated[field] || { en: [], de: [], it: [], es: [] }),
-          [activeLanguage]: value,
-        };
+        updated[field] = value;
       }
       // Handle nested fields
       else if (field.includes('.')) {
@@ -226,7 +227,7 @@ export default function EditBlogPage() {
         // Transform the data to match form structure
         setFormData({
           title: normalizeLocalizedString(blog.title),
-          slug: blog.slug || '',
+          slug: normalizeLocalizedString(blog.slug),
           author: blog.author?._id || blog.author || '',
           featuredImage: normalizeImage(blog.featuredImage),
           excerpt: normalizeLocalizedString(blog.excerpt),
@@ -502,13 +503,11 @@ export default function EditBlogPage() {
                         </LocalizedField>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="slug">URL Slug (Always EN) *</Label>
-                        <Input
-                          id="slug"
+                        <LocalizedInput
+                          label="URL Slug"
                           value={formData.slug}
-                          onChange={(e) => handleChange('slug', e.target.value)}
+                          onChange={(val) => handleChange('slug', val)}
                           placeholder="amazing-travel-tips-for-egypt"
-                          required
                         />
                       </div>
                     </div>

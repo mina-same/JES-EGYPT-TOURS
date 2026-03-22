@@ -12,7 +12,7 @@ const HomeFAQ: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeKey, setActiveKey] = useState<string | null>("0");
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation('common');
 
   useEffect(() => {
     const fetchFaqs = async () => {
@@ -60,9 +60,9 @@ const HomeFAQ: React.FC = () => {
     <section className="home-faq section-space" id="faq">
       <Container>
         <div className="sec-title text-center mb-5">
-            <h6 className="sec-title__tagline">Got Questions?</h6>
-            <h3 className="sec-title__title">Frequently Asked <span>Questions</span></h3>
-            <p className="mt-3 text-muted">Everything you need to know about our tours and services.</p>
+            <h6 className="sec-title__tagline">{t('gotQuestions', 'Got Questions?')}</h6>
+            <h3 className="sec-title__title">{t('frequentlyAsked', 'Frequently Asked')} <span>{t('questions', 'Questions')}</span></h3>
+            <p className="mt-3 text-muted">{t('faqSubtitle', 'Everything you need to know about our tours and services.')}</p>
         </div>
 
         <div className="faq-accordion mx-auto" style={{ maxWidth: '900px' }}>
@@ -110,7 +110,7 @@ const HomeFAQ: React.FC = () => {
                         {faq.category && (
                           <div className="mt-3">
                             <small className="text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px', color: '#b79c5c', fontWeight: '700' }}>
-                              Category: {faq.category}
+                              {t('category', 'Category')}: {faq.category}
                             </small>
                           </div>
                         )}

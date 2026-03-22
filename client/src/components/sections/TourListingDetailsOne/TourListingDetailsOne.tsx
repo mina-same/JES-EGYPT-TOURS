@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation, Trans } from "react-i18next";
+import { useParams } from "next/navigation";
 import { Container, Accordion } from "react-bootstrap";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
@@ -38,6 +40,15 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   const [isSidebarFixed, setIsSidebarFixed] = useState(false);
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
+
+  const params = useParams() as { locale: string };
+  const { t, i18n } = useTranslation("tours");
+
+  useEffect(() => {
+    if (params?.locale && i18n.resolvedLanguage !== params.locale) {
+      i18n.changeLanguage(params.locale);
+    }
+  }, [params?.locale, i18n]);
 
   useEffect(() => {
     const updateNavHeight = () => {
@@ -196,10 +207,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         comment: data.comment
       });
 
-      alert("Review submitted successfully! It will appear after approval.");
+      alert(t("tourDetails.reviewSuccess"));
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert("Failed to submit review.");
+      alert(t("tourDetails.reviewFail"));
     }
   };
 
@@ -246,18 +257,18 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
           <div className="row align-items-center">
             <div className="col-lg-4">
               <div className="section-heading" style={{ marginBottom: '0' }}>
-                <h2 className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>Book With Confidence</h2>
-                <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>Your trusted partner for unforgettable Egyptian adventures</p>
+                <h2 className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>{t("tourDetails.bookConfidence")}</h2>
+                <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>{t("tourDetails.bookConfidenceDesc")}</p>
               </div>
             </div>
             <div className="col-lg-8">
               <div className="d-flex justify-content-center align-items-center flex-wrap" style={{ gap: '20px' }}>
                 {[
-                  { title: 'Pay Monthly', icon: Calendar },
-                  { title: '24/7 Support', icon: Headphones },
-                  { title: 'Best Prices', icon: Tag },
-                  { title: 'Rated 5* Stars', icon: Star },
-                  { title: 'Fast Booking', icon: Zap }
+                  { title: t("tourDetails.features.monthly"), icon: Calendar },
+                  { title: t("tourDetails.features.support"), icon: Headphones },
+                  { title: t("tourDetails.features.prices"), icon: Tag },
+                  { title: t("tourDetails.features.rating"), icon: Star },
+                  { title: t("tourDetails.features.fast"), icon: Zap }
                 ].map((item, idx) => (
                   <div key={idx} className="text-center" style={{ minWidth: '120px' }}>
                     <div className="info-icon flex-shrink-0 bg-white shadow-sm mx-auto mb-2" style={{
@@ -306,21 +317,21 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             }}
           >
             <nav className="tour-details-nav">
-              <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>Description</a>
-              <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>Tour Plan</a>
-              <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>Tour Amenities</a>
-              <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>Pricing Plans</a>
-              <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>Tour Gallery</a>
-              <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>Download Brochure</a>
-              <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>Tour FAQ</a>
+              <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>{t("tourDetails.nav.description")}</a>
+              <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>{t("tourDetails.nav.tourPlan")}</a>
+              <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
+              <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
+              <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
+              <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
+              <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
               {hasReviewVideos ? (
                 <a href="#honest-reviews" className={`tour-nav-link ${activeSection === 'honest-reviews' ? 'active' : ''}`}>
-                  Reflective & Honest Reviews
+                  {t("tourDetails.nav.honestReviews")}
                   <span className="review-count">{reviewVideos?.length || 0}</span>
                 </a>
               ) : null}
               <a href="#reviews" className={`tour-nav-link ${activeSection === 'reviews' ? 'active' : ''}`}>
-                Tour Reviews
+                {t("tourDetails.nav.reviews")}
                 <span className="review-count">{comments.length}</span>
               </a>
             </nav>
@@ -396,7 +407,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {/* Highlight List Section */}
                   <div className='tour-listing-details__content__item tour-listing-details__list'>
                     <h4 className='tour-listing-details__title'>
-                      Highlight List
+                      {t("tourDetails.highlightList")}
                     </h4>
                     <ul className='tour-listing-details__content__list'>
                       {highlightList.map((item, index) => (
@@ -417,8 +428,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
                     <div className='tour-listing-details__content__item tour-listing-details__amenities'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>Tour Amenities</h4>
-                        <p className="tour-reviews-subtitle">Comprehensive list of what&apos;s provided for your comfortable journey.</p>
+                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.amenitiesTitle")}</h4>
+                        <p className="tour-reviews-subtitle">{t("tourDetails.amenitiesSubtitle")}</p>
                       </div>
                       <div className="row gutter-y-30">
                         {amenities && amenities.length > 0 && (
@@ -428,7 +439,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                 <div className="amenities-icon-wrapper inclusion-icon">
                                   <i className="fas fa-check-circle"></i>
                                 </div>
-                                <h4 className='amenities-card-title'>What&apos;s Included</h4>
+                                <h4 className='amenities-card-title'>{t("tourDetails.included")}</h4>
                               </div>
                               <ul className='amenities-card-list'>
                                 {amenities.map((amenity, index) => (
@@ -448,7 +459,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                 <div className="amenities-icon-wrapper exclusion-icon">
                                   <i className="fas fa-times-circle"></i>
                                 </div>
-                                <h4 className='amenities-card-title'>What&apos;s Not Included</h4>
+                                <h4 className='amenities-card-title'>{t("tourDetails.notIncluded")}</h4>
                               </div>
                               <ul className='amenities-card-list'>
                                 {amenitiesTwo.map((amenity, index) => (
@@ -465,8 +476,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     </div>
                   ) : (
                     <EmptyState
-                      title="No Amenities Information"
-                      description="There are currently no amenities or inclusions/exclusions listed for this tour."
+                      title={t("tourDetails.empty.amenitiesTitle")}
+                      description={t("tourDetails.empty.amenitiesDesc")}
                       icon="file"
                       size="medium"
                     />
@@ -478,15 +489,15 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {pricingPlans && pricingPlans.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__pricing'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>Tour Pricing</h4>
-                        <p className="tour-reviews-subtitle">Find the perfect package that suits your budget and preferences.</p>
+                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.pricingTitle")}</h4>
+                        <p className="tour-reviews-subtitle">{t("tourDetails.pricingSubtitle")}</p>
                       </div>
                       <PricingPlans pricingPlans={pricingPlans} />
                     </div>
                   ) : (
                     <EmptyState
-                      title="No Pricing Plans Available"
-                      description="There are currently no pricing plans available for this tour."
+                      title={t("tourDetails.empty.pricingTitle")}
+                      description={t("tourDetails.empty.pricingDesc")}
                       icon="file"
                       size="medium"
                     />
@@ -498,8 +509,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {images && images.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__thumb'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>Tour Gallery</h4>
-                        <p className="tour-reviews-subtitle">A visual journey through the amazing places you will visit.</p>
+                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h4>
+                        <p className="tour-reviews-subtitle">{t("tourDetails.gallerySubtitle")}</p>
                       </div>
                         <Masonry
                           breakpointCols={{
@@ -551,8 +562,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     </div>
                   ) : (
                     <EmptyState
-                      title="No Gallery Images"
-                      description="This tour currently has no gallery images available."
+                      title={t("tourDetails.empty.galleryTitle")}
+                      description={t("tourDetails.empty.galleryDesc")}
                       icon="inbox"
                       size="medium"
                     />
@@ -569,8 +580,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {faqs && faqs.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__faqs'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>Frequently Asked Questions</h4>
-                        <p className="tour-reviews-subtitle">Common questions and answers to help you prepare.</p>
+                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.faqTitle")}</h4>
+                        <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
                       </div>
                       <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
                         <Accordion
@@ -603,8 +614,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     </div>
                   ) : (
                     <EmptyState
-                      title="No FAQs Available"
-                      description="There are currently no frequently asked questions for this tour."
+                      title={t("tourDetails.empty.faqTitle")}
+                      description={t("tourDetails.empty.faqDesc")}
                       icon="file"
                       size="medium"
                     />
@@ -615,8 +626,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   <section id="honest-reviews" className="tour-section">
                     <div className='tour-listing-details__content__item'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>Reflective & Honest Reviews</h4>
-                        <p className="tour-reviews-subtitle">Watch real experiences from travelers on YouTube.</p>
+                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h4>
+                        <p className="tour-reviews-subtitle">{t("tourDetails.honestReviewsSubtitle")}</p>
                       </div>
                       <div className="row gutter-y-30">
                         {(reviewVideos || []).map((v, idx) => (
@@ -638,7 +649,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                               </div>
                               <div className="p-3">
                                 <a href={v.url} target="_blank" rel="noreferrer" className="text-decoration-none">
-                                  Open on YouTube
+                                  {t("tourDetails.openYoutube")}
                                 </a>
                               </div>
                             </div>
@@ -667,9 +678,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   homeThree={false}
                   showShape={false}
                   extraClass="section-space-top"
-                  title="Related Tours"
-                  titleSpan="Tours"
-                  subtitle="You might also like those tour"
+                  title={t("tourDetails.relatedTours.title")}
+                  titleSpan={t("tourDetails.relatedTours.span")}
+                  subtitle={t("tourDetails.relatedTours.subtitle")}
                   uniqueId="related-tours"
                   headerStyle="testimonials"
                 />
@@ -684,9 +695,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
           itemsPerRow={4}
           homeThree={false}
           showShape={false}
-          title="More"
-          titleSpan="Tours"
-          subtitle="Discover more amazing experiences"
+          title={t("tourDetails.moreTours.title")}
+          titleSpan={t("tourDetails.moreTours.span")}
+          subtitle={t("tourDetails.moreTours.subtitle")}
           uniqueId="more-tours"
           showPartners={true}
           partners={[
@@ -715,8 +726,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
               link: "https://aswan.adventures"
             }
           ]}
-          partnersTitle="Our Travel Partners"
-          partnersSubtitle="We collaborate with trusted local and international travel partners"
+          partnersTitle={t("tourDetails.partners.title")}
+          partnersSubtitle={t("tourDetails.partners.subtitle")}
         />
       </PhotoSwipeGallery>
       </section>

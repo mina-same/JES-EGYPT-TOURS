@@ -1,0 +1,17 @@
+{
+  "pageTitle": "Wishlist",
+  "pageSubTitle": "Your Saved Tours",
+  "loading": "Loading...",
+  "error": "Failed to load wishlist",
+  "emptyTitle": "Your Wishlist is Empty",
+  "emptyText": "Looks like you haven't saved any tours yet. Explore our top-rated tours and find your next adventure!",
+  "browseTours": "Browse Tours",
+  "flexible": "Flexible",
+  "location": "Location",
+  "review": "Review",
+  "startFrom": "Start from",
+  "viewTour": "View Tour",
+  "more": "More",
+  "tours": "Tours",
+  "youMayAlsoLike": "You may also like"
+}

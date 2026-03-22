@@ -32,7 +32,8 @@ export async function generateMetadata({
         : blog.featuredImage?.url;
 
     const title = getLocalizedValue(blog.seo?.metaTitle, locale) || getLocalizedValue(blog.title, locale) || "Blog Details";
-    const description = getLocalizedValue(blog.seo?.metaDescription, locale) || getLocalizedValue(blog.excerpt, locale) || "";
+    const rawDesc = getLocalizedValue(blog.seo?.metaDescription, locale) || getLocalizedValue(blog.excerpt, locale) || "";
+    const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
 
     return {
       title: `${title} | JES Egypt Tours`,
@@ -132,6 +133,15 @@ export default async function BlogDetailsPage({
     };
 
     const localizedSlugs = typeof blog.slug === 'object' ? blog.slug : { en: slug };
+    const t = (key: string) => {
+      const translations: any = {
+        en: require('@/i18n/locales/en/blogs.json'),
+        de: require('@/i18n/locales/de/blogs.json'),
+        it: require('@/i18n/locales/it/blogs.json'),
+        es: require('@/i18n/locales/es/blogs.json'),
+      };
+      return translations[locale]?.[key] || translations['en'][key];
+    };
 
     return (
       <>
@@ -144,7 +154,7 @@ export default async function BlogDetailsPage({
           <TopbarOne />
           <HeaderOne linkTheme="light" />
           <HeaderOneCloned />
-          <PageHeader title={title} subTitle='Blog Details' />
+          <PageHeader title={title} subTitle={t('ourBlog')} />
           <DynamicBlogDetails blog={blog} showSidebar='right' />
           <FooterOne />
         </Layout>

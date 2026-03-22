@@ -1,0 +1,17 @@
+{
+  "pageTitle": "Lista de Deseos",
+  "pageSubTitle": "Tus tours guardados",
+  "loading": "Cargando...",
+  "error": "Error al cargar la lista de deseos",
+  "emptyTitle": "Tu lista de deseos está vacía",
+  "emptyText": "Parece que aún no has guardado ningún tour. ¡Explora nuestros tours mejor valorados y encuentra tu próxima aventura!",
+  "browseTours": "Explorar tours",
+  "flexible": "Flexible",
+  "location": "Ubicación",
+  "review": "Opinión",
+  "startFrom": "Desde",
+  "viewTour": "Ver tour",
+  "more": "Más",
+  "tours": "Tours",
+  "youMayAlsoLike": "También te podría gustar"
+}

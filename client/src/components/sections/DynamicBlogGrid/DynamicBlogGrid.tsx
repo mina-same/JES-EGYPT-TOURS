@@ -17,7 +17,7 @@ interface DynamicBlogGridProps {
 
 const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, basePath }) => {
   const router = useRouter();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
 
 
@@ -81,7 +81,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                             <span className='blog-card__meta__icon'>
                               <i className='icon-user'></i>
                             </span>
-                            By {authorName}
+                            {t('by')} {authorName}
                           </Link>
                         </li>
                         {post.tags && (getLocalizedValue(post.tags, currentLocale) as string[]).length > 0 && (
@@ -105,7 +105,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                     )}
 
                     <Link href={blogUrl} className='blog-card__content__btn'>
-                      Read More <i className='icon-arrow-right'></i>
+                      {t('readMore', { defaultValue: 'Read More' })} <i className='icon-arrow-right'></i>
                     </Link>
                   </div>
                 </div>

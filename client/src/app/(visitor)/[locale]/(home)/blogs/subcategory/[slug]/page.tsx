@@ -9,6 +9,12 @@ import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned
 import { notFound, permanentRedirect } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
 import { SlugManager } from "@/components/common/SlugManager";
+import enBlogs from "@/i18n/locales/en/blogs.json";
+import deBlogs from "@/i18n/locales/de/blogs.json";
+import itBlogs from "@/i18n/locales/it/blogs.json";
+import esBlogs from "@/i18n/locales/es/blogs.json";
+
+const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }) {
   try {
@@ -16,8 +22,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const subcategory = await getSubCategoryBySlug(slug);
     const title = getLocalizedValue(subcategory.seo?.metaTitle, locale) ||
       (getLocalizedValue(subcategory.name, locale) ? `${getLocalizedValue(subcategory.name, locale)} - Travel Blog | JES Egypt Tours` : '');
-    const description = getLocalizedValue(subcategory.seo?.metaDescription, locale) ||
+    const rawDesc = getLocalizedValue(subcategory.seo?.metaDescription, locale) ||
       getLocalizedValue(subcategory.description, locale);
+    const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
 
     return {
       title,
@@ -42,6 +49,7 @@ export default async function BlogSubCategoryPage({
   const resolvedSearchParams = await searchParams;
   const page = Number(resolvedSearchParams.page) || 1;
   const { slug, locale } = await params;
+  const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
 
   let subcategory: any;
   let blogsData;
@@ -68,7 +76,7 @@ export default async function BlogSubCategoryPage({
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <SlugManager slugs={typeof subcategory.slug === 'object' ? subcategory.slug : { en: slug }} />
-      <PageHeader title={getLocalizedValue(subcategory.name, locale)} subTitle={parentName || 'Blog Category'} />
+      <PageHeader title={getLocalizedValue(subcategory.name, locale)} subTitle={parentName || t('blogCategory')} />
 
       <DynamicBlogGrid
         blogs={blogsData.data}

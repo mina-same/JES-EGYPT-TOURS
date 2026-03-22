@@ -127,10 +127,7 @@ export default function NewBlogPage() {
         }
       }
       else if (localizedMixedFields.includes(field)) {
-        updated[field] = {
-          ...(updated[field] || { en: [], de: [], it: [], es: [] }),
-          [activeLanguage]: value,
-        };
+        updated[field] = value;
       }
       // Handle nested fields
       else if (field.includes('.')) {

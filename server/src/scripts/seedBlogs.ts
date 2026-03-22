@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import Blog from '../models/Blog';
+import BlogCategory from '../models/BlogCategory';
+import BlogSubCategory from '../models/BlogSubCategory';
 import User from '../models/User';
 
 // Load environment variables
@@ -19,524 +21,305 @@ const seedBlogs = async () => {
       process.exit(1);
     }
 
-    // Clear existing blog data (but keep categories/subcategories for now if they exist)
+    // Clear existing blog data
     await Blog.deleteMany({});
+    await BlogCategory.deleteMany({});
+    await BlogSubCategory.deleteMany({});
     console.log('🗑️  Cleared existing blog data');
+
+    // ===== CREATE CATEGORIES =====
+    const catTravelGuides = await BlogCategory.create({
+      name: { en: 'Travel Guides', de: 'Reiseführer', it: 'Guide di Viaggio', es: 'Guías de Viaje' },
+      slug: { en: 'travel-guides', de: 'reisefuehrer', it: 'guide-di-viaggio', es: 'guias-de-viaje' },
+      description: { 
+        en: 'Comprehensive travel guides to help you plan your perfect trip to Egypt.', 
+        de: 'Umfassende Reiseführer, die Ihnen bei der Planung Ihrer perfekten Reise nach Ägypten helfen.', 
+        it: 'Guide di viaggio complete per aiutarti a pianificare il tuo viaggio perfetto in Egitto.', 
+        es: 'Guías de viaje completas para ayudarlo a planificar su viaje perfecto a Egipto.' 
+      },
+      isActive: true,
+      metaTitle: { en: 'Egypt Travel Guides', de: 'Ägypten Reiseführer', it: 'Guide di Viaggio in Egitto', es: 'Guías de Viaje a Egipto' },
+      metaDescription: { en: 'Expert travel guides for Egypt.', de: 'Experten-Reiseführer für Ägypten.', it: 'Guide di viaggio esperte per l\'Egitto.', es: 'Guías de viaje de expertos para Egipto.' },
+    });
+
+    const catHistory = await BlogCategory.create({
+      name: { en: 'History & Culture', de: 'Geschichte & Kultur', it: 'Storia e Cultura', es: 'Historia y Cultura' },
+      slug: { en: 'history-culture', de: 'geschichte-kultur', it: 'storia-cultura', es: 'historia-cultura' },
+      description: { 
+        en: 'Dive deep into the rich history and vibrant culture of ancient and modern Egypt.', 
+        de: 'Tauchen Sie tief in die reiche Geschichte und lebendige Kultur des antiken und modernen Ägypten ein.', 
+        it: 'Immergiti nella ricca storia e nella vibrante cultura dell\'Egitto antico e moderno.', 
+        es: 'Sumérgete profundamente en la rica historia y la vibrante cultura del Egipto antiguo y moderno.' 
+      },
+      isActive: true,
+      metaTitle: { en: 'Egyptian History and Culture', de: 'Ägyptische Geschichte und Kultur', it: 'Storia e Cultura Egiziana', es: 'Historia y Cultura Egipcia' },
+      metaDescription: { en: 'Explore the history.', de: 'Erkunden Sie die Geschichte.', it: 'Esplora la storia.', es: 'Explora la historia.' },
+    });
+
+    // ===== CREATE SUBCATEGORIES =====
+    const subTips = await BlogSubCategory.create({
+      category: catTravelGuides._id,
+      name: { en: 'Travel Tips', de: 'Reisetipps', it: 'Consigli di Viaggio', es: 'Consejos de Viaje' },
+      slug: { en: 'travel-tips', de: 'reisetipps', it: 'consigli-di-viaggio', es: 'consejos-de-viaje' },
+      isActive: true,
+      metaTitle: { en: 'Travel Tips', de: 'Reisetipps', it: 'Consigli di Viaggio', es: 'Consejos de Viaje' },
+    });
+
+    const subAncientSites = await BlogSubCategory.create({
+      category: catHistory._id,
+      name: { en: 'Ancient Sites', de: 'Antike Stätten', it: 'Siti Antichi', es: 'Sitios Antiguos' },
+      slug: { en: 'ancient-sites', de: 'antike-staetten', it: 'siti-antichi', es: 'sitios-antiguos' },
+      isActive: true,
+      metaTitle: { en: 'Ancient Sites', de: 'Antike Stätten', it: 'Siti Antichi', es: 'Sitios Antiguos' },
+    });
+
+    const subFood = await BlogSubCategory.create({
+      category: catHistory._id,
+      name: { en: 'Food & Cuisine', de: 'Essen & Kulinarik', it: 'Cibo e Cucina', es: 'Comida y Gastronomía' },
+      slug: { en: 'food-cuisine', de: 'essen-kulinarik', it: 'cibo-cucina', es: 'comida-gastronomia' },
+      isActive: true,
+      metaTitle: { en: 'Egyptian Food', de: 'Ägyptisches Essen', it: 'Cibo Egiziano', es: 'Comida Egipcia' },
+    });
 
     // ===== CREATE BLOG POSTS =====
     
-    // Featured Blog 1
+    // Blog 1: The Great Pyramids
     const blog1 = await Blog.create({
-      title: 'Get Best Advertiser in Your Side Pocket',
-      slug: 'get-best-advertiser-in-your-side-pocket',
-      author: admin._id,
-      featuredImage: {
-        url: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop',
-        fileName: 'travel-advertiser.jpg',
-        title: 'Travel Advertiser and Marketing',
-        alt: 'Travel advertiser and marketing',
+      title: { 
+        en: 'The Ultimate Guide to Exploring the Great Pyramids of Giza', 
+        de: 'Der ultimative Leitfaden zur Erkundung der Großen Pyramiden von Gizeh', 
+        it: 'La guida definitiva per esplorare le Grandi Piramidi di Giza', 
+        es: 'La guía definitiva para explorar las Grandes Pirámides de Guiza' 
       },
-      excerpt: 'Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore of magna aliqua. Ut enim ad minim veniam.',
-      contentBlocks: [
-        {
-          type: 'html',
-          content: '<p>Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore of magna aliqua. Ut enim ad minim veniam, made of owl the quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea dolor commodo consequat. Duis aute irure and dolor in reprehenderit.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop',
-              alt: 'Travel destination',
-              caption: 'Beautiful travel destination',
-              width: 800,
-              height: 600,
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-              alt: 'Travel experience',
-              caption: 'Amazing travel experience',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'html',
-          content: '<p>The is ipsum dolor sit amet consectetur adipiscing elit. Fusce eleifend porta arcu In hac habitasse the is platea augue thelorem turpoi dictumst. In lacus libero faucibus at malesuada sagittis placerat eros sed istincidunt augue ac ante rutrum sed the is sodales augue consequat.</p>',
-        },
-        {
-          type: 'blockquote',
-          content: 'Pellentesque sollicitudin congue dolor non aliquam. Morbi volutpat, nisi vel ultricies urna condimentum, sapien neque lobortis tortor, quis efficitur mi ipsum eu metus. Praesent eleifend orci sit amet est vehicula.',
-          image: '/images/shapes/quote-Icon.png',
-        },
-        {
-          type: 'html',
-          content: '<p>Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore of magna aliqua. Ut enim ad minim veniam, made of owl the quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea dolor commodo consequat.</p>',
-        },
-      ],
-      metaTitle: 'Best Travel Advertiser - Marketing Guide',
-      metaDescription: 'Learn how to get the best advertiser for your travel business and boost your marketing strategy with proven techniques.',
-      metaKeywords: ['advertiser', 'travel marketing', 'business strategy', 'promotion'],
-      tags: ['Travel', 'Services', 'Agency'],
-      status: 'published',
-      isFeatured: true,
-      publishedAt: new Date('2024-02-20'),
-      focusKeyword: 'travel advertiser',
-      commentsEnabled: true,
-      viewCount: 1250,
-      comments: [
-        {
-          name: 'Leslie Alexander',
-          email: 'leslie@example.com',
-          text: 'Great article! Very helpful insights on travel marketing strategies.',
-          avatar: 'https://ui-avatars.com/api/?name=Leslie+Alexander',
-          isApproved: true,
-          createdAt: new Date('2024-02-21'),
-        } as any,
-        {
-          name: 'John Smith',
-          email: 'john@example.com',
-          text: 'Thanks for sharing these valuable tips. I will definitely implement them.',
-          avatar: 'https://ui-avatars.com/api/?name=John+Smith',
-          isApproved: true,
-          createdAt: new Date('2024-02-22'),
-        } as any,
-      ],
-    });
-
-    // Featured Blog 2 - Pyramids
-    const blog2 = await Blog.create({
-      title: 'Discover the Wonders of the Great Pyramids of Giza',
-      slug: 'discover-great-pyramids-giza',
+      slug: { 
+        en: 'ultimate-guide-great-pyramids-giza', 
+        de: 'ultimativer-leitfaden-pyramiden-gizeh', 
+        it: 'guida-definitiva-grandi-piramidi-giza', 
+        es: 'guia-definitiva-grandes-piramides-guiza' 
+      },
+      subCategory: subAncientSites._id,
       author: admin._id,
       featuredImage: {
         url: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73b6e?w=1200&h=600&fit=crop',
         fileName: 'pyramids-giza.jpg',
-        title: 'Great Pyramids of Giza at Sunset',
-        alt: 'Great Pyramids of Giza at sunset',
+        title: { en: 'Great Pyramids of Giza at Sunset' },
+        alt: { en: 'Great Pyramids of Giza at sunset showcasing the Sphinx' },
       },
-      excerpt: 'Explore the last remaining wonder of the ancient world and uncover the mysteries of the Great Pyramids of Giza.',
+      excerpt: { 
+        en: 'Everything you need to know about visiting the magnificent Pyramids of Giza, from the best time to go to insider tips for avoiding the crowds.', 
+        de: 'Alles, was Sie wissen müssen, um die herrlichen Pyramiden von Gizeh zu besuchen, von der besten Reisezeit bis zu Insider-Tipps, um die Massen zu vermeiden.', 
+        it: 'Tutto ciò che devi sapere sulla visita alle magnifiche Piramidi di Giza, dal momento migliore per andare ai consigli per evitare la folla.', 
+        es: 'Todo lo que necesita saber sobre visitar las magníficas Pirámides de Guiza, desde el mejor momento para ir hasta consejos para evitar las multitudes.' 
+      },
       contentBlocks: [
         {
           type: 'html',
-          content: '<p>The Great Pyramids of Giza stand as a testament to ancient Egyptian engineering and ambition. Built over 4,500 years ago, these magnificent structures continue to captivate visitors from around the world.</p><p>Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore of magna aliqua. Ut enim ad minim veniam, made of owl the quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea dolor commodo consequat.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73b6e?w=800&h=600&fit=crop',
-              alt: 'Close-up of pyramid stones',
-              caption: 'Ancient limestone blocks',
-              width: 800,
-              height: 600,
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=800&h=600&fit=crop',
-              alt: 'Sphinx and pyramid',
-              caption: 'The Great Sphinx guards the pyramids',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'html',
-          content: '<p>The is ipsum dolor sit amet consectetur adipiscing elit. Fusce eleifend porta arcu In hac habitasse the is platea augue thelorem turpoi dictumst. In lacus libero faucibus at malesuada sagittis placerat eros sed istincidunt augue ac ante rutrum sed the is sodales augue consequat.</p>',
+          content: { 
+            en: '<p>Standing tall on the Giza Plateau, just outside of Cairo, the <strong>Great Pyramids of Giza</strong> are the sole surviving monuments of the Seven Wonders of the Ancient World. These immense structures have captivated travelers, historians, and archaeologists for centuries. In this ultimate guide, we will walk you through exactly how you can maximize your visit, ensuring that you witness these ancient marvels in all their glory.</p><h3>Why Visit the Pyramids?</h3><p>The scale of the Pyramids is something that pictures simply cannot convey. Built over 4,500 years ago, the logistics of their construction remain one of history\'s greatest mysteries. The complex houses three main pyramids: Khufu (the Great Pyramid), Khafre, and Menkaure, alongside the enigmatic Sphinx.</p>', 
+            de: '<p>Die <strong>Großen Pyramiden von Gizeh</strong> stehen hoch auf dem Gizeh-Plateau und sind die einzigen erhaltenen Denkmäler der Sieben Weltwunder der Antike. In diesem ultimativen Leitfaden zeigen wir Ihnen genau, wie Sie Ihren Besuch maximieren können.</p><h3>Warum die Pyramiden besuchen?</h3><p>Der Maßstab der Pyramiden ist etwas, das Fotos einfach nicht vermitteln können.</p>', 
+            it: '<p>Le <strong>Grandi Piramidi di Giza</strong> si ergono sull\'altopiano di Giza e sono l\'unico monumento sopravvissuto delle Sette Meraviglie del Mondo Antico. In questa guida ti mostreremo come massimizzare la tua visita.</p><h3>Perché visitare le Piramidi?</h3><p>La scala delle Piramidi è qualcosa che le foto non riescono a trasmettere.</p>', 
+            es: '<p>Las <strong>Grandes Pirámides de Guiza</strong> se erigen en la meseta de Guiza y son los únicos monumentos supervivientes de las Siete Maravillas del Mundo Antiguo. En esta guía, le mostraremos cómo maximizar su visita.</p><h3>¿Por qué visitar las Pirámides?</h3><p>La escala de las Pirámides es algo que las fotos simplemente no pueden transmitir.</p>' 
+          },
         },
         {
           type: 'blockquote',
-          content: 'Standing before the pyramids, you realize that some achievements transcend time itself. These monuments remind us of humanity\'s eternal quest for greatness.',
-          image: '/images/shapes/quote-Icon.png',
+          content: {
+            en: 'Man fears time, but time fears the Pyramids.',
+            de: 'Der Mensch fürchtet die Zeit, aber die Zeit fürchtet die Pyramiden.',
+            it: 'L\'uomo teme il tempo, ma il tempo teme le Piramidi.',
+            es: 'El hombre teme al tiempo, pero el tiempo teme a las Pirámides.'
+          }
         },
         {
           type: 'html',
-          content: '<h3>Planning Your Visit</h3><p>The best time to visit the pyramids is early morning or late afternoon to avoid the heat. Don\'t forget to bring water, sunscreen, and comfortable walking shoes.</p>',
-        },
+          content: {
+            en: '<h3>Best Time to Visit</h3><p>To avoid massive tourist crowds and the peak heat of the Egyptian sun, the best time to visit the Pyramids is early morning right when the gates open (around 8:00 AM) or late afternoon just before closing. Spring and autumn offer the most comfortable weather.</p>',
+            de: '<h3>Beste Reisezeit</h3><p>Um Menschenmassen zu vermeiden, besuchen Sie die Pyramiden am frühen Morgen oder späten Nachmittag.</p>',
+            it: '<h3>Miglior tempo per visitare</h3><p>Per evitare la folla, visita le Piramidi la mattina presto o nel tardo pomeriggio.</p>',
+            es: '<h3>Mejor momento para visitar</h3><p>Para evitar las multitudes, visite las Pirámides temprano en la mañana o al final de la tarde.</p>'
+          }
+        }
       ],
-      metaTitle: 'Great Pyramids of Giza: Complete Travel Guide 2024',
-      metaDescription: 'Discover everything you need to know about visiting the Great Pyramids of Giza, including tips, history, and best times to visit.',
-      metaKeywords: ['pyramids', 'giza', 'egypt', 'ancient wonders', 'travel guide'],
-      tags: ['Pyramids', 'Giza', 'Ancient Egypt', 'UNESCO', 'History'],
+      metaTitle: { en: 'Ultimate Guide to the Great Pyramids of Giza | JES Egypt Tours', de: 'Gizeh Pyramiden Leitfaden', it: 'Guida Piramidi di Giza', es: 'Guía de las Pirámides de Guiza' },
+      metaDescription: { en: 'Plan the perfect trip to the Great Pyramids of Giza. Read our full guide on timings, ticket prices, and tips.', de: 'Planen Sie die perfekte Reise zu den Pyramiden von Gizeh.', it: 'Pianifica il viaggio perfetto alle Piramidi di Giza.', es: 'Planifique el viaje perfecto a las Pirámides de Guiza.' },
+      tags: { en: ['Pyramids', 'Giza', 'Cairo'], de: ['Pyramiden', 'Gizeh', 'Kairo'], it: ['Piramidi', 'Giza', 'Il Cairo'], es: ['Pirámides', 'Guiza', 'El Cairo'] },
+      metaKeywords: { en: ['Great Pyramids', 'Giza', 'Egypt Tourism', 'Cairo tours'], de: ['Großen Pyramiden'], it: ['Grandi Piramidi'], es: ['Grandes Pirámides'] },
       status: 'published',
       isFeatured: true,
-      publishedAt: new Date('2024-02-15'),
+      publishedAt: new Date('2024-03-01'),
       focusKeyword: 'great pyramids giza',
       commentsEnabled: true,
-      viewCount: 2100,
+      viewCount: 3450,
+      readingTime: 6
     });
 
-    // Featured Blog 3 - Red Sea Diving
-    const blog3 = await Blog.create({
-      title: 'Red Sea Diving: Top 10 Dive Sites You Must Explore',
-      slug: 'red-sea-diving-top-sites',
-      author: admin._id,
-      featuredImage: {
-        url: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200&h=600&fit=crop',
-        fileName: 'red-sea-coral.jpg',
-        title: 'Colorful Coral Reef in the Red Sea',
-        alt: 'Colorful coral reef in the Red Sea',
+    // Blog 2: Nile Cruise Experience
+    const blog2 = await Blog.create({
+      title: { 
+        en: 'What to Expect on a Luxury Nile River Cruise', 
+        de: 'Was Sie auf einer Luxus-Nilkreuzfahrt erwartet', 
+        it: 'Cosa aspettarsi da una lussuosa crociera sul Nilo', 
+        es: 'Qué esperar de un crucero de lujo por el Nilo' 
       },
-      excerpt: 'Dive into crystal-clear waters and discover the vibrant marine life of the Red Sea\'s best diving spots.',
-      contentBlocks: [
-        {
-          type: 'html',
-          content: '<p>The Red Sea is renowned worldwide for its exceptional diving conditions, stunning coral reefs, and diverse marine life. Whether you\'re a beginner or experienced diver, these waters offer unforgettable underwater adventures.</p>',
-        },
-        {
-          type: 'html',
-          content: '<h3>1. Ras Mohammed National Park</h3><p>Located at the southern tip of the Sinai Peninsula, Ras Mohammed features dramatic drop-offs, strong currents, and an abundance of marine species including sharks, rays, and turtles.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&h=600&fit=crop',
-              alt: 'Diver exploring coral reef',
-              caption: 'Vibrant coral gardens',
-              width: 800,
-              height: 600,
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=600&fit=crop',
-              alt: 'School of tropical fish',
-              caption: 'Abundant marine life',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'blockquote',
-          content: 'The Red Sea is not just a dive destination; it\'s an underwater paradise that will leave you breathless with every descent.',
-          image: '/images/shapes/quote-Icon.png',
-        },
-        {
-          type: 'html',
-          content: '<h3>Best Time to Dive</h3><p>The Red Sea offers year-round diving, but the best conditions are from March to May and September to November when water temperatures are comfortable and visibility is excellent.</p>',
-        },
-      ],
-      metaTitle: 'Red Sea Diving Guide: 10 Best Dive Sites in Egypt',
-      metaDescription: 'Explore the top diving sites in the Red Sea with our comprehensive guide. Perfect for both beginners and experienced divers.',
-      metaKeywords: ['red sea diving', 'egypt diving', 'scuba diving', 'coral reefs'],
-      tags: ['Diving', 'Red Sea', 'Underwater', 'Marine Life', 'Adventure'],
-      status: 'published',
-      isFeatured: true,
-      publishedAt: new Date('2024-02-20'),
-      focusKeyword: 'red sea diving',
-      commentsEnabled: true,
-      viewCount: 1780,
-    });
-
-    // Non-featured Blog 4 - Desert Safari
-    const blog4 = await Blog.create({
-      title: 'Sahara Desert Safari: An Unforgettable Adventure',
-      slug: 'sahara-desert-safari-adventure',
-      author: admin._id,
-      featuredImage: {
-        url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&h=600&fit=crop',
-        fileName: 'sahara-desert.jpg',
-        title: 'Sunset over Sahara Desert Dunes',
-        alt: 'Sunset over Sahara desert dunes',
+      slug: { 
+        en: 'luxury-nile-river-cruise-expectations', 
+        de: 'luxus-nilkreuzfahrt-erwartungen', 
+        it: 'aspettative-crociera-lusso-nilo', 
+        es: 'expectativas-crucero-lujo-nilo' 
       },
-      excerpt: 'Experience the magic of the Sahara with camel rides, starlit camping, and Bedouin hospitality in one of the world\'s most majestic landscapes.',
-      contentBlocks: [
-        {
-          type: 'html',
-          content: '<p>The Sahara Desert offers one of the most unique and memorable travel experiences. From golden sand dunes to ancient oases, this vast landscape holds countless wonders waiting to be discovered.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&h=600&fit=crop',
-              alt: 'Camel caravan in desert',
-              caption: 'Traditional camel safari',
-              width: 800,
-              height: 600,
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&h=600&fit=crop',
-              alt: 'Desert camp at night',
-              caption: 'Stargazing in the Sahara',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'html',
-          content: '<p>A typical desert safari includes camel trekking, 4x4 dune bashing, sandboarding, and spending the night in a traditional Bedouin camp under a blanket of stars.</p>',
-        },
-        {
-          type: 'blockquote',
-          content: 'In the silence of the desert, you find a peace that modern life rarely offers. The Sahara teaches you to appreciate the simple beauty of nature.',
-          image: '/images/shapes/quote-Icon.png',
-        },
-        {
-          type: 'html',
-          content: '<h3>What to Pack</h3><p>Essential items include sunscreen, sunglasses, light clothing for day, warm layers for night, comfortable shoes, and plenty of water.</p>',
-        },
-      ],
-      metaTitle: 'Sahara Desert Safari: Complete Adventure Guide',
-      metaDescription: 'Plan your perfect Sahara desert safari with our guide covering activities, best times to visit, and essential tips.',
-      metaKeywords: ['sahara desert', 'desert safari', 'egypt adventure', 'bedouin camp'],
-      tags: ['Desert', 'Safari', 'Adventure', 'Sahara', 'Bedouin'],
-      status: 'published',
-      isFeatured: false,
-      publishedAt: new Date('2024-02-18'),
-      focusKeyword: 'sahara desert safari',
-      commentsEnabled: true,
-      viewCount: 950,
-    });
-
-    // Non-featured Blog 5 - Nile Cruise
-    const blog5 = await Blog.create({
-      title: 'Nile River Cruise: A Journey Through Ancient History',
-      slug: 'nile-river-cruise-journey',
+      subCategory: subTips._id,
       author: admin._id,
       featuredImage: {
         url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&h=600&fit=crop',
         fileName: 'nile-cruise.jpg',
-        title: 'Nile River Cruise Ship',
-        alt: 'Nile River cruise ship',
+        title: { en: 'Luxury Nile River Cruise Ship' },
+        alt: { en: 'Luxury Nile River Cruise Ship sailing in Egypt' },
       },
-      excerpt: 'Embark on a luxurious journey down the Nile River, visiting ancient temples and experiencing the timeless beauty of Egypt\'s lifeline.',
+      excerpt: { 
+        en: 'Sailing the Nile is a rite of passage for any visitor to Egypt. Discover what life is like on board, the sites you will see, and how to choose the right ship.', 
+        de: 'Das Segeln auf dem Nil ist ein Initiationsritus für jeden Ägypten-Besucher. Entdecken Sie das Leben an Bord.', 
+        it: 'Navigare sul Nilo è un rito di passaggio per ogni visitatore in Egitto. Scopri com\'è la vita a bordo.', 
+        es: 'Navegar por el Nilo es un rito de iniciación para cualquier visitante a Egipto. Descubra cómo es la vida a bordo.' 
+      },
       contentBlocks: [
         {
           type: 'html',
-          content: '<p>A Nile River cruise is one of the most romantic and educational ways to explore Egypt. As you glide along the world\'s longest river, you\'ll witness scenes that have changed little since pharaonic times.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=600&fit=crop',
-              alt: 'Nile cruise ship',
-              caption: 'Luxury Nile cruise',
-              width: 800,
-              height: 600,
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop',
-              alt: 'Temple on Nile',
-              caption: 'Ancient temples along the Nile',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'html',
-          content: '<p>Most cruises travel between Luxor and Aswan, allowing you to visit incredible sites like the Valley of the Kings, Karnak Temple, and the temples of Edfu and Kom Ombo.</p>',
-        },
-        {
-          type: 'blockquote',
-          content: 'The Nile is more than a river; it\'s the heartbeat of Egypt, carrying with it thousands of years of history and culture.',
-          image: '/images/shapes/quote-Icon.png',
-        },
+          content: { 
+            en: '<p>There is no better way to see upper Egypt than gliding along the world’s longest river. A luxury Nile cruise offers an experience that blends the romantic ambiance of passing ancient landscapes with modern, top-tier amenities.</p><h3>Life on Board a Dahabiya or Luxury Ship</h3><p>Traditional floating hotels are common, but for an ultra-premium experience, a <em>Dahabiya</em> (a traditional wooden sailboat) provides absolute exclusivity. You can expect gourmet Egyptian and international dining, afternoon tea on the sun deck to the sound of lapping water, and impeccable service.</p><h3>Key Stops Along the Way</h3><ul><li><strong>Luxor Temple & Karnak:</strong> Massive pillars and avenues of sphinxes.</li><li><strong>Valley of the Kings:</strong> Hidden tombs of the pharaohs including Tutankhamun.</li><li><strong>Edfu & Kom Ombo:</strong> Remarkably preserved temples dedicated to Horus and Sobek.</li><li><strong>Aswan:</strong> The Philae Temple rising from the tranquil waters.</li></ul>', 
+            de: '<p>Es gibt keinen besseren Weg, Oberägypten zu sehen, als auf dem Nil zu gleiten. Eine Luxus-Nilkreuzfahrt bietet eine großartige Erfahrung.</p>', 
+            it: '<p>Non c\'è modo migliore per vedere l\'Alto Egitto che scivolare lungo il Nilo. Una crociera sul Nilo offre un\'esperienza magnifica.</p>', 
+            es: '<p>No hay mejor manera de ver el Alto Egipto que deslizarse por el Nilo. Un crucero por el Nilo ofrece una experiencia increíble.</p>' 
+          },
+        }
       ],
-      metaTitle: 'Nile River Cruise Guide: Complete Travel Experience',
-      metaDescription: 'Discover everything about Nile River cruises including itineraries, best ships, and must-see temples along the way.',
-      metaKeywords: ['nile cruise', 'egypt cruise', 'luxor aswan', 'nile river'],
-      tags: ['Nile', 'Cruise', 'Luxor', 'Aswan', 'Temples'],
-      status: 'published',
-      isFeatured: false,
-      publishedAt: new Date('2024-02-10'),
-      focusKeyword: 'nile river cruise',
-      commentsEnabled: true,
-      viewCount: 1100,
-    });
-
-    // Non-featured Blog 6 - Egyptian Museum
-    const blog6 = await Blog.create({
-      title: 'The Egyptian Museum: Treasures of the Pharaohs',
-      slug: 'egyptian-museum-treasures-pharaohs',
-      author: admin._id,
-      featuredImage: {
-        url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&h=600&fit=crop',
-        fileName: 'egyptian-museum.jpg',
-        title: 'Egyptian Museum Artifacts',
-        alt: 'Egyptian Museum artifacts',
-      },
-      excerpt: 'Explore the world\'s greatest collection of ancient Egyptian artifacts, including the treasures of Tutankhamun.',
-      contentBlocks: [
-        {
-          type: 'html',
-          content: '<p>The Egyptian Museum in Cairo houses over 120,000 artifacts, making it one of the world\'s most important archaeological museums. From golden masks to mummies, this is where ancient Egypt comes alive.</p>',
-        },
-        {
-          type: 'html',
-          content: '<h3>Highlights Not to Miss</h3><p>The treasures of Tutankhamun are the museum\'s crown jewels, but don\'t miss the Royal Mummy Room, the Narmer Palette, and the statues of Khafre and Menkaure.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
-              alt: 'Museum artifacts',
-              caption: 'Ancient Egyptian artifacts',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'blockquote',
-          content: 'Walking through the Egyptian Museum is like stepping back in time. Each artifact tells a story of a civilization that shaped human history.',
-          image: '/images/shapes/quote-Icon.png',
-        },
-      ],
-      metaTitle: 'Egyptian Museum Guide: Must-See Treasures and Tips',
-      metaDescription: 'Your complete guide to visiting the Egyptian Museum in Cairo, including must-see exhibits and practical visiting tips.',
-      metaKeywords: ['egyptian museum', 'cairo museum', 'tutankhamun', 'ancient artifacts'],
-      tags: ['Museum', 'Cairo', 'History', 'Artifacts', 'Culture'],
-      status: 'published',
-      isFeatured: false,
-      publishedAt: new Date('2024-02-05'),
-      focusKeyword: 'egyptian museum',
-      commentsEnabled: true,
-      viewCount: 890,
-    });
-
-    // Featured Blog 7 - Luxor Temple (New Professional Article)
-    const blog7 = await Blog.create({
-      title: 'Luxor Temple: The Complete Guide to Egypt\'s Ancient Temple Complex',
-      slug: 'luxor-temple-complete-guide-egypt',
-      author: admin._id,
-      featuredImage: {
-        url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b3?w=1200&h=600&fit=crop',
-        fileName: 'luxor-temple-night.jpg',
-        title: 'Luxor Temple illuminated at night',
-        alt: 'Luxor Temple illuminated at night showing ancient columns and statues',
-      },
-      excerpt: 'Discover the magnificent Luxor Temple, one of Egypt\'s best-preserved ancient temples. Our comprehensive guide covers history, architecture, best visiting times, and insider tips for an unforgettable experience.',
-      contentBlocks: [
-        {
-          type: 'html',
-          content: '<h2>Introduction to Luxor Temple</h2><p>Luxor Temple, known anciently as Ipet Resyt ("The Southern Sanctuary"), stands as one of Egypt\'s most magnificent and well-preserved ancient monuments. Located on the east bank of the Nile River in modern-day Luxor, this stunning temple complex offers visitors an unparalleled glimpse into ancient Egyptian religious architecture and royal power.</p><p>Built primarily during the New Kingdom period, Luxor Temple served as a vital center for the annual Opet Festival, one of ancient Egypt\'s most important religious celebrations. Unlike many other Egyptian temples that were dedicated to specific deities, Luxor Temple was primarily dedicated to the rejuvenation of kingship, making it unique in ancient Egyptian religious architecture.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b3?w=800&h=600&fit=crop',
-              alt: 'Luxor Temple at sunset',
-              caption: 'The magnificent entrance of Luxor Temple bathed in golden sunlight',
-              width: 800,
-              height: 600,
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1548919175-b36508a0b3f8?w=800&h=600&fit=crop',
-              alt: 'Ancient hieroglyphics on temple walls',
-              caption: 'Intricate hieroglyphics telling stories of ancient pharaohs',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'html',
-          content: '<h2>Historical Significance and Construction</h2><p>The construction of Luxor Temple spanned several centuries, with contributions from some of Egypt\'s most famous pharaohs. The temple\'s core was begun by Amenhotep III (1390-1352 BCE) and later expanded by Tutankhamun, Horemheb, and finally Ramesses II, who added the massive pylon entrance and courtyard.</p><p>What makes Luxor Temple particularly significant is its role in the Opet Festival, during which the statues of Amun, Mut, and Khonsu were transported from Karnak Temple to Luxor Temple in a grand procession. This festival celebrated the rejuvenation of the pharaoh\'s divine power and ensured the fertility of the Nile Valley.</p>',
-        },
-        {
-          type: 'blockquote',
-          content: 'Luxor Temple is not just a monument to the gods, but a testament to the enduring legacy of ancient Egyptian civilization. Every stone tells a story of faith, power, and artistic mastery that has captivated visitors for over 3,000 years.',
-          image: '/images/shapes/quote-Icon.png',
-        },
-        {
-          type: 'html',
-          content: '<h2>Architectural Marvels</h2><p>The temple\'s architecture showcases the pinnacle of ancient Egyptian building techniques. The massive first pylon, standing over 24 meters high, is adorned with reliefs depicting Ramesses II\'s military victories. Beyond lies the Great Court of Ramesses II, surrounded by 74 papyrus-bud columns.</p><p>The heart of the temple contains the Colonnade of Amenhotep III, featuring 14 massive columns with intricate papyrus capitals. This area leads to the Sun Court of Amenhotep III and finally to the inner sanctuary, where the sacred barque of the god Amun was housed during festivals.</p>',
-        },
-        {
-          type: 'imageRow',
-          images: [
-            {
-              url: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&h=600&fit=crop',
-              alt: 'Massive temple columns',
-              caption: 'The towering columns showcase ancient Egyptian architectural genius',
-              width: 800,
-              height: 600,
-            },
-          ],
-        },
-        {
-          type: 'html',
-          content: '<h2>Best Time to Visit Luxor Temple</h2><p>For the most enjoyable experience, visit Luxor Temple during the cooler months from October to April. The temple is particularly magical at night when it\'s beautifully illuminated, creating a mystical atmosphere that enhances the ancient stone carvings and statues.</p><p>Early morning visits offer fewer crowds and softer lighting perfect for photography, while evening visits provide a completely different perspective as the setting sun casts golden hues across the ancient stones.</p>',
-        },
-        {
-          type: 'html',
-          content: '<h2>Practical Visitor Information</h2><p><strong>Opening Hours:</strong> Daily from 6:00 AM to 9:00 PM<br><strong>Admission Fees:</strong> Approximately 140 Egyptian Pounds for foreign tourists<br><strong>Recommended Visit Duration:</strong> 2-3 hours<br><strong>Best Photography Times:</strong> Early morning and sunset</p><p>Consider hiring a licensed Egyptologist guide to fully appreciate the temple\'s rich history and symbolism. Audio guides are also available in multiple languages.</p>',
-        },
-        {
-          type: 'html',
-          content: '<h2>Tips for an Unforgettable Visit</h2><ul><li>Wear comfortable walking shoes as you\'ll be covering considerable distance on uneven stone surfaces</li><li>Bring plenty of water, especially during summer months</li><li>Don\'t forget sunscreen and a hat for daytime visits</li><li>Evening visits require a separate ticket but offer a completely different experience</li><li>Consider combining your visit with Karnak Temple, located just 2 kilometers away</li><li>Respect the ancient site by not touching the carvings or climbing on structures</li></ul>',
-        },
-      ],
-      metaTitle: 'Luxor Temple Guide: History & Visiting Tips 2024',
-      metaDescription: 'Ultimate guide to Luxor Temple, Egypt. Discover ancient history, architectural marvels, best visiting times, and insider tips for an unforgettable experience.',
-      metaKeywords: ['luxor temple', 'ancient egypt', 'egyptian temples', 'luxor egypt', 'ancient architecture', 'egypt travel guide', 'opet festival', 'amenhotep iii', 'ramesses ii'],
-      tags: ['Luxor Temple', 'Ancient Egypt', 'Egypt Travel', 'Historical Sites', 'Architecture', 'UNESCO'],
+      metaTitle: { en: 'Luxury Nile Cruise Guide | JES Egypt Tours', de: 'Luxus Nilkreuzfahrt Leitfaden', it: 'Guida Crociera di Lusso sul Nilo', es: 'Guía de Crucero de Lujo por el Nilo' },
+      metaDescription: { en: 'Find out what a luxury Nile river cruise in Egypt is really like, from the food to the ancient temples you visit.', de: 'Finden Sie heraus, wie eine Luxus-Nilkreuzfahrt wirklich ist.', it: 'Scopri com\'è davvero una crociera di lusso sul Nilo.', es: 'Descubra cómo es realmente un crucero de lujo por el Nilo.' },
+      tags: { en: ['Nile Cruise', 'Luxor', 'Aswan'], de: ['Nilkreuzfahrt', 'Luxor', 'Assuan'], it: ['Crociera sul Nilo', 'Luxor', 'Assuan'], es: ['Crucero por el Nilo', 'Luxor', 'Asuán'] },
+      metaKeywords: { en: ['Nile cruise', 'luxury cruise Egypt', 'Luxor to Aswan'], de: ['Nilkreuzfahrt'], it: ['Crociera sul Nilo'], es: ['Crucero por el Nilo'] },
       status: 'published',
       isFeatured: true,
-      publishedAt: new Date('2024-01-25'),
-      focusKeyword: 'luxor temple',
+      publishedAt: new Date('2024-03-10'),
+      focusKeyword: 'luxury nile cruise',
       commentsEnabled: true,
-      viewCount: 2850,
-      comments: [
-        {
-          name: 'Sarah Mitchell',
-          email: 'sarah@example.com',
-          text: 'Absolutely breathtaking! The night illumination creates an otherworldly atmosphere. Our guide was fantastic at explaining the history.',
-          avatar: 'https://ui-avatars.com/api/?name=Sarah+Mitchell',
-          isApproved: true,
-          createdAt: new Date('2024-01-26'),
-        } as any,
-        {
-          name: 'Ahmed Hassan',
-          email: 'ahmed@example.com',
-          text: 'As an Egyptian, I\'m still amazed by the beauty of Luxor Temple. This guide captures its essence perfectly. Highly recommend visiting during the Opet Festival season!',
-          avatar: 'https://ui-avatars.com/api/?name=Ahmed+Hassan',
-          isApproved: true,
-          createdAt: new Date('2024-01-27'),
-        } as any,
-      ],
+      viewCount: 4200,
+      readingTime: 8
     });
 
-    console.log('✅ Created 7 blog posts (4 featured, 3 regular)');
+    // Blog 3: Hidden Gems in Luxor
+    const blog3 = await Blog.create({
+      title: { 
+        en: 'Hidden Gems of Luxor: Beyond the Valley of the Kings', 
+        de: 'Geheimtipps in Luxor: Jenseits des Tals der Könige', 
+        it: 'Gemme nascoste di Luxor: Oltre la Valle dei Re', 
+        es: 'Gemas ocultas de Luxor: Más allá del Valle de los Reyes' 
+      },
+      slug: { 
+        en: 'hidden-gems-luxor-beyond-valley-of-kings', 
+        de: 'geheimtipps-luxor-jenseits-tal-der-koenige', 
+        it: 'gemme-nascoste-luxor-oltre-valle-dei-re', 
+        es: 'gemas-ocultas-luxor-mas-alla-valle-de-los-reyes' 
+      },
+      subCategory: subAncientSites._id,
+      author: admin._id,
+      featuredImage: {
+        url: 'https://images.unsplash.com/photo-1596710642232-05452f1e1ac3?w=1200&h=600&fit=crop',
+        fileName: 'karnak-temple.jpg',
+        title: { en: 'Karnak Temple in Luxor' },
+        alt: { en: 'Massive pillars of Karnak Temple in Luxor' },
+      },
+      excerpt: { 
+        en: 'While the Valley of the Kings steals the spotlight, Luxor’s West Bank harbors incredible hidden monuments that remain crowd-free.', 
+        de: 'Während das Tal der Könige das Rampenlicht stiehlt, beherbergt das Westufer von Luxor unglaubliche versteckte Denkmäler.', 
+        it: 'Mentre la Valle dei Re ruba la scena, la sponda occidentale di Luxor ospita incredibili monumenti nascosti.', 
+        es: 'Mientras que el Valle de los Reyes roba el centro de atención, la orilla oeste de Luxor alberga increíbles monumentos ocultos.' 
+      },
+      contentBlocks: [
+        {
+          type: 'html',
+          content: { 
+            en: '<p>Luxor is often rightfully called the world’s greatest open-air museum. Most tourists queue for the famous tombs in the Valley of the Kings, but just a few miles away lie breathtaking sites where you might be the only visitor.</p><h3>Deir el-Medina: The Workers\' Village</h3><p>Perhaps the most fascinating site on the West Bank is Deir el-Medina. This was the village where the artisans who built the royal tombs lived. Their own tombs are radically different: brightly painted scenes of everyday life, agriculture, and their personal rituals, providing an intimate look at ancient Egyptian society.</p><h3>Medinet Habu</h3><p>Ramses III’s mortuary temple is visually spectacular. Deeply carved reliefs and beautifully preserved original paint on the ceilings make it a photographer’s dream, yet it receives a fraction of the visitors seen at Karnak.</p>', 
+            de: '<p>Luxor wird oft als das größte Freilichtmuseum der Welt bezeichnet. Aber abseits der ausgetretenen Pfade gibt es viel zu sehen.</p>', 
+            it: '<p>Luxor è spesso definita il più grande museo a cielo aperto del mondo. Ma fuori dai sentieri battuti c\'è molto da vedere.</p>', 
+            es: '<p>Luxor a menudo se llama el museo al aire libre más grande del mundo. Pero fuera de los caminos trillados hay mucho que ver.</p>' 
+          },
+        }
+      ],
+      metaTitle: { en: 'Hidden Gems of Luxor | Undiscovered Egypt', de: 'Geheimtipps Luxor', it: 'Gemme Nascoste Luxor', es: 'Gemas Ocultas Luxor' },
+      metaDescription: { en: 'Discover Deir el-Medina, Medinet Habu, and other amazing sites off the beaten path in Luxor.', de: 'Entdecken Sie unbekannte Orte in Luxor.', it: 'Scopri luoghi sconosciuti a Luxor.', es: 'Descubre lugares desconocidos en Luxor.' },
+      tags: { en: ['Luxor', 'Ancient Egypt', 'Temples'], de: ['Luxor', 'Antikes Ägypten', 'Tempel'], it: ['Luxor', 'Antico Egitto', 'Templi'], es: ['Luxor', 'Antiguo Egipto', 'Templos'] },
+      metaKeywords: { en: ['Luxor', 'Deir el-Medina', 'Medinet Habu'], de: ['Luxor'], it: ['Luxor'], es: ['Luxor'] },
+      status: 'published',
+      isFeatured: false,
+      publishedAt: new Date('2024-03-05'),
+      focusKeyword: 'hidden gems luxor',
+      commentsEnabled: true,
+      viewCount: 1850,
+      readingTime: 4
+    });
 
-    // Set related posts
-    blog1.relatedPosts = [blog2._id, blog3._id, blog7._id];
+    // Blog 4: Egyptian Food
+    const blog4 = await Blog.create({
+      title: { 
+        en: 'A Culinary Journey: 7 Must-Try Egyptian Dishes', 
+        de: 'Eine kulinarische Reise: 7 ägyptische Gerichte, die man probieren muss', 
+        it: 'Un viaggio culinario: 7 piatti egiziani da provare assolutamente', 
+        es: 'Un viaje culinario: 7 platos egipcios que debes probar' 
+      },
+      slug: { 
+        en: 'must-try-egyptian-traditional-dishes', 
+        de: 'aegyptische-traditionelle-gerichte', 
+        it: 'piatti-tradizionali-egiziani-da-provare', 
+        es: 'platos-tradicionales-egipcios-que-debes-probar' 
+      },
+      subCategory: subFood._id,
+      author: admin._id,
+      featuredImage: {
+        url: 'https://images.unsplash.com/photo-1627308595229-7830f5c9c66e?w=1200&h=600&fit=crop',
+        fileName: 'egyptian-food.jpg',
+        title: { en: 'Traditional Middle Eastern Spice Market' },
+        alt: { en: 'Spices and culinary ingredients showcasing Egyptian flavors' },
+      },
+      excerpt: { 
+        en: 'From the famous Koshary street food to hearty Molokhia stews, Egyptian cuisine is a rich tapestry of Mediterranean and Middle Eastern flavors.', 
+        de: 'Vom berühmten Koshary Street Food bis zu herzhaften Molokhia Eintöpfen.', 
+        it: 'Dal famoso cibo di strada Koshary ai sostanziosi stufati di Molokhia.', 
+        es: 'Desde la famosa comida callejera Koshary hasta los abundantes guisos de Molokhia.' 
+      },
+      contentBlocks: [
+        {
+          type: 'html',
+          content: { 
+            en: '<p>Egyptian food blends the fresh ingredients of the Mediterranean with the rich spices of the Middle East, resulting in comforting, hearty, and aromatic dishes. When visiting, here are the absolute essentials you must savor.</p><h3>1. Koshary</h3><p>Egypt’s national dish is a carb-heavy delight. A mix of rice, macaroni, and lentils topped with a spiced tomato sauce, garlic vinegar, and crispy fried onions. It’s cheap, entirely vegan, and incredibly filling.</p><h3>2. Ful Medames</h3><p>A staple breakfast dish consisting of slow-cooked fava beans flavored with olive oil, garlic, lemon juice, and cumin. It is often served with warm pita bread.</p><h3>3. Molokhia</h3><p>A deeply historical soup made from minced jute leaves, cooked with a garlic and coriander broth, often served alongside chicken or rabbit and rice.</p>', 
+            de: '<p>Ägyptisches Essen verbindet frische Zutaten aus dem Mittelmeerraum mit reichen Gewürzen. Probieren Sie Koshary und Ful Medames.</p>', 
+            it: '<p>Il cibo egiziano fonde ingredienti freschi con spezie ricche. Prova Koshary e Ful Medames.</p>', 
+            es: '<p>La comida egipcia mezcla ingredientes frescos con ricas especias. Pruebe Koshary y Ful Medames.</p>' 
+          },
+        }
+      ],
+      metaTitle: { en: 'Traditional Egyptian Food Guide', de: 'Ägyptisches Essen Leitfaden', it: 'Guida Cibo Egiziano', es: 'Guía Gastronómica Egipcia' },
+      metaDescription: { en: 'Explore the best local food to eat in Egypt, including Koshary, Ful, and Molokhia.', de: 'Erkunden Sie das beste Essen in Ägypten.', it: 'Esplora il miglior cibo in Egitto.', es: 'Explore la mejor comida en Egipto.' },
+      tags: { en: ['Food', 'Culture', 'Cairo'], de: ['Essen', 'Kultur', 'Kairo'], it: ['Cibo', 'Cultura', 'Il Cairo'], es: ['Comida', 'Cultura', 'El Cairo'] },
+      metaKeywords: { en: ['Egyptian food', 'Koshary', 'local cuisine'], de: ['Ägyptisches Essen'], it: ['Cibo egiziano'], es: ['Comida egipcia'] },
+      status: 'published',
+      isFeatured: false,
+      publishedAt: new Date('2024-03-08'),
+      focusKeyword: 'egyptian food',
+      commentsEnabled: true,
+      viewCount: 2200,
+      readingTime: 5
+    });
+
+    blog1.relatedPosts = [blog2._id, blog3._id, blog4._id];
+    blog2.relatedPosts = [blog1._id, blog3._id];
     await blog1.save();
-
-    blog2.relatedPosts = [blog1._id, blog3._id, blog7._id];
     await blog2.save();
-
-    blog3.relatedPosts = [blog1._id, blog2._id, blog7._id];
     await blog3.save();
-
-    blog4.relatedPosts = [blog5._id, blog6._id, blog7._id];
     await blog4.save();
 
-    blog5.relatedPosts = [blog4._id, blog6._id, blog7._id];
-    await blog5.save();
-
-    blog6.relatedPosts = [blog4._id, blog5._id, blog7._id];
-    await blog6.save();
-
-    blog7.relatedPosts = [blog1._id, blog2._id, blog3._id];
-    await blog7.save();
-
-    console.log('✅ Set related posts');
+    console.log('✅ Created 4 detailed, localized professional blog posts and categories');
 
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✅ Blog seeding completed successfully!');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📊 Summary:');
-    console.log(`   - Featured Blogs: 4`);
-    console.log(`   - Regular Blogs: 3`);
-    console.log(`   - Total Blog Posts: 7`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     process.exit(0);

@@ -23,6 +23,7 @@ import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/E
 import { getLocalizedValue } from "@/lib/localize";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
+import { useTranslation } from 'react-i18next';
 
 // Reuse types from TourListing or define here
 
@@ -30,6 +31,13 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
   const { slug, locale } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, i18n } = useTranslation('tours');
+
+  useEffect(() => {
+    if (i18n.resolvedLanguage !== locale) {
+      i18n.changeLanguage(locale);
+    }
+  }, [locale, i18n]);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [initialLoading, setInitialLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
@@ -176,9 +184,9 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
               videoId: tour.videoLink || "", 
               discount: "", 
               meta: [
-                { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '3 Days'}`, icon: "icon-clock" },
+                { id: 1, title: `${getLocalizedValue(tour.duration, locale) || t('fallback.days')}`, icon: "icon-clock" },
                 { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
-                { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Location", icon: "icon-location" },
+                { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || t('fallback.location'), icon: "icon-location" },
               ]
             };
           });
@@ -202,7 +210,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
         }
       } catch (err: any) {
         console.error("Error fetching data:", err);
-        setError("An error occurred");
+        setError(t('status.errorFetching'));
       } finally {
         setInitialLoading(false);
         setPageLoading(false);
@@ -244,16 +252,16 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
           setOpen(true);
         } else {
           toast({
-            title: "No video reviews",
-            description: "This tour doesn’t have any reflective & honest review videos yet.",
+            title: t('status.noVideoTitle'),
+            description: t('status.noVideoInfo'),
             variant: "info",
           });
         }
       }
     } catch {
       toast({
-        title: "Failed to load videos",
-        description: "Network or server error. Please try again.",
+        title: t('status.failedVideoTitle'),
+        description: t('status.failedVideo'),
         variant: "destructive",
       });
     }
@@ -302,7 +310,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title="Loading..." />
+      <PageHeader title={t('status.loading')} />
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
@@ -317,9 +325,9 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title="Not Found" />
+      <PageHeader title={t('status.notFound')} />
       <div className="flex items-center justify-center min-h-[400px] text-red-500">
-        <h3>{error || "Category not found"}</h3>
+        <h3>{error || t('status.categoryNotFound')}</h3>
       </div>
       <FooterOne />
     </Layout>
@@ -335,7 +343,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
       <PageHeader
         title={getLocalizedValue(category.name, locale)}
         breadcrumbs={[
-          { label: 'Destination', href: '/tours' },
+          { label: t('breadcrumb.destination'), href: '/tours' },
           { label: getLocalizedValue(category.name, locale) }
         ]}
       />
@@ -425,28 +433,28 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                 <div>
                   <div className='listing__sidebar__item__inner' style={{ borderRadius: 14, border: "1px solid #eee", background: "#fff" }}>
                     <div style={{ padding: 18, borderBottom: "1px solid #f0f0f0" }}>
-                      <h3 className='listing__sidebar__title' style={{ margin: 0 }}>Filters</h3>
+                      <h3 className='listing__sidebar__title' style={{ margin: 0 }}>{t('filters.title')}</h3>
                     </div>
 
                     <div style={{ padding: 18, display: "grid", gap: 14 }}>
                       <div>
-                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Search</label>
+                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.search')}</label>
                         <input
                           className='form-control'
                           value={draftFilters.search}
                           onChange={(e) => setDraftFilters((p) => ({ ...p, search: e.target.value }))}
-                          placeholder="Search tours"
+                          placeholder={t('filters.searchPlaceholder')}
                         />
                       </div>
 
                       <div>
-                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Subcategory</label>
+                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.subcategory')}</label>
                         <select
                           className='form-select'
                           value={draftFilters.subcategoryId}
                           onChange={(e) => setDraftFilters((p) => ({ ...p, subcategoryId: e.target.value }))}
                         >
-                          <option value="">All</option>
+                          <option value="">{t('filters.all')}</option>
                           {subcategories.map((s: any) => (
                             <option key={s._id} value={s._id}>{getLocalizedValue(s.name, locale)}</option>
                           ))}
@@ -455,7 +463,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
 
                       <div className='row g-2 align-items-end'>
                         <div className='col-6'>
-                          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Min Price</label>
+                          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.minPrice')}</label>
                           <div className='input-group'>
                             <span className='input-group-text'>$</span>
                             <input
@@ -468,7 +476,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                           </div>
                         </div>
                         <div className='col-6'>
-                          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Max Price</label>
+                          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.maxPrice')}</label>
                           <div className='input-group'>
                             <span className='input-group-text'>$</span>
                             <input
@@ -483,29 +491,29 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                       </div>
 
                       <div>
-                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Tour Type</label>
+                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourType')}</label>
                         <select
                           className='form-select'
                           value={draftFilters.tourType}
                           onChange={(e) => setDraftFilters((p) => ({ ...p, tourType: e.target.value }))}
                         >
-                          <option value="">All</option>
-                          {tourTypeOptions.map((t) => (
-                            <option key={t} value={t}>{t}</option>
+                          <option value="">{t('filters.all')}</option>
+                          {tourTypeOptions.map((tOp) => (
+                            <option key={tOp} value={tOp}>{tOp}</option>
                           ))}
                         </select>
                       </div>
 
                       <div>
-                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Tour Style</label>
+                        <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourStyle')}</label>
                         <select
                           className='form-select'
                           value={draftFilters.tourStyle}
                           onChange={(e) => setDraftFilters((p) => ({ ...p, tourStyle: e.target.value }))}
                         >
-                          <option value="">All</option>
-                          {tourStyleOptions.map((t) => (
-                            <option key={t} value={t}>{t}</option>
+                          <option value="">{t('filters.all')}</option>
+                          {tourStyleOptions.map((tOp) => (
+                            <option key={tOp} value={tOp}>{tOp}</option>
                           ))}
                         </select>
                       </div>
@@ -520,7 +528,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                             className='gotur-btn'
                             style={{ width: "100%" }}
                           >
-                            Apply
+                            {t('filters.apply')}
                           </button>
                         </div>
                         <div className='col-6'>
@@ -530,7 +538,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                             className='gotur-btn'
                             style={{ width: "100%", background: "transparent", color: "#111", border: "1px solid #e5e5e5" }}
                           >
-                            Reset
+                            {t('filters.reset')}
                           </button>
                         </div>
                       </div>
@@ -545,34 +553,34 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                 <div style={{ fontSize: 14, color: "#666" }}>
                   {appliedFilters.search || appliedFilters.minPrice || appliedFilters.maxPrice || appliedFilters.subcategoryId || appliedFilters.tourType || appliedFilters.tourStyle ? (
                     <span>
-                      Showing results with filters
+                      {t('listing.showingWithFilters')}
                       <button
                         type="button"
                         onClick={handleResetFilters}
                         style={{ marginLeft: 10, background: "none", border: "none", color: "#b79c5c", fontWeight: 700 }}
                       >
-                        Clear
+                        {t('listing.clear')}
                       </button>
                     </span>
                   ) : (
-                    <span>Showing all tours</span>
+                    <span>{t('listing.showingAll')}</span>
                   )}
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>Sort by</span>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>{t('listing.sortBy')}</span>
                   <select
                     value={sort}
                     onChange={(e) => handleSortChange(e.target.value)}
                     style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e5e5", background: "#fff", minWidth: 220 }}
                   >
-                    <option value="-createdAt">Newest</option>
-                    <option value="createdAt">Oldest</option>
-                    <option value="-viewCount">Most Viewed</option>
-                    <option value="heading">Name A-Z</option>
-                    <option value="tourLocation">Location A-Z</option>
-                    <option value="priceStartingFrom">Price (Low to High)</option>
-                    <option value="-priceStartingFrom">Price (High to Low)</option>
+                    <option value="-createdAt">{t('listing.sortOptions.newest')}</option>
+                    <option value="createdAt">{t('listing.sortOptions.oldest')}</option>
+                    <option value="-viewCount">{t('listing.sortOptions.mostViewed')}</option>
+                    <option value="heading">{t('listing.sortOptions.nameAsc')}</option>
+                    <option value="tourLocation">{t('listing.sortOptions.locationAsc')}</option>
+                    <option value="priceStartingFrom">{t('listing.sortOptions.priceAsc')}</option>
+                    <option value="-priceStartingFrom">{t('listing.sortOptions.priceDesc')}</option>
                   </select>
                 </div>
               </div>
@@ -595,7 +603,7 @@ export default function TourCategoryPage({ params }: { params: Promise<{ locale:
                     ))
                 ) : (
                     <div className="flex items-center justify-center min-h-[200px] w-full">
-                        <p className="text-xl text-gray-500">No tours found in this category.</p>
+                        <p className="text-xl text-gray-500">{t('listing.noToursCategory')}</p>
                     </div>
                 )}
 

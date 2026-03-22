@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { getLocalizedValue } from "@/lib/localize";
 import TourCard from "@/components/common/TourCard/TourCard";
+import { useTranslation } from "react-i18next";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -61,6 +62,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
 
   const { locale } = useParams() as { locale: string };
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { t } = useTranslation('search');
 
   // Filter options state
   const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
@@ -92,16 +94,16 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           setOpen(true);
         } else {
           toast({
-            title: "No video reviews",
-            description: "This tour doesn’t have any reflective & honest review videos yet.",
+            title: t('noVideoReviews'),
+            description: t('noVideoReviewsDesc'),
             variant: "info",
           });
         }
       }
     } catch {
       toast({
-        title: "Failed to load videos",
-        description: "Network or server error. Please try again.",
+        title: t('failedVideos'),
+        description: t('failedVideosDesc'),
         variant: "destructive",
       });
     }
@@ -322,7 +324,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
               <div className="input-group shadow-sm rounded-pill overflow-hidden border bg-white">
                 <input
                   className="form-control border-0 px-4"
-                  placeholder="Universal keyword search..."
+                  placeholder={t('searchPlaceholder')}
                   value={draftFilters.q}
                   onChange={(e) => setDraftFilters(p => ({ ...p, q: e.target.value }))}
                   onKeyDown={(e) => {
@@ -337,7 +339,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                   onClick={handleApplyFilters}
                 >
                   <i className="icon-search me-2"></i>
-                  Search
+                  {t('searchBtn')}
                 </button>
               </div>
             </div>
@@ -350,31 +352,31 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             <aside className="listing__sidebar">
               <div className="listing__sidebar__item__inner" style={{ borderRadius: 14, border: "1px solid #eee", background: "#fff", position: 'sticky', top: 100 }}>
                 <div style={{ padding: 18, borderBottom: "1px solid #f0f0f0" }}>
-                  <h3 className="listing__sidebar__title" style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Filter Results</h3>
+                  <h3 className="listing__sidebar__title" style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{t('filterResults')}</h3>
                 </div>
 
                 <div style={{ padding: 18, display: "grid", gap: 16 }}>
                   {/* TOURS FILTER SECTION */}
                   <div className="filter-group">
-                    <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>Experiences</h4>
+                    <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>{t('experiences')}</h4>
                     
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">Sort Tours By</label>
+                      <label className="form-label font-weight-bold small">{t('sortToursBy')}</label>
                       <select
                         className="form-select form-select-sm"
                         value={draftFilters.sort}
                         onChange={(e) => setDraftFilters(p => ({ ...p, sort: e.target.value }))}
                       >
-                        <option value="-createdAt">Newest</option>
-                        <option value="-viewCount">Popularity</option>
-                        <option value="priceStartingFrom">Price: Low to High</option>
-                        <option value="-priceStartingFrom">Price: High to Low</option>
+                        <option value="-createdAt">{t('newest')}</option>
+                        <option value="-viewCount">{t('popularity')}</option>
+                        <option value="priceStartingFrom">{t('priceLowToHigh')}</option>
+                        <option value="-priceStartingFrom">{t('priceHighToLow')}</option>
                       </select>
                     </div>
 
                     <div className="row g-2 mb-3">
                        <div className="col-6">
-                         <label className="form-label font-weight-bold small">Min $</label>
+                         <label className="form-label font-weight-bold small">{t('minPrice')}</label>
                          <input
                             type="number"
                             className="form-control form-control-sm"
@@ -384,7 +386,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                           />
                        </div>
                        <div className="col-6">
-                         <label className="form-label font-weight-bold small">Max $</label>
+                         <label className="form-label font-weight-bold small">{t('maxPrice')}</label>
                          <input
                             type="number"
                             className="form-control form-control-sm"
@@ -396,13 +398,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">Tour Type</label>
+                      <label className="form-label font-weight-bold small">{t('tourType')}</label>
                       <select
                         className="form-select form-select-sm"
                         value={draftFilters.tourType}
                         onChange={(e) => setDraftFilters(p => ({ ...p, tourType: e.target.value }))}
                       >
-                        <option value="">Any Type</option>
+                        <option value="">{t('anyType')}</option>
                         {tourTypeOptions.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
@@ -410,13 +412,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">Tour Style</label>
+                      <label className="form-label font-weight-bold small">{t('tourStyle')}</label>
                       <select
                         className="form-select form-select-sm"
                         value={draftFilters.tourStyle}
                         onChange={(e) => setDraftFilters(p => ({ ...p, tourStyle: e.target.value }))}
                       >
-                        <option value="">Any Style</option>
+                        <option value="">{t('anyStyle')}</option>
                         {tourStyleOptions.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
@@ -428,16 +430,16 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
 
                   {/* BLOGS FILTER SECTION */}
                   <div className="filter-group">
-                    <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>Knowledge</h4>
+                    <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>{t('knowledge')}</h4>
                     
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">Blog Category</label>
+                      <label className="form-label font-weight-bold small">{t('blogCategory')}</label>
                       <select
                         className="form-select form-select-sm"
                         value={draftFilters.blogSubCategory}
                         onChange={(e) => setDraftFilters(p => ({ ...p, blogSubCategory: e.target.value }))}
                       >
-                        <option value="">All Articles</option>
+                        <option value="">{t('allArticles')}</option>
                         {subCategories.map(sc => (
                           <option key={sc._id} value={sc._id}>{getLocalizedValue(sc.name, locale)}</option>
                         ))}
@@ -445,14 +447,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">Sort Blogs By</label>
+                      <label className="form-label font-weight-bold small">{t('sortBlogsBy')}</label>
                       <select
                         className="form-select form-select-sm"
                         value={draftFilters.blogSort}
                         onChange={(e) => setDraftFilters(p => ({ ...p, blogSort: e.target.value }))}
                       >
-                        <option value="newest">Newest First</option>
-                        <option value="popular">Most Popular</option>
+                        <option value="newest">{t('newestFirst')}</option>
+                        <option value="popular">{t('mostPopular')}</option>
                       </select>
                     </div>
                   </div>
@@ -466,7 +468,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                         onClick={handleApplyFilters}
                         style={{ height: 42, fontSize: 14 }}
                       >
-                        Apply Filters
+                        {t('applyFilters')}
                       </button>
                     </div>
                     <div className="col-4">
@@ -475,7 +477,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                         onClick={handleResetFilters}
                         style={{ height: 42, fontSize: 14, background: "transparent", color: "#111", border: "1px solid #ddd" }}
                       >
-                        Reset
+                        {t('reset')}
                       </button>
                     </div>
                   </div>
@@ -489,8 +491,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             {/* TOURS RESULTS */}
             <div className="results-wrapper mb-5 pb-5">
               <div className="d-flex align-items-center justify-content-between mb-4">
-                <h2 className="section-title mb-0" style={{ fontSize: 24 }}>Experiences Found</h2>
-                {tours.length > 0 && <span className="badge bg-light text-dark px-3 py-2 rounded-pill border">Showing {tours.length} results</span>}
+                <h2 className="section-title mb-0" style={{ fontSize: 24 }}>{t('experiencesFound')}</h2>
+                {tours.length > 0 && <span className="badge bg-light text-dark px-3 py-2 rounded-pill border">{t('showingResults', { count: tours.length })}</span>}
               </div>
 
               {toursLoading ? (
@@ -502,7 +504,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
               ) : tours.length === 0 ? (
                 <div className="text-center py-5 border rounded bg-light shadow-inner">
                   <i className="icon-search h1 text-muted d-block opacity-25"></i>
-                  <p className="mt-3 text-muted">No experiences match your specific filters.</p>
+                  <p className="mt-3 text-muted">{t('noExperiences')}</p>
                 </div>
               ) : (
                 <>
@@ -532,8 +534,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             {/* BLOGS RESULTS */}
             <div className="results-wrapper mt-5 pt-5 border-top">
               <div className="d-flex align-items-center justify-content-between mb-4">
-                <h2 className="section-title mb-0" style={{ fontSize: 24 }}>From Our Blog</h2>
-                {blogs.length > 0 && <span className="badge bg-light text-dark px-3 py-2 rounded-pill border">Showing {blogs.length} articles</span>}
+                <h2 className="section-title mb-0" style={{ fontSize: 24 }}>{t('fromOurBlog')}</h2>
+                {blogs.length > 0 && <span className="badge bg-light text-dark px-3 py-2 rounded-pill border">{t('showingArticles', { count: blogs.length })}</span>}
               </div>
 
               {blogsLoading ? (
@@ -545,7 +547,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
               ) : blogs.length === 0 ? (
                 <div className="text-center py-5 border rounded bg-light shadow-inner">
                   <i className="icon-search h1 text-muted d-block opacity-25"></i>
-                  <p className="mt-3 text-muted">No articles found matching this search.</p>
+                  <p className="mt-3 text-muted">{t('noArticles')}</p>
                 </div>
               ) : (
                 <>

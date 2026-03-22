@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 
 
 const BlogSidebar: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -86,7 +86,7 @@ const BlogSidebar: React.FC = () => {
         date: dateLabel,
         image,
         imageAlt,
-        link: `/blogs/${post.slug}`,
+        link: `/blogs/${getLocalizedValue(post.slug, currentLocale)}`,
       };
     });
   }, [recentPosts]);
@@ -100,7 +100,7 @@ const BlogSidebar: React.FC = () => {
           data-wow-duration='1500ms'
           data-wow-delay='500ms'
         >
-          <h4 className='sidebar__title'>Recent Posts</h4>
+          <h4 className='sidebar__title'>{t('recentPosts')}</h4>
           <ul className='sidebar__posts list-unstyled'>
             {recentPostsViewModel.length > 0 ? (
               recentPostsViewModel.map((post, index) => (
@@ -134,7 +134,7 @@ const BlogSidebar: React.FC = () => {
               ))
             ) : (
               <li className='sidebar__posts__item'>
-                <p className='text-gray-500 text-sm'>No recent posts yet.</p>
+                <p className='text-gray-500 text-sm'>{t('noRecentPosts')}</p>
               </li>
             )}
           </ul>
@@ -147,7 +147,7 @@ const BlogSidebar: React.FC = () => {
             data-wow-duration='1500ms'
             data-wow-delay='500ms'
           >
-            <h4 className='sidebar__title'>Tags</h4>
+            <h4 className='sidebar__title'>{t('tags')}</h4>
             <div className='sidebar__tags'>
               {tags.map((tag, index) => (
                 <Link

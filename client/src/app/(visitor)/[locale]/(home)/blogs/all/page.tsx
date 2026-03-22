@@ -1,7 +1,7 @@
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import Layout from "@/components/layout/Layout/Layout";
-import PageHeader from "@/components/sections/PageHeader/PageHeader";
+import LocalizedPageHeader from "@/components/sections/PageHeader/LocalizedPageHeader";
 import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
 import { getAllBlogs } from "@/lib/api/blog";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -27,7 +27,7 @@ export default async function AllBlogsPage({
       <TopbarOne/>
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title='All Blog Posts' subTitle='Blog' />
+      <LocalizedPageHeader namespace="blogs" titleKey="allNews" subTitleKey="ourBlog" />
       <DynamicBlogGrid 
         blogs={blogsData.data} 
         pagination={blogsData.pagination}

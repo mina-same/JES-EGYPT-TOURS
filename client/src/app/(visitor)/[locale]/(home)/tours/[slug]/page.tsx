@@ -49,7 +49,8 @@ export async function generateMetadata({
 
     const tour = res.data;
     const title = tour.metaTitle?.[locale as any] || tour.heading?.[locale as any] || tour.name || "Tour Details";
-    const description = tour.metaDescription?.[locale as any] || tour.overview?.replace(/<[^>]*>/g, "").substring(0, 160);
+    const rawDesc = tour.metaDescription?.[locale as any] || tour.overview || "";
+    const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
     const image = tour.featuredImage?.url || tour.sliderImages?.[0];
 
     return {

@@ -1,0 +1,17 @@
+{
+  "pageTitle": "Merkzettel",
+  "pageSubTitle": "Ihre gespeicherten Touren",
+  "loading": "Wird geladen...",
+  "error": "Fehler beim Laden des Merkzettels",
+  "emptyTitle": "Ihr Merkzettel ist leer",
+  "emptyText": "Es sieht so aus, als hätten Sie noch keine Touren gespeichert. Entdecken Sie unsere erstklassigen Touren und finden Sie Ihr nächstes Abenteuer!",
+  "browseTours": "Touren durchsuchen",
+  "flexible": "Flexibel",
+  "location": "Ort",
+  "review": "Bewertung",
+  "startFrom": "Ab",
+  "viewTour": "Tour ansehen",
+  "more": "Mehr",
+  "tours": "Touren",
+  "youMayAlsoLike": "Das könnte Ihnen auch gefallen"
+}

@@ -1,0 +1,133 @@
+{
+  "metaTitle": "Experiencias de viaje a medida | JES Egypt Tours",
+  "metaDescription": "Cree su aventura egipcia perfecta con nuestros paquetes de vacaciones a medida.",
+  "pageTitle": "Experiencias de viaje a medida",
+  "pageSubTitle": "A medida",
+  "hero": {
+    "title": "Cree su aventura egipcia perfecta",
+    "subtitle": "Cree su aventura egipcia perfecta con nuestros expertos en viajes. Cada detalle diseñado para coincidir con sus sueños."
+  },
+  "features": {
+    "personalizedItinerary": {
+      "title": "Itinerario personalizado",
+      "text": "Viajes diseñados a medida basados en sus preferencias"
+    },
+    "expertTeam": {
+      "title": "Equipo experto",
+      "text": "Especialistas en viajes profesionales con experiencia local"
+    },
+    "alwaysSupport": {
+      "title": "Soporte 24/7",
+      "text": "Asistencia las 24 horas durante todo su viaje"
+    },
+    "awardWinning": {
+      "title": "Premiado",
+      "text": "Excelencia en TripAdvisor"
+    }
+  },
+  "form": {
+    "header": {
+      "title": "Planifique el viaje de sus sueños",
+      "subtitle": "Comparta sus preferencias y elaboraremos su aventura perfecta."
+    },
+    "steps": {
+      "1": "Información personal",
+      "2": "Detalles del viaje",
+      "3": "Preferencias de viaje",
+      "4": "Requisitos especiales"
+    },
+    "fields": {
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "phone": "Número de teléfono",
+      "country": "País de residencia",
+      "travelDates": "Fechas de viaje",
+      "duration": "Duración del viaje",
+      "accommodation": "Preferencia de alojamiento",
+      "travelers": "Número de viajeros",
+      "budgetRange": "Presupuesto (por persona)",
+      "minBudget": "Presupuesto mínimo",
+      "maxBudget": "Presupuesto máximo",
+      "specialOccasions": "Ocasiones especiales",
+      "interestsActivities": "Intereses y actividades",
+      "dietaryRequirements": "Requisitos dietéticos",
+      "mobilityRequirements": "Requisitos de movilidad",
+      "additionalComments": "Comentarios adicionales"
+    },
+    "placeholders": {
+      "fullName": "Ingrese su nombre completo",
+      "email": "su.email@ejemplo.com",
+      "phone": "+1 (555) 000-0000",
+      "country": "Seleccione su país",
+      "month": "Mes",
+      "year": "Año",
+      "duration": "ej., 7 días",
+      "accommodation": "Seleccionar preferencia",
+      "specialOccasion": "Seleccionar si aplica",
+      "dietary": "ej., Vegetariano, Halal",
+      "mobility": "Necesidades de accesibilidad",
+      "comments": "Cuéntenos más sobre el viaje de sus sueños..."
+    },
+    "buttons": {
+      "submit": "Enviar mi solicitud de viaje",
+      "submitting": "Enviando..."
+    },
+    "labels": {
+      "adults": "Adultos",
+      "children": "Niños",
+      "infants": "Bebés",
+      "childrenAge": "(6-12 años)",
+      "infantsAge": "(1-6 años)",
+      "to": "a",
+      "selectCountry": "Seleccione su país"
+    },
+    "errors": {
+      "fillAllFields": "Complete todos los campos requeridos correctamente",
+      "fullNameRequired": "El nombre completo es requerido",
+      "nameMinLength": "El nombre debe tener al menos 2 caracteres",
+      "emailRequired": "El correo es requerido",
+      "invalidEmail": "Proporcione un correo válido",
+      "countryRequired": "El país es requerido",
+      "startMonthRequired": "El mes de inicio es requerido",
+      "startYearRequired": "El año de inicio es requerido",
+      "endMonthRequired": "El mes de fin es requerido",
+      "endYearRequired": "El año de fin es requerido",
+      "adultRequired": "Se requiere al menos un adulto",
+      "commentsRequired": "Los comentarios adicionales son requeridos",
+      "commentsMaxLength": "Los comentarios no pueden exceder 2000 caracteres",
+      "networkError": "Error de red. Verifique su conexión."
+    },
+    "success": {
+      "requestSubmitted": "Su solicitud de viaje ha sido enviada con éxito.",
+      "failFallback": "Error al enviar su solicitud. Inténtelo de nuevo."
+    }
+  },
+  "submitInfo": {
+    "quickResponse": {
+      "title": "Respuesta rápida",
+      "text": "Nuestros especialistas se comunicarán en 24 horas"
+    },
+    "personalizedItinerary": {
+      "title": "Itinerario personalizado",
+      "text": "Reciba una propuesta adaptada a sus preferencias"
+    }
+  },
+  "sidebar": {
+    "whyChooseUs": {
+      "title": "¿Por qué elegirnos?",
+      "features": {
+        "0": "Consultor de viajes personal",
+        "1": "Soporte 24/7",
+        "2": "Consulta gratuita",
+        "3": "Totalmente personalizable",
+        "4": "Mejor precio garantizado",
+        "5": "Experiencias seleccionadas"
+      }
+    },
+    "needHelp": {
+      "title": "¿Necesita ayuda?",
+      "subtitle": "Hable con nuestros expertos",
+      "note": "Disponible 24/7 para asistirle"
+    }
+  }
+}

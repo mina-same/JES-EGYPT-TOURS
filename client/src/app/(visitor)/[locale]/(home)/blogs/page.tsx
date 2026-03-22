@@ -25,7 +25,7 @@ interface BlogCategoryWithSubs {
 }
 
 export default function BlogCategoriesPage() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
   const [categories, setCategories] = useState<BlogCategoryWithSubs[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ export default function BlogCategoriesPage() {
         <TopbarOne />
         <HeaderOne linkTheme="light" />
         <HeaderOneCloned />
-        <PageHeader title="Blog Categories" subTitle="Browse Articles" />
+        <PageHeader title={t('blogCategoriesTitle')} subTitle={t('browseArticles')} />
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
         </div>
@@ -85,13 +85,13 @@ export default function BlogCategoriesPage() {
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title="Blog Categories" subTitle="Explore our Stories" />
+      <PageHeader title={t('blogCategoriesTitle')} subTitle={t('exploreStories')} />
       
       <section className="blog-category-directory section-space">
         <Container>
           <div className="section-title text-center mb-5">
-            <span className="section-title__tagline">Knowledge Base</span>
-            <h2 className="section-title__title">Explore by Topics</h2>
+            <span className="section-title__tagline">{t('knowledgeBase')}</span>
+            <h2 className="section-title__title">{t('exploreByTopics')}</h2>
           </div>
 
           <Row className="gutter-y-30">
@@ -104,7 +104,7 @@ export default function BlogCategoriesPage() {
                          <Link href={`/blogs/category/${getLocalizedValue(category.slug, currentLocale)}`}>{getLocalizedValue(category.name, currentLocale)}</Link>
                        </h3>
 
-                       <span className="blog-cat-card__count">{category.subcategories.length} Topics</span>
+                       <span className="blog-cat-card__count">{category.subcategories.length} {t('topics')}</span>
                     </div>
                     
                     {category.description && (
@@ -129,7 +129,7 @@ export default function BlogCategoriesPage() {
                     </div>
 
                     <Link href={`/blogs/category/${getLocalizedValue(category.slug, currentLocale)}`} className="blog-cat-card__btn mt-4">
-                      Explore Articles <ChevronRight className="w-4 h-4" />
+                      {t('exploreArticles')} <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function BlogCategoriesPage() {
 
           <div className="text-center mt-5">
             <Link href="/blogs/all" className="gotur-btn">
-               View All News
+               {t('viewAllNews')}
                <span className="icon"><i className="icon-right"></i></span>
             </Link>
           </div>

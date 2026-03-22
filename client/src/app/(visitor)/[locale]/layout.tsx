@@ -21,24 +21,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
 
-  const languages: Record<string, string> = {};
-  locales.forEach((l) => {
-    languages[l] = `${baseUrl}/${l}`;
-  });
-
   return {
-    alternates: {
-      canonical: `${baseUrl}/${locale}`,
-      languages: {
-        ...languages,
-        "x-default": `${baseUrl}/en`,
-      },
-    },
+    metadataBase: new URL(baseUrl),
     icons: {
       icon: "/favicon-logo.png",
       apple: "/favicon-logo.png",
     },
-    robots: "noindex, nofollow",
+    robots: {
+      index: false,
+      follow: false,
+    },
   };
 }
 
@@ -68,7 +60,6 @@ export default async function RootLayout({
   return (
     <html lang={locale || 'en'} suppressHydrationWarning>
       <head>
-        <meta name="robots" content="noindex, nofollow" />
       </head>
       <body className={`${jakartaSans.variable} ${justAnotherHand.variable}`} suppressHydrationWarning>
         <Script

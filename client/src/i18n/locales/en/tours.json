@@ -1,0 +1,113 @@
+{
+  "filters": {
+    "title": "Filters",
+    "search": "Search",
+    "searchPlaceholder": "Search tours",
+    "subcategory": "Subcategory",
+    "all": "All",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "tourType": "Tour Type",
+    "tourStyle": "Tour Style",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
+  "listing": {
+    "showingWithFilters": "Showing results with filters",
+    "showingAll": "Showing all tours",
+    "clear": "Clear",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "mostViewed": "Most Viewed",
+      "nameAsc": "Name A-Z",
+      "locationAsc": "Location A-Z",
+      "priceAsc": "Price (Low to High)",
+      "priceDesc": "Price (High to Low)"
+    },
+    "noToursCategory": "No tours found in this category.",
+    "noToursSubcategory": "No tours found in this subcategory."
+  },
+  "status": {
+    "loading": "Loading...",
+    "notFound": "Not Found",
+    "categoryNotFound": "Category not found",
+    "subcategoryNotFound": "Subcategory not found",
+    "noVideoInfo": "This tour doesn’t have any reflective & honest review videos yet.",
+    "noVideoTitle": "No video reviews",
+    "failedVideo": "Network or server error. Please try again.",
+    "failedVideoTitle": "Failed to load videos",
+    "errorFetching": "An error occurred"
+  },
+  "breadcrumb": {
+    "destination": "Destination",
+    "category": "Category"
+  },
+  "fallback": {
+    "days": "3 Days",
+    "location": "Location"
+  },
+  "tourDetails": {
+    "reviewSuccess": "Review submitted successfully! It will appear after approval.",
+    "reviewFail": "Failed to submit review.",
+    "bookConfidence": "Book With Confidence",
+    "bookConfidenceDesc": "Your trusted partner for unforgettable Egyptian adventures",
+    "features": {
+      "monthly": "Pay Monthly",
+      "support": "24/7 Support",
+      "prices": "Best Prices",
+      "rating": "Rated 5* Stars",
+      "fast": "Fast Booking"
+    },
+    "nav": {
+      "description": "Description",
+      "tourPlan": "Tour Plan",
+      "amenities": "Tour Amenities",
+      "pricing": "Pricing Plans",
+      "gallery": "Tour Gallery",
+      "brochure": "Download Brochure",
+      "faq": "Tour FAQ",
+      "honestReviews": "Reflective & Honest Reviews",
+      "reviews": "Tour Reviews"
+    },
+    "highlightList": "Highlight List",
+    "amenitiesTitle": "Tour Amenities",
+    "amenitiesSubtitle": "Comprehensive list of what's provided for your comfortable journey.",
+    "included": "What's Included",
+    "notIncluded": "What's Not Included",
+    "empty": {
+      "amenitiesTitle": "No Amenities Information",
+      "amenitiesDesc": "There are currently no amenities or inclusions/exclusions listed for this tour.",
+      "pricingTitle": "No Pricing Plans Available",
+      "pricingDesc": "There are currently no pricing plans available for this tour.",
+      "galleryTitle": "No Gallery Images",
+      "galleryDesc": "This tour currently has no gallery images available.",
+      "faqTitle": "No FAQs Available",
+      "faqDesc": "There are currently no frequently asked questions for this tour."
+    },
+    "pricingTitle": "Tour Pricing",
+    "pricingSubtitle": "Find the perfect package that suits your budget and preferences.",
+    "galleryTitle": "Tour Gallery",
+    "gallerySubtitle": "A visual journey through the amazing places you will visit.",
+    "faqTitle": "Frequently Asked Questions",
+    "faqSubtitle": "Common questions and answers to help you prepare.",
+    "honestReviewsTitle": "Reflective & Honest Reviews",
+    "honestReviewsSubtitle": "Watch real experiences from travelers on YouTube.",
+    "openYoutube": "Open on YouTube",
+    "relatedTours": {
+      "title": "Related Tours",
+      "span": "Tours",
+      "subtitle": "You might also like those tour"
+    },
+    "moreTours": {
+      "title": "More",
+      "span": "Tours",
+      "subtitle": "Discover more amazing experiences"
+    },
+    "partners": {
+      "title": "Our Travel Partners",
+      "subtitle": "We collaborate with trusted local and international travel partners"
+    }
+  }
+}

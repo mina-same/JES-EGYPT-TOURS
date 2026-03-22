@@ -19,7 +19,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   blog, 
   showSidebar = 'right' 
 }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("blogs");
   const locale = (i18n.language || 'en');
 
   const [commentForm, setCommentForm] = useState({
@@ -240,7 +240,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                         <span className='blog-card__meta__icon'>
                           <i className='icon-user'></i>
                         </span>
-                        By {author}
+                        {t('by')} {author}
                       </Link>
                     </li>
                     <li>
@@ -248,7 +248,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                         <span className='blog-details-card__meta__icon'>
                           <i className='icon-massage'></i>
                         </span>
-                        {approvedComments.length} Comments
+                        {approvedComments.length} {t('comments')}
                       </Link>
                     </li>
                     {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
@@ -288,7 +288,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     data-wow-delay='300ms'
                     data-wow-duration='1500ms'
                   >
-                    <h4 className='blog-details__meta__title'>Tags:</h4>
+                    <h4 className='blog-details__meta__title'>{t('tags')}</h4>
                     <div className='blog-details__categories__box'>
                       {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
                         <Link
@@ -310,7 +310,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     data-wow-duration='1500ms'
                   >
                     <h4 className='blog-details__meta__title'>
-                      Share with friends:
+                      {t('shareFriends')}
                     </h4>
                     <div className='blog-details__social__box'>
                       <Link href='https://facebook.com'>
@@ -333,7 +333,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               {/* Comments */}
               {blog.commentsEnabled && approvedComments.length > 0 && (
                 <div className='comments-one'>
-                  <h3 className='comments-one__title'>Comments</h3>
+                  <h3 className='comments-one__title'>{t('comments')}</h3>
                   <ul className='list-unstyled comments-one__list'>
                     {approvedComments.map((comment, index) => (
                       <li

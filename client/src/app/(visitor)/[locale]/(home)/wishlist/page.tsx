@@ -9,11 +9,14 @@ import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI } from "@/lib/api/tour";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Heart } from "lucide-react";
 import { Col, Container, Row } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import Image from "next/image";
 import Link from "next/link";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
+
+import { use } from "react";
 
 type WishlistTour = {
   _id: string;
@@ -34,7 +37,16 @@ type WishlistTour = {
     | any;
 };
 
-export default function WishlistPage() {
+export default function WishlistPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = use(params);
+  const { t, i18n } = useTranslation('wishlist');
+  
+  useEffect(() => {
+    if (i18n.resolvedLanguage !== locale) {
+      i18n.changeLanguage(locale);
+    }
+  }, [locale, i18n]);
+
   const { wishlist, toggleWishlist } = useWishlist();
   const [loading, setLoading] = useState(false);
   const [tours, setTours] = useState<WishlistTour[]>([]);
@@ -136,7 +148,7 @@ export default function WishlistPage() {
         if (active) setRecommended(mapped);
       } catch {
         if (!active) return;
-        setError("Failed to load wishlist");
+        setError(t('error'));
       } finally {
         if (active) setLoading(false);
       }
@@ -161,7 +173,7 @@ export default function WishlistPage() {
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title="Wishlist" subTitle="Your Saved Tours" />
+      <PageHeader title={t('pageTitle')} subTitle={t('pageSubTitle')} />
 
       <section className="section-space">
         <Container>
@@ -174,10 +186,14 @@ export default function WishlistPage() {
               {error}
             </div>
           ) : tours.length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
-              <p className="text-lg text-gray-600">Your wishlist is empty.</p>
-              <Link href="/tours" className="gotur-btn">
-                Browse Tours
+            <div className="flex flex-col items-center justify-center py-16 px-4 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm gap-4 my-8">
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-2">
+                <Heart size={40} className="text-red-400" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 m-0">{t('emptyTitle')}</h3>
+              <p className="text-lg text-gray-500 max-w-md text-center m-0 mb-4">{t('emptyText')}</p>
+              <Link href="/tours" className="gotur-btn gotur-btn--base">
+                {t('browseTours')} <i className="icon-right ml-2"></i>
               </Link>
             </div>
           ) : (
@@ -230,7 +246,7 @@ export default function WishlistPage() {
                             <span className="listing-card-four__meta__icon">
                               <i className="icon-clock"></i>
                             </span>
-                            {tour.duration || "Flexible"}
+                            {tour.duration || t('flexible')}
                           </li>
                           <li>
                             <span className="listing-card-four__meta__icon">
@@ -242,12 +258,12 @@ export default function WishlistPage() {
                             <span className="listing-card-four__meta__icon">
                               <i className="icon-location"></i>
                             </span>
-                            {tour.tourLocation || "Location"}
+                            {tour.tourLocation || t('location')}
                           </li>
                         </ul>
                         <div className="listing-card-four__content">
                           <div className="listing-card-four__rating">
-                            <span>({reviews} Review)</span>
+                            <span>({reviews} {t('review')})</span>
                             {[...Array(5)].map((_, i) => (
                               <i key={i} className="icon-star"></i>
                             ))}
@@ -258,7 +274,7 @@ export default function WishlistPage() {
                           <div className="listing-card-four__content__btn">
                             <div className="listing-card-four__price">
                               <span className="listing-card-four__price__sub">
-                                Start from
+                                {t('startFrom')}
                               </span>
                               <span className="listing-card-four__price__number">
                                 ${price}
@@ -268,7 +284,7 @@ export default function WishlistPage() {
                               href={`/tours/${tour.slug}`}
                               className="listing-card-four__btn gotur-btn"
                             >
-                              View Tour{" "}
+                              {t('viewTour')}{" "}
                               <span className="icon">
                                 <i className="icon-right"></i>
                               </span>
@@ -293,9 +309,9 @@ export default function WishlistPage() {
             homeThree={false}
             showShape={false}
             tours={recommended}
-            title="More"
-            titleSpan="Tours"
-            subtitle="You may also like"
+            title={t('more')}
+            titleSpan={t('tours')}
+            subtitle={t('youMayAlsoLike')}
             uniqueId="wishlist-recommendations"
           />
         </div>

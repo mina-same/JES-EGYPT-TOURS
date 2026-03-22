@@ -13,7 +13,8 @@ export async function generateMetadata({
     const res = await tourSubcategoryAPI.getBySlug(slug);
     if (res?.success && res?.data) {
       const title = getLocalizedValue(res.data.metaTitle || res.data.name, locale);
-      const description = getLocalizedValue(res.data.metaDescription || res.data.description, locale);
+      const rawDesc = getLocalizedValue(res.data.metaDescription || res.data.description, locale);
+      const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
       return { 
         title: title ? `${title} | JES Egypt Tours` : "Tour Subcategory | JES Egypt Tours", 
         description 

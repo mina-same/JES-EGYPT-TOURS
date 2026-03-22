@@ -133,7 +133,7 @@ export async function getCategories(): Promise<BlogCategory[]> {
 
 // Fetch category by slug
 export async function getCategoryBySlug(slug: string): Promise<BlogCategory> {
-  const res = await fetch(`${API_URL}/blog/categories/${slug}`, {
+  const res = await fetch(`${API_URL}/blog/categories/slug/${slug}`, {
     next: { revalidate: 3600 },
   });
   
@@ -175,7 +175,7 @@ export async function getAllSubCategories(): Promise<BlogSubCategory[]> {
 
 // Fetch subcategory by slug
 export async function getSubCategoryBySlug(slug: string): Promise<BlogSubCategory> {
-  const res = await fetch(`${API_URL}/blog/subcategories/${slug}`, {
+  const res = await fetch(`${API_URL}/blog/subcategories/slug/${slug}`, {
     next: { revalidate: 3600 },
   });
   
@@ -278,7 +278,7 @@ export async function getBlogsBySubCategory(subCategorySlug: string, page: numbe
 
 // Fetch single blog by slug
 export async function getBlogBySlug(slug: string): Promise<BlogPost> {
-  const res = await fetch(`${API_URL}/blog/posts/${slug}`, {
+  const res = await fetch(`${API_URL}/blog/posts/slug/${slug}`, {
     next: { revalidate: 60 },
   });
   

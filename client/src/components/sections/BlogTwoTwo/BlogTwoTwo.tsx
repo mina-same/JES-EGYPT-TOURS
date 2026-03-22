@@ -22,13 +22,16 @@ interface BlogData {
   blogData: unknown[];
 }
 const BlogTwoTwo = () => {
-  const { tagline, title, link, linkLabel, shape }: BlogData = blogTwoInfo;
-  const { i18n } = useTranslation();
+  const { link, shape }: BlogData = blogTwoInfo;
+  const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
   const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>([]);
 
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     let isMounted = true;
 
     const loadFeatured = async () => {
@@ -86,11 +89,11 @@ const BlogTwoTwo = () => {
         month,
         author: authorName,
         category,
-        link: `/blogs/${post.slug}`,
+        link: `/blogs/${getLocalizedValue(post.slug, currentLocale)}`,
       };
 
     });
-  }, [featuredBlogs]);
+  }, [featuredBlogs, currentLocale]);
 
   return (
     <section className='blog-two section-space-bottom' id='blog'>
@@ -100,21 +103,23 @@ const BlogTwoTwo = () => {
             <Col lg={8}>
               <div className='sec-title'>
                 <h6 className='sec-title__tagline bw-split-in-right'>
-                  <TextAnimation text={tagline} animationType='right' />
+                  {mounted ? <TextAnimation text={t('blogAndNews')} animationType='right' /> : <div style={{ height: '24px' }} />}
                 </h6>
                 <h3 className='sec-title__title bw-split-in-left'>
-                  <TextAnimation text={title} animationType='left' />
+                  {mounted ? <TextAnimation text={t('ourLatestNews')} animationType='left' /> : <div style={{ height: '40px' }} />}
                 </h3>
               </div>
             </Col>
             <Col lg={4}>
               <div className='blog-two__top__btn'>
-                <Link href={link} className='gotur-btn gotur-btn--base'>
-                  {linkLabel}{" "}
-                  <span className='icon'>
-                    <i className='icon-right'></i>
-                  </span>
-                </Link>
+                {mounted ? (
+                  <Link href={link} className='gotur-btn gotur-btn--base'>
+                    {t('seeMoreArticle')}{" "}
+                    <span className='icon'>
+                      <i className='icon-right'></i>
+                    </span>
+                  </Link>
+                ) : <div style={{ height: '50px' }} />}
               </div>
             </Col>
           </Row>
@@ -154,7 +159,7 @@ const BlogTwoTwo = () => {
                         <span className='blog-card-two__meta__icon'>
                           <i className='icon-user'></i>
                         </span>{" "}
-                        By {post.author}
+                        {t('by')} {post.author}
                       </Link>
                     </li>
                     <li>
@@ -173,7 +178,7 @@ const BlogTwoTwo = () => {
                     href={post.link}
                     className='blog-card-two__content__btn'
                   >
-                    Read More <i className='icon-arrow-right'></i>
+                    {t('readMore')} <i className='icon-arrow-right'></i>
                   </Link>
                 </div>
               </div>

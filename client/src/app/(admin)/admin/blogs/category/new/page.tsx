@@ -242,23 +242,7 @@ export default function NewBlogCategoryPage() {
   };
 
 
-  // Handle keywords
-  const handleKeywordsChange = (lang: AdminLanguage, value: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      seo: {
-        ...(prev.seo || { 
-          metaTitle: { en: '', de: '', it: '', es: '' }, 
-          metaDescription: { en: '', de: '', it: '', es: '' }, 
-          metaKeywords: { en: [], de: [], it: [], es: [] } 
-        }),
-        metaKeywords: {
-          ...(prev.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }),
-          [lang]: value,
-        },
-      },
-    } as BlogCategoryFormData));
-  };
+  // Handle keywords directly via handleChange
 
   // Handle Image Upload
   const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
@@ -447,17 +431,17 @@ export default function NewBlogCategoryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <ImageUpload
-              images={formData.image?.url ? [{
+              images={formData.image ? [{
                 url: formData.image.url || '',
                 title: formData.image.title || '',
                 alt: formData.image.alt || '',
                 fileName: formData.image.fileName || '',
               }] : []}
               onAdd={() => {
-                if (!formData.image?.url) handleChange('image', { url: '', title: '', alt: '', fileName: '' });
+                handleChange('image', { url: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' }, fileName: '' });
               }}
               onRemove={() => {
-                handleChange('image', { url: '', title: '', alt: '', fileName: '' });
+                handleChange('image', undefined);
               }}
               onUpdate={(index, field, value, lang) => {
                 handleChange(`image.${field}`, value, lang);
@@ -493,7 +477,7 @@ export default function NewBlogCategoryPage() {
                 <LocalizedTagsInput
                   label="Keywords"
                   value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
-                  onChange={(val) => handleKeywordsChange(activeLanguage, val)}
+                  onChange={(val) => handleChange('seo.metaKeywords', val)}
                   placeholder="Add keyword..."
                 />
               </div>
@@ -512,14 +496,14 @@ export default function NewBlogCategoryPage() {
             
             <div className="space-y-4">
               <ImageUpload
-                images={formData.seo?.metaImage?.url ? [{
+                images={formData.seo?.metaImage ? [{
                   url: formData.seo.metaImage.url || '',
                   title: formData.seo.metaImage.title || '',
                   alt: formData.seo.metaImage.alt || '',
                   fileName: formData.seo.metaImage.fileName || '',
                 }] : []}
                 onAdd={() => {
-                  if (!formData.seo?.metaImage?.url) handleChange('seo.metaImage', { url: '', title: '', alt: '', fileName: '' });
+                  handleChange('seo.metaImage', { url: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' }, fileName: '' });
                 }}
                 onRemove={() => {
                   handleChange('seo.metaImage', undefined);
