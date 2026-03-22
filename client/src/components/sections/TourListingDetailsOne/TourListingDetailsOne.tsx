@@ -25,6 +25,7 @@ import { TourPlan } from "./components/TourPlan";
 import { PricingPlans } from "./components/PricingPlans";
 import { TourCarousel } from "./components/TourCarousel";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
+import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 
@@ -40,6 +41,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   const [isSidebarFixed, setIsSidebarFixed] = useState(false);
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isAmenitiesExpanded, setIsAmenitiesExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams() as { locale: string };
   const { t, i18n } = useTranslation("tours");
@@ -68,9 +72,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
     updateNavHeight();
     updateSidebarBounds();
+    setIsMobile(window.innerWidth < 992);
     const handleResize = () => {
       updateNavHeight();
       updateSidebarBounds();
+      setIsMobile(window.innerWidth < 992);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -78,6 +84,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
   useEffect(() => {
     const updateFixedState = () => {
+      // Disable sticky navigation tabs on mobile
+      if (window.innerWidth < 992) {
+        setIsNavFixed(false);
+        return;
+      }
+      
       const el = navPlaceholderRef.current;
       if (!el) return;
       const top = el.getBoundingClientRect().top;
@@ -85,6 +97,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
     };
 
     const updateSidebarFixed = () => {
+      // Only run sticky logic on desktop (>= 992px)
+      if (window.innerWidth < 992) {
+        setIsSidebarFixed(false);
+        return;
+      }
+
       const row = sidebarRowRef.current;
       if (!row) return;
       const rowRect = row.getBoundingClientRect();
@@ -107,7 +125,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   // Handle scroll spy and smooth scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['description', 'tour-plan', 'amenities', 'pricing', 'gallery', 'download-pdf', 'faqs', 'honest-reviews', 'reviews'];
+      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'gallery', 'download-pdf', 'faqs', 'honest-reviews', 'reviews'];
 
       // Find the current active section
       for (const sectionId of sections) {
@@ -186,6 +204,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   } = tourData;
 
   const hasReviewVideos = (reviewVideos || []).length > 0;
+  const hasMoreAmenities = (amenities?.length > 4) || (amenitiesTwo?.length > 4);
 
   const handleBookingSubmit = (data: any) => {
     console.log("Booking Submitted:", data);
@@ -319,6 +338,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             <nav className="tour-details-nav">
               <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>{t("tourDetails.nav.description")}</a>
               <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>{t("tourDetails.nav.tourPlan")}</a>
+              <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
               <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
               <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
               <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
@@ -337,7 +357,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             </nav>
           </div>
 
-          <div style={{ height: isNavFixed ? (navHeight || 0) + 40 : 0 }} />
+          <div style={{ height: (isNavFixed && !isMobile) ? (navHeight || 0) + 40 : 0 }} />
 
           <div className='row gutter-y-30 tour-details-row' ref={sidebarRowRef}>
             {/* Sidebar */}
@@ -360,24 +380,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                 }}
               >
                 <BookingForm tourId={String(tourData.id || '')} onSubmit={handleBookingSubmit} />
-
-                <div
-                  className='tour-listing-details__sidebar__item tour-listing-details__sidebar__item-location wow fadeInUp animated'
-                  data-wow-delay='0.5s'
-                  data-wow-duration='1500ms'
-                >
-                  <div className='tour-listing-details__sidebar__item-box'>
-                    {map && (
-                      <iframe
-                        title='Google Map'
-                        src={map}
-                        allowFullScreen
-                        className='w-100'
-                        height='300'
-                      />
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -391,15 +393,25 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     <h4 className='tour-listing-details__title'>
                       {overviewTitle}
                     </h4>
-                    <div
-                      className='tour-listing-details__text'
-                      dangerouslySetInnerHTML={{ __html: overview }}
-                    />
-                    {tourData.whatYouWillLoveHtml && (
+                    <div className={`tour-description-wrapper ${isMobile && !isDescriptionExpanded ? 'collapsed' : ''}`}>
                       <div
-                        className="tour-listing-details__what-you-love"
-                        dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
+                        className='tour-listing-details__text'
+                        dangerouslySetInnerHTML={{ __html: overview }}
                       />
+                      {tourData.whatYouWillLoveHtml && (
+                        <div
+                          className="tour-listing-details__what-you-love"
+                          dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
+                        />
+                      )}
+                    </div>
+                    {isMobile && (
+                      <button 
+                        className="tour-read-more-btn"
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      >
+                        {isDescriptionExpanded ? t("tourDetails.readLess", "Read Less") : t("tourDetails.readMore", "Read More")}
+                      </button>
                     )}
                   </div>
 
@@ -423,6 +435,24 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   <TourPlan itinerary={itinerary} />
                 </section>
 
+                <section id="map" className="tour-section">
+                  {map && (
+                    <div className='tour-listing-details__content__item'>
+                      <h4 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h4>
+                      <div className="tour-listing-details__map-box" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+                        <iframe
+                          title='Google Map'
+                          src={map}
+                          allowFullScreen
+                          className='w-100'
+                          height='450'
+                          style={{ border: 0 }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </section>
+
                 {/* Amenities Section */}
                 <section id="amenities" className="tour-section">
                   {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
@@ -441,39 +471,51 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                 </div>
                                 <h4 className='amenities-card-title'>{t("tourDetails.included")}</h4>
                               </div>
-                              <ul className='amenities-card-list'>
-                                {amenities.map((amenity, index) => (
-                                  <li key={index} className="amenities-card-item">
-                                    <i className='fas fa-check'></i>
-                                    <span>{amenity}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        )}
-                        {amenitiesTwo && amenitiesTwo.length > 0 && (
-                          <div className="col-lg-6">
-                            <div className="amenities-card exclusion-card">
-                              <div className="amenities-card-header">
-                                <div className="amenities-icon-wrapper exclusion-icon">
-                                  <i className="fas fa-times-circle"></i>
-                                </div>
-                                <h4 className='amenities-card-title'>{t("tourDetails.notIncluded")}</h4>
+                                <ul className='amenities-card-list'>
+                                  {(isMobile && !isAmenitiesExpanded ? amenities.slice(0, 4) : amenities).map((amenity, index) => (
+                                    <li key={index} className="amenities-card-item">
+                                      <i className='fas fa-check'></i>
+                                      <span>{amenity}</span>
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-                              <ul className='amenities-card-list'>
-                                {amenitiesTwo.map((amenity, index) => (
-                                  <li key={index} className="amenities-card-item">
-                                    <i className='fas fa-times'></i>
-                                    <span>{amenity}</span>
-                                  </li>
-                                ))}
-                              </ul>
                             </div>
+                          )}
+                          {amenitiesTwo && amenitiesTwo.length > 0 && (
+                            <div className="col-lg-6">
+                              <div className="amenities-card exclusion-card">
+                                <div className="amenities-card-header">
+                                  <div className="amenities-icon-wrapper exclusion-icon">
+                                    <i className="fas fa-times-circle"></i>
+                                  </div>
+                                  <h4 className='amenities-card-title'>{t("tourDetails.notIncluded")}</h4>
+                                </div>
+                                <ul className='amenities-card-list'>
+                                  {(isMobile && !isAmenitiesExpanded ? amenitiesTwo.slice(0, 4) : amenitiesTwo).map((amenity, index) => (
+                                    <li key={index} className="amenities-card-item">
+                                      <i className='fas fa-times'></i>
+                                      <span>{amenity}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Mobile Show More Button */}
+                        {isMobile && hasMoreAmenities && (
+                          <div className="text-center mt-3">
+                            <button 
+                              className="tour-read-more-btn"
+                              onClick={() => setIsAmenitiesExpanded(!isAmenitiesExpanded)}
+                            >
+                              {isAmenitiesExpanded ? t("tourDetails.showLess", "Show Less") : t("tourDetails.showAll", "Show All Parameters")}
+                            </button>
                           </div>
                         )}
                       </div>
-                    </div>
                   ) : (
                     <EmptyState
                       title={t("tourDetails.empty.amenitiesTitle")}
@@ -512,20 +554,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                         <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h4>
                         <p className="tour-reviews-subtitle">{t("tourDetails.gallerySubtitle")}</p>
                       </div>
-                        <Masonry
-                          breakpointCols={{
-                            default: 3,
-                            1100: 2,
-                            700: 1
-                          }}
-                          className="tour-gallery-masonry"
-                          columnClassName="tour-gallery-masonry-column"
-                        >
+                      
+                      {isMobile && (
+                        <div className="mobile-swipeable-gallery">
                           {images.map((img, idx) => {
                             const imgUrl = typeof img === 'string' ? img : img.src;
                             return (
                               <Item
-                                key={idx}
+                                key={`mobile-img-${idx}`}
                                 original={imgUrl}
                                 thumbnail={imgUrl}
                                 width="1200"
@@ -535,17 +571,57 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                   <a
                                     href={imgUrl}
                                     ref={ref as unknown as React.Ref<HTMLAnchorElement>}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      open(e);
-                                    }}
+                                    onClick={(e) => { e.preventDefault(); open(e); }}
+                                    className="mobile-gallery-link"
+                                  >
+                                    <div className='tour-gallery-item h-100'>
+                                      <div className='tour-gallery-image-wrapper h-100'>
+                                        <Image
+                                          src={imgUrl}
+                                          alt={`Tour gallery ${idx + 1}`}
+                                          width={400}
+                                          height={300}
+                                          className="tour-gallery-image"
+                                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </a>
+                                )}
+                              </Item>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {!isMobile && (
+                        <Masonry
+                          breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
+                          className="tour-gallery-masonry"
+                          columnClassName="tour-gallery-masonry-column"
+                        >
+                          {images.map((img, idx) => {
+                            const imgUrl = typeof img === 'string' ? img : img.src;
+                            return (
+                              <Item
+                                key={`desk-img-${idx}`}
+                                original={imgUrl}
+                                thumbnail={imgUrl}
+                                width="1200"
+                                height="800"
+                              >
+                                {({ ref, open }) => (
+                                  <a
+                                    href={imgUrl}
+                                    ref={ref as unknown as React.Ref<HTMLAnchorElement>}
+                                    onClick={(e) => { e.preventDefault(); open(e); }}
                                     style={{ display: 'block' }}
                                   >
                                     <div className='tour-gallery-item'>
                                       <div className='tour-gallery-image-wrapper'>
                                         <Image
-                                          src={typeof img === 'string' ? img : img}
-                                          alt={`Tour gallery image ${idx + 1}`}
+                                          src={imgUrl}
+                                          alt={`Tour gallery ${idx + 1}`}
                                           width={400}
                                           height={300}
                                           className="tour-gallery-image"
@@ -559,6 +635,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                             );
                           })}
                         </Masonry>
+                      )}
                     </div>
                   ) : (
                     <EmptyState
@@ -731,7 +808,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         />
       </PhotoSwipeGallery>
       </section>
-      
+
+      {/* Mobile Sticky Booking Bar */}
+      <MobileStickyBookingBar tourId={id || ""} price={price} />
     </>
   );
 };

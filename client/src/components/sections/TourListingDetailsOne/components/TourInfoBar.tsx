@@ -77,7 +77,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
               </p>
             </div>
           </li>
-          <li>
+          <li className="d-none d-lg-flex">
             <Link href='' className='gotur-btn'>
               Price starts from ${price}
             </Link>

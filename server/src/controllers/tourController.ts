@@ -547,6 +547,15 @@ export const createTour = async (
   } catch (error: any) {
     console.error('Error creating tour:', error);
 
+    // Handle invalid ObjectId/CastError
+    if (error.name === 'CastError') {
+      res.status(400).json({
+        success: false,
+        error: `Invalid format for field: ${error.path}`,
+      });
+      return;
+    }
+
     // Handle duplicate key error
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
@@ -665,11 +674,13 @@ export const updateTour = async (
   } catch (error: any) {
     console.error('Error updating tour:', error);
 
-    // Handle invalid ObjectId
+    // Handle invalid ObjectId/CastError
     if (error.name === 'CastError') {
       res.status(400).json({
         success: false,
-        error: 'Invalid tour ID format',
+        error: error.path === '_id' 
+          ? 'Invalid tour ID format' 
+          : `Invalid format for field: ${error.path}`,
       });
       return;
     }

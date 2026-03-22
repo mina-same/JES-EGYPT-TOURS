@@ -34,6 +34,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               <Label htmlFor="name">System Name (Internal) *</Label>
               <Input
                 id="name"
+                data-field="name"
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="Enter internal name (for slug)"
@@ -42,6 +43,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             </div>
             <LocalizedInput
               label="Slug (Auto-generated)"
+              data-field="slug"
               value={formData.slug || { en: '', de: '', it: '', es: '' }}
               onChange={(val) => handleChange('slug', val)}
               placeholder="Enter slug"
@@ -50,6 +52,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
 
           <LocalizedInput
             label="Tour Heading *"
+            data-field="heading.en"
             value={formData.heading || { en: '', de: '', it: '', es: '' }}
             onChange={(val) => handleChange('heading', val)}
             placeholder="Enter tour heading"
@@ -65,7 +68,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
                 placeholder="EXT-001"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2" data-field="subcategory">
               <Label htmlFor="subcategory">Subcategory *</Label>
               <SubcategorySelect
                 value={formData.subcategory || ''}
@@ -95,7 +98,8 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
         </CardHeader>
         <CardContent>
           <LocalizedInput
-            label="Catchy Header"
+            label="Catchy Header *"
+            data-field="description.header.en"
             value={formData.description?.header || { en: '', de: '', it: '', es: '' }}
             onChange={(val) => handleChange('description.header', val)}
             placeholder="Enter catchy header"
@@ -111,7 +115,8 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
         </CardHeader>
         <CardContent>
           <LocalizedRichText
-            label="Description Content"
+            label="Description Content *"
+            data-field="description.text.en"
             value={formData.description?.text || { en: '', de: '', it: '', es: '' }}
             onChange={(val) => handleChange('description.text', val)}
             placeholder="Tell us about the tour..."

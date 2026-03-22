@@ -13,6 +13,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { validateTourForm } from '@/lib/validations/tourValidation';
+import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import DraftBanner from '@/components/admin/DraftBanner';
+import { useToast } from '@/hooks/use-toast';
 
 // Import modular components
 import { useTourForm } from '@/hooks/useTourForm';
@@ -46,6 +51,10 @@ export default function NewTourPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [activeAdminLanguage, setActiveAdminLanguage] = useState<AdminLanguage>('en');
+  const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
+  const { toast } = useToast();
+  
+  const draftKey = 'draft_tour_new';
   
   // Search state for Resources tab
   const [tourSearchQuery, setTourSearchQuery] = useState('');
@@ -56,7 +65,7 @@ export default function NewTourPage() {
   const [isSearchingBlogs, setIsSearchingBlogs] = useState(false);
 
   // Use custom hook for form logic
-  const tourForm = useTourForm();
+  const tourForm = useTourForm(undefined, draftKey);
 
   // Search effects
   useEffect(() => {
@@ -112,8 +121,22 @@ export default function NewTourPage() {
     try {
       setLoading(true);
       setError(null);
+      setFormErrors([]);
 
-      // Clean up empty fields
+      // 1. Client-side validation
+      const validationErrors = validateTourForm(tourForm.formData);
+      if (validationErrors.length > 0) {
+        setFormErrors(validationErrors);
+        toast({
+          title: 'Validation Error',
+          description: `Please fix ${validationErrors.length} issues before saving.`,
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Clean up empty fields
       const cleanData = { ...tourForm.formData };
       
       const isMixedEmpty = (mixed: any) => {
@@ -193,11 +216,20 @@ export default function NewTourPage() {
       const response = await tourAPI.create(cleanData);
       
       if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Tour created successfully!',
+        });
+        tourForm.clearDraft();
         router.push('/admin/tour/tour');
       } else {
+        const parsedErrors = parseApiError(response);
+        setFormErrors(parsedErrors);
         setError(response.error || 'Failed to create tour');
       }
     } catch (err: any) {
+      const parsedErrors = parseApiError(err.response?.data || { message: err.message });
+      setFormErrors(parsedErrors);
       setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
@@ -229,11 +261,21 @@ export default function NewTourPage() {
         </Button>
       </div>
 
+      {/* Draft Banner */}
+      {tourForm.hasDraft && (
+        <DraftBanner onDiscard={() => tourForm.clearDraft()} />
+      )}
+
       {/* Error Message */}
-      {error && (
+      {error && !formErrors.length && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
           {error}
         </div>
+      )}
+
+      {/* Detailed Error Panel */}
+      {formErrors.length > 0 && (
+        <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
       {/* Language Selector */}
@@ -252,7 +294,7 @@ export default function NewTourPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap",
+                "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap relative",
                 isActive 
                   ? "bg-primary text-primary-foreground" 
                   : "hover:bg-muted text-muted-foreground"
@@ -260,6 +302,18 @@ export default function NewTourPage() {
             >
               <Icon className="w-4 h-4" />
               {tab.label}
+              
+              {/* Error Dot */}
+              {formErrors.some(err => {
+                if (tab.id === 'overview') return ['name', 'heading', 'subcategory', 'slug', 'description'].some(p => err.path?.startsWith(p));
+                if (tab.id === 'media') return ['images', 'gallery'].some(p => err.path?.startsWith(p));
+                if (tab.id === 'itinerary') return err.path?.startsWith('itinerary');
+                if (tab.id === 'pricing') return err.path?.startsWith('pricingPlans');
+                if (tab.id === 'seo') return err.path?.startsWith('seo');
+                return false;
+              }) && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+              )}
             </button>
           );
         })}

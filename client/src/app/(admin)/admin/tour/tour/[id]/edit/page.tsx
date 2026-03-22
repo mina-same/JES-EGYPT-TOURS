@@ -13,6 +13,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { validateTourForm } from '@/lib/validations/tourValidation';
+import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import DraftBanner from '@/components/admin/DraftBanner';
+import { useToast } from '@/hooks/use-toast';
 
 // Import modular components
 import { useTourForm } from '@/hooks/useTourForm';
@@ -48,6 +53,10 @@ export default function EditTourPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [activeAdminLanguage, setActiveAdminLanguage] = useState<AdminLanguage>('en');
+  const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
+  const { toast } = useToast();
+  
+  const draftKey = `draft_tour_edit_${tourId}`;
   
   // Search state for Resources tab
   const [tourSearchQuery, setTourSearchQuery] = useState('');
@@ -58,7 +67,7 @@ export default function EditTourPage() {
   const [isSearchingBlogs, setIsSearchingBlogs] = useState(false);
 
   // Use custom hook for form logic
-  const tourForm = useTourForm();
+  const tourForm = useTourForm(undefined, draftKey);
 
   // Fetch tour data
   useEffect(() => {
@@ -109,74 +118,84 @@ export default function EditTourPage() {
           };
 
           // Transform the data to match form structure and update form state
-          tourForm.setFormData({
-            name: (typeof tour.heading === 'object' ? tour.heading.en : tour.heading) || tour.name || '',
-            slug: tour.slug || '',
-            description: {
-              header: toLocalized(tour.Description?.header),
-              text: toLocalized(tour.Description?.text),
-            },
-            subcategory: typeof tour.subcategory === 'object' ? tour.subcategory._id : (tour.subcategory || ''),
-            images: (tour.images || []).map(toLocalizedImage).filter(Boolean),
-            gallery: (tour.gallery || []).map(toLocalizedImage).filter(Boolean),
-            idExternal: tour.idExternal || '',
-            heading: toLocalized(tour.heading),
-            tourLocation: toLocalized(tour.tourLocation),
-            tourAvailability: toLocalized(tour.tourAvailability),
-            pickupAndDropOff: toLocalized(tour.pickupAndDropOff),
-            tourType: toLocalized(tour.tourType),
-            tourStyle: toLocalized(tour.tourStyle),
-            isFeatured: tour.isFeatured || false,
-            isActive: tour.isActive !== undefined ? tour.isActive : true,
-            seo: {
-              metaTitle: toLocalized(tour.seo?.metaTitle),
-              metaDescription: toLocalized(tour.seo?.metaDescription),
-              metaKeywords: toLocalizedMixed(tour.seo?.metaKeywords),
-              metaImage: tour.seo?.metaImage 
-                ? toLocalizedImage(tour.seo.metaImage) 
-                : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
-            },
-            tourHighlights: toLocalizedMixed(tour.tourHighlights),
-            inclusion: toLocalizedMixed(tour.inclusion),
-            exclusion: toLocalizedMixed(tour.exclusion),
-            pricingPlans: tour.pricingPlans || [],
-            notes: (tour.notes || []).map((n: any) => ({
-              title: toLocalized(n.title),
-              text: toLocalized(n.text),
-            })),
-            whatToPack: toLocalizedMixed(tour.whatToPack),
-            tourMapIframe: tour.tourMapIframe || '',
-            mapSchema: tour.mapSchema,
-            whatYouWillLoveHtml: toLocalized(tour.whatYouWillLoveHtml),
-            itinerary: {
-              generalDescription: toLocalized(tour.itinerary?.generalDescription),
-              days: (tour.itinerary?.days || []).map((d: any) => ({
-                ...d,
-                title: toLocalized(d.title),
-                description: toLocalized(d.description),
-                activities: (d.activities || []).map((a: any) => ({
-                  ...a,
-                  heading: toLocalized(a.heading),
-                  description: toLocalized(a.description),
-                })),
+          tourForm.setFormData(prev => {
+            // If there's already data (from draft), don't overwrite it
+            // Actually, for Edit mode, we usually want the server data as base,
+            // but if a draft exists and it's newer... useTourForm already handles this in initializer.
+            // If the user just opened the page, useTourForm loads draft.
+            // When fetchTour finishes, we want to update the draft with any server changes?
+            // Usually, draft is specifically for unsaved changes.
+            // For simplicity, we only call setFormData if no draft was loaded or if we explicitly want to refresh.
+            return {
+              ...prev,
+              name: (typeof tour.heading === 'object' ? tour.heading.en : tour.heading) || tour.name || '',
+              slug: tour.slug || '',
+              description: {
+                header: toLocalized(tour.Description?.header),
+                text: toLocalized(tour.Description?.text),
+              },
+              subcategory: typeof tour.subcategory === 'object' ? tour.subcategory._id : (tour.subcategory || ''),
+              images: (tour.images || []).map(toLocalizedImage).filter(Boolean),
+              gallery: (tour.gallery || []).map(toLocalizedImage).filter(Boolean),
+              idExternal: tour.idExternal || '',
+              heading: toLocalized(tour.heading),
+              tourLocation: toLocalized(tour.tourLocation),
+              tourAvailability: toLocalized(tour.tourAvailability),
+              pickupAndDropOff: toLocalized(tour.pickupAndDropOff),
+              tourType: toLocalized(tour.tourType),
+              tourStyle: toLocalized(tour.tourStyle),
+              isFeatured: tour.isFeatured || false,
+              isActive: tour.isActive !== undefined ? tour.isActive : true,
+              seo: {
+                metaTitle: toLocalized(tour.seo?.metaTitle),
+                metaDescription: toLocalized(tour.seo?.metaDescription),
+                metaKeywords: toLocalizedMixed(tour.seo?.metaKeywords),
+                metaImage: tour.seo?.metaImage 
+                  ? toLocalizedImage(tour.seo.metaImage) 
+                  : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+              },
+              tourHighlights: toLocalizedMixed(tour.tourHighlights),
+              inclusion: toLocalizedMixed(tour.inclusion),
+              exclusion: toLocalizedMixed(tour.exclusion),
+              pricingPlans: tour.pricingPlans || [],
+              notes: (tour.notes || []).map((n: any) => ({
+                title: toLocalized(n.title),
+                text: toLocalized(n.text),
               })),
-            },
-            faqs: (tour.faqs || []).map((f: any) => ({
-              question: toLocalized(f.question),
-              answer: toLocalized(f.answer),
-            })),
-            blogReferences: tour.blogReferences || [],
-            relatedTours: tour.relatedTours || [],
-            reviews: (tour.reviews || []).map((r: any) => ({
-              ...r,
-              title: toLocalized(r.title),
-              content: toLocalized(r.content),
-            })),
-            priceStartingFrom: tour.priceStartingFrom,
-            duration: toLocalized(tour.duration),
-            meetingPoint: toLocalized(tour.meetingPoint),
-            cancellationPolicy: toLocalized(tour.cancellationPolicy),
-            tags: tour.tags || [],
+              whatToPack: toLocalizedMixed(tour.whatToPack),
+              tourMapIframe: tour.tourMapIframe || '',
+              mapSchema: tour.mapSchema,
+              whatYouWillLoveHtml: toLocalized(tour.whatYouWillLoveHtml),
+              itinerary: {
+                generalDescription: toLocalized(tour.itinerary?.generalDescription),
+                days: (tour.itinerary?.days || []).map((d: any) => ({
+                  ...d,
+                  title: toLocalized(d.title),
+                  description: toLocalized(d.description),
+                  activities: (d.activities || []).map((a: any) => ({
+                    ...a,
+                    heading: toLocalized(a.heading),
+                    description: toLocalized(a.description),
+                  })),
+                })),
+              },
+              faqs: (tour.faqs || []).map((f: any) => ({
+                question: toLocalized(f.question),
+                answer: toLocalized(f.answer),
+              })),
+              blogReferences: tour.blogReferences || [],
+              relatedTours: tour.relatedTours || [],
+              reviews: (tour.reviews || []).map((r: any) => ({
+                ...r,
+                title: toLocalized(r.title),
+                content: toLocalized(r.content),
+              })),
+              priceStartingFrom: tour.priceStartingFrom,
+              duration: toLocalized(tour.duration),
+              meetingPoint: toLocalized(tour.meetingPoint),
+              cancellationPolicy: toLocalized(tour.cancellationPolicy),
+              tags: tour.tags || [],
+            };
           });
         } else {
           setError(response.error || 'Failed to fetch tour');
@@ -247,8 +266,22 @@ export default function EditTourPage() {
     try {
       setLoading(true);
       setError(null);
+      setFormErrors([]);
 
-      // Clean up empty fields
+      // 1. Client-side validation
+      const validationErrors = validateTourForm(tourForm.formData);
+      if (validationErrors.length > 0) {
+        setFormErrors(validationErrors);
+        toast({
+          title: 'Validation Error',
+          description: `Please fix ${validationErrors.length} issues before saving.`,
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Clean up empty fields
       const cleanData = { ...tourForm.formData };
       
       const isMixedEmpty = (mixed: any) => {
@@ -328,68 +361,21 @@ export default function EditTourPage() {
       const response = await tourAPI.update(tourId, cleanData);
       
       if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Tour updated successfully!',
+        });
+        tourForm.clearDraft();
         router.push('/admin/tour/tour');
       } else {
-        // Parse error response to provide helpful field-specific messages
-        let errorMessage = 'Failed to update tour';
-        
-        if (response.error) {
-          // Check for common validation error patterns
-          if (typeof response.error === 'string') {
-            if (response.error.includes('name') || response.error.includes('heading')) {
-              errorMessage = 'Tour name is required';
-            } else if (response.error.includes('description') || response.error.includes('overview')) {
-              errorMessage = 'Tour description is required';
-            } else if (response.error.includes('price')) {
-              errorMessage = 'Price information is incomplete or invalid';
-            } else if (response.error.includes('duration')) {
-              errorMessage = 'Tour duration is required';
-            } else if (response.error.includes('images') || response.error.includes('image')) {
-              errorMessage = 'At least one tour image is required';
-            } else if (response.error.includes('pricingPlans')) {
-              errorMessage = 'Pricing plans have missing required fields';
-            } else if (response.error.includes('faqs')) {
-              errorMessage = 'FAQs have missing required fields (question/answer)';
-            } else if (response.error.includes('itinerary')) {
-              errorMessage = 'Itinerary has missing required fields';
-            } else if (response.error.includes('validation')) {
-              errorMessage = 'Please check all required fields are filled correctly';
-            } else {
-              errorMessage = response.error;
-            }
-          } else {
-            errorMessage = JSON.stringify(response.error);
-          }
-        }
-        
-        setError(errorMessage);
+        const parsedErrors = parseApiError(response);
+        setFormErrors(parsedErrors);
+        setError(response.error || 'Failed to update tour');
       }
     } catch (err: any) {
-      // Parse and provide helpful error messages
-      let errorMessage = 'An error occurred while updating the tour';
-      
-      if (err.response?.data) {
-        const errorData = err.response.data;
-        
-        if (errorData.message) {
-          errorMessage = errorData.message;
-        } else if (errorData.error) {
-          errorMessage = errorData.error;
-        } else if (errorData.errors && Array.isArray(errorData.errors)) {
-          // Handle validation errors array
-          const fieldErrors = errorData.errors.map((e: any) => {
-            if (e.field && e.message) {
-              return `${e.field}: ${e.message}`;
-            }
-            return e.message || e.toString();
-          }).join('; ');
-          errorMessage = `Validation errors: ${fieldErrors}`;
-        }
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
+      const parsedErrors = parseApiError(err.response?.data || { message: err.message });
+      setFormErrors(parsedErrors);
+      setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -433,8 +419,13 @@ export default function EditTourPage() {
         </Button>
       </div>
 
+      {/* Draft Banner */}
+      {tourForm.hasDraft && (
+        <DraftBanner onDiscard={() => tourForm.clearDraft()} />
+      )}
+
       {/* Error Message */}
-      {error && (
+      {error && !formErrors.length && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
           <div className="flex items-start gap-2">
             <div className="flex-shrink-0">
@@ -453,6 +444,11 @@ export default function EditTourPage() {
         </div>
       )}
 
+      {/* Detailed Error Panel */}
+      {formErrors.length > 0 && (
+        <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
+      )}
+
       {/* Language Selector */}
       <AdminLanguageTabs
         activeLanguage={activeAdminLanguage}
@@ -469,7 +465,7 @@ export default function EditTourPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap",
+                "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap relative",
                 isActive 
                   ? "bg-primary text-primary-foreground" 
                   : "hover:bg-muted text-muted-foreground"
@@ -477,6 +473,18 @@ export default function EditTourPage() {
             >
               <Icon className="w-4 h-4" />
               {tab.label}
+              
+              {/* Error Dot */}
+              {formErrors.some(err => {
+                if (tab.id === 'overview') return ['name', 'heading', 'subcategory', 'slug', 'description'].some(p => err.path?.startsWith(p));
+                if (tab.id === 'media') return ['images', 'gallery'].some(p => err.path?.startsWith(p));
+                if (tab.id === 'itinerary') return err.path?.startsWith('itinerary');
+                if (tab.id === 'pricing') return err.path?.startsWith('pricingPlans');
+                if (tab.id === 'seo') return err.path?.startsWith('seo');
+                return false;
+              }) && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+              )}
             </button>
           );
         })}

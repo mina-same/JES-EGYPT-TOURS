@@ -22,23 +22,24 @@ export default function PricingTab({ formData, handleChange, activeLanguage }: P
           <CardDescription>Base price and cancellation policy</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="priceStartingFrom">Starting From Price ($)</Label>
+          <div className="space-y-2" data-field="priceStartingFrom">
+            <Label htmlFor="priceStartingFrom">Starting From Price ($) *</Label>
             <Input
               id="priceStartingFrom"
               type="number"
               min="0"
               value={formData.priceStartingFrom || ''}
-              onChange={(e) => handleChange('priceStartingFrom', parseFloat(e.target.value))}
+              onChange={(e) => handleChange('priceStartingFrom', e.target.value === '' ? undefined : parseFloat(e.target.value))}
               placeholder="0.00"
             />
           </div>
 
           <LocalizedInput
-            label="Cancellation Policy"
+            label="Cancellation Policy *"
             value={formData.cancellationPolicy || { en: '', de: '', it: '', es: '' }}
             onChange={(val) => handleChange('cancellationPolicy', val)}
             placeholder="e.g., Free cancellation up to 24h before"
+            data-field="cancellationPolicy"
           />
         </CardContent>
       </Card>

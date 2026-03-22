@@ -1,63 +1,87 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TourFormData, ITourSubcategory } from '@/types/tour';
 import { tourSubcategoryAPI } from '@/lib/api/tour';
 import { API_URL } from '@/config/api';
 import { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 
-export function useTourForm(initialData?: Partial<TourFormData>) {
-  const [formData, setFormData] = useState<TourFormData>({
-    name: '',
-    slug: { en: '', de: '', it: '', es: '' },
-    description: {
-      header: { en: '', de: '', it: '', es: '' },
-      text: { en: '', de: '', it: '', es: '' },
-    },
-    subcategory: '',
-    images: [],
-    gallery: [],
-    idExternal: '',
-    heading: { en: '', de: '', it: '', es: '' },
-    tourLocation: { en: '', de: '', it: '', es: '' },
-    tourAvailability: { en: '', de: '', it: '', es: '' },
-    pickupAndDropOff: { en: '', de: '', it: '', es: '' },
-    tourType: { en: '', de: '', it: '', es: '' },
-    tourStyle: { en: '', de: '', it: '', es: '' },
-    isFeatured: false,
-    isActive: true,
-    seo: {
-      metaTitle: { en: '', de: '', it: '', es: '' },
-      metaDescription: { en: '', de: '', it: '', es: '' },
-      metaKeywords: { en: [], de: [], it: [], es: [] },
-      metaImage: {
-        url: '',
-        fileName: '',
-        title: { en: '', de: '', it: '', es: '' },
-        alt: { en: '', de: '', it: '', es: '' },
+export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: string) {
+  const [hasDraft, setHasDraft] = useState(() => {
+    if (typeof window !== 'undefined' && draftKey) {
+      return !!localStorage.getItem(draftKey);
+    }
+    return false;
+  });
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialLoad = useRef(true);
+
+  const [formData, setFormData] = useState<TourFormData>(() => {
+    if (typeof window !== 'undefined' && draftKey) {
+      try {
+        const stored = localStorage.getItem(draftKey);
+        if (stored) {
+          return {
+            ...JSON.parse(stored),
+            ...initialData // Still allow overriding with initialData if needed
+          };
+        }
+      } catch (e) {
+        console.error('Failed to parse tour draft:', e);
+      }
+    }
+    return {
+      name: '',
+      slug: { en: '', de: '', it: '', es: '' },
+      description: {
+        header: { en: '', de: '', it: '', es: '' },
+        text: { en: '', de: '', it: '', es: '' },
       },
-    },
-    tourHighlights: { en: [], de: [], it: [], es: [] },
-    inclusion: { en: [], de: [], it: [], es: [] },
-    exclusion: { en: [], de: [], it: [], es: [] },
-    pricingPlans: [],
-    notes: [],
-    whatToPack: { en: [], de: [], it: [], es: [] },
-    tourMapIframe: '',
-    mapSchema: undefined,
-    whatYouWillLoveHtml: { en: '', de: '', it: '', es: '' },
-    itinerary: {
-      generalDescription: { en: '', de: '', it: '', es: '' },
-      days: [],
-    },
-    faqs: [],
-    blogReferences: [],
-    relatedTours: [],
-    reviews: [],
-    priceStartingFrom: undefined,
-    duration: { en: '', de: '', it: '', es: '' },
-    meetingPoint: { en: '', de: '', it: '', es: '' },
-    cancellationPolicy: { en: '', de: '', it: '', es: '' },
-    tags: { en: [], de: [], it: [], es: [] },
-    ...initialData,
+      subcategory: '',
+      images: [],
+      gallery: [],
+      idExternal: '',
+      heading: { en: '', de: '', it: '', es: '' },
+      tourLocation: { en: '', de: '', it: '', es: '' },
+      tourAvailability: { en: '', de: '', it: '', es: '' },
+      pickupAndDropOff: { en: '', de: '', it: '', es: '' },
+      tourType: { en: '', de: '', it: '', es: '' },
+      tourStyle: { en: '', de: '', it: '', es: '' },
+      isFeatured: false,
+      isActive: true,
+      seo: {
+        metaTitle: { en: '', de: '', it: '', es: '' },
+        metaDescription: { en: '', de: '', it: '', es: '' },
+        metaKeywords: { en: [], de: [], it: [], es: [] },
+        metaImage: {
+          url: '',
+          fileName: '',
+          title: { en: '', de: '', it: '', es: '' },
+          alt: { en: '', de: '', it: '', es: '' },
+        },
+      },
+      tourHighlights: { en: [], de: [], it: [], es: [] },
+      inclusion: { en: [], de: [], it: [], es: [] },
+      exclusion: { en: [], de: [], it: [], es: [] },
+      pricingPlans: [],
+      notes: [],
+      whatToPack: { en: [], de: [], it: [], es: [] },
+      tourMapIframe: '',
+      mapSchema: undefined,
+      whatYouWillLoveHtml: { en: '', de: '', it: '', es: '' },
+      itinerary: {
+        generalDescription: { en: '', de: '', it: '', es: '' },
+        days: [],
+      },
+      faqs: [],
+      blogReferences: [],
+      relatedTours: [],
+      reviews: [],
+      priceStartingFrom: undefined,
+      duration: { en: '', de: '', it: '', es: '' },
+      meetingPoint: { en: '', de: '', it: '', es: '' },
+      cancellationPolicy: { en: '', de: '', it: '', es: '' },
+      tags: { en: [], de: [], it: [], es: [] },
+      ...initialData,
+    };
   });
 
   const [subcategories, setSubcategories] = useState<ITourSubcategory[]>([]);
@@ -76,6 +100,40 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     };
     fetchSubcategories();
   }, []);
+
+  // Save to localStorage on change (debounced)
+  useEffect(() => {
+    if (!draftKey || typeof window === 'undefined') return;
+    
+    // Skip the very first render to avoid overwriting a restored draft with initialValue
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      return;
+    }
+
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+    }
+
+    saveTimer.current = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(formData));
+      } catch (e) {
+        // Fail silently
+      }
+    }, 1000);
+
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [draftKey, formData]);
+
+  const clearDraft = () => {
+    if (draftKey && typeof window !== 'undefined') {
+      localStorage.removeItem(draftKey);
+      setHasDraft(false);
+    }
+  };
 
   // Generate slug from name
   const generateSlug = (name: string) => {
@@ -354,5 +412,7 @@ export function useTourForm(initialData?: Partial<TourFormData>) {
     removeTourNote,
     updateTourNote,
     handleImageUpload,
+    clearDraft,
+    hasDraft,
   };
 }

@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useTranslation } from 'react-i18next';
 
 import type { TourDetailsOneData } from '../types';
 import TourBrochure from './TourBrochure';
@@ -12,6 +13,7 @@ interface DownloadPdfBrochureProps {
 }
 
 export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }) => {
+  const { t } = useTranslation('tours');
   const [generating, setGenerating] = useState(false);
   const pdfRef = useRef<HTMLDivElement>(null);
   const [logoDataUrl, setLogoDataUrl] = useState<string>('');
@@ -159,7 +161,7 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
       pdf.save(fileName);
     } catch (err) {
       console.error('PDF generation error:', err);
-      alert('Failed to generate PDF. Please try again.');
+          alert(t("tourDetails.brochure.error", "Failed to generate PDF. Please try again."));
     } finally {
       setGenerating(false);
     }
@@ -167,10 +169,9 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
 
   return (
     <div className="tour-listing-details__content__item">
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
+      <div
+        className="d-flex flex-column flex-md-row align-items-center justify-content-between text-center text-md-start"
+        style={{
         marginBottom: 24,
         padding: '32px',
         background: `
@@ -200,7 +201,10 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
           borderRadius: '50%'
         }} />
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flex: 1 }}>
+        <div 
+          className="d-flex flex-column flex-md-row align-items-center mb-4 mb-md-0" 
+          style={{ gap: 24, flex: 1 }}
+        >
           {/* Brochure illustration */}
           <div style={{
             width: 80,
@@ -262,7 +266,7 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
               fontFamily: "'Playfair Display', Georgia, serif",
               letterSpacing: '-0.5px'
             }}>
-              Download Tour Brochure
+              {t("tourDetails.brochure.title", "Download Tour Brochure")}
             </h4>
             <p style={{
               margin: '6px 0 0',
@@ -271,13 +275,13 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
               fontWeight: 400,
               lineHeight: 1.5
             }}>
-              Get a complete PDF guide with itinerary, pricing, and tour details
+              {t("tourDetails.brochure.subtitle", "Get a complete PDF guide with itinerary, pricing, and tour details")}
             </p>
           </div>
         </div>
         
         <button
-          className="gotur-btn"
+          className="gotur-btn w-100 w-md-auto"
           onClick={onDownload}
           disabled={generating}
           style={{
@@ -326,7 +330,7 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }} />
-              Generating...
+              {t("tourDetails.brochure.generating", "Generating...")}
             </>
           ) : (
             <>
@@ -335,7 +339,7 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
                 <polyline points="7,10 12,15 17,10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              Download Brochure PDF
+              {t("tourDetails.brochure.downloadBtn", "Download Brochure PDF")}
             </>
           )}
         </button>

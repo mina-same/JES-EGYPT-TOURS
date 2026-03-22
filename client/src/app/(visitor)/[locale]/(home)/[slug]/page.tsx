@@ -405,7 +405,6 @@ export default async function SlugPage({ params }: PageProps) {
           <Layout>
             <TopbarOne />
             <HeaderOne linkTheme="light" />
-            <HeaderOneCloned />
             <PageHeader
               title={name || "Tour Details"}
               breadcrumbs={breadcrumbs}

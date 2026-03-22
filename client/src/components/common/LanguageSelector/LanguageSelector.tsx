@@ -18,7 +18,11 @@ const FLAG_COMPONENTS: Record<string, any> = {
   es: ES,
 };
 
-const LanguageSelector: React.FC = () => {
+interface LanguageSelectorProps {
+  theme?: "light" | "dark";
+}
+
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) => {
   const { t } = useTranslation("common");
   const { localizedSlugs } = useSlugs();
   const router = useRouter();
@@ -98,7 +102,7 @@ const LanguageSelector: React.FC = () => {
   }
 
   return (
-    <div className="top-one__language-sort" suppressHydrationWarning>
+    <div className={cn("top-one__language-sort", theme === "light" && "light")} suppressHydrationWarning>
       <Select
         classNamePrefix="custom-select"
         value={selectedOption}
@@ -142,7 +146,8 @@ const LanguageSelector: React.FC = () => {
                 {...props.innerProps}
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors text-sm",
-                  props.isFocused ? "bg-[#b79c5c]/10 text-[#b79c5c]" : "text-white hover:bg-[#b79c5c]/10 hover:text-[#b79c5c]",
+                  props.isFocused ? "bg-[#b79c5c]/10 text-[#b79c5c]" : (theme === "dark" ? "text-white" : "text-black"),
+                  "hover:bg-[#b79c5c]/10 hover:text-[#b79c5c]",
                   props.isSelected ? "bg-[#b79c5c] text-white" : ""
                 )}
               >
@@ -154,7 +159,7 @@ const LanguageSelector: React.FC = () => {
           SingleValue: (props: any) => {
             const Flag = FLAG_COMPONENTS[props.data.flag] || GB;
             return (
-              <div className="flex items-center gap-2 text-white whitespace-nowrap overflow-visible">
+              <div className={cn("flex items-center gap-2 whitespace-nowrap overflow-visible", theme === "dark" ? "text-white" : "text-black")}>
                 <Flag className="w-5 h-3.5 rounded-sm object-cover shadow-sm flex-shrink-0" />
                 <span className="font-medium whitespace-nowrap">{props.data.label}</span>
               </div>
@@ -182,7 +187,7 @@ const LanguageSelector: React.FC = () => {
           }),
           menu: (base) => ({
             ...base,
-            backgroundColor: '#1a1a1a',
+            backgroundColor: theme === "dark" ? '#1a1a1a' : '#fff',
             border: '1px solid rgba(183, 156, 92, 0.2)',
             borderRadius: '8px',
             overflow: 'hidden',

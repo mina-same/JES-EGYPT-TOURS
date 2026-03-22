@@ -11,6 +11,8 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
+import LanguageSelector from "../../common/LanguageSelector/LanguageSelector";
+import { useState, useEffect } from "react";
 
 interface NavItem {
   id: number;
@@ -24,6 +26,11 @@ const HeaderOneCloned: React.FC = () => {
   const scrollToTop = useScrollUp(500);
   const pathname = usePathname();
   const { menu } = useHeaderMenu("header-main");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
@@ -71,11 +78,11 @@ const HeaderOneCloned: React.FC = () => {
           </div>
 
           <div className='main-header__right' style={{ display: "flex", alignItems: "center", flex: 1, justifyContent: "flex-end", position: "relative" }}>
-            <nav className='main-header__nav main-menu' style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+            <nav className='main-header__nav main-menu'>
               <ul className='main-menu__list'>
                 {/* Render Home menu with showcase */}
                 <li className='dropdown megamenu'>
-                  <Link href='/'>Home</Link>
+                  <Link href='/' style={{ color: "#000" }}>Home</Link>
                 </li>
 
                 {nav.map((item: any) => (
@@ -88,7 +95,7 @@ const HeaderOneCloned: React.FC = () => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={formatUrl(item.url || item.link)}>
+                    <Link href={formatUrl(item.url || item.link)} style={{ color: "#000" }}>
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
 
@@ -100,7 +107,7 @@ const HeaderOneCloned: React.FC = () => {
               </ul>
             </nav>
 
-            <div className='main-header__info'>
+            <div className='main-header__info' style={{ display: "flex", alignItems: "center", gap: "20px" }}>
               <Link
                 onClick={(e) => {
                   e.preventDefault();
@@ -112,11 +119,16 @@ const HeaderOneCloned: React.FC = () => {
                 <i
                   className='icon-search-interface-symbol'
                   aria-hidden='true'
+                  style={{ color: "#000" }}
                 ></i>
                 <span className='sr-only'>Search</span>
               </Link>
               <Link href='/wishlist' className='main-header__info__item' style={{ position: "relative" }}>
-                <i className={wishlist.length > 0 ? 'fas fa-heart' : 'far fa-heart'} aria-hidden='true'></i>
+                <i
+                  className={wishlist.length > 0 ? 'fas fa-heart' : 'far fa-heart'}
+                  aria-hidden='true'
+                  style={{ color: "#000" }}
+                ></i>
                 <span className='sr-only'>Wishlist</span>
                 {wishlist.length > 0 && (
                   <span
@@ -143,13 +155,18 @@ const HeaderOneCloned: React.FC = () => {
                   </span>
                 )}
               </Link>
+              {mounted && (
+                <div style={{ marginLeft: "5px" }}>
+                  <LanguageSelector theme="light" />
+                </div>
+              )}
             </div>
 
             <div
               className='main-header__btn-popup main-header__element__btn'
               onClick={changeSideBarDrawerStatus}
             >
-              <i className='icon-menu-bar'></i>
+              <i className='icon-menu-bar' style={{ color: "#000" }}></i>
             </div>
 
             <Link href='/tailorMade' className='gotur-btn main-header__btn'>

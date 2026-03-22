@@ -1400,3 +1400,392 @@ div[suppressHydrationWarning] {
 .accordion-collapse.collapsing {
   visibility: visible !important;
 }
+
+/* ==========================================================================
+   14. TOUR DETAILS MOBILE RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 991px) {
+  /* Layout Reordering: Sidebar to Bottom */
+  .tour-details-row {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  .tour-details-row > .col-lg-3 {
+    order: 2 !important; /* Move sidebar to bottom */
+    width: 100% !important;
+  }
+  
+  .tour-details-row > .col-lg-9 {
+    order: 1 !important; /* Main content first */
+    width: 100% !important;
+  }
+
+  /* Mobile Pricing & Booking Sheet (Hide Normal Sidebar) */
+  .tour-listing-details__sidebar {
+    display: none !important;
+  }
+
+  /* Tour Header Stacking */
+  .tour-listing-details__destination__inner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 20px;
+  }
+
+  .tour-listing-details__destination__right {
+    width: 100% !important;
+    justify-content: space-between !important;
+    flex-direction: row-reverse !important;
+    display: flex !important;
+  }
+
+  /* Horizontally Scrollable Nav */
+  .tour-details-nav-wrapper {
+    overflow: hidden;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1050;
+    width: 100vw !important;
+    margin-left: -15px !important;
+    margin-right: -15px !important;
+  }
+
+  .tour-details-nav {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    justify-content: flex-start !important;
+    padding: 0 20px !important;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .tour-details-nav::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
+  .tour-nav-link {
+    flex: 0 0 auto !important;
+    padding: 15px 15px !important;
+    font-size: 14px !important;
+  }
+
+  /* Info Bar Wrapping */
+  .tour-listing-details__info-area__info {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 15px !important;
+    padding: 20px !important;
+  }
+
+  .tour-listing-details__info-area__info li {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .tour-listing-details__info-area__info li:last-child {
+    grid-column: 1 / -1; /* Button takes full width */
+    margin-top: 10px !important;
+  }
+
+  .tour-listing-details__info-area__info li .gotur-btn {
+    width: 100%;
+    padding: 12px 20px !important;
+  }
+
+  .tour-listing-details__info-area__content {
+    margin-left: 0 !important;
+    margin-top: 8px !important;
+  }
+
+  /* Book with Confidence Banner */
+  .info-area.info-bg .row {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  .info-area.info-bg .col-lg-8 {
+    margin-top: 30px !important;
+  }
+
+  .info-area.info-bg .d-flex {
+    justify-content: center !important;
+    gap: 15px !important;
+  }
+
+  /* Spacing Adjustments */
+  .section-space {
+    padding: 60px 0 !important;
+  }
+
+  .tour-listing-details__title {
+    font-size: 20px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .tour-section {
+    padding-top: 30px !important;
+    padding-bottom: 30px !important;
+  }
+
+  /* Amenities Stacking */
+  .inclusion-card, .exclusion-card {
+    margin-bottom: 20px !important;
+  }
+
+  /* Description Collapsible */
+  .tour-description-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+  .tour-description-wrapper.collapsed {
+    max-height: 250px;
+  }
+  .tour-description-wrapper.collapsed::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: linear-gradient(transparent, white);
+  }
+  .tour-read-more-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: #f8f8f8;
+    border: 1px solid #ebebeb;
+    border-radius: 8px;
+    color: #b79c5c;
+    font-weight: 700;
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 15px;
+  }
+
+  /* Swipeable Mobile Gallery */
+  .mobile-swipeable-gallery {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 15px;
+    padding-bottom: 15px;
+    margin-left: -15px;
+    margin-right: -15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    scrollbar-width: none; /* Firefox */
+  }
+  .mobile-swipeable-gallery::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+  .mobile-gallery-link {
+    flex: 0 0 85%;
+    scroll-snap-align: center;
+    border-radius: 12px;
+    overflow: hidden;
+    display: block;
+    height: 250px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  }
+  .mobile-gallery-link .tour-gallery-item {
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  
+  /* Mobile Sticky Booking Bar */
+  .mobile-sticky-booking-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+    padding: 12px 20px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 1001;
+    display: flex !important;
+  }
+  .booking-bar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .booking-bar-price {
+    display: flex;
+    flex-direction: column;
+  }
+  .booking-bar-price .price-label {
+    font-size: 13px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .booking-bar-price .price-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #b79c5c;
+    line-height: 1.1;
+  }
+  .booking-bar-btn {
+    padding: 12px 30px !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    width: auto !important;
+  }
+
+  /* Bottom Sheet */
+  .mobile-bottom-sheet-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 9998;
+    backdrop-filter: blur(2px);
+  }
+  .mobile-bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 90vh;
+    background: #fff;
+    z-index: 9999;
+    border-radius: 24px 24px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -5px 40px rgba(0,0,0,0.2);
+  }
+  .mobile-bottom-sheet.open {
+    transform: translateY(0);
+  }
+  .bottom-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .bottom-sheet-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a1a;
+  }
+  .bottom-sheet-close {
+    background: #f5f5f5;
+    border: none;
+    color: #333;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .bottom-sheet-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottom-sheet-content .tour-listing-details__sidebar__item-form {
+    margin-bottom: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  .bottom-sheet-content .tour-listing-details__sidebar__title {
+    display: none !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .tour-listing-details__destination__title {
+    font-size: 22px !important;
+  }
+
+  .tour-listing-details__info-area__info {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .amenities-card-title {
+    font-size: 18px !important;
+  }
+
+  .amenities-card-header {
+    padding: 20px !important;
+  }
+
+  .tour-listing-details__destination__right {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+}
+
+/* --- Responsive Shrinking for Pricing & Comments Mobile --- */
+@media (max-width: 991px) {
+  /* Pricing Plans Tweaks */
+  .pricing-plan-card h3 {
+    font-size: 18px !important;
+  }
+  .pricing-plan-card > div[style] {
+    padding: 15px !important;
+  }
+  .pricing-plan-card h4 {
+    font-size: 16px !important;
+  }
+  .pricing-plan-card p {
+    font-size: 12px !important;
+  }
+  
+  /* The Price Grid Wrapper in PricingPlans */
+  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  
+  /* The Helper PriceCard in PricingPlans */
+  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div {
+    padding: 10px !important;
+  }
+  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div div:nth-child(2) {
+    font-size: 20px !important;
+  }
+  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div div:nth-child(1) {
+    font-size: 12px !important;
+  }
+
+  /* Tour Reviews Comments */
+  .tour-reviews-testimonial-box {
+    padding: 20px 15px !important;
+  }
+  .tour-reviews-text {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+  .tour-reviews-stats-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+  }
+  .tour-reviews-count {
+    font-size: 24px !important;
+  }
+}

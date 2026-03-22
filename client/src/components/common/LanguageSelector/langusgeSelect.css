@@ -2,6 +2,15 @@
 .top-one__language-sort {
   min-width: 160px;
   width: auto;
+  --lang-sort-bg: #1a1a1a;
+  --lang-sort-text: #ffffff;
+  --lang-sort-border: rgba(183, 156, 92, 0.2);
+}
+
+.top-one__language-sort.light {
+  --lang-sort-bg: #ffffff;
+  --lang-sort-text: #000000;
+  --lang-sort-border: rgba(183, 156, 92, 0.3);
 }
 
 /* Custom styles for react-select with classNamePrefix="custom-select" */
@@ -12,7 +21,6 @@
   padding: 0;
   min-height: auto;
   cursor: pointer;
-  color: #fff !important;
 }
 
 .custom-select__single-value {
@@ -20,7 +28,7 @@
   font-weight: 400;
   font-size: 14px !important;
   line-height: 20px;
-  color: var(--gotur-white, #fff) !important;
+  color: var(--lang-sort-text) !important;
 }
 
 .custom-select__value-container {
@@ -29,7 +37,7 @@
 
 .custom-select__indicator {
   padding: 0 6px;
-  color: var(--gotur-white, #fff);
+  color: #b79c5c !important;
 }
 
 /* The menu list wrapper */
@@ -44,8 +52,8 @@
   font-size: 14px !important;
   line-height: 1.5;
   padding: 8px 12px !important;
-  color: #fff;
-  background-color: transparent;
+  color: var(--lang-sort-text) !important;
+  background-color: transparent !important;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -73,8 +81,8 @@
 }
 
 .custom-select__menu {
-  background: #1a1a1a !important;
-  border: 1px solid rgba(183, 156, 92, 0.2) !important;
+  background: var(--lang-sort-bg) !important;
+  border: 1px solid var(--lang-sort-border) !important;
   border-radius: 8px !important;
   margin-top: 8px !important;
   z-index: 10000 !important;

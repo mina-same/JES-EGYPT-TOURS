@@ -68,9 +68,11 @@
       "gallery": "Tourgalerie",
       "brochure": "Broschüre herunterladen",
       "faq": "Tour-FAQs",
+      "map": "Karte erkunden",
       "honestReviews": "Ehrliche und reflektierende Bewertungen",
       "reviews": "Tourbewertungen"
     },
+    "mapTitle": "Tour Standort Karte",
     "highlightList": "Highlight-Liste",
     "amenitiesTitle": "Ausstattung der Tour",
     "amenitiesSubtitle": "Umfassende Liste dessen, was für Ihre bequeme Reise bereitgestellt wird.",

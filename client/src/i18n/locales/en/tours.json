@@ -68,9 +68,11 @@
       "gallery": "Tour Gallery",
       "brochure": "Download Brochure",
       "faq": "Tour FAQ",
+      "map": "Explore the Map",
       "honestReviews": "Reflective & Honest Reviews",
       "reviews": "Tour Reviews"
     },
+    "mapTitle": "Tour Location Map",
     "highlightList": "Highlight List",
     "amenitiesTitle": "Tour Amenities",
     "amenitiesSubtitle": "Comprehensive list of what's provided for your comfortable journey.",

@@ -105,7 +105,11 @@ const Drawer: React.FC = () => {
               >
                 Home
                 <button
-                  onClick={toggleHomeDrop}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleHomeDrop();
+                  }}
                   className={`${isHomeDrop ? "expanded" : ""}`}
                 >
                   <i className='fa fa-angle-down'></i>
@@ -142,7 +146,11 @@ const Drawer: React.FC = () => {
 
                   {hasChildren && (
                     <button
-                      onClick={() => toggleDropdown(idx)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleDropdown(idx);
+                      }}
                       className={`${isItems === idx ? "expanded" : ""}`}
                     >
                       <i className='fa fa-angle-down'></i>
@@ -154,10 +162,13 @@ const Drawer: React.FC = () => {
                   <ul
                     className={`close ${openNavItemId === idx ? "open" : ""}`}
                   >
-                    {children.map((subMenu: any, sidx: number) => (
+                    {children.map((subMenu: any, sidx: number) => {
+                      const subChildren = subMenu.children || subMenu.subMenu;
+                      const hasSubChildren = Array.isArray(subChildren) && subChildren.length > 0;
+                      return (
                     <li
                       key={subMenu._id || subMenu.id || `${subMenu.label || subMenu.title}-${sidx}`}
-                      className={`${(subMenu.children || subMenu.subMenu) ? "dropdown" : ""} ${
+                      className={`${hasSubChildren ? "dropdown" : ""} ${
                         isSubItems === sidx ? "open" : ""
                       }`}
                     >
@@ -169,9 +180,13 @@ const Drawer: React.FC = () => {
                           {getLocalizedValue(subMenu.label || subMenu.title, i18n.language)}{" "}
                         </Link>
 
-                        {(subMenu.children || subMenu.subMenu) && (
+                        {hasSubChildren && (
                           <button
-                            onClick={() => toggleSubItemDropdown(sidx)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleSubItemDropdown(sidx);
+                            }}
                             className={`${isSubItems === sidx ? "expanded" : ""}`}
                           >
                             <i className='fa fa-angle-down'></i>
@@ -179,20 +194,22 @@ const Drawer: React.FC = () => {
                         )}
                       </div>
 
-                      <ul
-                        className={`close ${openSubItemId === sidx ? "open" : ""}`}
-                      >
-                        {(subMenu.children || subMenu.subMenu)?.map((subSubItem: any, ssidx: number) => (
-                          <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
-                            <Link href={formatUrl(subSubItem.url || subSubItem.link)}>
-                              {getLocalizedValue(subSubItem.label || subSubItem.title, i18n.language)}
-                            </Link>
-                          </li>
-
-                        ))}
-                      </ul>
+                      {hasSubChildren && (
+                        <ul
+                          className={`close ${openSubItemId === sidx ? "open" : ""}`}
+                        >
+                          {subChildren.map((subSubItem: any, ssidx: number) => (
+                            <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
+                              <Link href={formatUrl(subSubItem.url || subSubItem.link)}>
+                                {getLocalizedValue(subSubItem.label || subSubItem.title, i18n.language)}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </li>
-                  ))}
+                      );
+                    })}
                   </ul>
                 ) : null}
               </li>

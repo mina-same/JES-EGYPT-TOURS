@@ -27,6 +27,7 @@ interface LocalizedInputProps {
   placeholder?: string;
   className?: string;
   type?: string;
+  "data-field"?: string;
 }
 
 const LocalizedInput: React.FC<LocalizedInputProps> = ({
@@ -36,6 +37,7 @@ const LocalizedInput: React.FC<LocalizedInputProps> = ({
   placeholder,
   className = "",
   type = "text",
+  "data-field": dataField,
 }) => {
   const [activeLang, setActiveLang] = useState<AdminLanguage>("en");
 
@@ -47,7 +49,7 @@ const LocalizedInput: React.FC<LocalizedInputProps> = ({
   };
 
   return (
-    <div className={cn("space-y-2.5", className)}>
+    <div className={cn("space-y-2.5", className)} data-field={dataField}>
       <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
         {label && <label className="text-sm font-medium whitespace-nowrap">{label}</label>}
         <div className="flex gap-1 bg-muted p-1 rounded-md border text-[10px] shadow-sm">
