@@ -60,9 +60,12 @@ export const tourCategoryAPI = {
   /**
    * Get category by slug
    */
-  getBySlug: async (slug: string) => {
+  getBySlug: async (slug: string, locale?: string) => {
     const response = await axiosInstance.get<ApiResponse<any>>(
-      `${API_BASE}/categories/slug/${slug}`
+      `${API_BASE}/categories/slug/${slug}`,
+      {
+        headers: locale ? { 'X-Locale': locale } : undefined
+      }
     );
     return response.data;
   },
@@ -153,11 +156,14 @@ export const tourSubcategoryAPI = {
   /**
    * Get subcategory by slug
    */
-  getBySlug: async (slug: string, categoryId?: string) => {
+  getBySlug: async (slug: string, categoryId?: string, locale?: string) => {
     const params = categoryId ? { category: categoryId } : undefined;
     const response = await axiosInstance.get<ApiResponse<any>>(
       `${API_BASE}/subcategories/slug/${slug}`,
-      { params }
+      {
+        params,
+        headers: locale ? { 'X-Locale': locale } : undefined
+      }
     );
     return response.data;
   },
@@ -265,9 +271,12 @@ export const tourAPI = {
   /**
    * Get tour by slug
    */
-  getBySlug: async (slug: string) => {
+  getBySlug: async (slug: string, locale?: string) => {
     const response = await axiosInstance.get<ApiResponse<any>>(
-      `${API_BASE}/slug/${slug}`
+      `${API_BASE}/slug/${slug}`,
+      {
+        headers: locale ? { 'X-Locale': locale } : undefined
+      }
     );
     return response.data;
   },

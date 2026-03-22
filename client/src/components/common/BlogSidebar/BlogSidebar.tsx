@@ -86,7 +86,7 @@ const BlogSidebar: React.FC = () => {
         date: dateLabel,
         image,
         imageAlt,
-        link: `/blogs/${getLocalizedValue(post.slug, currentLocale)}`,
+        link: `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`,
       };
     });
   }, [recentPosts]);

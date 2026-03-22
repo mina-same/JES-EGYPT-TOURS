@@ -8,207 +8,179 @@
  */
 
 export const tourCategorySeed = {
-  name: 'Adventure Tours',
-  slug: 'adventure-tours',
-  description: `
-    <div class="category-description">
-      <h2>Discover Thrilling Adventures</h2>
-      <p>Embark on high-energy adventure tours across the Middle East and North Africa. From exhilarating desert safaris to challenging mountain treks, our adventure tours are designed for thrill-seekers and nature enthusiasts.</p>
-      <ul>
-        <li>Expert-guided expeditions</li>
-        <li>Safety-first approach</li>
-        <li>Small group experiences</li>
-        <li>Sustainable tourism practices</li>
-      </ul>
-    </div>
-  `,
+  name: { en: 'Adventure Tours', de: 'Abenteuertouren', it: 'Tour Avventura', es: 'Tours de Aventura' },
+  slug: { en: 'adventure-tours', de: 'abenteuertouren', it: 'tour-avventura', es: 'tours-aventura' },
+  description: {
+    en: '<div class="category-description"><h2>Discover Thrilling Adventures</h2><p>Embark on high-energy adventure tours across the Middle East and North Africa. From exhilarating desert safaris to challenging mountain treks, our adventure tours are designed for thrill-seekers and nature enthusiasts.</p><ul><li>Expert-guided expeditions</li><li>Safety-first approach</li><li>Small group experiences</li><li>Sustainable tourism practices</li></ul></div>',
+    de: '<div class="category-description"><h2>Entdecke aufregende Abenteuer</h2><p>Begib dich auf energiereiche Abenteuertouren durch den Nahen Osten und Nordafrika.</p></div>',
+    it: '<div class="category-description"><h2>Scopri Avventure Emozionanti</h2><p>Intraprendi tour avventurosi ad alta energia attraverso il Medio Oriente e il Nord Africa.</p></div>',
+    es: '<div class="category-description"><h2>Descubre Aventuras Emocionantes</h2><p>Embárcate en tours de aventura por el Medio Oriente y el Norte de África.</p></div>',
+  },
   image: {
     url: 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=1200&h=800&fit=crop',
     fileName: 'adventure-main.jpg',
-    title: 'Adventure Tours Category',
-    alt: 'Exciting adventure activities in desert and mountains',
+    title: { en: 'Adventure Tours Category', de: 'Abenteuertour Kategorie', it: 'Categoria Tour Avventura', es: 'Categoría Tours Aventura' },
+    alt: { en: 'Exciting adventure activities in desert and mountains', de: 'Aufregende Abenteueraktivitäten', it: 'Attività avventurose emozionanti', es: 'Actividades de aventura emocionantes' },
   },
-  seo: {
-    metaTitle: 'Adventure Tours - Middle East & North Africa Experiences',
-    metaDescription: 'Explore adventure tours: desert safaris, mountain treks, diving trips. Book your next adventure with expert guides today.',
-    metaKeywords: ['adventure tours', 'desert safari', 'mountain trekking', 'outdoor activities', 'adventure travel'],
-    metaImage: {
-      url: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1200&h=630&fit=crop',
-      fileName: 'adventure-category-seo.jpg',
-      title: 'Adventure Tours SEO Image',
-      alt: 'Adventure travel experiences',
-    },
-  },
+  metaTitle: { en: 'Adventure Tours - Middle East & North Africa Experiences', de: 'Abenteuertouren - Naher Osten & Nordafrika', it: 'Tour Avventura - Medio Oriente e Nord Africa', es: 'Tours de Aventura - Oriente Medio y Norte de África' },
+  metaDescription: { en: 'Explore adventure tours: desert safaris, mountain treks, diving trips. Book your next adventure with expert guides today.', de: 'Entdecken Sie Abenteuertouren: Wüstensafaris, Bergwanderungen, Tauchausflüge.', it: 'Esplora tour avventura: safari nel deserto, trekking montano, immersioni.', es: 'Explora tours de aventura: safaris en el desierto, senderismo en montaña, buceo.' },
   isActive: true,
 };
 
 export const tourSubcategorySeed = {
   // category will be populated with the created category ID
-  name: 'Desert Safari',
-  slug: 'desert-safari',
-  description: `
-    <div class="subcategory-description">
-      <h3>Unforgettable Desert Safari Experiences</h3>
-      <p>Experience the magic of the desert with our carefully curated safari packages. Whether you're seeking adrenaline-pumping dune bashing or a peaceful sunset camel ride, we offer both shared and private experiences with optional luxury add-ons.</p>
-      <div class="highlights">
-        <h4>What Makes Our Desert Safaris Special:</h4>
-        <ul>
-          <li>Professional drivers with 10+ years experience</li>
-          <li>Modern, well-maintained 4x4 vehicles</li>
-          <li>Authentic Bedouin-style camps</li>
-          <li>Gourmet dining options</li>
-          <li>Cultural entertainment and activities</li>
-        </ul>
-      </div>
-    </div>
-  `,
+  name: { en: 'Desert Safari', de: 'Wüstensafari', it: 'Safari nel Deserto', es: 'Safari en el Desierto' },
+  slug: { en: 'desert-safari', de: 'wuestensafari', it: 'safari-deserto', es: 'safari-desierto' },
+  description: {
+    en: '<div class="subcategory-description"><h3>Unforgettable Desert Safari Experiences</h3><p>Experience the magic of the desert with our carefully curated safari packages. Whether you\'re seeking adrenaline-pumping dune bashing or a peaceful sunset camel ride, we offer both shared and private experiences with optional luxury add-ons.</p></div>',
+    de: '<div class="subcategory-description"><h3>Unvergessliche Wüstensafari-Erlebnisse</h3><p>Erleben Sie die Magie der Wüste mit unseren sorgfältig zusammengestellten Safaripaketen.</p></div>',
+    it: '<div class="subcategory-description"><h3>Esperienze di Safari nel Deserto Indimenticabili</h3><p>Vivi la magia del deserto con i nostri pacchetti safari accuratamente curati.</p></div>',
+    es: '<div class="subcategory-description"><h3>Experiencias de Safari en el Desierto Inolvidables</h3><p>Experimenta la magia del desierto con nuestros paquetes de safari cuidadosamente elaborados.</p></div>',
+  },
   image: {
     url: 'https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=1200&h=800&fit=crop',
     fileName: 'desert-safari-main.jpg',
-    title: 'Desert Safari Adventures',
-    alt: 'Golden desert dunes at sunset with 4x4 vehicles',
+    title: { en: 'Desert Safari Adventures', de: 'Wüstensafari Abenteuer', it: 'Avventure Safari Deserto', es: 'Aventuras Safari Desierto' },
+    alt: { en: 'Golden desert dunes at sunset with 4x4 vehicles', de: 'Goldene Wüstendünen bei Sonnenuntergang', it: 'Dune dorate del deserto al tramonto', es: 'Dunas doradas del desierto al atardecer' },
   },
-  seo: {
-    metaTitle: 'Desert Safari Tours - Premium Desert Experiences',
-    metaDescription: 'Book exciting desert safari experiences with dune bashing, camel rides, BBQ dinner, and live entertainment. Private and group options available.',
-    metaKeywords: ['desert safari', 'dune bashing', 'camel ride', 'desert camp', 'desert adventure'],
-    metaImage: {
-      url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&h=630&fit=crop',
-      fileName: 'desert-safari-seo.jpg',
-      title: 'Desert Safari SEO Image',
-      alt: 'Desert safari adventure',
-    },
-  },
+  metaTitle: { en: 'Desert Safari Tours - Premium Desert Experiences', de: 'Wüstensafari-Touren - Premium Wüstenerlebnisse', it: 'Tour Safari Deserto - Esperienze Premium nel Deserto', es: 'Tours Safari Desierto - Experiencias Premium en el Desierto' },
+  metaDescription: { en: 'Book exciting desert safari experiences with dune bashing, camel rides, BBQ dinner, and live entertainment. Private and group options available.', de: 'Buchen Sie aufregende Wüstensafari-Erlebnisse mit Dünenfahrten, Kamelreiten, BBQ-Abendessen.', it: 'Prenota emozionanti esperienze di safari nel deserto con dune bashing, gite in cammello, cena BBQ.', es: 'Reserva emocionantes experiencias de safari en el desierto con dune bashing, paseos en camello, cena BBQ.' },
   isActive: true,
 };
+
 
 export const tourSeed = {
   // subcategory will be populated with the created subcategory ID
   idExternal: 'ADV-DS-2026-001',
-  heading: 'Premium Desert Safari Experience in Dubai',
-  slug: 'premium-desert-safari-dubai',
+  heading: { 
+    en: 'Premium Desert Safari Experience in Dubai',
+    de: 'Premium-Wüstensafari-Erlebnis in Dubai',
+    it: 'Esperienza Safari nel Deserto Premium a Dubai',
+    es: 'Experiencia Premium de Safari en el Desierto en Dubái'
+  },
+  slug: { 
+    en: 'premium-desert-safari-dubai',
+    de: 'premium-wuestensafari-dubai',
+    it: 'safari-deserto-premium-dubai',
+    es: 'safari-desierto-premium-dubai'
+  },
   Description: {
-    header: 'Luxury Desert Safari with Gourmet Dinner & Live Entertainment',
-    text: `
-      <div class="tour-description">
-        <p class="lead">Experience the ultimate luxury desert safari adventure just outside Dubai. This premium package combines adrenaline-pumping activities with authentic Arabian hospitality.</p>
-        
-        <div class="experience-overview">
-          <h3>What to Expect</h3>
-          <p>Your journey begins with a comfortable hotel pickup in our premium air-conditioned 4x4 vehicles. As we venture into the golden dunes of the Dubai Desert Conservation Reserve, you'll witness the stunning transformation of the landscape.</p>
-          
-          <p>Hold on tight for an exhilarating 20-minute dune bashing session with our expert drivers, followed by a serene sunset photo stop at the most picturesque location. Experience traditional camel riding before arriving at our exclusive desert camp.</p>
-          
-          <p>Indulge in a gourmet BBQ dinner featuring both international and local cuisine, with dedicated vegetarian options. As you dine under the stars, enjoy captivating live performances including traditional Tanoura dance and mesmerizing fire shows.</p>
+    header: { 
+      en: 'Luxury Desert Safari with Gourmet Dinner & Live Entertainment',
+      de: 'Luxus-Wüstensafari mit Gourmet-Abendessen & Live-Unterhaltung',
+      it: 'Safari nel deserto di lusso con cena gourmet e intrattenimento dal vivo',
+      es: 'Safari de Lujo en el Desierto con Cena Gourmet y Entretenimiento en Vivo'
+    },
+    text: { 
+      en: `
+        <div class="tour-description">
+          <p class="lead">Experience the ultimate luxury desert safari adventure just outside Dubai. This premium package combines adrenaline-pumping activities with authentic Arabian hospitality.</p>
         </div>
-        
-        <div class="why-choose">
-          <h3>Why Choose This Experience</h3>
-          <ul>
-            <li><strong>Expert Guides:</strong> Professional drivers and storytellers with extensive desert knowledge</li>
-            <li><strong>Premium Comfort:</strong> Modern vehicles with climate control and comfortable seating</li>
-            <li><strong>Gourmet Dining:</strong> High-quality food prepared by experienced chefs</li>
-            <li><strong>Authentic Culture:</strong> Genuine Arabian entertainment and hospitality</li>
-            <li><strong>Safety First:</strong> All safety equipment provided and maintained to highest standards</li>
-          </ul>
+      `,
+      de: `
+        <div class="tour-description">
+          <p class="lead">Erleben Sie das ultimative Luxus-Wüstensafari-Abenteuer direkt vor den Toren Dubais. Dieses Premium-Paket kombiniert adrenalingeladene Aktivitäten mit authentischer arabischer Gastfreundschaft.</p>
         </div>
-      </div>
-    `,
+      `,
+      it: `
+        <div class="tour-description">
+          <p class="lead">Vivi l'ultima avventura safari nel deserto di lusso appena fuori Dubai. Questo pacchetto premium combina attività adrenaliniche con l'autentica ospitalità araba.</p>
+        </div>
+      `,
+      es: `
+        <div class="tour-description">
+          <p class="lead">Experimente la aventura definitiva de safari de lujo en el desierto a las afueras de Dubái. Este paquete premium combina actividades de adrenalina con la auténtica hospitalidad árabe.</p>
+        </div>
+      `
+    },
   },
   images: [
     {
       url: 'https://images.unsplash.com/photo-1583221863947-e6df7c2e8a3e?w=1200&h=800&fit=crop',
       fileName: 'main.jpg',
-      title: 'Premium Desert Safari Main View',
-      alt: 'Luxury 4x4 vehicle on Dubai desert dunes at sunset',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=1200&h=800&fit=crop',
-      fileName: 'vehicle.jpg',
-      title: 'Safari 4x4 Vehicle',
-      alt: 'Modern 4x4 vehicle used for desert safari',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1200&h=800&fit=crop',
-      fileName: 'camp.jpg',
-      title: 'Desert Camp',
-      alt: 'Traditional Bedouin-style desert camp setup',
+      title: { en: 'Premium Desert Safari Main View', de: 'Hauptansicht Premium-Wüstensafari', it: 'Vista principale Safari nel deserto Premium', es: 'Vista Principal del Safari Premium en el Desierto' },
+      alt: { en: 'Luxury 4x4 vehicle on Dubai desert dunes at sunset', de: 'Luxus-4x4-Fahrzeug in den Wüstendünen von Dubai bei Sonnenuntergang', it: 'Veicolo 4x4 di lusso sulle dune del deserto di Dubai al tramonto', es: 'Vehículo 4x4 de lujo en las dunas del desierto de Dubái al atardecer' },
     },
   ],
   gallery: [
     {
       url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&h=800&fit=crop',
       fileName: 'sunset.jpg',
-      title: 'Desert Sunset',
-      alt: 'Breathtaking desert sunset with golden dunes',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=1200&h=800&fit=crop',
-      fileName: 'dune-bashing.jpg',
-      title: 'Dune Bashing Action',
-      alt: '4x4 vehicle performing dune bashing on high sand dunes',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1583221863947-e6df7c2e8a3e?w=1200&h=800&fit=crop',
-      fileName: 'camel-ride.jpg',
-      title: 'Camel Riding Experience',
-      alt: 'Tourists enjoying camel ride in Dubai desert',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&h=800&fit=crop',
-      fileName: 'dinner.jpg',
-      title: 'Gourmet BBQ Dinner',
-      alt: 'Delicious BBQ buffet spread at desert camp',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&h=800&fit=crop',
-      fileName: 'entertainment.jpg',
-      title: 'Live Entertainment',
-      alt: 'Traditional Tanoura dance performance',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200&h=800&fit=crop',
-      fileName: 'fire-show.jpg',
-      title: 'Fire Show',
-      alt: 'Spectacular fire show performance at desert camp',
+      title: { en: 'Desert Sunset', de: 'Wüstensonnenuntergang', it: 'Tramonto nel deserto', es: 'Atardecer en el Desierto' },
+      alt: { en: 'Breathtaking desert sunset with golden dunes', de: 'Atemberaubender Wüstensonnenuntergang mit goldenen Dünen', it: 'Mozzafiato tramonto nel deserto con dune dorate', es: 'Impresionante atardecer en el desierto con dunas doradas' },
     },
   ],
-  tourLocation: 'Dubai Desert Conservation Reserve, United Arab Emirates',
-  tourAvailability: 'Daily departures (subject to availability and weather conditions)',
-  pickupAndDropOff: 'Complimentary hotel pickup and drop-off within Dubai city limits including Dubai Marina, Downtown Dubai, and Palm Jumeirah. Additional charges apply for pickups from Ras Al Khaimah, Fujairah, and Ibn Battuta areas.',
-  tourType: 'Private & Shared Group Options',
-  tourStyle: 'Luxury Cultural Adventure',
+  tourLocation: { 
+    en: 'Dubai Desert Conservation Reserve, United Arab Emirates',
+    de: 'Dubai Desert Conservation Reserve, Vereinigte Arabische Emirate',
+    it: 'Dubai Desert Conservation Reserve, Emirati Arabi Uniti',
+    es: 'Reserva de Conservación del Desierto de Dubái, Emiratos Árabes Unidos'
+  },
+  tourAvailability: { 
+    en: 'Daily departures',
+    de: 'Tägliche Abfahrten',
+    it: 'Partenze giornaliere',
+    es: 'Salidas diarias'
+  },
+  pickupAndDropOff: { 
+    en: 'Complimentary hotel pickup and drop-off within Dubai city limits.',
+    de: 'Kostenlose Abholung und Rückfahrt vom Hotel innerhalb der Stadtgrenzen von Dubai.',
+    it: 'Ritiro e riconsegna in hotel gratuiti entro i limiti della città di Dubai.',
+    es: 'Recogida y regreso al hotel de cortesía dentro de los límites de la ciudad de Dubái.'
+  },
+  tourType: { 
+    en: 'Private & Shared Group Options',
+    de: 'Private & Gemeinsame Gruppenoptionen',
+    it: 'Opzioni per gruppi privati ​​e condivisi',
+    es: 'Opciones de Grupos Privados y Compartidos'
+  },
+  tourStyle: { 
+    en: 'Luxury Cultural Adventure',
+    de: 'Luxuriöses kulturelles Abenteuer',
+    it: 'Avventura culturale di lusso',
+    es: 'Aventura Cultural de Lujo'
+  },
   tourHighlights: [
-    'Private 4x4 dune bashing session (20-25 minutes)',
-    'Professional photography at stunning sunset viewpoint',
-    'Traditional camel riding experience',
-    'Gourmet BBQ dinner with international and local cuisine',
-    'Live cultural entertainment: Tanoura dance, fire show, and belly dance (optional)',
-    'Henna painting and traditional costume photo opportunities',
-    'Unlimited soft drinks, tea, and Arabic coffee',
-    'Sandboarding equipment provided',
+    { 
+      en: 'Private 4x4 dune bashing session',
+      de: 'Private 4x4 Dünen-Bashing-Session',
+      it: 'Sessione di dune bashing 4x4 privata',
+      es: 'Sesión privada de dune bashing en 4x4'
+    },
+    { 
+      en: 'Traditional camel riding experience',
+      de: 'Traditionelles Kamelreit-Erlebnis',
+      it: 'Esperienza tradizionale di gita in cammello',
+      es: 'Experiencia tradicional de paseo en camello'
+    },
   ],
   inclusion: [
-    'Round-trip hotel transfers in premium air-conditioned 4x4 vehicles',
-    'Professional English-speaking driver/guide',
-    '20-25 minute dune bashing experience',
-    'Camel riding session',
-    'Sunset photography stop',
-    'Welcome refreshments at desert camp',
-    'Gourmet BBQ buffet dinner (vegetarian and halal options)',
-    'Unlimited soft drinks, water, tea, and coffee',
-    'Live entertainment shows (Tanoura, fire show)',
-    'Henna painting service',
-    'Traditional costume for photos',
-    'Sandboarding equipment',
-    'All applicable taxes and service charges',
+    { 
+      en: 'Round-trip hotel transfers',
+      de: 'Hin- und Rücktransfer zum Hotel',
+      it: 'Trasferimenti da e per l\'hotel',
+      es: 'Traslados de ida y vuelta al hotel'
+    },
+    { 
+      en: 'Gourmet BBQ buffet dinner',
+      de: 'Gourmet-BBQ-Buffet-Abendessen',
+      it: 'Cena a buffet barbecue gourmet',
+      es: 'Cena buffet de barbacoa gourmet'
+    },
   ],
   exclusion: [
-    'Quad biking (available as optional paid activity - $50 per person)',
-    'Alcoholic beverages',
-    'Personal expenses and gratuities',
-    'Travel insurance',
-    'Any items not mentioned in inclusions',
+    { 
+      en: 'Alcoholic beverages',
+      de: 'Alkoholische Getränke',
+      it: 'Bevande alcoliche',
+      es: 'Bebidas alcohólicas'
+    },
+    { 
+      en: 'Personal expenses',
+      de: 'Persönliche Ausgaben',
+      it: 'Spese personali',
+      es: 'Gastos personales'
+    },
   ],
   pricingPlans: [
     {
@@ -226,12 +198,12 @@ export const tourSeed = {
           },
           notes: [
             {
-              title: 'Booking Fee',
-              text: '<p>A non-refundable booking fee of $5 USD applies per reservation.</p>',
+              title: { en: 'Booking Fee' },
+              text: { en: '<p>A non-refundable booking fee of $5 USD applies per reservation.</p>' },
             },
             {
-              title: 'Group Discount',
-              text: '<p>Groups of 9+ receive complimentary group photo package.</p>',
+              title: { en: 'Group Discount' },
+              text: { en: '<p>Groups of 9+ receive complimentary group photo package.</p>' },
             },
           ],
         },
@@ -259,8 +231,8 @@ export const tourSeed = {
           },
           notes: [
             {
-              title: 'Summer Special',
-              text: '<p>Complimentary upgrade to evening safari with extended entertainment.</p>',
+              title: { en: 'Summer Special' },
+              text: { en: '<p>Complimentary upgrade to evening safari with extended entertainment.</p>' },
             },
           ],
         },
@@ -276,8 +248,8 @@ export const tourSeed = {
           },
           notes: [
             {
-              title: 'Peak Season Surcharge',
-              text: '<p>Peak season rates apply automatically. Advanced booking recommended.</p>',
+              title: { en: 'Peak Season Surcharge' },
+              text: { en: '<p>Peak season rates apply automatically. Advanced booking recommended.</p>' },
             },
           ],
         },
@@ -310,8 +282,8 @@ export const tourSeed = {
           },
           notes: [
             {
-              title: 'Gold Package Inclusions',
-              text: '<p>Includes premium seating area, complimentary shisha, and priority service.</p>',
+              title: { en: 'Gold Package Inclusions' },
+              text: { en: '<p>Includes premium seating area, complimentary shisha, and priority service.</p>' },
             },
           ],
         },
@@ -380,8 +352,8 @@ export const tourSeed = {
           },
           notes: [
             {
-              title: 'Diamond Luxury Package',
-              text: '<p>Includes private vehicle, VIP seating, luxury welcome pack, premium beverages, and dedicated personal guide.</p>',
+              title: { en: 'Diamond Luxury Package' },
+              text: { en: '<p>Includes private vehicle, VIP seating, luxury welcome pack, premium beverages, and dedicated personal guide.</p>' },
             },
           ],
         },
@@ -438,31 +410,31 @@ export const tourSeed = {
   ],
   notes: [
     {
-      title: 'Child Policy',
-      text: '<p>Children under 3 years travel free. Children aged 3-11 years receive 50% discount when sharing with adults.</p>',
+      title: { en: 'Child Policy' },
+      text: { en: '<p>Children under 3 years travel free. Children aged 3-11 years receive 50% discount when sharing with adults.</p>' },
     },
     {
-      title: 'Accessibility',
-      text: '<p>Please note that dune bashing and camel riding may not be suitable for pregnant women, individuals with back problems, or those with heart conditions. Alternative activities can be arranged.</p>',
+      title: { en: 'Accessibility' },
+      text: { en: '<p>Please note that dune bashing and camel riding may not be suitable for pregnant women, individuals with back problems, or those with heart conditions. Alternative activities can be arranged.</p>' },
     },
     {
-      title: 'Cancellation Policy',
-      text: '<p>Free cancellation up to 24 hours before the tour. Cancellations within 24 hours are subject to 100% charge.</p>',
+      title: { en: 'Cancellation Policy' },
+      text: { en: '<p>Free cancellation up to 24 hours before the tour. Cancellations within 24 hours are subject to 100% charge.</p>' },
     },
     {
-      title: 'Weather Policy',
-      text: '<p>Tours operate in all weather conditions. In case of extreme weather, we reserve the right to reschedule or provide a full refund.</p>',
+      title: { en: 'Weather Policy' },
+      text: { en: '<p>Tours operate in all weather conditions. In case of extreme weather, we reserve the right to reschedule or provide a full refund.</p>' },
     },
   ],
   whatToPack: [
-    'Light, comfortable clothing (long pants recommended for camel riding)',
-    'Sunscreen (SPF 30+) and lip balm',
-    'Sunglasses and hat/cap',
-    'Closed-toe shoes (sandals not recommended for dune activities)',
-    'Camera or smartphone for photos',
-    'Light jacket or shawl for evening (winter months)',
-    'Personal medications if required',
-    'Small backpack or bag',
+    { en: 'Light, comfortable clothing (long pants recommended for camel riding)' },
+    { en: 'Sunscreen (SPF 30+) and lip balm' },
+    { en: 'Sunglasses and hat/cap' },
+    { en: 'Closed-toe shoes (sandals not recommended for dune activities)' },
+    { en: 'Camera or smartphone for photos' },
+    { en: 'Light jacket or shawl for evening (winter months)' },
+    { en: 'Personal medications if required' },
+    { en: 'Small backpack or bag' },
   ],
   tourMapIframe: '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d462560.68284598546!2d54.94757907265869!3d25.076280430177422!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f43496ad9c645%3A0xbde66e5084295162!2sDubai%20-%20United%20Arab%20Emirates!5e0!3m2!1sen!2s!4v1234567890123!5m2!1sen!2s" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>',
   mapSchema: {
@@ -538,67 +510,67 @@ export const tourSeed = {
       },
     ],
   },
-  whatYouWillLoveHtml: `
+  whatYouWillLoveHtml: { en: `
     <div class="what-you-will-love">
       <h3>Why Our Guests Love This Experience</h3>
       <div class="love-points">
         <div class="love-point">
-          <h4>🏜️ Authentic Desert Adventure</h4>
+          <h4>Detailed Desert Adventure</h4>
           <p>From adrenaline-filled dune rides to peaceful camel treks, experience the desert in all its glory. Our expert drivers ensure maximum thrills while maintaining complete safety.</p>
         </div>
         <div class="love-point">
-          <h4>🍽️ Culinary Excellence</h4>
+          <h4>Culinary Excellence</h4>
           <p>Savor a gourmet BBQ dinner under the stars featuring both international favorites and authentic Arabian cuisine. Our chefs use only the freshest ingredients to create memorable dining experiences.</p>
         </div>
         <div class="love-point">
-          <h4>🎭 Cultural Immersion</h4>
+          <h4>Cultural Immersion</h4>
           <p>Witness mesmerizing traditional performances including the hypnotic Tanoura dance and spectacular fire shows. Try henna painting and dress in traditional costumes for unforgettable photos.</p>
         </div>
         <div class="love-point">
-          <h4>⭐ Premium Service</h4>
+          <h4>Premium Service</h4>
           <p>Our dedicated team ensures every moment is comfortable and memorable. From the moment we pick you up until we drop you back, expect nothing but excellence.</p>
         </div>
       </div>
     </div>
-  `,
+  ` },
   itinerary: {
-    generalDescription: '<p>This evening desert safari typically lasts 6-7 hours, offering the perfect blend of adventure, culture, and relaxation. The itinerary is flexible and can be adjusted based on group preferences and weather conditions.</p>',
+    generalDescription: { en: '<p>This evening desert safari typically lasts 6-7 hours, offering the perfect blend of adventure, culture, and relaxation. The itinerary is flexible and can be adjusted based on group preferences and weather conditions.</p>' },
     days: [
       {
         day: 1,
-        title: 'Hotel Pickup & Desert Drive',
-        description: '<p>Your adventure begins with a comfortable pickup from your Dubai hotel. Relax in our air-conditioned 4x4 as we journey into the golden desert landscape.</p>',
+        title: { en: 'Hotel Pickup & Desert Drive' },
+        description: { en: '<p>Your adventure begins with a comfortable pickup from your Dubai hotel. Relax in our air-conditioned 4x4 as we journey into the golden desert landscape.</p>' },
         activities: [
           {
-            heading: 'Hotel Pickup (3:00 PM - 3:30 PM)',
-            description: '<p>Our professional driver will collect you from your hotel lobby in a premium air-conditioned 4x4 vehicle. Please be ready 10 minutes before your scheduled pickup time.</p>',
+            heading: { en: 'Hotel Pickup (3:00 PM - 3:30 PM)' },
+            description: { en: '<p>Our professional driver will collect you from your hotel lobby in a premium air-conditioned 4x4 vehicle. Please be ready 10 minutes before your scheduled pickup time.</p>' },
             image: {
               url: 'https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=800&h=600&fit=crop',
               fileName: 'pickup.jpg',
-              title: 'Hotel Pickup Service',
-              alt: 'Luxury 4x4 vehicle for hotel pickup',
+              title: { en: 'Hotel Pickup Service' },
+              alt: { en: 'Luxury 4x4 vehicle for hotel pickup' },
             },
           },
           {
-            heading: 'Scenic Desert Drive (45 minutes)',
-            description: '<p>Enjoy the changing landscape as we leave the city behind and enter the vast Arabian Desert. Your guide will share interesting facts about the desert ecosystem and local culture.</p>',
+            heading: { en: 'Scenic Desert Drive (45 minutes)' },
+            description: { en: '<p>Enjoy the changing landscape as we leave the city behind and enter the vast Arabian Desert. Your guide will share interesting facts about the desert ecosystem and local culture.</p>' },
             image: {
               url: 'https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=800&h=600&fit=crop',
               fileName: 'drive.jpg',
-              title: 'Desert Drive',
-              alt: 'Driving through Dubai desert landscape',
+              title: { en: 'Desert Drive' },
+              alt: { en: 'Driving through Dubai desert landscape' },
             },
           },
         ],
       },
       {
         day: 2,
-        title: 'Dune Bashing & Desert Activities',
-        description: '<p>Experience the thrill of dune bashing followed by traditional desert activities including camel riding and sandboarding.</p>',
+        title: { en: 'Dune Bashing & Desert Activities' },
+        description: { en: '<p>Experience the thrill of dune bashing followed by traditional desert activities including camel riding and sandboarding.</p>' },
         activities: [
           {
-            heading: 'Dune Bashing Adventure (20-25 minutes)',
-            description: `
+            heading: { en: 'Dune Bashing Adventure (20-25 minutes)' },
+            description: { en: `
               <p>Hold on tight for an exhilarating roller-coaster ride over the sand dunes! Our expert drivers will take you on an unforgettable journey across the towering dunes.</p>
               <ul>
                 <li>Professional drivers with 10+ years experience</li>
@@ -606,54 +578,54 @@ export const tourSeed = {
                 <li>All safety equipment provided</li>
                 <li>Photo opportunities during stops</li>
               </ul>
-            `,
+            ` },
             image: {
               url: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&h=600&fit=crop',
               fileName: 'dune-bashing.jpg',
-              title: 'Dune Bashing Experience',
-              alt: '4x4 vehicle performing dune bashing on high sand dunes',
+              title: { en: 'Dune Bashing Experience' },
+              alt: { en: '4x4 vehicle performing dune bashing on high sand dunes' },
             },
           },
           {
-            heading: 'Sunset Photography Stop (15 minutes)',
-            description: '<p>Capture the magical moment as the sun sets over the desert dunes. This is the perfect opportunity for stunning photographs and to simply enjoy the serene beauty of the desert.</p>',
+            heading: { en: 'Sunset Photography Stop (15 minutes)' },
+            description: { en: '<p>Capture the magical moment as the sun sets over the desert dunes. This is the perfect opportunity for stunning photographs and to simply enjoy the serene beauty of the desert.</p>' },
             image: {
               url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&h=600&fit=crop',
               fileName: 'sunset.jpg',
-              title: 'Sunset Photography',
-              alt: 'Beautiful desert sunset with golden dunes',
+              title: { en: 'Sunset Photography' },
+              alt: { en: 'Beautiful desert sunset with golden dunes' },
             },
           },
           {
-            heading: 'Camel Riding (15 minutes)',
-            description: '<p>Experience traditional desert transportation with a camel ride. Our gentle camels are perfect for both beginners and experienced riders.</p>',
+            heading: { en: 'Camel Riding (15 minutes)' },
+            description: { en: '<p>Experience traditional desert transportation with a camel ride. Our gentle camels are perfect for both beginners and experienced riders.</p>' },
             image: {
               url: 'https://images.unsplash.com/photo-1583221863947-e6df7c2e8a3e?w=800&h=600&fit=crop',
               fileName: 'camel.jpg',
-              title: 'Camel Riding',
-              alt: 'Tourist riding camel in Dubai desert',
+              title: { en: 'Camel Riding' },
+              alt: { en: 'Tourist riding camel in Dubai desert' },
             },
           },
           {
-            heading: 'Sandboarding (Optional)',
-            description: '<p>Try your hand at sandboarding down the dunes! Equipment is provided, and our team will give you basic instructions.</p>',
+            heading: { en: 'Sandboarding (Optional)' },
+            description: { en: '<p>Try your hand at sandboarding down the dunes! Equipment is provided, and our team will give you basic instructions.</p>' },
             image: {
               url: 'https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=800&h=600&fit=crop',
               fileName: 'sandboarding.jpg',
-              title: 'Sandboarding Activity',
-              alt: 'Person sandboarding down desert dune',
+              title: { en: 'Sandboarding Activity' },
+              alt: { en: 'Person sandboarding down desert dune' },
             },
           },
         ],
       },
       {
         day: 3,
-        title: 'Desert Camp Experience & Entertainment',
-        description: '<p>Arrive at our premium desert camp to enjoy traditional hospitality, gourmet dining, and captivating entertainment.</p>',
+        title: { en: 'Desert Camp Experience & Entertainment' },
+        description: { en: '<p>Arrive at our premium desert camp to enjoy traditional hospitality, gourmet dining, and captivating entertainment.</p>' },
         activities: [
           {
-            heading: 'Welcome to Desert Camp (6:30 PM)',
-            description: `
+            heading: { en: 'Welcome to Desert Camp (6:30 PM)' },
+            description: { en: `
               <p>Arrive at our beautifully decorated Bedouin-style camp and receive a warm welcome with traditional Arabic coffee and dates.</p>
               <p>Take time to explore the camp facilities:</p>
               <ul>
@@ -662,17 +634,17 @@ export const tourSeed = {
                 <li>Shisha lounge (Gold & Diamond packages)</li>
                 <li>Comfortable seating areas</li>
               </ul>
-            `,
+            ` },
             image: {
               url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop',
               fileName: 'camp-arrival.jpg',
-              title: 'Desert Camp Arrival',
-              alt: 'Traditional Bedouin-style desert camp',
+              title: { en: 'Desert Camp Arrival' },
+              alt: { en: 'Traditional Bedouin-style desert camp' },
             },
           },
           {
-            heading: 'Cultural Activities (7:00 PM - 8:00 PM)',
-            description: `
+            heading: { en: 'Cultural Activities (7:00 PM - 8:00 PM)' },
+            description: { en: `
               <p>Immerse yourself in Arabian culture with various activities:</p>
               <ul>
                 <li><strong>Henna Painting:</strong> Get beautiful traditional henna designs</li>
@@ -680,17 +652,17 @@ export const tourSeed = {
                 <li><strong>Falconry Display:</strong> Meet and photograph majestic falcons</li>
                 <li><strong>Shisha Experience:</strong> Try traditional water pipe (optional)</li>
               </ul>
-            `,
+            ` },
             image: {
               url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&h=600&fit=crop',
               fileName: 'activities.jpg',
-              title: 'Cultural Activities',
-              alt: 'Henna painting and traditional activities',
+              title: { en: 'Cultural Activities' },
+              alt: { en: 'Henna painting and traditional activities' },
             },
           },
           {
-            heading: 'Gourmet BBQ Dinner (8:00 PM - 9:00 PM)',
-            description: `
+            heading: { en: 'Gourmet BBQ Dinner (8:00 PM - 9:00 PM)' },
+            description: { en: `
               <div class="dinner-description">
                 <p>Indulge in an extensive BBQ buffet featuring:</p>
                 <h5>Appetizers & Salads</h5>
@@ -718,17 +690,17 @@ export const tourSeed = {
                   <li>Fresh juices</li>
                 </ul>
               </div>
-            `,
+            ` },
             image: {
               url: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=600&fit=crop',
               fileName: 'dinner.jpg',
-              title: 'Gourmet BBQ Dinner',
-              alt: 'Delicious BBQ buffet spread at desert camp',
+              title: { en: 'Gourmet BBQ Dinner' },
+              alt: { en: 'Delicious BBQ buffet spread at desert camp' },
             },
           },
           {
-            heading: 'Live Entertainment Shows (9:00 PM - 10:00 PM)',
-            description: `
+            heading: { en: 'Live Entertainment Shows (9:00 PM - 10:00 PM)' },
+            description: { en: `
               <p>Enjoy spectacular live performances under the starlit desert sky:</p>
               <ul>
                 <li><strong>Tanoura Dance:</strong> Mesmerizing spinning dance with colorful costumes</li>
@@ -736,22 +708,22 @@ export const tourSeed = {
                 <li><strong>Belly Dance:</strong> Traditional Arabic dance performance (optional)</li>
               </ul>
               <p>All performances are family-friendly and showcase authentic Arabian culture.</p>
-            `,
+            ` },
             image: {
               url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=600&fit=crop',
               fileName: 'entertainment.jpg',
-              title: 'Live Entertainment',
-              alt: 'Tanoura dance and fire show performances',
+              title: { en: 'Live Entertainment' },
+              alt: { en: 'Tanoura dance and fire show performances' },
             },
           },
           {
-            heading: 'Return Journey (10:00 PM - 10:30 PM)',
-            description: '<p>After an unforgettable evening, relax on the comfortable drive back to your hotel. Your driver will ensure you arrive safely, concluding your premium desert safari experience.</p>',
+            heading: { en: 'Return Journey (10:00 PM - 10:30 PM)' },
+            description: { en: '<p>After an unforgettable evening, relax on the comfortable drive back to your hotel. Your driver will ensure you arrive safely, concluding your premium desert safari experience.</p>' },
             image: {
               url: 'https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=800&h=600&fit=crop',
               fileName: 'return.jpg',
-              title: 'Return Journey',
-              alt: 'Night drive back to Dubai',
+              title: { en: 'Return Journey' },
+              alt: { en: 'Night drive back to Dubai' },
             },
           },
         ],
@@ -760,8 +732,8 @@ export const tourSeed = {
   },
   faqs: [
     {
-      question: 'What should I wear for the desert safari?',
-      answer: `
+      question: { en: 'What should I wear for the desert safari?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>We recommend wearing comfortable, light clothing suitable for outdoor activities. Here are some specific suggestions:</p>
           <ul>
@@ -772,11 +744,11 @@ export const tourSeed = {
           </ul>
           <p>Avoid wearing white clothing as the desert sand can be dusty.</p>
         </div>
-      `,
+      ` },
     },
     {
-      question: 'Is the desert safari suitable for children and elderly people?',
-      answer: `
+      question: { en: 'Is the desert safari suitable for children and elderly people?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>Yes, our desert safari is family-friendly and suitable for most age groups with some considerations:</p>
           <h5>Children:</h5>
@@ -794,11 +766,11 @@ export const tourSeed = {
           </ul>
           <p><strong>Note:</strong> Dune bashing and camel riding are not recommended for pregnant women or individuals with back/heart conditions.</p>
         </div>
-      `,
+      ` },
     },
     {
-      question: 'What is included in the tour price?',
-      answer: `
+      question: { en: 'What is included in the tour price?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>Your tour package includes comprehensive services to ensure a memorable experience:</p>
           <h5>Transportation:</h5>
@@ -827,11 +799,11 @@ export const tourSeed = {
           </ul>
           <p>All taxes and service charges are included. <strong>Not included:</strong> Quad biking ($50 extra), alcoholic beverages, and personal expenses.</p>
         </div>
-      `,
+      ` },
     },
     {
-      question: 'What is your cancellation policy?',
-      answer: `
+      question: { en: 'What is your cancellation policy?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>We offer a flexible cancellation policy to accommodate your travel plans:</p>
           <ul>
@@ -842,11 +814,11 @@ export const tourSeed = {
           </ul>
           <p>To cancel, please contact us via email or phone. Refunds are processed within 5-7 business days.</p>
         </div>
-      `,
+      ` },
     },
     {
-      question: 'Can I book a private desert safari?',
-      answer: `
+      question: { en: 'Can I book a private desert safari?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>Absolutely! We offer both shared group and private safari options:</p>
           <h5>Private Safari Benefits:</h5>
@@ -860,11 +832,11 @@ export const tourSeed = {
           <p>Private safaris are available for all three packages (Affordable, Gold, and Diamond). The price varies based on group size and selected package. Contact us for a customized quote.</p>
           <p><strong>Recommended for:</strong> Families, couples celebrating special occasions, or groups wanting a more intimate experience.</p>
         </div>
-      `,
+      ` },
     },
     {
-      question: 'Do you provide vegetarian or special dietary meal options?',
-      answer: `
+      question: { en: 'Do you provide vegetarian or special dietary meal options?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>Yes! We cater to various dietary requirements and preferences:</p>
           <h5>Available Options:</h5>
@@ -877,11 +849,11 @@ export const tourSeed = {
           </ul>
           <p><strong>Important:</strong> Please notify us of any dietary requirements at least 24 hours before your tour to ensure we can accommodate your needs properly.</p>
         </div>
-      `,
+      ` },
     },
     {
-      question: 'How long does the desert safari last?',
-      answer: `
+      question: { en: 'How long does the desert safari last?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>The complete desert safari experience typically lasts 6-7 hours from pickup to drop-off:</p>
           <h5>Typical Timeline:</h5>
@@ -897,11 +869,11 @@ export const tourSeed = {
           </ul>
           <p><strong>Note:</strong> Timings are approximate and may vary based on traffic, weather, and group preferences. We ensure you have ample time to enjoy each activity.</p>
         </div>
-      `,
+      ` },
     },
     {
-      question: 'Is dune bashing safe? What safety measures do you have?',
-      answer: `
+      question: { en: 'Is dune bashing safe? What safety measures do you have?' },
+      answer: { en: `
         <div class="faq-answer">
           <p>Safety is our top priority. We maintain the highest safety standards for all our activities:</p>
           <h5>Safety Measures:</h5>
@@ -921,7 +893,7 @@ export const tourSeed = {
           </ul>
           <p>If you have any health concerns, please consult with us before booking. Alternative activities can be arranged.</p>
         </div>
-      `,
+      ` },
     },
   ],
   blogReferences: [
@@ -960,18 +932,18 @@ export const tourSeed = {
     {
       type: 'youtube',
       url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      title: 'Amazing Desert Safari Experience - Guest Review',
+      title: { en: 'Amazing Desert Safari Experience - Guest Review' },
     },
     {
       type: 'youtube',
       url: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
-      title: 'Family Desert Safari Adventure - Full Experience',
+      title: { en: 'Family Desert Safari Adventure - Full Experience' },
     },
   ],
   seo: {
-    metaTitle: 'Premium Desert Safari Dubai - Dinner & Shows Experience',
-    metaDescription: 'Book premium desert safari in Dubai. Dune bashing, camel rides, BBQ dinner & live shows. Private and group options from $60.',
-    metaKeywords: [
+    metaTitle: { en: 'Premium Desert Safari Dubai - Dinner & Shows Experience' },
+    metaDescription: { en: 'Book premium desert safari in Dubai. Dune bashing, camel rides, BBQ dinner & live shows. Private and group options from $60.' },
+    metaKeywords: { en: [
       'dubai desert safari',
       'premium desert safari',
       'dune bashing dubai',
@@ -980,12 +952,12 @@ export const tourSeed = {
       'desert safari with dinner',
       'luxury desert experience',
       'dubai adventure tours',
-    ],
+    ] },
     metaImage: {
       url: 'https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=1200&h=630&fit=crop',
       fileName: 'premium-desert-safari-dubai-seo.jpg',
-      title: 'Premium Desert Safari Dubai SEO Image',
-      alt: 'Luxury desert safari experience in Dubai with 4x4 vehicles',
+      title: { en: 'Premium Desert Safari Dubai SEO Image' },
+      alt: { en: 'Luxury desert safari experience in Dubai with 4x4 vehicles' },
     },
     mapSchema: {
       '@context': 'https://schema.org',

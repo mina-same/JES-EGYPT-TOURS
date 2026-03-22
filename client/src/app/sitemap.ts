@@ -51,14 +51,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // 2. Tours
-  tourSlugs.forEach((slug: string) => {
+  tourSlugs.forEach((slugObj: any) => {
     locales.forEach((locale) => {
-      entries.push({
-        url: `${baseUrl}/${locale}/tours/${slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily',
-        priority: 0.9,
-      });
+      const localizedSlug = slugObj[locale] || slugObj['en'];
+      if (localizedSlug) {
+        entries.push({
+          url: `${baseUrl}/${locale}/${localizedSlug}`,
+          lastModified: new Date(),
+          changeFrequency: 'daily',
+          priority: 0.9,
+        });
+      }
     });
   });
 

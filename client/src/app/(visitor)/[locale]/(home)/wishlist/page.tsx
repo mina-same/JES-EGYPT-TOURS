@@ -1,4 +1,6 @@
 "use client";
+import { getLocalizedValue } from "@/lib/localize";
+
 
 import React, { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout/Layout";
@@ -124,7 +126,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               id: t._id,
               image: unique[0] || "/assets/images/resources/tour-1-1.jpg",
               title: t.heading || t.name || "Tour",
-              link: `/tours/${t.slug}`,
+              link: `/${locale}/${getLocalizedValue(t.slug, locale)}`,
               price: t.priceStartingFrom || 0,
               rating: 5,
               reviews: t.reviews?.length || 0,
@@ -269,7 +271,9 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                             ))}
                           </div>
                           <h3 className="listing-card-four__title">
-                            <Link href={`/tours/${tour.slug}`}>{title}</Link>
+                            <Link href={`/${locale}/${getLocalizedValue(tour.slug, locale)}`}>
+                              {title}
+                            </Link>
                           </h3>
                           <div className="listing-card-four__content__btn">
                             <div className="listing-card-four__price">
@@ -281,10 +285,10 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                               </span>
                             </div>
                             <Link
-                              href={`/tours/${tour.slug}`}
+                              href={`/${locale}/${getLocalizedValue(tour.slug, locale)}`}
                               className="listing-card-four__btn gotur-btn"
                             >
-                              {t('viewTour')}{" "}
+                              {t("viewTour")}{" "}
                               <span className="icon">
                                 <i className="icon-right"></i>
                               </span>

@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 
 const ReflectiveReviews: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation('common');
   const [videos, setVideos] = useState<VideoReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [playingVideo, setPlayingVideo] = useState<VideoReview | null>(null);
@@ -53,10 +53,10 @@ const ReflectiveReviews: React.FC = () => {
     <section className="reflective-reviews section-space bg-[#fafafa]" id="reflective-reviews">
       <Container>
         <div className="sec-title text-center mb-10">
-            <h6 className="sec-title__tagline bw-split-in-right">Travelers Honest Experiences</h6>
-            <h3 className="sec-title__title bw-split-in-left">Reflective & <span className="text-[#b79c5c]">Honest Reviews</span></h3>
+            <h6 className="sec-title__tagline bw-split-in-right">{t('travelersExperiences', 'Travelers Honest Experiences')}</h6>
+            <h3 className="sec-title__title bw-split-in-left">{t('reflectiveAnd', 'Reflective &')} <span className="text-[#b79c5c]">{t('honestReviews', 'Honest Reviews')}</span></h3>
             <p className="mt-3 text-gray-500 max-w-2xl mx-auto text-lg">
-              Watch authentic stories from travelers who explored the magic of Egypt with JES Egypt Tours.
+              {t('videoSubtitle', 'Watch authentic stories from travelers who explored the magic of Egypt with JES Egypt Tours.')}
             </p>
         </div>
         
@@ -81,7 +81,7 @@ const ReflectiveReviews: React.FC = () => {
                   
                   {/* YouTube Tag */}
                   <div className="absolute top-4 left-4 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Video Experience</span>
+                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">{t('videoExperience', 'Video Experience')}</span>
                   </div>
                 </div>
 
@@ -101,7 +101,7 @@ const ReflectiveReviews: React.FC = () => {
                     onClick={() => handlePlay(v)}
                     className="flex items-center gap-2 text-[#1a1a1a] font-black uppercase text-[10px] tracking-widest group/btn hover:text-[#b79c5c] transition-colors"
                   >
-                    Watch Story 
+                    {t('watchStory', 'Watch Story')} 
                     <div className="w-6 h-[1px] bg-gray-200 group-hover/btn:bg-[#b79c5c] group-hover/btn:w-10 transition-all"></div>
                   </button>
                 </div>

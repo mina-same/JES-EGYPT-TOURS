@@ -101,7 +101,7 @@ export default function BlogCategoriesPage() {
                   <div className="blog-cat-card__content">
                     <div className="blog-cat-card__header">
                        <h3 className="blog-cat-card__title">
-                         <Link href={`/blogs/category/${getLocalizedValue(category.slug, currentLocale)}`}>{getLocalizedValue(category.name, currentLocale)}</Link>
+                         <Link href={`/${currentLocale}/${getLocalizedValue(category.slug, currentLocale)}`}>{getLocalizedValue(category.name, currentLocale)}</Link>
                        </h3>
 
                        <span className="blog-cat-card__count">{category.subcategories.length} {t('topics')}</span>
@@ -118,7 +118,7 @@ export default function BlogCategoriesPage() {
                       <ul className="blog-cat-card__list">
                         {category.subcategories.map((sub) => (
                           <li key={sub._id}>
-                            <Link href={`/blogs/subcategory/${getLocalizedValue(sub.slug, currentLocale)}`} className="flex items-center gap-2">
+                            <Link href={`/${currentLocale}/${getLocalizedValue(sub.slug, currentLocale)}`} className="flex items-center gap-2">
                                <Hash className="w-3 h-3" />
                                {getLocalizedValue(sub.name, currentLocale)}
 
@@ -128,7 +128,7 @@ export default function BlogCategoriesPage() {
                       </ul>
                     </div>
 
-                    <Link href={`/blogs/category/${getLocalizedValue(category.slug, currentLocale)}`} className="blog-cat-card__btn mt-4">
+                    <Link href={`/${currentLocale}/${getLocalizedValue(category.slug, currentLocale)}`} className="blog-cat-card__btn mt-4">
                       {t('exploreArticles')} <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>

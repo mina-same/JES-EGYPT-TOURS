@@ -244,7 +244,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
             allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
             title: getLocalizedValue(tour.heading || tour.name, locale),
-            link: `/tours/${getLocalizedValue(tour.slug, locale)}`,
+            link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
             price: tour.priceStartingFrom || 0,
             rating: 5,
             reviews: tour.reviews?.length || 0,

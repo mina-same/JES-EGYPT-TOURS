@@ -87,11 +87,11 @@ export default function EditMenuPage() {
       const children: MenuItem[] = categories
         .map((c: any, index: number) => {
           const name = c?.name || { en: '' };
-          const slug = String(c?.slug || '').trim();
+          const slug = getLocalizedValue(c?.slug, 'en');
           if (!getLocalizedValue(name, 'en') || !slug) return null;
           return {
             label: name,
-            url: `/blogs/category/${encodeURIComponent(slug)}`,
+            url: `/blogs/category/${slug}`,
             isActive: true,
             order: index,
             children: [],
@@ -248,11 +248,11 @@ export default function EditMenuPage() {
       const children: MenuItem[] = categories
         .map((c: any, index: number) => {
           const name = c?.name || { en: '' }; // ITourCategory.name is ILocalizedString
-          const slug = String(c?.slug || '').trim();
+          const slug = getLocalizedValue(c?.slug, 'en');
           if (!getLocalizedValue(name, 'en') || !slug) return null;
           return {
             label: name,
-            url: `/tours/category/${encodeURIComponent(slug)}`,
+            url: `/${slug}`,
             isActive: true,
             order: index,
             children: [],

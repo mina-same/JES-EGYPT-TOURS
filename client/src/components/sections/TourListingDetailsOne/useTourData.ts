@@ -119,7 +119,7 @@ export const useTourData = (id?: string) => {
               id: t._id,
               image: t?.images?.[0]?.url || fallbackImage,
               title: safeString(t?.name) || "Related Tour",
-              link: `/tours/${t.slug}`,
+              link: `/${currentLang}/${safeString(t.slug)}`,
               price: t.priceStartingFrom,
               rating: 5,
               reviews: 0,

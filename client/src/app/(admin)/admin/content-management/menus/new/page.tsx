@@ -154,13 +154,16 @@ export default function NewMenuPage() {
     try {
       const res = await tourCategoryAPI.getAll({ limit: 200, isActive: true, sort: 'name' } as any);
       const categories = Array.isArray((res as any)?.data) ? (res as any).data : [];
-      const children: MenuItem[] = categories.map((c: any, index: number) => ({
-        label: c?.name || { en: '' },
-        url: `/tours/category/${encodeURIComponent(c?.slug || '')}`,
-        isActive: true,
-        order: index,
-        children: [],
-      })).filter((c: MenuItem) => getLocalizedValue(c.label, 'en')) as MenuItem[];
+      const children: MenuItem[] = categories.map((c: any, index: number) => {
+        const slug = getLocalizedValue(c?.slug, 'en');
+        return {
+          label: c?.name || { en: '' },
+          url: `/${slug}`,
+          isActive: true,
+          order: index,
+          children: [],
+        };
+      }).filter((c: any) => getLocalizedValue(c.label, 'en')) as MenuItem[];
       replaceChildrenAtPath(path, children);
       toast({ title: 'Synced', description: `Added ${children.length} categories under Tours`, variant: 'success' });
     } catch (err: any) {
@@ -174,13 +177,16 @@ export default function NewMenuPage() {
     try {
       const res: any = await blogCategoryAPI.getAll({ limit: 200, isActive: true, sort: 'name' } as any);
       const categories = Array.isArray(res?.data) ? res.data : [];
-      const children: MenuItem[] = categories.map((c: any, index: number) => ({
-        label: c?.name || { en: '' },
-        url: `/blogs/category/${encodeURIComponent(c?.slug || '')}`,
-        isActive: true,
-        order: index,
-        children: [],
-      })).filter((c: MenuItem) => getLocalizedValue(c.label, 'en')) as MenuItem[];
+      const children: MenuItem[] = categories.map((c: any, index: number) => {
+        const slug = getLocalizedValue(c?.slug, 'en');
+        return {
+          label: c?.name || { en: '' },
+          url: `/blogs/category/${slug}`,
+          isActive: true,
+          order: index,
+          children: [],
+        };
+      }).filter((c: any) => getLocalizedValue(c.label, 'en')) as MenuItem[];
       replaceChildrenAtPath(path, children);
       toast({ title: 'Synced', description: `Added ${children.length} categories under Blogs`, variant: 'success' });
     } catch (err: any) {

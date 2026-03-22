@@ -213,7 +213,7 @@ export default async function RootLayout({
               <WishlistProvider>
                 <SlugProvider>
                   <NotificationProvider>
-                    <I18nProvider>
+                    <I18nProvider locale={locale}>
                       <SEOProvider locale={locale} />
                       {children}
                       <Toaster />

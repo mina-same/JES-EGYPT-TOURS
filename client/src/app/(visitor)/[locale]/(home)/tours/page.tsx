@@ -107,9 +107,9 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
                         {category.subcategories.length} Sub-destinations
                       </div>
                       <h3 className="category-card-premium__title">
-                        <Link href={`/tours/category/${getLocalizedValue(category.slug, locale)}`}>{getLocalizedValue(category.name, locale)}</Link>
+                        <Link href={`/${locale}/${getLocalizedValue(category.slug, locale)}`}>{getLocalizedValue(category.name, locale)}</Link>
                       </h3>
-                      <Link href={`/tours/category/${getLocalizedValue(category.slug, locale)}`} className="category-card-premium__link">
+                      <Link href={`/${locale}/${getLocalizedValue(category.slug, locale)}`} className="category-card-premium__link">
                         View All Tours <ChevronRight className="w-4 h-4" />
                       </Link>
                     </div>
@@ -120,7 +120,7 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
                     <ul className="category-card-premium__list">
                       {category.subcategories.slice(0, 5).map((sub) => (
                         <li key={sub._id}>
-                          <Link href={`/tours/subcategory/${getLocalizedValue(sub.slug, locale)}`} className="flex items-center gap-2">
+                          <Link href={`/${locale}/${getLocalizedValue(sub.slug, locale)}`} className="flex items-center gap-2">
                              <MapPin className="w-3 h-3 text-primary" />
                              {getLocalizedValue(sub.name, locale)}
                           </Link>
@@ -128,7 +128,7 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
                       ))}
                       {category.subcategories.length > 5 && (
                         <li className="more-link">
-                           <Link href={`/tours/category/${getLocalizedValue(category.slug, locale)}`}>+ {category.subcategories.length - 5} more</Link>
+                           <Link href={`/${locale}/${getLocalizedValue(category.slug, locale)}`}>+ {category.subcategories.length - 5} more</Link>
                         </li>
                       )}
                     </ul>

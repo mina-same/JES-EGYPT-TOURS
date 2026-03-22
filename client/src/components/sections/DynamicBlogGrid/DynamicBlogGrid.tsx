@@ -44,7 +44,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                 : 'Admin';
             
             // Build blog URL using localized slug
-            const blogUrl = `/blogs/${getLocalizedValue(post.slug, currentLocale)}`;
+            const blogUrl = `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`;
 
             return (
               <Col lg={4} md={6} key={post._id}>
