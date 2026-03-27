@@ -67,6 +67,7 @@ const connectDB = async (): Promise<void> => {
 /**
  * Clear existing data
  */
+/*
 const clearData = async (): Promise<void> => {
   try {
     log.info('Clearing existing tour data...');
@@ -83,6 +84,7 @@ const clearData = async (): Promise<void> => {
     throw error;
   }
 };
+*/
 
 /**
  * Seed categories
@@ -970,7 +972,7 @@ const runSeeder = async (): Promise<void> => {
     log.header('🌱 COMPREHENSIVE TOUR DATABASE SEEDER');
     
     await connectDB();
-    await clearData();
+    // await clearData();
     
     const categoryMap = await seedCategories();
     const subcategoryMap = await seedSubcategories(categoryMap);

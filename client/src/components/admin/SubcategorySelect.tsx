@@ -70,7 +70,7 @@ const SubcategorySelect: React.FC<SubcategorySelectProps> = ({
     return {
       value: sub._id,
       label: label,
-      imageUrl: sub.image?.url,
+      imageUrl: sub.images?.[0]?.url,
     };
   });
 

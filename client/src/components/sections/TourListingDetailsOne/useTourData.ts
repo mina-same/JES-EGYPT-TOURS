@@ -76,12 +76,12 @@ export const useTourData = (id?: string) => {
           const fetchedReviews = reviewsResponse.success ? safeArray<any>(reviewsResponse.data) : [];
           const fetchedRelatedTours = relatedToursResponse.success ? safeArray<any>(relatedToursResponse.data) : [];
           const sliderImages = safeArray<any>(tour.images)
-            .map((img: any) => img?.url)
-            .filter(Boolean);
+            .map((img: any) => ({ url: img?.url, alt: safeString(img?.alt) }))
+            .filter((img: any) => !!img.url);
 
           const galleryImages = safeArray<any>(tour.gallery)
-            .map((img: any) => img?.url)
-            .filter(Boolean);
+            .map((img: any) => ({ url: img?.url, alt: safeString(img?.alt) }))
+            .filter((img: any) => !!img.url);
 
           const fallbackImage = 'https://placehold.co/600x400?text=No+Image';
 
@@ -118,6 +118,7 @@ export const useTourData = (id?: string) => {
             relatedTours: fetchedRelatedTours.map((t: any) => ({
               id: t._id,
               image: t?.images?.[0]?.url || fallbackImage,
+              imageAlt: safeString(t?.images?.[0]?.alt) || safeString(t?.name),
               title: safeString(t?.name) || "Related Tour",
               link: `/${currentLang}/${safeString(t.slug)}`,
               price: t.priceStartingFrom,
@@ -149,7 +150,7 @@ export const useTourData = (id?: string) => {
                 activities: safeArray<any>(d?.activities).map((a: any) => ({
                   heading: safeString(a?.heading),
                   description: safeHtmlString(a?.description),
-                  image: a?.image?.url ? { url: a.image.url } : undefined
+                  image: a?.image?.url ? { url: a.image.url, alt: safeString(a.image.alt) } : undefined
                 }))
               }))
             },

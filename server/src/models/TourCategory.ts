@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { 
@@ -35,11 +35,18 @@ export interface ISectionHeader {
 export interface ITourCategory extends Document {
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedMixed; // Localized HTML content
-  image?: IImage;
+  description?: ILocalizedString; // Plain text for page header
+  images: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
+  subcategorySectionTitle?: ILocalizedString; // New field
+  toursSectionTitle?: ILocalizedString; // New field
+  gallerySectionTitle?: ILocalizedString; // New field
+  blogsSectionTitle?: ILocalizedString; // New field
+  faqsSectionTitle?: ILocalizedString; // New field
   faqs?: IFAQ[];
+  featuredBlogs?: Types.ObjectId[];
+  bottomSection?: ISectionHeader;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -124,11 +131,10 @@ const TourCategorySchema = new Schema<ITourCategory>(
       required: [true, 'Slug is required'],
     },
     description: {
-      type: LocalizedMixedSchema,
-      // Localized HTML content
+      type: LocalizedStringSchema,
     },
-    image: {
-      type: ImageSchema,
+    images: {
+      type: [ImageSchema],
       required: false,
     },
     seo: {
@@ -139,8 +145,38 @@ const TourCategorySchema = new Schema<ITourCategory>(
       type: SectionHeaderSchema,
       required: false,
     },
+    subcategorySectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
+    toursSectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
+    gallerySectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
+    blogsSectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
+    faqsSectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
     faqs: {
       type: [FAQSchema],
+      required: false,
+    },
+    featuredBlogs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Blog',
+      },
+    ],
+    bottomSection: {
+      type: SectionHeaderSchema,
       required: false,
     },
     isActive: {
@@ -189,9 +225,9 @@ TourCategorySchema.pre<ITourCategory>('save', function (next) {
     this.seo.metaTitle = { ...this.name };
   }
 
-  // Auto-populate metaImage from image if not provided
-  if (!this.seo.metaImage && this.image) {
-    this.seo.metaImage = this.image;
+  // Auto-populate metaImage from first image if not provided
+  if (!this.seo.metaImage && this.images && this.images.length > 0) {
+    this.seo.metaImage = this.images[0];
   }
 
   next();

@@ -188,6 +188,7 @@ export const getSubcategoryById = async (
     const subcategory = await TourSubcategory.findById(req.params.id)
       .populate('category', 'name slug description')
       .populate('toursCount')
+      .populate('featuredBlogs')
       .lean();
 
     if (!subcategory) {
@@ -252,6 +253,7 @@ export const getSubcategoryBySlug = async (
     const subcategory = await TourSubcategory.findOne(filter)
       .populate('category', 'name slug description')
       .populate('toursCount')
+      .populate('featuredBlogs')
       .lean();
 
     if (!subcategory) {

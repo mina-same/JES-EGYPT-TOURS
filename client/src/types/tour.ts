@@ -30,10 +30,19 @@ export interface ITourCategory {
   _id: string;
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedMixed; // HTML content
-  image?: IImage;
+  description?: ILocalizedString; // Plain text for page header
+  images: IImage[];
+  gallery?: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
+  subcategorySectionTitle?: ILocalizedString;
+  toursSectionTitle?: ILocalizedString;
+  gallerySectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: IFAQ[];
+  featuredBlogs?: string[];
+  bottomSection?: ISectionHeader;
   isActive: boolean;
   subcategoriesCount?: number; // Virtual field
   createdAt: Date | string;
@@ -47,10 +56,19 @@ export interface ITourSubcategory {
   category: string; // ObjectId as string
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedMixed; // HTML content
-  image?: IImage;
+  description?: ILocalizedString; // Plain text for page header
+  images: IImage[];
+  gallery?: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
+  subcategorySectionTitle?: ILocalizedString;
+  toursSectionTitle?: ILocalizedString;
+  gallerySectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: IFAQ[];
+  featuredBlogs?: string[];
+  bottomSection?: ISectionHeader;
   isActive: boolean;
   toursCount?: number; // Virtual field
   createdAt: Date | string;
@@ -90,10 +108,19 @@ export interface ITour {
 export interface TourCategoryFormData {
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedMixed;
-  image?: IImage;
+  description?: ILocalizedString;
+  images: IImage[];
+  gallery?: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
+  subcategorySectionTitle?: ILocalizedString;
+  toursSectionTitle?: ILocalizedString;
+  gallerySectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: IFAQ[];
+  featuredBlogs?: string[];
+  bottomSection?: ISectionHeader;
   isActive: boolean;
 }
 
@@ -101,10 +128,19 @@ export interface TourSubcategoryFormData {
   category: string;
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedMixed;
-  image?: IImage;
+  description?: ILocalizedString;
+  images: IImage[];
+  gallery?: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
+  subcategorySectionTitle?: ILocalizedString;
+  toursSectionTitle?: ILocalizedString;
+  gallerySectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: IFAQ[];
+  featuredBlogs?: string[];
+  bottomSection?: ISectionHeader;
   isActive: boolean;
 }
 

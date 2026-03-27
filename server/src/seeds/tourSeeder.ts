@@ -54,6 +54,7 @@ const connectDB = async (): Promise<void> => {
 /**
  * Clear existing tour data
  */
+/*
 const clearData = async (): Promise<void> => {
   try {
     log.info('Clearing existing tour data...');
@@ -70,6 +71,7 @@ const clearData = async (): Promise<void> => {
     throw error;
   }
 };
+*/
 
 /**
  * Seed tour category
@@ -167,7 +169,7 @@ const seedTours = async (): Promise<void> => {
     await connectDB();
     
     // Clear existing data
-    await clearData();
+    // await clearData();
     
     // Seed data in order
     const categoryId = await seedCategory();

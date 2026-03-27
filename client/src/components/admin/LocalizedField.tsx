@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
 import { cn } from "@/lib/utils";
 import { type AdminLanguage } from "./AdminLanguageTabs";
 
@@ -24,11 +25,17 @@ interface LocalizedFieldProps {
 }
 
 const LANGS: AdminLanguage[] = ["en", "de", "it", "es"];
+const FLAG_COMPONENTS: Record<AdminLanguage, any> = {
+  en: GB,
+  de: DE,
+  it: IT,
+  es: ES,
+};
 const LANG_LABELS: Record<AdminLanguage, string> = {
-  en: "EN",
-  de: "DE",
-  it: "IT",
-  es: "ES",
+  en: "English",
+  de: "German",
+  it: "Italian",
+  es: "Spanish",
 };
 
 /**
@@ -85,23 +92,25 @@ export function LocalizedField({
           {LANGS.map((lang) => {
             const isActive = activeLang === lang;
             const filled = hasContent(lang);
+            const Flag = FLAG_COMPONENTS[lang];
             return (
               <button
                 key={lang}
                 type="button"
                 onClick={() => setActiveLang(lang)}
                 className={cn(
-                  "relative px-2 py-0.5 text-[10px] font-bold rounded transition-all uppercase tracking-wide",
+                  "relative flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded transition-all uppercase tracking-wide",
                   isActive
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-background/60"
                 )}
-                title={`Edit ${lang.toUpperCase()} version`}
+                title={LANG_LABELS[lang]}
               >
+                <Flag className="w-3 h-2 rounded-[0.5px]" />
                 {lang.toUpperCase()}
                 {/* Dot indicator for content presence */}
                 {filled && !isActive && (
-                  <span className="absolute top-0 right-0 w-1 h-1 rounded-full bg-emerald-400 translate-x-0.5 -translate-y-0.5" />
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 border border-background shadow-xs" />
                 )}
               </button>
             );

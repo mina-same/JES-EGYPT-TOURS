@@ -1,43 +1,66 @@
 import React from 'react';
 import bg from '@/assets/images/backgrounds/page-header-bg-1-1.jpg'
 import Link from 'next/link';
+import Image from 'next/image';
 
 type BreadcrumbItem = {
   label: string;
   href?: string;
 };
 interface PageHeaderProps {
-   title?: string;
-   subTitle?: string;
-   bgImage?: string;
-   breadcrumbs?: BreadcrumbItem[];
-    
-  }
-const PageHeader: React.FC<PageHeaderProps> = ({title, subTitle, bgImage, breadcrumbs}) => {
-    const backgroundImage = bgImage || bg.src;
-    
-    return (
-        <section className="page-header">
-            <div className="page-header__bg" style={{backgroundImage: `url(${backgroundImage})`}}></div>
-            <div className="container">
-                <div className="page-header__content">
-                    <h2 className="page-header__title bw-split-in-right">{title}</h2>
-                    <ul className="gotur-breadcrumb list-unstyled">
-                        <li><Link href="/">Home</Link></li>
-                        {Array.isArray(breadcrumbs) && breadcrumbs.length > 0 ? (
-                          breadcrumbs.map((item, idx) => (
-                            <li key={`${item.label}-${idx}`}>
-                              {item.href ? <Link href={item.href}>{item.label}</Link> : <span>{item.label}</span>}
-                            </li>
-                          ))
-                        ) : (
-                          <li><span>{subTitle}</span></li>
-                        )}
-                    </ul>
-                </div>
-            </div>
-        </section>
-    );
+  title?: string;
+  subTitle?: string;
+  bgImage?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  alt?: string;
+}
+const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt }) => {
+  const backgroundImage = bgImage || bg.src;
+
+  return (
+    <section className="page-header relative overflow-hidden">
+      <div className="page-header__bg-wrapper absolute inset-0 -z-10">
+        <Image 
+          src={backgroundImage} 
+          alt={alt || title || "Page Header"} 
+          fill 
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/40"></div>
+      </div>
+      <div className="container relative z-10">
+        <div className="page-header__content" style={{ textAlign: 'center' }}>
+          <ul className="gotur-breadcrumb list-unstyled mb-3">
+            <li><Link href="/">Home</Link></li>
+            {Array.isArray(breadcrumbs) && breadcrumbs.length > 0 ? (
+              breadcrumbs.map((item, idx) => (
+                <li key={`${item.label}-${idx}`}>
+                  {item.href ? <Link href={item.href}>{item.label}</Link> : <span>{item.label}</span>}
+                </li>
+              ))
+            ) : null}
+          </ul>
+          <h1 className="page-header__title bw-split-in-right">{title}</h1>
+          {subTitle && (
+            <p className="page-header__subtitle" style={{
+              color: 'rgba(255,255,255,0.9)',
+              fontSize: '18px',
+              marginTop: '15px',
+              marginBottom: '20px',
+              maxWidth: '700px',
+              lineHeight: '1.6',
+              fontWeight: '300',
+              marginLeft: 'auto',
+              marginRight: 'auto'
+            }}>
+              {subTitle}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default PageHeader;

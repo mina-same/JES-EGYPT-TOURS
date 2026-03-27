@@ -558,7 +558,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       {isMobile && (
                         <div className="mobile-swipeable-gallery">
                           {images.map((img, idx) => {
-                            const imgUrl = typeof img === 'string' ? img : img.src;
+                            const imgUrl = typeof img === 'string' ? img : (img as any).url || (img as any).src;
+                            const imgAlt = (img as any).alt || `${title} gallery ${idx + 1}`;
                             return (
                               <Item
                                 key={`mobile-img-${idx}`}
@@ -578,7 +579,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                       <div className='tour-gallery-image-wrapper h-100'>
                                         <Image
                                           src={imgUrl}
-                                          alt={`Tour gallery ${idx + 1}`}
+                                          alt={imgAlt}
                                           width={400}
                                           height={300}
                                           className="tour-gallery-image"
@@ -601,7 +602,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                           columnClassName="tour-gallery-masonry-column"
                         >
                           {images.map((img, idx) => {
-                            const imgUrl = typeof img === 'string' ? img : img.src;
+                            const imgUrl = typeof img === 'string' ? img : (img as any).url || (img as any).src;
+                            const imgAlt = (img as any).alt || `${title} gallery ${idx + 1}`;
                             return (
                               <Item
                                 key={`desk-img-${idx}`}
@@ -621,7 +623,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                       <div className='tour-gallery-image-wrapper'>
                                         <Image
                                           src={imgUrl}
-                                          alt={`Tour gallery ${idx + 1}`}
+                                          alt={imgAlt}
                                           width={400}
                                           height={300}
                                           className="tour-gallery-image"

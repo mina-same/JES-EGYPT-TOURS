@@ -16,6 +16,7 @@ interface TourCardProps {
     id: string;
     slug: string;
     image: string;
+    imageAlt?: string;
     allImages: string[];
     title: string;
     link: string;
@@ -48,7 +49,7 @@ const TourCard: React.FC<TourCardProps> = ({
             <div className="relative w-full" style={{ height: "257px" }}>
               <Image
                 src={item.image}
-                alt={item.title}
+                alt={item.imageAlt || item.title}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover"

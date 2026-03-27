@@ -172,13 +172,17 @@ export default function TourCategoriesPage() {
       header: 'Category',
       render: (category) => (
         <div className="category-info">
-          {category.image?.url && (
-            <img
-              src={category.image.url}
-              alt={category.image.alt?.en || category.name?.en || 'Category'}
-              className="category-image"
-            />
-          )}
+          {(() => {
+            const displayImage = category.images?.[0] || (category as any).image;
+            if (!displayImage?.url) return null;
+            return (
+              <img
+                src={displayImage.url}
+                alt={displayImage.alt?.en || category.name?.en || 'Category'}
+                className="category-image"
+              />
+            );
+          })()}
           <div className="category-details">
             <div className="category-name">{category.name?.en || 'No Name'}</div>
           </div>

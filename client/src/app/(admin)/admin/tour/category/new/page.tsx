@@ -11,12 +11,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Loader2, Image as ImageIcon, Upload, X, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Image as ImageIcon, Upload, X, Plus, LayoutDashboard, ListChecks, HelpCircle, Settings } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import LocalizedRichText from '@/components/admin/LocalizedRichText';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
+import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { uploadAPI } from '@/lib/api/upload';
 import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
@@ -24,12 +27,24 @@ import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminL
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { useToast } from '@/hooks/use-toast';
+import FaqManager from '@/components/admin/FaqManager';
+import { blogAPI } from '@/lib/api/blogAdmin';
+import { Search } from 'lucide-react';
+
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'sections', label: 'Page Sections', icon: ListChecks },
+  { id: 'media', label: 'Media & Gallery', icon: ImageIcon },
+  { id: 'faq-blog', label: 'FAQs & Blogs', icon: HelpCircle },
+  { id: 'seo', label: 'SEO & Promo', icon: Settings },
+];
 
 const INITIAL_TOUR_CATEGORY: TourCategoryFormData = {
   name: { en: '', de: '', it: '', es: '' },
   slug: { en: '', de: '', it: '', es: '' },
   description: { en: '', de: '', it: '', es: '' },
-  image: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+  images: [],
+  gallery: [],
   seo: {
     metaTitle: { en: '', de: '', it: '', es: '' },
     metaDescription: { en: '', de: '', it: '', es: '' },
@@ -37,6 +52,19 @@ const INITIAL_TOUR_CATEGORY: TourCategoryFormData = {
     metaImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   },
   sectionHeader: {
+    isEnabled: true,
+    title: { en: '', de: '', it: '', es: '' },
+    description: { en: '', de: '', it: '', es: '' },
+    button: { label: { en: '', de: '', it: '', es: '' }, href: '', newTab: false },
+  },
+  subcategorySectionTitle: { en: '', de: '', it: '', es: '' },
+  toursSectionTitle: { en: '', de: '', it: '', es: '' },
+  gallerySectionTitle: { en: '', de: '', it: '', es: '' },
+  blogsSectionTitle: { en: '', de: '', it: '', es: '' },
+  faqsSectionTitle: { en: '', de: '', it: '', es: '' },
+  faqs: [],
+  featuredBlogs: [],
+  bottomSection: {
     isEnabled: true,
     title: { en: '', de: '', it: '', es: '' },
     description: { en: '', de: '', it: '', es: '' },
@@ -54,6 +82,7 @@ export default function NewCategoryPage() {
 
   const draftKey = isEditMode ? `draft_tour_cat_edit_${categoryId}` : 'draft_tour_cat_new';
 
+  const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(isEditMode);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
@@ -63,6 +92,12 @@ export default function NewCategoryPage() {
     draftKey,
     INITIAL_TOUR_CATEGORY
   );
+  
+  // Blog Search State
+  const [blogSearchQuery, setBlogSearchQuery] = useState('');
+  const [blogSearchResults, setBlogSearchResults] = useState<any[]>([]);
+  const [isSearchingBlogs, setIsSearchingBlogs] = useState(false);
+  const [selectedBlogObjects, setSelectedBlogObjects] = useState<any[]>([]);
 
   // Fetch category data if editing
   useEffect(() => {
@@ -100,19 +135,22 @@ export default function NewCategoryPage() {
           name: ensureLocalized(data.name),
           slug: ensureLocalized(data.slug),
           description: ensureLocalized(data.description, true),
-          image: data.image
-            ? {
-                url: data.image.url || '',
-                fileName: data.image.fileName || '',
-                title: ensureLocalized(data.image.title),
-                alt: ensureLocalized(data.image.alt),
-              }
-            : {
-                url: '',
-                fileName: '',
-                title: { en: '', de: '', it: '', es: '' },
-                alt: { en: '', de: '', it: '', es: '' },
-              },
+          images: Array.isArray(data.images)
+            ? data.images.map((img: any) => ({
+                url: img.url || '',
+                fileName: img.fileName || '',
+                title: ensureLocalized(img.title),
+                alt: ensureLocalized(img.alt),
+              }))
+            : [],
+          gallery: Array.isArray(data.gallery)
+            ? data.gallery.map((img: any) => ({
+                url: img.url || '',
+                fileName: img.fileName || '',
+                title: ensureLocalized(img.title),
+                alt: ensureLocalized(img.alt),
+              }))
+            : [],
           seo: data.seo
             ? {
                 metaTitle: ensureLocalized(data.seo.metaTitle),
@@ -158,6 +196,46 @@ export default function NewCategoryPage() {
                       label: typeof data.sectionHeader.button.label === 'object' ? data.sectionHeader.button.label : { en: data.sectionHeader.button.label || '', de: '', it: '', es: '' },
                       href: data.sectionHeader.button.href || '',
                       newTab: !!data.sectionHeader.button.newTab,
+                    }
+                  : {
+                      label: { en: '', de: '', it: '', es: '' },
+                      href: '',
+                      newTab: false,
+                    },
+              }
+            : {
+                isEnabled: true,
+                title: { en: '', de: '', it: '', es: '' },
+                description: { en: '', de: '', it: '', es: '' },
+                button: {
+                  label: { en: '', de: '', it: '', es: '' },
+                  href: '',
+                  newTab: false,
+                },
+              },
+          subcategorySectionTitle: ensureLocalized(data.subcategorySectionTitle),
+          toursSectionTitle: ensureLocalized(data.toursSectionTitle),
+          gallerySectionTitle: ensureLocalized(data.gallerySectionTitle),
+          blogsSectionTitle: ensureLocalized(data.blogsSectionTitle),
+          faqsSectionTitle: ensureLocalized(data.faqsSectionTitle),
+          faqs: Array.isArray(data.faqs) ? data.faqs.map((f: any) => ({
+            ...f,
+            question: ensureLocalized(f.question),
+            answer: ensureLocalized(f.answer, true)
+          })) : [],
+          featuredBlogs: Array.isArray(data.featuredBlogs) 
+            ? data.featuredBlogs.map((b: any) => typeof b === 'object' ? b._id : b) 
+            : [],
+          bottomSection: data.bottomSection
+            ? {
+                isEnabled: data.bottomSection.isEnabled !== undefined ? !!data.bottomSection.isEnabled : true,
+                title: ensureLocalized(data.bottomSection.title),
+                description: ensureLocalized(data.bottomSection.description, true),
+                button: data.bottomSection.button
+                  ? {
+                      label: ensureLocalized(data.bottomSection.button.label),
+                      href: data.bottomSection.button.href || '',
+                      newTab: !!data.bottomSection.button.newTab,
                     }
                   : {
                       label: { en: '', de: '', it: '', es: '' },
@@ -238,6 +316,49 @@ export default function NewCategoryPage() {
     });
   };
 
+  // Blog search effect
+  useEffect(() => {
+    const searchBlogs = async () => {
+      if (!blogSearchQuery.trim()) {
+        setBlogSearchResults([]);
+        return;
+      }
+      setIsSearchingBlogs(true);
+      try {
+        const response = await blogAPI.getAllAdmin({ search: blogSearchQuery, limit: 8 });
+        if (response.success && response.data) {
+          setBlogSearchResults(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to search blogs:', error);
+      } finally {
+        setIsSearchingBlogs(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchBlogs, 500);
+    return () => clearTimeout(timeoutId);
+  }, [blogSearchQuery]);
+
+  const addFeaturedBlog = (blog: any) => {
+    const current = formData.featuredBlogs || [];
+    if (!current.includes(blog._id)) {
+      if (current.length >= 3) {
+        toast({ title: "Limit reached", description: "You can only select up to 3 featured blogs", variant: "destructive" });
+        return;
+      }
+      handleChange('featuredBlogs', [...current, blog._id]);
+      setSelectedBlogObjects(prev => [...prev, blog]);
+      setBlogSearchQuery('');
+      setBlogSearchResults([]);
+    }
+  };
+
+  const removeFeaturedBlog = (id: string) => {
+    handleChange('featuredBlogs', (formData.featuredBlogs || []).filter((blogId: string) => blogId !== id));
+    setSelectedBlogObjects(prev => prev.filter(b => b._id !== id));
+  };
+
   // Handle keywords
   const handleKeywordsChange = (value: string[], lang: AdminLanguage = activeLanguage) => {
     setFormData(prev => ({
@@ -281,12 +402,23 @@ export default function NewCategoryPage() {
         name: formData.name,
         slug: formData.slug,
         description: formData.description,
+        subcategorySectionTitle: formData.subcategorySectionTitle,
+        toursSectionTitle: formData.toursSectionTitle,
+        gallerySectionTitle: formData.gallerySectionTitle,
+        blogsSectionTitle: formData.blogsSectionTitle,
+        faqsSectionTitle: formData.faqsSectionTitle,
+        faqs: formData.faqs,
+        featuredBlogs: formData.featuredBlogs,
+        bottomSection: formData.bottomSection,
         isActive: formData.isActive,
       };
       
       // Image cleanup
-      if (formData.image?.url) {
-        payload.image = { ...formData.image };
+      if (formData.images) {
+        payload.images = formData.images.filter((img: any) => !!img?.url);
+      }
+      if (formData.gallery) {
+        payload.gallery = formData.gallery.filter((img: any) => !!img?.url);
       }
       
       // SEO cleanup
@@ -387,7 +519,29 @@ export default function NewCategoryPage() {
         </div>
       </div>
 
-      {/* Draft Banner */}
+      {/* Tabs Navigation */}
+      <div className="flex overflow-x-auto gap-2 border-b mt-6">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap relative",
+                isActive 
+                  ? "bg-primary text-primary-foreground" 
+                  : "hover:bg-muted text-muted-foreground"
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       {hasDraft && !isEditMode && (
         <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_TOUR_CATEGORY); }} />
       )}
@@ -397,7 +551,19 @@ export default function NewCategoryPage() {
         <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8 mt-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {/* OVERVIEW TAB */}
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
         {/* Basic Information */}
         <Card>
           <CardHeader>
@@ -410,20 +576,23 @@ export default function NewCategoryPage() {
                 value={formData.name}
                 onChange={(val) => handleChange('name', val)}
                 placeholder="e.g., Adventure Tours"
+                activeLanguage={activeLanguage}
               />
               <LocalizedInput
                 label="URL Slug *"
                 value={formData.slug}
                 onChange={(val) => handleChange('slug', val)}
                 placeholder="adventure-tours"
+                activeLanguage={activeLanguage}
               />
             </div>
             
-            <LocalizedRichText
+            <LocalizedInput
               label="Description"
               value={formData.description}
               onChange={(val) => handleChange('description', val)}
-              placeholder="Describe this category..."
+              placeholder="Brief description for the category page header..."
+              activeLanguage={activeLanguage}
             />
 
             <div className="flex items-center space-x-2">
@@ -436,229 +605,59 @@ export default function NewCategoryPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Image */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Category Image</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="group relative border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-xl p-4 hover:border-[#b79c5c] bg-gray-50/50 dark:bg-slate-900/50 transition-all">
-              {formData.image?.url ? (
-                <div className="relative aspect-video max-h-[200px] mx-auto mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                  <img
-                    src={formData.image.url}
-                    alt={formData.image.alt?.en || 'Preview'}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px] gap-2">
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const result = await handleImageUpload(file);
-                            if (result) {
-                              handleChange('image.url', result.url);
-                              handleChange('image.fileName', result.fileName);
-                            }
-                          }
-                        }}
-                      />
-                      <div className="bg-white dark:bg-slate-900 rounded-full p-2.5 shadow-xl">
-                        <Upload className="h-5 w-5 text-[#b79c5c]" />
-                      </div>
-                    </label>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="rounded-full shadow-xl"
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          image: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
-                        }));
-                      }}
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center aspect-video max-h-[200px] mb-4 rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 cursor-pointer hover:border-[#b79c5c] hover:bg-white dark:hover:bg-slate-800 transition-all">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const result = await handleImageUpload(file);
-                        if (result) {
-                          handleChange('image.url', result.url);
-                          handleChange('image.fileName', result.fileName);
-                        }
-                      }
-                    }}
-                  />
-                  <ImageIcon className="h-10 w-10 text-gray-300 dark:text-slate-600 mb-2" />
-                  <span className="text-sm font-bold text-gray-900 dark:text-white">Click to upload category image</span>
-                </label>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-bold text-gray-400">URL</Label>
-                  <Input
-                    value={formData.image?.url || ''}
-                    onChange={(e) => handleChange('image.url', e.target.value)}
-                    placeholder="https://..."
-                    className="h-9 text-xs"
-                  />
-                </div>
-                <LocalizedInput
-                  label="Title"
-                  value={formData.image?.title || { en: '', de: '', it: '', es: '' }}
-                  onChange={(val) => handleChange('image.title', val)}
-                  placeholder="Title"
-                />
-                <LocalizedInput
-                  label="Alt Text"
-                  value={formData.image?.alt || { en: '', de: '', it: '', es: '' }}
-                  onChange={(val) => handleChange('image.alt', val)}
-                  placeholder="Alt text"
-                />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            )}
 
-        {/* SEO Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>SEO Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <LocalizedInput
-                label="Meta Title"
-                value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
-                onChange={(val) => handleChange('seo.metaTitle', val)}
-                placeholder="SEO Title"
-              />
-              <LocalizedTagsInput
-                label="Keywords"
-                value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
-                onChange={(val) => handleChange('seo.metaKeywords', val)}
-                placeholder="adventure, tours"
-              />
-            </div>
-            
-              <LocalizedRichText
-                label="Meta Description"
-                value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
-                onChange={(val) => handleChange('seo.metaDescription', val)}
-                placeholder="Discover amazing adventure tours..."
-              />
+            {/* SECTIONS TAB */}
+            {activeTab === 'sections' && (
+              <div className="space-y-6">
+                {/* Section Titles */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Section Titles</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <LocalizedInput
+                      label="Subcategories Section Title"
+                      value={formData.subcategorySectionTitle}
+                      onChange={(val) => handleChange('subcategorySectionTitle', val)}
+                      placeholder="e.g., Explore Our Destinations"
+                      activeLanguage={activeLanguage}
+                    />
 
-            <Separator />
-            
-            <div className="space-y-4">
-              <div className="group relative border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-xl p-4 hover:border-[#b79c5c] bg-gray-50/50 dark:bg-slate-900/50 transition-all">
-                {formData.seo?.metaImage?.url ? (
-                  <div className="relative aspect-video max-h-[160px] mx-auto mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                    <img
-                      src={formData.seo.metaImage.url}
-                      alt={formData.seo.metaImage.alt?.en || 'SEO Preview'}
-                      className="w-full h-full object-cover"
+                    <LocalizedInput
+                      label="Tours Section Title"
+                      value={formData.toursSectionTitle}
+                      onChange={(val) => handleChange('toursSectionTitle', val)}
+                      placeholder="e.g., Popular Packages"
+                      activeLanguage={activeLanguage}
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px] gap-2">
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const result = await handleImageUpload(file);
-                              if (result) {
-                                handleChange('seo.metaImage.url', result.url);
-                                handleChange('seo.metaImage.fileName', result.fileName);
-                              }
-                            }
-                          }}
-                        />
-                        <div className="bg-white dark:bg-slate-900 rounded-full p-2 shadow-sm">
-                          <Upload className="h-4 w-4 text-[#b79c5c]" />
-                        </div>
-                      </label>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                        onClick={() => {
-                          handleChange('seo.metaImage', { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } });
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center aspect-video max-h-[160px] mb-4 rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 cursor-pointer hover:border-[#b79c5c] hover:bg-white dark:hover:bg-slate-800 transition-all">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const result = await handleImageUpload(file);
-                          if (result) {
-                            handleChange('seo.metaImage.url', result.url);
-                            handleChange('seo.metaImage.fileName', result.fileName);
-                          }
-                        }
-                      }}
-                    />
-                    <ImageIcon className="h-8 w-8 text-gray-300 dark:text-slate-600 mb-2" />
-                    <span className="text-xs font-bold text-gray-900 dark:text-white text-center px-4">Upload social sharing image (1200x630px recommended)</span>
-                  </label>
-                )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] uppercase font-bold text-gray-400">URL</Label>
-                    <Input
-                      value={formData.seo?.metaImage?.url || ''}
-                      onChange={(e) => handleChange('seo.metaImage.url', e.target.value)}
-                      placeholder="https://..."
-                      className="h-8 text-xs"
+                    <LocalizedInput
+                      label="Gallery Section Title"
+                      value={formData.gallerySectionTitle}
+                      onChange={(val) => handleChange('gallerySectionTitle', val)}
+                      placeholder="e.g., Destination Highlights"
+                      activeLanguage={activeLanguage}
                     />
-                  </div>
-                  <LocalizedInput
-                    label="Title"
-                    value={formData.seo?.metaImage?.title || { en: '', de: '', it: '', es: '' }}
-                    onChange={(val) => handleChange('seo.metaImage.title', val)}
-                    placeholder="Title"
-                  />
-                  <LocalizedInput
-                    label="Alt Text"
-                    value={formData.seo?.metaImage?.alt || { en: '', de: '', it: '', es: '' }}
-                    onChange={(val) => handleChange('seo.metaImage.alt', val)}
-                    placeholder="Alt text"
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
+                    <LocalizedInput
+                      label="Blogs Section Title"
+                      value={formData.blogsSectionTitle}
+                      onChange={(val) => handleChange('blogsSectionTitle', val)}
+                      placeholder="e.g., Latest Travel News"
+                      activeLanguage={activeLanguage}
+                    />
+
+                    <LocalizedInput
+                      label="FAQs Section Title"
+                      value={formData.faqsSectionTitle}
+                      onChange={(val) => handleChange('faqsSectionTitle', val)}
+                      placeholder="e.g., Frequently Asked Questions"
+                      activeLanguage={activeLanguage}
+                    />
+                  </CardContent>
+                </Card>
 
         {/* Section Header */}
         <Card>
@@ -675,105 +674,50 @@ export default function NewCategoryPage() {
               <Label htmlFor="sectionHeaderEnabled">Enable section header</Label>
             </div>
 
-            <div className="space-y-4">
-              <Label className="text-base font-semibold">Section Header Gallery</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(formData.sectionHeader?.images || []).map((img: any, index: number) => (
-                  <div key={index} className="group relative border border-dashed border-gray-300 dark:border-slate-700 rounded-xl p-4 hover:border-[#b79c5c] bg-gray-50/50 dark:bg-slate-900/50 transition-all">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => {
-                        const next = [...(formData.sectionHeader?.images || [])];
-                        next.splice(index, 1);
-                        handleChange('sectionHeader.images', next);
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-
-                    {img.url ? (
-                      <div className="relative aspect-video max-h-[120px] mx-auto mb-3 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                        <img src={img.url} alt={img.alt?.en || 'Gallery'} className="w-full h-full object-cover" />
-                      </div>
-                    ) : (
-                      <label className="flex flex-col items-center justify-center aspect-video max-h-[120px] mb-3 rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-[#b79c5c] hover:bg-white dark:hover:bg-slate-800 transition-all">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const result = await handleImageUpload(file);
-                              if (result) {
-                                const next = [...(formData.sectionHeader?.images || [])];
-                                next[index] = { ...next[index], url: result.url, fileName: result.fileName };
-                                handleChange('sectionHeader.images', next);
-                              }
-                            }
-                          }}
-                        />
-                        <ImageIcon className="h-8 w-8 text-gray-300 mb-1" />
-                        <span className="text-[10px] font-bold text-gray-500">Upload</span>
-                      </label>
-                    )}
-
-                    <div className="space-y-2">
-                      <div className="space-y-0.5">
-                        <Label className="text-[9px] uppercase font-medium text-gray-400">URL</Label>
-                        <Input
-                          value={img.url || ''}
-                          onChange={(e) => {
-                            const next = [...(formData.sectionHeader?.images || [])];
-                            next[index] = { ...next[index], url: e.target.value };
-                            handleChange('sectionHeader.images', next);
-                          }}
-                          className="h-7 text-[10px]"
-                        />
-                      </div>
-                      <LocalizedInput
-                        label="Title"
-                        value={img.title || { en: '', de: '', it: '', es: '' }}
-                        onChange={(val) => {
-                          const next = [...(formData.sectionHeader?.images || [])];
-                          next[index] = { ...next[index], title: val };
-                          handleChange('sectionHeader.images', next);
-                        }}
-                        placeholder="Title"
-                        className="h-7 text-[10px]"
-                      />
-                      <LocalizedInput
-                        label="Alt Text"
-                        value={img.alt || { en: '', de: '', it: '', es: '' }}
-                        onChange={(val) => {
-                          const next = [...(formData.sectionHeader?.images || [])];
-                          next[index] = { ...next[index], alt: val };
-                          handleChange('sectionHeader.images', next);
-                        }}
-                        placeholder="Alt text"
-                        className="h-7 text-[10px]"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-dashed border-2"
-                onClick={() => {
-                  const next = [...(formData.sectionHeader?.images || [])];
-                  next.push({ url: '', fileName: '', title: { en: '', de: '', it: '' }, alt: { en: '', de: '', it: '' } });
-                  handleChange('sectionHeader.images', next);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Gallery Image
-              </Button>
-            </div>
+            <ImageUpload
+              images={(formData.sectionHeader?.images || []) as ImageData[]}
+              onAdd={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  sectionHeader: { ...(prev.sectionHeader || { isEnabled: true, title: { en: '', de: '', it: '', es: '' }, description: { en: '', de: '', it: '', es: '' } }), images: [...(prev.sectionHeader?.images || []), { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }] }
+                }));
+              }}
+              onRemove={(index) => {
+                setFormData(prev => {
+                  const images = [...(prev.sectionHeader?.images || [])];
+                  images.splice(index, 1);
+                  return {
+                    ...prev,
+                    sectionHeader: { ...prev.sectionHeader, images }
+                  };
+                });
+              }}
+              onUpdate={(index, field, value, lang) => {
+                setFormData(prev => {
+                   const images = [...(prev.sectionHeader?.images || [])];
+                   if (!images[index]) return prev;
+                   const img = { ...images[index] };
+                   if (lang) {
+                     const currentVal = (img as any)[field] || {};
+                     (img as any)[field] = { ...currentVal, [lang]: value };
+                   } else {
+                     (img as any)[field] = value;
+                   }
+                   images[index] = img;
+                   return {
+                     ...prev,
+                     sectionHeader: { ...prev.sectionHeader, images }
+                   };
+                });
+              }}
+              onUpload={async (file) => {
+                const result = await handleImageUpload(file);
+                return result;
+              }}
+              activeLanguage={activeLanguage}
+              title="Header Gallery"
+              description="Upload one or more images for the header slider"
+            />
 
             <div className="space-y-2">
               <LocalizedInput
@@ -781,6 +725,7 @@ export default function NewCategoryPage() {
                 value={formData.sectionHeader?.title || { en: '', de: '', it: '', es: '' }}
                 onChange={(val) => handleChange('sectionHeader.title', val)}
                 placeholder="Section title"
+                activeLanguage={activeLanguage}
               />
             </div>
 
@@ -789,6 +734,7 @@ export default function NewCategoryPage() {
               value={formData.sectionHeader?.description || { en: '', de: '', it: '', es: '' }}
               onChange={(val) => handleChange('sectionHeader.description', val)}
               placeholder="Section description..."
+              activeLanguage={activeLanguage}
             />
 
             <Separator />
@@ -799,6 +745,7 @@ export default function NewCategoryPage() {
                 value={formData.sectionHeader?.button?.label || { en: '', de: '', it: '', es: '' }}
                 onChange={(val) => handleChange('sectionHeader.button.label', val)}
                 placeholder="Button Label"
+                activeLanguage={activeLanguage}
               />
 
               <div className="space-y-2">
@@ -823,8 +770,337 @@ export default function NewCategoryPage() {
           </CardContent>
         </Card>
 
+        {/* Bottom Promo Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Bottom Promo Section (SEO Content)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="bottomSectionEnabled"
+                checked={formData.bottomSection?.isEnabled !== false}
+                onCheckedChange={(checked) => handleChange('bottomSection.isEnabled', checked)}
+              />
+              <Label htmlFor="bottomSectionEnabled">Enable bottom promo section</Label>
+            </div>
+
+            <LocalizedInput
+              label="SEO Target Title (e.g., Special Deals, Welcome)"
+              value={formData.bottomSection?.title || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('bottomSection.title', val)}
+              placeholder="e.g., Ready for your next adventure?"
+              activeLanguage={activeLanguage}
+            />
+
+            <LocalizedRichText
+              label="SEO Content Body"
+              value={formData.bottomSection?.description || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('bottomSection.description', val)}
+              placeholder="Detailed promotional text for SEO..."
+              activeLanguage={activeLanguage}
+            />
+          </CardContent>
+        </Card>
+              </div>
+            )}
+
+            {/* MEDIA TAB */}
+            {activeTab === 'media' && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Category Thumbnail</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ImageUpload
+                      images={(formData.images || []) as ImageData[]}
+                      onAdd={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          images: [...(prev.images || []), { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }]
+                        }));
+                      }}
+                      onRemove={(index) => {
+                        setFormData(prev => {
+                          const images = [...(prev.images || [])];
+                          images.splice(index, 1);
+                          return { ...prev, images };
+                        });
+                      }}
+                      onUpdate={(index, field, value, lang) => {
+                        setFormData(prev => {
+                          const images = [...(prev.images || [])];
+                          if (!images[index]) return prev;
+                          const img = { ...images[index] };
+                          if (lang) {
+                            const currentVal = (img as any)[field] || {};
+                            (img as any)[field] = { ...currentVal, [lang]: value };
+                          } else {
+                            (img as any)[field] = value;
+                          }
+                          images[index] = img;
+                          return { ...prev, images };
+                        });
+                      }}
+                      onUpload={async (file) => {
+                        const result = await handleImageUpload(file);
+                        return result;
+                      }}
+                      activeLanguage={activeLanguage}
+                      title="Category Image"
+                      description="Upload a representative thumbnail for this category"
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Page Gallery</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ImageUpload
+                      images={(formData.gallery || []) as ImageData[]}
+                      onAdd={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          gallery: [...(prev.gallery || []), { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }]
+                        }));
+                      }}
+                      onRemove={(index) => {
+                        setFormData(prev => {
+                          const gallery = [...(prev.gallery || [])];
+                          gallery.splice(index, 1);
+                          return { ...prev, gallery };
+                        });
+                      }}
+                      onUpdate={(index, field, value, lang) => {
+                        setFormData(prev => {
+                          const gallery = [...(prev.gallery || [])];
+                          if (!gallery[index]) return prev;
+                          const img = { ...gallery[index] };
+                          if (lang) {
+                            const currentVal = (img as any)[field] || {};
+                            (img as any)[field] = { ...currentVal, [lang]: value };
+                          } else {
+                            (img as any)[field] = value;
+                          }
+                          gallery[index] = img;
+                          return { ...prev, gallery };
+                        });
+                      }}
+                      onUpload={async (file) => {
+                        const result = await handleImageUpload(file);
+                        return result;
+                      }}
+                      activeLanguage={activeLanguage}
+                      title="Media Gallery"
+                      description="Upload images for the category gallery section"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* FAQ & BLOG TAB */}
+            {activeTab === 'faq-blog' && (
+              <div className="space-y-6">
+        {/* Featured Blogs */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured Blogs</CardTitle>
+            <p className="text-sm text-gray-500">Select up to 3 blogs to feature on the category page ({(formData.featuredBlogs || []).length}/3 selected)</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+
+            {/* Selected blogs list */}
+            {selectedBlogObjects.length > 0 && (
+              <div className="space-y-2">
+                {selectedBlogObjects.map((blog) => {
+                  const thumbUrl = typeof blog.featuredImage === 'object' ? blog.featuredImage?.url : blog.featuredImage;
+                  const title = blog.title?.en || blog.title || 'Untitled';
+                  return (
+                    <div key={blog._id} className="flex items-center gap-3 p-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      {thumbUrl && (
+                        <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                      )}
+                      <span className="flex-1 text-sm font-medium text-blue-800 dark:text-blue-200 truncate">{title}</span>
+                      <button type="button" onClick={() => removeFeaturedBlog(blog._id)} className="flex-shrink-0 text-blue-600 hover:text-red-600 transition-colors">
+                        <X size={16} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedBlogObjects.length === 0 && (
+              <p className="text-sm text-gray-400 italic">No blogs selected yet. Search below to add.</p>
+            )}
+
+            {/* Search — only show if under the limit */}
+            {(formData.featuredBlogs || []).length < 3 && (
+              <div className="relative">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    placeholder="Search blogs by title..."
+                    value={blogSearchQuery}
+                    onChange={(e) => setBlogSearchQuery(e.target.value)}
+                    className="pl-9 pr-9"
+                  />
+                  {isSearchingBlogs && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Dropdown */}
+                {blogSearchQuery && (
+                  <div className="absolute z-50 left-0 right-0 top-full mt-1 border rounded-lg bg-background shadow-lg max-h-64 overflow-y-auto">
+                    {isSearchingBlogs ? (
+                      <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Searching...
+                      </div>
+                    ) : blogSearchResults.length > 0 ? (
+                      blogSearchResults
+                        .filter(blog => !(formData.featuredBlogs || []).includes(blog._id))
+                        .map((blog) => {
+                          const thumbUrl = typeof blog.featuredImage === 'object' ? blog.featuredImage?.url : blog.featuredImage;
+                          const title = blog.title?.en || blog.title || 'Untitled';
+                          return (
+                            <button
+                              key={blog._id}
+                              type="button"
+                              className="w-full text-left px-3 py-2.5 hover:bg-accent flex items-center gap-3 border-b last:border-b-0 transition-colors"
+                              onClick={() => addFeaturedBlog(blog)}
+                            >
+                              {thumbUrl && (
+                                <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium truncate">{title}</div>
+                              </div>
+                              <Plus className="h-4 w-4 text-primary flex-shrink-0" />
+                            </button>
+                          );
+                        })
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground text-center">
+                        No blogs found for &quot;{blogSearchQuery}&quot;
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* FAQs */}
+        <FaqManager
+          faqs={formData.faqs || []}
+          onChange={(faqs) => handleChange('faqs', faqs)}
+          activeLanguage={activeLanguage}
+        />
+
+              </div>
+            )}
+
+            {/* SEO TAB */}
+            {activeTab === 'seo' && (
+              <div className="space-y-6">
+                {/* SEO Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>SEO Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <LocalizedInput
+                      label="Meta Title"
+                      value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
+                      onChange={(val) => handleChange('seo.metaTitle', val)}
+                      placeholder="SEO Meta Title"
+                      activeLanguage={activeLanguage}
+                    />
+                    <LocalizedTextArea
+                      label="Meta Description"
+                      value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
+                      onChange={(val) => handleChange('seo.metaDescription', val)}
+                      placeholder="SEO Meta Description"
+                      activeLanguage={activeLanguage}
+                    />
+                    <div className="space-y-2">
+                      <Label>Meta Keywords</Label>
+                      <LocalizedTagsInput
+                        label="Meta Keywords"
+                        value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
+                        onChange={(val) => handleChange('seo.metaKeywords', val)}
+                        placeholder="Type and press Enter"
+                        activeLanguage={activeLanguage}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <ImageUpload
+                      images={formData.seo?.metaImage ? [formData.seo.metaImage as ImageData] : []}
+                      maxImages={1}
+                      onAdd={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          seo: {
+                            ...(prev.seo || { metaTitle: { en: '', de: '', it: '', es: '' }, metaDescription: { en: '', de: '', it: '', es: '' } }),
+                            metaImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
+                          }
+                        }));
+                      }}
+                      onRemove={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          seo: {
+                            ...(prev.seo || { metaTitle: { en: '', de: '', it: '', es: '' }, metaDescription: { en: '', de: '', it: '', es: '' } }),
+                            metaImage: undefined
+                          }
+                        }));
+                      }}
+                      onUpdate={(_index, field, value, lang) => {
+                        setFormData(prev => {
+                          const metaImage = prev.seo?.metaImage ? { ...prev.seo.metaImage } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } };
+                          if (lang) {
+                            const currentVal = (metaImage as any)[field] || {};
+                            (metaImage as any)[field] = { ...currentVal, [lang]: value };
+                          } else {
+                            (metaImage as any)[field] = value;
+                          }
+                          return {
+                            ...prev,
+                            seo: {
+                              ...(prev.seo || { metaTitle: { en: '', de: '', it: '', es: '' }, metaDescription: { en: '', de: '', it: '', es: '' } }),
+                              metaImage
+                            }
+                          };
+                        });
+                      }}
+                      onUpload={async (file) => {
+                        const result = await handleImageUpload(file);
+                        return result;
+                      }}
+                      activeLanguage={activeLanguage}
+                      title="Social Media Image"
+                      description="This image will be shown when the category is shared on social media"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+          </motion.div>
+        </AnimatePresence>
+
         {/* Actions */}
-        <div className="flex gap-4 justify-end">
+        <div className="flex gap-4 justify-end pt-4 border-t">
           <Link href="/admin/tour/category">
             <Button type="button" variant="outline" className="text-gray-700 dark:text-gray-300">
               Cancel

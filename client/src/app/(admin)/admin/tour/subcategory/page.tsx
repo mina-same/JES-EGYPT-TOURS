@@ -203,13 +203,17 @@ export default function TourSubcategoriesPage() {
       header: 'Subcategory',
       render: (subcategory) => (
         <div className="subcategory-info">
-          {subcategory.image?.url && (
-            <img
-              src={subcategory.image.url}
-              alt={typeof subcategory.image.alt === 'object' ? subcategory.image.alt.en : (typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name)}
-              className="subcategory-image"
-            />
-          )}
+          {(() => {
+            const displayImage = subcategory.images?.[0] || (subcategory as any).image;
+            if (!displayImage?.url) return null;
+            return (
+              <img
+                src={displayImage.url}
+                alt={typeof displayImage.alt === 'object' ? displayImage.alt.en : (typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name)}
+                className="subcategory-image"
+              />
+            );
+          })()}
           <div className="subcategory-details">
             <div className="subcategory-name">
               {typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name}

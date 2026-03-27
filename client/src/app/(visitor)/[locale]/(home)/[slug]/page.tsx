@@ -409,6 +409,7 @@ export default async function SlugPage({ params }: PageProps) {
               title={name || "Tour Details"}
               breadcrumbs={breadcrumbs}
               bgImage={tour.featuredImage?.url || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBz9RsGBZErQQOzYdoMyqX-6tjs_zUEuiJg&s"}
+              alt={getLocalizedValue(tour.featuredImage?.alt, locale) || name}
             />
             <TourListingOneDetails id={slug} />
             <FooterOne />

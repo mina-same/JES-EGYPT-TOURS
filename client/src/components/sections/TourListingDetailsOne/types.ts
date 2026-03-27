@@ -52,10 +52,15 @@ export interface PricingPlan {
   seasons: Season[];
 }
 
+export interface ImageObject {
+  url: string;
+  alt?: string;
+}
+
 export interface Activity {
   heading: string;
   description: string;
-  image?: { url: string };
+  image?: ImageObject;
 }
 
 export interface ItineraryDay {
@@ -97,13 +102,13 @@ export interface TourDetailsOneData {
   price: number;
   overviewTitle: string;
   topDestinations: string;
-  sliderImages: (StaticImageData | string)[];
+  sliderImages: (StaticImageData | string | ImageObject)[];
   highlightList: string[];
   amenities: string[];
   amenitiesTwo: string[];
   relatedTours: Item[];
   comments: Comment[];
-  images: (StaticImageData | string)[];
+  images: (StaticImageData | string | ImageObject)[];
   faqs: { question: string; answer: string }[];
   map: string;
   itinerary?: Itinerary;

@@ -165,7 +165,7 @@ export default function EnhancedSectionHeader({
                     ref={descInnerRef}
                     className="text-gray-700 prose prose-sm max-w-none [&_a]:font-semibold [&_a]:text-[#b79c5c] [&_a]:no-underline hover:[&_a]:underline"
                   >
-                    <span dangerouslySetInnerHTML={{ __html: String(descriptionHtml) }} />
+                    <p dangerouslySetInnerHTML={{ __html: String(descriptionHtml) }} />
                   </div>
 
                   {!expanded && isOverflowing ? (
@@ -191,12 +191,15 @@ export default function EnhancedSectionHeader({
               <div style={{ marginTop: 18 }}>
                 <Link
                   href={button!.href!}
-                  className="gotur-btn"
+                  className="gotur-btn transition-all group flex items-center justify-center gap-3"
                   target={button!.newTab ? '_blank' : undefined}
                   rel={button!.newTab ? 'noreferrer noopener' : undefined}
+                  style={{ width: 'fit-content' }}
                 >
-                  {button!.label}
-                  <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  <span className="font-bold">{button!.label}</span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-all duration-300 group-hover:bg-[#1d231f] group-hover:translate-x-1">
+                    <ChevronRight className="h-4 w-4 text-white" />
+                  </div>
                 </Link>
               </div>
             ) : null}
