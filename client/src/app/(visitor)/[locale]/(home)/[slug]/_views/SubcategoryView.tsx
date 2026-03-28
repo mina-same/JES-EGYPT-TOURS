@@ -28,25 +28,25 @@ import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ListingReviews from "@/components/common/ListingSections/ListingReviews";
 
-const FiltersContent = ({ 
-  t, 
-  draftFilters, 
-  setDraftFilters, 
-  locale, 
-  tourTypeOptions, 
-  tourStyleOptions, 
-  handleApplyFilters, 
+const FiltersContent = ({
+  t,
+  draftFilters,
+  setDraftFilters,
+  locale,
+  tourTypeOptions,
+  tourStyleOptions,
+  handleApplyFilters,
   handleResetFilters,
   noBorder = false,
   hideHeader = false,
   fullHeight = false
 }: any) => {
   return (
-    <div 
-      className='listing__sidebar__item__inner' 
-      style={{ 
-        borderRadius: noBorder ? 0 : 14, 
-        border: noBorder ? "none" : "1px solid #eee", 
+    <div
+      className='listing__sidebar__item__inner'
+      style={{
+        borderRadius: noBorder ? 0 : 14,
+        border: noBorder ? "none" : "1px solid #eee",
         background: noBorder ? "transparent" : "#fff",
         height: fullHeight ? '100%' : 'auto',
         display: fullHeight ? 'flex' : 'block',
@@ -99,14 +99,14 @@ const FiltersContent = ({
   );
 };
 
-export default function SubcategoryView({ 
-  slug, 
-  locale, 
-  initialSubcategory, 
-  initialSiblings 
-}: { 
-  slug: string; 
-  locale: string; 
+export default function SubcategoryView({
+  slug,
+  locale,
+  initialSubcategory,
+  initialSiblings
+}: {
+  slug: string;
+  locale: string;
   initialSubcategory?: any;
   initialSiblings?: any[];
 }) {
@@ -221,8 +221,8 @@ export default function SubcategoryView({
           setSubcategory(subResponse.data);
 
           const categoryId = typeof subResponse.data?.category === "string"
-              ? subResponse.data.category
-              : subResponse.data?.category?._id;
+            ? subResponse.data.category
+            : subResponse.data?.category?._id;
 
           if (categoryId) {
             const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
@@ -235,8 +235,8 @@ export default function SubcategoryView({
             setSiblingSubcategories(initialSiblings);
           } else {
             const categoryId = typeof initialSubcategory?.category === "string"
-                ? initialSubcategory.category
-                : initialSubcategory?.category?._id;
+              ? initialSubcategory.category
+              : initialSubcategory?.category?._id;
             if (categoryId) {
               const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
               setSiblingSubcategories(siblingsRes?.success && Array.isArray(siblingsRes.data) ? siblingsRes.data : []);
@@ -334,7 +334,7 @@ export default function SubcategoryView({
   if (initialLoading) {
     return (
       <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
+        <TopbarOne /><HeaderOne linkTheme="light" />
         <div className="flex items-center justify-center min-h-[60vh]" suppressHydrationWarning>
           <Loader2 className="w-10 h-10 animate-spin" />
         </div>
@@ -346,7 +346,7 @@ export default function SubcategoryView({
   if (error || !subcategory) {
     return (
       <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
+        <TopbarOne /><HeaderOne linkTheme="light" />
         <PageHeader title={t('status.notFound')} />
         <div className="flex items-center justify-center min-h-[400px] text-red-500">
           <h3>{error || t('status.subcategoryNotFound')}</h3>
@@ -375,15 +375,15 @@ export default function SubcategoryView({
             </button>
           </div>
           <div className="mobile-filter-drawer__body">
-            <FiltersContent 
-              t={t} 
-              draftFilters={draftFilters} 
-              setDraftFilters={setDraftFilters} 
-              locale={locale} 
-              tourTypeOptions={tourTypeOptions} 
-              tourStyleOptions={tourStyleOptions} 
-              handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }} 
-              handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }} 
+            <FiltersContent
+              t={t}
+              draftFilters={draftFilters}
+              setDraftFilters={setDraftFilters}
+              locale={locale}
+              tourTypeOptions={tourTypeOptions}
+              tourStyleOptions={tourStyleOptions}
+              handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }}
+              handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }}
               noBorder={true}
               hideHeader={true}
               fullHeight={true}
@@ -393,6 +393,7 @@ export default function SubcategoryView({
       </div>
       <PageHeader
         title={getLocalizedValue(subcategory.name, locale)}
+        subTitle={getLocalizedValue(subcategory.description, locale)}
         bgImage={subcategory.images?.[0]?.url || undefined}
         alt={getLocalizedValue(subcategory.images?.[0]?.alt, locale)}
         breadcrumbs={[
@@ -441,19 +442,19 @@ export default function SubcategoryView({
                   const subName = getLocalizedValue(sub.name, locale);
                   return (
                     <div key={sub._id} className="subcategory-slide">
-                      <Link 
-                        href={`/${locale}/${getLocalizedValue(sub.slug, locale)}`} 
+                      <Link
+                        href={`/${locale}/${getLocalizedValue(sub.slug, locale)}`}
                         className="subcategory-card-link"
                         aria-current={isActive ? 'page' : undefined}
                         title={`View ${subName} Tours`}
                       >
                         <div className={`subcategory-card${isActive ? " is-active" : ""}`}>
                           <div className="subcategory-card__image-box">
-                            <Image 
-                              src={sub.images?.[0]?.url || "/assets/images/resources/tour-1-1.jpg"} 
-                              alt={getLocalizedValue(sub.images?.[0]?.alt, locale) || subName} 
-                              fill 
-                              className="subcategory-card__image" 
+                            <Image
+                              src={sub.images?.[0]?.url || "/assets/images/resources/tour-1-1.jpg"}
+                              alt={getLocalizedValue(sub.images?.[0]?.alt, locale) || subName}
+                              fill
+                              className="subcategory-card__image"
                             />
                             <div className="subcategory-card__overlay" />
                           </div>
@@ -480,15 +481,15 @@ export default function SubcategoryView({
             {/* Desktop Sidebar */}
             <Col lg={4} xl={3} className="d-none d-lg-block p-0">
               <aside className='listing__sidebar sticky-top' style={{ top: '0', height: '100vh', padding: '120px 20px 40px', background: '#fff', borderRight: '1px solid #f0f0f0', overflowY: 'auto' }}>
-                <FiltersContent 
-                  t={t} 
-                  draftFilters={draftFilters} 
-                  setDraftFilters={setDraftFilters} 
-                  locale={locale} 
-                  tourTypeOptions={tourTypeOptions} 
-                  tourStyleOptions={tourStyleOptions} 
-                  handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }} 
-                  handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }} 
+                <FiltersContent
+                  t={t}
+                  draftFilters={draftFilters}
+                  setDraftFilters={setDraftFilters}
+                  locale={locale}
+                  tourTypeOptions={tourTypeOptions}
+                  tourStyleOptions={tourStyleOptions}
+                  handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }}
+                  handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }}
                   noBorder={true}
                 />
               </aside>
@@ -516,25 +517,15 @@ export default function SubcategoryView({
               </div>
 
               {/* Controls bar */}
-              <div className="d-flex flex-wrap justify-content-between align-items-center bg-white p-3 rounded-4 shadow-sm mb-4" style={{ gap: 12 }}>
+              <div className="d-flex flex-wrap justify-content-between align-items-center bg-white p-3 rounded-4 mb-4" style={{ gap: 12 }}>
                 <div className="d-flex align-items-center gap-3">
-                  <button 
-                    className="d-lg-none flex items-center gap-2 px-4 py-2 bg-[#b79c5c] text-white rounded-lg font-bold shadow-sm"
+                  <button
+                    className="d-lg-none flex items-center gap-2 px-4 py-2 bg-[#b79c5c] text-white rounded-lg font-bold"
                     onClick={() => setIsFilterOpen(true)}
                   >
                     <SlidersHorizontal className="w-5 h-5" />
                     <span>{t('filters.title')}</span>
                   </button>
-                  <div style={{ fontSize: 14, color: "#666" }} className="d-none d-sm-block">
-                    {appliedFilters.search || appliedFilters.minPrice || appliedFilters.maxPrice || appliedFilters.tourType || appliedFilters.tourStyle ? (
-                      <span className="flex items-center gap-2">
-                        {t('listing.showingWithFilters')}
-                        <button type="button" onClick={handleResetFilters} className="text-[#b79c5c] font-bold hover:underline">
-                          {t('listing.clear')}
-                        </button>
-                      </span>
-                    ) : (<span>{t('listing.showingAll')}</span>)}
-                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>{t('listing.sortBy')}</span>
@@ -564,40 +555,40 @@ export default function SubcategoryView({
       </section>
 
       {/* Gallery Section */}
-      <ListingGallery 
-        images={subcategory.gallery && subcategory.gallery.length > 0 ? subcategory.gallery : subcategory.images} 
+      <ListingGallery
+        images={subcategory.gallery && subcategory.gallery.length > 0 ? subcategory.gallery : subcategory.images}
         sectionTitle={subcategory.gallerySectionTitle}
-        title={getLocalizedValue(subcategory.name, locale) + " Gallery"} 
-        locale={locale} 
+        title={getLocalizedValue(subcategory.name, locale) + " Gallery"}
+        locale={locale}
       />
 
       {/* Reviews Section */}
-      <ListingReviews 
+      <ListingReviews
         reviews={subcategory.reviews}
         sectionTitle={subcategory.reviewsSectionTitle}
         locale={locale}
       />
 
       {/* Blogs Section */}
-      <ListingBlogs 
-        blogs={subcategory.featuredBlogs} 
+      <ListingBlogs
+        blogs={subcategory.featuredBlogs}
         sectionTitle={subcategory.blogsSectionTitle}
-        title={getLocalizedValue(subcategory.name, locale) + " " + t('blogAndNews')} 
-        locale={locale} 
+        title={getLocalizedValue(subcategory.name, locale) + " " + t('blogAndNews')}
+        locale={locale}
       />
 
       {/* FAQ Section */}
-      <ListingFaqs 
-        faqs={subcategory.faqs} 
+      <ListingFaqs
+        faqs={subcategory.faqs}
         sectionTitle={subcategory.faqsSectionTitle}
-        title={"FAQs about " + getLocalizedValue(subcategory.name, locale)} 
-        locale={locale} 
+        title={"FAQs about " + getLocalizedValue(subcategory.name, locale)}
+        locale={locale}
       />
 
       {/* Bottom Promo Section */}
-      <ListingPromo 
-        title={subcategory.bottomSection?.title} 
-        description={subcategory.bottomSection?.description} 
+      <ListingPromo
+        title={subcategory.bottomSection?.title}
+        description={subcategory.bottomSection?.description}
         button={subcategory.bottomSection?.button}
         image1={subcategory.bottomSection?.image1}
         image2={subcategory.bottomSection?.image2}
@@ -606,7 +597,7 @@ export default function SubcategoryView({
           ...(subcategory.gallery || [])
         ]}
         subtitle={subcategory.name}
-        locale={locale} 
+        locale={locale}
       />
 
       <style jsx global>{`
