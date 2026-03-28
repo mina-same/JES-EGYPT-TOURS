@@ -231,6 +231,13 @@ export default function NewBlogPage() {
           delete cleanedBlock._id;
         }
 
+        // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
+        if ((cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') && cleanedBlock.content) {
+          if (!cleanedBlock.content.en?.trim()) {
+            cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
+          }
+        }
+
         if (cleanedBlock?.type !== 'imageRow') return cleanedBlock;
 
         const images = Array.isArray(cleanedBlock.images) ? cleanedBlock.images : [];

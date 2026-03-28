@@ -73,9 +73,9 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
           <Col lg={8}>
             <div className="about-testimonials__right">
               <div className="sec-title">
-                <h6 className="sec-title__tagline bw-split-in-right">
+                <span className="sec-title__tagline bw-split-in-right">
                   <TextAnimation text={sectionTagline} animationType="right" />
-                </h6>
+                </span>
                 <h2 className="sec-title__title bw-split-in-left">
                   <TextAnimation text={displayTitle} animationType="left" />
                 </h2>
@@ -92,8 +92,8 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                       <div className="about-testimonials__item" key={index}>
                         <div className="about-testimonials__star">
                           {[...Array(5)].map((_, i) => (
-                            <i 
-                              key={i} 
+                            <i
+                              key={i}
                               className={`icon-star ${i < (review.rating || 5) ? '' : 'text-gray-300'}`}
                               style={{ color: i < (review.rating || 5) ? '#ffab01' : '#e5e7eb' }}
                             ></i>
@@ -104,18 +104,18 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                         </p>
                         <div className="about-testimonials__author">
                           <div className="about-testimonials__author__thumb">
-                            <Image 
-                              src={review.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.name || 'User')}&background=b79c5c&color=fff&bold=true`} 
-                              alt={review.name || 'Traveler'} 
+                            <Image
+                              src={review.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.name || 'User')}&background=b79c5c&color=fff&bold=true`}
+                              alt={review.name || 'Traveler'}
                               width={60}
                               height={60}
                               className="rounded-full"
                             />
                           </div>
                           <div className="about-testimonials__content">
-                            <h6 className="about-testimonials__title">
+                            <span className="about-testimonials__title">
                               {review.name || 'Anonymous'}
-                            </h6>
+                            </span>
                             <span>{t('verifiedTraveler', { defaultValue: 'Verified Traveler' })}</span>
                           </div>
                         </div>
@@ -138,7 +138,7 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
         </Row>
 
         <div className="mt-5 pt-4 border-t border-gray-100">
-           <ClientCarousel />
+          <ClientCarousel />
         </div>
       </Container>
 
@@ -150,6 +150,32 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
         <Image src={shapeImages[1]} alt="shape-image" />
       </div>
 
+      <style jsx global>{`
+        .listing-reviews .about-testimonials__nav {
+           display: flex;
+           gap: 15px;
+        }
+        .listing-reviews .about-testimonials__nav button {
+           width: 45px;
+           height: 45px;
+           border-radius: 50%;
+           border: 1px solid #e5e7eb;
+           background: white;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           transition: all 0.3s ease;
+           color: #1d231f;
+        }
+        .listing-reviews .about-testimonials__nav button:hover {
+           background: #b79c5c;
+           color: white;
+           border-color: #b79c5c;
+        }
+        .listing-reviews .about-testimonials__item {
+           padding: 20px 0;
+        }
+      `}</style>
       <style jsx global>{`
         .listing-reviews .about-testimonials__nav {
            display: flex;
