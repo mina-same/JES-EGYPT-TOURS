@@ -27,7 +27,7 @@ import { ChevronDown, ChevronUp, Copy, GripVertical, Plus, Trash2, Star, User } 
 
 import { type AdminLanguage } from './AdminLanguageTabs';
 import LocalizedField from './LocalizedField';
-import ImageUpload from './ImageUpload';
+import ImageUpload, { type ImageData } from './ImageUpload';
 import { ILocalizedString } from '@/types/tour';
 
 export interface ICuratedReview {
@@ -41,6 +41,7 @@ export interface ICuratedReview {
 interface ReviewCuratedManagerProps {
   reviews: ICuratedReview[];
   onChange: (reviews: ICuratedReview[]) => void;
+  onUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
   title?: string;
   description?: string;
@@ -85,6 +86,7 @@ function SortableItemWrapper({
 export default function ReviewCuratedManager({
   reviews = [],
   onChange,
+  onUpload,
   activeLanguage,
   title = 'Testimonials & Reviews',
   description = 'Manage curated reviews for this category. Drag to reorder.',
@@ -366,10 +368,16 @@ export default function ReviewCuratedManager({
                                     Reviewer Avatar
                                   </Label>
                                   <ImageUpload 
-                                    value={review.avatar}
-                                    onChange={(url) => updateReview(index, 'avatar', url)}
+                                    images={review.avatar ? [{ url: review.avatar }] : []}
+                                    maxImages={1}
+                                    onAdd={() => {}} 
+                                    onRemove={() => updateReview(index, 'avatar', '')}
+                                    onUpdate={(_i, _f, value) => updateReview(index, 'avatar', value)}
+                                    onUpload={onUpload ? (file) => onUpload(file) : async () => null}
+                                    activeLanguage={activeLanguage}
                                     title="Avatar"
                                     description="Upload or pick an image"
+                                    addButtonLabel="Click to Upload Avatar"
                                   />
                                 </div>
                               </div>

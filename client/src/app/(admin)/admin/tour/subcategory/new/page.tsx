@@ -1233,9 +1233,35 @@ export default function NewSubcategoryPage() {
           onChange={(faqs) => handleChange('faqs', faqs)}
           activeLanguage={activeLanguage}
         />
+      </div>
+    )}
 
-              </div>
-            )}
+    {/* REVIEWS TAB */}
+    {activeTab === 'reviews' && (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Reviews Section Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LocalizedInput
+              label="Reviews Section Title"
+              value={formData.reviewsSectionTitle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('reviewsSectionTitle', val, lang)}
+              placeholder="e.g., What Our Travelers Say"
+              activeLanguage={activeLanguage}
+            />
+          </CardContent>
+        </Card>
+
+        <ReviewCuratedManager
+          reviews={formData.reviews || []}
+          onChange={(reviews) => handleChange('reviews', reviews)}
+          onUpload={handleImageUpload}
+          activeLanguage={activeLanguage}
+        />
+      </div>
+    )}
 
             {/* SEO TAB */}
             {activeTab === 'seo' && (

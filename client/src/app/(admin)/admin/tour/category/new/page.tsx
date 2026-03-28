@@ -1166,6 +1166,7 @@ export default function NewCategoryPage() {
                 <ReviewCuratedManager
                   reviews={formData.reviews || []}
                   onChange={(reviews) => handleChange('reviews', reviews)}
+                  onUpload={handleImageUpload}
                   activeLanguage={activeLanguage}
                 />
               </div>
