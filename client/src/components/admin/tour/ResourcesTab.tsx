@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -60,6 +61,27 @@ export default function ResourcesTab({
   activeLanguage,
 }: ResourcesTabProps) {
   const reviews = formData.reviews || [];
+  const [isTourFocused, setIsTourFocused] = useState(false);
+  const [isBlogFocused, setIsBlogFocused] = useState(false);
+  
+  const tourRef = useRef<HTMLDivElement>(null);
+  const blogRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tourRef.current && !tourRef.current.contains(event.target as Node)) {
+        setIsTourFocused(false);
+      }
+      if (blogRef.current && !blogRef.current.contains(event.target as Node)) {
+        setIsBlogFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
 
   // The following FAQ handlers are removed as FaqManager will handle them internally
   // const duplicateFaq = useCallback(...)
@@ -257,12 +279,13 @@ export default function ResourcesTab({
           </div>
 
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative" ref={tourRef}>
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tours to add..."
               value={tourSearchQuery}
               onChange={(e) => setTourSearchQuery(e.target.value)}
+              onFocus={() => setIsTourFocused(true)}
               className="pl-8"
             />
             {isSearchingTours && (
@@ -270,30 +293,51 @@ export default function ResourcesTab({
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
-          </div>
 
-          {/* Search Results */}
-          {tourSearchQuery && (
-            <div className="border rounded-md max-h-48 overflow-y-auto bg-background shadow-sm">
-              {tourSearchResults.length > 0 ? (
-                tourSearchResults.map((tour) => (
-                  <button
-                    key={tour._id}
-                    type="button"
-                    className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex items-center gap-2"
-                    onClick={() => addRelatedTour(tour)}
-                  >
-                    <Plus className="h-3 w-3" />
-                    <span className="truncate">{typeof tour.heading === 'object' ? tour.heading?.en : typeof tour.name === 'object' ? tour.name?.en : (tour.heading || tour.name)}</span>
-                  </button>
-                ))
-              ) : (
-                <div className="p-3 text-sm text-muted-foreground text-center">
-                  {isSearchingTours ? 'Searching...' : 'No tours found'}
-                </div>
+            {/* Search Results Dropdown */}
+            <AnimatePresence>
+              {isTourFocused && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute z-50 left-0 right-0 mt-1 border rounded-md max-h-60 overflow-y-auto bg-background shadow-lg"
+                >
+                  {tourSearchResults.length > 0 ? (
+                    <div className="py-1">
+                      {tourSearchResults.map((tour) => (
+                        <button
+                          key={tour._id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex items-center gap-2 transition-colors"
+                          onClick={() => {
+                            addRelatedTour(tour);
+                            setIsTourFocused(false);
+                          }}
+                        >
+                          <Plus className="h-3 w-3 text-primary" />
+                          <span className="truncate">
+                            {typeof tour.heading === 'object' ? tour.heading?.en : typeof tour.name === 'object' ? tour.name?.en : (tour.heading || tour.name)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-sm text-muted-foreground text-center">
+                      {isSearchingTours ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Searching tours...
+                        </div>
+                      ) : (
+                        tourSearchQuery ? 'No tours found matching your search' : 'Start typing to search tours'
+                      )}
+                    </div>
+                  )}
+                </motion.div>
               )}
-            </div>
-          )}
+            </AnimatePresence>
+          </div>
         </CardContent>
       </Card>
 
@@ -325,12 +369,13 @@ export default function ResourcesTab({
           </div>
 
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative" ref={blogRef}>
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search blogs to add..."
               value={blogSearchQuery}
               onChange={(e) => setBlogSearchQuery(e.target.value)}
+              onFocus={() => setIsBlogFocused(true)}
               className="pl-8"
             />
             {isSearchingBlogs && (
@@ -338,30 +383,51 @@ export default function ResourcesTab({
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
-          </div>
 
-          {/* Search Results */}
-          {blogSearchQuery && (
-            <div className="border rounded-md max-h-48 overflow-y-auto bg-background shadow-sm">
-              {blogSearchResults.length > 0 ? (
-                blogSearchResults.map((blog) => (
-                  <button
-                    key={blog._id}
-                    type="button"
-                    className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex items-center gap-2"
-                    onClick={() => addBlogReference(blog)}
-                  >
-                    <Plus className="h-3 w-3" />
-                    <span className="truncate">{typeof blog.title === 'object' ? blog.title?.en : blog.title}</span>
-                  </button>
-                ))
-              ) : (
-                <div className="p-3 text-sm text-muted-foreground text-center">
-                  {isSearchingBlogs ? 'Searching...' : 'No blogs found'}
-                </div>
+            {/* Search Results Dropdown */}
+            <AnimatePresence>
+              {isBlogFocused && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute z-50 left-0 right-0 mt-1 border rounded-md max-h-60 overflow-y-auto bg-background shadow-lg"
+                >
+                  {blogSearchResults.length > 0 ? (
+                    <div className="py-1">
+                      {blogSearchResults.map((blog) => (
+                        <button
+                          key={blog._id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-accent text-sm flex items-center gap-2 transition-colors"
+                          onClick={() => {
+                            addBlogReference(blog);
+                            setIsBlogFocused(false);
+                          }}
+                        >
+                          <Plus className="h-3 w-3 text-primary" />
+                          <span className="truncate">
+                            {typeof blog.title === 'object' ? blog.title?.en : blog.title}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-sm text-muted-foreground text-center">
+                      {isSearchingBlogs ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Searching blogs...
+                        </div>
+                      ) : (
+                        blogSearchQuery ? 'No blogs found matching your search' : 'Start typing to search blogs'
+                      )}
+                    </div>
+                  )}
+                </motion.div>
               )}
-            </div>
-          )}
+            </AnimatePresence>
+          </div>
         </CardContent>
       </Card>
     </div>

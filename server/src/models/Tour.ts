@@ -58,12 +58,12 @@ export interface IItinerary {
 
 export interface IBlogReference {
   id: string;
-  title: string;
+  title: ILocalizedString;
 }
 
 export interface IRelatedTour {
   id: string;
-  title: string;
+  title: ILocalizedString;
 }
 
 export interface IReview {
@@ -321,9 +321,8 @@ const BlogReferenceSchema = new Schema<IBlogReference>(
       trim: true,
     },
     title: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Blog reference title is required'],
-      trim: true,
     },
   },
   { _id: false }
@@ -337,9 +336,8 @@ const RelatedTourSchema = new Schema<IRelatedTour>(
       trim: true,
     },
     title: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Related tour title is required'],
-      trim: true,
     },
   },
   { _id: false }

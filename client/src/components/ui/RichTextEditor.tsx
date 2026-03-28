@@ -18,8 +18,9 @@ interface RichTextEditorProps {
 }
 
 // Sanitize HTML content to prevent issues
-const sanitizeHTML = (html: string): string => {
-  if (!html) return '';
+const sanitizeHTML = (val: string | any): string => {
+  if (val === null || val === undefined) return '';
+  const html = typeof val === 'string' ? val : String(val);
   
   // Remove potentially problematic tags and attributes
   return html

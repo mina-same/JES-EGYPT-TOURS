@@ -46,9 +46,10 @@ export const getAllBlogs = async (
 
     // Search in title and excerpt (English)
     if (search) {
+      const escapedSearch = (search as string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { 'title.en': { $regex: search as string, $options: 'i' } },
-        { 'excerpt.en': { $regex: search as string, $options: 'i' } },
+        { 'title.en': { $regex: escapedSearch, $options: 'i' } },
+        { 'excerpt.en': { $regex: escapedSearch, $options: 'i' } },
       ];
     }
 
@@ -120,9 +121,10 @@ export const getAllBlogsAdmin = async (
     }
 
     if (search) {
+      const escapedSearch = (search as string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { 'title.en': { $regex: search as string, $options: 'i' } },
-        { 'excerpt.en': { $regex: search as string, $options: 'i' } },
+        { 'title.en': { $regex: escapedSearch, $options: 'i' } },
+        { 'excerpt.en': { $regex: escapedSearch, $options: 'i' } },
       ];
     }
 

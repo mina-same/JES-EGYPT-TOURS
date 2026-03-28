@@ -189,59 +189,54 @@ export default function NewBlogCategoryPage() {
     setFormData(prev => {
       const updated = { ...prev } as any;
       
-      // Handle localized fields (either as whole object from LocalizedInput or single value)
+      // 1. Handle localized fields that might receive a whole object OR a single value
+      const isLocalizedObj = typeof value === 'object' && value !== null && !Array.isArray(value);
+
       if (['name', 'description', 'slug'].includes(field)) {
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            // Whole localized object e.g. from LocalizedInput
-            updated[field] = value;
-            if (field === 'name') {
-                updated.slug = {
-                  ...(updated.slug || { en: '', de: '', it: '', es: '' }),
-                  [targetLang]: generateSlug(value[targetLang] || ''),
-                };
-            }
+        if (isLocalizedObj) {
+          updated[field] = value;
         } else {
-            // Single value e.g. from direct handleChange call
-            updated[field] = {
-              ...(updated[field] || { en: '', de: '', it: '', es: '' }),
-              [targetLang]: value,
-            };
-            if (field === 'name') {
-              updated.slug = {
-                ...(updated.slug || { en: '', de: '', it: '', es: '' }),
-                [targetLang]: generateSlug(value),
-              };
-            }
-        }
-      } 
-      // Handle SEO localized fields
-      else if (field.startsWith('seo.')) {
-        const seoField = field.split('.')[1];
-        if (['metaTitle', 'metaDescription'].includes(seoField)) {
-          updated.seo[seoField] = {
-            ...(updated.seo[seoField] || { en: '', de: '', it: '', es: '' }),
+          updated[field] = {
+            ...(updated[field] || { en: '', de: '', it: '', es: '' }),
             [targetLang]: value,
           };
-        } else {
-          updated.seo[seoField] = value;
         }
-      }
-      // Handle nested fields (e.g. image.url)
-      else if (field.includes('.')) {
-        const [parent, child] = field.split('.');
-        const lastKey = child;
         
-        if (['alt', 'title'].includes(lastKey)) {
-             if (!updated[parent]) updated[parent] = {};
-             updated[parent][lastKey] = {
-                 ...(updated[parent][lastKey] || { en: '', de: '', it: '', es: '' }),
-                 [targetLang]: value,
+        if (field === 'name') {
+           const nameVal = isLocalizedObj ? value[targetLang] : value;
+           updated.slug = {
+             ...(updated.slug || { en: '', de: '', it: '', es: '' }),
+             [targetLang]: generateSlug(nameVal || ''),
+           };
+        }
+        return updated as BlogCategoryFormData;
+      }
+
+      // 2. Handle nested fields (e.g. seo.metaTitle, seo.metaImage.alt)
+      if (field.includes('.')) {
+        const keys = field.split('.');
+        let current = updated;
+        
+        for (let i = 0; i < keys.length - 1; i++) {
+          const k = keys[i];
+          current[k] = typeof current[k] === 'object' && current[k] !== null ? { ...current[k] } : {};
+          current = current[k];
+        }
+        
+        const lastKey = keys[keys.length - 1];
+        
+        // Special handling for localized sub-fields
+        if (['metaTitle', 'metaDescription', 'alt', 'title', 'label'].includes(lastKey)) {
+           if (isLocalizedObj) {
+             current[lastKey] = value;
+           } else {
+             current[lastKey] = {
+               ...(current[lastKey] || { en: '', de: '', it: '', es: '' }),
+               [targetLang]: value,
              };
+           }
         } else {
-            updated[parent] = {
-              ...(updated[parent] || {}),
-              [child]: value,
-            };
+          current[lastKey] = value;
         }
       } else {
         updated[field] = value;

@@ -56,7 +56,8 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
 
   // Search by heading or description in all languages
   if (queryParams.search) {
-    const searchRegex = { $regex: queryParams.search, $options: 'i' };
+    const escapedSearch = queryParams.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchRegex = { $regex: escapedSearch, $options: 'i' };
     filter.$or = [
       { 'heading.en': searchRegex },
       { 'heading.de': searchRegex },

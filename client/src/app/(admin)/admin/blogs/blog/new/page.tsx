@@ -120,19 +120,32 @@ export default function NewBlogPage() {
       const localizedMixedFields = ['tags', 'metaKeywords'];
 
       if (localizedFields.includes(field)) {
-        updated[field] = {
-          ...(updated[field] || { en: '', de: '', it: '', es: '' }),
-          [activeLanguage]: value,
-        };
-
-        // Auto-generate slug and SEO titles when title changes for the active language
-        if (field === 'title') {
-          updated.slug = {
-            ...updated.slug,
-            [activeLanguage]: generateSlug(value),
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            updated[field] = value;
+            // Auto-generate slug and SEO titles when title changes
+            if (field === 'title') {
+              updated.slug = {
+                ...(updated.slug || { en: '', de: '', it: '', es: '' }),
+                [activeLanguage]: generateSlug(value[activeLanguage] || ''),
+              };
+              if (!updated.metaTitle?.[activeLanguage]) updated.metaTitle = { ...updated.metaTitle, [activeLanguage]: value[activeLanguage] || '' };
+              if (!updated.ogTitle?.[activeLanguage]) updated.ogTitle = { ...updated.ogTitle, [activeLanguage]: value[activeLanguage] || '' };
+            }
+        } else {
+          updated[field] = {
+            ...(updated[field] || { en: '', de: '', it: '', es: '' }),
+            [activeLanguage]: value,
           };
-          if (!updated.metaTitle?.[activeLanguage]) updated.metaTitle = { ...updated.metaTitle, [activeLanguage]: value };
-          if (!updated.ogTitle?.[activeLanguage]) updated.ogTitle = { ...updated.ogTitle, [activeLanguage]: value };
+
+          // Auto-generate slug and SEO titles when title changes for the active language
+          if (field === 'title') {
+            updated.slug = {
+              ...updated.slug,
+              [activeLanguage]: generateSlug(value),
+            };
+            if (!updated.metaTitle?.[activeLanguage]) updated.metaTitle = { ...updated.metaTitle, [activeLanguage]: value };
+            if (!updated.ogTitle?.[activeLanguage]) updated.ogTitle = { ...updated.ogTitle, [activeLanguage]: value };
+          }
         }
       }
       else if (localizedMixedFields.includes(field)) {

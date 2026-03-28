@@ -226,13 +226,9 @@ export default function EditTourPage() {
   // Search effects
   useEffect(() => {
     const searchTours = async () => {
-      if (!tourSearchQuery.trim()) {
-        setTourSearchResults([]);
-        return;
-      }
       setIsSearchingTours(true);
       try {
-        const response = await tourAPI.getAll({ search: tourSearchQuery, limit: 5 });
+        const response = await tourAPI.getAll({ search: tourSearchQuery.trim() || undefined, limit: 5 });
         if (response.success && response.data) {
           setTourSearchResults(response.data.filter((t: any) => t._id !== tourId));
         }
@@ -249,13 +245,9 @@ export default function EditTourPage() {
 
   useEffect(() => {
     const searchBlogs = async () => {
-      if (!blogSearchQuery.trim()) {
-        setBlogSearchResults([]);
-        return;
-      }
       setIsSearchingBlogs(true);
       try {
-        const response = await getAllBlogs({ search: blogSearchQuery, limit: 5 });
+        const response = await getAllBlogs({ search: blogSearchQuery.trim() || undefined, limit: 5 });
         if (response.success && response.data) {
           setBlogSearchResults(response.data);
         }
