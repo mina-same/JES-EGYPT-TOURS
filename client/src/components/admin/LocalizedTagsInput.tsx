@@ -8,7 +8,7 @@ import LocalizedField from "./LocalizedField";
 
 interface LocalizedTagsInputProps {
   value: any; // Record<string, string[]>
-  onChange: (value: any) => void;
+  onChange: (value: any, lang: AdminLanguage) => void;
   label?: string;
   placeholder?: string;
   className?: string;
@@ -38,7 +38,7 @@ const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
       onChange({
         ...value,
         [lang]: [...currentTags, trimmed],
-      });
+      }, lang);
     }
     setInputValue("");
   };
@@ -48,7 +48,7 @@ const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
     onChange({
       ...value,
       [lang]: currentTags.filter((t: string) => t !== tagToRemove),
-    });
+    }, lang);
   };
 
   return (

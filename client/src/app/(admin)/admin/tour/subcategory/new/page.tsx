@@ -62,6 +62,7 @@ const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
   },
   subcategorySectionTitle: { en: '', de: '', it: '', es: '' },
   toursSectionTitle: { en: '', de: '', it: '', es: '' },
+  toursSectionSubTitle: { en: '', de: '', it: '', es: '' },
   gallerySectionTitle: { en: '', de: '', it: '', es: '' },
   blogsSectionTitle: { en: '', de: '', it: '', es: '' },
   faqsSectionTitle: { en: '', de: '', it: '', es: '' },
@@ -72,6 +73,8 @@ const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
     title: { en: '', de: '', it: '', es: '' },
     description: { en: '', de: '', it: '', es: '' },
     button: { label: { en: '', de: '', it: '', es: '' }, href: '', newTab: false },
+    image1: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+    image2: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   },
   isActive: true,
 };
@@ -98,11 +101,16 @@ export default function NewSubcategoryPage() {
     INITIAL_TOUR_SUBCAT
   );
 
+  const getFieldError = (path: string) => {
+    return formErrors.find(err => err.path === path || err.field === path)?.message;
+  };
+
   // Blog Search State
   const [blogSearchQuery, setBlogSearchQuery] = useState('');
   const [blogSearchResults, setBlogSearchResults] = useState<any[]>([]);
   const [isSearchingBlogs, setIsSearchingBlogs] = useState(false);
   const [selectedBlogObjects, setSelectedBlogObjects] = useState<any[]>([]);
+  const [isBlogSearchFocused, setIsBlogSearchFocused] = useState(false);
 
   // Parallel data fetching on mount
   useEffect(() => {
@@ -184,6 +192,7 @@ export default function NewSubcategoryPage() {
             },
             subcategorySectionTitle: typeof data.subcategorySectionTitle === 'object' ? data.subcategorySectionTitle : { en: data.subcategorySectionTitle || '', de: '', it: '', es: '' },
             toursSectionTitle: typeof data.toursSectionTitle === 'object' ? data.toursSectionTitle : { en: data.toursSectionTitle || '', de: '', it: '', es: '' },
+            toursSectionSubTitle: typeof data.toursSectionSubTitle === 'object' ? data.toursSectionSubTitle : { en: data.toursSectionSubTitle || '', de: '', it: '', es: '' },
             gallerySectionTitle: typeof data.gallerySectionTitle === 'object' ? data.gallerySectionTitle : { en: data.gallerySectionTitle || '', de: '', it: '', es: '' },
             blogsSectionTitle: typeof data.blogsSectionTitle === 'object' ? data.blogsSectionTitle : { en: data.blogsSectionTitle || '', de: '', it: '', es: '' },
             faqsSectionTitle: typeof data.faqsSectionTitle === 'object' ? data.faqsSectionTitle : { en: data.faqsSectionTitle || '', de: '', it: '', es: '' },
@@ -201,6 +210,18 @@ export default function NewSubcategoryPage() {
                     href: data.bottomSection.button?.href || '',
                     newTab: !!data.bottomSection.button?.newTab,
                   },
+                  image1: data.bottomSection.image1 ? {
+                    url: data.bottomSection.image1.url || '',
+                    fileName: data.bottomSection.image1.fileName || '',
+                    title: typeof data.bottomSection.image1.title === 'object' ? data.bottomSection.image1.title : { en: data.bottomSection.image1.title || '', de: '', it: '', es: '' },
+                    alt: typeof data.bottomSection.image1.alt === 'object' ? data.bottomSection.image1.alt : { en: data.bottomSection.image1.alt || '', de: '', it: '', es: '' },
+                  } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+                  image2: data.bottomSection.image2 ? {
+                    url: data.bottomSection.image2.url || '',
+                    fileName: data.bottomSection.image2.fileName || '',
+                    title: typeof data.bottomSection.image2.title === 'object' ? data.bottomSection.image2.title : { en: data.bottomSection.image2.title || '', de: '', it: '', es: '' },
+                    alt: typeof data.bottomSection.image2.alt === 'object' ? data.bottomSection.image2.alt : { en: data.bottomSection.image2.alt || '', de: '', it: '', es: '' },
+                  } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
                 }
               : INITIAL_TOUR_SUBCAT.bottomSection,
             isActive: data.isActive !== undefined ? !!data.isActive : true,
@@ -230,7 +251,7 @@ export default function NewSubcategoryPage() {
   };
 
   // Handle form field changes
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: any, lang?: AdminLanguage) => {
     setFormData(prev => {
       const updated = { ...prev };
       
@@ -250,28 +271,27 @@ export default function NewSubcategoryPage() {
       }
 
       // Auto-generate slug when name changes for a language
-      if (field.startsWith('name.')) {
-        const lang = field.split('.')[1] as AdminLanguage;
+      if (field === 'name' || field.startsWith('name.')) {
+        let targetLang: AdminLanguage = 'en';
+        if (field.startsWith('name.')) targetLang = field.split('.')[1] as AdminLanguage;
+        else if (lang) targetLang = lang;
+        
         if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
-        updated.slug[lang] = generateSlug(value);
+
+        if (field === 'name' && typeof value === 'object') {
+           updated.slug[targetLang] = generateSlug(value[targetLang] || '');
+        } else {
+           updated.slug[targetLang] = generateSlug(value);
+        }
         
         // Auto-populate SEO metaTitle if empty
-        if (!updated.seo?.metaTitle?.en) {
+        if (!updated.seo?.metaTitle?.[targetLang]) {
           updated.seo = {
             ...updated.seo,
-            metaTitle: { ...updated.seo?.metaTitle, en: value },
-          };
-        }
-      }
-
-      // Sync SEO metaTitle if name changes for other languages
-      if (field.startsWith('name.')) {
-        const lang = field.split('.')[1];
-        const currentMetaTitle = updated.seo?.metaTitle || { en: '', de: '', it: '', es: '' };
-        if (!currentMetaTitle[lang as AdminLanguage]) {
-          updated.seo = {
-            ...updated.seo,
-            metaTitle: { ...currentMetaTitle, [lang]: value },
+            metaTitle: { 
+              ...(updated.seo?.metaTitle || { en: '', de: '', it: '', es: '' }), 
+              [targetLang]: typeof value === 'object' ? value[targetLang] : value
+            },
           };
         }
       }
@@ -294,16 +314,19 @@ export default function NewSubcategoryPage() {
     } as TourSubcategoryFormData));
   };
 
-  // Blog search effect
   useEffect(() => {
     const searchBlogs = async () => {
-      if (!blogSearchQuery.trim()) {
+      if (!isBlogSearchFocused && !blogSearchQuery.trim()) {
         setBlogSearchResults([]);
         return;
       }
+
       setIsSearchingBlogs(true);
       try {
-        const response = await blogAPI.getAllAdmin({ search: blogSearchQuery, limit: 8 });
+        const response = await blogAPI.getAllAdmin({ 
+          search: blogSearchQuery.trim(), 
+          limit: 8 
+        });
         if (response.success && response.data) {
           setBlogSearchResults(response.data);
         }
@@ -313,9 +336,10 @@ export default function NewSubcategoryPage() {
         setIsSearchingBlogs(false);
       }
     };
-    const timeoutId = setTimeout(searchBlogs, 500);
+
+    const timeoutId = setTimeout(searchBlogs, 300);
     return () => clearTimeout(timeoutId);
-  }, [blogSearchQuery]);
+  }, [blogSearchQuery, isBlogSearchFocused]);
 
   const addFeaturedBlog = (blog: any) => {
     const current = formData.featuredBlogs || [];
@@ -365,19 +389,113 @@ export default function NewSubcategoryPage() {
       setLoading(true);
       setFormErrors([]);
 
-      const payload: any = {
-        ...formData,
-        images: (formData.images || []).filter((img: any) => !!img?.url),
-        gallery: (formData.gallery || []).filter((img: any) => !!img?.url),
-        faqs: (formData.faqs || []).filter((faq: any) => faq.question?.en || faq.question?.de || faq.question?.it || faq.question?.es),
+      const hasEn = (obj: any) => !!(obj?.en && (typeof obj.en === 'string' ? obj.en.trim() !== '' : true));
+      
+      const cleanLocalized = (obj: any) => {
+        if (!obj) return undefined;
+        if (hasEn(obj)) return obj;
+        return undefined;
       };
 
-      if (payload.sectionHeader?.images) {
-        payload.sectionHeader.images = payload.sectionHeader.images.filter((img: any) => !!img?.url);
+      const cleanImage = (img: any) => {
+        const cleaned: any = { 
+          url: img.url, 
+          fileName: img.fileName || img.url?.split('/').pop() || 'image' 
+        };
+        const title = cleanLocalized(img.title);
+        const alt = cleanLocalized(img.alt);
+        if (title) cleaned.title = title;
+        if (alt) cleaned.alt = alt;
+        return cleaned;
+      };
+
+      const payload: any = {
+        category: formData.category,
+        name: formData.name,
+        slug: formData.slug,
+        isActive: formData.isActive,
+      };
+
+      if (hasEn(formData.description)) payload.description = formData.description;
+      if (hasEn(formData.subcategorySectionTitle)) payload.subcategorySectionTitle = formData.subcategorySectionTitle;
+      if (hasEn(formData.toursSectionTitle)) payload.toursSectionTitle = formData.toursSectionTitle;
+      if (hasEn(formData.toursSectionSubTitle)) payload.toursSectionSubTitle = formData.toursSectionSubTitle;
+      if (hasEn(formData.gallerySectionTitle)) payload.gallerySectionTitle = formData.gallerySectionTitle;
+      if (hasEn(formData.blogsSectionTitle)) payload.blogsSectionTitle = formData.blogsSectionTitle;
+      if (hasEn(formData.faqsSectionTitle)) payload.faqsSectionTitle = formData.faqsSectionTitle;
+
+      if (formData.faqs && formData.faqs.length > 0) payload.faqs = formData.faqs;
+      if (formData.featuredBlogs && formData.featuredBlogs.length > 0) {
+        payload.featuredBlogs = formData.featuredBlogs;
       }
 
-      if (payload.seo && (!payload.seo.metaImage?.url)) {
-        delete payload.seo.metaImage;
+      // Image cleanup
+      if (formData.images) {
+        payload.images = formData.images
+          .filter((img: any) => !!img?.url)
+          .map(cleanImage);
+      }
+      if (formData.gallery) {
+        payload.gallery = formData.gallery
+          .filter((img: any) => !!img?.url)
+          .map(cleanImage);
+      }
+
+      // Section Header cleanup
+      if (formData.sectionHeader) {
+        const sh: any = { ...formData.sectionHeader };
+        if (!hasEn(sh.title)) delete sh.title;
+        if (!hasEn(sh.description)) delete sh.description;
+        
+        if (Array.isArray(sh.images)) {
+          sh.images = sh.images.filter((img: any) => !!img?.url).map(cleanImage);
+        }
+        if (sh.image?.url) {
+          sh.image = cleanImage(sh.image);
+        }
+        if (sh.button) {
+          if (!hasEn(sh.button.label) || !sh.button.href) delete sh.button;
+        }
+        payload.sectionHeader = sh;
+      }
+      
+      if (formData.bottomSection?.isEnabled) {
+        payload.bottomSection = { ...formData.bottomSection };
+        if (!hasEn(payload.bottomSection.title)) delete payload.bottomSection.title;
+        if (!hasEn(payload.bottomSection.description)) delete payload.bottomSection.description;
+        
+        // Button cleanup
+        if (payload.bottomSection.button) {
+          if (!hasEn(payload.bottomSection.button.label) || !payload.bottomSection.button.href) {
+            delete payload.bottomSection.button;
+          }
+        }
+        
+        // Image cleanup
+        if (formData.bottomSection.image1?.url) {
+          payload.bottomSection.image1 = cleanImage(formData.bottomSection.image1);
+        }
+        if (formData.bottomSection.image2?.url) {
+          payload.bottomSection.image2 = cleanImage(formData.bottomSection.image2);
+        }
+      }
+
+      // SEO cleanup
+      if (formData.seo) {
+        const seo: any = {};
+        if (hasEn(formData.seo.metaTitle)) seo.metaTitle = formData.seo.metaTitle;
+        if (hasEn(formData.seo.metaDescription)) seo.metaDescription = formData.seo.metaDescription;
+        
+        const hasKeywords = formData.seo.metaKeywords && Object.values(formData.seo.metaKeywords).some(arr => Array.isArray(arr) && arr.length > 0);
+        if (hasKeywords) seo.metaKeywords = formData.seo.metaKeywords;
+        
+        if (formData.seo.metaImage?.url) {
+          seo.metaImage = cleanImage(formData.seo.metaImage);
+        }
+        
+        if (Object.keys(seo).length > 0) {
+          payload.seo = seo;
+        }
       }
 
       let response;
@@ -416,7 +534,7 @@ export default function NewSubcategoryPage() {
   }
 
   return (
-    <div className="w-full mx-auto space-y-6">
+    <div className="w-full mx-auto space-y-6" suppressHydrationWarning>
       {/* Language Selection */}
       <AdminLanguageTabs
         activeLanguage={activeLanguage}
@@ -494,11 +612,14 @@ export default function NewSubcategoryPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="category">Parent Category *</Label>
-              <select
+                <select
                 id="category"
                 value={formData.category}
                 onChange={(e) => handleChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-100 dark:border-slate-800 rounded-md text-sm bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#b79c5c]/50"
+                className={cn(
+                  "w-full px-3 py-2 border border-gray-100 dark:border-slate-800 rounded-md text-sm bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#b79c5c]/50",
+                  getFieldError('category') && "border-red-500 ring-red-500"
+                )}
                 required
               >
                 <option value="">Select a category...</option>
@@ -514,23 +635,25 @@ export default function NewSubcategoryPage() {
               <LocalizedInput
                 label="Subcategory Name *"
                 value={formData.name}
-                onChange={(val) => handleChange('name', val)}
+                onChange={(val, lang) => handleChange('name', val, lang)}
                 placeholder="Desert Safari"
                 activeLanguage={activeLanguage}
+                error={!!getFieldError('name.en')}
               />
               <LocalizedInput
                 label="URL Slug *"
                 value={formData.slug}
-                onChange={(val) => handleChange('slug', val)}
+                onChange={(val, lang) => handleChange('slug', val, lang)}
                 placeholder="desert-safari"
                 activeLanguage={activeLanguage}
+                error={!!getFieldError('slug.en')}
               />
             </div>
             
             <LocalizedInput
               label="Description"
               value={formData.description}
-              onChange={(val) => handleChange('description', val)}
+              onChange={(val, lang) => handleChange('description', val, lang)}
               placeholder="Describe this subcategory..."
               activeLanguage={activeLanguage}
             />
@@ -620,15 +743,16 @@ export default function NewSubcategoryPage() {
                     <LocalizedInput
                       label="Header Title"
                       value={formData.sectionHeader?.title || { en: '', de: '', it: '', es: '' }}
-                      onChange={(val) => handleChange('sectionHeader.title', val)}
+                      onChange={(val, lang) => handleChange('sectionHeader.title', val, lang)}
                       placeholder="Header Title"
                       activeLanguage={activeLanguage}
+                      error={!!getFieldError('sectionHeader.title.en')}
                     />
 
                     <LocalizedRichText
                       label="Section Description"
                       value={formData.sectionHeader?.description || { en: '', de: '', it: '', es: '' }}
-                      onChange={(val) => handleChange('sectionHeader.description', val)}
+                      onChange={(val, lang) => handleChange('sectionHeader.description', val, lang)}
                       placeholder="Section description..."
                       activeLanguage={activeLanguage}
                     />
@@ -639,9 +763,10 @@ export default function NewSubcategoryPage() {
                       <LocalizedInput
                         label="Button Label"
                         value={formData.sectionHeader?.button?.label || { en: '', de: '', it: '', es: '' }}
-                        onChange={(val) => handleChange('sectionHeader.button.label', val)}
+                        onChange={(val, lang) => handleChange('sectionHeader.button.label', val, lang)}
                         placeholder="Button Label"
                         activeLanguage={activeLanguage}
+                        error={!!getFieldError('sectionHeader.button.label.en')}
                       />
 
                       <div className="space-y-2">
@@ -678,13 +803,23 @@ export default function NewSubcategoryPage() {
                       onChange={(val) => handleChange('subcategorySectionTitle', val)}
                       placeholder="e.g., Explore Our Destinations"
                       activeLanguage={activeLanguage}
+                      error={!!getFieldError('subcategorySectionTitle.en')}
                     />
 
                     <LocalizedInput
                       label="Tours Section Title"
                       value={formData.toursSectionTitle}
-                      onChange={(val) => handleChange('toursSectionTitle', val)}
+                      onChange={(val, lang) => handleChange('toursSectionTitle', val, lang)}
                       placeholder="e.g., Popular Packages"
+                      activeLanguage={activeLanguage}
+                      error={!!getFieldError('toursSectionTitle.en')}
+                    />
+
+                    <LocalizedInput
+                      label="Tours Section Subtitle"
+                      value={formData.toursSectionSubTitle}
+                      onChange={(val, lang) => handleChange('toursSectionSubTitle', val, lang)}
+                      placeholder="e.g., Discover our most popular tours and activities"
                       activeLanguage={activeLanguage}
                     />
 
@@ -694,22 +829,25 @@ export default function NewSubcategoryPage() {
                       onChange={(val) => handleChange('gallerySectionTitle', val)}
                       placeholder="e.g., Destination Highlights"
                       activeLanguage={activeLanguage}
+                      error={!!getFieldError('gallerySectionTitle.en')}
                     />
 
                     <LocalizedInput
                       label="Blogs Section Title"
                       value={formData.blogsSectionTitle}
-                      onChange={(val) => handleChange('blogsSectionTitle', val)}
+                      onChange={(val, lang) => handleChange('blogsSectionTitle', val, lang)}
                       placeholder="e.g., Latest Travel News"
                       activeLanguage={activeLanguage}
+                      error={!!getFieldError('blogsSectionTitle.en')}
                     />
 
                     <LocalizedInput
                       label="FAQs Section Title"
                       value={formData.faqsSectionTitle}
-                      onChange={(val) => handleChange('faqsSectionTitle', val)}
+                      onChange={(val, lang) => handleChange('faqsSectionTitle', val, lang)}
                       placeholder="e.g., Frequently Asked Questions"
                       activeLanguage={activeLanguage}
+                      error={!!getFieldError('faqsSectionTitle.en')}
                     />
                   </CardContent>
                 </Card>
@@ -717,31 +855,170 @@ export default function NewSubcategoryPage() {
                 {/* Bottom Promo Section */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Bottom Promo Section (SEO Content)</CardTitle>
+                    <CardTitle>Promo Custom Images</CardTitle>
+                    <p className="text-sm text-gray-500">Pick two specific images for the bottom promo section</p>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="bottomSectionEnabled"
-                        checked={formData.bottomSection?.isEnabled !== false}
-                        onCheckedChange={(checked) => handleChange('bottomSection.isEnabled', checked)}
+                  <CardContent className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       <ImageUpload
+                        images={formData.bottomSection?.image1 ? [formData.bottomSection.image1 as ImageData] : []}
+                        maxImages={1}
+                        onAdd={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            bottomSection: {
+                              ...(prev.bottomSection || { isEnabled: true }),
+                              image1: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
+                            }
+                          }));
+                        }}
+                        onRemove={(index) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            bottomSection: {
+                              ...(prev.bottomSection || { isEnabled: true }),
+                              image1: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
+                            }
+                          }));
+                        }}
+                        onUpdate={(index, field, value, lang) => {
+                          setFormData(prev => {
+                            const image1 = prev.bottomSection?.image1 ? { ...prev.bottomSection.image1 } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } };
+                            if (lang) {
+                              const currentVal = (image1 as any)[field] || {};
+                              (image1 as any)[field] = { ...currentVal, [lang]: value };
+                            } else {
+                              (image1 as any)[field] = value;
+                            }
+                            return {
+                              ...prev,
+                              bottomSection: {
+                                ...(prev.bottomSection || { isEnabled: true }),
+                                image1
+                              }
+                            };
+                          });
+                        }}
+                        onUpload={async (file) => {
+                          const result = await handleImageUpload(file);
+                          return result;
+                        }}
+                        activeLanguage={activeLanguage}
+                        title="Promo Image 1"
+                        description="Main image in promo section"
+                        addButtonLabel="Upload Promo Image 1"
                       />
-                      <Label htmlFor="bottomSectionEnabled">Enable bottom promo section</Label>
+
+                       <ImageUpload
+                        images={formData.bottomSection?.image2 ? [formData.bottomSection.image2 as ImageData] : []}
+                        maxImages={1}
+                        onAdd={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            bottomSection: {
+                              ...(prev.bottomSection || { isEnabled: true }),
+                              image2: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
+                            }
+                          }));
+                        }}
+                        onRemove={(index) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            bottomSection: {
+                              ...(prev.bottomSection || { isEnabled: true }),
+                              image2: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
+                            }
+                          }));
+                        }}
+                        onUpdate={(index, field, value, lang) => {
+                          setFormData(prev => {
+                            const image2 = prev.bottomSection?.image2 ? { ...prev.bottomSection.image2 } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } };
+                            if (lang) {
+                              const currentVal = (image2 as any)[field] || {};
+                              (image2 as any)[field] = { ...currentVal, [lang]: value };
+                            } else {
+                              (image2 as any)[field] = value;
+                            }
+                            return {
+                              ...prev,
+                              bottomSection: {
+                                ...(prev.bottomSection || { isEnabled: true }),
+                                image2
+                              }
+                            };
+                          });
+                        }}
+                        onUpload={async (file) => {
+                          const result = await handleImageUpload(file);
+                          return result;
+                        }}
+                        activeLanguage={activeLanguage}
+                        title="Promo Image 2"
+                        description="Secondary image in promo section"
+                        addButtonLabel="Upload Promo Image 2"
+                      />
                     </div>
-                    <LocalizedInput
-                      label="SEO Target Title (e.g., Special Deals, Welcome)"
-                      value={formData.bottomSection?.title || { en: '', de: '', it: '', es: '' }}
-                      onChange={(val) => handleChange('bottomSection.title', val)}
-                      placeholder="e.g., Ready for your next adventure?"
-                      activeLanguage={activeLanguage}
-                    />
-                    <LocalizedRichText
-                      label="SEO Content Body"
-                      value={formData.bottomSection?.description || { en: '', de: '', it: '', es: '' }}
-                      onChange={(val) => handleChange('bottomSection.description', val)}
-                      placeholder="Detailed promotional text for SEO..."
-                      activeLanguage={activeLanguage}
-                    />
+
+                    <Separator />
+
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="bottomSectionEnabled"
+                          checked={formData.bottomSection?.isEnabled !== false}
+                          onCheckedChange={(checked) => handleChange('bottomSection.isEnabled', checked)}
+                        />
+                        <Label htmlFor="bottomSectionEnabled">Enable bottom promo section</Label>
+                      </div>
+
+                      <LocalizedInput
+                        label="SEO Target Title (e.g., Special Deals, Welcome)"
+                        value={formData.bottomSection?.title || { en: '', de: '', it: '', es: '' }}
+                        onChange={(val, lang) => handleChange('bottomSection.title', val, lang)}
+                        placeholder="e.g., Ready for your next adventure?"
+                        activeLanguage={activeLanguage}
+                        error={!!getFieldError('bottomSection.title.en')}
+                      />
+
+                      <LocalizedRichText
+                        label="SEO Content Body"
+                        value={formData.bottomSection?.description || { en: '', de: '', it: '', es: '' }}
+                        onChange={(val, lang) => handleChange('bottomSection.description', val, lang)}
+                        placeholder="Detailed promotional text for SEO..."
+                        activeLanguage={activeLanguage}
+                      />
+
+                      <div className="grid gap-4 md:grid-cols-2 mt-4">
+                        <LocalizedInput
+                          label="Promo Button Label"
+                          value={formData.bottomSection?.button?.label || { en: '', de: '', it: '', es: '' }}
+                          onChange={(val, lang) => handleChange('bottomSection.button.label', val, lang)}
+                          placeholder="Button Label"
+                          activeLanguage={activeLanguage}
+                          error={!!getFieldError('bottomSection.button.label.en')}
+                        />
+
+                        <div className="space-y-2">
+                          <Label htmlFor="bottomSectionBtnHref">Button Link</Label>
+                          <Input
+                            id="bottomSectionBtnHref"
+                            value={formData.bottomSection?.button?.href || ''}
+                            onChange={(e) => handleChange('bottomSection.button.href', e.target.value)}
+                            placeholder="e.g. /contact or https://..."
+                            className={cn(!!getFieldError('bottomSection.button.href') && "border-red-500")}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="bottomSectionBtnNewTab"
+                          checked={!!formData.bottomSection?.button?.newTab}
+                          onCheckedChange={(checked) => handleChange('bottomSection.button.newTab', checked)}
+                        />
+                        <Label htmlFor="bottomSectionBtnNewTab">Open button link in new tab</Label>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -882,6 +1159,8 @@ export default function NewSubcategoryPage() {
                     placeholder="Search blogs by title..."
                     value={blogSearchQuery}
                     onChange={(e) => setBlogSearchQuery(e.target.value)}
+                    onFocus={() => setIsBlogSearchFocused(true)}
+                    onBlur={() => setTimeout(() => setIsBlogSearchFocused(false), 200)}
                     className="pl-9 pr-9"
                   />
                   {isSearchingBlogs && (
@@ -890,7 +1169,7 @@ export default function NewSubcategoryPage() {
                     </div>
                   )}
                 </div>
-                {blogSearchQuery && (
+                {isBlogSearchFocused && (
                   <div className="absolute z-50 left-0 right-0 top-full mt-1 border rounded-lg bg-background shadow-lg max-h-64 overflow-y-auto">
                     {isSearchingBlogs ? (
                       <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
@@ -951,14 +1230,15 @@ export default function NewSubcategoryPage() {
                     <LocalizedInput
                       label="Meta Title"
                       value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
-                      onChange={(val) => handleChange('seo.metaTitle', val)}
+                      onChange={(val, lang) => handleChange('seo.metaTitle', val, lang)}
                       placeholder="SEO Meta Title"
                       activeLanguage={activeLanguage}
+                      error={!!getFieldError('seo.metaTitle.en')}
                     />
                     <LocalizedTextArea
                       label="Meta Description"
                       value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
-                      onChange={(val) => handleChange('seo.metaDescription', val)}
+                      onChange={(val, lang) => handleChange('seo.metaDescription', val, lang)}
                       placeholder="SEO Meta Description"
                       activeLanguage={activeLanguage}
                     />
@@ -967,7 +1247,7 @@ export default function NewSubcategoryPage() {
                       <LocalizedTagsInput
                         label="Meta Keywords"
                         value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
-                        onChange={(val) => handleChange('seo.metaKeywords', val)}
+                        onChange={(val, lang) => handleChange('seo.metaKeywords', val, lang)}
                         placeholder="Type and press Enter"
                         activeLanguage={activeLanguage}
                       />
@@ -987,7 +1267,7 @@ export default function NewSubcategoryPage() {
                           }
                         }));
                       }}
-                      onRemove={() => {
+                      onRemove={(index) => {
                         setFormData(prev => ({
                           ...prev,
                           seo: {
@@ -1024,6 +1304,7 @@ export default function NewSubcategoryPage() {
                     />
                   </CardContent>
                 </Card>
+
               </div>
             )}
 

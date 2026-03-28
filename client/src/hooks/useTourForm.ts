@@ -144,7 +144,7 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
   };
 
   // Handle form field changes
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: any, lang?: AdminLanguage) => {
     setFormData(prev => {
       const updated = { ...prev } as any;
       
@@ -161,19 +161,31 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
       }
 
       // Auto-update slug and SEO metaTitle if name (English) changes
-      if (field === 'name' || field.startsWith('heading.')) {
-        const lang = field.startsWith('heading.') ? field.split('.')[1] as any : 'en';
-        const val = value;
-        
-        if (field === 'name' || field === 'heading.en') updated.name = value;
-        
-        if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
-        updated.slug[lang] = generateSlug(value);
+      if (field === 'name' || field.startsWith('heading.') || field.startsWith('name.')) {
+        let targetLang: AdminLanguage = 'en';
+        let val = value;
+
+        if (field.startsWith('heading.')) targetLang = field.split('.')[1] as AdminLanguage;
+        else if (field.startsWith('name.')) targetLang = field.split('.')[1] as AdminLanguage;
+        else if (lang) targetLang = lang;
+
+        // If 'name' is the whole object (from LocalizedInput)
+        if (field === 'name' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+           updated.name = value;
+           // Use targetLang (or lang) to determine which slug to generate
+           if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
+           updated.slug[targetLang] = generateSlug(value[targetLang] || '');
+        } else {
+           if (field === 'name' || field === 'heading.en' || field === 'name.en') updated.name = value;
+           
+           if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
+           updated.slug[targetLang] = generateSlug(value);
+        }
 
         if (!updated.seo) updated.seo = {};
         if (!updated.seo.metaTitle) updated.seo.metaTitle = { en: '', de: '', it: '', es: '' };
-        if (!updated.seo.metaTitle[lang]) {
-          updated.seo.metaTitle[lang] = value;
+        if (!updated.seo.metaTitle[targetLang]) {
+          updated.seo.metaTitle[targetLang] = typeof value === 'object' ? value[targetLang] : value;
         }
       }
 
@@ -182,8 +194,8 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
   };
 
   // Handle keywords
-  const handleKeywordsChange = (value: any) => {
-    handleChange('seo.metaKeywords', value);
+  const handleKeywordsChange = (value: any, lang?: AdminLanguage) => {
+    handleChange('seo.metaKeywords', value, lang);
   };
 
   // Handle array fields (Highlights, inclusions, exclusions, what to pack)

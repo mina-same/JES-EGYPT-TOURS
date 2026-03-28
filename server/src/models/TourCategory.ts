@@ -26,6 +26,8 @@ export interface ISectionHeaderButton {
 export interface ISectionHeader {
   isEnabled?: boolean;
   image?: IImage;
+  image1?: IImage;
+  image2?: IImage;
   images?: IImage[];
   title?: ILocalizedString;
   description?: ILocalizedMixed;
@@ -39,9 +41,11 @@ export interface ITourCategory extends Document {
   images: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
+  gallery?: IImage[];
   subcategorySectionTitle?: ILocalizedString; // New field
   toursSectionTitle?: ILocalizedString; // New field
   gallerySectionTitle?: ILocalizedString; // New field
+  toursSectionSubTitle?: ILocalizedString; // New field
   blogsSectionTitle?: ILocalizedString; // New field
   faqsSectionTitle?: ILocalizedString; // New field
   faqs?: IFAQ[];
@@ -102,6 +106,14 @@ const SectionHeaderSchema = new Schema<ISectionHeader>(
       type: ImageSchema,
       required: false,
     },
+    image1: {
+      type: ImageSchema,
+      required: false,
+    },
+    image2: {
+      type: ImageSchema,
+      required: false,
+    },
     images: {
       type: [ImageSchema],
       required: false,
@@ -145,11 +157,19 @@ const TourCategorySchema = new Schema<ITourCategory>(
       type: SectionHeaderSchema,
       required: false,
     },
+    gallery: {
+      type: [ImageSchema],
+      required: false,
+    },
     subcategorySectionTitle: {
       type: LocalizedStringSchema,
       required: false,
     },
     toursSectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
+    toursSectionSubTitle: {
       type: LocalizedStringSchema,
       required: false,
     },

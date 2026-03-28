@@ -143,6 +143,25 @@ export default function NewTourPage() {
         if (!mixed) return true;
         return !mixed.en?.length && !mixed.de?.length && !mixed.it?.length && !mixed.es?.length;
       };
+
+      const flattenLocalizedList = (mixed: any) => {
+        if (!mixed || typeof mixed !== 'object' || Array.isArray(mixed)) return mixed;
+        const languages = ['en', 'de', 'it', 'es'];
+        const result: any = { en: [], de: [], it: [], es: [] };
+        
+        languages.forEach(lang => {
+          const list = mixed[lang] || [];
+          if (Array.isArray(list)) {
+            result[lang] = list.map(item => {
+              if (typeof item === 'object' && item !== null) {
+                return item[lang] || item.en || '';
+              }
+              return item;
+            }).filter(Boolean);
+          }
+        });
+        return result;
+      };
       
       // Remove empty images
       if (cleanData.images) {
@@ -168,6 +187,13 @@ export default function NewTourPage() {
           delete cleanData.seo.metaImage;
         }
       }
+
+      // Sanitize list fields
+      if (cleanData.tourHighlights) cleanData.tourHighlights = flattenLocalizedList(cleanData.tourHighlights);
+      if (cleanData.inclusion) cleanData.inclusion = flattenLocalizedList(cleanData.inclusion);
+      if (cleanData.exclusion) cleanData.exclusion = flattenLocalizedList(cleanData.exclusion);
+      if (cleanData.whatToPack) cleanData.whatToPack = flattenLocalizedList(cleanData.whatToPack);
+      if (cleanData.tags) cleanData.tags = flattenLocalizedList(cleanData.tags);
 
       // Remove empty optional fields
       if (!cleanData.priceStartingFrom) delete cleanData.priceStartingFrom;

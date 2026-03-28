@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { blogAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
+import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
 import { API_URL } from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,6 +77,8 @@ const INITIAL_BLOG_EDIT: any = {
   focusKeyword: { en: '', de: '', it: '', es: '' },
   breadcrumbs: [],
   relatedPosts: [],
+  category: '',
+  subCategory: '',
 };
 
 export default function EditBlogPage() {
@@ -90,6 +92,9 @@ export default function EditBlogPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeTab, setActiveTab] = useState('content');
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [subCategories, setSubCategories] = useState<any[]>([]);
+  const [fetchingOptions, setFetchingOptions] = useState(false);
 
   const { formData, setFormData, clearDraft } = useFormDraft<any>(
     `draft_blog_edit_${blogId}`,
@@ -263,6 +268,8 @@ export default function EditBlogPage() {
             name: normalizeLocalizedString(b.name)
           })),
           relatedPosts: blog.relatedPosts?.map((post: any) => post._id || post) || [],
+          category: blog.category?._id || blog.category || '',
+          subCategory: blog.subCategory?._id || blog.subCategory || '',
         });
       } else {
         setFormErrors([{ field: 'Server', message: response.error || 'Failed to fetch blog post' }]);
@@ -347,6 +354,14 @@ export default function EditBlogPage() {
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
 
+      // Clean up category/subcategory IDs (must be valid Mongo IDs or removed)
+      if (!cleanData.category || cleanData.category === '' || cleanData.category === 'none') {
+        cleanData.category = null;
+      }
+      if (!cleanData.subCategory || cleanData.subCategory === '' || cleanData.subCategory === 'none') {
+        cleanData.subCategory = null;
+      }
+
       // Remove empty optional fields (localized)
       const isLocalizedStringEmpty = (val: any) => {
         if (!val || typeof val !== 'object') return true;
@@ -409,9 +424,40 @@ export default function EditBlogPage() {
   };
 
   useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        setFetchingOptions(true);
+        const catRes = await blogCategoryAPI.getAll({ isActive: true });
+        if (catRes.success && catRes.data) {
+          setCategories(catRes.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch blog categories:', error);
+      } finally {
+        setFetchingOptions(false);
+      }
+    };
+    fetchOptions();
     fetchBlog();
-    // Load blog data
   }, [blogId]);
+
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!formData.category) {
+        setSubCategories([]);
+        return;
+      }
+      try {
+        const response = await blogSubcategoryAPI.getByCategory(formData.category, { isActive: true });
+        if (response.success && response.data) {
+          setSubCategories(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subcategories:', error);
+      }
+    };
+    fetchSubCategories();
+  }, [formData.category]);
 
   if (initialLoading) {
     return (
@@ -509,6 +555,49 @@ export default function EditBlogPage() {
                           onChange={(val) => handleChange('slug', val)}
                           placeholder="amazing-travel-tips-for-egypt"
                         />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                       <div className="space-y-2">
+                        <Label htmlFor="category">Category</Label>
+                        <Select 
+                          value={formData.category || "none"} 
+                          onValueChange={(value) => handleChange('category', value === "none" ? "" : value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat._id} value={cat._id}>
+                                {cat.name?.en || cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="subCategory">Subcategory</Label>
+                        <Select 
+                          value={formData.subCategory || "none"} 
+                          onValueChange={(value) => handleChange('subCategory', value === "none" ? "" : value)}
+                          disabled={!formData.category}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Subcategory" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {subCategories.map((sub) => (
+                              <SelectItem key={sub._id} value={sub._id}>
+                                {sub.name?.en || sub.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     

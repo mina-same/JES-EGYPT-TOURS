@@ -7,7 +7,7 @@ import LocalizedField from "./LocalizedField";
 
 interface LocalizedRichTextProps {
   value: any;
-  onChange: (value: any) => void;
+  onChange: (value: any, lang: AdminLanguage) => void;
   label?: string;
   placeholder?: string;
   className?: string;
@@ -28,7 +28,7 @@ const LocalizedRichText: React.FC<LocalizedRichTextProps> = ({
       value={value}
       globalLanguage={activeLanguage}
       className={className}
-      onChange={(lang, val) => onChange({ ...value, [lang]: val })}
+      onChange={(lang, val) => onChange({ ...value, [lang]: val }, lang)}
     >
       {(lang, currentValue, handleLang) => (
         <RichTextEditor

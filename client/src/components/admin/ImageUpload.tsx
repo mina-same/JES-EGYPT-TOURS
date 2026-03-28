@@ -27,6 +27,7 @@ interface ImageUploadProps {
   required?: boolean;
   maxImages?: number;
   activeLanguage?: AdminLanguage;
+  addButtonLabel?: string;
 }
 
 
@@ -41,6 +42,7 @@ export default function ImageUpload({
   required = false,
   maxImages,
   activeLanguage,
+  addButtonLabel = "Add Another Image",
 }: ImageUploadProps) {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -241,7 +243,7 @@ export default function ImageUpload({
                   >
                     {(lang, currentValue, handleLang) => (
                       <Input
-                        value={currentValue}
+                        value={currentValue || ""}
                         onChange={(e) => handleLang(e.target.value)}
                         placeholder={`Title (${lang.toUpperCase()})`}
                         className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
@@ -256,7 +258,7 @@ export default function ImageUpload({
                   >
                     {(lang, currentValue, handleLang) => (
                       <Input
-                        value={currentValue}
+                        value={currentValue || ""}
                         onChange={(e) => handleLang(e.target.value)}
                         placeholder={`Alt (${lang.toUpperCase()})`}
                         className="h-9 text-xs bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700"
@@ -299,7 +301,7 @@ export default function ImageUpload({
           className="w-full border-dashed border-2 hover:border-[#b79c5c] hover:text-[#b79c5c] hover:bg-[#b79c5c]/5"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Another Image
+          {addButtonLabel}
         </Button>
       )}
     </div>

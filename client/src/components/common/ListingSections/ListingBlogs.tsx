@@ -47,7 +47,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
     : (title || t('ourLatestNews'));
 
   return (
-    <section className="section-space">
+    <section className="blog-two section-space">
       <Container>
         <div className="sec-title text-center mb-5">
           <h6 className="sec-title__tagline">{t('blogAndNews')}</h6>
@@ -56,29 +56,57 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
         <Row className="gutter-y-30">
           {viewModel.map((post, idx) => (
             <Col lg={4} md={6} key={post.id}>
-              <div className="blog-card rounded-4 overflow-hidden border shadow-sm hover:translate-y-[-10px] transition-all duration-300 bg-white">
-                <div className="relative h-60 w-full overflow-hidden">
-                  <Image 
-                    src={post.image} 
-                    alt={post.title} 
-                    fill 
-                    className="object-cover transition-transform duration-500 hover:scale-105"
+              <div
+                className='blog-card-two blog-card-two--one wow fadeInUp'
+                data-wow-duration='1500ms'
+                data-wow-delay={`${100 * (idx + 1)}ms`}
+              >
+                <div className='blog-card-two__image'>
+                  <Image
+                    src={post.image}
+                    alt={post.title || "Blog post image"}
+                    className="img-fluid"
+                    width={600}
+                    height={450}
+                    style={{ width: "100%", height: "260px", objectFit: "cover" }}
                   />
-                  <div className="absolute top-4 left-4 bg-[#b79c5c] text-white px-3 py-1 rounded-lg text-center font-bold">
-                    <span className="block text-xl leading-none">{post.day}</span>
-                    <span className="text-xs uppercase">{post.month}</span>
+                  <div className='blog-card-two__date'>
+                    <span className='blog-card-two__date__day'>{post.day}</span>
+                    <span className='blog-card-two__date__month'>
+                      {post.month}
+                    </span>
                   </div>
+                  <Link href={post.link} className='blog-card-two__image__link'>
+                    <span className='sr-only'>{post.title}</span>
+                  </Link>
                 </div>
-                <div className="p-4">
-                  <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-                    <span className="flex items-center gap-1 font-semibold uppercase">{post.category}</span>
-                    <span className="flex items-center gap-1">by {post.author}</span>
-                  </div>
-                  <h4 className="text-xl font-bold mb-4 leading-tight group-hover:text-[#b79c5c] transition-colors line-clamp-2" style={{ minHeight: 48 }}>
+                <div className='blog-card-two__content'>
+                  <ul className='list-unstyled blog-card-two__meta'>
+                    <li>
+                      <Link href={post.link}>
+                        <span className='blog-card-two__meta__icon'>
+                          <i className='icon-user'></i>
+                        </span>{" "}
+                        {t('by')} {post.author}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href={post.link}>
+                        <span className='blog-card-two__meta__icon'>
+                          <i className='icon-price-tag'></i>
+                        </span>{" "}
+                        {post.category}
+                      </Link>
+                    </li>
+                  </ul>
+                  <h3 className='blog-card-two__title'>
                     <Link href={post.link}>{post.title}</Link>
-                  </h4>
-                  <Link href={post.link} className="inline-flex items-center gap-2 font-bold text-[#b79c5c] text-sm hover:underline uppercase tracking-wider">
-                    {t('readMore')} <span className="icon-arrow-right"></span>
+                  </h3>
+                  <Link
+                    href={post.link}
+                    className='blog-card-two__content__btn'
+                  >
+                    {t('readMore')} <i className='icon-arrow-right'></i>
                   </Link>
                 </div>
               </div>
@@ -86,6 +114,13 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
           ))}
         </Row>
       </Container>
+      <style jsx global>{`
+        @media (max-width: 991px) {
+          .blog-card-two { margin-bottom: 20px; }
+          .sec-title__title { font-size: 28px !important; }
+          .section-space { padding: 40px 0; }
+        }
+      `}</style>
     </section>
   );
 };

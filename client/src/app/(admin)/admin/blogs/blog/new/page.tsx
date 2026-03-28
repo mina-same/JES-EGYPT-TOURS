@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { blogAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
+import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
 import { API_URL } from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,6 +78,8 @@ const INITIAL_BLOG_POST = {
   focusKeyword: { en: '', de: '', it: '', es: '' },
   breadcrumbs: [],
   relatedPosts: [],
+  category: '',
+  subCategory: '',
 };
 
 export default function NewBlogPage() {
@@ -87,6 +89,9 @@ export default function NewBlogPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeTab, setActiveTab] = useState('content');
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [subCategories, setSubCategories] = useState<any[]>([]);
+  const [fetchingOptions, setFetchingOptions] = useState(false);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<any>(
     'draft_blog_new',
@@ -252,6 +257,10 @@ export default function NewBlogPage() {
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
 
+      // Clean up category/subcategory IDs (must be valid Mongo IDs or removed)
+      if (!cleanData.category || cleanData.category === '') delete cleanData.category;
+      if (!cleanData.subCategory || cleanData.subCategory === '') delete cleanData.subCategory;
+
       // Helper to check if localized string is empty
       const isLocalizedStringEmpty = (val: any) => {
         if (!val || typeof val !== 'object') return true;
@@ -328,9 +337,39 @@ export default function NewBlogPage() {
   };
 
   useEffect(() => {
-    // Fetch current user for author field if needed
-    // This should come from auth context
+    const fetchCategories = async () => {
+      try {
+        setFetchingOptions(true);
+        const response = await blogCategoryAPI.getAll({ isActive: true });
+        if (response.success && response.data) {
+          setCategories(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch blog categories:', error);
+      } finally {
+        setFetchingOptions(false);
+      }
+    };
+    fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (!formData.category) {
+        setSubCategories([]);
+        return;
+      }
+      try {
+        const response = await blogSubcategoryAPI.getByCategory(formData.category, { isActive: true });
+        if (response.success && response.data) {
+          setSubCategories(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subcategories:', error);
+      }
+    };
+    fetchSubCategories();
+  }, [formData.category]);
 
   return (
     <div className="max-full space-y-6 pb-24 p-6">
@@ -409,6 +448,49 @@ export default function NewBlogPage() {
                           onChange={(val) => handleChange('slug', val)}
                           placeholder="amazing-travel-tips"
                         />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                       <div className="space-y-2">
+                        <Label htmlFor="category">Category</Label>
+                        <Select 
+                          value={formData.category || "none"} 
+                          onValueChange={(value) => handleChange('category', value === "none" ? "" : value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat._id} value={cat._id}>
+                                {cat.name?.en || cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="subCategory">Subcategory</Label>
+                        <Select 
+                          value={formData.subCategory || "none"} 
+                          onValueChange={(value) => handleChange('subCategory', value === "none" ? "" : value)}
+                          disabled={!formData.category}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Subcategory" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {subCategories.map((sub) => (
+                              <SelectItem key={sub._id} value={sub._id}>
+                                {sub.name?.en || sub.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div className="space-y-2">

@@ -97,6 +97,7 @@ const seedBlogs = async () => {
         it: 'guida-definitiva-grandi-piramidi-giza', 
         es: 'guia-definitiva-grandes-piramides-guiza' 
       },
+      category: catHistory._id,
       subCategory: subAncientSites._id,
       author: admin._id,
       featuredImage: {
@@ -167,6 +168,7 @@ const seedBlogs = async () => {
         it: 'aspettative-crociera-lusso-nilo', 
         es: 'expectativas-crucero-lujo-nilo' 
       },
+      category: catTravelGuides._id,
       subCategory: subTips._id,
       author: admin._id,
       featuredImage: {
@@ -219,6 +221,7 @@ const seedBlogs = async () => {
         it: 'gemme-nascoste-luxor-oltre-valle-dei-re', 
         es: 'gemas-ocultas-luxor-mas-alla-valle-de-los-reyes' 
       },
+      category: catHistory._id,
       subCategory: subAncientSites._id,
       author: admin._id,
       featuredImage: {
@@ -271,6 +274,7 @@ const seedBlogs = async () => {
         it: 'piatti-tradizionali-egiziani-da-provare', 
         es: 'platos-tradicionales-egipcios-que-debes-probar' 
       },
+      category: catHistory._id,
       subCategory: subFood._id,
       author: admin._id,
       featuredImage: {

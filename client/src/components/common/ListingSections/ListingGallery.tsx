@@ -21,7 +21,7 @@ const ListingGallery: React.FC<ListingGalleryProps> = ({ images, title, sectionT
     : (title || t('exploreVisuals'));
 
   return (
-    <section className="section-space">
+    <section className="section-space" style={{ background: '#f8f9fa' }}>
       <Container>
         <div className="sec-title text-center mb-5">
           <h6 className="sec-title__tagline">{t('gallery')}</h6>
@@ -30,7 +30,7 @@ const ListingGallery: React.FC<ListingGalleryProps> = ({ images, title, sectionT
         <Row className="gutter-y-30">
           {images.slice(0, 6).map((img, idx) => (
             <Col lg={4} md={6} key={idx}>
-              <div className="gallery-card rounded-4 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300" style={{ height: '300px', position: 'relative' }}>
+              <div className="gallery-card rounded-4 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300" style={{ position: 'relative' }}>
                 <Image 
                   src={img.url} 
                   alt={img.alt?.[locale] || img.title?.[locale] || displayTitle || `Gallery image ${idx + 1}`}
@@ -43,6 +43,15 @@ const ListingGallery: React.FC<ListingGalleryProps> = ({ images, title, sectionT
           ))}
         </Row>
       </Container>
+      <style jsx global>{`
+        .gallery-card { height: 350px; }
+        @media (max-width: 768px) { .gallery-card { height: 280px; } }
+        @media (max-width: 480px) { .gallery-card { height: 220px; } }
+        @media (max-width: 768px) {
+          .sec-title__title { font-size: 24px !important; }
+          .section-space { padding: 40px 0; }
+        }
+      `}</style>
     </section>
   );
 };

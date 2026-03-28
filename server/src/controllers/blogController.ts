@@ -57,6 +57,8 @@ export const getAllBlogs = async (
 
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug')
       .select('-comments') // Exclude comments from list view
       .sort(sortExpr)
       .skip(skip)
@@ -117,8 +119,8 @@ export const getAllBlogsAdmin = async (
 
     if (search) {
       query.$or = [
-        { title: { $regex: search as string, $options: 'i' } },
-        { excerpt: { $regex: search as string, $options: 'i' } },
+        { 'title.en': { $regex: search as string, $options: 'i' } },
+        { 'excerpt.en': { $regex: search as string, $options: 'i' } },
       ];
     }
 
@@ -126,6 +128,8 @@ export const getAllBlogsAdmin = async (
 
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug')
       .select('-comments')
       .sort({ updatedAt: -1 })
       .skip(skip)
@@ -170,6 +174,8 @@ export const getFeaturedBlogs = async (
       isFeatured: true 
     })
       .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug')
       .select('-comments')
       .sort({ publishedAt: -1 })
       .limit(Number(limit));
@@ -210,6 +216,8 @@ export const getBlogBySlug = async (
       ]
     })
       .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags');
 
     if (!blog) {
@@ -252,6 +260,8 @@ export const getBlogByIdPublic = async (
       status: 'published' 
     })
       .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags');
 
     if (!blog) {
@@ -432,7 +442,9 @@ export const updateBlog = async (
         runValidators: true,
       }
     )
-      .populate('author', 'name email');
+      .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug');
 
     if (!blog) {
       res.status(404).json({
@@ -652,7 +664,9 @@ export const getBlogById = async (
 ): Promise<void> => {
   try {
     const blog = await Blog.findById(req.params.id)
-      .populate('author', 'name email');
+      .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug');
 
     if (!blog) {
       res.status(404).json({

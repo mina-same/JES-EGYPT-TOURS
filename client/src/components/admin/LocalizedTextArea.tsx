@@ -7,7 +7,7 @@ import LocalizedField from "./LocalizedField";
 
 interface LocalizedTextAreaProps {
   value: any;
-  onChange: (value: any) => void;
+  onChange: (value: any, lang: AdminLanguage) => void;
   label?: string;
   placeholder?: string;
   className?: string;
@@ -30,7 +30,7 @@ const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
       value={value}
       globalLanguage={activeLanguage}
       className={className}
-      onChange={(lang, val) => onChange({ ...value, [lang]: val })}
+      onChange={(lang, val) => onChange({ ...value, [lang]: val }, lang)}
     >
       {(lang, currentValue, handleLang) => (
         <Textarea

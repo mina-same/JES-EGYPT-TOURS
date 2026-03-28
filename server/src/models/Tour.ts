@@ -126,9 +126,9 @@ export interface ITour extends Document {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
-  tourHighlights?: ILocalizedString[];
-  inclusion?: ILocalizedString[];
-  exclusion?: ILocalizedString[];
+  tourHighlights?: ILocalizedMixed;
+  inclusion?: ILocalizedMixed;
+  exclusion?: ILocalizedMixed;
   pricingPlans: IPricingPlan[];
   priceStartingFrom?: number;
   duration?: ILocalizedString;
@@ -136,7 +136,7 @@ export interface ITour extends Document {
   cancellationPolicy?: ILocalizedString;
   tags?: ILocalizedMixed;
   notes?: INote[];
-  whatToPack?: ILocalizedString[];
+  whatToPack?: ILocalizedMixed;
   tourMapIframe?: string;
   mapSchema?: IMapSchema;
   whatYouWillLoveHtml?: ILocalizedMixed;
@@ -534,25 +534,26 @@ const TourSchema = new Schema<ITour>(
     tourStyle: {
       type: LocalizedStringSchema,
     },
-    tourHighlights: [
-      {
-        type: LocalizedStringSchema,
-      },
-    ],
+    tourHighlights: {
+      type: LocalizedMixedSchema,
+    },
     inclusion: {
-      type: [LocalizedStringSchema],
+      type: LocalizedMixedSchema,
       validate: {
-        validator: function (v: any[]) {
-          return v && v.length > 0;
+        validator: function (v: any) {
+          // Check if at least one language has at least one item
+          if (!v) return false;
+          return (v.en && v.en.length > 0) || (v.de && v.de.length > 0) || (v.it && v.it.length > 0) || (v.es && v.es.length > 0);
         },
         message: 'At least one inclusion is required',
       },
     },
     exclusion: {
-      type: [LocalizedStringSchema],
+      type: LocalizedMixedSchema,
       validate: {
-        validator: function (v: any[]) {
-          return v && v.length > 0;
+        validator: function (v: any) {
+          if (!v) return false;
+          return (v.en && v.en.length > 0) || (v.de && v.de.length > 0) || (v.it && v.it.length > 0) || (v.es && v.es.length > 0);
         },
         message: 'At least one exclusion is required',
       },
@@ -584,11 +585,9 @@ const TourSchema = new Schema<ITour>(
       type: LocalizedMixedSchema,
     },
     notes: [NoteSchema],
-    whatToPack: [
-      {
-        type: LocalizedStringSchema,
-      },
-    ],
+    whatToPack: {
+      type: LocalizedMixedSchema,
+    },
     tourMapIframe: {
       type: String,
       trim: true,

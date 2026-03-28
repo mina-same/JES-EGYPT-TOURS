@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import Script from 'next/script';
 import { AppSidebar } from '@/components/admin/app-sidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -52,6 +53,146 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={`${jakartaSans.variable} ${justAnotherHand.variable}`} suppressHydrationWarning>
+        <Script
+          id="strip-bis-attributes"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                function stripBisAttributes(root) {
+                  if (!root || !root.querySelectorAll) return;
+
+                  var nodes = root.querySelectorAll('[bis_skin_checked],[bis_size],[bis_id]');
+                  for (var i = 0; i < nodes.length; i++) {
+                    nodes[i].removeAttribute('bis_skin_checked');
+                    nodes[i].removeAttribute('bis_size');
+                    nodes[i].removeAttribute('bis_id');
+                  }
+
+                  // Also strip any attribute starting with "bis_".
+                  var all = root.getElementsByTagName('*');
+                  for (var j = 0; j < all.length; j++) {
+                    var attrs = all[j].attributes;
+                    for (var k = attrs.length - 1; k >= 0; k--) {
+                      var name = attrs[k].name;
+                      if (name && name.indexOf('bis_') === 0) {
+                        all[j].removeAttribute(name);
+                      }
+                    }
+                  }
+                }
+
+                try {
+                  stripBisAttributes(document);
+
+                  var observer = new MutationObserver(function (mutations) {
+                    for (var i = 0; i < mutations.length; i++) {
+                      var m = mutations[i];
+                      if (m.type === 'attributes' && m.attributeName && m.attributeName.indexOf('bis_') === 0) {
+                        if (m.target && m.target.removeAttribute) {
+                          m.target.removeAttribute(m.attributeName);
+                        }
+                      }
+                      if (m.type === 'childList') {
+                        for (var j = 0; j < m.addedNodes.length; j++) {
+                          var n = m.addedNodes[j];
+                          if (n && n.nodeType === 1) {
+                            stripBisAttributes(n);
+                          }
+                        }
+                      }
+                    }
+                  });
+
+                  observer.observe(document.documentElement, {
+                    subtree: true,
+                    childList: true,
+                    attributes: true,
+                    attributeFilter: ['bis_skin_checked', 'bis_size', 'bis_id'],
+                  });
+                } catch (e) {
+                  // ignore
+                }
+              })();
+            `,
+          }}
+        />
+        <Script
+          id="suppress-tiny-slider-nomod"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                try {
+                  function isTinySliderNoMod(msg, stack, filename) {
+                    msg = String(msg || '');
+                    stack = String(stack || '');
+                    filename = String(filename || '');
+
+                    var hasOuter = msg.indexOf('outerHTML') !== -1 || msg.indexOf('element has no parent node') !== -1;
+                    var hasNoMod = msg.indexOf('NoModificationAllowedError') !== -1;
+                    var hasTiny = stack.indexOf('tiny-slider') !== -1 || filename.indexOf('tiny-slider') !== -1;
+
+                    return (hasOuter || hasNoMod) && hasTiny;
+                  }
+
+                  var originalConsoleError = console.error;
+                  console.error = function () {
+                    try {
+                      var args = Array.prototype.slice.call(arguments);
+                      var joined = args.map(function (a) { return String(a); }).join(' ');
+                      var stack = '';
+                      for (var i = 0; i < args.length; i++) {
+                        if (args[i] && args[i].stack) {
+                          stack = String(args[i].stack);
+                          break;
+                        }
+                      }
+
+                      if (isTinySliderNoMod(joined, stack, '')) {
+                        return;
+                      }
+                    } catch (e) {
+                      // ignore
+                    }
+                    return originalConsoleError.apply(console, arguments);
+                  };
+
+                  window.addEventListener('error', function (event) {
+                    try {
+                      var err = event && event.error;
+                      var msg = (event && event.message) || (err && (err.message || err.toString())) || '';
+                      var stack = (err && err.stack) || '';
+                      var filename = (event && event.filename) || '';
+
+                      if (isTinySliderNoMod(msg, stack, filename)) {
+                        event.preventDefault();
+                      }
+                    } catch (e) {
+                      // ignore
+                    }
+                  }, true);
+
+                  window.addEventListener('unhandledrejection', function (event) {
+                    try {
+                      var reason = event && event.reason;
+                      var msg = (reason && (reason.message || reason.toString())) || '';
+                      var stack = (reason && reason.stack) || '';
+
+                      if (isTinySliderNoMod(msg, stack, '')) {
+                        event.preventDefault();
+                      }
+                    } catch (e) {
+                      // ignore
+                    }
+                  });
+                } catch (e) {
+                  // ignore
+                }
+              })();
+            `,
+          }}
+        />
         {!mounted ? null : (
           <ErrorBoundary>
             <ThemeProvider
@@ -92,3 +233,4 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     </html>
   );
 }
+

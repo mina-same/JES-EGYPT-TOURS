@@ -242,11 +242,10 @@ export const createCategory = async (
 
     // Handle validation errors
     if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((err: any) => err.message);
       res.status(400).json({
         success: false,
         error: 'Validation failed',
-        messages,
+        errors: error.errors,
       });
       return;
     }
@@ -315,11 +314,10 @@ export const updateCategory = async (
 
     // Handle validation errors
     if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((err: any) => err.message);
       res.status(400).json({
         success: false,
         error: 'Validation failed',
-        messages,
+        errors: error.errors,
       });
       return;
     }

@@ -11,8 +11,8 @@ import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 
 interface SEOTabProps {
   formData: any;
-  handleChange: (field: string, value: any) => void;
-  handleKeywordsChange: (value: any) => void;
+  handleChange: (field: string, value: any, lang?: AdminLanguage) => void;
+  handleKeywordsChange: (value: any, lang: AdminLanguage) => void;
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
 }
@@ -71,14 +71,14 @@ export default function SEOTab({
           <LocalizedInput
             label="Meta Title"
             value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
-            onChange={(val) => handleChange('seo.metaTitle', val)}
+            onChange={(val, lang) => handleChange('seo.metaTitle', val, lang)}
             placeholder="SEO Title"
           />
 
           <LocalizedTextArea
             label="Meta Description"
             value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
-            onChange={(val) => handleChange('seo.metaDescription', val)}
+            onChange={(val, lang) => handleChange('seo.metaDescription', val, lang)}
             placeholder="Brief description for search results"
             rows={3}
           />
@@ -86,7 +86,7 @@ export default function SEOTab({
           <LocalizedTagsInput
             label="Keywords (comma-separated)"
             value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
-            onChange={(val) => handleKeywordsChange(val)}
+            onChange={(val, lang) => handleKeywordsChange(val, lang)}
             placeholder="egypt tours, cairo, pyramids..."
           />
           
@@ -131,13 +131,13 @@ export default function SEOTab({
                 <LocalizedInput
                   label="Social Image Title"
                   value={formData.seo?.metaImage?.title || { en: '', de: '', it: '', es: '' }}
-                  onChange={(val) => handleChange('seo.metaImage.title', val)}
+                  onChange={(val, lang) => handleChange('seo.metaImage.title', val, lang)}
                   placeholder="Title for social share image"
                 />
                 <LocalizedInput
                   label="Alt Text"
                   value={formData.seo?.metaImage?.alt || { en: '', de: '', it: '', es: '' }}
-                  onChange={(val) => handleChange('seo.metaImage.alt', val)}
+                  onChange={(val, lang) => handleChange('seo.metaImage.alt', val, lang)}
                   placeholder="Accessibility description"
                 />
               </div>

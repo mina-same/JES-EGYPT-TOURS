@@ -183,33 +183,49 @@ export default function NewBlogSubCategoryPage() {
     setFormData(prev => {
       const updated = { ...prev } as any;
       
-      // Handle localized fields
+      // Handle localized fields (either as whole object from LocalizedInput or single value)
       if (['name', 'description', 'slug'].includes(field)) {
-        updated[field] = {
-          ...(updated[field] || { en: '', de: '', it: '', es: '' }),
-          [targetLang]: value,
-        };
-        
-        // Auto-generate slug when name changes for the active language
-        if (field === 'name') {
-          updated.slug = {
-            ...updated.slug,
-            [targetLang]: generateSlug(value),
-          };
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            // Whole localized object e.g. from LocalizedInput
+            updated[field] = value;
+            if (field === 'name') {
+                updated.slug = {
+                    ...(updated.slug || { en: '', de: '', it: '', es: '' }),
+                    [targetLang]: generateSlug(value[targetLang] || ''),
+                };
+            }
+        } else {
+            // Single value e.g. from direct handleChange call
+            updated[field] = {
+              ...(updated[field] || { en: '', de: '', it: '', es: '' }),
+              [targetLang]: value,
+            };
+            
+            // Auto-generate slug when name changes for the active language
+            if (field === 'name') {
+              updated.slug = {
+                ...(updated.slug || { en: '', de: '', it: '', es: '' }),
+                [targetLang]: generateSlug(value),
+              };
+            }
         }
       } 
       // Handle SEO localized fields
       else if (field.startsWith('seo.')) {
         const seoField = field.split('.')[1];
         if (['metaTitle', 'metaDescription'].includes(seoField)) {
-          updated.seo[seoField] = {
-            ...(updated.seo[seoField] || { en: '', de: '', it: '', es: '' }),
-            [targetLang]: value,
-          };
+           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                updated.seo[seoField] = value;
+           } else {
+                updated.seo[seoField] = {
+                  ...(updated.seo[seoField] || { en: '', de: '', it: '', es: '' }),
+                  [targetLang]: value,
+                };
+           }
         } else {
           updated.seo[seoField] = value;
         }
-      }
+      } 
       // Handle nested fields
       else if (field.includes('.')) {
         const [parent, child] = field.split('.');
@@ -402,13 +418,13 @@ export default function NewBlogSubCategoryPage() {
               <LocalizedInput
                 label="Subcategory Name *"
                 value={formData.name}
-                onChange={(val) => handleChange('name', val)}
+                onChange={(val, lang) => handleChange('name', val, lang)}
                 placeholder="Food & Drink"
               />
               <LocalizedInput
                 label="URL Slug *"
                 value={formData.slug}
-                onChange={(val) => handleChange('slug', val)}
+                onChange={(val, lang) => handleChange('slug', val, lang)}
                 placeholder="food-and-drink"
               />
             </div>

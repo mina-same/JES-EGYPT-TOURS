@@ -13,7 +13,6 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import AboutOne from "@/components/sections/AboutOne/AboutOne";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI as tourApiForFetch } from "@/lib/api/tour";
 import { toast } from "@/hooks/use-toast";
@@ -481,7 +480,12 @@ export default function SubcategoryView({ slug, locale }: { slug: string; locale
                     </>
                   )}
                 </h2>
-                <div style={{ width: '80px', height: '4px', background: '#b79c5c', borderRadius: '2px', marginTop: '4px', marginBottom: '30px' }} />
+                {subcategory.toursSectionSubTitle && getLocalizedValue(subcategory.toursSectionSubTitle, locale) && (
+                  <p className="mt-2 text-muted-foreground" style={{ fontSize: '16px', maxWidth: '800px' }}>
+                    {getLocalizedValue(subcategory.toursSectionSubTitle, locale)}
+                  </p>
+                )}
+                <div style={{ width: '80px', height: '4px', background: '#b79c5c', borderRadius: '2px', marginTop: '12px', marginBottom: '30px' }} />
               </div>
 
               {/* Controls bar */}
@@ -560,6 +564,14 @@ export default function SubcategoryView({ slug, locale }: { slug: string; locale
       <ListingPromo 
         title={subcategory.bottomSection?.title} 
         description={subcategory.bottomSection?.description} 
+        button={subcategory.bottomSection?.button}
+        image1={subcategory.bottomSection?.image1}
+        image2={subcategory.bottomSection?.image2}
+        images={[
+          ...(subcategory.images || []),
+          ...(subcategory.gallery || [])
+        ]}
+        subtitle={subcategory.name}
         locale={locale} 
       />
 
@@ -823,7 +835,6 @@ export default function SubcategoryView({ slug, locale }: { slug: string; locale
         }
       `}</style>
       <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />
-      <AboutOne extraclass='about-one--one' />
       <FooterOne />
     </Layout>
   );

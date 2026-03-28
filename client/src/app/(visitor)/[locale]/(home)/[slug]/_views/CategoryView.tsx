@@ -10,10 +10,9 @@ import { Loader2, ChevronRight, Check, Filter, X, SlidersHorizontal } from "luci
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
-import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+// import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import AboutOne from "@/components/sections/AboutOne/AboutOne";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI as tourApiForFetch } from "@/lib/api/tour";
 import { toast } from "@/hooks/use-toast";
@@ -332,7 +331,7 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
   if (initialLoading) {
     return (
       <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
+        <TopbarOne /><HeaderOne linkTheme="light" />
         <div className="flex items-center justify-center min-h-[60vh]" suppressHydrationWarning>
           <Loader2 className="w-10 h-10 animate-spin" />
         </div>
@@ -344,7 +343,7 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
   if (error || !category) {
     return (
       <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
+        <TopbarOne /><HeaderOne linkTheme="light" />
         <PageHeader title={t('status.notFound')} />
         <div className="flex items-center justify-center min-h-[400px] text-red-500">
           <h3>{error || t('status.categoryNotFound')}</h3>
@@ -357,7 +356,7 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
   return (
     <Layout>
       {category?.slug && <SlugManager slugs={category.slug} />}
-      <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
+      <TopbarOne /><HeaderOne linkTheme="light" />
 
       {/* Mobile Filter Drawer (Top-level for proper stacking context) */}
       <div className={`mobile-filter-drawer ${isFilterOpen ? 'is-open' : ''} d-lg-none`}>
@@ -501,11 +500,16 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
                     </>
                   )}
                 </h2>
-                <div style={{ width: '80px', height: '4px', background: '#b79c5c', borderRadius: '2px', marginTop: '4px', marginBottom: '30px' }} />
+                {category.toursSectionSubTitle && getLocalizedValue(category.toursSectionSubTitle, locale) && (
+                  <p className="mt-2 text-muted-foreground" style={{ fontSize: '16px', maxWidth: '800px' }}>
+                    {getLocalizedValue(category.toursSectionSubTitle, locale)}
+                  </p>
+                )}
+                <div style={{ width: '80px', height: '4px', background: '#b79c5c', borderRadius: '2px', marginTop: '12px', marginBottom: '30px' }} />
               </div>
 
               {/* Controls bar */}
-              <div className="d-flex flex-wrap justify-content-between align-items-center bg-white p-3 rounded-4 shadow-sm mb-4" style={{ gap: 12 }}>
+              <div className="d-flex flex-wrap justify-content-between align-items-center bg-white p-3 rounded-4 mb-4" style={{ gap: 12 }}>
                 <div className="d-flex align-items-center gap-3">
                   <button 
                     className="d-lg-none flex items-center gap-2 px-4 py-2 bg-[#b79c5c] text-white rounded-lg font-bold shadow-sm"
@@ -514,16 +518,6 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
                     <SlidersHorizontal className="w-5 h-5" />
                     <span>{t('filters.title')}</span>
                   </button>
-                  <div style={{ fontSize: 14, color: "#666" }} className="d-none d-sm-block">
-                    {appliedFilters.search || appliedFilters.minPrice || appliedFilters.maxPrice || appliedFilters.subcategoryId || appliedFilters.tourType || appliedFilters.tourStyle ? (
-                      <span className="flex items-center gap-2">
-                        {t('listing.showingWithFilters')}
-                        <button type="button" onClick={handleResetFilters} className="text-[#b79c5c] font-bold hover:underline">
-                          {t('listing.clear')}
-                        </button>
-                      </span>
-                    ) : (<span>{t('listing.showingAll')}</span>)}
-                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>{t('listing.sortBy')}</span>
@@ -538,6 +532,7 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
                   </select>
                 </div>
               </div>
+              
               {pageLoading && (<div className="flex items-center justify-center mb-4" style={{ minHeight: 40 }}><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>)}
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
@@ -551,6 +546,28 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
           </Row>
         </Container>
       </section>
+
+       <ListingPromo 
+        title={category.bottomSection?.title} 
+        description={category.bottomSection?.description} 
+        button={category.bottomSection?.button}
+        image1={category.bottomSection?.image1}
+        image2={category.bottomSection?.image2}
+        images={[
+          ...(category.images || []),
+          ...(category.gallery || [])
+        ]}
+        subtitle={category.name}
+        locale={locale} 
+      />
+
+        {/* FAQ Section */}
+      <ListingFaqs 
+        faqs={category.faqs} 
+        sectionTitle={category.faqsSectionTitle}
+        title={"FAQs about " + getLocalizedValue(category.name, locale)} 
+        locale={locale} 
+      />
 
       {/* Gallery Section */}
       <ListingGallery 
@@ -567,22 +584,7 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
         title={getLocalizedValue(category.name, locale) + " " + t('blogAndNews')} 
         locale={locale} 
       />
-
-      {/* FAQ Section */}
-      <ListingFaqs 
-        faqs={category.faqs} 
-        sectionTitle={category.faqsSectionTitle}
-        title={"FAQs about " + getLocalizedValue(category.name, locale)} 
-        locale={locale} 
-      />
-
-      {/* Bottom Promo Section */}
-      <ListingPromo 
-        title={category.bottomSection?.title} 
-        description={category.bottomSection?.description} 
-        locale={locale} 
-      />
-
+      
       <style jsx global>{`
         .subcategory-section {
           background: transparent;
@@ -847,7 +849,6 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
         }
       `}</style>
       <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />
-      <AboutOne extraclass='about-one--one' />
       <FooterOne />
     </Layout>
   );

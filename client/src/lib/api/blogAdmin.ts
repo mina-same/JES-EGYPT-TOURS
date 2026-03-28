@@ -62,6 +62,8 @@ export interface BlogFormData {
     url: string;
   }[];
   relatedPosts?: string[];
+  category?: string;
+  subCategory?: string;
 }
 
 export interface ContentBlock {

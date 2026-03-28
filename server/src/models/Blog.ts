@@ -93,6 +93,8 @@ export interface IBlog extends Document {
   
   // Related Content
   relatedPosts?: mongoose.Types.ObjectId[];
+  category?: mongoose.Types.ObjectId;
+  subCategory?: mongoose.Types.ObjectId;
   
   // Timestamps
   createdAt: Date;
@@ -302,6 +304,14 @@ const BlogSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Blog',
     }],
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: 'BlogCategory',
+    },
+    subCategory: {
+      type: Schema.Types.ObjectId,
+      ref: 'BlogSubCategory',
+    },
   },
   {
     timestamps: true,

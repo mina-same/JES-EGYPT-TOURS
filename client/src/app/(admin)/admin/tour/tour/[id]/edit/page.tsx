@@ -94,7 +94,18 @@ export default function EditTourPage() {
 
           const toLocalizedMixed = (val: any) => {
             if (!val) return { en: [], de: [], it: [], es: [] };
-            if (Array.isArray(val)) return { en: val, de: [], it: [], es: [] };
+            if (Array.isArray(val)) {
+              // If it's an array of objects (LocalizedString), we need to flatten it
+              if (val.length > 0 && typeof val[0] === 'object' && val[0] !== null) {
+                return {
+                  en: val.map(item => item.en || '').filter(Boolean),
+                  de: val.map(item => item.de || '').filter(Boolean),
+                  it: val.map(item => item.it || '').filter(Boolean),
+                  es: val.map(item => item.es || '').filter(Boolean),
+                };
+              }
+              return { en: val, de: [], it: [], es: [] };
+            }
             return {
               en: val.en || [],
               de: val.de || [],
@@ -288,6 +299,25 @@ export default function EditTourPage() {
         if (!mixed) return true;
         return !mixed.en?.length && !mixed.de?.length && !mixed.it?.length && !mixed.es?.length;
       };
+
+      const flattenLocalizedList = (mixed: any) => {
+        if (!mixed || typeof mixed !== 'object' || Array.isArray(mixed)) return mixed;
+        const languages = ['en', 'de', 'it', 'es'];
+        const result: any = { en: [], de: [], it: [], es: [] };
+        
+        languages.forEach(lang => {
+          const list = mixed[lang] || [];
+          if (Array.isArray(list)) {
+            result[lang] = list.map((item: any) => {
+              if (typeof item === 'object' && item !== null) {
+                return item[lang] || item.en || '';
+              }
+              return item;
+            }).filter(Boolean);
+          }
+        });
+        return result;
+      };
       
       // Remove empty images
       if (cleanData.images) {
@@ -313,6 +343,13 @@ export default function EditTourPage() {
           delete cleanData.seo.metaImage;
         }
       }
+
+      // Sanitize list fields
+      if (cleanData.tourHighlights) cleanData.tourHighlights = flattenLocalizedList(cleanData.tourHighlights);
+      if (cleanData.inclusion) cleanData.inclusion = flattenLocalizedList(cleanData.inclusion);
+      if (cleanData.exclusion) cleanData.exclusion = flattenLocalizedList(cleanData.exclusion);
+      if (cleanData.whatToPack) cleanData.whatToPack = flattenLocalizedList(cleanData.whatToPack);
+      if (cleanData.tags) cleanData.tags = flattenLocalizedList(cleanData.tags);
 
       // Remove empty optional fields
       if (!cleanData.priceStartingFrom) delete cleanData.priceStartingFrom;

@@ -15,7 +15,7 @@ import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 interface OverviewTabProps {
   formData: any;
   subcategories: ITourSubcategory[];
-  handleChange: (field: string, value: any) => void;
+  handleChange: (field: string, value: any, lang?: AdminLanguage) => void;
   activeLanguage: AdminLanguage;
 }
 
@@ -45,7 +45,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               label="Slug (Auto-generated)"
               data-field="slug"
               value={formData.slug || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('slug', val)}
+              onChange={(val, lang) => handleChange('slug', val, lang)}
               placeholder="Enter slug"
             />
           </div>
@@ -54,7 +54,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             label="Tour Heading *"
             data-field="heading.en"
             value={formData.heading || { en: '', de: '', it: '', es: '' }}
-            onChange={(val) => handleChange('heading', val)}
+            onChange={(val, lang) => handleChange('heading', val, lang)}
             placeholder="Enter tour heading"
           />
 
@@ -82,7 +82,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             <LocalizedTagsInput
               label="Tour Tags"
               value={formData.tags || { en: [], de: [], it: [], es: [] }}
-              onChange={(val) => handleChange('tags', val)}
+              onChange={(val, lang) => handleChange('tags', val, lang)}
               placeholder="Add a tag and press Enter..."
             />
             <p className="text-xs text-muted-foreground">General tags for this tour (e.g., Summer, Sale, New)</p>
@@ -101,7 +101,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             label="Catchy Header *"
             data-field="description.header.en"
             value={formData.description?.header || { en: '', de: '', it: '', es: '' }}
-            onChange={(val) => handleChange('description.header', val)}
+            onChange={(val, lang) => handleChange('description.header', val, lang)}
             placeholder="Enter catchy header"
           />
         </CardContent>
@@ -118,7 +118,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             label="Description Content *"
             data-field="description.text.en"
             value={formData.description?.text || { en: '', de: '', it: '', es: '' }}
-            onChange={(val) => handleChange('description.text', val)}
+            onChange={(val, lang) => handleChange('description.text', val, lang)}
             placeholder="Tell us about the tour..."
           />
         </CardContent>
@@ -135,14 +135,14 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             <LocalizedInput
               label="Location"
               value={formData.tourLocation || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('tourLocation', val)}
+              onChange={(val, lang) => handleChange('tourLocation', val, lang)}
               placeholder="Cairo, Egypt"
             />
 
             <LocalizedInput
               label="Duration"
               value={formData.duration || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('duration', val)}
+              onChange={(val, lang) => handleChange('duration', val, lang)}
               placeholder="3 days / 2 nights"
             />
           </div>
@@ -151,14 +151,14 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             <LocalizedInput
               label="Availability"
               value={formData.tourAvailability || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('tourAvailability', val)}
+              onChange={(val, lang) => handleChange('tourAvailability', val, lang)}
               placeholder="Year-round"
             />
 
             <LocalizedInput
               label="Tour Type"
               value={formData.tourType || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('tourType', val)}
+              onChange={(val, lang) => handleChange('tourType', val, lang)}
               placeholder="Private / Group"
             />
           </div>
@@ -167,14 +167,14 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             <LocalizedInput
               label="Tour Style"
               value={formData.tourStyle || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('tourStyle', val)}
+              onChange={(val, lang) => handleChange('tourStyle', val, lang)}
               placeholder="Adventure, Cultural, Luxury"
             />
 
             <LocalizedInput
               label="Meeting Point"
               value={formData.meetingPoint || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('meetingPoint', val)}
+              onChange={(val, lang) => handleChange('meetingPoint', val, lang)}
               placeholder="Hotel lobby"
             />
           </div>
@@ -182,7 +182,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           <LocalizedTextArea
             label="Pickup & Drop-off"
             value={formData.pickupAndDropOff || { en: '', de: '', it: '', es: '' }}
-            onChange={(val) => handleChange('pickupAndDropOff', val)}
+            onChange={(val, lang) => handleChange('pickupAndDropOff', val, lang)}
             placeholder="Pickup and drop-off details..."
             rows={3}
           />

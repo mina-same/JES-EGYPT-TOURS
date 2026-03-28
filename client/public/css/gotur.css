@@ -6737,17 +6737,6 @@ body.megamenu-popup-active .mobile-nav__content {
   padding-right: 100px;
   position: relative;
 }
-.about-one__thumb::after {
-  content: "";
-  width: 19px;
-  height: 209px;
-  border-radius: 8px;
-  background-color: var(--gotur-base, #63ab45);
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  animation: topToBottomTwo 3s ease-in-out infinite;
-}
 .about-one__thumb__item {
   position: relative;
 }
@@ -7128,9 +7117,6 @@ body.megamenu-popup-active .mobile-nav__content {
 }
 .about-one--three .about-one__feature ul li + li {
   margin-top: 0px;
-}
-.about-one--three .about-one__thumb::after {
-  display: none;
 }
 .about-one--three .about-one__thumb__item {
   position: relative;

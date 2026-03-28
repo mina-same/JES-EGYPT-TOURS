@@ -18,6 +18,8 @@ export interface ISectionHeaderButton {
 export interface ISectionHeader {
   isEnabled?: boolean;
   image?: IImage;
+  image1?: IImage;
+  image2?: IImage;
   images?: IImage[];
   title?: ILocalizedString;
   description?: ILocalizedMixed;
@@ -37,6 +39,7 @@ export interface ITourCategory {
   sectionHeader?: ISectionHeader;
   subcategorySectionTitle?: ILocalizedString;
   toursSectionTitle?: ILocalizedString;
+  toursSectionSubTitle?: ILocalizedString;
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
@@ -63,6 +66,7 @@ export interface ITourSubcategory {
   sectionHeader?: ISectionHeader;
   subcategorySectionTitle?: ILocalizedString;
   toursSectionTitle?: ILocalizedString;
+  toursSectionSubTitle?: ILocalizedString;
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
@@ -115,6 +119,7 @@ export interface TourCategoryFormData {
   sectionHeader?: ISectionHeader;
   subcategorySectionTitle?: ILocalizedString;
   toursSectionTitle?: ILocalizedString;
+  toursSectionSubTitle?: ILocalizedString;
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
@@ -135,6 +140,7 @@ export interface TourSubcategoryFormData {
   sectionHeader?: ISectionHeader;
   subcategorySectionTitle?: ILocalizedString;
   toursSectionTitle?: ILocalizedString;
+  toursSectionSubTitle?: ILocalizedString;
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
