@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Blog from '../models/Blog';
+import BlogCategory from '../models/BlogCategory';
+import BlogSubCategory from '../models/BlogSubCategory';
 
 /**
  * @desc    Get all published blogs with pagination
@@ -800,6 +802,144 @@ export const toggleComments = async (
     res.status(500).json({
       success: false,
       error: 'Failed to toggle comments',
+    });
+  }
+};
+
+/**
+ * @desc    Get blogs by category slug
+ * @route   GET /api/blog/categories/:slug/posts
+ * @access  Public
+ */
+export const getBlogsByCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { slug } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    // 1. Find category by slug
+    const category = await BlogCategory.findOne({
+      $or: [
+        { 'slug.en': slug },
+        { 'slug.de': slug },
+        { 'slug.it': slug },
+        { 'slug.es': slug },
+        { 'slug.fr': slug },
+        { 'slug.ru': slug },
+      ]
+    });
+
+    if (!category) {
+      res.status(404).json({
+        success: false,
+        error: 'Blog category not found',
+      });
+      return;
+    }
+
+    // 2. Find blogs in this category
+    const skip = (Number(page) - 1) * Number(limit);
+    const query = { category: category._id, status: 'published' };
+
+    const blogs = await Blog.find(query)
+      .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug')
+      .select('-comments')
+      .sort({ publishedAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Blog.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      count: blogs.length,
+      data: blogs,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching blogs by category:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch blogs by category',
+    });
+  }
+};
+
+/**
+ * @desc    Get blogs by subcategory slug
+ * @route   GET /api/blog/subcategories/:slug/posts
+ * @access  Public
+ */
+export const getBlogsBySubCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { slug } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    // 1. Find subcategory by slug
+    // Note: Since subcategory slugs might not be unique across categories, we typically search all
+    // but in this API we just match any subcategory with this slug.
+    const subCategory = await BlogSubCategory.findOne({
+      $or: [
+        { 'slug.en': slug },
+        { 'slug.de': slug },
+        { 'slug.it': slug },
+        { 'slug.es': slug },
+        { 'slug.fr': slug },
+        { 'slug.ru': slug },
+      ]
+    });
+
+    if (!subCategory) {
+      res.status(404).json({
+        success: false,
+        error: 'Blog subcategory not found',
+      });
+      return;
+    }
+
+    // 2. Find blogs in this subcategory
+    const skip = (Number(page) - 1) * Number(limit);
+    const query = { subCategory: subCategory._id, status: 'published' };
+
+    const blogs = await Blog.find(query)
+      .populate('author', 'name email')
+      .populate('category', 'name slug')
+      .populate('subCategory', 'name slug')
+      .select('-comments')
+      .sort({ publishedAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Blog.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      count: blogs.length,
+      data: blogs,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching blogs by subcategory:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch blogs by subcategory',
     });
   }
 };

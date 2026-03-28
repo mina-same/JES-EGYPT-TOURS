@@ -5,11 +5,6 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "@/lib/i18n";
 
 export function I18nProvider({ children, locale }: { children: React.ReactNode; locale?: string }) {
-  // Sync locale during render to prevent hydration mismatch
-  if (locale && i18n.language !== locale) {
-    i18n.changeLanguage(locale);
-  }
-
   useEffect(() => {
     const handler = (lng: string) => {
       if (typeof document !== "undefined") {

@@ -27,7 +27,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
         <Accordion defaultActiveKey='0'>
           {itinerary.days.map((day, idx) => (
             <Accordion.Item eventKey={idx.toString()} key={idx}>
-              <Accordion.Header>
+              <Accordion.Header as="div">
                 <div className='accordion-title'>
                   <h4 className='accordion-title__text' style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="day-title" style={{ color: '#1a1a1a', fontWeight: '600', fontSize: '16px' }}>

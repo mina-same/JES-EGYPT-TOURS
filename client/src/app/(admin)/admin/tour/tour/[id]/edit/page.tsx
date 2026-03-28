@@ -284,8 +284,8 @@ export default function EditTourPage() {
       if (validationErrors.length > 0) {
         setFormErrors(validationErrors);
         toast({
-          title: 'Validation Error',
-          description: `Please fix ${validationErrors.length} issues before saving.`,
+          title: 'Submission — Validation failed',
+          description: `${validationErrors.length} required field${validationErrors.length > 1 ? 's' : ''} need${validationErrors.length === 1 ? 's' : ''} your attention. Check the highlighted tabs.`,
           variant: 'destructive',
         });
         setLoading(false);
@@ -497,6 +497,15 @@ export default function EditTourPage() {
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
+          const hasError = formErrors.some(err => {
+            if (tab.id === 'overview') return ['name', 'heading', 'subcategory', 'slug', 'description', 'tourAvailability', 'pickupAndDropOff', 'tourType', 'tourStyle', 'meetingPoint'].some(p => err.path?.startsWith(p));
+            if (tab.id === 'media') return ['images', 'gallery'].some(p => err.path?.startsWith(p));
+            if (tab.id === 'itinerary') return err.path?.startsWith('itinerary');
+            if (tab.id === 'details') return ['tourHighlights', 'inclusion', 'exclusion', 'whatToPack', 'notes'].some(p => err.path?.startsWith(p));
+            if (tab.id === 'pricing') return ['pricingPlans', 'priceStartingFrom', 'cancellationPolicy'].some(p => err.path?.startsWith(p));
+            if (tab.id === 'seo') return err.path?.startsWith('seo');
+            return false;
+          });
           return (
             <button
               key={tab.id}
@@ -505,21 +514,16 @@ export default function EditTourPage() {
                 "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap relative",
                 isActive 
                   ? "bg-primary text-primary-foreground" 
-                  : "hover:bg-muted text-muted-foreground"
+                  : hasError
+                    ? "hover:bg-red-50 text-red-600 bg-red-50/50"
+                    : "hover:bg-muted text-muted-foreground"
               )}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
               
               {/* Error Dot */}
-              {formErrors.some(err => {
-                if (tab.id === 'overview') return ['name', 'heading', 'subcategory', 'slug', 'description'].some(p => err.path?.startsWith(p));
-                if (tab.id === 'media') return ['images', 'gallery'].some(p => err.path?.startsWith(p));
-                if (tab.id === 'itinerary') return err.path?.startsWith('itinerary');
-                if (tab.id === 'pricing') return err.path?.startsWith('pricingPlans');
-                if (tab.id === 'seo') return err.path?.startsWith('seo');
-                return false;
-              }) && (
+              {hasError && (
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
               )}
             </button>
@@ -542,6 +546,7 @@ export default function EditTourPage() {
               subcategories={tourForm.subcategories}
               handleChange={tourForm.handleChange}
               activeLanguage={activeAdminLanguage}
+              formErrors={formErrors}
             />
           )}
 
@@ -557,6 +562,7 @@ export default function EditTourPage() {
               updateGalleryImage={tourForm.updateGalleryImage}
               handleImageUpload={tourForm.handleImageUpload}
               activeLanguage={activeAdminLanguage}
+              formErrors={formErrors}
             />
           )}
 
@@ -581,6 +587,7 @@ export default function EditTourPage() {
               removeTourNote={tourForm.removeTourNote}
               updateTourNote={tourForm.updateTourNote}
               activeLanguage={activeAdminLanguage}
+              formErrors={formErrors}
             />
           )}
 
@@ -589,6 +596,7 @@ export default function EditTourPage() {
               formData={tourForm.formData}
               handleChange={tourForm.handleChange}
               activeLanguage={activeAdminLanguage}
+              formErrors={formErrors}
             />
           )}
 

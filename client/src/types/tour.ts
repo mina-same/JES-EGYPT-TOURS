@@ -158,8 +158,8 @@ export interface IPricingNote {
 
 export interface IPricingSeason {
   seasonName: string;
-  startDate: string | Date; // Support both string (form input) and Date (backend)
-  endDate: string | Date; // Support both string (form input) and Date (backend)
+  startDate?: string | Date; // Optional: start date of season
+  endDate?: string | Date; // Optional: end date of season
   prices: {
     solo: number;
     pax_2_4: number;

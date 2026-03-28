@@ -19,7 +19,7 @@ import { useTourData } from "./useTourData";
 
 // Import sub-components
 import { TourHeader } from "./components/TourHeader";
-import { TourInfoBar } from "./components/TourInfoBar"; 
+import { TourInfoBar } from "./components/TourInfoBar";
 import { BookingForm } from "./components/BookingForm";
 import { TourPlan } from "./components/TourPlan";
 import { PricingPlans } from "./components/PricingPlans";
@@ -671,14 +671,16 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                         >
                           {faqs.map((faq, index) => (
                             <Accordion.Item eventKey={String(index)} key={index}>
-                              <Accordion.Header>
-                                <div className="accordion-title">
-                                  <h4 className="accordion-title__text">
-                                    {faq.question}
-                                    <span className="accordion-title__icon"></span>
-                                  </h4>
-                                </div>
-                              </Accordion.Header>
+                              <div className="accordion-header">
+                                <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
+                                  <div className="accordion-title">
+                                    <h3 className="accordion-title__text" style={{ margin: 0 }}>
+                                      {faq.question}
+                                      <span className="accordion-title__icon"></span>
+                                    </h3>
+                                  </div>
+                                </Accordion.Button>
+                              </div>
                               <Accordion.Body>
                                 <div className="accordion-content">
                                   <div className="inner">

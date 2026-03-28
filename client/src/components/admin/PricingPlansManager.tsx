@@ -29,11 +29,13 @@ import { IPricingPlan, IPricingSeason, IPricingNote, ILocalizedString, ILocalize
 import { type AdminLanguage } from './AdminLanguageTabs';
 import LocalizedInput from './LocalizedInput';
 import LocalizedTextArea from './LocalizedTextArea';
+import { FormErrorItem } from '@/lib/parseApiError';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
   onChange: (plans: IPricingPlan[]) => void;
   activeLanguage: AdminLanguage;
+  formErrors?: FormErrorItem[];
 }
 
 function getPlanId(plan: any, index: number) {
@@ -90,7 +92,10 @@ function SortableItemWrapper({
   );
 }
 
-export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage }: PricingPlansManagerProps) {
+export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage, formErrors = [] }: PricingPlansManagerProps) {
+  const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
+  const getErrorMessage = (path: string) => formErrors.find(e => e.path === path)?.message;
+
   const PLAN_OPTIONS = [
     'AFFORDABLE',
     'GOLD (5 STAR STANDARD)', 
@@ -188,8 +193,6 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
       planName: '',
       seasons: SEASON_OPTIONS.map(seasonName => ({
         seasonName,
-        startDate: '',
-        endDate: '',
         prices: {
           solo: 0,
           pax_2_4: 0,
@@ -348,12 +351,13 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                     const planId = getPlanId(plan, planIndex);
                     const isCollapsed = collapsedPlans[planId] ?? true;
                     const planBg = PLAN_BG_CLASSES[planIndex % PLAN_BG_CLASSES.length];
+                    const planHasError = hasError(`pricingPlans.${planIndex}`);
 
                     return (
                       <SortableItemWrapper
                         id={planId}
                         key={planId}
-                        className={cn('rounded-lg border', planBg)}
+                        className={cn('rounded-lg border transition-all', planBg, planHasError && 'border-red-400 ring-1 ring-red-200')}
                         children={({ attributes, listeners, setActivatorNodeRef }) => (
                           <>
                             <div className="flex items-center justify-between gap-3 border-b p-3">
@@ -372,12 +376,13 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                     <span
                                       className={cn(
                                         'text-sm truncate',
-                                        plan.planName ? 'text-foreground' : 'text-muted-foreground'
+                                        plan.planName ? 'text-foreground' : 'text-muted-foreground',
+                                        hasError(`pricingPlans.${planIndex}.planName`) && 'text-red-600 font-bold'
                                       )}
                                     >
                                       {plan.planName || 'Untitled plan'}
                                     </span>
-                                    {!plan.planName && <span className="text-xs text-red-600 shrink-0">Required</span>}
+                                    {(hasError(`pricingPlans.${planIndex}.planName`) || hasError(`pricingPlans.${planIndex}.seasons`)) && <span className="text-xs text-red-600 shrink-0 font-bold">⚠ Error</span>}
                                   </div>
                                   <div className="text-xs text-muted-foreground truncate">
                                     {plan.seasons?.length || 0} seasons
@@ -421,14 +426,14 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                             </div>
 
                             {!isCollapsed && (
-                              <div className="p-4 space-y-5">
+                              <div className="p-4 space-y-6">
                                 <div className="space-y-2">
-                                  <Label>Plan Type *</Label>
+                                  <Label className={cn(hasError(`pricingPlans.${planIndex}.planName`) && 'text-red-600 underline font-bold')}>Plan Type *</Label>
                                   <Select
                                     value={plan.planName}
                                     onValueChange={(value) => updatePricingPlan(planIndex, 'planName', value)}
                                   >
-                                    <SelectTrigger className="bg-background font-medium">
+                                    <SelectTrigger className={cn("bg-background font-medium", hasError(`pricingPlans.${planIndex}.planName`) && "border-red-500 ring-red-500")}>
                                       <SelectValue placeholder="Select plan type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -439,27 +444,36 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                       ))}
                                     </SelectContent>
                                   </Select>
+                                  {hasError(`pricingPlans.${planIndex}.planName`) && <p className="text-xs text-red-600 font-medium">{getErrorMessage(`pricingPlans.${planIndex}.planName`)}</p>}
                                 </div>
 
                                 {/* Seasons */}
-                                <div className="space-y-3">
-                                  <Label>Seasons</Label>
+                                <div className="space-y-4">
+                                  <Label className="text-base font-semibold">Seasons & Rates</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                                     {plan.seasons.map((season, seasonIndex) => {
                                       const seasonBg = SEASON_BG_CLASSES[seasonIndex % SEASON_BG_CLASSES.length];
+                                      const seasonPath = `pricingPlans.${planIndex}.seasons.${seasonIndex}`;
+                                      const seasonHasError = hasError(seasonPath);
 
                                       return (
                                         <div
                                           key={seasonIndex}
-                                          className={cn('flex flex-col h-full border rounded-lg bg-card overflow-hidden transition-all hover:shadow-md hover:border-primary/20', seasonBg)}
+                                          className={cn(
+                                            'flex flex-col h-full border rounded-lg bg-card overflow-hidden transition-all hover:shadow-md hover:border-primary/20', 
+                                            seasonBg,
+                                            seasonHasError && "border-red-400 ring-1 ring-red-300 shadow-red-50"
+                                          )}
                                         >
                                           {/* Season Header */}
-                                          <div className="p-3 bg-muted/30 border-b">
+                                          <div className={cn("p-3 border-b", seasonHasError ? "bg-red-50/50" : "bg-muted/30")}>
                                             <div className="flex items-center gap-2 mb-1">
-                                              <Calendar className="w-3.5 h-3.5 text-primary" />
-                                              <span className="text-xs font-semibold uppercase tracking-wider text-primary">Season</span>
+                                              <Calendar className={cn("w-3.5 h-3.5", seasonHasError ? "text-red-500" : "text-primary")} />
+                                              <span className={cn("text-xs font-semibold uppercase tracking-wider", seasonHasError ? "text-red-600" : "text-primary")}>
+                                                Season {seasonHasError && "⚠"}
+                                              </span>
                                             </div>
-                                            <p className="text-sm font-medium leading-tight min-h-[2.5rem] flex items-center">
+                                            <p className="text-sm font-bold leading-tight min-h-[2.5rem] flex items-center">
                                               {season.seasonName}
                                             </p>
                                           </div>
@@ -473,66 +487,67 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                 </Label>
                                                 <div className="space-y-2.5">
                                                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`solo-${planIndex}-${seasonIndex}`} className="text-xs text-muted-foreground">Solo</Label>
+                                                    <Label htmlFor={`solo-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>Solo</Label>
                                                     <div className="relative">
                                                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
                                                       <Input
                                                         id={`solo-${planIndex}-${seasonIndex}`}
                                                         type="number"
                                                         min="0"
-                                                        className="h-8 pl-5 text-sm"
-                                                        value={season.prices.solo || ''}
+                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
+                                                        value={season.prices.solo}
                                                         onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'solo', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                       />
                                                     </div>
                                                   </div>
                                                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`pax24-${planIndex}-${seasonIndex}`} className="text-xs text-muted-foreground">2-4 Pax</Label>
+                                                    <Label htmlFor={`pax24-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>2-4 Pax</Label>
                                                     <div className="relative">
                                                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
                                                       <Input
                                                         id={`pax24-${planIndex}-${seasonIndex}`}
                                                         type="number"
                                                         min="0"
-                                                        className="h-8 pl-5 text-sm"
-                                                        value={season.prices.pax_2_4 || ''}
+                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
+                                                        value={season.prices.pax_2_4}
                                                         onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                       />
                                                     </div>
                                                   </div>
                                                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`pax58-${planIndex}-${seasonIndex}`} className="text-xs text-muted-foreground">5-8 Pax</Label>
+                                                    <Label htmlFor={`pax58-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>5-8 Pax</Label>
                                                     <div className="relative">
                                                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
                                                       <Input
                                                         id={`pax58-${planIndex}-${seasonIndex}`}
                                                         type="number"
                                                         min="0"
-                                                        className="h-8 pl-5 text-sm"
-                                                        value={season.prices.pax_5_8 || ''}
+                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
+                                                        value={season.prices.pax_5_8}
                                                         onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                       />
                                                     </div>
                                                   </div>
                                                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`pax916-${planIndex}-${seasonIndex}`} className="text-xs text-muted-foreground">9-16 Pax</Label>
+                                                    <Label htmlFor={`pax916-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>9-16 Pax</Label>
                                                     <div className="relative">
                                                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
                                                       <Input
                                                         id={`pax916-${planIndex}-${seasonIndex}`}
                                                         type="number"
                                                         min="0"
-                                                        className="h-8 pl-5 text-sm"
-                                                        value={season.prices.pax_9_16 || ''}
+                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
+                                                        value={season.prices.pax_9_16}
                                                         onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                       />
                                                     </div>
                                                   </div>
                                                 </div>
+                                                {hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Requires one price minimum</p>}
                                               </div>
 
                                               {/* Notes */}

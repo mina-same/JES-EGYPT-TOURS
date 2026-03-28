@@ -8,6 +8,8 @@ import { Plus, X } from 'lucide-react';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import LocalizedInput from '@/components/admin/LocalizedInput';
+import type { FormErrorItem } from '@/lib/parseApiError';
+import { cn } from '@/lib/utils';
 
 interface DetailsTabProps {
   formData: any;
@@ -17,6 +19,7 @@ interface DetailsTabProps {
   updateTourNote: (index: number, field: string, value: any) => void; // Value is now full object
   handleChange: (field: string, value: any) => void;
   activeLanguage: AdminLanguage;
+  formErrors?: FormErrorItem[];
 }
 
 
@@ -28,7 +31,10 @@ export default function DetailsTab({
   updateTourNote,
   handleChange,
   activeLanguage,
+  formErrors = [],
 }: DetailsTabProps) {
+  const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
+
   return (
     <div className="space-y-6">
       {/* Highlights */}
@@ -48,30 +54,32 @@ export default function DetailsTab({
 
       {/* Inclusions & Exclusions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        <Card className={cn(hasError('inclusion') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>
           <CardHeader>
-            <CardTitle>Inclusions</CardTitle>
-            <CardDescription>What is included in the price</CardDescription>
+            <CardTitle className={cn(hasError('inclusion') && "text-red-600")}>Inclusions *</CardTitle>
+            <CardDescription>What is included in the price (English required)</CardDescription>
           </CardHeader>
           <CardContent>
             <LocalizedTagsInput
               value={formData.inclusion || { en: [], de: [], it: [], es: [] }}
               onChange={(val) => handleChange('inclusion', val)}
               placeholder="Hotel pickup, Lunch, Guide..."
+              error={hasError('inclusion')}
             />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={cn(hasError('exclusion') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>
           <CardHeader>
-            <CardTitle>Exclusions</CardTitle>
-            <CardDescription>What is NOT included</CardDescription>
+            <CardTitle className={cn(hasError('exclusion') && "text-red-600")}>Exclusions *</CardTitle>
+            <CardDescription>What is NOT included (English required)</CardDescription>
           </CardHeader>
           <CardContent>
             <LocalizedTagsInput
               value={formData.exclusion || { en: [], de: [], it: [], es: [] }}
               onChange={(val) => handleChange('exclusion', val)}
               placeholder="Tips, Personal expenses, Drinks..."
+              error={hasError('exclusion')}
             />
           </CardContent>
         </Card>

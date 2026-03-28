@@ -36,7 +36,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
         <div className="sec-title text-center mb-5">
           <h2 className="sec-title__title">{displayTitle} <span>FAQs</span></h2>
         </div>
-        
+
         <Row className='gutter-y-30'>
           <Col lg={4}>
             <div className='faq-page__sidebar'>
@@ -65,7 +65,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
               </div>
             </div>
           </Col>
-          
+
           <Col lg={8}>
             <div className="faq-accordion mx-auto">
               <Accordion
@@ -84,7 +84,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
 
                   return (
                     <Accordion.Item eventKey={eventKey} key={idx}>
-                      <Accordion.Header>
+                      <Accordion.Header as="div">
                         <div className="faq-header-content d-flex align-items-center gap-3 w-100">
                           <div className="faq-icon-box">
                             <HelpCircle size={20} />

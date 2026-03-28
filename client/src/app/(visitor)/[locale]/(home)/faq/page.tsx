@@ -8,6 +8,7 @@ import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned
 
 import { getServerTranslation } from "@/lib/i18n-server";
 import { FaqStructuredData, FaqBreadcrumbStructuredData } from "@/components/sections/FaqSection/FaqStructuredData";
+import { faqService } from "@/services/faqService";
 import { generateFaqMetadata } from "@/lib/seo/faqMetadata";
 import { Metadata } from "next";
 
@@ -21,11 +22,25 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
   const { locale } = await params;
   const { t } = await getServerTranslation(locale, 'faq');
   
+  let faqs: any[] = [];
+  try {
+    const response = await faqService.getAllFaqs({
+      isActive: true,
+      sort: "category,order",
+      limit: 200,
+    });
+    if (response.success && response.data) {
+      faqs = response.data;
+    }
+  } catch (error) {
+    console.error("Error fetching FAQs server-side:", error);
+  }
+  
   return (
     <>
       {/* Structured Data for SEO */}
       <FaqStructuredData 
-        faqs={[]} // Will be populated dynamically by FaqSection
+        faqs={faqs}
         title={t('pageTitle')}
         description={t('pageDescription')}
       />
@@ -39,7 +54,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
           title={t('sectionTitle')}
           subTitle={t('sectionSubTitle')}
         />
-        <FaqSection />
+        <FaqSection initialData={faqs} />
         <FooterOne />
       </Layout>
     </>

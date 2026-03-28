@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Plus, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { FormErrorItem } from '@/lib/parseApiError';
 
 import { type AdminLanguage } from '../AdminLanguageTabs';
 import LocalizedInput from '../LocalizedInput';
@@ -20,6 +22,7 @@ interface MediaTabProps {
   updateGalleryImage: (index: number, field: string, value: any) => void;
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
+  formErrors?: FormErrorItem[];
 }
 
 export default function MediaTab({
@@ -33,8 +36,10 @@ export default function MediaTab({
   updateGalleryImage,
   handleImageUpload,
   activeLanguage,
+  formErrors = [],
 }: MediaTabProps) {
   const [uploadingIndex, setUploadingIndex] = useState<{ type: 'main' | 'gallery', index: number } | null>(null);
+  const hasImagesError = formErrors.some(e => e.path === 'images' || e.path?.startsWith('images'));
 
   const mapPreviewSrc = (() => {
     const raw = String(formData.tourMapIframe || '').trim();
@@ -66,10 +71,11 @@ export default function MediaTab({
   return (
     <div className="space-y-6">
       {/* Main Images */}
-      <Card>
+      <Card className={cn(hasImagesError && 'border-red-400 ring-1 ring-red-300')}>
         <CardHeader>
-          <CardTitle>Main Images *</CardTitle>
+          <CardTitle className={cn(hasImagesError && 'text-red-600')}>Main Images *</CardTitle>
           <CardDescription>Primary tour images (at least one required)</CardDescription>
+          {hasImagesError && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path === 'images')?.message}</p>}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -3,6 +3,7 @@
 import React from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminLanguage } from "./AdminLanguageTabs";
+import { cn } from "@/lib/utils";
 import LocalizedField from "./LocalizedField";
 
 interface LocalizedTextAreaProps {
@@ -13,6 +14,7 @@ interface LocalizedTextAreaProps {
   className?: string;
   rows?: number;
   activeLanguage?: AdminLanguage;
+  error?: boolean | string;
 }
 
 const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
@@ -23,6 +25,7 @@ const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
   className = "",
   rows = 4,
   activeLanguage,
+  error,
 }) => {
   return (
     <LocalizedField
@@ -38,7 +41,10 @@ const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
           onChange={(e) => handleLang(e.target.value)}
           placeholder={placeholder ? `${placeholder} (${lang.toUpperCase()})` : `Enter value in ${lang.toUpperCase()}`}
           rows={rows}
-          className="transition-all focus:ring-1 focus:ring-[#b79c5c]"
+          className={cn(
+            "transition-all focus:ring-1 focus:ring-[#b79c5c]",
+            error && "border-red-500 ring-red-500 focus:ring-red-500"
+          )}
         />
       )}
     </LocalizedField>

@@ -108,7 +108,17 @@ const FiltersContent = ({
   );
 };
 
-export default function CategoryView({ slug, locale }: { slug: string; locale: string }) {
+export default function CategoryView({ 
+  slug, 
+  locale, 
+  initialCategory, 
+  initialSubcategories 
+}: { 
+  slug: string; 
+  locale: string; 
+  initialCategory?: any;
+  initialSubcategories?: any[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useTranslation('tours');
@@ -120,10 +130,10 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
   }, [locale, i18n]);
 
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(!initialCategory);
   const [pageLoading, setPageLoading] = useState(false);
-  const [category, setCategory] = useState<any>(null);
-  const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [category, setCategory] = useState<any>(initialCategory || null);
+  const [subcategories, setSubcategories] = useState<any[]>(initialSubcategories || []);
   const [tours, setTours] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setOpen] = useState(false);
@@ -203,22 +213,35 @@ export default function CategoryView({ slug, locale }: { slug: string; locale: s
         if (isInitial) setInitialLoading(true);
         else setPageLoading(true);
 
-        const catResponse = await tourCategoryAPI.getBySlug(slug, locale);
-        if (!catResponse.success || !catResponse.data) {
-          setError("Category not found");
-          setInitialLoading(false);
-          setPageLoading(false);
-          return;
-        }
-        setCategory(catResponse.data);
+        if (!initialCategory) {
+          const catResponse = await tourCategoryAPI.getBySlug(slug, locale);
+          if (!catResponse.success || !catResponse.data) {
+            setError("Category not found");
+            setInitialLoading(false);
+            setPageLoading(false);
+            return;
+          }
+          setCategory(catResponse.data);
 
-        const subResponse = await tourSubcategoryAPI.getByCategory(catResponse.data._id);
-        if (subResponse.success && subResponse.data) setSubcategories(subResponse.data);
+          const subResponse = await tourSubcategoryAPI.getByCategory(catResponse.data._id);
+          if (subResponse.success && subResponse.data) setSubcategories(subResponse.data);
+        } else {
+          // If we have initialCategory but not subcategories (unlikely but safe)
+          if (initialSubcategories) {
+            setSubcategories(initialSubcategories);
+          } else if (initialCategory?._id) {
+            const subResponse = await tourSubcategoryAPI.getByCategory(initialCategory._id);
+            if (subResponse.success && subResponse.data) setSubcategories(subResponse.data);
+          }
+        }
+
+        const catId = initialCategory?._id || category?._id;
+        if (!catId && !initialCategory) return;
 
         const toursResponse = await tourAPI.getAll({
           ...(appliedFilters.subcategoryId
             ? { subcategory: appliedFilters.subcategoryId }
-            : { category: catResponse.data._id }),
+            : { category: initialCategory?._id || category?._id }),
           page: currentPage,
           limit: toursPerPage,
           sort,

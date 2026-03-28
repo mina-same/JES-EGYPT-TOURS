@@ -46,28 +46,30 @@ const AnimatedFaqAccordion: React.FC<{ faqs: Faq[] }> = ({ faqs }) => {
 
         return (
           <Accordion.Item eventKey={eventKey} key={idx}>
-            <Accordion.Header>
-              <div className="faq-header-content d-flex align-items-center gap-3 w-100">
-                <div className="faq-icon-box">
-                  <HelpCircle size={20} />
+            <div className="accordion-header">
+              <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
+                <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
+                  <div className="faq-icon-box">
+                    <HelpCircle size={20} />
+                  </div>
+                  <div className="faq-question-box text-start flex-grow-1">
+                    <h3 className="faq-question-title" style={{ margin: 0 }}>{faq.question}</h3>
+                  </div>
+                  <div
+                    className="faq-chevron"
+                    style={{
+                      marginLeft: "auto",
+                      display: "flex",
+                      alignItems: "center",
+                      transition: "transform 200ms ease",
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    }}
+                  >
+                    <ChevronDown size={18} />
+                  </div>
                 </div>
-                <div className="faq-question-box text-start flex-grow-1">
-                  <h4 className="faq-question-title">{faq.question}</h4>
-                </div>
-                <div
-                  className="faq-chevron"
-                  style={{
-                    marginLeft: "auto",
-                    display: "flex",
-                    alignItems: "center",
-                    transition: "transform 200ms ease",
-                    transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                  }}
-                >
-                  <ChevronDown size={18} />
-                </div>
-              </div>
-            </Accordion.Header>
+              </Accordion.Button>
+            </div>
             <Accordion.Body>
               <div className='accordion-content'>
                 <div className='inner'>
@@ -90,15 +92,73 @@ export interface FaqData {
   faqTabsContent: FaqTabContent[];
 }
 
-const FaqSection: React.FC = () => {
+const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
   const { i18n, t } = useTranslation('faq');
-  const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it';
+  const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
   const [activeTab, setActiveTab] = useState<string>("1");
   const [faqData, setFaqData] = useState<FaqData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const processFaqs = (data: FAQ[]) => {
+      const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
+      const faqsForFaqPage = data.filter((f) => !f.displayOnHome);
+
+      const grouped = faqsForFaqPage.reduce((acc, faq) => {
+        const category = faq.category || t('categoryGeneral');
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(faq);
+        return acc;
+      }, {} as Record<string, FAQ[]>);
+
+      const categories = Object.keys(grouped).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+      );
+
+      const tabs: FaqTab[] = categories.map((category, index) => ({
+        id: String(index + 1),
+        title: category,
+      }));
+
+      const tabContents: FaqTabContent[] = tabs.map((tab, index) => {
+        const faqsForCategory = grouped[tab.title] || [];
+        return {
+          id: String(index + 1),
+          faqId: tab.id,
+          faqContent: [
+            {
+              id: `content-${tab.id}`,
+              title: tab.title,
+              faqs: faqsForCategory.map((f) => ({
+                question: getLocalizedValue(f.question, currentLang),
+                answer: stripHtml(getLocalizedValue(f.answer, currentLang)),
+              })),
+            },
+          ],
+        };
+      });
+
+      const structured: FaqData = {
+        title: t('sectionTitle'),
+        subTitle: t('sectionSubTitle'),
+        image,
+        faqTabs: tabs,
+        faqTabsContent: tabContents,
+      };
+
+      setFaqData(structured);
+      if (tabs.length > 0) {
+        setActiveTab((prev) => prev || tabs[0].id);
+      }
+    };
+
+    if (initialData && initialData.length > 0) {
+      processFaqs(initialData);
+      setLoading(false);
+      return;
+    }
+
     const fetchFaqs = async () => {
       try {
         setLoading(true);
@@ -115,56 +175,7 @@ const FaqSection: React.FC = () => {
           return;
         }
 
-        const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
-
-        const faqsForFaqPage = response.data.filter((f) => !f.displayOnHome);
-
-        const grouped = faqsForFaqPage.reduce((acc, faq) => {
-          const category = faq.category || t('categoryGeneral');
-          if (!acc[category]) acc[category] = [];
-          acc[category].push(faq);
-          return acc;
-        }, {} as Record<string, FAQ[]>);
-
-        const categories = Object.keys(grouped).sort((a, b) =>
-          a.localeCompare(b, undefined, { sensitivity: "base" })
-        );
-
-        const tabs: FaqTab[] = categories.map((category, index) => ({
-          id: String(index + 1),
-          title: category,
-        }));
-
-        const tabContents: FaqTabContent[] = tabs.map((tab, index) => {
-          const faqsForCategory = grouped[tab.title] || [];
-          return {
-            id: String(index + 1),
-            faqId: tab.id,
-            faqContent: [
-              {
-                id: `content-${tab.id}`,
-                title: tab.title,
-                faqs: faqsForCategory.map((f) => ({
-                  question: getLocalizedValue(f.question, currentLang),
-                  answer: stripHtml(getLocalizedValue(f.answer, currentLang)),
-                })),
-              },
-            ],
-          };
-        });
-
-        const structured: FaqData = {
-          title: t('sectionTitle'),
-          subTitle: t('sectionSubTitle'),
-          image,
-          faqTabs: tabs,
-          faqTabsContent: tabContents,
-        };
-
-        setFaqData(structured);
-        if (tabs.length > 0) {
-          setActiveTab((prev) => prev || tabs[0].id);
-        }
+        processFaqs(response.data);
       } catch (e) {
         console.error("Error fetching FAQs:", e);
         setError(t('errorLoading'));
@@ -174,7 +185,7 @@ const FaqSection: React.FC = () => {
     };
 
     fetchFaqs();
-  }, [currentLang]);
+  }, [currentLang, initialData]);
 
   const handleTabSelect = (tabId: string) => {
     setActiveTab(tabId);
@@ -209,8 +220,8 @@ const FaqSection: React.FC = () => {
     <section className='faq-page section-space tabs-box'>
       <Container>
         <div className='sec-title text-center mb-5'>
-          <h6 className='sec-title__tagline'>{faqData.subTitle}</h6>
-          <h3 className='sec-title__title'>{faqData.title}</h3>
+          <h2 className='sec-title__tagline'>{faqData.subTitle}</h2>
+          <h2 className='sec-title__title'>{faqData.title}</h2>
         </div>
         <div className='tabs-box'>
           <Row className='gutter-y-30'>

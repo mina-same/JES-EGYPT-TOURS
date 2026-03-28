@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { AdminLanguage } from "./AdminLanguageTabs";
 import LocalizedField from "./LocalizedField";
+import { cn } from "@/lib/utils";
 
 interface LocalizedTagsInputProps {
   value: any; // Record<string, string[]>
@@ -13,6 +14,7 @@ interface LocalizedTagsInputProps {
   placeholder?: string;
   className?: string;
   activeLanguage?: AdminLanguage;
+  error?: boolean;
 }
 
 const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
@@ -22,6 +24,7 @@ const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
   placeholder = "Type and press Enter...",
   className = "",
   activeLanguage,
+  error,
 }) => {
   const [inputValue, setInputValue] = useState("");
 
@@ -70,7 +73,10 @@ const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
         };
 
         return (
-          <div className="flex flex-wrap gap-2 p-2 min-h-[42px] rounded-md border bg-background focus-within:ring-1 focus-within:ring-[#b79c5c]">
+          <div className={cn(
+            "flex flex-wrap gap-2 p-2 min-h-[42px] rounded-md border bg-background focus-within:ring-1 focus-within:ring-[#b79c5c]",
+            error ? "border-red-500 ring-red-500" : ""
+          )}>
             {safeValue(lang).map((tag: string) => (
               <Badge 
                 key={tag} 

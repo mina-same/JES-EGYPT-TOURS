@@ -76,30 +76,32 @@ const HomeFAQ: React.FC = () => {
 
               return (
                 <Accordion.Item eventKey={eventKey} key={faq._id}>
-                  <Accordion.Header>
-                    <div className="faq-header-content d-flex align-items-center gap-3 w-100">
-                      <div className="faq-icon-box">
-                        <HelpCircle size={20} />
+                  <div className="accordion-header">
+                    <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
+                      <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
+                        <div className="faq-icon-box">
+                          <HelpCircle size={20} />
+                        </div>
+                        <div className="faq-question-box text-start flex-grow-1">
+                          <h3 className="faq-question-title" style={{ margin: 0 }}>
+                            {getLocalizedValue(faq.question, i18n.language)}
+                          </h3>
+                        </div>
+                        <div
+                          className="faq-chevron"
+                          style={{
+                            marginLeft: "auto",
+                            display: "flex",
+                            alignItems: "center",
+                            transition: "transform 200ms ease",
+                            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                          }}
+                        >
+                          <ChevronDown size={18} />
+                        </div>
                       </div>
-                      <div className="faq-question-box text-start flex-grow-1">
-                        <h4 className="faq-question-title">
-                          {getLocalizedValue(faq.question, i18n.language)}
-                        </h4>
-                      </div>
-                      <div
-                        className="faq-chevron"
-                        style={{
-                          marginLeft: "auto",
-                          display: "flex",
-                          alignItems: "center",
-                          transition: "transform 200ms ease",
-                          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                        }}
-                      >
-                        <ChevronDown size={18} />
-                      </div>
-                    </div>
-                  </Accordion.Header>
+                    </Accordion.Button>
+                  </div>
                   <Accordion.Body>
                     <div className="accordion-content">
                       <div className="inner">

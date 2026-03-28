@@ -11,15 +11,20 @@ import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
+import { cn } from '@/lib/utils';
+import type { FormErrorItem } from '@/lib/parseApiError';
 
 interface OverviewTabProps {
   formData: any;
   subcategories: ITourSubcategory[];
   handleChange: (field: string, value: any, lang?: AdminLanguage) => void;
   activeLanguage: AdminLanguage;
+  formErrors?: FormErrorItem[];
 }
 
-export default function OverviewTab({ formData, subcategories, handleChange, activeLanguage }: OverviewTabProps) {
+export default function OverviewTab({ formData, subcategories, handleChange, activeLanguage, formErrors = [] }: OverviewTabProps) {
+  const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
+
   return (
     <div className="space-y-6">
       {/* Basic Information */}
@@ -31,7 +36,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">System Name (Internal) *</Label>
+              <Label htmlFor="name" className={cn(hasError('name') && 'text-red-600')}>System Name (Internal) *</Label>
               <Input
                 id="name"
                 data-field="name"
@@ -39,7 +44,9 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="Enter internal name (for slug)"
                 required
+                className={cn(hasError('name') && 'border-red-500 ring-red-500 focus:ring-red-500')}
               />
+              {hasError('name') && <p className="text-xs text-red-600">{formErrors.find(e => e.path === 'name')?.message}</p>}
             </div>
             <LocalizedInput
               label="Slug (Auto-generated)"
@@ -50,13 +57,17 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             />
           </div>
 
-          <LocalizedInput
-            label="Tour Heading *"
-            data-field="heading.en"
-            value={formData.heading || { en: '', de: '', it: '', es: '' }}
-            onChange={(val, lang) => handleChange('heading', val, lang)}
-            placeholder="Enter tour heading"
-          />
+          <div>
+            <LocalizedInput
+              label={hasError('heading') || hasError('heading.en') ? 'Tour Heading * ⚠' : 'Tour Heading *'}
+              data-field="heading.en"
+              value={formData.heading || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('heading', val, lang)}
+              placeholder="Enter tour heading"
+              error={hasError('heading') || hasError('heading.en')}
+            />
+            {(hasError('heading') || hasError('heading.en')) && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path?.startsWith('heading'))?.message}</p>}
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -69,12 +80,14 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               />
             </div>
             <div className="space-y-2" data-field="subcategory">
-              <Label htmlFor="subcategory">Subcategory *</Label>
+              <Label htmlFor="subcategory" className={cn(hasError('subcategory') && 'text-red-600')}>Subcategory *</Label>
               <SubcategorySelect
                 value={formData.subcategory || ''}
                 onChange={(value) => handleChange('subcategory', value)}
                 subcategories={subcategories}
+                hasError={hasError('subcategory')}
               />
+              {hasError('subcategory') && <p className="text-xs text-red-600">{formErrors.find(e => e.path === 'subcategory')?.message}</p>}
             </div>
           </div>
 
@@ -97,13 +110,15 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           <CardDescription>Brief catchy header for the selected language</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedInput
-            label="Catchy Header *"
-            data-field="description.header.en"
-            value={formData.description?.header || { en: '', de: '', it: '', es: '' }}
-            onChange={(val, lang) => handleChange('description.header', val, lang)}
-            placeholder="Enter catchy header"
-          />
+          <div>
+            <LocalizedInput
+              label="Catchy Header"
+              data-field="description.header.en"
+              value={formData.description?.header || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('description.header', val, lang)}
+              placeholder="Enter catchy header"
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -111,11 +126,11 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
       <Card>
         <CardHeader>
           <CardTitle>Description Content</CardTitle>
-          <CardDescription>Main tour overview text</CardDescription>
+          <CardDescription>Main tour overview text (optional — can be added later)</CardDescription>
         </CardHeader>
         <CardContent>
           <LocalizedRichText
-            label="Description Content *"
+            label="Description Content"
             data-field="description.text.en"
             value={formData.description?.text || { en: '', de: '', it: '', es: '' }}
             onChange={(val, lang) => handleChange('description.text', val, lang)}
@@ -149,43 +164,51 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
 
           <div className="grid grid-cols-2 gap-4">
             <LocalizedInput
-              label="Availability"
+              label={hasError('tourAvailability') || hasError('tourAvailability.en') ? 'Availability * ⚠' : 'Availability *'}
               value={formData.tourAvailability || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('tourAvailability', val, lang)}
               placeholder="Year-round"
+              error={hasError('tourAvailability') || hasError('tourAvailability.en')}
             />
 
             <LocalizedInput
-              label="Tour Type"
+              label={hasError('tourType') || hasError('tourType.en') ? 'Tour Type * ⚠' : 'Tour Type *'}
               value={formData.tourType || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('tourType', val, lang)}
               placeholder="Private / Group"
+              error={hasError('tourType') || hasError('tourType.en')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <LocalizedInput
-              label="Tour Style"
+              label={hasError('tourStyle') || hasError('tourStyle.en') ? 'Tour Style * ⚠' : 'Tour Style *'}
               value={formData.tourStyle || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('tourStyle', val, lang)}
               placeholder="Adventure, Cultural, Luxury"
+              error={hasError('tourStyle') || hasError('tourStyle.en')}
             />
 
             <LocalizedInput
-              label="Meeting Point"
+              label={hasError('meetingPoint') || hasError('meetingPoint.en') ? 'Meeting Point * ⚠' : 'Meeting Point *'}
               value={formData.meetingPoint || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('meetingPoint', val, lang)}
               placeholder="Hotel lobby"
+              error={hasError('meetingPoint') || hasError('meetingPoint.en')}
             />
           </div>
 
-          <LocalizedTextArea
-            label="Pickup & Drop-off"
-            value={formData.pickupAndDropOff || { en: '', de: '', it: '', es: '' }}
-            onChange={(val, lang) => handleChange('pickupAndDropOff', val, lang)}
-            placeholder="Pickup and drop-off details..."
-            rows={3}
-          />
+          <div>
+            <LocalizedTextArea
+              label={hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en') ? 'Pickup & Drop-off * ⚠' : 'Pickup & Drop-off *'}
+              value={formData.pickupAndDropOff || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('pickupAndDropOff', val, lang)}
+              placeholder="Pickup and drop-off details..."
+              rows={3}
+              error={hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')}
+            />
+            {(hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')) && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path?.startsWith('pickupAndDropOff'))?.message}</p>}
+          </div>
         </CardContent>
       </Card>
     </div>

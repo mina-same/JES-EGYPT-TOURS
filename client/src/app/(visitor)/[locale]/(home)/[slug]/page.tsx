@@ -200,6 +200,8 @@ export default async function SlugPage({ params }: PageProps) {
   {
     let redirectTarget: string | null = null;
     let renderCategory = false;
+    let categoryData: any = null;
+    let initialSubcategories: any[] = [];
     try {
       const catRes = await tourCategoryAPI.getBySlug(slug, locale);
       if (catRes?.success && catRes?.data) {
@@ -207,19 +209,27 @@ export default async function SlugPage({ params }: PageProps) {
         if (correctSlug && correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
+          categoryData = catRes.data;
           renderCategory = true;
+          // Optionally fetch subcategories here if needed for full SEO
+          try {
+            const subRes = await tourSubcategoryAPI.getByCategory(categoryData._id);
+            if (subRes.success && subRes.data) initialSubcategories = subRes.data;
+          } catch {}
         }
       }
     } catch { /* API error — fall through to next lookup */ }
     // Call permanentRedirect OUTSIDE the try-catch so Next.js can throw NEXT_REDIRECT
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderCategory) return <CategoryView slug={slug} locale={locale} />;
+    if (renderCategory) return <CategoryView slug={slug} locale={locale} initialCategory={categoryData} initialSubcategories={initialSubcategories} />;
   }
 
   // ── 2. Subcategory ────────────────────────────────────────────────────────
   {
     let redirectTarget: string | null = null;
     let renderSubcategory = false;
+    let subcategoryData: any = null;
+    let initialSiblings: any[] = [];
     try {
       const subRes = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
       if (subRes?.success && subRes?.data) {
@@ -227,13 +237,22 @@ export default async function SlugPage({ params }: PageProps) {
         if (correctSlug && correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
+          subcategoryData = subRes.data;
           renderSubcategory = true;
+          // Fetch siblings for SEO
+          const categoryId = typeof subcategoryData.category === "string" ? subcategoryData.category : subcategoryData.category?._id;
+          if (categoryId) {
+            try {
+              const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
+              if (siblingsRes.success && siblingsRes.data) initialSiblings = siblingsRes.data;
+            } catch {}
+          }
         }
       }
     } catch { /* API error — fall through to next lookup */ }
     // Call permanentRedirect OUTSIDE the try-catch
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderSubcategory) return <SubcategoryView slug={slug} locale={locale} />;
+    if (renderSubcategory) return <SubcategoryView slug={slug} locale={locale} initialSubcategory={subcategoryData} initialSiblings={initialSiblings} />;
   }
 
   // ── 3. Blog Category ───────────────────────────────────────────────────────

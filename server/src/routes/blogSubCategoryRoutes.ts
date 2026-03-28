@@ -9,6 +9,7 @@ import {
   deleteSubcategory,
   toggleSubcategoryStatus,
 } from '../controllers/blogSubCategoryController';
+import { getBlogsBySubCategory } from '../controllers/blogController';
 import { protect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
 
@@ -22,6 +23,7 @@ router.get('/', getAllSubcategories);
 // GET /api/blog/subcategories/category/:categoryId
 router.get('/category/:categoryId', getSubcategoriesByCategory);
 router.get('/slug/:slug', getSubcategoryBySlug);
+router.get('/:slug/posts', getBlogsBySubCategory);
 router.get('/:id', getSubcategoryById);
 
 // Admin routes

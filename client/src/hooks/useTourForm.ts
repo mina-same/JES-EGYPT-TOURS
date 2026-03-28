@@ -19,8 +19,14 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
       try {
         const stored = localStorage.getItem(draftKey);
         if (stored) {
+          const parsed = JSON.parse(stored);
+          // Normalize: if draft was saved with capital 'Description' (from API rename), convert to lowercase
+          if (parsed.Description && !parsed.description) {
+            parsed.description = parsed.Description;
+            delete parsed.Description;
+          }
           return {
-            ...JSON.parse(stored),
+            ...parsed,
             ...initialData // Still allow overriding with initialData if needed
           };
         }

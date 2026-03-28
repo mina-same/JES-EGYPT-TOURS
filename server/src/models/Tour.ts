@@ -212,14 +212,21 @@ const SeasonSchema = new Schema<ISeason>(
       type: String,
       required: [true, 'Season name is required'],
       trim: true,
+      enum: {
+        values: [
+          'From Oct 2025 to Dec 2025',
+          'From Jan 2026 to Mar 2026',
+          'From 15 Apr 2026 to 30 Sep 2026',
+          'Peak (20 Dec 2025 - 5 Jan 2026) / (25 Mar - 15 Apr 2026)'
+        ],
+        message: '{VALUE} is not a valid season name'
+      }
     },
     startDate: {
       type: Date,
-      required: [true, 'Start date is required'],
     },
     endDate: {
       type: Date,
-      required: [true, 'End date is required'],
     },
     prices: {
       type: PricesSchema,
@@ -720,7 +727,7 @@ TourSchema.pre<ITour>('save', function (next) {
   if (this.pricingPlans && this.pricingPlans.length > 0) {
     for (const plan of this.pricingPlans) {
       for (const season of plan.seasons) {
-        if (season.startDate >= season.endDate) {
+        if (season.startDate && season.endDate && season.startDate >= season.endDate) {
           throw new Error(
             `Invalid date range in season "${season.seasonName}": start date must be before end date`
           );

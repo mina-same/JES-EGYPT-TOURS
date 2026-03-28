@@ -15,6 +15,7 @@ interface SubcategorySelectProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  hasError?: boolean;
 }
 
 const CustomOption = (props: OptionProps<SubcategoryOption>) => {
@@ -60,6 +61,7 @@ const SubcategorySelect: React.FC<SubcategorySelectProps> = ({
   value,
   onChange,
   placeholder = 'Select a subcategory',
+  hasError = false,
 }) => {
   const options: SubcategoryOption[] = subcategories.map((sub) => {
     // Handle localized name object or legacy string
@@ -85,10 +87,10 @@ const SubcategorySelect: React.FC<SubcategorySelectProps> = ({
       paddingRight: '4px',
       fontSize: '14px',
       borderRadius: 'calc(var(--radius) - 2px)',
-      borderColor: 'hsl(var(--input))',
-      boxShadow: 'none',
+      borderColor: hasError ? 'rgb(239 68 68)' : 'hsl(var(--input))',
+      boxShadow: hasError ? '0 0 0 1px rgb(239 68 68)' : 'none',
       '&:hover': {
-        borderColor: 'hsl(var(--input))',
+        borderColor: hasError ? 'rgb(239 68 68)' : 'hsl(var(--input))',
       },
     }),
     menu: (provided) => ({

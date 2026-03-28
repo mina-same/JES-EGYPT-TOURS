@@ -98,7 +98,17 @@ const FiltersContent = ({
   );
 };
 
-export default function SubcategoryView({ slug, locale }: { slug: string; locale: string }) {
+export default function SubcategoryView({ 
+  slug, 
+  locale, 
+  initialSubcategory, 
+  initialSiblings 
+}: { 
+  slug: string; 
+  locale: string; 
+  initialSubcategory?: any;
+  initialSiblings?: any[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useTranslation('tours');
@@ -108,10 +118,10 @@ export default function SubcategoryView({ slug, locale }: { slug: string; locale
   }, [locale, i18n]);
 
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(!initialSubcategory);
   const [pageLoading, setPageLoading] = useState(false);
-  const [subcategory, setSubcategory] = useState<any>(null);
-  const [siblingSubcategories, setSiblingSubcategories] = useState<any[]>([]);
+  const [subcategory, setSubcategory] = useState<any>(initialSubcategory || null);
+  const [siblingSubcategories, setSiblingSubcategories] = useState<any[]>(initialSiblings || []);
   const [tours, setTours] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setOpen] = useState(false);
@@ -199,29 +209,45 @@ export default function SubcategoryView({ slug, locale }: { slug: string; locale
         if (isInitial) setInitialLoading(true);
         else setPageLoading(true);
 
-        const subResponse = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
-        if (!subResponse.success || !subResponse.data) {
-          setError(t('status.subcategoryNotFound'));
-          setInitialLoading(false);
-          setPageLoading(false);
-          return;
-        }
-        setSubcategory(subResponse.data);
+        if (!initialSubcategory) {
+          const subResponse = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
+          if (!subResponse.success || !subResponse.data) {
+            setError(t('status.subcategoryNotFound'));
+            setInitialLoading(false);
+            setPageLoading(false);
+            return;
+          }
+          setSubcategory(subResponse.data);
 
-        const categoryId =
-          typeof subResponse.data?.category === "string"
-            ? subResponse.data.category
-            : subResponse.data?.category?._id;
+          const categoryId = typeof subResponse.data?.category === "string"
+              ? subResponse.data.category
+              : subResponse.data?.category?._id;
 
-        if (categoryId) {
-          const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
-          setSiblingSubcategories(siblingsRes?.success && Array.isArray(siblingsRes.data) ? siblingsRes.data : []);
+          if (categoryId) {
+            const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
+            setSiblingSubcategories(siblingsRes?.success && Array.isArray(siblingsRes.data) ? siblingsRes.data : []);
+          } else {
+            setSiblingSubcategories([]);
+          }
         } else {
-          setSiblingSubcategories([]);
+          if (initialSiblings) {
+            setSiblingSubcategories(initialSiblings);
+          } else {
+            const categoryId = typeof initialSubcategory?.category === "string"
+                ? initialSubcategory.category
+                : initialSubcategory?.category?._id;
+            if (categoryId) {
+              const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
+              setSiblingSubcategories(siblingsRes?.success && Array.isArray(siblingsRes.data) ? siblingsRes.data : []);
+            }
+          }
         }
+
+        const subId = initialSubcategory?._id || subcategory?._id;
+        if (!subId && !initialSubcategory) return;
 
         const toursResponse = await tourAPI.getAll({
-          subcategory: subResponse.data._id,
+          subcategory: initialSubcategory?._id || subcategory?._id,
           page: currentPage,
           limit: toursPerPage,
           sort,
