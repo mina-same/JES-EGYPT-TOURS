@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, Fragment } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
 
 interface TextAnimationProps {
   text: string;
@@ -12,24 +12,27 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
   text,
   animationType,
 }) => {
-  const [words, setWords] = useState<string[][]>([]);
+  // Initialize with the split text to ensure server-side and client-side match
+  const [words, setWords] = useState<string[][]>(() => 
+    text ? text.split(" ").map((word) => word.split("")) : []
+  );
   const [isVisible, setIsVisible] = useState(false);
   const textRef = useRef<HTMLDivElement | null>(null);
 
-  // Split into words, then characters
   useEffect(() => {
-    const splitWords = text.split(" ").map((word) => word.split(""));
-    setWords(splitWords);
+    if (text) {
+      const splitWords = text.split(" ").map((word) => word.split(""));
+      setWords(splitWords);
+    }
   }, [text]);
 
-  // Intersection Observer to trigger animation when the element enters the viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
       },
       {
-        threshold: 0.5,
+        threshold: 0.1,
       }
     );
 
@@ -91,11 +94,10 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
               variants={variants[animationType]}
               initial='initial'
               animate={isVisible ? "animate" : "initial"}
-              exit='initial'
               transition={{
-                delay: wordIndex * 0.2 + charIndex * 0.05,
-                duration: 0.8,
-                ease: "easeInOut",
+                delay: wordIndex * 0.1 + charIndex * 0.02,
+                duration: 0.6,
+                ease: "easeOut",
               }}
               style={{ display: "inline-block" }}
             >

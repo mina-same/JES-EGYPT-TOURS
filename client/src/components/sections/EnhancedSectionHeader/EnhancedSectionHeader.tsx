@@ -165,7 +165,7 @@ export default function EnhancedSectionHeader({
                     ref={descInnerRef}
                     className="text-gray-700 prose prose-sm max-w-none [&_a]:font-semibold [&_a]:text-[#b79c5c] [&_a]:no-underline hover:[&_a]:underline"
                   >
-                    <p dangerouslySetInnerHTML={{ __html: String(descriptionHtml) }} />
+                    <div dangerouslySetInnerHTML={{ __html: String(descriptionHtml) }} />
                   </div>
 
                   {!expanded && isOverflowing ? (

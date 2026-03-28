@@ -73,7 +73,7 @@ const AnimatedFaqAccordion: React.FC<{ faqs: Faq[] }> = ({ faqs }) => {
             <Accordion.Body>
               <div className='accordion-content'>
                 <div className='inner'>
-                  <p className='inner__text'>{faq.answer}</p>
+                  <div dangerouslySetInnerHTML={{ __html: faq.answer }} className='text' />
                 </div>
               </div>
             </Accordion.Body>

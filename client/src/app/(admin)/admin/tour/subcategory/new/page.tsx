@@ -29,14 +29,16 @@ import { useFormDraft } from '@/hooks/useFormDraft';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { useToast } from '@/hooks/use-toast';
 import FaqManager from '@/components/admin/FaqManager';
+import ReviewCuratedManager from '@/components/admin/ReviewCuratedManager';
 import { blogAPI } from '@/lib/api/blogAdmin';
-import { Search } from 'lucide-react';
+import { Search, MessageSquare } from 'lucide-react';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'sections', label: 'Page Sections', icon: ListChecks },
   { id: 'media', label: 'Media & Gallery', icon: ImageIcon },
   { id: 'faq-blog', label: 'FAQs & Blogs', icon: HelpCircle },
+  { id: 'reviews', label: 'Reviews', icon: MessageSquare },
   { id: 'seo', label: 'SEO & Promo', icon: Settings },
 ];
 
@@ -66,7 +68,9 @@ const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
   gallerySectionTitle: { en: '', de: '', it: '', es: '' },
   blogsSectionTitle: { en: '', de: '', it: '', es: '' },
   faqsSectionTitle: { en: '', de: '', it: '', es: '' },
+  reviewsSectionTitle: { en: '', de: '', it: '', es: '' },
   faqs: [],
+  reviews: [],
   featuredBlogs: [],
   bottomSection: {
     isEnabled: true,
@@ -196,7 +200,15 @@ export default function NewSubcategoryPage() {
             gallerySectionTitle: typeof data.gallerySectionTitle === 'object' ? data.gallerySectionTitle : { en: data.gallerySectionTitle || '', de: '', it: '', es: '' },
             blogsSectionTitle: typeof data.blogsSectionTitle === 'object' ? data.blogsSectionTitle : { en: data.blogsSectionTitle || '', de: '', it: '', es: '' },
             faqsSectionTitle: typeof data.faqsSectionTitle === 'object' ? data.faqsSectionTitle : { en: data.faqsSectionTitle || '', de: '', it: '', es: '' },
+            reviewsSectionTitle: typeof data.reviewsSectionTitle === 'object' ? data.reviewsSectionTitle : { en: data.reviewsSectionTitle || '', de: '', it: '', es: '' },
             faqs: Array.isArray(data.faqs) ? data.faqs : [],
+            reviews: Array.isArray(data.reviews) ? data.reviews.map((r: any) => ({
+              ...r,
+              name: r.name || '',
+              avatar: r.avatar || '',
+              rating: typeof r.rating === 'number' ? r.rating : 5,
+              comment: typeof r.comment === 'object' ? r.comment : { en: r.comment || '', de: '', it: '', es: '' }
+            })) : [],
             featuredBlogs: Array.isArray(data.featuredBlogs)
               ? data.featuredBlogs.map((b: any) => typeof b === 'object' ? b._id : b)
               : [],
@@ -423,8 +435,15 @@ export default function NewSubcategoryPage() {
       if (hasEn(formData.gallerySectionTitle)) payload.gallerySectionTitle = formData.gallerySectionTitle;
       if (hasEn(formData.blogsSectionTitle)) payload.blogsSectionTitle = formData.blogsSectionTitle;
       if (hasEn(formData.faqsSectionTitle)) payload.faqsSectionTitle = formData.faqsSectionTitle;
-
+      if (hasEn(formData.reviewsSectionTitle)) payload.reviewsSectionTitle = formData.reviewsSectionTitle;
+      
       if (formData.faqs && formData.faqs.length > 0) payload.faqs = formData.faqs;
+      if (formData.reviews && formData.reviews.length > 0) {
+        payload.reviews = formData.reviews.map((r: any) => ({
+          ...r,
+          comment: hasEn(r.comment) ? r.comment : undefined
+        })).filter((r: any) => !!r.name && !!r.comment);
+      }
       if (formData.featuredBlogs && formData.featuredBlogs.length > 0) {
         payload.featuredBlogs = formData.featuredBlogs;
       }

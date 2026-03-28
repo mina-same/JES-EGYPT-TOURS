@@ -7,6 +7,7 @@ import {
   LocalizedStringSchema, 
   LocalizedMixedSchema 
 } from './shared/LocalizedSchema';
+import { ICuratedReview, CuratedReviewSchema } from './shared/CuratedReviewSchema';
 
 // ==================== INTERFACES ====================
 
@@ -48,7 +49,9 @@ export interface ITourCategory extends Document {
   toursSectionSubTitle?: ILocalizedString; // New field
   blogsSectionTitle?: ILocalizedString; // New field
   faqsSectionTitle?: ILocalizedString; // New field
+  reviewsSectionTitle?: ILocalizedString; // New field
   faqs?: IFAQ[];
+  reviews?: ICuratedReview[]; // New field
   featuredBlogs?: Types.ObjectId[];
   bottomSection?: ISectionHeader;
   isActive: boolean;
@@ -185,8 +188,16 @@ const TourCategorySchema = new Schema<ITourCategory>(
       type: LocalizedStringSchema,
       required: false,
     },
+    reviewsSectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
     faqs: {
       type: [FAQSchema],
+      required: false,
+    },
+    reviews: {
+      type: [CuratedReviewSchema],
       required: false,
     },
     featuredBlogs: [

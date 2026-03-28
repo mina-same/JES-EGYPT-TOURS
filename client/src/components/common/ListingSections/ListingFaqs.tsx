@@ -109,7 +109,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
                       <Accordion.Body>
                         <div className='accordion-content'>
                           <div className='inner'>
-                            <p dangerouslySetInnerHTML={{ __html: answer }} className='inner__text prose max-w-none text-gray-600' />
+                            <div dangerouslySetInnerHTML={{ __html: answer }} className='inner__text prose max-w-none text-gray-600' />
                           </div>
                         </div>
                       </Accordion.Body>

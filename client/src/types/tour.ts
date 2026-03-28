@@ -43,7 +43,9 @@ export interface ITourCategory {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
+  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
+  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   bottomSection?: ISectionHeader;
   isActive: boolean;
@@ -70,7 +72,9 @@ export interface ITourSubcategory {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
+  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
+  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   bottomSection?: ISectionHeader;
   isActive: boolean;
@@ -123,7 +127,9 @@ export interface TourCategoryFormData {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
+  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
+  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   bottomSection?: ISectionHeader;
   isActive: boolean;
@@ -144,7 +150,9 @@ export interface TourSubcategoryFormData {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
+  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
+  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   bottomSection?: ISectionHeader;
   isActive: boolean;
@@ -198,6 +206,14 @@ export interface IFAQ {
   answer: ILocalizedMixed;
   isActive?: boolean;
   order?: number;
+}
+
+export interface ICuratedReview {
+  name: string;
+  avatar?: string;
+  rating: number;
+  comment: ILocalizedString;
+  status?: string;
 }
 
 export interface ITourDescription {

@@ -26,6 +26,7 @@ import ListingGallery from "@/components/common/ListingSections/ListingGallery";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
+import ListingReviews from "@/components/common/ListingSections/ListingReviews";
 
 const FiltersContent = ({ 
   t, 
@@ -54,7 +55,7 @@ const FiltersContent = ({
     >
       {!hideHeader && (
         <div style={{ padding: noBorder ? "0 0 18px 0" : 18, borderBottom: "1px solid #f0f0f0" }} className="d-flex justify-content-between align-items-center">
-          <h3 className='listing__sidebar__title' style={{ margin: 0, fontSize: noBorder ? '22px' : '18px', fontWeight: 800, color: '#1d231f' }}>{t('filters.title')}</h3>
+          <span className='listing__sidebar__title' style={{ margin: 0, fontSize: noBorder ? '22px' : '18px', fontWeight: 800, color: '#1d231f', display: 'block' }}>{t('filters.title')}</span>
           <Filter className="w-5 h-5 text-[#b79c5c]" />
         </div>
       )}
@@ -368,7 +369,7 @@ export default function SubcategoryView({
         <div className="mobile-filter-drawer__overlay" onClick={() => setIsFilterOpen(false)} />
         <div className="mobile-filter-drawer__content">
           <div className="mobile-filter-drawer__header">
-            <h3 className="m-0" style={{ fontWeight: 800 }}>{t('filters.title')}</h3>
+            <span className="m-0" style={{ fontWeight: 800, fontSize: '20px' }}>{t('filters.title')}</span>
             <button onClick={() => setIsFilterOpen(false)} className="btn-close-filter" aria-label="Close Filter">
               <X className="w-6 h-6" />
             </button>
@@ -564,10 +565,17 @@ export default function SubcategoryView({
 
       {/* Gallery Section */}
       <ListingGallery 
-        images={subcategory.images} 
+        images={subcategory.gallery && subcategory.gallery.length > 0 ? subcategory.gallery : subcategory.images} 
         sectionTitle={subcategory.gallerySectionTitle}
         title={getLocalizedValue(subcategory.name, locale) + " Gallery"} 
         locale={locale} 
+      />
+
+      {/* Reviews Section */}
+      <ListingReviews 
+        reviews={subcategory.reviews}
+        sectionTitle={subcategory.reviewsSectionTitle}
+        locale={locale}
       />
 
       {/* Blogs Section */}

@@ -50,8 +50,8 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
     <section className="blog-two section-space">
       <Container>
         <div className="sec-title text-center mb-5">
-          <h6 className="sec-title__tagline">{t('blogAndNews')}</h6>
-          <h3 className="sec-title__title">{displayTitle}</h3>
+          <span className="sec-title__tagline">{t('blogTagline')}</span>
+          <h2 className="sec-title__title">{displayTitle}</h2>
         </div>
         <Row className="gutter-y-30">
           {viewModel.map((post, idx) => (
