@@ -6,7 +6,7 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import Error404 from "@/components/sections/Error404/Error404";
 
-export default function NotFound() {
+export default function CustomNotFound() {
   return (
     <Layout>
       <TopbarOne />

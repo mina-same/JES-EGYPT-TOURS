@@ -20,12 +20,11 @@ import BlogDetailView from "./_views/BlogDetailView";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
- * Falls back to 'en' only if the locale slug is truly missing.
- * Returns null if neither exists — preventing false "slug matches" via fallback.
+ * Returns null if the slug doesn't exist for the specific locale (forcing a 404).
  */
 function getLocaleSlug(slugObj: any, locale: string): string | null {
   if (!slugObj || typeof slugObj !== 'object') return slugObj || null;
-  return slugObj[locale] || slugObj['en'] || null;
+  return slugObj[locale] || null;
 }
 
 interface PageProps {
@@ -55,9 +54,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const catRes = await tourCategoryAPI.getBySlug(slug, locale);
     if (catRes?.success && catRes?.data) {
       const data = catRes.data;
-      const title = getLocalizedValue(data.metaTitle || data.name, locale);
-      const rawDesc = getLocalizedValue(data.metaDescription || data.description, locale);
-      const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
+      const correctSlug = getLocaleSlug(data.slug, locale);
+      if (correctSlug) {
+        const title = getLocalizedValue(data.metaTitle || data.name, locale);
+        const rawDesc = getLocalizedValue(data.metaDescription || data.description, locale);
+        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
       const languages: Record<string, string> = {};
       for (const loc of LOCALES) {
         const s = getLocalizedValue(data.slug, loc);
@@ -69,6 +70,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
       };
     }
+    }
   } catch {}
 
   // 2. Try subcategory
@@ -76,9 +78,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const subRes = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
     if (subRes?.success && subRes?.data) {
       const data = subRes.data;
-      const title = getLocalizedValue(data.metaTitle || data.name, locale);
-      const rawDesc = getLocalizedValue(data.metaDescription || data.description, locale);
-      const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
+      const correctSlug = getLocaleSlug(data.slug, locale);
+      if (correctSlug) {
+        const title = getLocalizedValue(data.metaTitle || data.name, locale);
+        const rawDesc = getLocalizedValue(data.metaDescription || data.description, locale);
+        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
       const languages: Record<string, string> = {};
       for (const loc of LOCALES) {
         const s = getLocalizedValue(data.slug, loc);
@@ -90,15 +94,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
       };
     }
+    }
   } catch {}
 
   // 3. Try Blog Category
   try {
     const category = await getBlogCategoryBySlug(slug);
     if (category) {
-      const title = getLocalizedValue(category.seo?.metaTitle || category.name, locale);
-      const rawDesc = getLocalizedValue(category.seo?.metaDescription || category.description, locale);
-      const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
+      const correctSlug = getLocaleSlug(category.slug, locale);
+      if (correctSlug) {
+        const title = getLocalizedValue(category.seo?.metaTitle || category.name, locale);
+        const rawDesc = getLocalizedValue(category.seo?.metaDescription || category.description, locale);
+        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
       const languages: Record<string, string> = {};
       for (const loc of LOCALES) {
         const s = getLocalizedValue(category.slug, loc);
@@ -110,15 +117,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
       };
     }
+    }
   } catch {}
 
   // 4. Try Blog Subcategory
   try {
     const subcategory = await getBlogSubCategoryBySlug(slug);
     if (subcategory) {
-      const title = getLocalizedValue(subcategory.seo?.metaTitle || subcategory.name, locale);
-      const rawDesc = getLocalizedValue(subcategory.seo?.metaDescription || subcategory.description, locale);
-      const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
+      const correctSlug = getLocaleSlug(subcategory.slug, locale);
+      if (correctSlug) {
+        const title = getLocalizedValue(subcategory.seo?.metaTitle || subcategory.name, locale);
+        const rawDesc = getLocalizedValue(subcategory.seo?.metaDescription || subcategory.description, locale);
+        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
       const languages: Record<string, string> = {};
       for (const loc of LOCALES) {
         const s = getLocalizedValue(subcategory.slug, loc);
@@ -130,16 +140,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
       };
     }
+    }
   } catch {}
 
   // 5. Try Blog Post
   try {
     const blog = await getBlogBySlug(slug);
     if (blog) {
-      const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
-      const title = getLocalizedValue(blog.seo?.metaTitle || blog.title, locale);
-      const rawDesc = getLocalizedValue(blog.seo?.metaDescription || blog.excerpt, locale);
-      const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
+      const correctSlug = getLocaleSlug(blog.slug, locale);
+      if (correctSlug) {
+        const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
+        const title = getLocalizedValue(blog.seo?.metaTitle || blog.title, locale);
+        const rawDesc = getLocalizedValue(blog.seo?.metaDescription || blog.excerpt, locale);
+        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '') : "";
       const languages: Record<string, string> = {};
       for (const loc of LOCALES) {
         const s = getLocalizedValue(blog.slug, loc);
@@ -163,6 +176,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         },
       };
     }
+    }
   } catch {}
 
   // 6. Try tour
@@ -170,9 +184,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const tourRes = await tourAPI.getBySlug(slug, locale);
     if (tourRes?.success && tourRes?.data) {
       const tour = tourRes.data;
-      const title = tour.metaTitle?.[locale as any] || tour.heading?.[locale as any] || tour.name || "Tour Details";
-      const rawDesc = tour.metaDescription?.[locale as any] || tour.overview || "";
-      const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+      const correctSlug = getLocaleSlug(tour.slug, locale);
+      if (correctSlug) {
+        const title = tour.metaTitle?.[locale as any] || tour.heading?.[locale as any] || tour.name || "Tour Details";
+        const rawDesc = tour.metaDescription?.[locale as any] || tour.overview || "";
+        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
       const image = tour.featuredImage?.url || tour.sliderImages?.[0];
       const languages: Record<string, string> = {};
       for (const loc of LOCALES) {
@@ -187,6 +203,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         twitter: { card: "summary_large_image", title, description, images: image ? [image] : [] },
         robots: "noindex, nofollow",
       };
+    }
     }
   } catch {}
 
@@ -206,7 +223,9 @@ export default async function SlugPage({ params }: PageProps) {
       const catRes = await tourCategoryAPI.getBySlug(slug, locale);
       if (catRes?.success && catRes?.data) {
         const correctSlug = getLocaleSlug(catRes.data.slug, locale);
-        if (correctSlug && correctSlug !== slug) {
+        if (!correctSlug) {
+          /* No translated slug for this locale, let it 404 */
+        } else if (correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
           categoryData = catRes.data;
@@ -234,7 +253,9 @@ export default async function SlugPage({ params }: PageProps) {
       const subRes = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
       if (subRes?.success && subRes?.data) {
         const correctSlug = getLocaleSlug(subRes.data.slug, locale);
-        if (correctSlug && correctSlug !== slug) {
+        if (!correctSlug) {
+          /* No translated slug for this locale, let it 404 */
+        } else if (correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
           subcategoryData = subRes.data;
@@ -263,7 +284,9 @@ export default async function SlugPage({ params }: PageProps) {
       const category = await getBlogCategoryBySlug(slug);
       if (category) {
         const correctSlug = getLocaleSlug(category.slug, locale);
-        if (correctSlug && correctSlug !== slug) {
+        if (!correctSlug) {
+          /* No translated slug for this locale, let it 404 */
+        } else if (correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
           renderBlogCategory = true;
@@ -282,7 +305,9 @@ export default async function SlugPage({ params }: PageProps) {
       const subcategory = await getBlogSubCategoryBySlug(slug);
       if (subcategory) {
         const correctSlug = getLocaleSlug(subcategory.slug, locale);
-        if (correctSlug && correctSlug !== slug) {
+        if (!correctSlug) {
+          /* No translated slug for this locale, let it 404 */
+        } else if (correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
           renderBlogSubcategory = true;
@@ -301,7 +326,9 @@ export default async function SlugPage({ params }: PageProps) {
       const blog = await getBlogBySlug(slug);
       if (blog) {
         const correctSlug = getLocaleSlug(blog.slug, locale);
-        if (correctSlug && correctSlug !== slug) {
+        if (!correctSlug) {
+          /* No translated slug for this locale, let it 404 */
+        } else if (correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
           renderBlogPost = true;
@@ -321,7 +348,9 @@ export default async function SlugPage({ params }: PageProps) {
       if (tourRes?.success && tourRes?.data) {
         const tour = tourRes.data;
         const correctSlug = getLocaleSlug(tour.slug, locale);
-        if (correctSlug && correctSlug !== slug) {
+        if (!correctSlug) {
+          /* No translated slug for this locale, let it 404 */
+        } else if (correctSlug !== slug) {
           tourRedirectTarget = `/${locale}/${correctSlug}`;
         } else {
           tourData = tour;

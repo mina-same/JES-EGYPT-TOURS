@@ -130,7 +130,7 @@ export const useTourData = (id?: string) => {
             })),
             comments: safeArray<any>(fetchedReviews).map((r: any) => ({
               name: safeString(r?.name) || "Anonymous",
-              date: r?.createdAt ? new Date(r.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+              date: r?.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
               text: safeString(r?.comment),
               rating: r.rating || 5, // Map rating
               avatar: safeString(r?.avatar) || "https://placehold.co/100x100?text=User"

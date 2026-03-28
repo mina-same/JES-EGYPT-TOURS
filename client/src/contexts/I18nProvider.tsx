@@ -5,6 +5,12 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "@/lib/i18n";
 
 export function I18nProvider({ children, locale }: { children: React.ReactNode; locale?: string }) {
+  // Sync the language synchronously to prevent SSR hydration mismatches
+  // where the server renders English but the client hydrates with German/Italian
+  if (locale && i18n.resolvedLanguage !== locale && i18n.language !== locale) {
+    i18n.changeLanguage(locale);
+  }
+
   useEffect(() => {
     const handler = (lng: string) => {
       if (typeof document !== "undefined") {
@@ -13,7 +19,6 @@ export function I18nProvider({ children, locale }: { children: React.ReactNode; 
     };
     
     if (locale) {
-      i18n.changeLanguage(locale);
       handler(locale);
     } else {
       handler(i18n.language);

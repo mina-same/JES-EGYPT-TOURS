@@ -9,6 +9,6 @@ export const metadata = {
   },
 };
 
-export default function NotFound() {
+export default function GlobalNotFound() {
   redirect('/404');
 }
