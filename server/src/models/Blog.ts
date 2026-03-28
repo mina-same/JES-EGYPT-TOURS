@@ -65,7 +65,7 @@ export interface IBlog extends Document {
   noFollow: boolean;
   
   // Focus Keyword & Readability
-  focusKeyword?: string;
+  focusKeyword?: ILocalizedString;
   focusKeywordDensity?: number;
   readingTime?: number;
   
@@ -195,8 +195,7 @@ const BlogSchema: Schema = new Schema(
     
     // === FOCUS KEYWORD & READABILITY ===
     focusKeyword: {
-      type: String,
-      trim: true,
+      type: LocalizedStringSchema,
     },
     focusKeywordDensity: {
       type: Number,

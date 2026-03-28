@@ -107,12 +107,12 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
           <Col lg={6}>
             <div className='about-one__right'>
               <div className='sec-title'>
-                <h3
+                <h2
                   className='sec-title__title bw-split-in-left'
                   style={{ maxWidth: "555px" }}
                 >
                   <TextAnimation text={promoTitle} animationType='left' />
-                </h3>
+                </h2>
               </div>
 
               <div className="relative group mb-4">

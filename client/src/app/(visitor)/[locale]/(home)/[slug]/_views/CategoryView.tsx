@@ -615,6 +615,7 @@ export default function CategoryView({
         title={getLocalizedValue(category.name, locale) + " " + t('blogAndNews')} 
         locale={locale} 
       />
+
       
       <style jsx global>{`
         .subcategory-section {

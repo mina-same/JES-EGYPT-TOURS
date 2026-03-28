@@ -526,6 +526,13 @@ export const updateBlog = async (
         success: false,
         error: 'Invalid identifier',
         details: error.message,
+        errors: {
+          [error.path]: {
+            name: 'CastError',
+            message: `Invalid format for field: ${error.path}`,
+            path: error.path,
+          }
+        }
       });
       return;
     }

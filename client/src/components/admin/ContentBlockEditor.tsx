@@ -207,11 +207,11 @@ function BlockContent({
   activeLanguage: AdminLanguage;
   canRemoveImage?: (imageIndex: number) => boolean;
 }) {
-  const handleLocalizedUpdate = (field: string, value: string) => {
+  const handleLocalizedUpdate = (field: string, value: string, lang: string) => {
     const current = (block as any)[field] || { en: '', de: '', it: '', es: '' };
     onUpdate(index, field, {
         ...current,
-        [activeLanguage]: value
+        [lang]: value
     });
   };
 
@@ -224,7 +224,7 @@ function BlockContent({
           <LocalizedField
             label="Content"
             value={block.content}
-            onChange={(lang, val) => handleLocalizedUpdate('content', val)}
+            onChange={(lang, val) => handleLocalizedUpdate('content', val, lang)}
             globalLanguage={activeLanguage}
           >
             {(lang, value, onChange) => (
@@ -247,7 +247,7 @@ function BlockContent({
             <LocalizedField
               label="Quote Content"
               value={block.content}
-              onChange={(lang, val) => handleLocalizedUpdate('content', val)}
+              onChange={(lang, val) => handleLocalizedUpdate('content', val, lang)}
               globalLanguage={activeLanguage}
             >
               {(lang, value, onChange) => (
@@ -265,7 +265,7 @@ function BlockContent({
             <LocalizedField
               label="Attribution (Optional)"
               value={block.title}
-              onChange={(lang, val) => handleLocalizedUpdate('title', val)}
+              onChange={(lang, val) => handleLocalizedUpdate('title', val, lang)}
               globalLanguage={activeLanguage}
             >
               {(lang, value, onChange) => (

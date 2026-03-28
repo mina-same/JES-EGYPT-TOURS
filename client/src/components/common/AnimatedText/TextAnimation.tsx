@@ -77,6 +77,8 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
   return (
     <div
       ref={textRef}
+      role="text"
+      aria-label={text}
       style={{
         display: "flex",
         position: "relative",
@@ -85,27 +87,33 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
         rowGap: "0",
       }}
       className="text-animation"
+      suppressHydrationWarning
     >
-      {words.map((word, wordIndex) => (
-        <div key={wordIndex} style={{ display: "inline-flex" }}>
-          {word.map((char, charIndex) => (
-            <motion.div
-              key={charIndex}
-              variants={variants[animationType]}
-              initial='initial'
-              animate={isVisible ? "animate" : "initial"}
-              transition={{
-                delay: wordIndex * 0.1 + charIndex * 0.02,
-                duration: 0.6,
-                ease: "easeOut",
-              }}
-              style={{ display: "inline-block" }}
-            >
-              {char}
-            </motion.div>
-          ))}
-        </div>
-      ))}
+      <div aria-hidden="true" style={{ display: "contents" }} suppressHydrationWarning>
+        {words.map((word, wordIndex) => (
+          <span key={wordIndex} style={{ display: "inline-flex" }}>
+            {word.map((char, charIndex) => (
+              <motion.div
+                key={charIndex}
+                variants={variants[animationType]}
+                initial='initial'
+                animate={isVisible ? "animate" : "initial"}
+                transition={{
+                  delay: wordIndex * 0.1 + charIndex * 0.02,
+                  duration: 0.6,
+                  ease: "easeOut",
+                }}
+                style={{ display: "inline-block" }}
+              >
+                {char}
+              </motion.div>
+            ))}
+            {wordIndex !== words.length - 1 && (
+              <span className="sr-only"> </span>
+            )}
+          </span>
+        ))}
+      </div>
     </div>
   );
 };

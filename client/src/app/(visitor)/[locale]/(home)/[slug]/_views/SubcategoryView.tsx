@@ -27,6 +27,7 @@ import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ListingReviews from "@/components/common/ListingSections/ListingReviews";
+import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 
 const FiltersContent = ({
   t,
@@ -554,6 +555,30 @@ export default function SubcategoryView({
         </Container>
       </section>
 
+
+      {/* Bottom Promo Section */}
+      <ListingPromo
+        title={subcategory.bottomSection?.title}
+        description={subcategory.bottomSection?.description}
+        button={subcategory.bottomSection?.button}
+        image1={subcategory.bottomSection?.image1}
+        image2={subcategory.bottomSection?.image2}
+        images={[
+          ...(subcategory.images || []),
+          ...(subcategory.gallery || [])
+        ]}
+        subtitle={subcategory.name}
+        locale={locale}
+      />
+
+       {/* FAQ Section */}
+      <ListingFaqs
+        faqs={subcategory.faqs}
+        sectionTitle={subcategory.faqsSectionTitle}
+        title={"FAQs about " + getLocalizedValue(subcategory.name, locale)}
+        locale={locale}
+      />
+
       {/* Gallery Section */}
       <ListingGallery
         images={subcategory.gallery && subcategory.gallery.length > 0 ? subcategory.gallery : subcategory.images}
@@ -574,29 +599,6 @@ export default function SubcategoryView({
         blogs={subcategory.featuredBlogs}
         sectionTitle={subcategory.blogsSectionTitle}
         title={getLocalizedValue(subcategory.name, locale) + " " + t('blogAndNews')}
-        locale={locale}
-      />
-
-      {/* FAQ Section */}
-      <ListingFaqs
-        faqs={subcategory.faqs}
-        sectionTitle={subcategory.faqsSectionTitle}
-        title={"FAQs about " + getLocalizedValue(subcategory.name, locale)}
-        locale={locale}
-      />
-
-      {/* Bottom Promo Section */}
-      <ListingPromo
-        title={subcategory.bottomSection?.title}
-        description={subcategory.bottomSection?.description}
-        button={subcategory.bottomSection?.button}
-        image1={subcategory.bottomSection?.image1}
-        image2={subcategory.bottomSection?.image2}
-        images={[
-          ...(subcategory.images || []),
-          ...(subcategory.gallery || [])
-        ]}
-        subtitle={subcategory.name}
         locale={locale}
       />
 

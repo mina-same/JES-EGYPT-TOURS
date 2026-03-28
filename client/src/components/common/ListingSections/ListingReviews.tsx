@@ -76,9 +76,9 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                 <h6 className="sec-title__tagline bw-split-in-right">
                   <TextAnimation text={sectionTagline} animationType="right" />
                 </h6>
-                <h3 className="sec-title__title bw-split-in-left">
+                <h2 className="sec-title__title bw-split-in-left">
                   <TextAnimation text={displayTitle} animationType="left" />
-                </h3>
+                </h2>
               </div>
 
               {!mounted ? (

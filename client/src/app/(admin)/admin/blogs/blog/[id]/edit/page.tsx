@@ -109,6 +109,10 @@ export default function EditBlogPage() {
       .replace(/(^-|-$)/g, '');
   };
 
+  const getFieldError = (path: string) => {
+    return formErrors.find(e => e.path === path || e.field === path)?.message;
+  };
+
   // Handle form field changes
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => {
@@ -316,15 +320,23 @@ export default function EditBlogPage() {
 
       // Normalize imageRow images to satisfy backend validators (url + alt required)
       cleanData.contentBlocks = cleanData.contentBlocks.map((block: any) => {
-        if (block?.type !== 'imageRow') return block;
+        const cleanedBlock = { ...block };
+        // Mongoose maps 'id' to '_id' for subdocuments, so sending 'block-xxx' causes CastError.
+        delete cleanedBlock.id;
+        if (cleanedBlock._id && !/^[a-f\d]{24}$/i.test(String(cleanedBlock._id))) {
+          delete cleanedBlock._id;
+        }
 
-        const images = Array.isArray(block.images) ? block.images : [];
+        if (cleanedBlock?.type !== 'imageRow') return cleanedBlock;
+
+        const images = Array.isArray(cleanedBlock.images) ? cleanedBlock.images : [];
         const normalizedImages = images
           .filter((img: any) => img?.url?.trim())
           .map((img: any) => ({
             ...img,
             url: String(img.url).trim(),
-            alt: (img.alt && String(img.alt).trim()) || cleanData.title || 'Image',
+            fileName: img.fileName || String(img.url).split('/').pop() || 'image.jpg',
+            alt: (img.alt && Object.values(img.alt).some(v => v)) ? img.alt : cleanData.title || 'Image',
           }));
 
         return {

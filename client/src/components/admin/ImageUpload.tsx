@@ -87,10 +87,11 @@ export default function ImageUpload({
       const result = await onUpload(file, index);
       
       if (result && result.url) {
+        // We only trigger "url" update. 
+        // We let parents automatically infer "fileName" from the url before API submission
+        // to avoid React batching/closure issues where calling onUpdate twice wipes out the first update.
         onUpdate(index, 'url', result.url);
-        if (result.fileName) {
-          onUpdate(index, 'fileName', result.fileName);
-        }
+        
         toast({
           title: "Upload successful",
           description: `${file.name} (${formatBytes(file.size)}) uploaded successfully.`,
