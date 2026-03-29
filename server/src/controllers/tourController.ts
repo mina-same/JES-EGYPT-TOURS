@@ -428,7 +428,7 @@ export const getTourBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: localize(tour, req.locale),
+      data: tour,
     });
   } catch (error: any) {
     console.error('Error fetching tour by slug:', error);

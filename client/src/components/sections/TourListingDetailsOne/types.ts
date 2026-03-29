@@ -115,6 +115,8 @@ export interface TourDetailsOneData {
   pricingPlans?: PricingPlan[];
   whatYouWillLoveHtml?: string;
   reviewVideos?: ReviewVideo[];
+  subcategoryId?: string; // for fetching more tours by category
+  firstImageUrl?: string; // first main image URL for page header bg
 }
 
 export interface TourListingOneDetailsProps {

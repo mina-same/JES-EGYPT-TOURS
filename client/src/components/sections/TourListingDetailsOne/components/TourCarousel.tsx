@@ -13,7 +13,7 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
     items: 3,
     gutter: 30,
     center: true,
-    loop: false,
+    loop: true,
     nav: false,
     controls: false,
     autoplay: false,

@@ -186,13 +186,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       const tour = tourRes.data;
       const correctSlug = getLocaleSlug(tour.slug, locale);
       if (correctSlug) {
-        const title = tour.metaTitle?.[locale as any] || tour.heading?.[locale as any] || tour.name || "Tour Details";
-        const rawDesc = tour.metaDescription?.[locale as any] || tour.overview || "";
+        const title = getLocalizedValue(tour.metaTitle || tour.heading || tour.name, locale);
+        const rawDesc = getLocalizedValue(tour.metaDescription || tour.overview, locale);
         const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
       const image = tour.featuredImage?.url || tour.sliderImages?.[0];
       const languages: Record<string, string> = {};
       for (const loc of LOCALES) {
-        const s = tour.slug?.[loc] || slug;
+        const s = getLocaleSlug(tour.slug, loc);
         if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
       }
       return {
@@ -363,7 +363,7 @@ export default async function SlugPage({ params }: PageProps) {
     if (tourData) {
       const tour = tourData;
       const tourId = tour._id;
-      const name = tour.heading?.[locale as any] || tour.name || "Tour Details";
+      const name = getLocalizedValue(tour.heading || tour.name, locale) || "Tour Details";
 
       // Fetch reviews server-side for Schema.org
       let reviews: any[] = [];
@@ -373,21 +373,21 @@ export default async function SlugPage({ params }: PageProps) {
       } catch {}
 
       // Breadcrumbs — flat URLs for category and subcategory
-      const category = tour.category;
       const subcategory = tour.subcategory;
+      const category = subcategory?.category;
       const breadcrumbs: { label: string; href?: string }[] = [{ label: "Destination", href: "/" }];
 
-      if (category?.name?.[locale as any] || category?.name) {
+      if (category?.name) {
         const catSlug = getLocalizedValue(category.slug, locale);
         breadcrumbs.push({
-          label: (category.name?.[locale as any] || category.name) as string,
+          label: getLocalizedValue(category.name, locale),
           href: catSlug ? `/${locale}/${catSlug}` : undefined,
         });
       }
-      if (subcategory?.name?.[locale as any] || subcategory?.name) {
+      if (subcategory?.name) {
         const subSlug = getLocalizedValue(subcategory.slug, locale);
         breadcrumbs.push({
-          label: (subcategory.name?.[locale as any] || subcategory.name) as string,
+          label: getLocalizedValue(subcategory.name, locale),
           href: subSlug ? `/${locale}/${subSlug}` : undefined,
         });
       }
@@ -397,17 +397,17 @@ export default async function SlugPage({ params }: PageProps) {
       const avgRating = reviews.length > 0
         ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
         : "5.0";
-      const durationStr = tour.duration?.[locale as any] || tour.duration?.en || "";
+      const durationStr = getLocalizedValue(tour.duration, locale);
       const isoDuration = formatISO8601Duration(durationStr);
 
       const itinerarySteps = tour.itinerary?.days?.map((day: any) => ({
         "@type": "ItemList",
-        "name": `Day ${day.day}: ${day.title?.[locale as any] || day.title?.en || ""}`,
-        "description": day.description?.[locale as any] || day.description?.en || "",
+        "name": `Day ${day.day}: ${getLocalizedValue(day.title, locale)}`,
+        "description": getLocalizedValue(day.description, locale),
         "itemListElement": day.activities?.map((act: any, idx: number) => ({
           "@type": "ListItem",
           "position": idx + 1,
-          "name": act.heading?.[locale as any] || act.heading?.en || "",
+          "name": getLocalizedValue(act.heading, locale),
         })),
       })) || [];
 
@@ -417,12 +417,12 @@ export default async function SlugPage({ params }: PageProps) {
         "@context": "https://schema.org",
         "@type": "Tour",
         "name": name,
-        "description": (tour.overview?.[locale as any] || tour.overview?.en || tour.overview || "").replace(/<[^>]*>/g, ""),
+        "description": (getLocalizedValue(tour.overview, locale)).replace(/<[^>]*>/g, ""),
         "image": [...(tour.images?.map((img: any) => img.url) || []), ...(tour.gallery?.map((img: any) => img.url) || [])].filter(Boolean),
         "tourDuration": isoDuration,
         "duration": isoDuration,
-        "touristDestination": { "@type": "Place", "name": tour.tourLocation?.[locale as any] || tour.tourLocation?.en || "" },
-        "touristType": tour.tourType?.[locale as any] || tour.tourType?.en || "",
+        "touristDestination": { "@type": "Place", "name": getLocalizedValue(tour.tourLocation, locale) },
+        "touristType": getLocalizedValue(tour.tourType, locale),
         "itinerary": itinerarySteps,
         "offers": {
           "@type": "Offer",
@@ -456,8 +456,8 @@ export default async function SlugPage({ params }: PageProps) {
             <PageHeader
               title={name || "Tour Details"}
               breadcrumbs={breadcrumbs}
-              bgImage={tour.featuredImage?.url || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBz9RsGBZErQQOzYdoMyqX-6tjs_zUEuiJg&s"}
-              alt={getLocalizedValue(tour.featuredImage?.alt, locale) || name}
+              bgImage={tour.images?.[0]?.url || tour.featuredImage?.url || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBz9RsGBZErQQOzYdoMyqX-6tjs_zUEuiJg&s"}
+              alt={getLocalizedValue(tour.images?.[0]?.alt || tour.featuredImage?.alt, locale) || name}
             />
             <TourListingOneDetails id={slug} />
             <FooterOne />

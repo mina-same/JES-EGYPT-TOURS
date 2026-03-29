@@ -682,12 +682,13 @@ export default function CategoryView({
         }
         .subcategory-slide {
           flex: 0 0 auto;
-          width: 200px;
+          width: auto;
+          min-width: 200px;
           perspective: 1000px;
         }
         @media (max-width: 576px) {
           .subcategory-slide {
-            width: 150px;
+            min-width: 160px;
           }
         }
         .subcategory-card-link {
@@ -750,10 +751,8 @@ export default function CategoryView({
           margin: 0;
           color: #1d231f;
           transition: color 0.3s ease;
-          overflow: hidden;
-          text-overflow: ellipsis;
           white-space: nowrap;
-          max-width: 80%;
+          flex-grow: 1;
         }
         .subcategory-card__icon {
           width: 28px;

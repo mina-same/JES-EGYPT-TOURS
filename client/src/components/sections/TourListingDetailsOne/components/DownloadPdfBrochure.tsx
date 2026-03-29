@@ -172,177 +172,163 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
       <div
         className="d-flex flex-column flex-md-row align-items-center justify-content-between text-center text-md-start"
         style={{
-        marginBottom: 24,
-        padding: '32px',
-        background: `
-          linear-gradient(135deg, rgba(253, 250, 246, 0.95) 0%, rgba(245, 241, 232, 0.95) 100%),
-          repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 10px,
-            rgba(245, 166, 35, 0.03) 10px,
-            rgba(245, 166, 35, 0.03) 20px
-          )
-        `,
-        borderRadius: 16,
-        border: '1px solid rgba(45, 31, 14, 0.08)',
-        boxShadow: '0 4px 20px rgba(45, 31, 14, 0.06)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Decorative corner element */}
+          marginBottom: 24,
+          padding: '32px 40px',
+          background: `
+            linear-gradient(135deg, rgba(253, 250, 246, 1) 0%, rgba(245, 241, 232, 1) 100%),
+            repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 10px,
+              rgba(245, 166, 35, 0.02) 10px,
+              rgba(245, 166, 35, 0.02) 20px
+            )
+          `,
+          borderRadius: 20,
+          border: '1px solid rgba(232, 159, 28, 0.15)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Decorative background element */}
         <div style={{
           position: 'absolute',
-          top: -20,
-          right: -20,
-          width: 120,
-          height: 120,
-          background: 'radial-gradient(circle, rgba(245, 166, 35, 0.1) 0%, transparent 70%)',
+          top: -30,
+          right: -30,
+          width: 150,
+          height: 150,
+          background: 'radial-gradient(circle, rgba(245, 166, 35, 0.08) 0%, transparent 70%)',
           borderRadius: '50%'
         }} />
         
         <div 
           className="d-flex flex-column flex-md-row align-items-center mb-4 mb-md-0" 
-          style={{ gap: 24, flex: 1 }}
+          style={{ gap: 28, flex: 1 }}
         >
-          {/* Brochure illustration */}
+          {/* Brochure Illustration */}
           <div style={{
-            width: 80,
-            height: 100,
+            width: 70,
+            height: 90,
             background: 'linear-gradient(135deg, #F5A623 0%, #E89F1C 100%)',
-            borderRadius: 8,
+            borderRadius: 10,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(245, 166, 35, 0.25)',
+            boxShadow: '0 8px 20px rgba(245, 166, 35, 0.2)',
             position: 'relative',
             flexShrink: 0
           }}>
             <div style={{
-              width: 60,
-              height: 80,
+              width: 50,
+              height: 70,
               background: '#FFFFFF',
               borderRadius: 4,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 8
+              gap: 6
             }}>
+              <div style={{ width: 34, height: 3, background: '#F0E8DD', borderRadius: 2 }} />
+              <div style={{ width: 28, height: 3, background: '#F0E8DD', borderRadius: 2 }} />
+              <div style={{ width: 30, height: 3, background: '#F0E8DD', borderRadius: 2 }} />
               <div style={{
-                width: 40,
-                height: 4,
-                background: '#E0D5C7',
-                borderRadius: 2
-              }} />
-              <div style={{
-                width: 32,
-                height: 3,
-                background: '#E0D5C7',
-                borderRadius: 2
-              }} />
-              <div style={{
-                width: 36,
-                height: 3,
-                background: '#E0D5C7',
-                borderRadius: 2
-              }} />
-              <div style={{
-                width: 28,
-                height: 20,
+                width: 24,
+                height: 18,
                 background: 'linear-gradient(135deg, #FDFAF6 0%, #F5F1E8 100%)',
                 borderRadius: 2,
-                marginTop: 8
+                marginTop: 6
               }} />
             </div>
+            {/* PDF Badge */}
+            <div style={{
+              position: 'absolute',
+              bottom: 10,
+              right: -10,
+              background: '#E89F1C',
+              color: '#fff',
+              fontSize: '10px',
+              fontWeight: 800,
+              padding: '2px 6px',
+              borderRadius: 4,
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+            }}>PDF</div>
           </div>
           
           <div>
             <h4 style={{
               margin: 0,
-              fontSize: 22,
-              fontWeight: 700,
-              color: '#2D1F0E',
-              fontFamily: "'Playfair Display', Georgia, serif",
-              letterSpacing: '-0.5px'
+              fontSize: 24,
+              fontWeight: 800,
+              color: '#1a1a1a',
+              fontFamily: "'Playfair Display', serif",
+              letterSpacing: '-0.3px'
             }}>
               {t("tourDetails.brochure.title", "Download Tour Brochure")}
             </h4>
             <p style={{
-              margin: '6px 0 0',
-              fontSize: 15,
-              color: '#8B7355',
+              margin: '8px 0 0',
+              fontSize: 16,
+              color: '#6b635a',
               fontWeight: 400,
-              lineHeight: 1.5
+              lineHeight: 1.5,
+              maxWidth: '450px'
             }}>
-              {t("tourDetails.brochure.subtitle", "Get a complete PDF guide with itinerary, pricing, and tour details")}
+              {t("tourDetails.brochure.subtitle", "Get a complete PDF guide with detailed itinerary, highlights, and travel information.")}
             </p>
           </div>
         </div>
         
-        <button
-          className="gotur-btn w-100 w-md-auto"
-          onClick={onDownload}
-          disabled={generating}
-          style={{
-            background: generating 
-              ? '#E0D5C7' 
-              : 'linear-gradient(135deg, #F5A623 0%, #E89F1C 100%)',
-            color: generating ? '#8B7355' : '#2D1F0E',
-            border: 'none',
-            padding: '16px 32px',
-            borderRadius: 12,
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: generating ? 'not-allowed' : 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: generating 
-              ? 'none' 
-              : '0 4px 16px rgba(245, 166, 35, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            minWidth: 220,
-            justifyContent: 'center',
-            position: 'relative',
-            zIndex: 1
-          }}
-          onMouseEnter={(e) => {
-            if (!generating) {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(245, 166, 35, 0.4)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!generating) {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(245, 166, 35, 0.3)';
-            }
-          }}
-        >
-          {generating ? (
-            <>
-              <div style={{
-                width: 18,
-                height: 18,
-                border: '2px solid #8B7355',
-                borderTop: '2px solid transparent',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }} />
-              {t("tourDetails.brochure.generating", "Generating...")}
-            </>
-          ) : (
-            <>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7,10 12,15 17,10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              {t("tourDetails.brochure.downloadBtn", "Download Brochure PDF")}
-            </>
-          )}
-        </button>
+        <div className="d-flex flex-column align-items-center align-items-md-end" style={{ gap: 12 }}>
+          <button
+            className="gotur-btn w-100 w-md-auto"
+            onClick={onDownload}
+            disabled={generating}
+            style={{
+              padding: '16px 36px',
+              borderRadius: 12,
+              minWidth: 200,
+              fontSize: 16,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              background: generating ? '#e2e2e2' : undefined,
+              color: generating ? '#999' : undefined,
+              boxShadow: generating ? 'none' : '0 10px 20px rgba(232, 159, 28, 0.15)'
+            }}
+          >
+            {generating ? (
+              <>
+                <div style={{
+                  width: 18,
+                  height: 18,
+                  border: '2px solid #999',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                {t("tourDetails.brochure.generating", "Generating...")}
+              </>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7,10 12,15 17,10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                {t("tourDetails.brochure.downloadBtn", "Download PDF")}
+              </>
+            )}
+          </button>
+          
+          <div className="d-none d-md-flex align-items-center gap-2 text-muted" style={{ fontSize: '13px' }}>
+            <span style={{ color: '#e89f1c' }}>●</span> {t("tourDetails.brochure.free", "Free Download")}
+            <span className="ms-2" style={{ color: '#e89f1c' }}>●</span> {t("tourDetails.brochure.offline", "Offline Access")}
+          </div>
+        </div>
       </div>
 
       <style jsx>{`

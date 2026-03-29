@@ -2,189 +2,292 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
 import { reviewsAPI } from "@/lib/api/reviews";
+import { getBlogById } from "@/lib/api/blog";
+import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
 
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
-
   const trimmed = url.trim();
-
   const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
   if (shortMatch?.[1]) return shortMatch[1];
-
   const watchMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{6,})/);
   if (watchMatch?.[1]) return watchMatch[1];
-
   const embedMatch = trimmed.match(/\/embed\/([a-zA-Z0-9_-]{6,})/);
   if (embedMatch?.[1]) return embedMatch[1];
-
   const shortsMatch = trimmed.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/);
   if (shortsMatch?.[1]) return shortsMatch[1];
-
   return '';
 }
 
 export const useTourData = (id?: string) => {
   const { i18n } = useTranslation();
-  const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it';
+  const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
 
-  const [tourData, setTourData] = useState<TourDetailsOneData>({ 
-    ...tourDetailsOneData, 
-    map: "" 
+  // Extract locale-specific value (handle raw object or pre-localized string)
+  const getLocalizedValue = (v: any) => {
+    if (!v) return '';
+    if (typeof v === 'string') return v;
+    return v[currentLang] || v.en || '';
+  };
+
+  const [tourData, setTourData] = useState<TourDetailsOneData>({
+    ...tourDetailsOneData,
+    map: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [moreTours, setMoreTours] = useState<any[]>([]);
+  const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
 
   const safeArray = <T,>(value: any): T[] => (Array.isArray(value) ? value : []);
-  
-  const safeString = (value: any): string => {
-    if (typeof value === 'string') return value;
-    if (value && typeof value === 'object') {
-      return value[currentLang] || value.en || '';
-    }
-    return '';
-  };
 
-  const safeHtmlString = (value: any): string => {
-    if (typeof value === 'string') return value;
-    if (value && typeof value === 'object') {
-      // Handle LocalizedMixed or LocalizedString
-      return value[currentLang] || value.en || '';
-    }
-    return '';
+  // Map a tour object (raw or localized) to FeatureTwo item
+  const mapTourToItem = (t: any) => {
+    if (!t) return null;
+    
+    const tourSlug = getLocalizedValue(t?.slug);
+    const tourTitle = getLocalizedValue(t?.heading) || t?.name || "";
+    const fallback = 'https://placehold.co/600x400?text=No+Image';
+
+    return {
+      id: t._id || t.id,
+      image: t?.images?.[0]?.url || fallback,
+      imageAlt: tourTitle,
+      title: tourTitle || "Tour",
+      link: `/${currentLang}/${tourSlug}`,
+      price: t.priceStartingFrom || t.price || 0,
+      rating: 5,
+      reviews: 0,
+      videoId: "",
+      discount: "",
+      meta: [],
+    };
   };
 
   useEffect(() => {
-    const fetchTourAndReviews = async () => {
-      if (!id) return; // Note: 'id' variable here is actually the slug from params
-
+    const fetchAll = async () => {
+      if (!id) return;
       try {
         setLoading(true);
-        // Fetch tour by slug
-        const tourResponse = await tourAPI.getBySlug(id);
-        
-        if (tourResponse.success && tourResponse.data) {
-          const tour = tourResponse.data;
-          const tourId = tour._id; // Real ID for reviews and related tours
 
-          const reviewsPromise = reviewsAPI.getReviewsByTour(tourId);
-          const relatedToursPromise = tourAPI.getRelated(tourId, 6);
-          
-          const [reviewsResponse, relatedToursResponse] = await Promise.all([reviewsPromise, relatedToursPromise]);
-          
-          const fetchedReviews = reviewsResponse.success ? safeArray<any>(reviewsResponse.data) : [];
-          const fetchedRelatedTours = relatedToursResponse.success ? safeArray<any>(relatedToursResponse.data) : [];
-          const sliderImages = safeArray<any>(tour.images)
-            .map((img: any) => ({ url: img?.url, alt: safeString(img?.alt) }))
-            .filter((img: any) => !!img.url);
-
-          const galleryImages = safeArray<any>(tour.gallery)
-            .map((img: any) => ({ url: img?.url, alt: safeString(img?.alt) }))
-            .filter((img: any) => !!img.url);
-
-          const fallbackImage = 'https://placehold.co/600x400?text=No+Image';
-
-          const reviewVideos = safeArray<any>(tour.reviews)
-            .map((r: any) => {
-              const url = typeof r?.url === 'string' ? r.url : '';
-              const videoId = getYouTubeVideoId(url);
-              return {
-                title: safeString(r?.title) || 'Review',
-                url,
-                videoId,
-              };
-            })
-            .filter((v: any) => v.url && v.videoId);
-
-          // Map API data to component structure
-          const mappedData: TourDetailsOneData = {
-            id: tourId,
-            title: safeString(tour.heading) || safeString(tour.name) || "",
-            titleTwo: safeString(tour.name) || "",
-            overview: safeHtmlString(tour.Description?.text) || safeHtmlString(tour.overview) || "",
-            reviews: fetchedReviews.length,
-            location: safeString(tour.tourLocation) || "",
-            activitiesType: safeString(tour.tourType) || "",
-            traveler: 10,
-            activateDay: safeString(tour.duration) || "",
-            price: typeof tour.priceStartingFrom === 'number' ? tour.priceStartingFrom : 0,
-            overviewTitle: safeString(tour.Description?.header) || "Overview",
-            topDestinations: "",
-            sliderImages,
-            highlightList: safeArray<any>(tour.tourHighlights).map(h => safeString(h)).filter(Boolean),
-            amenities: safeArray<any>(tour.inclusion).map(i => safeString(i)).filter(Boolean),
-            amenitiesTwo: safeArray<any>(tour.exclusion).map(e => safeString(e)).filter(Boolean),
-            relatedTours: fetchedRelatedTours.map((t: any) => ({
-              id: t._id,
-              image: t?.images?.[0]?.url || fallbackImage,
-              imageAlt: safeString(t?.images?.[0]?.alt) || safeString(t?.name),
-              title: safeString(t?.name) || "Related Tour",
-              link: `/${currentLang}/${safeString(t.slug)}`,
-              price: t.priceStartingFrom,
-              rating: 5,
-              reviews: 0,
-              videoId: "",
-              discount: "",
-              meta: []
-            })),
-            comments: safeArray<any>(fetchedReviews).map((r: any) => ({
-              name: safeString(r?.name) || "Anonymous",
-              date: r?.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-              text: safeString(r?.comment),
-              rating: r.rating || 5, // Map rating
-              avatar: safeString(r?.avatar) || "https://placehold.co/100x100?text=User"
-            })),
-            images: galleryImages,
-            faqs: safeArray<any>(tour.faqs).map((f: any) => ({
-              question: safeString(f?.question),
-              answer: safeHtmlString(f?.answer)
-            })).filter((f: any) => f.question || f.answer),
-            map: safeString(tour.tourMapIframe)?.match(/src="([^"]+)"/)?.[1] || "",
-            itinerary: {
-              generalDescription: safeHtmlString(tour.itinerary?.generalDescription),
-              days: safeArray<any>(tour.itinerary?.days).map((d: any) => ({
-                day: typeof d?.day === 'number' ? d.day : 0,
-                title: safeString(d?.title).replace(/^Day\s*\d+[:\s-]*/i, ""),
-                description: safeHtmlString(d?.description),
-                activities: safeArray<any>(d?.activities).map((a: any) => ({
-                  heading: safeString(a?.heading),
-                  description: safeHtmlString(a?.description),
-                  image: a?.image?.url ? { url: a.image.url, alt: safeString(a.image.alt) } : undefined
-                }))
-              }))
-            },
-            pricingPlans: safeArray<any>(tour.pricingPlans).map((plan: any) => ({
-              planName: safeString(plan?.planName),
-              seasons: safeArray<any>(plan?.seasons).map((season: any) => ({
-                seasonName: safeString(season?.seasonName),
-                startDate: safeString(season?.startDate),
-                endDate: safeString(season?.endDate),
-                prices: season?.prices || {},
-                notes: safeArray<any>(season?.notes).map((n: any) => ({
-                  title: safeString(n?.title),
-                  text: safeHtmlString(n?.text)
-                }))
-              }))
-            })),
-            whatYouWillLoveHtml: safeHtmlString(tour.whatYouWillLoveHtml),
-            reviewVideos,
-          };
-
-          setTourData(mappedData);
-        } else {
+        // 1. Fetch main tour by slug (raw data)
+        const tourRes = await tourAPI.getBySlug(id);
+        if (!tourRes.success || !tourRes.data) {
           setError("Failed to load tour details");
+          return;
         }
+
+        const tour = tourRes.data;
+        const tourId = tour._id;
+
+        console.log("DEBUG [useTourData]: Raw subcategory:", tour.subcategory);
+
+        // Ensure subcategory ID and Category ID
+        const subId = typeof tour.subcategory === 'object'
+          ? tour.subcategory?._id || tour.subcategory
+          : tour.subcategory;
+
+        // The subcategory object often contains the category ID
+        const catId = typeof tour.subcategory === 'object' && tour.subcategory?.category
+          ? (typeof tour.subcategory.category === 'object' ? tour.subcategory.category._id : tour.subcategory.category)
+          : undefined;
+
+        // 2. Curated Content Promises
+        const commonDataPromises = [
+          reviewsAPI.getReviewsByTour(tourId),
+          // Curated related tours (max 3)
+          Promise.all(safeArray(tour.relatedTours).slice(0, 3).map(async (ref: any) => {
+            try {
+              const res = await tourAPI.getById(ref.id);
+              return res?.success && res?.data ? res.data : null;
+            } catch { return null; }
+          })),
+          // Curated blog references (max 3)
+          Promise.all(safeArray(tour.blogReferences).slice(0, 3).map(async (ref: any) => {
+            try {
+              return await getBlogById(ref.id);
+            } catch { return null; }
+          })),
+        ];
+
+        // 3. Fallback "More Tours" Promise (try subcategory first)
+        const moreToursRes = subId
+          ? await tourAPI.getBySubcategory(String(subId), { limit: 12, isActive: true })
+          : { success: false, data: [] };
+
+        let fetchedMoreToursRaw = moreToursRes.success
+          ? safeArray<any>(moreToursRes.data).filter((t: any) => t._id !== tourId)
+          : [];
+
+        // If subcategory count is low (< 9), try category fallback
+        if (fetchedMoreToursRaw.length < 9 && catId) {
+          const catMoreRes = await tourAPI.getAll({ 
+            category: String(catId), 
+            limit: 15, 
+            isActive: true 
+          });
+          if (catMoreRes.success) {
+            // Merge but unique by _id
+            const catTours = safeArray<any>(catMoreRes.data).filter((t: any) => t._id !== tourId);
+            const existingIds = new Set(fetchedMoreToursRaw.map(t => t._id));
+            catTours.forEach(t => {
+              if (!existingIds.has(t._id)) {
+                fetchedMoreToursRaw.push(t);
+              }
+            });
+          }
+        }
+
+        // Final fallback: if still < 9, show any other tours
+        if (fetchedMoreToursRaw.length < 9) {
+          const allMoreRes = await tourAPI.getAll({ 
+            limit: 15, 
+            isActive: true 
+          });
+          if (allMoreRes.success) {
+            const allTours = safeArray<any>(allMoreRes.data).filter((t: any) => t._id !== tourId);
+            const existingIds = new Set(fetchedMoreToursRaw.map(t => t._id));
+            allTours.forEach(t => {
+              if (!existingIds.has(t._id)) {
+                fetchedMoreToursRaw.push(t);
+              }
+            });
+          }
+        }
+
+        const [reviewsRes, relatedToursData, blogDataRaw] = await Promise.all(commonDataPromises);
+        
+        // Final fallback for blogs: if no curated blogs, fetch featured blogs
+        let fetchedRelatedBlogs = safeArray<any>(blogDataRaw).filter(Boolean);
+        if (fetchedRelatedBlogs.length === 0) {
+          try {
+             const res = await axiosInstance.get('/blog/posts/featured?limit=3');
+             if (res.data?.success) {
+               fetchedRelatedBlogs = safeArray(res.data.data);
+             }
+          } catch { /* ignore */ }
+        }
+
+        const fetchedReviews = reviewsRes.success ? safeArray<any>(reviewsRes.data) : [];
+        const fetchedRelatedTours = safeArray(relatedToursData).filter(Boolean);
+
+        // ── Consolidate mappings ──
+        const sliderImages = safeArray<any>(tour.images)
+          .map((img: any) => ({ url: img?.url, alt: getLocalizedValue(img?.alt) }))
+          .filter((img: any) => !!img.url);
+
+        const galleryImages = safeArray<any>(tour.gallery)
+          .map((img: any) => ({ url: img?.url, alt: getLocalizedValue(img?.alt) }))
+          .filter((img: any) => !!img.url);
+
+        const reviewVideos = safeArray<any>(tour.reviews)
+          .map((r: any) => ({
+            title: getLocalizedValue(r?.title) || 'Review',
+            url: typeof r?.url === 'string' ? r.url : '',
+            videoId: getYouTubeVideoId(r?.url)
+          }))
+          .filter(v => v.url && v.videoId);
+        
+        // Helper to get localized array with fallback for empty arrays
+        const getLocalizedArray = (obj: any): any[] => {
+          if (!obj) return [];
+          const current = safeArray(obj[currentLang]);
+          if (current.length > 0) return current;
+          return safeArray(obj.en);
+        };
+
+        const mappedData: TourDetailsOneData = {
+          id: tourId,
+          title: getLocalizedValue(tour.heading) || tour.name || "",
+          titleTwo: tour.name || "",
+          overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
+          reviews: fetchedReviews.length,
+          location: getLocalizedValue(tour.tourLocation) || "",
+          activitiesType: getLocalizedValue(tour.tourType) || "",
+          traveler: 10,
+          activateDay: getLocalizedValue(tour.duration) || "",
+          price: tour.priceStartingFrom || tour.price || 0,
+          overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",
+          topDestinations: "",
+          sliderImages,
+          highlightList: getLocalizedArray(tour.tourHighlights).map(h => String(h)).filter(Boolean),
+          amenities: getLocalizedArray(tour.inclusion).map(i => String(i)).filter(Boolean),
+          amenitiesTwo: getLocalizedArray(tour.exclusion).map(e => String(e)).filter(Boolean),
+          relatedTours: fetchedRelatedTours.map(mapTourToItem).filter(Boolean) as any[],
+          comments: fetchedReviews.map((r: any) => ({
+            name: r?.name || "Anonymous",
+            date: r?.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            text: r?.comment || "",
+            rating: r.rating || 5,
+            avatar: r?.avatar || "https://placehold.co/100x100?text=User",
+          })),
+          images: galleryImages,
+          faqs: safeArray(tour.faqs).map((f: any) => ({
+            question: getLocalizedValue(f?.question),
+            answer: getLocalizedValue(f?.answer),
+          })).filter(f => f.question || f.answer),
+          map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
+          itinerary: {
+            generalDescription: getLocalizedValue(tour.itinerary?.generalDescription),
+            days: safeArray(tour.itinerary?.days).map((d: any) => ({
+              day: d?.day || 0,
+              title: getLocalizedValue(d?.title),
+              description: getLocalizedValue(d?.description),
+              activities: safeArray(d?.activities).map((a: any) => ({
+                heading: getLocalizedValue(a?.heading),
+                description: getLocalizedValue(a?.description),
+                image: a?.image?.url ? { url: a.image.url, alt: getLocalizedValue(a.image.alt) } : undefined,
+              })),
+            })),
+          },
+          pricingPlans: safeArray(tour.pricingPlans).map((p: any) => ({
+            planName: p?.planName || "",
+            seasons: safeArray(p?.seasons).map((s: any) => ({
+              seasonName: s?.seasonName || "",
+              startDate: s?.startDate || "",
+              endDate: s?.endDate || "",
+              prices: s?.prices || {},
+              notes: safeArray(s?.notes).map((n: any) => ({
+                title: getLocalizedValue(n?.title),
+                text: getLocalizedValue(n?.text),
+              })),
+            })),
+          })),
+          whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
+          reviewVideos,
+          subcategoryId: subId ? String(subId) : undefined,
+          firstImageUrl: sliderImages[0]?.url || undefined,
+        };
+
+        const mappedBlogs = fetchedRelatedBlogs.map((b: any) => ({
+          id: b._id,
+          title: getLocalizedValue(b?.title),
+          slug: getLocalizedValue(b?.slug),
+          excerpt: getLocalizedValue(b?.excerpt),
+          image: typeof b?.featuredImage === 'string' ? b.featuredImage : (b?.featuredImage?.url || 'https://placehold.co/600x400?text=No+Image'),
+          date: b?.publishedAt || b?.createdAt || new Date().toISOString(),
+          link: `/${currentLang}/blog/${getLocalizedValue(b?.slug)}`,
+          author: (b?.author as any)?.name || "Admin",
+          category: getLocalizedValue(b?.category?.name) || "",
+        }));
+
+        setRelatedBlogs(mappedBlogs);
+        setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
+        setTourData(mappedData);
+
+        console.log("DEBUG [useTourData]: moreTours count:", fetchedMoreToursRaw.length);
+        console.log("DEBUG [useTourData]: subId:", (subId as any)?._id || subId, "catId:", catId);
       } catch (err) {
-        console.error("Error fetching tour:", err);
-        setError("An error occurred while loading tour details");
+        console.error("useTourData error:", err);
+        setError("Failed to load tour details");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchTourAndReviews();
+    fetchAll();
   }, [id, currentLang]);
 
-  return { tourData, loading, error };
+  return { tourData, loading, error, moreTours, relatedBlogs };
 };

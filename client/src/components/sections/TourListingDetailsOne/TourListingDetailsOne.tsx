@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { useParams } from "next/navigation";
 import { Container, Accordion } from "react-bootstrap";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Loader2, Calendar, Headphones, Tag, Star, Zap } from "lucide-react";
+import { Loader2, Calendar, Headphones, Tag, Star, Zap, ChevronDown, HelpCircle } from "lucide-react";
+import Link from "next/link";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import { reviewsAPI } from "@/lib/api/reviews";
@@ -28,9 +29,11 @@ import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
+import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
-  const { tourData, loading, error } = useTourData(id);
+  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id);
+  console.log("DEBUG [TourListingDetailsOne]: moreTours state:", moreTours);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
   const navPlaceholderRef = useRef<HTMLDivElement>(null);
@@ -43,6 +46,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isAmenitiesExpanded, setIsAmenitiesExpanded] = useState(false);
+  const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
   const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams() as { locale: string };
@@ -663,33 +667,50 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                         <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
                       </div>
                       <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
-                        <Accordion
+                        <Accordion 
                           defaultActiveKey="0"
+                          activeKey={faqActiveKey || undefined}
+                          onSelect={(k) => setFaqActiveKey(k as string)}
                           className="wow fadeInUp"
                           data-wow-duration="1500ms"
                           data-wow-delay="500ms"
                         >
-                          {faqs.map((faq, index) => (
-                            <Accordion.Item eventKey={String(index)} key={index}>
-                              <div className="accordion-header">
-                                <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
-                                  <div className="accordion-title">
-                                    <h3 className="accordion-title__text" style={{ margin: 0 }}>
-                                      {faq.question}
-                                      <span className="accordion-title__icon"></span>
-                                    </h3>
-                                  </div>
-                                </Accordion.Button>
-                              </div>
-                              <Accordion.Body>
-                                <div className="accordion-content">
-                                  <div className="inner">
-                                    <div className="inner__text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
-                                  </div>
+                          {faqs.map((faq, index) => {
+                            const eventKey = String(index);
+                            const isOpen = faqActiveKey === eventKey;
+                            return (
+                              <Accordion.Item eventKey={eventKey} key={index}>
+                                <div className="accordion-header">
+                                  <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
+                                    <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
+                                      <div className="faq-icon-box">
+                                        <HelpCircle size={20} />
+                                      </div>
+                                      <div className="faq-question-box text-start flex-grow-1">
+                                        <h3 className="faq-question-title" style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>{faq.question}</h3>
+                                      </div>
+                                      <div 
+                                        className="faq-chevron"
+                                        style={{ 
+                                          transition: 'transform 0.3s ease',
+                                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                                        }}
+                                      >
+                                        <ChevronDown size={18} />
+                                      </div>
+                                    </div>
+                                  </Accordion.Button>
                                 </div>
-                              </Accordion.Body>
-                            </Accordion.Item>
-                          ))}
+                                <Accordion.Body>
+                                  <div className="accordion-content">
+                                    <div className="inner">
+                                      <div className="inner__text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                                    </div>
+                                  </div>
+                                </Accordion.Body>
+                              </Accordion.Item>
+                            );
+                          })}
                         </Accordion>
                       </div>
                     </div>
@@ -752,64 +773,150 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   />
                 </section>
 
-                {/* Related Tours Section */}
-                <FeatureTwo 
-                  tours={relatedTours} 
-                  itemsPerRow={3} 
-                  homeThree={false}
-                  showShape={false}
-                  extraClass="section-space-top"
-                  title={t("tourDetails.relatedTours.title")}
-                  titleSpan={t("tourDetails.relatedTours.span")}
-                  subtitle={t("tourDetails.relatedTours.subtitle")}
-                  uniqueId="related-tours"
-                  headerStyle="testimonials"
-                />
               </div>
             </div>
           </div>
         </Container>
 
-        {/* Full-width Related Tours Carousel */}
-        <FeatureTwo 
-          extraClass="section-space-top" 
-          itemsPerRow={4}
-          homeThree={false}
-          showShape={false}
-          title={t("tourDetails.moreTours.title")}
-          titleSpan={t("tourDetails.moreTours.span")}
-          subtitle={t("tourDetails.moreTours.subtitle")}
-          uniqueId="more-tours"
-          showPartners={true}
-          partners={[
-            {
-              id: 1,
-              name: "Egypt Tourism",
-              logo: "https://placehold.co/120x60/4A90E2/FFFFFF?text=Egypt+Tourism",
-              link: "https://egypt.tourism"
-            },
-            {
-              id: 2,
-              name: "Cairo Tours",
-              logo: "https://placehold.co/120x60/50C878/FFFFFF?text=Cairo+Tours",
-              link: "https://cairo.tours"
-            },
-            {
-              id: 3,
-              name: "Luxor Travel",
-              logo: "https://placehold.co/120x60/F5A623/FFFFFF?text=Luxor+Travel",
-              link: "https://luxor.travel"
-            },
-            {
-              id: 4,
-              name: "Aswan Adventures",
-              logo: "https://placehold.co/120x60/E74C3C/FFFFFF?text=Aswan+Adv",
-              link: "https://aswan.adventures"
-            }
-          ]}
-          partnersTitle={t("tourDetails.partners.title")}
-          partnersSubtitle={t("tourDetails.partners.subtitle")}
-        />
+        {/* ── Related Tours (max 3, curated) ── */}
+        {relatedTours.length > 0 && (
+          <div className="section-space-top pb-5" style={{ borderTop: '1px solid #eee' }}>
+            <Container>
+                <div className="sec-title text-center mb-5">
+                  <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
+                  <h3 className='sec-title__title'>{t("tourDetails.relatedToursTitle")}</h3>
+                </div>
+                <div className="row gutter-y-30">
+                  {relatedTours.map((tour: any) => (
+                    <div key={tour.id} className="col-lg-4 col-md-6">
+                      <div className="tour-listing-one__item">
+                        <div className="tour-listing-one__image">
+                          <Image
+                            src={tour.image}
+                            alt={tour.title}
+                            width={500}
+                            height={350}
+                            className="img-fluid"
+                            style={{ height: '280px', objectFit: 'cover' }}
+                          />
+                          <Link href={tour.link} className="tour-listing-one__image__link">
+                            <span className="sr-only">{tour.title}</span>
+                          </Link>
+                        </div>
+                        <div className="tour-listing-one__content">
+                          <h3 className="tour-listing-one__title text-center">
+                            <Link href={tour.link}>{tour.title}</Link>
+                          </h3>
+                          <div className="text-center mt-2">
+                            <Link href={tour.link} className="gotur-btn gotur-btn--base py-2 px-4" style={{ fontSize: '14px' }}>
+                              View Details
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+            </Container>
+          </div>
+        )}
+
+        {/* ── Related Blogs (max 3, curated or featured fallback) ── */}
+        {relatedBlogs.length > 0 && (
+          <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
+            <Container>
+                <div className="sec-title text-center mb-5">
+                  <h6 className='sec-title__tagline'>{t("tourDetails.relatedBlogs.tagline", "Travel Stories")}</h6>
+                  <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
+                </div>
+                <div className="row gutter-y-30">
+                  {relatedBlogs.map((blog: any, index: number) => (
+                    <div key={blog.id} className="col-lg-4 col-md-6">
+                      <div
+                        className='blog-card-two blog-card-two--one wow fadeInUp'
+                        data-wow-duration='1500ms'
+                        data-wow-delay={`${100 * (index + 1)}ms`}
+                      >
+                        <div className='blog-card-two__image'>
+                          {blog.image ? (
+                            <Image
+                              src={blog.image}
+                              alt={blog.title}
+                              className="img-fluid"
+                              width={600}
+                              height={450}
+                              style={{ width: "100%", height: "260px", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <div style={{ width: "100%", height: "260px", background: "#eee" }} />
+                          )}
+                          <div className='blog-card-two__date'>
+                            <span className='blog-card-two__date__day'>{new Date(blog.date).getDate()}</span>
+                            <span className='blog-card-two__date__month'>
+                              {new Date(blog.date).toLocaleString('default', { month: 'short' })}
+                            </span>
+                          </div>
+                          <Link href={blog.link} className='blog-card-two__image__link'>
+                            <span className='sr-only'>{blog.title}</span>
+                          </Link>
+                        </div>
+                        <div className='blog-card-two__content'>
+                          <ul className='list-unstyled blog-card-two__meta'>
+                            <li>
+                              <Link href={blog.link}>
+                                <span className='blog-card-two__meta__icon'>
+                                  <i className='icon-user'></i>
+                                </span>{" "}
+                                {t("tourDetails.relatedBlogs.by", "By")} {blog.author}
+                              </Link>
+                            </li>
+                            {blog.category && (
+                              <li>
+                                <Link href={blog.link}>
+                                  <span className='blog-card-two__meta__icon'>
+                                    <i className='icon-price-tag'></i>
+                                  </span>{" "}
+                                  {blog.category}
+                                </Link>
+                              </li>
+                            )}
+                          </ul>
+                          <h3 className='blog-card-two__title'>
+                            <Link href={blog.link}>{blog.title}</Link>
+                          </h3>
+                          <Link
+                            href={blog.link}
+                            className='blog-card-two__content__btn'
+                          >
+                            {t("tourDetails.relatedBlogs.readMore", "Read More")} <i className='icon-arrow-right'></i>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+            </Container>
+          </div>
+        )}
+
+        {/* ── More Tours from Same Category (full-width carousel) ── */}
+        {moreTours.length > 0 && (
+          <FeatureTwo
+            extraClass="section-space-top"
+            itemsPerRow={4}
+            homeThree={false}
+            showShape={false}
+            tours={moreTours}
+            title={t("tourDetails.moreTours.title", "More")}
+            titleSpan={t("tourDetails.moreTours.span", "Tours")}
+            subtitle={t("tourDetails.moreTours.subtitle", "More tours from this category")}
+            uniqueId="more-tours"
+          />
+        )}
+
+        {/* ── Trusted Partners / Brands ── */}
+        <ClientCarousel extraClass="section-space-top section-space-bottom" />
+
       </PhotoSwipeGallery>
       </section>
 
