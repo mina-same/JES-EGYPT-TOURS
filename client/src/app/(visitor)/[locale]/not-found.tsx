@@ -9,6 +9,8 @@ export const metadata = {
   },
 };
 
+import CustomNotFound from './(home)/not-found';
+
 export default function GlobalNotFound() {
-  redirect('/404');
+  return <CustomNotFound />;
 }

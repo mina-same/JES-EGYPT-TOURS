@@ -405,9 +405,9 @@ export const getTourBySlug = async (
         { 'slug.es': req.params.slug },
       ],
     })
-      .populate('subcategory', 'name slug description category')
       .populate({
         path: 'subcategory',
+        select: 'name slug description category',
         populate: {
           path: 'category',
           select: 'name slug description',
