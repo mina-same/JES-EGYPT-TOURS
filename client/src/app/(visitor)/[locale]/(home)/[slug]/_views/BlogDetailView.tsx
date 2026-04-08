@@ -117,7 +117,7 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
         <TopbarOne />
         <HeaderOne linkTheme="light" />
         <HeaderOneCloned />
-        <PageHeader title={title} subTitle={t('ourBlog')} />
+        <PageHeader title={title} subTitle={getLocalizedValue(blog.excerpt, locale) || t('ourBlog')} />
         <DynamicBlogDetails blog={blog} showSidebar='right' />
         <FooterOne />
       </Layout>

@@ -13,15 +13,17 @@ const seedAdmin = async () => {
     console.log('✅ Connected to MongoDB');
 
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: 'admin@jesegypttours.com' });
+    const adminEmail = 'admin@jesegypttour.com';
+    const existingAdmin = await User.findOne({ email: adminEmail });
     
     if (existingAdmin) {
       existingAdmin.role = 'superadmin' as any;
       (existingAdmin as any).permissions = (existingAdmin as any).permissions || DEFAULT_ADMIN_PERMISSIONS;
       existingAdmin.isActive = true;
+      existingAdmin.password = 'admin123'; // Reset password to what was requested
       await existingAdmin.save();
 
-      console.log('✅ Existing admin promoted to superadmin');
+      console.log('✅ Admin user updated successfully');
       console.log('Email:', existingAdmin.email);
       console.log('Name:', existingAdmin.name);
       console.log('🛡️  Role:', existingAdmin.role);
@@ -31,7 +33,7 @@ const seedAdmin = async () => {
     // Create superadmin user
     const admin = await User.create({
       name: 'Admin',
-      email: 'admin@jesegypttours.com',
+      email: adminEmail,
       password: 'admin123',
       role: 'superadmin',
       permissions: DEFAULT_ADMIN_PERMISSIONS,

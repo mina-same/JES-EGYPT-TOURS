@@ -7,10 +7,11 @@ import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import LocalizedPageHeader from "@/components/sections/PageHeader/LocalizedPageHeader";
+import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
 import { getBlogsByCategory, getCategoryBySlug } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
+import { getLocalizedValue } from "@/lib/localize";
 import { Loader2 } from "lucide-react";
 
 export default function BlogCategoryView({ slug, locale }: { slug: string; locale: string }) {
@@ -73,7 +74,10 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <SlugManager slugs={typeof category.slug === 'object' ? category.slug : { en: slug }} />
-      <LocalizedPageHeader namespace="blogs" titleKey="blogCategory" subTitleKey="ourBlog" />
+      <PageHeader 
+        title={getLocalizedValue(category.name, locale)} 
+        subTitle={getLocalizedValue(category.description, locale)} 
+      />
 
       <DynamicBlogGrid
         blogs={blogsData?.data || []}

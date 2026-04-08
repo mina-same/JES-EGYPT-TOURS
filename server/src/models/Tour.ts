@@ -126,9 +126,9 @@ export interface ITour extends Document {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
-  tourHighlights?: ILocalizedMixed;
-  inclusion?: ILocalizedMixed;
-  exclusion?: ILocalizedMixed;
+  tourHighlights?: ILocalizedMixed[];
+  inclusion?: ILocalizedMixed[];
+  exclusion?: ILocalizedMixed[];
   pricingPlans: IPricingPlan[];
   priceStartingFrom?: number;
   duration?: ILocalizedString;
@@ -217,7 +217,8 @@ const SeasonSchema = new Schema<ISeason>(
           'From Oct 2025 to Dec 2025',
           'From Jan 2026 to Mar 2026',
           'From 15 Apr 2026 to 30 Sep 2026',
-          'Peak (20 Dec 2025 - 5 Jan 2026) / (25 Mar - 15 Apr 2026)'
+          'Peak (20 Dec 2025 - 5 Jan 2026) / (25 Mar - 15 Apr 2026)',
+          'All Year'
         ],
         message: '{VALUE} is not a valid season name'
       }
@@ -540,27 +541,28 @@ const TourSchema = new Schema<ITour>(
       type: LocalizedStringSchema,
     },
     tourHighlights: {
-      type: LocalizedMixedSchema,
+      type: [LocalizedMixedSchema],
+      default: [],
     },
     inclusion: {
-      type: LocalizedMixedSchema,
+      type: [LocalizedMixedSchema],
       validate: {
-        validator: function (v: any) {
-          // Check if at least one language has at least one item
-          if (!v) return false;
-          return (v.en && v.en.length > 0) || (v.de && v.de.length > 0) || (v.it && v.it.length > 0) || (v.es && v.es.length > 0);
+        validator: function (v: any[]) {
+          // Check if it's an array and has at least one item with an English version
+          if (!v || !Array.isArray(v)) return false;
+          return v.length > 0 && v.every(item => item.en);
         },
-        message: 'At least one inclusion is required',
+        message: 'At least one inclusion with an English version is required',
       },
     },
     exclusion: {
-      type: LocalizedMixedSchema,
+      type: [LocalizedMixedSchema],
       validate: {
-        validator: function (v: any) {
-          if (!v) return false;
-          return (v.en && v.en.length > 0) || (v.de && v.de.length > 0) || (v.it && v.it.length > 0) || (v.es && v.es.length > 0);
+        validator: function (v: any[]) {
+          if (!v || !Array.isArray(v)) return false;
+          return v.length > 0 && v.every(item => item.en);
         },
-        message: 'At least one exclusion is required',
+        message: 'At least one exclusion with an English version is required',
       },
     },
     pricingPlans: {

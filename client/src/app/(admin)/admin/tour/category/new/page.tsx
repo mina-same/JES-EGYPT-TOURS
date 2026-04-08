@@ -263,6 +263,18 @@ export default function NewCategoryPage() {
                       href: '',
                       newTab: false,
                     },
+                image1: data.bottomSection.image1 ? {
+                  url: data.bottomSection.image1.url || '',
+                  fileName: data.bottomSection.image1.fileName || '',
+                  title: ensureLocalized(data.bottomSection.image1.title),
+                  alt: ensureLocalized(data.bottomSection.image1.alt),
+                } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+                image2: data.bottomSection.image2 ? {
+                  url: data.bottomSection.image2.url || '',
+                  fileName: data.bottomSection.image2.fileName || '',
+                  title: ensureLocalized(data.bottomSection.image2.title),
+                  alt: ensureLocalized(data.bottomSection.image2.alt),
+                } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
               }
             : {
                 isEnabled: true,
@@ -273,6 +285,8 @@ export default function NewCategoryPage() {
                   href: '',
                   newTab: false,
                 },
+                image1: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+                image2: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
               },
           isActive: data.isActive !== undefined ? !!data.isActive : true,
         });
@@ -493,9 +507,14 @@ export default function NewCategoryPage() {
         // Image cleanup
         if (formData.bottomSection.image1?.url) {
           payload.bottomSection.image1 = cleanImage(formData.bottomSection.image1);
+        } else {
+          delete payload.bottomSection.image1;
         }
+
         if (formData.bottomSection.image2?.url) {
           payload.bottomSection.image2 = cleanImage(formData.bottomSection.image2);
+        } else {
+          delete payload.bottomSection.image2;
         }
       }
       

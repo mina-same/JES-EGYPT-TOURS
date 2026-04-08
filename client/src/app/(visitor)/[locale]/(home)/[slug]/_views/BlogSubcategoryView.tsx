@@ -85,7 +85,10 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <SlugManager slugs={typeof subcategory.slug === 'object' ? subcategory.slug : { en: slug }} />
-      <PageHeader title={getLocalizedValue(subcategory.name, locale)} subTitle={parentName || t('blogCategory')} />
+      <PageHeader 
+        title={getLocalizedValue(subcategory.name, locale)} 
+        subTitle={getLocalizedValue(subcategory.description, locale) || parentName || t('blogCategory')} 
+      />
 
       <DynamicBlogGrid
         blogs={blogsData?.data || []}

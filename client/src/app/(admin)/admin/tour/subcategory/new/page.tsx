@@ -493,9 +493,14 @@ export default function NewSubcategoryPage() {
         // Image cleanup
         if (formData.bottomSection.image1?.url) {
           payload.bottomSection.image1 = cleanImage(formData.bottomSection.image1);
+        } else {
+          delete payload.bottomSection.image1;
         }
+
         if (formData.bottomSection.image2?.url) {
           payload.bottomSection.image2 = cleanImage(formData.bottomSection.image2);
+        } else {
+          delete payload.bottomSection.image2;
         }
       }
 
