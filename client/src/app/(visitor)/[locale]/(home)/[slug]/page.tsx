@@ -57,10 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       const correctSlug = getLocaleSlug(data.slug, locale);
       if (correctSlug) {
         const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
-        const title = seoTitle || getLocalizedValue(data.name, locale);
         const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
-        const rawDesc = seoDescription || getLocalizedValue(data.description, locale);
-        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
         
         const languages: Record<string, string> = {};
@@ -69,12 +67,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
         }
         return {
-          title: seoTitle ? seoTitle : `${title} | JES Egypt Tours`,
+          title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
           openGraph: {
-            title: seoTitle || title,
+            title: seoTitle || "JES Egypt Tours",
             description,
             type: "website",
           }
@@ -91,10 +89,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       const correctSlug = getLocaleSlug(data.slug, locale);
       if (correctSlug) {
         const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
-        const title = seoTitle || getLocalizedValue(data.name, locale);
         const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
-        const rawDesc = seoDescription || getLocalizedValue(data.description, locale);
-        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
 
         const languages: Record<string, string> = {};
@@ -103,12 +99,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
         }
         return {
-          title: seoTitle ? seoTitle : `${title} | JES Egypt Tours`,
+          title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
           openGraph: {
-            title: seoTitle || title,
+            title: seoTitle || "JES Egypt Tours",
             description,
             type: "website",
           }
@@ -124,10 +120,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       const correctSlug = getLocaleSlug(category.slug, locale);
       if (correctSlug) {
         const seoTitle = getLocalizedValue(category.seo?.metaTitle, locale);
-        const title = seoTitle || getLocalizedValue(category.name, locale);
         const seoDescription = getLocalizedValue(category.seo?.metaDescription, locale);
-        const rawDesc = seoDescription || getLocalizedValue(category.description, locale);
-        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(category.seo?.metaKeywords, locale);
 
         const languages: Record<string, string> = {};
@@ -136,7 +130,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
         }
         return {
-          title: seoTitle ? seoTitle : `${title} | JES Egypt Tours`,
+          title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
@@ -152,10 +146,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       const correctSlug = getLocaleSlug(subcategory.slug, locale);
       if (correctSlug) {
         const seoTitle = getLocalizedValue(subcategory.seo?.metaTitle, locale);
-        const title = seoTitle || getLocalizedValue(subcategory.name, locale);
         const seoDescription = getLocalizedValue(subcategory.seo?.metaDescription, locale);
-        const rawDesc = seoDescription || getLocalizedValue(subcategory.description, locale);
-        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(subcategory.seo?.metaKeywords, locale);
 
         const languages: Record<string, string> = {};
@@ -164,7 +156,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
         }
         return {
-          title: seoTitle ? seoTitle : `${title} | JES Egypt Tours`,
+          title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
@@ -181,10 +173,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (correctSlug) {
         const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
         const seoTitle = getLocalizedValue(blog.seo?.metaTitle, locale);
-        const title = seoTitle || getLocalizedValue(blog.title, locale);
         const seoDescription = getLocalizedValue(blog.seo?.metaDescription, locale);
-        const rawDesc = seoDescription || getLocalizedValue(blog.excerpt, locale);
-        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(blog.seo?.metaKeywords, locale);
 
         const languages: Record<string, string> = {};
@@ -193,19 +183,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
         }
         return {
-          title: seoTitle ? seoTitle : `${title} | JES Egypt Tours`,
+          title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
           openGraph: {
-            title: seoTitle || title,
+            title: seoTitle || "JES Egypt Tours",
             description,
             images: blog.seo?.metaImage?.url ? [blog.seo.metaImage.url] : [featuredImageUrl].filter(Boolean) as string[],
             type: "article",
           },
           twitter: {
             card: "summary_large_image",
-            title: seoTitle || title,
+            title: seoTitle || "JES Egypt Tours",
             description,
             images: blog.seo?.metaImage?.url ? [blog.seo.metaImage.url] : [featuredImageUrl].filter(Boolean) as string[],
           },
@@ -222,10 +212,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       const correctSlug = getLocaleSlug(tour.slug, locale);
       if (correctSlug) {
         const seoTitle = getLocalizedValue(tour.seo?.metaTitle, locale);
-        const title = seoTitle || getLocalizedValue(tour.heading || tour.name, locale);
         const seoDescription = getLocalizedValue(tour.seo?.metaDescription, locale);
-        const rawDesc = seoDescription || getLocalizedValue(tour.Description?.text, locale);
-        const description = rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(tour.seo?.metaKeywords, locale);
 
         const image = tour.seo?.metaImage?.url || tour.featuredImage?.url || tour.sliderImages?.[0];
@@ -235,19 +223,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
         }
         return {
-          title: seoTitle ? seoTitle : `${title} | JES Egypt Tours`,
+          title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
           openGraph: { 
-            title: seoTitle || title, 
+            title: seoTitle || "JES Egypt Tours", 
             description, 
             images: image ? [image] : [], 
             type: "website" 
           },
           twitter: { 
             card: "summary_large_image", 
-            title: seoTitle || title, 
+            title: seoTitle || "JES Egypt Tours", 
             description, 
             images: image ? [image] : [] 
           },
@@ -466,7 +454,7 @@ export default async function SlugPage({ params }: PageProps) {
         "@context": "https://schema.org",
         "@type": "Tour",
         "name": name,
-        "description": (getLocalizedValue(tour.overview, locale)).replace(/<[^>]*>/g, ""),
+        "description": (getLocalizedValue(tour.seo?.metaDescription || tour.overview, locale)).replace(/<[^>]*>/g, ""),
         "image": [...(tour.images?.map((img: any) => img.url) || []), ...(tour.gallery?.map((img: any) => img.url) || [])].filter(Boolean),
         "tourDuration": isoDuration,
         "duration": isoDuration,
