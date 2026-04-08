@@ -69,6 +69,16 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             {(hasError('heading') || hasError('heading.en')) && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path?.startsWith('heading'))?.message}</p>}
           </div>
 
+          <div>
+            <LocalizedRichText
+              label="Tour Heading Description"
+              value={formData.headingDescription || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('headingDescription', val, lang)}
+              placeholder="Describe this tour for the header section..."
+              activeLanguage={activeLanguage}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="idExternal">External ID</Label>

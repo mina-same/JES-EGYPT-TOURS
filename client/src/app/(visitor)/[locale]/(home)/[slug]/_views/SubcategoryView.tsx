@@ -510,9 +510,11 @@ export default function SubcategoryView({
                   )}
                 </h2>
                 {subcategory.toursSectionSubTitle && getLocalizedValue(subcategory.toursSectionSubTitle, locale) && (
-                  <p className="mt-2 text-muted-foreground" style={{ fontSize: '16px', maxWidth: '800px' }}>
-                    {getLocalizedValue(subcategory.toursSectionSubTitle, locale)}
-                  </p>
+                  <div 
+                    className="mt-2 text-muted-foreground html-content" 
+                    style={{ fontSize: '16px', maxWidth: '1000px' }}
+                    dangerouslySetInnerHTML={{ __html: getLocalizedValue(subcategory.toursSectionSubTitle, locale) }}
+                  />
                 )}
                 <div style={{ width: '80px', height: '4px', background: '#b79c5c', borderRadius: '2px', marginTop: '12px', marginBottom: '30px' }} />
               </div>

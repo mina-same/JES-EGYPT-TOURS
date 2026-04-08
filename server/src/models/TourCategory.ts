@@ -38,7 +38,7 @@ export interface ISectionHeader {
 export interface ITourCategory extends Document {
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedString; // Plain text for page header
+  description?: ILocalizedMixed; // Rich text for page header
   images: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
@@ -146,7 +146,7 @@ const TourCategorySchema = new Schema<ITourCategory>(
       required: [true, 'Slug is required'],
     },
     description: {
-      type: LocalizedStringSchema,
+      type: LocalizedMixedSchema,
     },
     images: {
       type: [ImageSchema],

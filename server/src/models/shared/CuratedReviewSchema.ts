@@ -5,7 +5,7 @@ import {
 } from './LocalizedSchema';
 
 export interface ICuratedReview {
-  name: string;
+  name: ILocalizedString;
   avatar?: string;
   rating: number;
   comment: ILocalizedString;
@@ -18,9 +18,8 @@ export interface ICuratedReview {
 export const CuratedReviewSchema = new Schema<ICuratedReview>(
   {
     name: {
-      type: String,
+      type: LocalizedStringSchema,
       required: true,
-      trim: true,
     },
     avatar: {
       type: String,

@@ -10,7 +10,7 @@ import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderW
 import { aboutTestimonialsData } from "@/data/aboutTestimonialsData";
 
 interface ReviewCurated {
-  name: string;
+  name: any;
   avatar?: string;
   rating: number;
   comment: any;
@@ -48,9 +48,10 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
     nav: false,
     autoplay: true,
     autoplayTimeout: 5000,
+    autoplayButtonOutput: false,
     mouseDrag: true,
     controls: true,
-    controlsContainer: ".listing-reviews__carousel-nav",
+    controlsContainer: ".gotur-owl__carousel--basic-nav .owl-nav",
   };
 
   return (
@@ -86,7 +87,7 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                   <div className="w-8 h-8 rounded-full border-4 border-[#b79c5c] border-t-transparent animate-spin"></div>
                 </div>
               ) : (
-                <div className="about-testimonials__carousel-wrapper position-relative">
+                <div className="gotur-owl__carousel--basic-nav owl-carousel about-testimonials__carousel gotur-owl__carousel owl-theme position-relative">
                   <TinySlider settings={sliderSettings} className="about-testimonials__carousel">
                     {reviews.filter(r => r.status !== 'rejected').map((review, index) => (
                       <div className="about-testimonials__item" key={index}>
@@ -99,14 +100,14 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                             ></i>
                           ))}
                         </div>
-                        <p className="about-testimonials__text">
+                        <div className="about-testimonials__text html-content">
                           {getLocalizedValue(review.comment, locale)}
-                        </p>
+                        </div>
                         <div className="about-testimonials__author">
                           <div className="about-testimonials__author__thumb">
                             <Image
-                              src={review.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.name || 'User')}&background=b79c5c&color=fff&bold=true`}
-                              alt={review.name || 'Traveler'}
+                              src={review.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(getLocalizedValue(review.name, locale) || 'User')}&background=b79c5c&color=fff&bold=true`}
+                              alt={getLocalizedValue(review.name, locale) || 'Traveler'}
                               width={60}
                               height={60}
                               className="rounded-full"
@@ -114,7 +115,7 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                           </div>
                           <div className="about-testimonials__content">
                             <span className="about-testimonials__title">
-                              {review.name || 'Anonymous'}
+                              {getLocalizedValue(review.name, locale) || 'Anonymous'}
                             </span>
                             <span>{t('verifiedTraveler', { defaultValue: 'Verified Traveler' })}</span>
                           </div>
@@ -123,11 +124,11 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                     ))}
                   </TinySlider>
 
-                  <div className="listing-reviews__carousel-nav about-testimonials__nav mt-4">
-                    <button type="button" className="prev mr-2" aria-label="Previous">
+                  <div className="owl-nav">
+                    <button type="button" className="owl-prev" aria-label="Previous">
                       <span className="icon-arrow-left"></span>
                     </button>
-                    <button type="button" className="next" aria-label="Next">
+                    <button type="button" className="owl-next" aria-label="Next">
                       <span className="icon-arrow-right"></span>
                     </button>
                   </div>
@@ -151,53 +152,6 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
       </div>
 
       <style jsx global>{`
-        .listing-reviews .about-testimonials__nav {
-           display: flex;
-           gap: 15px;
-        }
-        .listing-reviews .about-testimonials__nav button {
-           width: 45px;
-           height: 45px;
-           border-radius: 50%;
-           border: 1px solid #e5e7eb;
-           background: white;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           transition: all 0.3s ease;
-           color: #1d231f;
-        }
-        .listing-reviews .about-testimonials__nav button:hover {
-           background: #b79c5c;
-           color: white;
-           border-color: #b79c5c;
-        }
-        .listing-reviews .about-testimonials__item {
-           padding: 20px 0;
-        }
-      `}</style>
-      <style jsx global>{`
-        .listing-reviews .about-testimonials__nav {
-           display: flex;
-           gap: 15px;
-        }
-        .listing-reviews .about-testimonials__nav button {
-           width: 45px;
-           height: 45px;
-           border-radius: 50%;
-           border: 1px solid #e5e7eb;
-           background: white;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           transition: all 0.3s ease;
-           color: #1d231f;
-        }
-        .listing-reviews .about-testimonials__nav button:hover {
-           background: #b79c5c;
-           color: white;
-           border-color: #b79c5c;
-        }
         .listing-reviews .about-testimonials__item {
            padding: 20px 0;
         }

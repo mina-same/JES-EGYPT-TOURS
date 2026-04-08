@@ -43,19 +43,21 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
           </ul>
           <h1 className="page-header__title bw-split-in-right">{title}</h1>
           {subTitle && (
-            <p className="page-header__subtitle" style={{
-              color: 'rgba(255,255,255,0.9)',
-              fontSize: '18px',
-              marginTop: '15px',
-              marginBottom: '20px',
-              maxWidth: '700px',
-              lineHeight: '1.6',
-              fontWeight: '300',
-              marginLeft: 'auto',
-              marginRight: 'auto'
-            }}>
-              {subTitle}
-            </p>
+            <div 
+              className="page-header__subtitle html-content" 
+              style={{
+                color: 'rgba(255,255,255,0.9)',
+                fontSize: '18px',
+                marginTop: '15px',
+                marginBottom: '20px',
+                maxWidth: '950px',
+                lineHeight: '1.6',
+                fontWeight: '300',
+                marginLeft: 'auto',
+                marginRight: 'auto'
+              }}
+              dangerouslySetInnerHTML={{ __html: subTitle }}
+            />
           )}
         </div>
       </div>

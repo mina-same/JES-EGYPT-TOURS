@@ -117,6 +117,7 @@ export interface ITour extends Document {
   subcategory: Types.ObjectId;
   idExternal?: string;
   heading: ILocalizedString;
+  headingDescription?: ILocalizedMixed;
   slug: ILocalizedString;
   Description: IDescription;
   images: IImage[];
@@ -502,6 +503,9 @@ const TourSchema = new Schema<ITour>(
     heading: {
       type: LocalizedStringSchema,
       required: [true, 'Tour heading is required'],
+    },
+    headingDescription: {
+      type: LocalizedMixedSchema,
     },
     slug: {
       type: LocalizedStringSchema,

@@ -32,7 +32,7 @@ export interface ITourCategory {
   _id: string;
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedString; // Plain text for page header
+  description?: ILocalizedMixed; // Plain text or HTML for page header
   images: IImage[];
   gallery?: IImage[];
   seo?: ISEO;
@@ -61,7 +61,7 @@ export interface ITourSubcategory {
   category: string; // ObjectId as string
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedString; // Plain text for page header
+  description?: ILocalizedMixed; // Plain text or HTML for page header
   images: IImage[];
   gallery?: IImage[];
   seo?: ISEO;
@@ -92,6 +92,7 @@ export interface ITour {
   Description?: ITourDescription;
   subcategory: string | ITourSubcategory; // Can be populated or just ID
   heading: ILocalizedString;
+  headingDescription?: ILocalizedMixed;
   images: IImage[];
   gallery?: IImage[];
   price?: number;
@@ -116,7 +117,7 @@ export interface ITour {
 export interface TourCategoryFormData {
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedString;
+  description?: ILocalizedMixed;
   images: IImage[];
   gallery?: IImage[];
   seo?: ISEO;
@@ -139,7 +140,7 @@ export interface TourSubcategoryFormData {
   category: string;
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedString;
+  description?: ILocalizedMixed;
   images: IImage[];
   gallery?: IImage[];
   seo?: ISEO;
@@ -209,7 +210,7 @@ export interface IFAQ {
 }
 
 export interface ICuratedReview {
-  name: string;
+  name: ILocalizedString;
   avatar?: string;
   rating: number;
   comment: ILocalizedString;
@@ -230,6 +231,7 @@ export interface TourFormData {
   gallery?: IImage[];
   idExternal?: string;
   heading?: ILocalizedString;
+  headingDescription?: ILocalizedMixed;
   tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;

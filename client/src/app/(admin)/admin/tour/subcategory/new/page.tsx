@@ -674,7 +674,7 @@ export default function NewSubcategoryPage() {
               />
             </div>
             
-            <LocalizedInput
+            <LocalizedRichText
               label="Description"
               value={formData.description}
               onChange={(val, lang) => handleChange('description', val, lang)}

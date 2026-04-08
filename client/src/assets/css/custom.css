@@ -1789,3 +1789,50 @@ div[suppressHydrationWarning] {
     font-size: 24px !important;
   }
 }
+
+/* ==========================================================================
+   7. HTML CONTENT RENDERING (for dangerousSetInnerHTML)
+   ========================================================================== */
+.html-content a {
+  color: #b79c5c !important;
+  text-decoration: underline !important;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.html-content a:hover {
+  color: #d4af37 !important; 
+  text-decoration: none !important;
+  text-shadow: 0 0 1px rgba(212, 175, 55, 0.2);
+}
+.html-content strong, 
+.html-content b {
+  font-weight: 800 !important;
+}
+.html-content u {
+  text-decoration: underline !important;
+}
+.html-content i, 
+.html-content em {
+  font-style: italic !important;
+}
+.html-content ul, 
+.html-content ol {
+  margin: 15px 0 !important;
+  padding-left: 25px !important;
+}
+.html-content ul {
+  list-style-type: disc !important;
+}
+.html-content ol {
+  list-style-type: decimal !important;
+}
+.html-content li {
+  margin-bottom: 8px !important;
+  line-height: 1.6;
+}
+
+/* Hide TinySlider autoplay buttons */
+button[data-action="start"],
+button[data-action="stop"] {
+  display: none !important;
+}

@@ -39,7 +39,7 @@ export interface ITourSubcategory extends Document {
   category: Types.ObjectId;
   name: ILocalizedString;
   slug: ILocalizedString;
-  description?: ILocalizedString; // Plain text for page header
+  description?: ILocalizedMixed; // Rich text for page header
   images: IImage[];
   seo?: ISEO;
   sectionHeader?: ISectionHeader;
@@ -153,8 +153,8 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
       required: [true, 'Slug is required'],
     },
     description: {
-      type: LocalizedStringSchema,
-      // Plain text for page header display
+      type: LocalizedMixedSchema,
+      // Rich text for page header display
     },
     images: {
       type: [ImageSchema],

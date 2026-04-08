@@ -31,7 +31,7 @@ import ImageUpload, { type ImageData } from './ImageUpload';
 import { ILocalizedString } from '@/types/tour';
 
 export interface ICuratedReview {
-  name: string;
+  name: ILocalizedString;
   avatar?: string;
   rating: number;
   comment: ILocalizedString;
@@ -147,7 +147,7 @@ export default function ReviewCuratedManager({
 
   const addReview = useCallback(() => {
     const newReview: ICuratedReview = {
-      name: '',
+      name: { en: '', de: '', it: '', es: '' },
       avatar: '',
       rating: 5,
       comment: { en: '', de: '', it: '', es: '' },
@@ -171,7 +171,7 @@ export default function ReviewCuratedManager({
   const updateReview = useCallback(
     (index: number, field: keyof ICuratedReview, value: any, lang?: AdminLanguage) => {
       const next = [...reviews];
-      if (lang && field === 'comment') {
+      if (lang && (field === 'comment' || field === 'name')) {
         next[index] = {
           ...next[index],
           [field]: { ...(next[index][field] as any), [lang]: value },
@@ -264,10 +264,10 @@ export default function ReviewCuratedManager({
                                   <span
                                     className={cn(
                                       'text-sm font-semibold truncate',
-                                      review.name ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+                                      review.name?.en || review.name?.de || review.name?.it || review.name?.es ? 'text-gray-900 dark:text-white' : 'text-gray-400'
                                     )}
                                   >
-                                    {review.name || 'Anonymous Review'}
+                                    {(review.name && (review.name[activeLanguage] || review.name.en)) || 'Anonymous Review'}
                                   </span>
                                   <div className="flex items-center gap-0.5 ml-2">
                                     {[...Array(5)].map((_, i) => (
@@ -320,17 +320,21 @@ export default function ReviewCuratedManager({
                           {!isCollapsed && (
                             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-4">
-                                <div>
-                                  <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                                    Reviewer Name
-                                  </Label>
-                                  <Input 
-                                    value={review.name}
-                                    onChange={(e) => updateReview(index, 'name', e.target.value)}
-                                    placeholder="Enter reviewer name..."
-                                    className="mt-1"
-                                  />
-                                </div>
+                                <LocalizedField
+                                  label="Reviewer Name"
+                                  value={review.name || { en: '', de: '', it: '', es: '' }}
+                                  globalLanguage={activeLanguage}
+                                  onChange={(lang, val) => updateReview(index, 'name', val, lang)}
+                                >
+                                  {(lang, currentValue, handleLang) => (
+                                    <Input
+                                      value={currentValue}
+                                      onChange={(e) => handleLang(e.target.value)}
+                                      placeholder={`Reviewer name in ${lang}...`}
+                                      className="mt-1"
+                                    />
+                                  )}
+                                </LocalizedField>
                                 
                                 <div>
                                   <Label className="text-sm font-bold text-gray-700 dark:text-gray-300">
