@@ -32,10 +32,11 @@ const seedTestTour = async () => {
       });
     }
 
+    const uniqueSlug = `test-multi-currency-tour-${Date.now()}`;
     const testTour = await Tour.create({
       heading: { en: 'Test Multi-Currency Tour' },
       name: { en: 'Test Multi-Currency Tour Name' },
-      slug: { en: 'test-multi-currency-tour' },
+      slug: { en: uniqueSlug },
       subcategory: subcategory._id,
       isActive: true,
       isFeatured: true,

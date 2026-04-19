@@ -262,7 +262,7 @@ export default function ToursPage() {
           {tour.priceStartingFrom ? (
             <>
               <span style={{ fontSize: '12px', color: '#6b7280' }}>From </span>
-              ${tour.priceStartingFrom}
+              ${typeof tour.priceStartingFrom === 'object' ? (tour.priceStartingFrom as any).USD : tour.priceStartingFrom}
             </>
           ) : (
             'N/A'
