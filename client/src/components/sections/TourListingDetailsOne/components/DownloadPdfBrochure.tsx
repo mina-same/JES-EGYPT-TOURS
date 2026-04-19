@@ -34,7 +34,11 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
     setWebsite(origin);
     setWaHref(
       digits
-        ? `https://wa.me/${digits}?text=${encodeURIComponent(`Hi! I'm interested in "${tour.title}" (${currentUrl})`)}`
+        ? `https://wa.me/${digits}?text=${encodeURIComponent(t("tourDetails.brochure.waMessage", { 
+            defaultValue: "Hi! I'm interested in \"{{title}}\" ({{url}})", 
+            title: tour.title, 
+            url: currentUrl 
+          }))}`
         : ''
     );
   }, [tour.title]);

@@ -30,6 +30,9 @@ import { type AdminLanguage } from './AdminLanguageTabs';
 import LocalizedInput from './LocalizedInput';
 import LocalizedTextArea from './LocalizedTextArea';
 import { FormErrorItem } from '@/lib/parseApiError';
+import AdminCurrencyTabs, { AdminCurrency } from './AdminCurrencyTabs';
+import CurrencyInput from './CurrencyInput';
+import CurrencyField from './CurrencyField';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
@@ -119,6 +122,11 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
   );
 
   const [collapsedPlans, setCollapsedPlans] = useState<Record<string, boolean>>({});
+  const [activeCurrency, setActiveCurrency] = useState<AdminCurrency>("USD");
+
+  const togglePlanCollapsed = useCallback((planId: string) => {
+    setCollapsedPlans(prev => ({ ...prev, [planId]: !(prev[planId] ?? true) }));
+  }, []);
 
   useEffect(() => {
     if (!planIds.length) return;
@@ -135,10 +143,6 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
       return changed ? next : prev;
     });
   }, [planIds]);
-
-  const togglePlanCollapsed = useCallback((planId: string) => {
-    setCollapsedPlans(prev => ({ ...prev, [planId]: !(prev[planId] ?? true) }));
-  }, []);
 
   const handlePlansDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -185,7 +189,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
     });
     setCollapsedPlans(nextPlans);
 
-  }, [planIds, pricingPlans]);
+  }, [planIds]);
 
   // Add new pricing plan with all seasons initialized
   const addPricingPlan = () => {
@@ -194,10 +198,10 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
       seasons: SEASON_OPTIONS.map(seasonName => ({
         seasonName,
         prices: {
-          solo: 0,
-          pax_2_4: 0,
-          pax_5_8: 0,
-          pax_9_16: 0,
+          solo: { USD: 0 },
+          pax_2_4: { USD: 0 },
+          pax_5_8: { USD: 0 },
+          pax_9_16: { USD: 0 },
         },
         notes: [],
       })),
@@ -219,7 +223,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
   };
 
   // Update season prices
-  const updateSeasonPrice = (planIndex: number, seasonIndex: number, priceType: keyof IPricingSeason['prices'], value: number) => {
+  const updateSeasonPrice = (planIndex: number, seasonIndex: number, priceType: keyof IPricingSeason['prices'], value: any) => {
     const updated = pricingPlans.map((plan, i) => 
       i === planIndex 
         ? {
@@ -315,10 +319,13 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
               Configure pricing for different seasons and group sizes
             </p>
           </div>
-          <Button type="button" onClick={addPricingPlan}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Plan
-          </Button>
+          <div className="flex items-center gap-3">
+            <AdminCurrencyTabs activeCurrency={activeCurrency} onCurrencyChange={setActiveCurrency} />
+            <Button type="button" onClick={addPricingPlan}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Plan
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="px-0 space-y-8">
@@ -481,74 +488,103 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                           <div className="p-4 space-y-6 flex-1 flex flex-col">
                                               {/* Prices */}
                                               <div className="space-y-3">
-                                                <Label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
-                                                  <DollarSign className="w-3 h-3" />
-                                                  Prices (USD)
-                                                </Label>
-                                                <div className="space-y-2.5">
-                                                  <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`solo-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>Solo</Label>
-                                                    <div className="relative">
-                                                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                                                      <Input
-                                                        id={`solo-${planIndex}-${seasonIndex}`}
-                                                        type="number"
-                                                        min="0"
-                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
-                                                        value={season.prices.solo}
-                                                        onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'solo', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                      />
-                                                    </div>
+                                                  <div className="flex items-center justify-between">
+                                                    <Label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                                                      <DollarSign className="w-3 h-3" />
+                                                      Prices ({activeCurrency})
+                                                    </Label>
                                                   </div>
-                                                  <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`pax24-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>2-4 Pax</Label>
-                                                    <div className="relative">
-                                                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                                                      <Input
-                                                        id={`pax24-${planIndex}-${seasonIndex}`}
-                                                        type="number"
-                                                        min="0"
-                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
-                                                        value={season.prices.pax_2_4}
-                                                        onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                      />
-                                                    </div>
+                                                  <div className="space-y-4 pt-1">
+                                                    <CurrencyField
+                                                      label="Solo"
+                                                      value={season.prices.solo || { USD: 0 }}
+                                                      activeCurrency={activeCurrency}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'solo', { ...season.prices.solo, [cur]: val })}
+                                                      error={hasError(`${seasonPath}.prices.solo`)}
+                                                    >
+                                                      {(cur, val, handleVal) => (
+                                                        <div className="relative">
+                                                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">
+                                                            {cur === 'USD' ? '$' : cur === 'EUR' ? '€' : '£'}
+                                                          </span>
+                                                          <Input
+                                                            type="number"
+                                                            className="h-8 pl-6 text-xs"
+                                                            value={val ?? ""}
+                                                            onChange={(e) => handleVal(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                                                          />
+                                                        </div>
+                                                      )}
+                                                    </CurrencyField>
+
+                                                    <CurrencyField
+                                                      label="2-4 Pax"
+                                                      value={season.prices.pax_2_4 || { USD: 0 }}
+                                                      activeCurrency={activeCurrency}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', { ...season.prices.pax_2_4, [cur]: val })}
+                                                      error={hasError(`${seasonPath}.prices.pax_2_4`)}
+                                                    >
+                                                      {(cur, val, handleVal) => (
+                                                        <div className="relative">
+                                                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">
+                                                            {cur === 'USD' ? '$' : cur === 'EUR' ? '€' : '£'}
+                                                          </span>
+                                                          <Input
+                                                            type="number"
+                                                            className="h-8 pl-6 text-xs"
+                                                            value={val ?? ""}
+                                                            onChange={(e) => handleVal(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                                                          />
+                                                        </div>
+                                                      )}
+                                                    </CurrencyField>
+
+                                                    <CurrencyField
+                                                      label="5-8 Pax"
+                                                      value={season.prices.pax_5_8 || { USD: 0 }}
+                                                      activeCurrency={activeCurrency}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', { ...season.prices.pax_5_8, [cur]: val })}
+                                                      error={hasError(`${seasonPath}.prices.pax_5_8`)}
+                                                    >
+                                                      {(cur, val, handleVal) => (
+                                                        <div className="relative">
+                                                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">
+                                                            {cur === 'USD' ? '$' : cur === 'EUR' ? '€' : '£'}
+                                                          </span>
+                                                          <Input
+                                                            type="number"
+                                                            className="h-8 pl-6 text-xs"
+                                                            value={val ?? ""}
+                                                            onChange={(e) => handleVal(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                                                          />
+                                                        </div>
+                                                      )}
+                                                    </CurrencyField>
+
+                                                    <CurrencyField
+                                                      label="9-16 Pax"
+                                                      value={season.prices.pax_9_16 || { USD: 0 }}
+                                                      activeCurrency={activeCurrency}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', { ...season.prices.pax_9_16, [cur]: val })}
+                                                      error={hasError(`${seasonPath}.prices.pax_9_16`)}
+                                                    >
+                                                      {(cur, val, handleVal) => (
+                                                        <div className="relative">
+                                                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">
+                                                            {cur === 'USD' ? '$' : cur === 'EUR' ? '€' : '£'}
+                                                          </span>
+                                                          <Input
+                                                            type="number"
+                                                            className="h-8 pl-6 text-xs"
+                                                            value={val ?? ""}
+                                                            onChange={(e) => handleVal(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                                                          />
+                                                        </div>
+                                                      )}
+                                                    </CurrencyField>
                                                   </div>
-                                                  <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`pax58-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>5-8 Pax</Label>
-                                                    <div className="relative">
-                                                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                                                      <Input
-                                                        id={`pax58-${planIndex}-${seasonIndex}`}
-                                                        type="number"
-                                                        min="0"
-                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
-                                                        value={season.prices.pax_5_8}
-                                                        onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                      />
-                                                    </div>
-                                                  </div>
-                                                  <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                    <Label htmlFor={`pax916-${planIndex}-${seasonIndex}`} className={cn("text-xs text-muted-foreground", hasError(`${seasonPath}.prices`) && "text-red-600 font-medium")}>9-16 Pax</Label>
-                                                    <div className="relative">
-                                                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                                                      <Input
-                                                        id={`pax916-${planIndex}-${seasonIndex}`}
-                                                        type="number"
-                                                        min="0"
-                                                        className={cn("h-8 pl-5 text-sm", hasError(`${seasonPath}.prices`) && "border-red-500 bg-red-50")}
-                                                        value={season.prices.pax_9_16}
-                                                        onChange={(e) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                      />
-                                                    </div>
-                                                  </div>
+                                                  {hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Requires one USD price minimum</p>}
                                                 </div>
-                                                {hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Requires one price minimum</p>}
-                                              </div>
 
                                               {/* Notes */}
                                               <div className="space-y-3 pt-3 border-t mt-auto">

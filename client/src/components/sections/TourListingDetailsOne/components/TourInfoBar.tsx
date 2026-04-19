@@ -1,6 +1,7 @@
 import React from "react";
 import { Container } from "react-bootstrap";
 import Link from "next/link";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface TourInfoBarProps {
   location: string;
@@ -17,6 +18,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
   traveler,
   price
 }) => {
+  const { formatPrice } = useCurrency();
   return (
     <div
       className='tour-listing-details__info-area wow fadeInUp'
@@ -79,7 +81,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
           </li>
           <li className="d-none d-lg-flex">
             <Link href='' className='gotur-btn'>
-              Price starts from ${price}
+              Price starts from {formatPrice(price)}
             </Link>
           </li>
         </ul>

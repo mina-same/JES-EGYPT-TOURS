@@ -431,8 +431,9 @@ export default async function SlugPage({ params }: PageProps) {
       breadcrumbs.push({ label: name as string });
 
       // Schema.org JSON-LD
-      const avgRating = reviews.length > 0
-        ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
+      const reviewsCountToUse = tour.reviewsCount || reviews.length;
+      const avgRating = reviewsCountToUse > 0
+        ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / (reviews.length || 1)).toFixed(1)
         : "5.0";
       const durationStr = getLocalizedValue(tour.duration, locale);
       const isoDuration = formatISO8601Duration(durationStr);
@@ -472,8 +473,8 @@ export default async function SlugPage({ params }: PageProps) {
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${baseUrl}/${locale}/${slug}` },
       };
 
-      if (reviews.length > 0) {
-        jsonLd.aggregateRating = { "@type": "AggregateRating", "ratingValue": avgRating, "reviewCount": reviews.length, "bestRating": "5", "worstRating": "1" };
+      if (reviewsCountToUse > 0) {
+        jsonLd.aggregateRating = { "@type": "AggregateRating", "ratingValue": avgRating, "reviewCount": reviewsCountToUse, "bestRating": "5", "worstRating": "1" };
         jsonLd.review = reviews.slice(0, 5).map(r => ({
           "@type": "Review",
           "reviewRating": { "@type": "Rating", "ratingValue": r.rating || 5 },

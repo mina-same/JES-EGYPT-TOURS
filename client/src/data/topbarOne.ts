@@ -11,29 +11,29 @@ export const topbarOne = {
       {
         type: "email",
         iconClass: "icon-email",
-        label: "info@gmail.com",
-        href: "mailto:info@gmail.com",
+        label: "info@jesegypttours.com",
+        href: "mailto:info@jesegypttours.com",
       },
     ],
     contactInfoTwo: [
       {
         type: "email",
         iconClass: "icon-email",
-        label: "info@gmail.com",
-        href: "mailto:info@gmail.com",
+        label: "info@jesegypttours.com",
+        href: "mailto:info@jesegypttours.com",
       },
       {
-        type: "loc",
-        iconClass: "icon-maps-and-flags",
-        label: "184 Main Collins Street Victoria 8007",
-      href: "https://www.google.com/maps",
+        type: "whatsapp",
+        iconClass: "fab fa-whatsapp",
+        label: "+20 100 743 7271",
+        href: "https://wa.me/201007437271",
       },
       
     ],
     address: {
-      iconClass: "icon-maps-and-flags",
-      label: "184 Main Collins Street Victoria 8007",
-      href: "https://www.google.com/maps",
+      iconClass: "fab fa-whatsapp",
+      label: "+20 100 743 7271",
+      href: "https://wa.me/201007437271",
     },
     socialLinks: [
       {

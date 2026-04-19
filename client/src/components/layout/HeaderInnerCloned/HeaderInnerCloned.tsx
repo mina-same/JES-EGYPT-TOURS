@@ -126,7 +126,7 @@ const HeaderInnerCloned: React.FC = () => {
               </div>
               <div className='main-header__call__content'>
                 <span className='main-header__call__subtitle'>Call Us Now</span>
-                <Link href='tel:+208-555-0112'>+208-555-0112</Link>
+                <Link href='tel:+201007437271'>+20 100 743 7271</Link>
               </div>
             </div>
             <div

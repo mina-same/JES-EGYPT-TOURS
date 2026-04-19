@@ -92,7 +92,7 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
     }
 
     // This searches for tours where any pricing plan season has prices in range
-    filter['pricingPlans.seasons.prices.solo'] = priceFilter;
+    filter['pricingPlans.seasons.prices.solo.USD'] = priceFilter;
   }
 
   return filter;
@@ -123,6 +123,11 @@ const parseSort = (sortParam?: string): string => {
 
   if (!validSortFields.includes(field)) {
     return '-createdAt';
+  }
+
+  // If sorting by price, use the USD field
+  if (field === 'priceStartingFrom') {
+    return isDescending ? '-priceStartingFrom.USD' : 'priceStartingFrom.USD';
   }
 
   return sortParam;

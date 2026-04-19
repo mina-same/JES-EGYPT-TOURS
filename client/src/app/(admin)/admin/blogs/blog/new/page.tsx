@@ -34,6 +34,8 @@ import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLangua
 import { ILocalizedString, ILocalizedMixed } from '@/types/blog';
 import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
+import { useAuth } from '@/contexts/AuthContext';
+import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 
 // Tab definitions
@@ -93,10 +95,20 @@ export default function NewBlogPage() {
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
 
+  const { user } = useAuth();
+  const [authors, setAuthors] = useState<AuthUser[]>([]);
+
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<any>(
     'draft_blog_new',
     INITIAL_BLOG_POST
   );
+
+  // Pre-populate author with current user
+  useEffect(() => {
+    if (user && !formData.author) {
+      handleChange('author', user.id);
+    }
+  }, [user, formData.author]);
 
   // Generate slug from title
   const generateSlug = (title: string) => {
@@ -344,9 +356,10 @@ export default function NewBlogPage() {
         cleanData.metaImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
       }
 
-      // Set author to current user (this should come from auth context)
-      // For now, using a placeholder
-      cleanData.author = '507f1f77bcf86cd799439011'; // Replace with actual user ID
+      // Set author to current user if not already set
+      if (!cleanData.author && user) {
+        cleanData.author = user.id;
+      }
 
       const response = await blogAPI.create(cleanData);
 
@@ -369,20 +382,28 @@ export default function NewBlogPage() {
   };
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const response = await blogCategoryAPI.getAll({ isActive: true });
-        if (response.success && response.data) {
-          setCategories(response.data);
+        const [catRes, userRes] = await Promise.all([
+          blogCategoryAPI.getAll({ isActive: true }),
+          userAPI.getAllUsers()
+        ]);
+
+        if (catRes.success && catRes.data) {
+          setCategories(catRes.data);
+        }
+        
+        if (userRes.success && userRes.data?.users) {
+          setAuthors(userRes.data.users);
         }
       } catch (error) {
-        console.error('Failed to fetch blog categories:', error);
+        console.error('Failed to fetch blog options:', error);
       } finally {
         setFetchingOptions(false);
       }
     };
-    fetchCategories();
+    fetchOptions();
   }, []);
 
   useEffect(() => {
@@ -741,6 +762,28 @@ export default function NewBlogPage() {
                           <SelectItem value="scheduled">Scheduled</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="author">Author</Label>
+                      <Select 
+                        value={formData.author || ""} 
+                        onValueChange={(value) => handleChange('author', value)}
+                      >
+                        <SelectTrigger id="author">
+                          <SelectValue placeholder="Select Author" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {authors.map((author) => (
+                            <SelectItem key={author.id} value={author.id}>
+                              {author.name} ({author.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {getFieldError('author') && (
+                        <p className="text-sm text-destructive mt-1">{getFieldError('author')}</p>
+                      )}
                     </div>
 
                     {formData.status === 'scheduled' && (

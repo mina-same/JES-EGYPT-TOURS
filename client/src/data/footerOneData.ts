@@ -43,9 +43,9 @@ export const footerOneData: FooterDataType = {
   shape1,
   shape2,
   contact: {
-    email: "info@company.com",
-    phone: "+91 123 654 900",
-    hours: "Hours: Mon-Fri: 8am – 7pm",
+    email: "info@jesegypttours.com",
+    phone: "+20 100 743 7271",
+    hours: "Hours: Mon-Sun: 24/7",
   },
   about: {
     text: "available, but the majority have suffered alteration in some form by injected humour, or",

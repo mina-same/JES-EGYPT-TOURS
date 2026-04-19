@@ -356,7 +356,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
               ) : null}
               <a href="#reviews" className={`tour-nav-link ${activeSection === 'reviews' ? 'active' : ''}`}>
                 {t("tourDetails.nav.reviews")}
-                <span className="review-count">{comments.length}</span>
+                <span className="review-count">{reviews}</span>
               </a>
             </nav>
           </div>
@@ -768,7 +768,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     comments={comments}
                     tourId={id || ""}
                     onSubmit={handleCommentSubmit}
-                    totalReviews={comments.length}
+                    totalReviews={reviews}
                     averageRating={4.9}
                   />
                 </section>

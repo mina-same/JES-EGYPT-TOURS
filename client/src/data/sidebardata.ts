@@ -8,19 +8,19 @@ const sidebarData = {
     {
       icon: "icon-email",
       title: "Send email",
-      content: "info@company.com",
-      href: "mailto:info@company.com",
+      content: "info@jesegypttours.com",
+      href: "mailto:info@jesegypttours.com",
     },
     {
-      icon: "icon-telephone",
-      title: "Call agent",
-      content: "+91 123 654 900",
-      href: "tel:+91-123-654-900",
+      icon: "fab fa-whatsapp",
+      title: "WhatsApp",
+      content: "+20 100 743 7271",
+      href: "https://wa.me/201007437271",
     },
     {
       icon: "icon-clock",
       title: "Opening time",
-      content: "Mon-Fri: 8am – 7pm",
+      content: "Mon-Sun: 24/7",
     },
   ],
   newsletterActionUrl:

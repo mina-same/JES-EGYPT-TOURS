@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { I18nProvider } from "@/contexts/I18nProvider";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { SlugProvider } from "@/contexts/SlugContext";
@@ -214,9 +215,11 @@ export default async function RootLayout({
                 <SlugProvider>
                   <NotificationProvider>
                     <I18nProvider locale={locale}>
-                      <SEOProvider locale={locale} />
-                      {children}
-                      <Toaster />
+                      <CurrencyProvider>
+                        <SEOProvider locale={locale} />
+                        {children}
+                        <Toaster />
+                      </CurrencyProvider>
                     </I18nProvider>
                   </NotificationProvider>
                 </SlugProvider>

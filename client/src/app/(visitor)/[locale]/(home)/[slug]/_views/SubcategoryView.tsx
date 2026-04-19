@@ -22,13 +22,13 @@ import { getLocalizedValue } from "@/lib/localize";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
 import { useTranslation } from 'react-i18next';
+import { useCurrency } from "@/contexts/CurrencyContext";
 import ListingGallery from "@/components/common/ListingSections/ListingGallery";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ListingReviews from "@/components/common/ListingSections/ListingReviews";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
-
 const FiltersContent = ({
   t,
   draftFilters,
@@ -38,6 +38,7 @@ const FiltersContent = ({
   tourStyleOptions,
   handleApplyFilters,
   handleResetFilters,
+  currencySymbol = "$",
   noBorder = false,
   hideHeader = false,
   fullHeight = false
@@ -68,11 +69,11 @@ const FiltersContent = ({
         <div className='row g-2 align-items-end'>
           <div className='col-6'>
             <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.minPrice')}</label>
-            <div className='input-group'><span className='input-group-text bg-white border-end-0'>$</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.minPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, minPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="0" /></div>
+            <div className='input-group'><span className='input-group-text bg-white border-end-0'>{currencySymbol}</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.minPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, minPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="0" /></div>
           </div>
           <div className='col-6'>
             <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.maxPrice')}</label>
-            <div className='input-group'><span className='input-group-text bg-white border-end-0'>$</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.maxPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, maxPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="9999" /></div>
+            <div className='input-group'><span className='input-group-text bg-white border-end-0'>{currencySymbol}</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.maxPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, maxPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="9999" /></div>
           </div>
         </div>
         <div>
@@ -114,6 +115,7 @@ export default function SubcategoryView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useTranslation('tours');
+  const { currencySymbol } = useCurrency();
 
   useEffect(() => {
     if (i18n.resolvedLanguage !== locale) i18n.changeLanguage(locale);
@@ -276,9 +278,9 @@ export default function SubcategoryView({
               allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
               title: getLocalizedValue(tour.heading || tour.name, locale),
               link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
-              price: tour.priceStartingFrom || 0,
+              price: tour.priceStartingFrom || { USD: 0 },
               rating: 5,
-              reviews: tour.reviews?.length || 0,
+              reviews: tour.reviewsCount || tour.reviews?.length || 0,
               videoId: tour.videoLink || "",
               discount: "",
               meta: [
@@ -385,6 +387,7 @@ export default function SubcategoryView({
               tourStyleOptions={tourStyleOptions}
               handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }}
               handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }}
+              currencySymbol={currencySymbol}
               noBorder={true}
               hideHeader={true}
               fullHeight={true}
@@ -491,6 +494,7 @@ export default function SubcategoryView({
                   tourStyleOptions={tourStyleOptions}
                   handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }}
                   handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }}
+                  currencySymbol={currencySymbol}
                   noBorder={true}
                 />
               </aside>

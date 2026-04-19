@@ -9,6 +9,7 @@ import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import Link from "next/link";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface FeaturePackageItem {
   id: number | string;
@@ -49,7 +50,6 @@ interface FeatureTwoProps {
   partnersSubtitle?: string;
   showShape?: boolean;
 }
-
 const FeatureTwo: React.FC<FeatureTwoProps> = ({
   extraClass,
   id,
@@ -59,14 +59,9 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   title,
   titleSpan,
   subtitle,
-  // uniqueId,
-  // headerStyle,
-  // showPartners = false,
-  // partners = [],
-  // partnersTitle,
-  // partnersSubtitle,
   showShape = true,
 }) => {
+  const { formatPrice } = useCurrency();
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
 
@@ -270,7 +265,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                                 Start from
                               </span>
                               <span className='listing-card-four__price__number'>
-                                {item.price}
+                                {formatPrice(typeof item.price === 'string' ? parseFloat(item.price) : item.price)}
                               </span>
                             </div>
                             <Link

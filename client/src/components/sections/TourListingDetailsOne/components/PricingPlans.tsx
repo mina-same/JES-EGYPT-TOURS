@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { PricingPlan } from "../types";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface PricingPlansProps {
   pricingPlans?: PricingPlan[];
@@ -205,40 +206,43 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
 };
 
 // Helper component for price cards
-const PriceCard: React.FC<{ icon: string; label: string; price: number; perPersonText: string }> = ({ icon, label, price, perPersonText }) => (
-  <div className="pricing-price-card-box" style={{
-    padding: '20px',
-    backgroundColor: '#F9F6F1',
-    borderRadius: '8px',
-    border: '1px solid rgba(183, 156, 92, 0.2)',
-    textAlign: 'center'
-  }}>
-    <div className="pricing-price-label" style={{
-      fontSize: '14px',
-      color: '#666',
-      marginBottom: '8px',
-      fontWeight: '500',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '6px'
+const PriceCard: React.FC<{ icon: string; label: string; price: number; perPersonText: string }> = ({ icon, label, price, perPersonText }) => {
+  const { formatPrice } = useCurrency();
+  return (
+    <div className="pricing-price-card-box" style={{
+      padding: '20px',
+      backgroundColor: '#F9F6F1',
+      borderRadius: '8px',
+      border: '1px solid rgba(183, 156, 92, 0.2)',
+      textAlign: 'center'
     }}>
-      <i className={`fas ${icon}`} style={{ color: '#b79c5c', fontSize: '12px' }}></i>
-      {label}
+      <div className="pricing-price-label" style={{
+        fontSize: '14px',
+        color: '#666',
+        marginBottom: '8px',
+        fontWeight: '500',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '6px'
+      }}>
+        <i className={`fas ${icon}`} style={{ color: '#b79c5c', fontSize: '12px' }}></i>
+        {label}
+      </div>
+      <div className="pricing-price-value" style={{
+        fontSize: '28px',
+        fontWeight: '700',
+        color: '#b79c5c'
+      }}>
+        {formatPrice(price)}
+      </div>
+      <div className="pricing-price-note" style={{
+        fontSize: '12px',
+        color: '#999',
+        marginTop: '4px'
+      }}>
+        {perPersonText}
+      </div>
     </div>
-    <div className="pricing-price-value" style={{
-      fontSize: '28px',
-      fontWeight: '700',
-      color: '#b79c5c'
-    }}>
-      ${price}
-    </div>
-    <div className="pricing-price-note" style={{
-      fontSize: '12px',
-      color: '#999',
-      marginTop: '4px'
-    }}>
-      {perPersonText}
-    </div>
-  </div>
-);
+  );
+};

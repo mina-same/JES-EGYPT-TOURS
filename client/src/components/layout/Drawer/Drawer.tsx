@@ -224,13 +224,13 @@ const Drawer: React.FC = () => {
             <span className='mobile-nav__contact__icon'>
               <i className='fa fa-envelope'></i>
             </span>
-            <Link href='mailto:needhelp@gotur.com'>needhelp@gotur.com</Link>
+            <Link href='mailto:info@jesegypttours.com'>info@jesegypttours.com</Link>
           </li>
           <li>
             <span className='mobile-nav__contact__icon'>
-              <i className='fa fa-phone-alt'></i>
+              <i className='fab fa-whatsapp'></i>
             </span>
-            <Link href='tel:+9156980036420'>+91 5698 0036 420</Link>
+            <Link href='https://wa.me/201007437271'>+20 100 743 7271</Link>
           </li>
         </ul>
 
@@ -247,8 +247,8 @@ const Drawer: React.FC = () => {
           </Link>
           <Link href='https://instagram.com'>
             {" "}
-            <i className='icon-linkedin' aria-hidden='true'></i>{" "}
-            <span className='sr-only'>Linked In</span>
+            <i className='icon-instagram' aria-hidden='true'></i>{" "}
+            <span className='sr-only'>Instagram</span>
           </Link>
           <Link href='https://youtube.com'>
             {" "}

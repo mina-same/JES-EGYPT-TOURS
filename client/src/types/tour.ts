@@ -96,7 +96,7 @@ export interface ITour {
   images: IImage[];
   gallery?: IImage[];
   price?: number;
-  priceStartingFrom?: number;
+  priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;
   tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
@@ -108,6 +108,7 @@ export interface ITour {
   seo?: ISEO;
   idExternal?: string;
   viewCount?: number;
+  reviewsCount?: number;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -159,6 +160,12 @@ export interface TourSubcategoryFormData {
   isActive: boolean;
 }
 
+export interface ICurrencyPrice {
+  USD: number;
+  EUR?: number;
+  GBP?: number;
+}
+
 // Pricing interfaces
 export interface IPricingNote {
   title: ILocalizedString;
@@ -170,10 +177,10 @@ export interface IPricingSeason {
   startDate?: string | Date; // Optional: start date of season
   endDate?: string | Date; // Optional: end date of season
   prices: {
-    solo: number;
-    pax_2_4: number;
-    pax_5_8: number;
-    pax_9_16: number;
+    solo: ICurrencyPrice;
+    pax_2_4: ICurrencyPrice;
+    pax_5_8: ICurrencyPrice;
+    pax_9_16: ICurrencyPrice;
   };
   notes: IPricingNote[];
 }
@@ -255,8 +262,9 @@ export interface TourFormData {
   blogReferences?: { id: string; title: string }[];
   relatedTours?: { id: string; title: string }[];
   reviews?: { type: string; url?: string; title: ILocalizedString; content?: ILocalizedMixed }[];
+  reviewsCount?: number;
   // Additional tour details
-  priceStartingFrom?: number;
+  priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;
   meetingPoint?: ILocalizedString;
   cancellationPolicy?: ILocalizedString;

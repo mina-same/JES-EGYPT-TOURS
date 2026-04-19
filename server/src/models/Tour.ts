@@ -18,11 +18,17 @@ export interface INote {
   text: ILocalizedMixed;
 }
 
+export interface ICurrencyPrice {
+  USD: number;
+  EUR?: number;
+  GBP?: number;
+}
+
 export interface IPrices {
-  solo?: number;
-  pax_2_4?: number;
-  pax_5_8?: number;
-  pax_9_16?: number;
+  solo?: ICurrencyPrice;
+  pax_2_4?: ICurrencyPrice;
+  pax_5_8?: ICurrencyPrice;
+  pax_9_16?: ICurrencyPrice;
 }
 
 export interface ISeason {
@@ -131,7 +137,7 @@ export interface ITour extends Document {
   inclusion?: ILocalizedMixed[];
   exclusion?: ILocalizedMixed[];
   pricingPlans: IPricingPlan[];
-  priceStartingFrom?: number;
+  priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;
   meetingPoint?: ILocalizedString;
   cancellationPolicy?: ILocalizedString;
@@ -146,6 +152,7 @@ export interface ITour extends Document {
   blogReferences?: IBlogReference[];
   relatedTours?: IRelatedTour[];
   reviews?: IReview[];
+  reviewsCount?: number;
   seo?: ISEO;
   isActive: boolean;
   isFeatured: boolean;
@@ -185,23 +192,38 @@ const NoteSchema = new Schema<INote>(
   { _id: false }
 );
 
+const CurrencyPriceSchema = new Schema<ICurrencyPrice>(
+  {
+    USD: {
+      type: Number,
+      required: [true, 'USD price is required'],
+      min: [0, 'Price cannot be negative'],
+    },
+    EUR: {
+      type: Number,
+      min: [0, 'Price cannot be negative'],
+    },
+    GBP: {
+      type: Number,
+      min: [0, 'Price cannot be negative'],
+    },
+  },
+  { _id: false }
+);
+
 const PricesSchema = new Schema<IPrices>(
   {
     solo: {
-      type: Number,
-      min: [0, 'Price cannot be negative'],
+      type: CurrencyPriceSchema,
     },
     pax_2_4: {
-      type: Number,
-      min: [0, 'Price cannot be negative'],
+      type: CurrencyPriceSchema,
     },
     pax_5_8: {
-      type: Number,
-      min: [0, 'Price cannot be negative'],
+      type: CurrencyPriceSchema,
     },
     pax_9_16: {
-      type: Number,
-      min: [0, 'Price cannot be negative'],
+      type: CurrencyPriceSchema,
     },
   },
   { _id: false }
@@ -580,8 +602,7 @@ const TourSchema = new Schema<ITour>(
       },
     },
     priceStartingFrom: {
-      type: Number,
-      min: [0, 'Price cannot be negative'],
+      type: CurrencyPriceSchema,
     },
     duration: {
       type: LocalizedStringSchema,
@@ -612,6 +633,11 @@ const TourSchema = new Schema<ITour>(
     blogReferences: [BlogReferenceSchema],
     relatedTours: [RelatedTourSchema],
     reviews: [ReviewSchema],
+    reviewsCount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Reviews count cannot be negative'],
+    },
     seo: SEOSchema,
     isActive: {
       type: Boolean,

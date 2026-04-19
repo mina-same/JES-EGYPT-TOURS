@@ -18,14 +18,12 @@ const SEOProvider: React.FC<SEOProviderProps> = ({ locale }) => {
     'description': 'JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences.',
     'address': {
       '@type': 'PostalAddress',
-      'streetAddress': '184 Main Collins Street',
-      'addressLocality': 'Victoria',
-      'postalCode': '8007',
-      'addressCountry': 'AU', // Note: Placeholder from topbar was Victoria 8007
+      'addressLocality': 'Cairo',
+      'addressCountry': 'EG',
     },
     'contactPoint': {
       '@type': 'ContactPoint',
-      'telephone': '+6108-666-0112',
+      'telephone': '+20 100 743 7271',
       'contactType': 'customer service',
       'email': 'info@jesegypttours.com',
       'availableLanguage': ['English', 'German', 'Italian', 'Spanish']

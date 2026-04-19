@@ -49,8 +49,8 @@ export function validateTourForm(formData: TourFormData): FormErrorItem[] {
   }
 
   // Price Starting From
-  if (formData.priceStartingFrom === undefined || formData.priceStartingFrom === null) {
-    errors.push({ field: 'Price Starting From', message: 'Starting price is required', path: 'priceStartingFrom' });
+  if (!formData.priceStartingFrom?.USD && formData.priceStartingFrom?.USD !== 0) {
+    errors.push({ field: 'Price Starting From', message: 'Starting USD price is required', path: 'priceStartingFrom.USD' });
   }
 
   // Cancellation Policy
@@ -86,10 +86,10 @@ export function validateTourForm(formData: TourFormData): FormErrorItem[] {
           // Check if at least one price is entered. We check for typeof 'number' to allow 0.
           const prices = season.prices;
           const hasPrice = prices && (
-            (typeof prices.solo === 'number') ||
-            (typeof prices.pax_2_4 === 'number') ||
-            (typeof prices.pax_5_8 === 'number') ||
-            (typeof prices.pax_9_16 === 'number')
+            (typeof prices.solo?.USD === 'number') ||
+            (typeof prices.pax_2_4?.USD === 'number') ||
+            (typeof prices.pax_5_8?.USD === 'number') ||
+            (typeof prices.pax_9_16?.USD === 'number')
           );
 
           if (!hasPrice) {

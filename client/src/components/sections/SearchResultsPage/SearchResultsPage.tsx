@@ -16,6 +16,7 @@ import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { getLocalizedValue } from "@/lib/localize";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -63,6 +64,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const { locale } = useParams() as { locale: string };
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { t } = useTranslation('search');
+  const { currencySymbol } = useCurrency();
 
   // Filter options state
   const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
@@ -245,7 +247,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
             title: getLocalizedValue(tour.heading || tour.name, locale),
             link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
-            price: tour.priceStartingFrom || 0,
+            price: tour.priceStartingFrom || { USD: 0 },
             rating: 5,
             reviews: tour.reviews?.length || 0,
             videoId: tour.videoLink || "",
@@ -377,23 +379,29 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     <div className="row g-2 mb-3">
                        <div className="col-6">
                          <label className="form-label font-weight-bold small">{t('minPrice')}</label>
-                         <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            value={draftFilters.minPrice}
-                            onChange={(e) => setDraftFilters(p => ({ ...p, minPrice: e.target.value }))}
-                            placeholder="0"
-                          />
+                         <div className="input-group input-group-sm">
+                           <span className="input-group-text bg-white border-end-0">{currencySymbol}</span>
+                           <input
+                              type="number"
+                              className="form-control border-start-0"
+                              value={draftFilters.minPrice}
+                              onChange={(e) => setDraftFilters(p => ({ ...p, minPrice: e.target.value }))}
+                              placeholder="0"
+                            />
+                         </div>
                        </div>
                        <div className="col-6">
                          <label className="form-label font-weight-bold small">{t('maxPrice')}</label>
-                         <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            value={draftFilters.maxPrice}
-                            onChange={(e) => setDraftFilters(p => ({ ...p, maxPrice: e.target.value }))}
-                            placeholder="9999"
-                          />
+                         <div className="input-group input-group-sm">
+                           <span className="input-group-text bg-white border-end-0">{currencySymbol}</span>
+                           <input
+                              type="number"
+                              className="form-control border-start-0"
+                              value={draftFilters.maxPrice}
+                              onChange={(e) => setDraftFilters(p => ({ ...p, maxPrice: e.target.value }))}
+                              placeholder="9999"
+                            />
+                         </div>
                        </div>
                     </div>
 

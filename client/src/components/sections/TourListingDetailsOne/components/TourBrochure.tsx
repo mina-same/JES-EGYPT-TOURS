@@ -2,7 +2,9 @@
 import React from "react";
 import { MapPin, Calendar, DollarSign, Check, X } from "lucide-react";
 import { footerOneData } from "@/data/footerOneData";
+import { useTranslation } from "react-i18next";
 import type { TourDetailsOneData } from "../types";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface TourBrochureProps {
   tour: TourDetailsOneData;
@@ -20,6 +22,8 @@ interface TourBrochureProps {
 }
 
 const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour, assets }, ref) => {
+  const { t, i18n } = useTranslation("tours");
+  const { formatPrice } = useCurrency();
   const getImgUrl = (img: any) => {
     if (!img) return "";
     if (typeof img === "string") return img;
@@ -146,7 +150,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                 fontSize: 16,
               }}
             >
-              <DollarSign size={16} /> From ${tour.price}
+              <DollarSign size={16} /> {t("tourDetails.from", "From")} {formatPrice(tour.price)}
             </span>
           </div>
         </div>
@@ -231,7 +235,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
             {assets?.qrDataUrl ? (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#8B7355" }}>
-                  Scan to view online
+                  {t("tourDetails.brochure.scanOnline", "Scan to view online")}
                 </div>
                 <img
                   src={assets.qrDataUrl}
@@ -246,7 +250,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
       )}
 
       <div style={{ padding: "48px 60px" }}>
-        <SectionHeader label="Overview" title={tour.overviewTitle || "Overview"} />
+        <SectionHeader 
+          label={t("tourDetails.overview", "Overview")} 
+          title={tour.overviewTitle || t("tourDetails.overview", "Overview")} 
+        />
         <p
           style={{
             fontSize: 15,
@@ -276,10 +283,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
           >
             <div style={{ minWidth: 320, flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#2D1F0E", marginBottom: 6 }}>
-                Map & Location
+                {t("tourDetails.brochure.mapLabel", "Map & Location")}
               </div>
               <div style={{ fontSize: 13, color: "#8B7355", lineHeight: 1.6 }}>
-                Scan the QR to open the map location.
+                {t("tourDetails.brochure.scanMap", "Scan the QR to open the map location.")}
               </div>
               {tour.location ? (
                 <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: "#2D1F0E" }}>
@@ -334,7 +341,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
 
       {tour.highlightList?.length > 0 && (
         <div style={{ padding: "48px 60px", backgroundColor: "#F0EAE0" }}>
-          <SectionHeader label="Highlights" title="What Makes This Special" />
+          <SectionHeader 
+             label={t("tourDetails.highlights", "Highlights")} 
+             title={t("tourDetails.brochure.whySpecial", "What Makes This Special")} 
+          />
           <div
             style={{
               display: "grid",
@@ -383,7 +393,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
 
       {(tour.amenities?.length > 0 || tour.amenitiesTwo?.length > 0) && (
         <div style={{ padding: "48px 60px" }}>
-          <SectionHeader label="What's Included" title="Inclusions & Exclusions" />
+          <SectionHeader 
+             label={t("tourDetails.itinerary.inclusions", "What's Included")} 
+             title={t("tourDetails.brochure.inclusionsExclusions", "Inclusions & Exclusions")} 
+          />
           <div
             style={{
               display: "grid",
@@ -399,11 +412,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontSize: 20,
                     fontWeight: 600,
-                    marginBottom: 16,
                     color: "#2E7D32",
                   }}
                 >
-                  ✓ Included
+                  ✓ {t("tourDetails.itinerary.inclusions", "Included")}
                 </h4>
                 {tour.amenities.map((a, i) => (
                   <div
@@ -429,11 +441,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontSize: 20,
                     fontWeight: 600,
-                    marginBottom: 16,
                     color: "#E65100",
                   }}
                 >
-                  ✗ Not Included
+                  ✗ {t("tourDetails.itinerary.exclusions", "Not Included")}
                 </h4>
                 {tour.amenitiesTwo.map((a, i) => (
                   <div
@@ -458,7 +469,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
 
       {pricingPlans.length > 0 && (
         <div style={{ padding: "48px 60px", backgroundColor: "#F0EAE0" }}>
-          <SectionHeader label="Pricing" title="Choose Your Package" />
+          <SectionHeader 
+             label={t("tourDetails.brochure.pricingLabel", "Pricing")} 
+             title={t("tourDetails.brochure.choosePackage", "Choose Your Package")} 
+          />
           {pricingPlans.map((plan, i) => (
             <div key={i} style={{ marginTop: 24 }}>
               <h4
@@ -520,7 +534,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
 
       {itineraryDays.length > 0 && (
         <div style={{ padding: "48px 60px" }}>
-          <SectionHeader label="Day by Day" title="Your Itinerary" />
+          <SectionHeader 
+             label={t("tourDetails.brochure.dayByDay", "Day by Day")} 
+             title={t("tourDetails.itinerary.title", "Your Itinerary")} 
+          />
           <div style={{ marginTop: 24 }}>
             {itineraryDays.map((d, k) => (
               <div
@@ -647,7 +664,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
           {website ? ` \n•\n 🌐 ${website}` : null}
         </div>
         <div style={{ fontSize: 12, color: "#8B7355", marginTop: 12 }}>
-          Generated on {new Date().toLocaleDateString()} — This brochure is for informational purposes. Prices subject to change.
+          {t("tourDetails.brochure.generatedOn", "Generated on")} {new Date().toLocaleDateString(i18n.language)} — {t("tourDetails.brochure.disclaimer", "This brochure is for informational purposes. Prices subject to change.")}
         </div>
       </div>
     </div>
@@ -688,10 +705,11 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
 }
 
 function PriceTag({ label, price }: { label: string; price: number }) {
+  const { formatPrice } = useCurrency();
   return (
     <div style={{ textAlign: "center", padding: "10px 8px", backgroundColor: "#FDFAF6", borderRadius: 10 }}>
       <div style={{ fontSize: 12, color: "#8B7355", marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: "#2D1F0E" }}>${price}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#2D1F0E" }}>{formatPrice(price)}</div>
     </div>
   );
 }

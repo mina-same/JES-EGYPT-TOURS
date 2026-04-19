@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Metadata {
   id: number;
@@ -20,7 +21,7 @@ interface TourCardProps {
     allImages: string[];
     title: string;
     link: string;
-    price: number;
+    price: number | any;
     rating: number;
     reviews: number;
     videoId: string;
@@ -38,6 +39,7 @@ const TourCard: React.FC<TourCardProps> = ({
   isInWishlist,
   openVideoReviews,
 }) => {
+  const { formatPrice } = useCurrency();
   return (
     <PhotoSwipeGallery>
       <div className="item">
@@ -175,7 +177,7 @@ const TourCard: React.FC<TourCardProps> = ({
                   Start from
                 </span>
                 <span className="listing-card-four__price__number">
-                  ${item.price}
+                  {formatPrice(item.price)}
                 </span>
               </div>
               <Link href={item.link} className="listing-card-four__btn gotur-btn">

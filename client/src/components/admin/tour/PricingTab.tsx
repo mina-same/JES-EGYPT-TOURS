@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import PricingPlansManager from '@/components/admin/PricingPlansManager';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
+import CurrencyInput from '@/components/admin/CurrencyInput';
 import { cn } from '@/lib/utils';
 import type { FormErrorItem } from '@/lib/parseApiError';
 
@@ -26,24 +27,17 @@ export default function PricingTab({ formData, handleChange, activeLanguage, for
           <CardDescription>Base price and cancellation policy</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2" data-field="priceStartingFrom">
-            <Label 
-              htmlFor="priceStartingFrom"
-              className={cn(formErrors.some(e => e.path === 'priceStartingFrom') && 'text-red-600')}
-            >
-              Starting From Price ($) * {formErrors.some(e => e.path === 'priceStartingFrom') && '⚠'}
-            </Label>
-            <Input
-              id="priceStartingFrom"
-              type="number"
-              min="0"
-              value={formData.priceStartingFrom || ''}
-              onChange={(e) => handleChange('priceStartingFrom', e.target.value === '' ? undefined : parseFloat(e.target.value))}
+          <div className="space-y-2">
+            <CurrencyInput
+              label="Starting From Price *"
+              value={formData.priceStartingFrom || { USD: 0 }}
+              onChange={(val) => handleChange('priceStartingFrom', val)}
               placeholder="0.00"
-              className={cn(formErrors.some(e => e.path === 'priceStartingFrom') && 'border-red-500 focus-visible:ring-red-500')}
+              data-field="priceStartingFrom"
+              error={formErrors.some(e => e.path?.startsWith('priceStartingFrom'))}
             />
-            {formErrors.some(e => e.path === 'priceStartingFrom') && (
-              <p className="text-xs text-red-600">{formErrors.find(e => e.path === 'priceStartingFrom')?.message}</p>
+            {formErrors.some(e => e.path?.startsWith('priceStartingFrom')) && (
+              <p className="text-xs text-red-600">{formErrors.find(e => e.path?.startsWith('priceStartingFrom'))?.message}</p>
             )}
           </div>
 

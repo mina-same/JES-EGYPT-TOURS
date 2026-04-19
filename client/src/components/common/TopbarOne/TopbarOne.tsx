@@ -6,6 +6,7 @@ import { topbarOne } from "@/data/topbarOne";
 
 import Link from "next/link";
 import LanguageSelector from "../LanguageSelector/LanguageSelector";
+import CurrencySwitcher from "../CurrencySwitcher/CurrencySwitcher";
 import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
 
@@ -82,7 +83,12 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
                 <Link href={address.href}>{address.label}</Link>
               </div>
             ) : (
-              mounted ? <LanguageSelector /> : <div style={{ width: '120px', height: '40px' }} />
+              mounted ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <CurrencySwitcher />
+                  <LanguageSelector />
+                </div>
+              ) : <div style={{ width: '220px', height: '40px' }} />
             )}
 
             {/* Links Section */}

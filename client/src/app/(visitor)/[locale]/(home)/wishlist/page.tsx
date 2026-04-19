@@ -12,6 +12,7 @@ import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI } from "@/lib/api/tour";
 import { Loader2, Trash2, Heart } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { Col, Container, Row } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import Image from "next/image";
@@ -25,7 +26,7 @@ type WishlistTour = {
   slug: string;
   heading?: string;
   name?: string;
-  priceStartingFrom?: number;
+  priceStartingFrom?: any;
   images?: Array<{ url: string }>;
   gallery?: Array<{ url: string }>;
   reviews?: Array<any>;
@@ -50,6 +51,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
   }, [locale, i18n]);
 
   const { wishlist, toggleWishlist } = useWishlist();
+  const { formatPrice } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [tours, setTours] = useState<WishlistTour[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +129,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               image: unique[0] || "/assets/images/resources/tour-1-1.jpg",
               title: t.heading || t.name || "Tour",
               link: `/${locale}/${getLocalizedValue(t.slug, locale)}`,
-              price: t.priceStartingFrom || 0,
+              price: t.priceStartingFrom || { USD: 0 },
               rating: 5,
               reviews: t.reviews?.length || 0,
               videoId: "",
@@ -180,7 +182,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
       <section className="section-space">
         <Container>
           {loading ? (
-            <div className="flex items-center justify-center min-h-[300px]">
+            <div className="flex items-center justify-center min-h-[300px] text-primary">
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>
           ) : error ? (
@@ -203,7 +205,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               {tours.map((tour) => {
                 const image = getPrimaryImage(tour);
                 const title = tour.heading || tour.name || "Untitled Tour";
-                const price = tour.priceStartingFrom ?? 0;
+                const price = tour.priceStartingFrom || { USD: 0 };
                 const reviews = tour.reviews?.length || 0;
                 return (
                   <Col lg={4} md={6} key={tour._id}>
@@ -281,7 +283,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                                 {t('startFrom')}
                               </span>
                               <span className="listing-card-four__price__number">
-                                ${price}
+                                {formatPrice(price)}
                               </span>
                             </div>
                             <Link

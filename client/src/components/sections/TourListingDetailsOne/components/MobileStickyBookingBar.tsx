@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { BookingForm } from './BookingForm';
 import { X } from 'lucide-react';
 
@@ -10,6 +11,7 @@ interface MobileStickyBookingBarProps {
 
 export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ tourId, price }) => {
   const { t } = useTranslation("tours");
+  const { formatPrice } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -42,7 +44,7 @@ export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ 
         <div className="booking-bar-content">
           <div className="booking-bar-price">
             <span className="price-label">{t("tourDetails.from")}</span>
-            <span className="price-value">${price || 0}</span>
+            <span className="price-value">{formatPrice(price)}</span>
           </div>
           <button className="theme-btn booking-bar-btn" onClick={() => setIsOpen(true)}>
             {t("tourDetails.bookNow", "Book Now")}

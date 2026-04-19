@@ -715,13 +715,13 @@ const TailorMadePage: React.FC = () => {
               </h3>
               <p className="sidebar-card__subtitle">{t('sidebar.needHelp.subtitle')}</p>
               <div className="sidebar-contact">
-                <a href="tel:+19172678628" className="sidebar-contact__item">
+                <a href="https://wa.me/201007437271" className="sidebar-contact__item">
                   <Phone size={18} />
-                  <span>+1 (917) 267-8628</span>
+                  <span>+20 100 743 7271</span>
                 </a>
-                <a href="mailto:info@luxorandaswan.com" className="sidebar-contact__item">
+                <a href="mailto:info@jesegypttours.com" className="sidebar-contact__item">
                   <Mail size={18} />
-                  <span>info@luxorandaswan.com</span>
+                  <span>info@jesegypttours.com</span>
                 </a>
               </div>
               <p className="sidebar-card__note">

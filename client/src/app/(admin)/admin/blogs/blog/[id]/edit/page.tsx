@@ -33,6 +33,7 @@ import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLangua
 import { ILocalizedString, ILocalizedMixed, IImage } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
+import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 
 // Tab definitions
@@ -95,6 +96,7 @@ export default function EditBlogPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
+  const [authors, setAuthors] = useState<AuthUser[]>([]);
 
   const { formData, setFormData, clearDraft } = useFormDraft<any>(
     `draft_blog_edit_${blogId}`,
@@ -446,12 +448,20 @@ export default function EditBlogPage() {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const catRes = await blogCategoryAPI.getAll({ isActive: true });
+        const [catRes, userRes] = await Promise.all([
+          blogCategoryAPI.getAll({ isActive: true }),
+          userAPI.getAllUsers()
+        ]);
+        
         if (catRes.success && catRes.data) {
           setCategories(catRes.data);
         }
+
+        if (userRes.success && userRes.data?.users) {
+          setAuthors(userRes.data.users);
+        }
       } catch (error) {
-        console.error('Failed to fetch blog categories:', error);
+        console.error('Failed to fetch blog options:', error);
       } finally {
         setFetchingOptions(false);
       }
@@ -880,6 +890,28 @@ export default function EditBlogPage() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="author">Author</Label>
+                        <Select 
+                          value={formData.author || ""} 
+                          onValueChange={(value) => handleChange('author', value)}
+                        >
+                          <SelectTrigger id="author">
+                            <SelectValue placeholder="Select Author" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {authors.map((author) => (
+                              <SelectItem key={author.id} value={author.id}>
+                                {author.name} ({author.email})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {getFieldError('author') && (
+                          <p className="text-sm text-destructive mt-1">{getFieldError('author')}</p>
+                        )}
+                      </div>
 
                     {formData.status === 'scheduled' && (
                       <div className="space-y-2">
