@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import LocalizedField from '@/components/admin/LocalizedField';
 import LocalizedInput from '@/components/admin/LocalizedInput';
+import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
 import TagInput from '@/components/admin/TagInput';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
@@ -758,17 +759,14 @@ export default function EditBlogPage() {
                         </LocalizedField>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="metaKeywords">Meta Keywords ({activeLanguage.toUpperCase()})</Label>
-                        <TagInput
-                          tags={formData.metaKeywords?.[activeLanguage] || []}
-                          onChange={(tags) => {
-                            const updated = { ...(formData.metaKeywords || { en: [], de: [], it: [], es: [] }) };
-                            updated[activeLanguage] = tags;
-                            handleChange('metaKeywords', updated);
-                          }}
+                        <LocalizedTagsInput
+                          label="Meta Keywords"
+                          value={formData.metaKeywords}
+                          onChange={(val) => handleChange('metaKeywords', val)}
                           placeholder="Add a keyword and press Enter..."
+                          activeLanguage={activeLanguage}
                         />
-                        <p className="text-sm text-muted-foreground">Type and press Enter to add keywords.</p>
+                        <p className="text-sm text-muted-foreground italic">Type and press Enter to add keywords.</p>
                       </div>
                     </div>
                     

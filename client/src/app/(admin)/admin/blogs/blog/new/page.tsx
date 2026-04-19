@@ -658,6 +658,7 @@ export default function NewBlogPage() {
                           value={formData.metaKeywords}
                           onChange={(val) => handleChange('metaKeywords', val)}
                           placeholder="Add a keyword..."
+                          activeLanguage={activeLanguage}
                         />
                         <p className="text-sm text-muted-foreground italic">Type and press Enter to add keywords for SEO.</p>
                       </div>
