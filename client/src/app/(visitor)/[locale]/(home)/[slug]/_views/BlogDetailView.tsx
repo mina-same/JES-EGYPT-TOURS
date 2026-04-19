@@ -106,6 +106,23 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
 
   const localizedSlugs = typeof blog.slug === 'object' ? blog.slug : { en: slug };
 
+  const breadcrumbs: { label: any; href?: string }[] = [
+    { label: t('blog'), href: `/${locale}/blogs` },
+  ];
+  if (blog.category) {
+    breadcrumbs.push({
+      label: getLocalizedValue(blog.category.name, locale),
+      href: `/${locale}/${getLocalizedValue(blog.category.slug, locale) || ''}`
+    });
+  }
+  if (blog.subCategory) {
+    breadcrumbs.push({
+      label: getLocalizedValue(blog.subCategory.name, locale),
+      href: `/${locale}/${getLocalizedValue(blog.subCategory.slug, locale) || ''}`
+    });
+  }
+  breadcrumbs.push({ label: title });
+
   return (
     <>
       <script
@@ -117,7 +134,13 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
         <TopbarOne />
         <HeaderOne linkTheme="light" />
         <HeaderOneCloned />
-        <PageHeader title={title} subTitle={getLocalizedValue(blog.excerpt, locale) || t('ourBlog')} />
+        <PageHeader 
+          title={title} 
+          subTitle={getLocalizedValue(blog.excerpt, locale) || t('ourBlog')} 
+          bgImage={featuredImageUrl}
+          alt={typeof blog.featuredImage === 'object' ? getLocalizedValue(blog.featuredImage?.alt, locale) : undefined}
+          breadcrumbs={breadcrumbs}
+        />
         <DynamicBlogDetails blog={blog} showSidebar='right' />
         <FooterOne />
       </Layout>

@@ -653,12 +653,13 @@ export default function NewBlogPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <LocalizedInput
-                          label="Focus Keyword"
-                          value={formData.focusKeyword}
-                          onChange={(val) => handleChange('focusKeyword', val)}
-                          placeholder="Main keyword"
+                        <LocalizedTagsInput
+                          label="Meta Keywords"
+                          value={formData.metaKeywords}
+                          onChange={(val) => handleChange('metaKeywords', val)}
+                          placeholder="Add a keyword..."
                         />
+                        <p className="text-sm text-muted-foreground italic">Type and press Enter to add keywords for SEO.</p>
                       </div>
                     </div>
 
@@ -672,15 +673,7 @@ export default function NewBlogPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <LocalizedTagsInput
-                        label="Meta Keywords"
-                        value={formData.metaKeywords}
-                        onChange={(val) => handleChange('metaKeywords', val)}
-                        placeholder="Add a keyword..."
-                      />
-                      <p className="text-sm text-muted-foreground italic">Type and press Enter to add keywords for SEO.</p>
-                    </div>
+
 
                     <div className="space-y-2">
                       <Label>Meta / Social Image</Label>

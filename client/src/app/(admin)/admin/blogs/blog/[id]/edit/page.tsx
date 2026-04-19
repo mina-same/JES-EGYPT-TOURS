@@ -752,28 +752,23 @@ export default function EditBlogPage() {
                               id="metaTitle"
                               value={value}
                               onChange={(e) => onChange(e.target.value)}
-                              placeholder="SEO title (60 characters max)"
-                              maxLength={60}
+                              placeholder="SEO title"
                             />
                           )}
                         </LocalizedField>
                       </div>
                       <div className="space-y-2">
-                        <LocalizedField
-                          label="Focus Keyword"
-                          value={formData.focusKeyword}
-                          onChange={(lang, val) => handleChange('focusKeyword', val)}
-                          globalLanguage={activeLanguage}
-                        >
-                          {(lang, value, onChange) => (
-                            <Input
-                              id="focusKeyword"
-                              value={value}
-                              onChange={(e) => onChange(e.target.value)}
-                              placeholder={`Main keyword for SEO in ${lang.toUpperCase()}`}
-                            />
-                          )}
-                        </LocalizedField>
+                        <Label htmlFor="metaKeywords">Meta Keywords ({activeLanguage.toUpperCase()})</Label>
+                        <TagInput
+                          tags={formData.metaKeywords?.[activeLanguage] || []}
+                          onChange={(tags) => {
+                            const updated = { ...(formData.metaKeywords || { en: [], de: [], it: [], es: [] }) };
+                            updated[activeLanguage] = tags;
+                            handleChange('metaKeywords', updated);
+                          }}
+                          placeholder="Add a keyword and press Enter..."
+                        />
+                        <p className="text-sm text-muted-foreground">Type and press Enter to add keywords.</p>
                       </div>
                     </div>
                     
@@ -785,29 +780,17 @@ export default function EditBlogPage() {
                         globalLanguage={activeLanguage}
                       >
                         {(lang, value, onChange) => (
-                          <Textarea
-                            id="metaDescription"
-                            value={value}
-                            onChange={(e) => onChange(e.target.value)}
-                            placeholder={`SEO description in ${lang.toUpperCase()} (160 characters max)`}
-                            maxLength={160}
-                            rows={3}
-                          />
+                            <Textarea
+                              id="metaDescription"
+                              value={value}
+                              onChange={(e) => onChange(e.target.value)}
+                              placeholder={`SEO description in ${lang.toUpperCase()}`}
+                              rows={3}
+                            />
                         )}
                       </LocalizedField>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="metaKeywords">Meta Keywords ({activeLanguage.toUpperCase()})</Label>
-                      <TagInput
-                        tags={formData.metaKeywords[activeLanguage] || []}
-                        onChange={(tags) => handleChange('metaKeywords', tags)}
-                        placeholder="Add a keyword and press Enter..."
-                        suggestions={TAG_SUGGESTIONS}
-                        maxTags={10}
-                      />
-                      <p className="text-sm text-muted-foreground">Type and press Enter to add keywords for SEO.</p>
-                    </div>
 
                     <div className="space-y-2">
                       <Label>Meta / Social Image</Label>

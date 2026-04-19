@@ -88,6 +88,13 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
       <PageHeader 
         title={getLocalizedValue(subcategory.name, locale)} 
         subTitle={getLocalizedValue(subcategory.description, locale) || parentName || t('blogCategory')} 
+        bgImage={typeof subcategory.image === 'object' ? subcategory.image?.url : subcategory.image || undefined}
+        alt={typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) : undefined}
+        breadcrumbs={[
+          { label: t('blog'), href: `/${locale}/blogs` },
+          ...(subcategory.category ? [{ label: parentName, href: `/${locale}/${typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).slug, locale) : ''}` }] : []),
+          { label: getLocalizedValue(subcategory.name, locale) }
+        ]}
       />
 
       <DynamicBlogGrid

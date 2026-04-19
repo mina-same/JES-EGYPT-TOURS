@@ -20,14 +20,14 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
   return (
     <section className="page-header relative overflow-hidden">
       <div className="page-header__bg-wrapper absolute inset-0 -z-10">
-        <Image 
-          src={backgroundImage} 
-          alt={alt || title || "Page Header"} 
-          fill 
+        <Image
+          src={backgroundImage}
+          alt={alt || title || "Page Header"}
+          fill
           priority
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/50"></div>
       </div>
       <div className="container relative z-10">
         <div className="page-header__content" style={{ textAlign: 'center' }}>
@@ -43,8 +43,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
           </ul>
           <h1 className="page-header__title bw-split-in-right">{title}</h1>
           {subTitle && (
-            <div 
-              className="page-header__subtitle html-content" 
+            <div
+              className="page-header__subtitle html-content"
               style={{
                 color: 'rgba(255,255,255,0.9)',
                 fontSize: '18px',

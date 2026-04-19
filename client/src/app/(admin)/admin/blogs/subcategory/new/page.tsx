@@ -409,12 +409,14 @@ export default function NewBlogSubCategoryPage() {
                 value={formData.name}
                 onChange={(val, lang) => handleChange('name', val, lang)}
                 placeholder="Food & Drink"
+                activeLanguage={activeLanguage}
               />
               <LocalizedInput
                 label="URL Slug *"
                 value={formData.slug}
                 onChange={(val, lang) => handleChange('slug', val, lang)}
                 placeholder="food-and-drink"
+                activeLanguage={activeLanguage}
               />
             </div>
             
@@ -423,6 +425,7 @@ export default function NewBlogSubCategoryPage() {
               value={formData.description}
               onChange={(val) => handleChange('description', val)}
               placeholder="Describe this subcategory..."
+              activeLanguage={activeLanguage}
             />
 
             <div className="flex items-center space-x-2">
@@ -483,6 +486,7 @@ export default function NewBlogSubCategoryPage() {
                   value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
                   onChange={(val) => handleChange('seo.metaTitle', val)}
                   placeholder="SEO Title"
+                  activeLanguage={activeLanguage}
                 />
               </div>
               <div className="space-y-2">
@@ -491,6 +495,7 @@ export default function NewBlogSubCategoryPage() {
                   value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
                   onChange={(val) => handleChange('seo.metaKeywords', val)}
                   placeholder="Add keyword..."
+                  activeLanguage={activeLanguage}
                 />
               </div>
             </div>
@@ -501,6 +506,7 @@ export default function NewBlogSubCategoryPage() {
               value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
               onChange={(val) => handleChange('seo.metaDescription', val)}
               placeholder="SEO Description..."
+              activeLanguage={activeLanguage}
             />
             </div>
 

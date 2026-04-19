@@ -18,6 +18,15 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get("page")) || 1;
+  const t = (key: string) => {
+    const translations: any = {
+      en: require("@/i18n/locales/en/blogs.json"),
+      de: require("@/i18n/locales/de/blogs.json"),
+      it: require("@/i18n/locales/it/blogs.json"),
+      es: require("@/i18n/locales/es/blogs.json")
+    };
+    return translations[locale]?.[key] || translations['en']?.[key] || key;
+  };
 
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<any>(null);
@@ -77,6 +86,12 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
       <PageHeader 
         title={getLocalizedValue(category.name, locale)} 
         subTitle={getLocalizedValue(category.description, locale)} 
+        bgImage={typeof category.image === 'object' ? category.image?.url : category.image || undefined}
+        alt={typeof category.image === 'object' ? getLocalizedValue(category.image?.alt, locale) : undefined}
+        breadcrumbs={[
+          { label: t('blog'), href: `/${locale}/blogs` },
+          { label: getLocalizedValue(category.name, locale) }
+        ]}
       />
 
       <DynamicBlogGrid

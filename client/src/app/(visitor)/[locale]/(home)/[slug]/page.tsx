@@ -60,6 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
         const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
+        const image = data.seo?.metaImage?.url || data.image || undefined;
         
         const languages: Record<string, string> = {};
         for (const loc of LOCALES) {
@@ -75,6 +76,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             title: seoTitle || "JES Egypt Tours",
             description,
             type: "website",
+            images: image ? [image] : undefined,
+          },
+          twitter: {
+            card: "summary_large_image",
+            title: seoTitle || "JES Egypt Tours",
+            description,
+            images: image ? [image] : undefined,
           }
         };
       }
@@ -92,6 +100,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
         const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
+        const image = data.seo?.metaImage?.url || data.image || undefined;
 
         const languages: Record<string, string> = {};
         for (const loc of LOCALES) {
@@ -107,6 +116,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             title: seoTitle || "JES Egypt Tours",
             description,
             type: "website",
+            images: image ? [image] : undefined,
+          },
+          twitter: {
+            card: "summary_large_image",
+            title: seoTitle || "JES Egypt Tours",
+            description,
+            images: image ? [image] : undefined,
           }
         };
       }
@@ -119,10 +135,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (category) {
       const correctSlug = getLocaleSlug(category.slug, locale);
       if (correctSlug) {
-        const seoTitle = getLocalizedValue(category.seo?.metaTitle, locale);
-        const seoDescription = getLocalizedValue(category.seo?.metaDescription, locale);
+        const cAny = category as any;
+        const seoTitle = getLocalizedValue(cAny.metaTitle, locale);
+        const seoDescription = getLocalizedValue(cAny.metaDescription, locale);
         const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
-        const keywords = getLocalizedValue(category.seo?.metaKeywords, locale);
+        const keywords = getLocalizedValue(cAny.metaKeywords, locale);
+        // Fallback chain for image
+        const ogImage = cAny.ogImage || (cAny.metaImage && cAny.metaImage.url) || (typeof cAny.image === 'object' ? cAny.image.url : cAny.image) || undefined;
 
         const languages: Record<string, string> = {};
         for (const loc of LOCALES) {
@@ -134,6 +153,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          openGraph: {
+            title: seoTitle || "JES Egypt Tours",
+            description,
+            type: "website",
+            images: ogImage ? [ogImage] : undefined,
+          }
         };
       }
     }
@@ -145,10 +170,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (subcategory) {
       const correctSlug = getLocaleSlug(subcategory.slug, locale);
       if (correctSlug) {
-        const seoTitle = getLocalizedValue(subcategory.seo?.metaTitle, locale);
-        const seoDescription = getLocalizedValue(subcategory.seo?.metaDescription, locale);
+        const sAny = subcategory as any;
+        const seoTitle = getLocalizedValue(sAny.metaTitle, locale);
+        const seoDescription = getLocalizedValue(sAny.metaDescription, locale);
         const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
-        const keywords = getLocalizedValue(subcategory.seo?.metaKeywords, locale);
+        const keywords = getLocalizedValue(sAny.metaKeywords, locale);
+        // Fallback chain for image
+        const ogImage = sAny.ogImage || (sAny.metaImage && sAny.metaImage.url) || (typeof sAny.image === 'object' ? sAny.image.url : sAny.image) || undefined;
 
         const languages: Record<string, string> = {};
         for (const loc of LOCALES) {
@@ -160,6 +188,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           description,
           keywords: keywords || undefined,
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          openGraph: {
+            title: seoTitle || "JES Egypt Tours",
+            description,
+            type: "website",
+            images: ogImage ? [ogImage] : undefined,
+          }
         };
       }
     }
@@ -171,11 +205,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (blog) {
       const correctSlug = getLocaleSlug(blog.slug, locale);
       if (correctSlug) {
+        const bAny = blog as any;
         const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
-        const seoTitle = getLocalizedValue(blog.seo?.metaTitle, locale);
-        const seoDescription = getLocalizedValue(blog.seo?.metaDescription, locale);
+        const seoTitle = getLocalizedValue(bAny.metaTitle, locale);
+        const seoDescription = getLocalizedValue(bAny.metaDescription, locale);
         const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
-        const keywords = getLocalizedValue(blog.seo?.metaKeywords, locale);
+        const keywords = getLocalizedValue(bAny.metaKeywords, locale);
+        const ogImage = bAny.ogImage || (bAny.metaImage && bAny.metaImage.url) || featuredImageUrl || undefined;
 
         const languages: Record<string, string> = {};
         for (const loc of LOCALES) {
@@ -190,14 +226,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           openGraph: {
             title: seoTitle || "JES Egypt Tours",
             description,
-            images: blog.seo?.metaImage?.url ? [blog.seo.metaImage.url] : [featuredImageUrl].filter(Boolean) as string[],
+            images: ogImage ? [ogImage] : undefined,
             type: "article",
           },
           twitter: {
             card: "summary_large_image",
             title: seoTitle || "JES Egypt Tours",
             description,
-            images: blog.seo?.metaImage?.url ? [blog.seo.metaImage.url] : [featuredImageUrl].filter(Boolean) as string[],
+            images: ogImage ? [ogImage] : undefined,
           },
         };
       }
