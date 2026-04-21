@@ -62,33 +62,47 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 function stripBisAttributes(root) {
                   if (!root || !root.querySelectorAll) return;
 
-                  var nodes = root.querySelectorAll('[bis_skin_checked],[bis_size],[bis_id]');
+                  // 1. Remove specific known problematic attributes
+                  var nodes = root.querySelectorAll('[bis_skin_checked],[bis_size],[bis_id],[bis_register]');
                   for (var i = 0; i < nodes.length; i++) {
                     nodes[i].removeAttribute('bis_skin_checked');
                     nodes[i].removeAttribute('bis_size');
                     nodes[i].removeAttribute('bis_id');
+                    nodes[i].removeAttribute('bis_register');
                   }
 
-                  // Also strip any attribute starting with "bis_".
+                  // 2. Strip any attribute starting with "bis_" or "__processed_"
                   var all = root.getElementsByTagName('*');
                   for (var j = 0; j < all.length; j++) {
                     var attrs = all[j].attributes;
                     for (var k = attrs.length - 1; k >= 0; k--) {
                       var name = attrs[k].name;
-                      if (name && name.indexOf('bis_') === 0) {
+                      if (name && (name.indexOf('bis_') === 0 || name.indexOf('__processed_') === 0)) {
                         all[j].removeAttribute(name);
                       }
+                    }
+                  }
+                  
+                  // Also check the root element (document.documentElement) and body
+                  if (root.attributes) {
+                    var rootAttrs = root.attributes;
+                    for (var l = rootAttrs.length - 1; l >= 0; l--) {
+                        var rootAttrName = rootAttrs[l].name;
+                        if (rootAttrName && (rootAttrName.indexOf('bis_') === 0 || rootAttrName.indexOf('__processed_') === 0)) {
+                            root.removeAttribute(rootAttrName);
+                        }
                     }
                   }
                 }
 
                 try {
-                  stripBisAttributes(document);
+                  stripBisAttributes(document.documentElement);
+                  stripBisAttributes(document.body);
 
                   var observer = new MutationObserver(function (mutations) {
                     for (var i = 0; i < mutations.length; i++) {
                       var m = mutations[i];
-                      if (m.type === 'attributes' && m.attributeName && m.attributeName.indexOf('bis_') === 0) {
+                      if (m.type === 'attributes' && m.attributeName && (m.attributeName.indexOf('bis_') === 0 || m.attributeName.indexOf('__processed_') === 0)) {
                         if (m.target && m.target.removeAttribute) {
                           m.target.removeAttribute(m.attributeName);
                         }
@@ -108,7 +122,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     subtree: true,
                     childList: true,
                     attributes: true,
-                    attributeFilter: ['bis_skin_checked', 'bis_size', 'bis_id'],
                   });
                 } catch (e) {
                   // ignore

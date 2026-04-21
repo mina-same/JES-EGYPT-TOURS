@@ -34,7 +34,7 @@ const LoginSection: React.FC = () => {
     try {
       setIsLoading(true);
       setError("");
-      await login(data.email, data.password);
+      await login(data.email, data.password, data.rememberMe);
     } catch (err: any) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {
@@ -124,6 +124,7 @@ const LoginSection: React.FC = () => {
                               id='rememberMe'
                               type='checkbox'
                               className='login-page__input-box__inner'
+                              defaultChecked
                               {...register("rememberMe")}
                             />
                             <label htmlFor='rememberMe'>Remember me</label>

@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -35,24 +35,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
+      // Pre-fill user from localStorage if available for faster UI
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch {
+          // ignore
+        }
+      }
+
       const response = await authAPI.getCurrentUser();
       
       if (response.success && response.data?.user) {
         setUser(response.data.user);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       } else {
+        // Only clear if specifically unauthorized or explicit failure
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
+        setUser(null);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // If it's a 401, we definitely logout. 
+      // Other errors (network, 500) we might want to keep the session temporarily.
       console.error('Auth check failed:', error);
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      if (error.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setUser(null);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, rememberMe: boolean = true) => {
     try {
       const response = await authAPI.login({ email, password });
       
@@ -60,6 +78,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const { token, user } = response.data;
         
         // Store token and user
+        // Note: localStorage is persistent. If we wanted temporary session, we'd use sessionStorage.
+        // User specifically asked for localStorage and persistent login.
         localStorage.setItem('authToken', token);
         localStorage.setItem('user', JSON.stringify(user));
         

@@ -123,9 +123,11 @@ export default function NewBlogPage() {
   };
 
   // Handle form field changes
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: any, langOverride?: AdminLanguage) => {
     setFormData((prev: any) => {
       const updated = { ...prev } as any;
+
+      const lang = langOverride || activeLanguage;
 
       // Handle localized fields
       const localizedFields = ['title', 'excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
@@ -138,25 +140,25 @@ export default function NewBlogPage() {
             if (field === 'title') {
               updated.slug = {
                 ...(updated.slug || { en: '', de: '', it: '', es: '' }),
-                [activeLanguage]: generateSlug(value[activeLanguage] || ''),
+                [lang]: generateSlug(value[lang] || ''),
               };
-              if (!updated.metaTitle?.[activeLanguage]) updated.metaTitle = { ...updated.metaTitle, [activeLanguage]: value[activeLanguage] || '' };
-              if (!updated.ogTitle?.[activeLanguage]) updated.ogTitle = { ...updated.ogTitle, [activeLanguage]: value[activeLanguage] || '' };
+              if (!updated.metaTitle?.[lang]) updated.metaTitle = { ...updated.metaTitle, [lang]: value[lang] || '' };
+              if (!updated.ogTitle?.[lang]) updated.ogTitle = { ...updated.ogTitle, [lang]: value[lang] || '' };
             }
         } else {
           updated[field] = {
             ...(updated[field] || { en: '', de: '', it: '', es: '' }),
-            [activeLanguage]: value,
+            [lang]: value,
           };
 
           // Auto-generate slug and SEO titles when title changes for the active language
           if (field === 'title') {
             updated.slug = {
               ...updated.slug,
-              [activeLanguage]: generateSlug(value),
+              [lang]: generateSlug(value),
             };
-            if (!updated.metaTitle?.[activeLanguage]) updated.metaTitle = { ...updated.metaTitle, [activeLanguage]: value };
-            if (!updated.ogTitle?.[activeLanguage]) updated.ogTitle = { ...updated.ogTitle, [activeLanguage]: value };
+            if (!updated.metaTitle?.[lang]) updated.metaTitle = { ...updated.metaTitle, [lang]: value };
+            if (!updated.ogTitle?.[lang]) updated.ogTitle = { ...updated.ogTitle, [lang]: value };
           }
         }
       }
@@ -177,7 +179,7 @@ export default function NewBlogPage() {
         if (['alt', 'title'].includes(lastKey) && (keys[0] === 'featuredImage' || keys[0] === 'metaImage')) {
           current[lastKey] = {
             ...(current[lastKey] || { en: '', de: '', it: '', es: '' }),
-            [activeLanguage]: value,
+            [lang]: value,
           };
         } else {
           current[lastKey] = value;
@@ -676,8 +678,8 @@ export default function NewBlogPage() {
                           alt: '',
                         });
                       }}
-                      onUpdate={(index, field, value) => {
-                        handleChange(`featuredImage.${field}`, value);
+                      onUpdate={(index, field, value, lang) => {
+                        handleChange(`featuredImage.${field}`, value, lang);
                       }}
                       onUpload={async (file, index) => {
                         return await handleImageUpload(file, index);
@@ -753,8 +755,8 @@ export default function NewBlogPage() {
                             alt: '',
                           });
                         }}
-                        onUpdate={(index, field, value) => {
-                          handleChange(`metaImage.${field}`, value);
+                        onUpdate={(index, field, value, lang) => {
+                          handleChange(`metaImage.${field}`, value, lang);
                         }}
                         onUpload={async (file, index) => {
                           return await handleImageUpload(file, index);

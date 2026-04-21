@@ -117,9 +117,11 @@ export default function EditBlogPage() {
   };
 
   // Handle form field changes
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: any, langOverride?: AdminLanguage) => {
     setFormData((prev: any) => {
       const updated = { ...prev } as any;
+      
+      const lang = langOverride || activeLanguage;
       
       // Handle localized fields
       const localizedFields = ['title', 'excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
@@ -128,14 +130,14 @@ export default function EditBlogPage() {
       if (localizedFields.includes(field)) {
         updated[field] = {
           ...(updated[field] || { en: '', de: '', it: '', es: '' }),
-          [activeLanguage]: value,
+          [lang]: value,
         };
         
         // Auto-generate slug when English title changes
         if (field === 'title') {
           updated.slug = {
             ...(updated.slug || { en: '', de: '', it: '', es: '' }),
-            [activeLanguage]: generateSlug(value),
+            [lang]: generateSlug(value),
           };
         }
       } 
@@ -156,7 +158,7 @@ export default function EditBlogPage() {
         if (['alt', 'title'].includes(lastKey) && (keys[0] === 'featuredImage' || keys[0] === 'metaImage')) {
             current[lastKey] = {
                 ...(current[lastKey] || { en: '', de: '', it: '', es: '' }),
-                [activeLanguage]: value,
+                [lang]: value,
             };
         } else {
             current[lastKey] = value;
@@ -788,8 +790,8 @@ export default function EditBlogPage() {
                           alt: '',
                         });
                       }}
-                      onUpdate={(index, field, value) => {
-                        handleChange(`featuredImage.${field}`, value);
+                      onUpdate={(index, field, value, lang) => {
+                        handleChange(`featuredImage.${field}`, value, lang);
                       }}
                       onUpload={async (file, index) => {
                         return await handleImageUpload(file, index);
@@ -882,8 +884,8 @@ export default function EditBlogPage() {
                             alt: '',
                           });
                         }}
-                        onUpdate={(index, field, value) => {
-                          handleChange(`metaImage.${field}`, value);
+                        onUpdate={(index, field, value, lang) => {
+                          handleChange(`metaImage.${field}`, value, lang);
                         }}
                         onUpload={async (file, index) => {
                           return await handleImageUpload(file, index);
