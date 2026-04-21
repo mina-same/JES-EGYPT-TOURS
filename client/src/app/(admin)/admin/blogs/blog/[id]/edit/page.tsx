@@ -413,7 +413,23 @@ export default function EditBlogPage() {
         return !Object.values(val).some(v => typeof v === 'string' && v.trim() !== '');
       };
 
-      if (isLocalizedStringEmpty(cleanData.excerpt)) delete cleanData.excerpt;
+      const ensureEnglish = (val: any) => {
+        if (!val || typeof val !== 'object') return val;
+        if (!val.en?.trim()) {
+          val.en = val.de?.trim() || val.it?.trim() || val.es?.trim() || '';
+        }
+        return val;
+      };
+
+      // Apply English safety fallback to all required localized fields being sent
+      ensureEnglish(cleanData.title);
+      ensureEnglish(cleanData.slug);
+      
+      if (isLocalizedStringEmpty(cleanData.excerpt)) {
+        delete cleanData.excerpt;
+      } else {
+        ensureEnglish(cleanData.excerpt);
+      }
 
       // IMPORTANT: avoid sending invalid author (causes CastError). If missing/invalid, keep existing author.
       if (typeof (cleanData as any).author !== 'string' || !/^[a-f\d]{24}$/i.test((cleanData as any).author.trim())) {
@@ -428,14 +444,41 @@ export default function EditBlogPage() {
           const urlParts = cleanData.featuredImage.url.split('/');
           cleanData.featuredImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
         }
+        // Ensure image alt/title also have English if present
+        if (cleanData.featuredImage.alt) ensureEnglish(cleanData.featuredImage.alt);
+        if (cleanData.featuredImage.title) ensureEnglish(cleanData.featuredImage.title);
       }
 
       // Remove empty optional fields (localized)
-      if (isLocalizedStringEmpty(cleanData.metaTitle)) delete cleanData.metaTitle;
-      if (isLocalizedStringEmpty(cleanData.metaDescription)) delete cleanData.metaDescription;
-      if (isLocalizedStringEmpty(cleanData.ogTitle)) delete cleanData.ogTitle;
-      if (isLocalizedStringEmpty(cleanData.ogDescription)) delete cleanData.ogDescription;
-      if (isLocalizedStringEmpty(cleanData.focusKeyword)) delete cleanData.focusKeyword;
+      if (isLocalizedStringEmpty(cleanData.metaTitle)) {
+        delete cleanData.metaTitle;
+      } else {
+        ensureEnglish(cleanData.metaTitle);
+      }
+
+      if (isLocalizedStringEmpty(cleanData.metaDescription)) {
+        delete cleanData.metaDescription;
+      } else {
+        ensureEnglish(cleanData.metaDescription);
+      }
+
+      if (isLocalizedStringEmpty(cleanData.ogTitle)) {
+        delete cleanData.ogTitle;
+      } else {
+        ensureEnglish(cleanData.ogTitle);
+      }
+
+      if (isLocalizedStringEmpty(cleanData.ogDescription)) {
+        delete cleanData.ogDescription;
+      } else {
+        ensureEnglish(cleanData.ogDescription);
+      }
+
+      if (isLocalizedStringEmpty(cleanData.focusKeyword)) {
+        delete cleanData.focusKeyword;
+      } else {
+        ensureEnglish(cleanData.focusKeyword);
+      }
 
       // Handle ogImage (plain string)
       if (typeof cleanData.ogImage === 'string' && !cleanData.ogImage.trim()) delete cleanData.ogImage;
@@ -443,9 +486,13 @@ export default function EditBlogPage() {
       // Remove empty metaImage if no URL
       if (!cleanData.metaImage?.url?.trim()) {
         delete cleanData.metaImage;
-      } else if (!cleanData.metaImage.fileName?.trim()) {
-        const urlParts = cleanData.metaImage.url.split('/');
-        cleanData.metaImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
+      } else {
+        if (!cleanData.metaImage.fileName?.trim()) {
+          const urlParts = cleanData.metaImage.url.split('/');
+          cleanData.metaImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
+        }
+        if (cleanData.metaImage.alt) ensureEnglish(cleanData.metaImage.alt);
+        if (cleanData.metaImage.title) ensureEnglish(cleanData.metaImage.title);
       }
 
       const response = await blogAPI.update(blogId, cleanData);
