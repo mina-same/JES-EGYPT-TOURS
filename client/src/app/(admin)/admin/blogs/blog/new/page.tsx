@@ -256,11 +256,18 @@ export default function NewBlogPage() {
           delete cleanedBlock._id;
         }
 
-        // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
-        if ((cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') && cleanedBlock.content) {
-          if (!cleanedBlock.content.en?.trim()) {
-            cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
+        // Only keep 'content' for blocks that use it
+        if (cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') {
+          if (cleanedBlock.content) {
+            // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
+            if (!cleanedBlock.content.en?.trim()) {
+              cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
+            }
           }
+        } else {
+          // Remove 'content' and 'title' from blocks that don't use them to avoid validation errors
+          delete cleanedBlock.content;
+          delete cleanedBlock.title;
         }
 
         if (cleanedBlock?.type !== 'imageRow') return cleanedBlock;
@@ -276,7 +283,7 @@ export default function NewBlogPage() {
           }));
 
         return {
-          ...block,
+          ...cleanedBlock,
           images: normalizedImages,
         };
       });

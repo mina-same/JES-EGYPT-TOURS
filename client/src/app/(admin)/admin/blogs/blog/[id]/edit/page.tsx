@@ -243,17 +243,33 @@ export default function EditBlogPage() {
           author: blog.author?._id || blog.author || '',
           featuredImage: normalizeImage(blog.featuredImage),
           excerpt: normalizeLocalizedString(blog.excerpt),
-          contentBlocks: (blog.contentBlocks || []).map((block: any) => ({
-            ...block,
-            id: block.id || block._id || `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            content: normalizeLocalizedString(block.content),
-            title: normalizeLocalizedString(block.title),
-            images: (block.images || []).map((img: any) => ({
+          contentBlocks: (blog.contentBlocks || []).map((block: any) => {
+            const normalizedBlock: any = {
+              ...block,
+              id: block.id || block._id || `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            };
+            
+            // Only normalize content/title if block type uses them
+            if (block.type === 'html' || block.type === 'blockquote') {
+              normalizedBlock.content = normalizeLocalizedString(block.content);
+            } else {
+              delete normalizedBlock.content;
+            }
+
+            if (block.type === 'blockquote') {
+              normalizedBlock.title = normalizeLocalizedString(block.title);
+            } else {
+              delete normalizedBlock.title;
+            }
+
+            normalizedBlock.images = (block.images || []).map((img: any) => ({
                 ...img,
                 title: normalizeLocalizedString(img.title),
                 alt: normalizeLocalizedString(img.alt),
-            })),
-          })),
+            }));
+
+            return normalizedBlock;
+          }),
           tags: normalizeLocalizedMixed(blog.tags),
           status: blog.status || 'draft',
           isFeatured: blog.isFeatured || false,
@@ -330,11 +346,18 @@ export default function EditBlogPage() {
           delete cleanedBlock._id;
         }
 
-        // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
-        if ((cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') && cleanedBlock.content) {
-          if (!cleanedBlock.content.en?.trim()) {
-            cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
+        // Only keep 'content' for blocks that use it
+        if (cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') {
+          if (cleanedBlock.content) {
+            // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
+            if (!cleanedBlock.content.en?.trim()) {
+              cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
+            }
           }
+        } else {
+          // Remove 'content' and 'title' from blocks that don't use them to avoid validation errors
+          delete cleanedBlock.content;
+          delete cleanedBlock.title;
         }
 
         if (cleanedBlock?.type !== 'imageRow') return cleanedBlock;
@@ -350,7 +373,7 @@ export default function EditBlogPage() {
           }));
 
         return {
-          ...block,
+          ...cleanedBlock,
           images: normalizedImages,
         };
       });
