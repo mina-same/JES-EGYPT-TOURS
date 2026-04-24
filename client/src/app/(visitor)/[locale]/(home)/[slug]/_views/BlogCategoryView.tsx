@@ -13,6 +13,9 @@ import { getBlogsByCategory, getCategoryBySlug } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
 import { Loader2 } from "lucide-react";
+import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
+import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA";
+import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 
 export default function BlogCategoryView({ slug, locale }: { slug: string; locale: string }) {
   const router = useRouter();
@@ -94,11 +97,71 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
         ]}
       />
 
-      <DynamicBlogGrid
-        blogs={blogsData?.data || []}
-        pagination={blogsData?.pagination}
-        basePath={`/${locale}/${slug}`}
-      />
+      {/* Hero Section */}
+      {(getLocalizedValue(category.heroTitle, locale) || getLocalizedValue(category.heroDescription, locale)) && (
+        <section className="section-space-top">
+          <div className="container">
+            {getLocalizedValue(category.heroTitle, locale) && (
+              <div className="sec-title text-center mb-4">
+                <h2 className="sec-title__title">{getLocalizedValue(category.heroTitle, locale)}</h2>
+              </div>
+            )}
+            {getLocalizedValue(category.heroDescription, locale) && (
+              <div 
+                className="prose max-w-none text-center mx-auto" 
+                dangerouslySetInnerHTML={{ __html: getLocalizedValue(category.heroDescription, locale) as string }} 
+              />
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Featured Blogs */}
+      {category.featuredBlogs && category.featuredBlogs.length > 0 && (
+        <section className="section-space bg-gray-50 dark:bg-slate-900/50 mt-5 pt-5 pb-5">
+          <div className="container">
+            <div className="sec-title text-center mb-5">
+              <h2 className="sec-title__title">
+                {getLocalizedValue(category.featuredBlogsSectionTitle, locale) || t('featuredBlogs') || 'Featured Blogs'}
+              </h2>
+            </div>
+            <DynamicBlogGrid
+              blogs={category.featuredBlogs}
+              pagination={undefined}
+              basePath={`/${locale}/${slug}`}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* All Articles */}
+      <section className="section-space-top pb-5">
+        <div className="container">
+          <div className="sec-title text-center mb-5">
+            <h2 className="sec-title__title">
+              {getLocalizedValue(category.blogsSectionTitle, locale) || t('allArticles') || 'All Articles'}
+            </h2>
+          </div>
+          <DynamicBlogGrid
+            blogs={blogsData?.data || []}
+            pagination={blogsData?.pagination}
+            basePath={`/${locale}/${slug}`}
+          />
+        </div>
+      </section>
+
+      {/* FAQs */}
+      {category.faqs && category.faqs.length > 0 && (
+        <ListingFaqs 
+          faqs={category.faqs} 
+          sectionTitle={category.faqsSectionTitle}
+          title="FAQs"
+          locale={locale} 
+        />
+      )}
+
+      <BannerCTA locale={locale} />
+      <ClientCarousel />
       <FooterOne />
     </Layout>
   );

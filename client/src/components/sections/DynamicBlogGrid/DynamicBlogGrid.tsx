@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 interface DynamicBlogGridProps {
   blogs: BlogPost[];
-  pagination: PaginationData;
+  pagination?: PaginationData;
   basePath: string;
 }
 
@@ -114,7 +114,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
           })}
           
           {/* Pagination */}
-          {pagination.pages > 1 && (
+          {pagination && pagination.pages > 1 && (
             <Col lg={12}>
               <ul className='list-unstyled pagination justify-content-center'>
                 {/* Previous Button */}

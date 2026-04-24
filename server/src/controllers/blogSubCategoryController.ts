@@ -185,6 +185,7 @@ export const getSubcategoryById = async (
   try {
     const subcategory = await BlogSubCategory.findById(req.params.id)
       .populate('category', 'name slug description')
+      .populate('featuredBlogs')
       .lean();
 
     if (!subcategory) {
@@ -248,6 +249,7 @@ export const getSubcategoryBySlug = async (
 
     const subcategory = await BlogSubCategory.findOne(filter)
       .populate('category', 'name slug description')
+      .populate('featuredBlogs')
       .lean();
 
     if (!subcategory) {

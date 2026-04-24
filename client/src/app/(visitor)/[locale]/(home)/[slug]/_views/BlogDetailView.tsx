@@ -12,6 +12,8 @@ import { getBlogBySlug } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
 import { Loader2 } from "lucide-react";
+import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA";
+import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 
 // Translations
 import enBlogs from "@/i18n/locales/en/blogs.json";
@@ -142,6 +144,8 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
           breadcrumbs={breadcrumbs}
         />
         <DynamicBlogDetails blog={blog} showSidebar='right' />
+        <BannerCTA locale={locale} />
+        <ClientCarousel />
         <FooterOne />
       </Layout>
     </>

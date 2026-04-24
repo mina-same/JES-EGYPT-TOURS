@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
+import { FAQSchema, IFAQ } from './shared/FaqSchema';
 
 export interface IBlogCategory extends Document {
   // Basic Info
@@ -35,6 +36,15 @@ export interface IBlogCategory extends Document {
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
+
+  // Content Sections
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: mongoose.Types.ObjectId[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: IFAQ[];
 }
 
 const BlogCategorySchema: Schema = new Schema(
@@ -115,6 +125,30 @@ const BlogCategorySchema: Schema = new Schema(
       type: Boolean,
       default: true,
     },
+    
+    // === CONTENT SECTIONS ===
+    heroTitle: {
+      type: LocalizedStringSchema,
+    },
+    heroDescription: {
+      type: LocalizedMixedSchema,
+    },
+    featuredBlogs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Blog',
+      },
+    ],
+    featuredBlogsSectionTitle: {
+      type: LocalizedStringSchema,
+    },
+    blogsSectionTitle: {
+      type: LocalizedStringSchema,
+    },
+    faqsSectionTitle: {
+      type: LocalizedStringSchema,
+    },
+    faqs: [FAQSchema],
   },
   {
     timestamps: true,

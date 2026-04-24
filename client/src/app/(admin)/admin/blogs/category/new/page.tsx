@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { blogCategoryAPI } from '@/lib/api/blogAdmin';
+import { blogCategoryAPI, blogAPI } from '@/lib/api/blogAdmin';
 import { uploadAPI } from '@/lib/api/upload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Image as ImageIcon, X, Search, LayoutDashboard, ListChecks, HelpCircle, Settings } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import LocalizedRichText from '@/components/admin/LocalizedRichText';
+import FaqManager from '@/components/admin/FaqManager';
 import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import ImageUpload from '@/components/admin/ImageUpload';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
@@ -54,8 +57,22 @@ interface BlogCategoryFormData {
       alt: ILocalizedString;
     };
   };
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: string[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: any[];
   isActive: boolean;
 }
+
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'sections', label: 'Page Sections', icon: ListChecks },
+  { id: 'faq-blog', label: 'FAQs & Blogs', icon: HelpCircle },
+  { id: 'seo', label: 'SEO Settings', icon: Settings },
+];
 
 const INITIAL_BLOG_CATEGORY: BlogCategoryFormData = {
   name: { en: '', de: '', it: '', es: '' },
@@ -78,6 +95,13 @@ const INITIAL_BLOG_CATEGORY: BlogCategoryFormData = {
       alt: { en: '', de: '', it: '', es: '' },
     },
   },
+  heroTitle: { en: '', de: '', it: '', es: '' },
+  heroDescription: { en: '', de: '', it: '', es: '' },
+  featuredBlogs: [],
+  featuredBlogsSectionTitle: { en: '', de: '', it: '', es: '' },
+  blogsSectionTitle: { en: '', de: '', it: '', es: '' },
+  faqsSectionTitle: { en: '', de: '', it: '', es: '' },
+  faqs: [],
   isActive: true,
 };
 
@@ -90,10 +114,18 @@ export default function NewBlogCategoryPage() {
 
   const draftKey = isEditMode ? `draft_blog_cat_edit_${categoryId}` : 'draft_blog_cat_new';
 
+  const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(isEditMode);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+
+  // Blog Search State
+  const [blogSearchQuery, setBlogSearchQuery] = useState('');
+  const [blogSearchResults, setBlogSearchResults] = useState<any[]>([]);
+  const [isSearchingBlogs, setIsSearchingBlogs] = useState(false);
+  const [selectedBlogObjects, setSelectedBlogObjects] = useState<any[]>([]);
+  const [isBlogSearchFocused, setIsBlogSearchFocused] = useState(false);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<BlogCategoryFormData>(
     draftKey,
@@ -163,8 +195,19 @@ export default function NewBlogCategoryPage() {
               alt: mapToLocalized(data.metaImage?.alt),
             },
           },
+          heroTitle: mapToLocalized(data.heroTitle),
+          heroDescription: mapToLocalized(data.heroDescription),
+          featuredBlogsSectionTitle: mapToLocalized(data.featuredBlogsSectionTitle),
+          blogsSectionTitle: mapToLocalized(data.blogsSectionTitle),
+          faqsSectionTitle: mapToLocalized(data.faqsSectionTitle),
+          featuredBlogs: Array.isArray(data.featuredBlogs) ? data.featuredBlogs.map((b: any) => typeof b === 'object' ? b._id : b) : [],
+          faqs: Array.isArray(data.faqs) ? data.faqs : [],
           isActive: data.isActive !== undefined ? !!data.isActive : true,
         });
+
+        if (Array.isArray(data.featuredBlogs)) {
+          setSelectedBlogObjects(data.featuredBlogs.filter((b: any) => typeof b === 'object'));
+        }
       }
 
     } catch (err: any) {
@@ -249,6 +292,48 @@ export default function NewBlogCategoryPage() {
 
   // Handle keywords directly via handleChange
 
+  useEffect(() => {
+    const searchBlogs = async () => {
+      if (!isBlogSearchFocused && !blogSearchQuery.trim()) {
+        setBlogSearchResults([]);
+        return;
+      }
+
+      setIsSearchingBlogs(true);
+      try {
+        const response = await blogAPI.getAllAdmin({ 
+          search: blogSearchQuery.trim(), 
+          limit: 8 
+        });
+        if (response.success && response.data) {
+          setBlogSearchResults(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to search blogs:', error);
+      } finally {
+        setIsSearchingBlogs(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchBlogs, 300);
+    return () => clearTimeout(timeoutId);
+  }, [blogSearchQuery, isBlogSearchFocused]);
+
+  const addFeaturedBlog = (blog: any) => {
+    const current = formData.featuredBlogs || [];
+    if (!current.includes(blog._id)) {
+      handleChange('featuredBlogs', [...current, blog._id]);
+      setSelectedBlogObjects(prev => [...prev, blog]);
+      setBlogSearchQuery('');
+      setBlogSearchResults([]);
+    }
+  };
+
+  const removeFeaturedBlog = (id: string) => {
+    handleChange('featuredBlogs', (formData.featuredBlogs || []).filter((blogId: string) => blogId !== id));
+    setSelectedBlogObjects(prev => prev.filter(b => b._id !== id));
+  };
+
   // Handle Image Upload
   const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
     try {
@@ -295,6 +380,8 @@ export default function NewBlogCategoryPage() {
       
       // Convert image object to string URL for backend if needed
       // The backend expects `image: string` for BlogCategory
+      const hasEn = (obj: any) => !!(obj?.en && (typeof obj.en === 'string' ? obj.en.trim() !== '' : true));
+
       const payload: any = {
         name: cleanData.name,
         slug: cleanData.slug,
@@ -306,6 +393,16 @@ export default function NewBlogCategoryPage() {
         metaKeywords: cleanData.seo?.metaKeywords, // Now ILocalizedMixed
         metaImage: cleanData.seo?.metaImage?.url ? cleanData.seo.metaImage : undefined,
       };
+
+      if (hasEn(cleanData.heroTitle)) payload.heroTitle = cleanData.heroTitle;
+      if (hasEn(cleanData.heroDescription)) payload.heroDescription = cleanData.heroDescription;
+      if (hasEn(cleanData.featuredBlogsSectionTitle)) payload.featuredBlogsSectionTitle = cleanData.featuredBlogsSectionTitle;
+      if (hasEn(cleanData.blogsSectionTitle)) payload.blogsSectionTitle = cleanData.blogsSectionTitle;
+      if (hasEn(cleanData.faqsSectionTitle)) payload.faqsSectionTitle = cleanData.faqsSectionTitle;
+      
+      if (cleanData.faqs && cleanData.faqs.length > 0) payload.faqs = cleanData.faqs;
+      if (cleanData.featuredBlogs && cleanData.featuredBlogs.length > 0) payload.featuredBlogs = cleanData.featuredBlogs;
+
 
       if (cleanData.image?.url) {
         payload.image = cleanData.image.url;
@@ -359,24 +456,29 @@ export default function NewBlogCategoryPage() {
   }
 
   return (
-    <div className="w-full mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/blogs/category">
-              <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-4 w-4" />
-              </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {isEditMode ? 'Edit Category' : 'Create New Category'}
-            </h1>
-            <p className="text-gray-500 mt-1">
-              {isEditMode ? 'Update category information' : 'Add a new blog category to organize your posts'}
-            </p>
-          </div>
+    <div className="w-full mx-auto space-y-6" suppressHydrationWarning>
+      {/* Language Selection */}
+      <AdminLanguageTabs
+        activeLanguage={activeLanguage}
+        onLanguageChange={setActiveLanguage}
+      />
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isEditMode ? 'Edit Blog Category' : 'Create New Blog Category'}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {isEditMode ? 'Update blog category information' : 'Add a new blog category'}
+          </p>
         </div>
-        <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
+        <Link href="/admin/blogs/category">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to List
+          </Button>
+        </Link>
       </div>
 
       {/* Draft Banner */}
@@ -389,8 +491,44 @@ export default function NewBlogCategoryPage() {
         <FormErrorPanel errors={formErrors} onDismiss={() => setFormErrors([])} />
       )}
 
+      
+      {/* Tabs Navigation */}
+      <div className="flex overflow-x-auto gap-2 border-b mt-6">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap relative",
+                isActive 
+                  ? "bg-primary text-primary-foreground" 
+                  : "hover:bg-muted text-muted-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                        {/* Basic Information */}
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
@@ -465,8 +603,159 @@ export default function NewBlogCategoryPage() {
 
           </CardContent>
         </Card>
+              </div>
+            )}
 
-        {/* SEO Settings */}
+            {activeTab === 'sections' && (
+              <div className="space-y-6">
+                        {/* Hero Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Hero Section (Top of Page)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <LocalizedInput
+              label="Hero Title"
+              value={formData.heroTitle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('heroTitle', val, lang)}
+              placeholder="E.g. Explore our best articles"
+              activeLanguage={activeLanguage}
+            />
+            <LocalizedRichText
+              label="Hero Description"
+              value={formData.heroDescription || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('heroDescription', val)}
+              placeholder="Hero paragraph..."
+              activeLanguage={activeLanguage}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Section Titles */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Section Titles</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <LocalizedInput
+              label="Featured Blogs Section Title"
+              value={formData.featuredBlogsSectionTitle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('featuredBlogsSectionTitle', val, lang)}
+              placeholder="Featured Articles"
+              activeLanguage={activeLanguage}
+            />
+            <LocalizedInput
+              label="All Blogs Section Title"
+              value={formData.blogsSectionTitle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('blogsSectionTitle', val, lang)}
+              placeholder="All Articles"
+              activeLanguage={activeLanguage}
+            />
+            <LocalizedInput
+              label="FAQs Section Title"
+              value={formData.faqsSectionTitle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('faqsSectionTitle', val, lang)}
+              placeholder="Frequently Asked Questions"
+              activeLanguage={activeLanguage}
+            />
+          </CardContent>
+        </Card>
+              </div>
+            )}
+
+            {activeTab === 'faq-blog' && (
+              <div className="space-y-6">
+                        {/* Featured Blogs */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured Blogs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <Label>Search & Select Blogs</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search blogs by name..."
+                  value={blogSearchQuery}
+                  onChange={(e) => setBlogSearchQuery(e.target.value)}
+                  onFocus={() => setIsBlogSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsBlogSearchFocused(false), 200)}
+                  className="pl-9"
+                />
+                
+                {isSearchingBlogs && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  </div>
+                )}
+
+                {isBlogSearchFocused && blogSearchResults.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-900 border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {blogSearchResults.map((blog) => (
+                      <div
+                        key={blog._id}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer flex justify-between items-center"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          addFeaturedBlog(blog);
+                        }}
+                      >
+                        <div className="truncate pr-4">
+                          {typeof blog.title === 'object' ? blog.title.en : blog.title}
+                        </div>
+                        {formData.featuredBlogs?.includes(blog._id) && (
+                          <span className="text-xs bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded text-gray-500">Selected</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Selected Blogs List */}
+            {formData.featuredBlogs && formData.featuredBlogs.length > 0 && (
+              <div className="space-y-2">
+                <Label>Selected Featured Blogs</Label>
+                <div className="grid gap-2">
+                  {formData.featuredBlogs.map((blogId) => {
+                    const blogObj = selectedBlogObjects.find(b => b._id === blogId);
+                    return (
+                      <div key={blogId} className="flex items-center justify-between p-3 border rounded-md bg-gray-50 dark:bg-slate-900/50">
+                        <span className="truncate mr-4">
+                          {blogObj ? (typeof blogObj.title === 'object' ? blogObj.title.en : blogObj.title) : blogId}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFeaturedBlog(blogId)}
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* FAQs */}
+        <FaqManager
+          faqs={formData.faqs || []}
+          onChange={(faqs) => handleChange('faqs', faqs)}
+          activeLanguage={activeLanguage}
+        />
+              </div>
+            )}
+
+            {activeTab === 'seo' && (
+              <div className="space-y-6">
+                        {/* SEO Settings */}
         <Card>
           <CardHeader>
             <CardTitle>SEO Settings</CardTitle>
@@ -534,15 +823,19 @@ export default function NewBlogCategoryPage() {
             </div>
           </CardContent>
         </Card>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Actions */}
-        <div className="flex gap-4 justify-end">
+        <div className="flex gap-4 justify-end pt-6 border-t">
           <Link href="/admin/blogs/category">
-            <Button type="button" variant="outline" className="text-gray-700 dark:text-gray-300">
+            <Button type="button" variant="outline" className="!text-black">
               Cancel
             </Button>
           </Link>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="min-w-[140px]">
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

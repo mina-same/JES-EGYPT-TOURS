@@ -28,6 +28,13 @@ export interface IBlogCategory {
   seo?: ISEO;
   isActive: boolean;
   subcategoriesCount?: number; // Virtual field
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: any[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: any[];
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -44,6 +51,13 @@ export interface IBlogSubcategory {
   seo?: ISEO;
   isActive: boolean;
   postsCount?: number; // Virtual field
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: any[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: any[];
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -122,6 +136,13 @@ export interface BlogCategoryFormData {
   image?: string;
   seo?: ISEO;
   isActive: boolean;
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: string[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: any[];
 }
 
 export interface BlogSubcategoryFormData {
@@ -132,6 +153,13 @@ export interface BlogSubcategoryFormData {
   image?: string;
   seo?: ISEO;
   isActive: boolean;
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: string[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: any[];
 }
 
 export interface BlogFormData {

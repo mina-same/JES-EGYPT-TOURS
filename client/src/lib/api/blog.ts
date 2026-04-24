@@ -1,6 +1,7 @@
 import { API_URL } from '@/config/api';
 import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import { ISEO } from '@/types/blog';
+import { IFAQ } from '@/types/tour';
 
 
 export interface BlogCategory {
@@ -24,6 +25,13 @@ export interface BlogSubCategory {
   category: BlogCategory | string;
   seo?: ISEO;
   isActive: boolean;
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: BlogPost[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: IFAQ[];
 }
 
 export interface ImageObject {

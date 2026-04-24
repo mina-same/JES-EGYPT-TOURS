@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
+import { IFAQ, FAQSchema } from './shared/FaqSchema';
 
 export interface IBlogSubCategory extends Document {
   // Basic Info
@@ -8,6 +9,15 @@ export interface IBlogSubCategory extends Document {
   description?: ILocalizedString;
   image?: string;
   category: mongoose.Types.ObjectId;
+  
+  // Content Sections
+  heroTitle?: ILocalizedString;
+  heroDescription?: ILocalizedMixed;
+  featuredBlogs?: mongoose.Types.ObjectId[];
+  featuredBlogsSectionTitle?: ILocalizedString;
+  blogsSectionTitle?: ILocalizedString;
+  faqsSectionTitle?: ILocalizedString;
+  faqs?: IFAQ[];
   
   // SEO Meta Tags
   metaTitle?: ILocalizedString;
@@ -66,6 +76,31 @@ const BlogSubCategorySchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'BlogCategory',
       required: [true, 'Parent category is required'],
+    },
+    
+    // === CONTENT SECTIONS ===
+    heroTitle: {
+      type: LocalizedStringSchema,
+    },
+    heroDescription: {
+      type: LocalizedMixedSchema,
+    },
+    featuredBlogs: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Blog',
+    }],
+    featuredBlogsSectionTitle: {
+      type: LocalizedStringSchema,
+    },
+    blogsSectionTitle: {
+      type: LocalizedStringSchema,
+    },
+    faqsSectionTitle: {
+      type: LocalizedStringSchema,
+    },
+    faqs: {
+      type: [FAQSchema],
+      default: undefined,
     },
     
     // === SEO META TAGS ===
