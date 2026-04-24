@@ -50,11 +50,13 @@ export interface Season {
 export interface PricingPlan {
   planName: string;
   seasons: Season[];
+  notes?: Note[];
 }
 
 export interface ImageObject {
   url: string;
   alt?: string;
+  title?: string;
 }
 
 export interface Activity {
@@ -114,6 +116,8 @@ export interface TourDetailsOneData {
   itinerary?: Itinerary;
   pricingPlans?: PricingPlan[];
   whatYouWillLoveHtml?: string;
+  whatToPack?: string[];
+  notes?: Note[];
   reviewVideos?: ReviewVideo[];
   subcategoryId?: string; // for fetching more tours by category
   firstImageUrl?: string; // first main image URL for page header bg

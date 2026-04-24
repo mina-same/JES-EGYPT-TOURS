@@ -8,6 +8,7 @@ import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
+import LocalizedRichText from '@/components/admin/LocalizedRichText';
 
 interface SEOTabProps {
   formData: any;
@@ -154,11 +155,12 @@ export default function SEOTab({
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Why travelers will love this tour</label>
-            <RichTextEditor
-              value={formData.whatYouWillLoveHtml?.[activeLanguage] || ''}
-              onChange={(val) => handleChange(`whatYouWillLoveHtml.${activeLanguage}`, val)}
-              placeholder={`Why travelers will love this tour in ${activeLanguage}...`}
+            <LocalizedRichText
+              label="Why travelers will love this tour"
+              value={formData.whatYouWillLoveHtml || { en: '', de: '', it: '', es: '' }}
+              onChange={(val) => handleChange('whatYouWillLoveHtml', val)}
+              activeLanguage={activeLanguage}
+              placeholder="Why travelers will love this tour"
             />
           </div>
         </CardContent>

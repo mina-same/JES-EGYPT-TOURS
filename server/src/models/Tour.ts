@@ -42,6 +42,7 @@ export interface ISeason {
 export interface IPricingPlan {
   planName: string;
   seasons: ISeason[];
+  notes?: INote[];
 }
 
 export interface IActivity {
@@ -141,9 +142,9 @@ export interface ITour extends Document {
   duration?: ILocalizedString;
   meetingPoint?: ILocalizedString;
   cancellationPolicy?: ILocalizedString;
-  tags?: ILocalizedMixed;
+  tags?: ILocalizedMixed[];
   notes?: INote[];
-  whatToPack?: ILocalizedMixed;
+  whatToPack?: ILocalizedMixed[];
   tourMapIframe?: string;
   mapSchema?: IMapSchema;
   whatYouWillLoveHtml?: ILocalizedMixed;
@@ -282,6 +283,7 @@ const PricingPlanSchema = new Schema<IPricingPlan>(
         message: 'At least one season must be provided',
       },
     },
+    notes: { type: [NoteSchema], default: [] },
   },
   { _id: false }
 );
@@ -614,11 +616,13 @@ const TourSchema = new Schema<ITour>(
       type: LocalizedStringSchema,
     },
     tags: {
-      type: LocalizedMixedSchema,
+      type: [LocalizedMixedSchema],
+      default: [],
     },
     notes: [NoteSchema],
     whatToPack: {
-      type: LocalizedMixedSchema,
+      type: [LocalizedMixedSchema],
+      default: []
     },
     tourMapIframe: {
       type: String,

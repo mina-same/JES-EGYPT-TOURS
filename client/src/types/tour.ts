@@ -188,6 +188,7 @@ export interface IPricingSeason {
 export interface IPricingPlan {
   planName: string;
   seasons: IPricingSeason[];
+  notes?: IPricingNote[];
 }
 
 export interface IItineraryActivity {

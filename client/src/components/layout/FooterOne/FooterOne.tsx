@@ -238,10 +238,10 @@ const FooterOne: React.FC = () => {
         </Container>
 
         <div className='main-footer__element-one'>
-          <Image src={data.shape1} alt='footer shape' />
+          <Image src={data.shape1} alt='footer shape' title='footer element' />
         </div>
         <div className='main-footer__element-two'>
-          <Image src={data.shape2} alt='footer shape' />
+          <Image src={data.shape2} alt='footer shape' title='footer element' />
         </div>
       </div>
 
@@ -251,11 +251,11 @@ const FooterOne: React.FC = () => {
             <p className='main-footer__copyright'>
               &copy; Copyright{" "}
               <span className='dynamic-year'>{new Date().getFullYear()}</span>{" "}
-              by gotur NextJS Template.
+              by JES Egypt Tours.
             </p>
             <div className='main-footer__bottom__pyment'>
               <Link href='/checkout'>
-                <Image src={data.cardImage} alt='gotur payment' />
+                <Image src={data.cardImage} alt='JES Egypt payment methods' title='Payment Methods' />
               </Link>
             </div>
           </div>

@@ -50,11 +50,13 @@ export const useTourData = (id?: string) => {
     const tourSlug = getLocalizedValue(t?.slug);
     const tourTitle = getLocalizedValue(t?.heading) || t?.name || "";
     const fallback = 'https://placehold.co/600x400?text=No+Image';
+    const mainImage = t?.images?.[0] || {};
 
     return {
       id: t._id || t.id,
-      image: t?.images?.[0]?.url || fallback,
-      imageAlt: tourTitle,
+      image: mainImage?.url || fallback,
+      imageAlt: getLocalizedValue(mainImage?.alt) || tourTitle,
+      imageTitle: getLocalizedValue(mainImage?.title) || "",
       title: tourTitle || "Tour",
       link: `/${currentLang}/${tourSlug}`,
       price: t.priceStartingFrom || t.price || 0,
@@ -175,11 +177,19 @@ export const useTourData = (id?: string) => {
 
         // ── Consolidate mappings ──
         const sliderImages = safeArray<any>(tour.images)
-          .map((img: any) => ({ url: img?.url, alt: getLocalizedValue(img?.alt) }))
+          .map((img: any) => ({ 
+            url: img?.url, 
+            alt: getLocalizedValue(img?.alt),
+            title: getLocalizedValue(img?.title) 
+          }))
           .filter((img: any) => !!img.url);
 
         const galleryImages = safeArray<any>(tour.gallery)
-          .map((img: any) => ({ url: img?.url, alt: getLocalizedValue(img?.alt) }))
+          .map((img: any) => ({ 
+            url: img?.url, 
+            alt: getLocalizedValue(img?.alt),
+            title: getLocalizedValue(img?.title)
+          }))
           .filter((img: any) => !!img.url);
 
         const reviewVideos = safeArray<any>(tour.reviews)
@@ -193,6 +203,13 @@ export const useTourData = (id?: string) => {
         // Helper to get localized array with fallback for empty arrays
         const getLocalizedArray = (obj: any): any[] => {
           if (!obj) return [];
+          
+          // Handle Case 1: Array of localized objects [ {en, de}, {en, de} ]
+          if (Array.isArray(obj)) {
+            return obj.map(item => item[currentLang] || item.en || '').filter(Boolean);
+          }
+          
+          // Case 2: Object with language arrays { en: [], de: [] }
           const current = safeArray(obj[currentLang]);
           if (current.length > 0) return current;
           return safeArray(obj.en);
@@ -215,6 +232,11 @@ export const useTourData = (id?: string) => {
           highlightList: getLocalizedArray(tour.tourHighlights).map(h => String(h)).filter(Boolean),
           amenities: getLocalizedArray(tour.inclusion).map(i => String(i)).filter(Boolean),
           amenitiesTwo: getLocalizedArray(tour.exclusion).map(e => String(e)).filter(Boolean),
+          whatToPack: getLocalizedArray(tour.whatToPack).map(w => String(w)).filter(Boolean),
+          notes: safeArray(tour.notes).map((n: any) => ({
+            title: getLocalizedValue(n?.title),
+            text: getLocalizedValue(n?.text),
+          })),
           relatedTours: fetchedRelatedTours.map(mapTourToItem).filter(Boolean) as any[],
           comments: fetchedReviews.map((r: any) => ({
             name: r?.name || "Anonymous",
@@ -238,7 +260,11 @@ export const useTourData = (id?: string) => {
               activities: safeArray(d?.activities).map((a: any) => ({
                 heading: getLocalizedValue(a?.heading),
                 description: getLocalizedValue(a?.description),
-                image: a?.image?.url ? { url: a.image.url, alt: getLocalizedValue(a.image.alt) } : undefined,
+                image: a?.image?.url ? { 
+                  url: a.image.url, 
+                  alt: getLocalizedValue(a.image.alt),
+                  title: getLocalizedValue(a.image.title)
+                } : undefined,
               })),
             })),
           },
@@ -254,6 +280,10 @@ export const useTourData = (id?: string) => {
                 text: getLocalizedValue(n?.text),
               })),
             })),
+            notes: safeArray(p?.notes).map((n: any) => ({
+              title: getLocalizedValue(n?.title),
+              text: getLocalizedValue(n?.text),
+            })),
           })),
           whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
           reviewVideos,
@@ -261,17 +291,24 @@ export const useTourData = (id?: string) => {
           firstImageUrl: sliderImages[0]?.url || undefined,
         };
 
-        const mappedBlogs = fetchedRelatedBlogs.map((b: any) => ({
-          id: b._id,
-          title: getLocalizedValue(b?.title),
-          slug: getLocalizedValue(b?.slug),
-          excerpt: getLocalizedValue(b?.excerpt),
-          image: typeof b?.featuredImage === 'string' ? b.featuredImage : (b?.featuredImage?.url || 'https://placehold.co/600x400?text=No+Image'),
-          date: b?.publishedAt || b?.createdAt || new Date().toISOString(),
-          link: `/${currentLang}/blog/${getLocalizedValue(b?.slug)}`,
-          author: (b?.author as any)?.name || "Admin",
-          category: getLocalizedValue(b?.category?.name) || "",
-        }));
+        const mappedBlogs = fetchedRelatedBlogs.map((b: any) => {
+          const blogTitle = getLocalizedValue(b?.title);
+          const blogImageObj = (typeof b?.featuredImage === 'object' && b?.featuredImage !== null) ? b.featuredImage : {};
+
+          return {
+            id: b._id,
+            title: blogTitle,
+            slug: getLocalizedValue(b?.slug),
+            excerpt: getLocalizedValue(b?.excerpt),
+            image: typeof b?.featuredImage === 'string' ? b.featuredImage : (b?.featuredImage?.url || 'https://placehold.co/600x400?text=No+Image'),
+            imageAlt: getLocalizedValue(blogImageObj?.alt) || blogTitle,
+            imageTitle: getLocalizedValue(blogImageObj?.title) || "",
+            date: b?.publishedAt || b?.createdAt || new Date().toISOString(),
+            link: `/${currentLang}/blog/${getLocalizedValue(b?.slug)}`,
+            author: (b?.author as any)?.name || "Admin",
+            category: getLocalizedValue(b?.category?.name) || "",
+          };
+        });
 
         setRelatedBlogs(mappedBlogs);
         setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));

@@ -8,6 +8,10 @@ interface TourPlanProps {
 }
 
 export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
+  console.log("DEBUG: Itinerary Image Data:", JSON.stringify(
+    itinerary?.days?.flatMap(d => d.activities?.map(a => ({ heading: a.heading, imgUrl: a.image?.url, imgAlt: a.image?.alt, imgTitle: a.image?.title }))) || []
+  ));
+
   if (!itinerary || !itinerary.days || itinerary.days.length === 0) {
     return null;
   }
@@ -82,7 +86,8 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                               >
                                 <Image 
                                   src={activity.image.url} 
-                                  alt={activity.heading} 
+                                  alt={activity.image.alt || ""}
+                                  title={activity.image.title || ""}
                                   width={60} 
                                   height={60} 
                                   style={{ 

@@ -175,6 +175,54 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                 )}
               </div>
             ))}
+
+            {/* Plan Level Notes */}
+            {plan.notes && plan.notes.length > 0 && (
+              <div style={{
+                marginTop: '10px',
+                padding: '20px 25px',
+                backgroundColor: '#fdfaf3',
+                borderTop: '1px solid #E8E8E8',
+                borderRadius: '0 0 12px 12px'
+              }}>
+                <h5 style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#1a1a1a',
+                  marginBottom: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <i className="fas fa-clipboard-list" style={{ color: '#b79c5c' }}></i>
+                  {t("tourDetails.pricing.planNotes", "Important Plan Notes")}
+                </h5>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {plan.notes.map((note, noteIdx) => (
+                    <div key={noteIdx}>
+                      {note.title && (
+                        <h6 style={{
+                          fontSize: '14px',
+                          fontWeight: '700',
+                          color: '#1a1a1a',
+                          marginBottom: '4px',
+                        }}>
+                          {note.title}
+                        </h6>
+                      )}
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#666',
+                        margin: 0,
+                        lineHeight: '1.6',
+                      }}>
+                        {note.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ))}

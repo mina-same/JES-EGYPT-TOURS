@@ -33,14 +33,27 @@ const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
   };
 
   const addTag = (lang: AdminLanguage, tag: string) => {
-    const trimmed = tag.trim().replace(/,$/, "");
-    if (!trimmed) return;
+    if (!tag.trim()) return;
+    
+    // Split by comma or newline to support pasting lists or bulk entry
+    const parts = tag.split(/[,\n\r]+/).map(p => p.trim()).filter(Boolean);
+    if (parts.length === 0) return;
     
     const currentTags = safeValue(lang);
-    if (!currentTags.includes(trimmed)) {
+    const newTags = [...currentTags];
+    let changed = false;
+
+    parts.forEach(trimmed => {
+      if (!newTags.includes(trimmed)) {
+        newTags.push(trimmed);
+        changed = true;
+      }
+    });
+
+    if (changed) {
       onChange({
         ...value,
-        [lang]: [...currentTags, trimmed],
+        [lang]: newTags,
       }, lang);
     }
     setInputValue("");

@@ -77,17 +77,19 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
           settings={settings}
           className='client-carousel__one gotur-owl__carousel owl-theme owl-carousel'
         >
-          {clientCarouselData.items.map((item) => (
+          {clientCarouselData.items.map((item, index) => (
             <div className='item' key={item.id}>
               <div className='client-carousel__one__item'>
                 <Image
                   src={item.image}
-                  alt='gotur'
+                  alt={`Trusted Partner ${index + 1}`}
+                  title={`JES Egypt Tours Partner ${index + 1}`}
                   className='client-carousel__one__image'
                 />
                 <Image
                   src={item.hoverImage}
-                  alt='gotur hover'
+                  alt={`Trusted Partner ${index + 1}`}
+                  title={`JES Egypt Tours Partner ${index + 1}`}
                   className='client-carousel__one__hover-image'
                 />
               </div>

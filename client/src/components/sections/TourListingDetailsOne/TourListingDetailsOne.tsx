@@ -392,21 +392,64 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
               <div className='tour-listing-details__content'>
 
                 {/* Description Section */}
-                <section id="description" className="tour-section">
-                  <div className='tour-listing-details__content__item tour-listing-details__content__text'>
-                    <h4 className='tour-listing-details__title'>
-                      {overviewTitle}
-                    </h4>
+                <section id="description" className="tour-section mb-5">
+                  <div className='tour-listing-details__content__item border-0 p-0 shadow-none'>
+                    <div className="d-flex align-items-center gap-3 mb-4">
+                      <div style={{ width: '5px', height: '32px', borderRadius: '4px', backgroundColor: '#b79c5c' }}></div>
+                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-0.02em' }}>
+                        {overviewTitle}
+                      </h4>
+                    </div>
+                    
                     <div className={`tour-description-wrapper ${isMobile && !isDescriptionExpanded ? 'collapsed' : ''}`}>
                       <div
-                        className='tour-listing-details__text'
+                        className='tour-listing-details__text mb-4'
+                        style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
                         dangerouslySetInnerHTML={{ __html: overview }}
                       />
+                      
                       {tourData.whatYouWillLoveHtml && (
-                        <div
-                          className="tour-listing-details__what-you-love"
-                          dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
-                        />
+                        <div className="tour-listing-details__what-you-love mt-5 p-5 rounded-4 shadow-sm" style={{ 
+                          background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)', 
+                          border: '1px solid rgba(183, 156, 92, 0.15)',
+                          position: 'relative',
+                          overflow: 'hidden'
+                        }}>
+                          {/* Premium Background Element */}
+                          <div style={{ 
+                            position: 'absolute', 
+                            top: '-20px', 
+                            right: '-20px', 
+                            fontSize: '160px', 
+                            opacity: '0.04',
+                            transform: 'rotate(-15deg)',
+                            userSelect: 'none',
+                            pointerEvents: 'none'
+                          }}>💎</div>
+                          
+                          <div className="d-flex align-items-center gap-4 mb-4">
+                            <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style={{ width: '54px', height: '54px' }}>
+                              <i className="icon-star" style={{ fontSize: '24px', color: '#b79c5c' }}></i>
+                            </div>
+                            <div>
+                               <h4 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
+                                 {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
+                               </h4>
+                               <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
+                            </div>
+                          </div>
+
+                          <div
+                            className='tour-listing-details__text'
+                            style={{ 
+                              color: '#333', 
+                              lineHeight: '1.9',
+                              fontSize: '1rem',
+                              fontWeight: '400'
+                            }}
+                            dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
+                          />
+                        </div>
                       )}
                     </div>
                     {isMobile && (
@@ -420,18 +463,31 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   </div>
 
                   {/* Highlight List Section */}
-                  {/* Highlight List Section */}
-                  <div className='tour-listing-details__content__item tour-listing-details__list'>
-                    <h4 className='tour-listing-details__title'>
-                      {t("tourDetails.highlightList")}
-                    </h4>
-                    <ul className='tour-listing-details__content__list'>
+                  <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
+                    <div className="d-flex align-items-center gap-2 mb-4">
+                      <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
+                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
+                        {t("tourDetails.highlightList")}
+                      </h4>
+                    </div>
+                    <div className="row gutter-y-20">
                       {highlightList.map((item, index) => (
-                        <li key={index}>
-                          <i className='icon-check-star'></i> {item}
-                        </li>
+                        <div key={index} className="col-md-6 col-lg-4 mb-3">
+                          <div className="d-flex align-items-start gap-3">
+                            <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ 
+                              width: '26px', 
+                              height: '26px', 
+                              backgroundColor: 'rgba(183, 156, 92, 0.1)',
+                              flexShrink: 0,
+                              marginTop: '2px'
+                            }}>
+                              <i className='icon-check-star' style={{ color: '#b79c5c', fontSize: '12px' }}></i>
+                            </div>
+                            <span className="text-dark fw-medium" style={{ fontSize: '0.93rem' }}>{item}</span>
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 </section>
 
@@ -460,53 +516,59 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                 {/* Amenities Section */}
                 <section id="amenities" className="tour-section">
                   {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
-                    <div className='tour-listing-details__content__item tour-listing-details__amenities'>
-                      <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.amenitiesTitle")}</h4>
-                        <p className="tour-reviews-subtitle">{t("tourDetails.amenitiesSubtitle")}</p>
+                    <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
+                      <div className="mb-4 d-flex align-items-center gap-2">
+                        <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
+                        <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
+                          {t("tourDetails.amenitiesTitle")}
+                        </h4>
                       </div>
-                      <div className="row gutter-y-30">
+                      <div className="row g-4">
                         {amenities && amenities.length > 0 && (
                           <div className="col-lg-6">
-                            <div className="amenities-card inclusion-card">
-                              <div className="amenities-card-header">
-                                <div className="amenities-icon-wrapper inclusion-icon">
+                            <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
+                              <div className="d-flex align-items-center gap-3 mb-4">
+                                <div style={{ fontSize: '1.2rem', color: '#b79c5c' }}>
                                   <i className="fas fa-check-circle"></i>
                                 </div>
-                                <h4 className='amenities-card-title'>{t("tourDetails.included")}</h4>
+                                <h4 className='m-0 fs-6 fw-bold text-dark' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                  {t("tourDetails.included")}
+                                </h4>
                               </div>
-                                <ul className='amenities-card-list'>
-                                  {(isMobile && !isAmenitiesExpanded ? amenities.slice(0, 4) : amenities).map((amenity, index) => (
-                                    <li key={index} className="amenities-card-item">
-                                      <i className='fas fa-check'></i>
-                                      <span>{amenity}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
+                              <ul className='list-unstyled m-0 d-flex flex-column gap-3'>
+                                {(isMobile && !isAmenitiesExpanded ? amenities.slice(0, 4) : amenities).map((amenity, index) => (
+                                  <li key={index} className="d-flex align-items-start gap-3">
+                                    <i className='fas fa-check' style={{ fontSize: '0.8rem', marginTop: '5px', color: '#b79c5c' }}></i>
+                                    <span style={{ fontSize: '0.9rem', color: '#555' }}>{amenity}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                          )}
-                          {amenitiesTwo && amenitiesTwo.length > 0 && (
-                            <div className="col-lg-6">
-                              <div className="amenities-card exclusion-card">
-                                <div className="amenities-card-header">
-                                  <div className="amenities-icon-wrapper exclusion-icon">
-                                    <i className="fas fa-times-circle"></i>
-                                  </div>
-                                  <h4 className='amenities-card-title'>{t("tourDetails.notIncluded")}</h4>
+                          </div>
+                        )}
+                        {amenitiesTwo && amenitiesTwo.length > 0 && (
+                          <div className="col-lg-6">
+                            <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
+                              <div className="d-flex align-items-center gap-3 mb-4">
+                                <div className="text-danger" style={{ fontSize: '1.2rem' }}>
+                                  <i className="fas fa-times-circle"></i>
                                 </div>
-                                <ul className='amenities-card-list'>
-                                  {(isMobile && !isAmenitiesExpanded ? amenitiesTwo.slice(0, 4) : amenitiesTwo).map((amenity, index) => (
-                                    <li key={index} className="amenities-card-item">
-                                      <i className='fas fa-times'></i>
-                                      <span>{amenity}</span>
-                                    </li>
-                                  ))}
-                                </ul>
+                                <h4 className='m-0 fs-6 fw-bold text-dark' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                  {t("tourDetails.notIncluded")}
+                                </h4>
                               </div>
+                              <ul className='list-unstyled m-0 d-flex flex-column gap-3'>
+                                {(isMobile && !isAmenitiesExpanded ? amenitiesTwo.slice(0, 4) : amenitiesTwo).map((amenity, index) => (
+                                  <li key={index} className="d-flex align-items-start gap-3">
+                                    <i className='fas fa-times text-danger' style={{ fontSize: '0.8rem', marginTop: '5px' }}></i>
+                                    <span style={{ fontSize: '0.9rem', color: '#555' }}>{amenity}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
+                      </div>
 
                         {/* Mobile Show More Button */}
                         {isMobile && hasMoreAmenities && (
@@ -549,6 +611,71 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     />
                   )}
                 </section>
+                
+                {/* What to Pack Section */}
+                {tourData.whatToPack && tourData.whatToPack.length > 0 && (
+                  <section id="what-to-pack" className="tour-section mt-4">
+                    <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{ 
+                      backgroundColor: 'rgba(183, 156, 92, 0.02)', 
+                      border: '1px solid rgba(183, 156, 92, 0.1)',
+                      borderRight: '4px solid #b79c5c'
+                    }}>
+                      <div className="mb-3 d-flex align-items-center justify-content-between">
+                        <h4 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
+                          <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }}></i>
+                          {t("tourDetails.whatToPack", "What to Pack")}
+                        </h4>
+                      </div>
+                      <div className="row g-2">
+                        {tourData.whatToPack.map((item, index) => (
+                          <div key={index} className="col-md-6 col-lg-4 mb-2">
+                            <div className="d-flex align-items-center gap-2">
+                               <div style={{ width: '5px', height: '5px', backgroundColor: '#b79c5c', borderRadius: '50%' }}></div>
+                               <span className="text-dark" style={{ fontSize: '0.9rem' }}>{item}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+
+                {/* Important Notes Section */}
+                {tourData.notes && tourData.notes.length > 0 && (
+                  <section id="important-notes" className="tour-section mt-4 pt-3 border-top">
+                    <div className="mb-4 d-flex align-items-center gap-2">
+                      <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
+                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
+                        {t("tourDetails.importantNotes", "Important Notes")}
+                      </h4>
+                    </div>
+                    <div className="d-flex flex-column gap-3">
+                      {tourData.notes?.map((note, index) => (
+                        <div key={index} className="tour-note-item">
+                          {note.title && (
+                            <div className="mb-1">
+                              <span className="fw-bold fs-7 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.05em', color: '#b79c5c' }}>
+                                {note.title}
+                              </span>
+                            </div>
+                          )}
+                          <div 
+                            className="text-muted tour-listing-details__text" 
+                            style={{ 
+                              fontSize: '0.925rem', 
+                              lineHeight: '1.6',
+                              color: '#555 !important'
+                            }}
+                            dangerouslySetInnerHTML={{ __html: note.text }}
+                          />
+                          {index < (tourData.notes?.length || 0) - 1 && (
+                            <hr className="mt-3 mb-0 opacity-10" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
 
                 {/* Gallery Section */}
                 <section id="gallery" className="tour-section">
@@ -563,7 +690,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                         <div className="mobile-swipeable-gallery">
                           {images.map((img, idx) => {
                             const imgUrl = typeof img === 'string' ? img : (img as any).url || (img as any).src;
-                            const imgAlt = (img as any).alt || `${title} gallery ${idx + 1}`;
+                            const imageTitle = (typeof img === 'object' && (img as any).title) ? (img as any).title : "";
+                            const imgAlt = (img as any).alt || imageTitle || `${title} gallery ${idx + 1}`;
                             return (
                               <Item
                                 key={`mobile-img-${idx}`}
@@ -571,6 +699,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                 thumbnail={imgUrl}
                                 width="1200"
                                 height="800"
+                                caption={imageTitle || imgAlt}
                               >
                                 {({ ref, open }) => (
                                   <a
@@ -578,12 +707,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                     ref={ref as unknown as React.Ref<HTMLAnchorElement>}
                                     onClick={(e) => { e.preventDefault(); open(e); }}
                                     className="mobile-gallery-link"
+                                    title={imageTitle}
                                   >
                                     <div className='tour-gallery-item h-100'>
                                       <div className='tour-gallery-image-wrapper h-100'>
                                         <Image
                                           src={imgUrl}
                                           alt={imgAlt}
+                                          title={imageTitle}
                                           width={400}
                                           height={300}
                                           className="tour-gallery-image"
@@ -607,7 +738,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                         >
                           {images.map((img, idx) => {
                             const imgUrl = typeof img === 'string' ? img : (img as any).url || (img as any).src;
-                            const imgAlt = (img as any).alt || `${title} gallery ${idx + 1}`;
+                            const imageTitle = (typeof img === 'object' && (img as any).title) ? (img as any).title : "";
+                            const imgAlt = (img as any).alt || imageTitle || `${title} gallery ${idx + 1}`;
                             return (
                               <Item
                                 key={`desk-img-${idx}`}
@@ -615,12 +747,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                 thumbnail={imgUrl}
                                 width="1200"
                                 height="800"
+                                caption={imageTitle || imgAlt}
                               >
                                 {({ ref, open }) => (
                                   <a
                                     href={imgUrl}
                                     ref={ref as unknown as React.Ref<HTMLAnchorElement>}
                                     onClick={(e) => { e.preventDefault(); open(e); }}
+                                    title={imageTitle}
                                     style={{ display: 'block' }}
                                   >
                                     <div className='tour-gallery-item'>
@@ -628,6 +762,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                                         <Image
                                           src={imgUrl}
                                           alt={imgAlt}
+                                          title={imageTitle}
                                           width={400}
                                           height={300}
                                           className="tour-gallery-image"
@@ -784,16 +919,21 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
             <Container>
                 <div className="sec-title text-center mb-5">
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
-                  <h3 className='sec-title__title'>{t("tourDetails.relatedToursTitle")}</h3>
+                  <h3 className='sec-title__title'>{t("tourDetails.relatedTours.title", "Related Tours")}</h3>
                 </div>
                 <div className="row gutter-y-30">
-                  {relatedTours.map((tour: any) => (
+                  {relatedTours.map((tour: any, index: number) => (
                     <div key={tour.id} className="col-lg-4 col-md-6">
-                      <div className="tour-listing-one__item">
+                      <div 
+                        className="tour-listing-one__item wow fadeInUp"
+                        data-wow-duration='1500ms'
+                        data-wow-delay={`${100 * (index + 1)}ms`}
+                      >
                         <div className="tour-listing-one__image">
                           <Image
                             src={tour.image}
-                            alt={tour.title}
+                            alt={tour.imageAlt || tour.title || "Tour Image"}
+                            title={tour.imageTitle || tour.title || "Tour Image"}
                             width={500}
                             height={350}
                             className="img-fluid"
@@ -841,7 +981,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                           {blog.image ? (
                             <Image
                               src={blog.image}
-                              alt={blog.title}
+                              alt={blog.imageAlt || blog.title || "Blog Image"}
+                              title={blog.imageTitle || blog.title || "Blog Image"}
                               className="img-fluid"
                               width={600}
                               height={450}

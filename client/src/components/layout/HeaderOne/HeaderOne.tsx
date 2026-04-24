@@ -71,7 +71,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
         <div className='main-header__inner'>
           <div className='main-header__logo logo-retina'>
             <Link href='/'>
-              <Image src={main_logo} alt='gotur HTML' width='100' height='30' />
+              <Image src={main_logo} alt='gotur logo' title='gotur' width='100' height='30' />
             </Link>
           </div>
 

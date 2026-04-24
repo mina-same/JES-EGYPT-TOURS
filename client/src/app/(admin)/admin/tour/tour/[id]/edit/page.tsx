@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+
 import { tourAPI } from '@/lib/api/tour';
 import { getAllBlogs } from '@/lib/api/blog';
 import { Button } from '@/components/ui/button';
 import { 
-  ArrowLeft, Loader2, Save,
+  Loader2, Save,
   LayoutDashboard, Image as ImageIcon, Map as MapIcon, 
   ListChecks, DollarSign, Settings, HelpCircle
 } from 'lucide-react';
@@ -93,31 +93,42 @@ export default function EditTourPage() {
           };
 
           const toLocalizedMixed = (val: any) => {
-            if (!val) return { en: [], de: [], it: [], es: [] };
+            const empty = { en: [], de: [], it: [], es: [] };
+            if (!val) return empty;
+            
             if (Array.isArray(val)) {
-              // If it's an array of objects (LocalizedString), we need to flatten it
+              // If it's an array of objects (LocalizedSchema), we need to extract the strings
               if (val.length > 0 && typeof val[0] === 'object' && val[0] !== null) {
-                return {
-                  en: val.map(item => item.en || '').filter(Boolean),
-                  de: val.map(item => item.de || '').filter(Boolean),
-                  it: val.map(item => item.it || '').filter(Boolean),
-                  es: val.map(item => item.es || '').filter(Boolean),
-                };
+                const result: any = { en: [], de: [], it: [], es: [] };
+                const languages = ['en', 'de', 'it', 'es'] as const;
+                
+                val.forEach(item => {
+                  languages.forEach(lang => {
+                    const content = item[lang];
+                    if (Array.isArray(content)) {
+                      // Flatten corrupted data where item[lang] was accidentally saved as an array
+                      result[lang].push(...content.filter(Boolean));
+                    } else if (content) {
+                      result[lang].push(content);
+                    }
+                  });
+                });
+                return result;
               }
+              // It's already a flat array of strings? Default to English
               return { en: val, de: [], it: [], es: [] };
             }
+
+            // It's already the { en: [], de: [] } structure
             return {
-              en: val.en || [],
-              de: val.de || [],
-              it: val.it || [],
-              es: val.es || [],
+              en: Array.isArray(val.en) ? val.en : (val.en ? [val.en] : []),
+              de: Array.isArray(val.de) ? val.de : (val.de ? [val.de] : []),
+              it: Array.isArray(val.it) ? val.it : (val.it ? [val.it] : []),
+              es: Array.isArray(val.es) ? val.es : (val.es ? [val.es] : []),
             };
           };
 
-          const toLocalizedArray = (arr: any[]) => {
-            if (!arr || !Array.isArray(arr)) return [];
-            return arr.map(item => toLocalized(item));
-          };
+
 
           const toLocalizedImage = (img: any) => {
             if (!img) return null;
@@ -150,13 +161,19 @@ export default function EditTourPage() {
               gallery: (tour.gallery || []).map(toLocalizedImage).filter(Boolean),
               idExternal: tour.idExternal || '',
               heading: toLocalized(tour.heading),
+              headingDescription: toLocalized(tour.headingDescription),
+              meetingPoint: toLocalized(tour.meetingPoint),
+              tags: toLocalizedMixed(tour.tags),
               tourLocation: toLocalized(tour.tourLocation),
               tourAvailability: toLocalized(tour.tourAvailability),
               pickupAndDropOff: toLocalized(tour.pickupAndDropOff),
               tourType: toLocalized(tour.tourType),
               tourStyle: toLocalized(tour.tourStyle),
+              duration: toLocalized(tour.duration),
+              cancellationPolicy: toLocalized(tour.cancellationPolicy),
               isFeatured: tour.isFeatured || false,
               isActive: tour.isActive !== undefined ? tour.isActive : true,
+              reviewsCount: tour.reviewsCount || 0,
               seo: {
                 metaTitle: toLocalized(tour.seo?.metaTitle),
                 metaDescription: toLocalized(tour.seo?.metaDescription),
@@ -202,10 +219,6 @@ export default function EditTourPage() {
                 content: toLocalized(r.content),
               })),
               priceStartingFrom: tour.priceStartingFrom,
-              duration: toLocalized(tour.duration),
-              meetingPoint: toLocalized(tour.meetingPoint),
-              cancellationPolicy: toLocalized(tour.cancellationPolicy),
-              tags: tour.tags || [],
             };
           });
         } else {
@@ -285,29 +298,43 @@ export default function EditTourPage() {
       }
 
       // 2. Clean up empty fields
-      const cleanData = { ...tourForm.formData };
+      const cleanData: any = { ...tourForm.formData };
       
       const isMixedEmpty = (mixed: any) => {
-        if (!mixed) return true;
-        return !mixed.en?.length && !mixed.de?.length && !mixed.it?.length && !mixed.es?.length;
+        if (!mixed || typeof mixed !== 'object' || Array.isArray(mixed)) return true;
+        const languages = ['en', 'de', 'it', 'es'] as const;
+        return languages.every(lang => !mixed[lang] || (Array.isArray(mixed[lang]) && mixed[lang].length === 0));
       };
 
-      const flattenLocalizedList = (mixed: any) => {
-        if (!mixed || typeof mixed !== 'object' || Array.isArray(mixed)) return mixed;
-        const languages = ['en', 'de', 'it', 'es'];
-        const result: any = { en: [], de: [], it: [], es: [] };
+      const toLocalizedMixedArray = (mixed: any) => {
+        if (!mixed || typeof mixed !== 'object' || Array.isArray(mixed)) return Array.isArray(mixed) ? mixed : [];
+        const languages = ['en', 'de', 'it', 'es'] as const;
         
-        languages.forEach(lang => {
-          const list = mixed[lang] || [];
-          if (Array.isArray(list)) {
-            result[lang] = list.map((item: any) => {
-              if (typeof item === 'object' && item !== null) {
-                return item[lang] || item.en || '';
-              }
-              return item;
-            }).filter(Boolean);
+        // Find the maximum length across all languages to ensure no item is missed
+        const maxLength = Math.max(...languages.map(lang => Array.isArray(mixed[lang]) ? mixed[lang].length : 0));
+        
+        const result: any[] = [];
+        for (let i = 0; i < maxLength; i++) {
+          const item: any = {};
+          languages.forEach(lang => {
+            const list = mixed[lang] || [];
+            const val = list[i] || '';
+            // Ensure we don't save arrays into the language keys (flatten if needed)
+            item[lang] = (Array.isArray(val) ? val.join(', ') : String(val)).trim();
+          });
+
+          // Only add if at least one language has content for this index
+          if (languages.some(lang => item[lang])) {
+            // CRITICAL FIX: Server requires English. If missing, fallback to others or a placeholder.
+            if (!item.en && (item.de || item.it || item.es)) {
+              item.en = item.de || item.it || item.es;
+            }
+            // If English is STILL empty (shouldn't happen due to check above), use a placeholder to avoid validation error
+            if (!item.en) item.en = "...";
+            
+            result.push(item);
           }
-        });
+        }
         return result;
       };
       
@@ -336,14 +363,15 @@ export default function EditTourPage() {
         }
       }
 
-      // Sanitize list fields
-      if (cleanData.tourHighlights) cleanData.tourHighlights = flattenLocalizedList(cleanData.tourHighlights);
-      if (cleanData.inclusion) cleanData.inclusion = flattenLocalizedList(cleanData.inclusion);
-      if (cleanData.exclusion) cleanData.exclusion = flattenLocalizedList(cleanData.exclusion);
-      if (cleanData.whatToPack) cleanData.whatToPack = flattenLocalizedList(cleanData.whatToPack);
-      if (cleanData.tags) cleanData.tags = flattenLocalizedList(cleanData.tags);
+      // 3. Remove empty optional fields & Sanitize list fields
+      // We check if empty BEFORE transforming to array structure
+      cleanData.tourHighlights = isMixedEmpty(cleanData.tourHighlights) ? [] : toLocalizedMixedArray(cleanData.tourHighlights);
+      cleanData.inclusion = isMixedEmpty(cleanData.inclusion) ? [] : toLocalizedMixedArray(cleanData.inclusion);
+      cleanData.exclusion = isMixedEmpty(cleanData.exclusion) ? [] : toLocalizedMixedArray(cleanData.exclusion);
+      cleanData.whatToPack = isMixedEmpty(cleanData.whatToPack) ? [] : toLocalizedMixedArray(cleanData.whatToPack);
+      cleanData.tags = isMixedEmpty(cleanData.tags) ? [] : toLocalizedMixedArray(cleanData.tags);
 
-      // Remove empty optional fields
+      // Other cleanups
       if (!cleanData.priceStartingFrom) delete cleanData.priceStartingFrom;
       if (!cleanData.duration) delete cleanData.duration;
       if (!cleanData.tourType) delete cleanData.tourType;
@@ -353,16 +381,15 @@ export default function EditTourPage() {
       if (!cleanData.tourMapIframe) delete cleanData.tourMapIframe;
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
       
-      // Remove empty arrays
-      if (isMixedEmpty(cleanData.tourHighlights)) delete cleanData.tourHighlights;
-      if (isMixedEmpty(cleanData.inclusion)) delete cleanData.inclusion;
-      if (isMixedEmpty(cleanData.exclusion)) delete cleanData.exclusion;
-      if (isMixedEmpty(cleanData.whatToPack)) delete cleanData.whatToPack;
       if (!cleanData.pricingPlans?.length) delete cleanData.pricingPlans;
       if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;
       if (!cleanData.relatedTours?.length) delete cleanData.relatedTours;
-      if (isMixedEmpty(cleanData.tags)) delete cleanData.tags;
-      if (!cleanData.reviews?.length) delete cleanData.reviews;
+      
+      // Keep lists if they are required or important, only delete if really necessary
+      if (!(cleanData.tourHighlights as any)?.length) delete cleanData.tourHighlights;
+      // Do NOT delete tags, inclusion, exclusion if they are required by schema
+      
+      if (!(cleanData.reviews as any)?.length) delete cleanData.reviews;
 
       // Sanitize ID fields to ensure they are strings, not objects
       if (cleanData.subcategory && typeof cleanData.subcategory === 'object') {

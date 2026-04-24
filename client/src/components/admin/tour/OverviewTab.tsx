@@ -54,6 +54,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               value={formData.slug || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('slug', val, lang)}
               placeholder="Enter slug"
+              activeLanguage={activeLanguage}
             />
           </div>
 
@@ -65,6 +66,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               onChange={(val, lang) => handleChange('heading', val, lang)}
               placeholder="Enter tour heading"
               error={hasError('heading') || hasError('heading.en')}
+              activeLanguage={activeLanguage}
             />
             {(hasError('heading') || hasError('heading.en')) && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path?.startsWith('heading'))?.message}</p>}
           </div>
@@ -107,6 +109,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               value={formData.tags || { en: [], de: [], it: [], es: [] }}
               onChange={(val, lang) => handleChange('tags', val, lang)}
               placeholder="Add a tag and press Enter..."
+              activeLanguage={activeLanguage}
             />
             <p className="text-xs text-muted-foreground">General tags for this tour (e.g., Summer, Sale, New)</p>
           </div>
@@ -127,6 +130,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               value={formData.description?.header || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('description.header', val, lang)}
               placeholder="Enter catchy header"
+              activeLanguage={activeLanguage}
             />
           </div>
         </CardContent>

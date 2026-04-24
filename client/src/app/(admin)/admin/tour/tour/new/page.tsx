@@ -129,7 +129,7 @@ export default function NewTourPage() {
       }
 
       // 2. Clean up empty fields
-      const cleanData = { ...tourForm.formData };
+      const cleanData: any = { ...tourForm.formData };
       
       const isMixedEmpty = (mixed: any) => {
         if (!mixed) return true;
@@ -157,17 +157,17 @@ export default function NewTourPage() {
       
       // Remove empty images
       if (cleanData.images) {
-        cleanData.images = cleanData.images.filter(img => img.url);
+        cleanData.images = cleanData.images.filter((img: any) => img.url);
         if (cleanData.images.length === 0) delete cleanData.images;
       }
       
       if (cleanData.gallery) {
-        cleanData.gallery = cleanData.gallery.filter(img => img.url);
+        cleanData.gallery = cleanData.gallery.filter((img: any) => img.url);
         if (cleanData.gallery.length === 0) delete cleanData.gallery;
       }
       
       if (cleanData.notes) {
-        cleanData.notes = cleanData.notes.filter(note => note.title || note.text);
+        cleanData.notes = cleanData.notes.filter((note: any) => note.title || note.text);
         if (cleanData.notes.length === 0) delete cleanData.notes;
       }
       
@@ -214,13 +214,13 @@ export default function NewTourPage() {
       }
       
       if (cleanData.blogReferences) {
-        cleanData.blogReferences = cleanData.blogReferences.map(ref => 
+        cleanData.blogReferences = cleanData.blogReferences.map((ref: any) => 
           typeof ref === 'object' ? (ref as any)._id || ref : ref
         );
       }
       
       if (cleanData.relatedTours) {
-        cleanData.relatedTours = cleanData.relatedTours.map(ref => 
+        cleanData.relatedTours = cleanData.relatedTours.map((ref: any) => 
           typeof ref === 'object' ? (ref as any)._id || ref : ref
         );
       }

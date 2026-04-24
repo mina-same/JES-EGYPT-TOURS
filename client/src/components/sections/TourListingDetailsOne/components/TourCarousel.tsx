@@ -40,9 +40,13 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
                 ? img 
                 : (img as any).url || (img as any).src;
               
+              const imageTitle = (typeof img === 'object' && (img as any).title) 
+                ? (img as any).title 
+                : (typeof img === 'object' && (img as any).alt) ? (img as any).alt : "";
+
               const imageAlt = (typeof img === 'object' && (img as any).alt) 
                 ? (img as any).alt 
-                : `${title} - Image ${idx + 1}`;
+                : (imageTitle || `${title} - Image ${idx + 1}`);
               
               return (
                 <div key={idx}>
@@ -52,6 +56,7 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
                       thumbnail={imageUrl} 
                       width='1600' 
                       height='1000'
+                      caption={imageTitle || imageAlt}
                     >
                       {({ ref, open }) => (
                         <div 
@@ -61,11 +66,13 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
                             e.preventDefault();
                             open(e);
                           }}
+                          title={imageTitle}
                           style={{ cursor: 'pointer' }}
                         >
                           <Image
                             src={imageUrl}
                             alt={imageAlt}
+                            title={imageTitle}
                             width={800}
                             height={600}
                             className="object-cover w-full"

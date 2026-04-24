@@ -163,37 +163,62 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
           if (!current[keys[i]]) current[keys[i]] = {};
           current = current[keys[i]];
         }
-        current[keys[keys.length - 1]] = value;
+        
+        const lastKey = keys[keys.length - 1];
+        const targetVal = current[lastKey];
+        
+        if (lang && typeof value === 'string' && typeof targetVal === 'object' && targetVal !== null && !Array.isArray(targetVal)) {
+          current[lastKey] = {
+            ...targetVal,
+            [lang]: value
+          };
+        } else {
+          current[lastKey] = value;
+        }
+      } else if (lang && typeof value === 'string' && typeof updated[field] === 'object' && updated[field] !== null && !Array.isArray(updated[field])) {
+        // Only update the specific language IF value is a string (primitive)
+        // because our Localized components already pass the full object as 'value'
+        updated[field] = {
+          ...updated[field],
+          [lang]: value
+        };
       } else {
         updated[field] = value;
       }
 
-      // Auto-update slug and SEO metaTitle if name (English) changes
-      if (field === 'name' || field.startsWith('heading.') || field.startsWith('name.')) {
+      // Auto-update slug and SEO metaTitle if heading changes
+      if (field === 'heading' || field.startsWith('heading.')) {
         let targetLang: AdminLanguage = 'en';
-        let val = value;
-
+        
         if (field.startsWith('heading.')) targetLang = field.split('.')[1] as AdminLanguage;
-        else if (field.startsWith('name.')) targetLang = field.split('.')[1] as AdminLanguage;
         else if (lang) targetLang = lang;
 
-        // If 'name' is the whole object (from LocalizedInput)
-        if (field === 'name' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
-           updated.name = value;
-           // Use targetLang (or lang) to determine which slug to generate
+        // If 'heading' is the whole object (from LocalizedInput)
+        if (field === 'heading' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
            if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
-           updated.slug[targetLang] = generateSlug(value[targetLang] || '');
+           // Generate slugs for each language
+           Object.keys(value).forEach((l) => {
+             updated.slug[l as AdminLanguage] = generateSlug(value[l as AdminLanguage] || '');
+           });
         } else {
-           if (field === 'name' || field === 'heading.en' || field === 'name.en') updated.name = value;
-           
            if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
            updated.slug[targetLang] = generateSlug(value);
         }
 
         if (!updated.seo) updated.seo = {};
         if (!updated.seo.metaTitle) updated.seo.metaTitle = { en: '', de: '', it: '', es: '' };
-        if (!updated.seo.metaTitle[targetLang]) {
-          updated.seo.metaTitle[targetLang] = typeof value === 'object' ? value[targetLang] : value;
+        
+        // If passing an object
+        if (field === 'heading' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+           Object.keys(value).forEach((l) => {
+             if (!updated.seo.metaTitle[l as AdminLanguage]) {
+               updated.seo.metaTitle[l as AdminLanguage] = value[l as AdminLanguage];
+             }
+           });
+        } else {
+           if (!updated.seo.metaTitle[targetLang]) {
+             updated.seo.metaTitle[targetLang] = value;
+           }
         }
       }
 

@@ -239,48 +239,33 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
     onChange(updated);
   };
 
-  // Add note to season
-  const addSeasonNote = (planIndex: number, seasonIndex: number) => {
+  // Add note to plan
+  const addPlanNote = (planIndex: number) => {
     const newNote: IPricingNote = { 
       title: { en: '', de: '', it: '', es: '' }, 
       text: { en: '', de: '', it: '', es: '' } 
     };
     const updated = pricingPlans.map((plan, i) => 
       i === planIndex 
-        ? {
-            ...plan,
-            seasons: plan.seasons.map((season, j) => 
-              j === seasonIndex 
-                ? { ...season, notes: [...season.notes, newNote] }
-                : season
-            )
-          }
+        ? { ...plan, notes: [...(plan.notes || []), newNote] }
         : plan
     );
     onChange(updated);
   };
 
-  // Remove note from season
-  const removeSeasonNote = (planIndex: number, seasonIndex: number, noteIndex: number) => {
+  // Remove note from plan
+  const removePlanNote = (planIndex: number, noteIndex: number) => {
     const updated = pricingPlans.map((plan, i) => 
       i === planIndex 
-        ? {
-            ...plan,
-            seasons: plan.seasons.map((season, j) => 
-              j === seasonIndex 
-                ? { ...season, notes: season.notes.filter((_, k) => k !== noteIndex) }
-                : season
-            )
-          }
+        ? { ...plan, notes: (plan.notes || []).filter((_, k) => k !== noteIndex) }
         : plan
     );
     onChange(updated);
   };
 
-  // Update season note
-  const updateSeasonNote = (
+  // Update plan note
+  const updatePlanNote = (
     planIndex: number, 
-    seasonIndex: number, 
     noteIndex: number, 
     field: keyof IPricingNote, 
     value: any
@@ -289,20 +274,10 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
       i === planIndex 
         ? {
             ...plan,
-            seasons: plan.seasons.map((season, j) => 
-              j === seasonIndex 
-                ? {
-                    ...season,
-                    notes: season.notes.map((note, k) => {
-                      if (k !== noteIndex) return note;
-                      return {
-                        ...note,
-                        [field]: value
-                      } as IPricingNote;
-                    })
-                  }
-                : season
-            )
+            notes: (plan.notes || []).map((note, k) => {
+              if (k !== noteIndex) return note;
+              return { ...note, [field]: value } as IPricingNote;
+            })
           }
         : plan
     );
@@ -586,64 +561,70 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                   {hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Requires one USD price minimum</p>}
                                                 </div>
 
-                                              {/* Notes */}
-                                              <div className="space-y-3 pt-3 border-t mt-auto">
-                                                <div className="flex items-center justify-between">
-                                                  <Label className="text-xs font-semibold text-muted-foreground uppercase">Notes</Label>
-                                                  <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-6 px-2 text-xs hover:bg-primary/10 hover:text-primary"
-                                                    onClick={() => addSeasonNote(planIndex, seasonIndex)}
-                                                  >
-                                                    <Plus className="w-3 h-3 mr-1" />
-                                                    Add
-                                                  </Button>
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                  {season.notes.map((note, noteIndex) => (
-                                                    <div key={noteIndex} className="group relative bg-muted/30 p-3 rounded-md border text-xs">
-                                                      <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="absolute -right-1 -top-1 h-5 w-5 opacity-100 transition-opacity bg-background border shadow-sm rounded-full hover:bg-destructive hover:text-destructive-foreground"
-                                                        onClick={() => removeSeasonNote(planIndex, seasonIndex, noteIndex)}
-                                                      >
-                                                        <X className="w-3 h-3" />
-                                                      </Button>
-                                                      <div className="space-y-4">
-                                                        <LocalizedInput
-                                                           label="Note Title"
-                                                           value={note.title || { en: '', de: '', it: '', es: '' }}
-                                                           onChange={(val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'title', val)}
-                                                           placeholder="Note Title"
-                                                        />
-
-                                                        <LocalizedTextArea
-                                                           label="Note Description"
-                                                           value={note.text || { en: '', de: '', it: '', es: '' }}
-                                                           onChange={(val) => updateSeasonNote(planIndex, seasonIndex, noteIndex, 'text', val)}
-                                                           placeholder="Description"
-                                                           rows={2}
-                                                        />
-                                                      </div>
-                                                    </div>
-                                                  ))}
-                                                  {season.notes.length === 0 && (
-                                                    <div className="text-xs text-muted-foreground italic text-center py-2">
-                                                      No notes added
-                                                    </div>
-                                                  )}
-                                                </div>
                                               </div>
-                                            </div>
+                                         </div>
+                                       );
+                                     })}
+                                   </div>
+                                 </div>
+
+                                 {/* Plan Level Notes */}
+                                 <div className="space-y-4 pt-6 border-t">
+                                   <div className="flex items-center justify-between">
+                                      <div className="space-y-1">
+                                        <Label className="text-base font-semibold italic flex items-center gap-2 text-primary">
+                                          <Plus className="w-4 h-4" />
+                                          Plan Level Notes
+                                        </Label>
+                                        <p className="text-xs text-muted-foreground">These notes apply to all seasons in this plan</p>
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => addPlanNote(planIndex)}
+                                      >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add Note
+                                      </Button>
+                                   </div>
+
+                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      {(plan.notes || []).map((note, noteIndex) => (
+                                        <div key={noteIndex} className="group relative bg-muted/20 p-4 rounded-xl border border-primary/10 shadow-sm">
+                                           <Button
+                                             type="button"
+                                             variant="ghost"
+                                             size="icon"
+                                             className="absolute -right-2 -top-2 h-6 w-6 bg-background border shadow-sm rounded-full hover:bg-destructive hover:text-white"
+                                             onClick={() => removePlanNote(planIndex, noteIndex)}
+                                           >
+                                             <X className="w-3 h-3" />
+                                           </Button>
+                                           <div className="space-y-4">
+                                             <LocalizedInput
+                                                label="Note Title"
+                                                value={note.title || { en: '', de: '', it: '', es: '' }}
+                                                onChange={(val) => updatePlanNote(planIndex, noteIndex, 'title', val)}
+                                                placeholder="e.g. Peak Season Policy"
+                                             />
+
+                                             <LocalizedTextArea
+                                                label="Note Description"
+                                                value={note.text || { en: '', de: '', it: '', es: '' }}
+                                                onChange={(val) => updatePlanNote(planIndex, noteIndex, 'text', val)}
+                                                placeholder="Enter note details..."
+                                                rows={3}
+                                             />
+                                           </div>
                                         </div>
-                                      );
-                                    })}
-                                  </div>
+                                      ))}
+                                      {(plan.notes || []).length === 0 && (
+                                        <div className="md:col-span-2 py-8 text-center bg-muted/10 border border-dashed rounded-xl border-primary/10">
+                                          <p className="text-sm text-muted-foreground italic">No plan-level notes added</p>
+                                        </div>
+                                      )}
+                                   </div>
                                 </div>
                               </div>
                             )}
