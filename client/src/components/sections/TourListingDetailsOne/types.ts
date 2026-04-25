@@ -125,4 +125,5 @@ export interface TourDetailsOneData {
 
 export interface TourListingOneDetailsProps {
   id?: string;
+  initialRawTour?: any;
 }

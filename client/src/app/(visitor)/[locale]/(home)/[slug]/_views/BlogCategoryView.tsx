@@ -1,38 +1,77 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import Layout from "@/components/layout/Layout/Layout";
-import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
-import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
-import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
-import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
-import { getBlogsByCategory, getCategoryBySlug } from "@/lib/api/blog";
-import { SlugManager } from "@/components/common/SlugManager";
-import { getLocalizedValue } from "@/lib/localize";
-import { Loader2 } from "lucide-react";
-import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
-import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA";
-import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
-import BlogHero from "@/components/sections/BlogHero/BlogHero";
-import { motion } from "framer-motion";
-import { Container, Row, Col } from "react-bootstrap";
-import Image from "next/image";
-import enBlogs from "@/i18n/locales/en/blogs.json";
-import deBlogs from "@/i18n/locales/de/blogs.json";
-import itBlogs from "@/i18n/locales/it/blogs.json";
-import esBlogs from "@/i18n/locales/es/blogs.json";
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Layout from '@/components/layout/Layout/Layout';
+import TopbarOne from '@/components/common/TopbarOne/TopbarOne';
+import HeaderOne from '@/components/layout/HeaderOne/HeaderOne';
+import HeaderOneCloned from '@/components/layout/HeaderOneCloned/HeaderOneCloned';
+import FooterOne from '@/components/layout/FooterOne/FooterOne';
+import DynamicBlogGrid from '@/components/sections/DynamicBlogGrid/DynamicBlogGrid';
+import {
+  getBlogsByCategory,
+  getCategoryBySlug,
+  getSubCategoriesByCategory,
+} from '@/lib/api/blog';
+import { SlugManager } from '@/components/common/SlugManager';
+import { getLocalizedValue } from '@/lib/localize';
+import { Loader2, ArrowRight, MapPin } from 'lucide-react';
+import ListingFaqs from '@/components/common/ListingSections/ListingFaqs';
+import ClientCarousel from '@/components/sections/ClientCarousel/ClientCarousel';
+import BlogHero from '@/components/sections/BlogHero/BlogHero';
+import BlogCategoryCTA from '@/components/sections/BlogCategoryCTA/BlogCategoryCTA';
+import { motion } from 'framer-motion';
+import { Container, Row, Col } from 'react-bootstrap';
+import Image from 'next/image';
+import Link from 'next/link';
+import { TinySliderWrapper as TinySlider } from '@/components/common/TinySliderWrapper';
+import LucideIcon from '@/components/common/LucideIcon';
+
+import enBlogs from '@/i18n/locales/en/blogs.json';
+import deBlogs from '@/i18n/locales/de/blogs.json';
+import itBlogs from '@/i18n/locales/it/blogs.json';
+import esBlogs from '@/i18n/locales/es/blogs.json';
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
+// ─── Helper ───────────────────────────────────────────────────────────────────
+const getImageUrl = (img: any): string => {
+  if (!img) return '';
+  if (typeof img === 'string') return img;
+  if (img.url) return img.url;
+  return '';
+};
+
+// Render icon: emoji character → as text, otherwise try gotur icon class
+const SubcatIcon: React.FC<{ icon?: string; hover?: boolean }> = ({ icon, hover }) => {
+  if (!icon) {
+    // fallback compass SVG
+    return (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+      </svg>
+    );
+  }
+  // If single emoji / unicode char (≤2 characters counting surrogates)
+  const codePoints = [...icon];
+  if (codePoints.length <= 2) {
+    return <span style={{ fontSize: '28px', lineHeight: 1 }}>{icon}</span>;
+  }
+  // Otherwise treat as icon name (Lucide)
+  return <LucideIcon name={icon} size={28} strokeWidth={1.5} />;
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function BlogCategoryView({ slug, locale }: { slug: string; locale: string }) {
   const searchParams = useSearchParams();
-  const page = Number(searchParams?.get("page")) || 1;
-  const t = (key: string) => translations[locale]?.[key] || translations["en"]?.[key] || key;
+  const page = Number(searchParams?.get('page')) || 1;
+  const allBlogsRef = useRef<HTMLElement>(null);
+  const t = (key: string) => translations[locale]?.[key] || translations['en']?.[key] || key;
 
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<any>(null);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [blogsData, setBlogsData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,14 +80,19 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
       setLoading(true);
       try {
         const cat = await getCategoryBySlug(slug);
-        // Use the base (English) slug for the posts API call to ensure it's found
         const baseSlug = typeof cat.slug === 'object' ? cat.slug.en : cat.slug;
-        const blogs = await getBlogsByCategory(baseSlug || slug, page, 9);
+
+        const [subs, blogs] = await Promise.all([
+          getSubCategoriesByCategory(cat._id),
+          getBlogsByCategory(baseSlug || slug, page, 9),
+        ]);
+
         setCategory(cat);
+        setSubcategories(Array.isArray(subs) ? subs : []);
         setBlogsData(blogs);
       } catch (err) {
-        console.error("Error fetching blog category data:", err);
-        setError("Category not found");
+        console.error('Error fetching blog category data:', err);
+        setError('Category not found');
       } finally {
         setLoading(false);
       }
@@ -56,12 +100,20 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
     fetchData();
   }, [slug, page]);
 
+  // Scroll to All Blogs section on page change (not first load)
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    allBlogsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [page]);
+
+  // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading && !category) {
     return (
       <Layout>
         <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-10 h-10 animate-spin" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#b79c5c' }} />
         </div>
         <FooterOne />
       </Layout>
@@ -72,7 +124,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
     return (
       <Layout>
         <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
           <h3>Category Not Found</h3>
         </div>
         <FooterOne />
@@ -80,111 +132,341 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
     );
   }
 
+  const categoryName = getLocalizedValue(category.name, locale) || '';
+  const categoryImage = getImageUrl(category.image);
+  const hasFeaturedBlogs = category.featuredBlogs?.length > 0;
+  const hasFeaturedDestinations = category.featuredDestinations?.length > 0;
+  const hasFaqs = category.faqs?.length > 0;
+
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <Layout>
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <SlugManager slugs={typeof category.slug === 'object' ? category.slug : { en: slug }} />
-      <BlogHero 
-        title={getLocalizedValue(category.name, locale)} 
-        subTitle={getLocalizedValue(category.description, locale)} 
-        bgImage={typeof category.image === 'object' ? category.image?.url : category.image || undefined}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 1  HERO
+          ════════════════════════════════════════════════════════════════════════ */}
+      <BlogHero
+        title={categoryName}
+        subTitle={getLocalizedValue(category.heroDescription, locale) || getLocalizedValue(category.description, locale)}
+        bgImage={categoryImage || undefined}
         breadcrumbs={[
           { label: t('blog'), href: `/${locale}/blogs` },
-          { label: getLocalizedValue(category.name, locale) }
+          { label: categoryName },
         ]}
         stats={{
           articles: blogsData?.pagination?.total || 0,
-          updatedAt: category.updatedAt ? new Date(category.updatedAt).toLocaleDateString() : undefined
+          updatedAt: category.updatedAt,
         }}
       />
 
-      {/* Hero Title & Description Section */}
-      {(getLocalizedValue(category.heroTitle, locale) || getLocalizedValue(category.heroDescription, locale)) && (
-        <section className="section-space-top pb-5">
-          <div className="container">
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 2  ABOUT CATEGORY (Side Image & Description)
+          ════════════════════════════════════════════════════════════════════════ */}
+      {(category.sideImage?.url || getLocalizedValue(category.description, locale)) && (
+        <section style={{ background: '#ffffff', padding: '60px 0 100px 0' }}>
+          <Container>
             <Row className="align-items-center">
-              <Col lg={7}>
-                <div className="hero-content-box">
-                  {getLocalizedValue(category.heroTitle, locale) && (
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="text-[#b79c5c]">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-                      </span>
-                      <h2 className="text-3xl font-extrabold text-[#1d231f]">
-                        {getLocalizedValue(category.heroTitle, locale)}
-                      </h2>
-                    </div>
-                  )}
-                  {getLocalizedValue(category.heroDescription, locale) && (
-                    <div 
-                      className="prose max-w-none text-gray-600 leading-relaxed mb-10" 
-                      dangerouslySetInnerHTML={{ __html: getLocalizedValue(category.heroDescription, locale) as string }} 
-                    />
-                  )}
-
-                  {/* Features Icons Section */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8 border-t border-gray-100">
-                    {(category.features && category.features.length > 0 ? category.features : [
-                      { icon: 'shield', title: { en: 'Scenic Journey' }, description: { en: 'Relaxing views' } },
-                      { icon: 'map-pin', title: { en: 'Luxor to Aswan' }, description: { en: 'Iconic sites' } },
-                      { icon: 'calendar', title: { en: 'Multi-Day Trip' }, description: { en: '3 to 7 nights' } },
-                      { icon: 'users', title: { en: 'Great for First-Timers' }, description: { en: 'Easy & unforgettable' } }
-                    ]).map((feature: any, idx: number) => (
-                      <div key={idx} className="flex flex-col items-center text-center gap-2">
-                        <div className="p-3 bg-[#fdf7f0] rounded-full text-[#b79c5c]">
-                           {/* Simple Icon Fallback */}
-                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                             {feature.icon === 'sun' ? <><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></> :
-                              feature.icon === 'map-pin' ? <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></> :
-                              feature.icon === 'calendar' ? <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></> :
-                              feature.icon === 'users' ? <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> :
-                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>}
-                           </svg>
-                        </div>
-                        <div>
-                          <h4 className="text-[12px] font-bold text-[#1d231f]">{getLocalizedValue(feature.title, locale)}</h4>
-                          <p className="text-[10px] text-gray-400">{getLocalizedValue(feature.description, locale)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Col>
-              <Col lg={5} className="mt-5 mt-lg-0">
-                <motion.div 
-                  initial={{ opacity: 0, x: 50 }}
+              <Col lg={6}>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  className="relative rounded-3xl overflow-hidden shadow-2xl"
-                  style={{ height: '400px' }}
+                  viewport={{ once: true }}
                 >
-                  <Image 
-                    src={category.sideImage?.url || (typeof category.image === 'object' ? category.image?.url : category.image) || "https://placehold.co/800x600?text=JES+Egypt+Tours"} 
-                    alt={getLocalizedValue(category.sideImage?.alt, locale) || (typeof category.image === 'object' ? getLocalizedValue(category.image?.alt, locale) : getLocalizedValue(category.name, locale))}
-                    title={getLocalizedValue(category.sideImage?.title, locale) || (typeof category.image === 'object' ? getLocalizedValue(category.image?.title, locale) : getLocalizedValue(category.name, locale))}
-                    fill
-                    className="object-cover"
+                  <span style={{ color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>
+                    About {categoryName}
+                  </span>
+                  <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 42px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '24px', lineHeight: 1.2 }}>
+                    {getLocalizedValue(category.heroTitle, locale) || categoryName}
+                  </h2>
+                  <div 
+                    style={{ fontSize: '17px', color: '#555', lineHeight: 1.8, marginBottom: '32px' }}
+                    dangerouslySetInnerHTML={{ __html: getLocalizedValue(category.heroDescription, locale) || getLocalizedValue(category.description, locale) }}
                   />
-                  <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-3xl" />
                 </motion.div>
               </Col>
+              
+              {category.sideImage?.url && (
+                <Col lg={6} className="mt-5 mt-lg-0">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    style={{ position: 'relative', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+                  >
+                    <Image
+                      src={category.sideImage.url}
+                      alt={getLocalizedValue(category.sideImage.alt, locale) || categoryName}
+                      width={800}
+                      height={600}
+                      style={{ width: '100%', height: 'auto', display: 'block' }}
+                    />
+                  </motion.div>
+                </Col>
+              )}
             </Row>
-          </div>
+          </Container>
         </section>
       )}
 
-      {/* Featured Blogs */}
-      {category.featuredBlogs && category.featuredBlogs.length > 0 && (
-        <section className="section-space bg-gray-50 dark:bg-slate-900/50 mt-5 pt-5 pb-5">
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 3  BROWSE BY TOPIC (Subcategory Cards)
+          ════════════════════════════════════════════════════════════════════════ */}
+      {subcategories.length > 0 && (
+        <section style={{ background: '#f8f5f0', padding: '80px 0' }}>
           <Container>
-            <div className="section-title text-center mb-10">
-              <h2 className="text-3xl font-black text-[#1d231f]">
-                {getLocalizedValue(category.featuredBlogsSectionTitle, locale) || "Our Featured Articles"}
-              </h2>
+            <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.85 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+              >
+                Explore Topics
+              </motion.span>
+              <motion.h2
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                viewport={{ once: true }}
+                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+              >
+                Browse by Topic
+              </motion.h2>
+              <div style={{ width: '64px', height: '3px', background: '#b79c5c', margin: '0 auto', borderRadius: '2px' }} />
             </div>
-            <DynamicBlogGrid 
-              blogs={category.featuredBlogs} 
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
+              {subcategories.map((sub: any, index: number) => {
+                const subSlug = getLocalizedValue(sub.slug, locale) || '';
+                const subName = getLocalizedValue(sub.name, locale) || '';
+                return (
+                  <motion.div key={sub._id || index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }} viewport={{ once: true }}>
+                    <Link href={`/${locale}/${subSlug}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+                      <div
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #eeeeee',
+                          borderRadius: '20px',
+                          padding: '28px 20px',
+                          textAlign: 'center',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '14px',
+                          transition: 'all 0.3s ease',
+                          cursor: 'pointer',
+                        }}
+                        onMouseEnter={e => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.borderColor = '#b79c5c';
+                          el.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)';
+                          el.style.transform = 'translateY(-5px)';
+                          const iconCircle = el.querySelector('.icon-circle') as HTMLElement;
+                          if (iconCircle) { iconCircle.style.background = '#b79c5c'; iconCircle.style.color = '#ffffff'; }
+                        }}
+                        onMouseLeave={e => {
+                          const el = e.currentTarget as HTMLElement;
+                          el.style.borderColor = '#eeeeee';
+                          el.style.boxShadow = 'none';
+                          el.style.transform = 'translateY(0)';
+                          const iconCircle = el.querySelector('.icon-circle') as HTMLElement;
+                          if (iconCircle) {
+                            iconCircle.style.background = '#ffffff';
+                            iconCircle.style.color = '#b79c5c';
+                          }
+                        }}
+                      >
+                        {/* Icon circle */}
+                        <div
+                          className="icon-circle"
+                          style={{
+                            width: '68px',
+                            height: '68px',
+                            borderRadius: '50%',
+                            background: '#f8f5f0',
+                            color: '#b79c5c',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background 0.3s, color 0.3s',
+                            boxShadow: '0 4px 12px rgba(183,156,92,0.1)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <SubcatIcon icon={sub.icon} />
+                        </div>
+
+                        {/* Name */}
+                        <p style={{ fontSize: '15px', fontWeight: 700, color: '#1a1a1a', margin: 0, lineHeight: 1.3 }}>
+                          {subName}
+                        </p>
+
+                        {/* Explore cue */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#b79c5c', fontSize: '12px', fontWeight: 600, marginTop: 'auto' }}>
+                          Explore <ArrowRight size={12} />
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 4  BROWSE BY DESTINATION (Slider)
+          ════════════════════════════════════════════════════════════════════════ */}
+      {hasFeaturedDestinations && (
+        <section style={{ background: '#ffffff', padding: '80px 0' }}>
+          <Container>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '52px' }}>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.85 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+              >
+                Explore Destinations
+              </motion.span>
+              <motion.h2
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                viewport={{ once: true }}
+                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+              >
+                {getLocalizedValue(category.destinationsSectionTitle, locale) || 'Where Will You Go?'}
+              </motion.h2>
+              <div style={{ width: '64px', height: '3px', background: '#b79c5c', margin: '0 auto', borderRadius: '2px' }} />
+            </div>
+
+            {/* Slider */}
+            <div className="position-relative">
+              <TinySlider
+                settings={{
+                  items: 1,
+                  gutter: 24,
+                  loop: true,
+                  autoplay: true,
+                  autoplayTimeout: 3500,
+                  nav: false,
+                  controls: true,
+                  mouseDrag: true,
+                  controlsContainer: '.dest-slider-nav',
+                  responsive: {
+                    576: { items: 2 },
+                    992: { items: 3 },
+                  },
+                }}
+                className="destination-slider-inner"
+              >
+                {category.featuredDestinations.map((dest: any, idx: number) => {
+                  const destImg = getImageUrl(dest.coverImage);
+                  const destName = getLocalizedValue(dest.name, locale) || '';
+                  const destSlug = getLocalizedValue(dest.slug, locale) || '';
+                  return (
+                    <div key={dest._id || idx} className="item">
+                      <Link href={`/${locale}/${destSlug}`} style={{ textDecoration: 'none', display: 'block' }}>
+                        <div
+                          style={{ borderRadius: '20px', overflow: 'hidden', height: '280px', position: 'relative', cursor: 'pointer' }}
+                          onMouseEnter={e => { const img = (e.currentTarget as HTMLElement).querySelector('img'); if (img) img.style.transform = 'scale(1.05)'; }}
+                          onMouseLeave={e => { const img = (e.currentTarget as HTMLElement).querySelector('img'); if (img) img.style.transform = 'scale(1)'; }}
+                        >
+                          {destImg ? (
+                            <Image
+                              src={destImg}
+                              alt={destName}
+                              fill
+                              className="object-cover"
+                              style={{ transition: 'transform 0.5s ease' }}
+                            />
+                          ) : (
+                            <div style={{ background: 'linear-gradient(135deg, #2c2c2c, #555)', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <MapPin size={40} color="#b79c5c" />
+                            </div>
+                          )}
+                          {/* Overlay */}
+                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
+                          {/* Name */}
+                          <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <p style={{ color: '#fff', fontSize: '18px', fontWeight: 700, margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+                              {destName}
+                            </p>
+                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(183,156,92,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <ArrowRight size={16} color="#fff" />
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </TinySlider>
+
+              {/* Custom nav arrows */}
+              <div className="dest-slider-nav" style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '28px' }}>
+                <button
+                  type="button"
+                  aria-label="Previous destination"
+                  style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#fff', border: '1px solid #e5e5e5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#b79c5c'; (e.currentTarget as HTMLElement).style.borderColor = '#b79c5c'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#fff'; (e.currentTarget as HTMLElement).style.borderColor = '#e5e5e5'; }}
+                >
+                  <span className="icon-arrow-left" style={{ fontSize: '14px', color: 'inherit' }} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next destination"
+                  style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#b79c5c', border: '1px solid #b79c5c', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#9a8248'; (e.currentTarget as HTMLElement).style.borderColor = '#9a8248'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#b79c5c'; (e.currentTarget as HTMLElement).style.borderColor = '#b79c5c'; }}
+                >
+                  <span className="icon-arrow-right" style={{ fontSize: '14px', color: '#fff' }} />
+                </button>
+              </div>
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 5  POPULAR BLOGS (Admin chosen)
+          ════════════════════════════════════════════════════════════════════════ */}
+      {hasFeaturedBlogs && (
+        <section style={{ background: '#f8f5f0', padding: '80px 0' }}>
+          <Container>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '52px' }}>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.85 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+              >
+                Top Picks
+              </motion.span>
+              <motion.h2
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                viewport={{ once: true }}
+                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+              >
+                {getLocalizedValue(category.featuredBlogsSectionTitle, locale) || 'Popular Articles'}
+              </motion.h2>
+              <div style={{ width: '64px', height: '3px', background: '#b79c5c', margin: '0 auto', borderRadius: '2px' }} />
+            </div>
+
+            <DynamicBlogGrid
+              blogs={category.featuredBlogs}
               basePath={`/${locale}/${slug}`}
               variant="featured"
             />
@@ -192,38 +474,71 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
         </section>
       )}
 
-      {/* All Articles */}
-      <section className="section-space-top pb-5">
-        <div className="container">
-          <div className="sec-title text-center mb-5">
-            <h2 className="sec-title__title">
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 6  ALL BLOGS (Paginated)
+          ════════════════════════════════════════════════════════════════════════ */}
+      <section ref={allBlogsRef} style={{ background: '#ffffff', padding: '80px 0' }}>
+        <Container>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '52px' }}>
+            <motion.span
+              initial={{ opacity: 0, scale: 0.85 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+            >
+              Explore More
+            </motion.span>
+            <motion.h2
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              viewport={{ once: true }}
+              style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+            >
               {getLocalizedValue(category.blogsSectionTitle, locale) || t('allArticles') || 'All Articles'}
-            </h2>
+            </motion.h2>
+            <div style={{ width: '64px', height: '3px', background: '#e5e5e5', margin: '0 auto', borderRadius: '2px' }} />
           </div>
-          <DynamicBlogGrid
-            blogs={blogsData?.data || []}
-            pagination={blogsData?.pagination}
-            basePath={`/${locale}/${slug}`}
-          />
-        </div>
+
+          {blogsData?.data?.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#888' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
+              <p style={{ fontSize: '16px' }}>No articles found in this category yet. Check back soon!</p>
+            </div>
+          ) : (
+            <DynamicBlogGrid
+              blogs={blogsData?.data || []}
+              pagination={blogsData?.pagination}
+              basePath={`/${locale}/${slug}`}
+            />
+          )}
+        </Container>
       </section>
 
-      {/* FAQs */}
-      {category.faqs && category.faqs.length > 0 && (
-        <ListingFaqs 
-          faqs={category.faqs} 
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 7  FAQ
+          ════════════════════════════════════════════════════════════════════════ */}
+      {hasFaqs && (
+        <ListingFaqs
+          faqs={category.faqs}
           sectionTitle={category.faqsSectionTitle}
           title="FAQs"
-          locale={locale} 
+          locale={locale}
+          style={{ background: '#f8f5f0' }}
         />
       )}
 
-      <BannerCTA
+      {/* ════════════════════════════════════════════════════════════════════════
+          § 7  DARK EDITORIAL CTA
+          ════════════════════════════════════════════════════════════════════════ */}
+      <BlogCategoryCTA
         locale={locale}
-        variant="blogCategory"
-        contextName={getLocalizedValue(category.name, locale)}
+        categoryName={categoryName}
+        featuredBlogs={category.featuredBlogs || []}
         articleCount={blogsData?.pagination?.total}
       />
+
       <ClientCarousel />
       <FooterOne />
     </Layout>

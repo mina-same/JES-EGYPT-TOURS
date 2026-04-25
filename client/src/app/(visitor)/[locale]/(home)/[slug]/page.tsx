@@ -589,7 +589,7 @@ export default async function SlugPage({ params }: PageProps) {
               bgImage={tour.images?.[0]?.url || tour.featuredImage?.url || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBz9RsGBZErQQOzYdoMyqX-6tjs_zUEuiJg&s"}
               alt={getLocalizedValue(tour.images?.[0]?.alt || tour.featuredImage?.alt, locale) || name}
             />
-            <TourListingOneDetails id={slug} />
+            <TourListingOneDetails id={slug} initialRawTour={tourData} />
             <FooterOne />
           </Layout>
         </>

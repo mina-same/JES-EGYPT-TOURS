@@ -21,9 +21,11 @@ function getYouTubeVideoId(url: string): string {
   return '';
 }
 
-export const useTourData = (id?: string) => {
+export const useTourData = (id?: string, initialRawTour?: any) => {
   const { i18n } = useTranslation();
   const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
+
+  const safeArray = <T,>(value: any): T[] => (Array.isArray(value) ? value : []);
 
   // Extract locale-specific value (handle raw object or pre-localized string)
   const getLocalizedValue = (v: any) => {
@@ -32,16 +34,6 @@ export const useTourData = (id?: string) => {
     return v[currentLang] || v.en || '';
   };
 
-  const [tourData, setTourData] = useState<TourDetailsOneData>({
-    ...tourDetailsOneData,
-    map: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [moreTours, setMoreTours] = useState<any[]>([]);
-  const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
-
-  const safeArray = <T,>(value: any): T[] => (Array.isArray(value) ? value : []);
 
   // Map a tour object (raw or localized) to FeatureTwo item
   const mapTourToItem = (t: any) => {
@@ -67,6 +59,131 @@ export const useTourData = (id?: string) => {
       meta: [],
     };
   };
+
+  const mapRawTourData = (tour: any, fetchedReviews: any[] = [], fetchedRelatedTours: any[] = []): TourDetailsOneData => {
+    const tourId = tour._id;
+    const sliderImages = safeArray<any>(tour.images)
+      .map((img: any) => ({ 
+        url: img?.url, 
+        alt: getLocalizedValue(img?.alt),
+        title: getLocalizedValue(img?.title) 
+      }))
+      .filter((img: any) => !!img.url);
+
+    const galleryImages = safeArray<any>(tour.gallery)
+      .map((img: any) => ({ 
+        url: img?.url, 
+        alt: getLocalizedValue(img?.alt),
+        title: getLocalizedValue(img?.title)
+      }))
+      .filter((img: any) => !!img.url);
+
+    const reviewVideos = safeArray<any>(tour.reviews)
+      .map((r: any) => ({
+        title: getLocalizedValue(r?.title) || 'Review',
+        url: typeof r?.url === 'string' ? r.url : '',
+        videoId: getYouTubeVideoId(r?.url)
+      }))
+      .filter(v => v.url && v.videoId);
+    
+    const getLocalizedArray = (obj: any): any[] => {
+      if (!obj) return [];
+      if (Array.isArray(obj)) return obj.map(item => item[currentLang] || item.en || '').filter(Boolean);
+      const current = safeArray(obj[currentLang]);
+      if (current.length > 0) return current;
+      return safeArray(obj.en);
+    };
+
+    const subId = typeof tour.subcategory === 'object'
+      ? tour.subcategory?._id || tour.subcategory
+      : tour.subcategory;
+
+    return {
+      id: tourId,
+      title: getLocalizedValue(tour.heading) || tour.name || "",
+      titleTwo: tour.name || "",
+      overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
+      reviews: tour.reviewsCount || fetchedReviews.length,
+      location: getLocalizedValue(tour.tourLocation) || "",
+      activitiesType: getLocalizedValue(tour.tourType) || "",
+      traveler: 10,
+      activateDay: getLocalizedValue(tour.duration) || "",
+      price: tour.priceStartingFrom || tour.price || 0,
+      overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",
+      topDestinations: "",
+      sliderImages,
+      highlightList: getLocalizedArray(tour.tourHighlights).map(h => String(h)).filter(Boolean),
+      amenities: getLocalizedArray(tour.inclusion).map(i => String(i)).filter(Boolean),
+      amenitiesTwo: getLocalizedArray(tour.exclusion).map(e => String(e)).filter(Boolean),
+      whatToPack: getLocalizedArray(tour.whatToPack).map(w => String(w)).filter(Boolean),
+      notes: safeArray(tour.notes).map((n: any) => ({
+        title: getLocalizedValue(n?.title),
+        text: getLocalizedValue(n?.text),
+      })),
+      relatedTours: fetchedRelatedTours.map(mapTourToItem).filter(Boolean) as any[],
+      comments: fetchedReviews.map((r: any) => ({
+        name: r?.name || "Anonymous",
+        date: r?.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        text: r?.comment || "",
+        rating: r.rating || 5,
+        avatar: r?.avatar || "https://placehold.co/100x100?text=User",
+      })),
+      images: galleryImages,
+      faqs: safeArray(tour.faqs).map((f: any) => ({
+        question: getLocalizedValue(f?.question),
+        answer: getLocalizedValue(f?.answer),
+      })).filter(f => f.question || f.answer),
+      map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
+      itinerary: {
+        generalDescription: getLocalizedValue(tour.itinerary?.generalDescription),
+        days: safeArray(tour.itinerary?.days).map((d: any) => ({
+          day: d?.day || 0,
+          title: getLocalizedValue(d?.title),
+          description: getLocalizedValue(d?.description),
+          activities: safeArray(d?.activities).map((a: any) => ({
+            heading: getLocalizedValue(a?.heading),
+            description: getLocalizedValue(a?.description),
+            image: a?.image?.url ? { 
+              url: a.image.url, 
+              alt: getLocalizedValue(a.image.alt),
+              title: getLocalizedValue(a.image.title)
+            } : undefined,
+          })),
+        })),
+      },
+      pricingPlans: safeArray(tour.pricingPlans).map((p: any) => ({
+        planName: p?.planName || "",
+        seasons: safeArray(p?.seasons).map((s: any) => ({
+          seasonName: s?.seasonName || "",
+          startDate: s?.startDate || "",
+          endDate: s?.endDate || "",
+          prices: s?.prices || {},
+          notes: safeArray(s?.notes).map((n: any) => ({
+            title: getLocalizedValue(n?.title),
+            text: getLocalizedValue(n?.text),
+          })),
+        })),
+        notes: safeArray(p?.notes).map((n: any) => ({
+          title: getLocalizedValue(n?.title),
+          text: getLocalizedValue(n?.text),
+        })),
+      })),
+      whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
+      reviewVideos,
+      subcategoryId: subId ? String(subId) : undefined,
+      firstImageUrl: sliderImages[0]?.url || undefined,
+    };
+  };
+
+  const [tourData, setTourData] = useState<TourDetailsOneData>(() => {
+    if (initialRawTour) return mapRawTourData(initialRawTour);
+    return { ...tourDetailsOneData, map: "" };
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [moreTours, setMoreTours] = useState<any[]>([]);
+  const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -176,120 +293,7 @@ export const useTourData = (id?: string) => {
         const fetchedRelatedTours = safeArray(relatedToursData).filter(Boolean);
 
         // ── Consolidate mappings ──
-        const sliderImages = safeArray<any>(tour.images)
-          .map((img: any) => ({ 
-            url: img?.url, 
-            alt: getLocalizedValue(img?.alt),
-            title: getLocalizedValue(img?.title) 
-          }))
-          .filter((img: any) => !!img.url);
-
-        const galleryImages = safeArray<any>(tour.gallery)
-          .map((img: any) => ({ 
-            url: img?.url, 
-            alt: getLocalizedValue(img?.alt),
-            title: getLocalizedValue(img?.title)
-          }))
-          .filter((img: any) => !!img.url);
-
-        const reviewVideos = safeArray<any>(tour.reviews)
-          .map((r: any) => ({
-            title: getLocalizedValue(r?.title) || 'Review',
-            url: typeof r?.url === 'string' ? r.url : '',
-            videoId: getYouTubeVideoId(r?.url)
-          }))
-          .filter(v => v.url && v.videoId);
-        
-        // Helper to get localized array with fallback for empty arrays
-        const getLocalizedArray = (obj: any): any[] => {
-          if (!obj) return [];
-          
-          // Handle Case 1: Array of localized objects [ {en, de}, {en, de} ]
-          if (Array.isArray(obj)) {
-            return obj.map(item => item[currentLang] || item.en || '').filter(Boolean);
-          }
-          
-          // Case 2: Object with language arrays { en: [], de: [] }
-          const current = safeArray(obj[currentLang]);
-          if (current.length > 0) return current;
-          return safeArray(obj.en);
-        };
-
-        const mappedData: TourDetailsOneData = {
-          id: tourId,
-          title: getLocalizedValue(tour.heading) || tour.name || "",
-          titleTwo: tour.name || "",
-          overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
-          reviews: tour.reviewsCount || fetchedReviews.length,
-          location: getLocalizedValue(tour.tourLocation) || "",
-          activitiesType: getLocalizedValue(tour.tourType) || "",
-          traveler: 10,
-          activateDay: getLocalizedValue(tour.duration) || "",
-          price: tour.priceStartingFrom || tour.price || 0,
-          overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",
-          topDestinations: "",
-          sliderImages,
-          highlightList: getLocalizedArray(tour.tourHighlights).map(h => String(h)).filter(Boolean),
-          amenities: getLocalizedArray(tour.inclusion).map(i => String(i)).filter(Boolean),
-          amenitiesTwo: getLocalizedArray(tour.exclusion).map(e => String(e)).filter(Boolean),
-          whatToPack: getLocalizedArray(tour.whatToPack).map(w => String(w)).filter(Boolean),
-          notes: safeArray(tour.notes).map((n: any) => ({
-            title: getLocalizedValue(n?.title),
-            text: getLocalizedValue(n?.text),
-          })),
-          relatedTours: fetchedRelatedTours.map(mapTourToItem).filter(Boolean) as any[],
-          comments: fetchedReviews.map((r: any) => ({
-            name: r?.name || "Anonymous",
-            date: r?.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            text: r?.comment || "",
-            rating: r.rating || 5,
-            avatar: r?.avatar || "https://placehold.co/100x100?text=User",
-          })),
-          images: galleryImages,
-          faqs: safeArray(tour.faqs).map((f: any) => ({
-            question: getLocalizedValue(f?.question),
-            answer: getLocalizedValue(f?.answer),
-          })).filter(f => f.question || f.answer),
-          map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
-          itinerary: {
-            generalDescription: getLocalizedValue(tour.itinerary?.generalDescription),
-            days: safeArray(tour.itinerary?.days).map((d: any) => ({
-              day: d?.day || 0,
-              title: getLocalizedValue(d?.title),
-              description: getLocalizedValue(d?.description),
-              activities: safeArray(d?.activities).map((a: any) => ({
-                heading: getLocalizedValue(a?.heading),
-                description: getLocalizedValue(a?.description),
-                image: a?.image?.url ? { 
-                  url: a.image.url, 
-                  alt: getLocalizedValue(a.image.alt),
-                  title: getLocalizedValue(a.image.title)
-                } : undefined,
-              })),
-            })),
-          },
-          pricingPlans: safeArray(tour.pricingPlans).map((p: any) => ({
-            planName: p?.planName || "",
-            seasons: safeArray(p?.seasons).map((s: any) => ({
-              seasonName: s?.seasonName || "",
-              startDate: s?.startDate || "",
-              endDate: s?.endDate || "",
-              prices: s?.prices || {},
-              notes: safeArray(s?.notes).map((n: any) => ({
-                title: getLocalizedValue(n?.title),
-                text: getLocalizedValue(n?.text),
-              })),
-            })),
-            notes: safeArray(p?.notes).map((n: any) => ({
-              title: getLocalizedValue(n?.title),
-              text: getLocalizedValue(n?.text),
-            })),
-          })),
-          whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
-          reviewVideos,
-          subcategoryId: subId ? String(subId) : undefined,
-          firstImageUrl: sliderImages[0]?.url || undefined,
-        };
+        const mappedData = mapRawTourData(tour, fetchedReviews, fetchedRelatedTours);
 
         const mappedBlogs = fetchedRelatedBlogs.map((b: any) => {
           const blogTitle = getLocalizedValue(b?.title);

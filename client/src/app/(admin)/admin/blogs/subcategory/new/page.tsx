@@ -31,12 +31,14 @@ import { FormSkeleton } from '@/components/admin/skeletons/FormSkeleton';
 import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import LucideIcon from '@/components/common/LucideIcon';
 
 interface BlogSubCategoryFormData {
   name: ILocalizedString;
   slug: ILocalizedString;
   category: string; // ID of parent category
   description: ILocalizedString;
+  icon?: string;
   image?: {
     url: string;
     fileName: string;
@@ -84,6 +86,7 @@ const INITIAL_BLOG_SUBCAT: BlogSubCategoryFormData = {
   slug: { en: '', de: '', it: '', es: '' },
   category: '',
   description: { en: '', de: '', it: '', es: '' },
+  icon: '',
   image: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   seo: {
     metaTitle: { en: '', de: '', it: '', es: '' },
@@ -207,6 +210,7 @@ export default function NewBlogSubCategoryPage() {
             featuredBlogs: Array.isArray(data.featuredBlogs) ? data.featuredBlogs.map((b: any) => typeof b === 'object' ? b._id : b) : [],
             featuredDestinations: Array.isArray(data.featuredDestinations) ? data.featuredDestinations.map((d: any) => typeof d === 'object' ? d._id : d) : [],
             faqs: Array.isArray(data.faqs) ? data.faqs : [],
+            icon: data.icon || '',
             isActive: data.isActive !== undefined ? !!data.isActive : true,
           });
 
@@ -449,6 +453,7 @@ export default function NewBlogSubCategoryPage() {
         slug: cleanData.slug,
         category: cleanData.category,
         description: cleanData.description,
+        icon: cleanData.icon,
         isActive: cleanData.isActive,
         metaTitle: cleanData.seo?.metaTitle,
         metaDescription: cleanData.seo?.metaDescription,
@@ -626,6 +631,35 @@ export default function NewBlogSubCategoryPage() {
                 placeholder="food-and-drink"
                 activeLanguage={activeLanguage}
               />
+              <div className="space-y-2">
+                <Label htmlFor="icon">Icon (Emoji or Icon Name)</Label>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <Input
+                      id="icon"
+                      value={formData.icon || ''}
+                      onChange={(e) => handleChange('icon', e.target.value)}
+                      placeholder="🏺 or triangle-alert"
+                    />
+                  </div>
+                  <div className="w-12 h-12 rounded-lg border bg-muted/30 flex items-center justify-center shrink-0">
+                    {formData.icon ? (
+                      [...formData.icon].length <= 2 ? (
+                        <span className="text-2xl">{formData.icon}</span>
+                      ) : (
+                        <LucideIcon name={formData.icon} size={24} className="text-primary" />
+                      )
+                    ) : (
+                      <HelpCircle className="w-6 h-6 text-muted-foreground/30" />
+                    )}
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Used in Browse by Topic section. You can use an emoji or a Lucide icon name.
+                  <br />
+                  Find Lucide icon names here: <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">lucide.dev/icons</a>
+                </p>
+              </div>
             </div>
             
             <LocalizedRichText

@@ -8,11 +8,12 @@ export interface IBlogSubCategory extends Document {
   slug: ILocalizedString;
   description?: ILocalizedString;
   image?: string;
+  icon?: string; // Emoji or icon class name (e.g. '🏺' or 'landmark')
   category: mongoose.Types.ObjectId;
   
   // Content Sections
   heroTitle?: ILocalizedString;
-  heroDescription?: ILocalizedMixed;
+  heroDescription?: ILocalizedString;
   sideImage?: {
     url: string;
     fileName: string;
@@ -85,6 +86,10 @@ const BlogSubCategorySchema: Schema = new Schema(
       type: String,
       trim: true,
     },
+    icon: {
+      type: String,
+      trim: true,
+    },
     category: {
       type: Schema.Types.ObjectId,
       ref: 'BlogCategory',
@@ -96,7 +101,7 @@ const BlogSubCategorySchema: Schema = new Schema(
       type: LocalizedStringSchema,
     },
     heroDescription: {
-      type: LocalizedMixedSchema,
+      type: LocalizedStringSchema,
     },
     sideImage: {
       url: { type: String, trim: true },

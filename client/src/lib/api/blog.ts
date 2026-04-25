@@ -22,6 +22,7 @@ export interface BlogSubCategory {
   slug: ILocalizedString;
   description?: ILocalizedString;
   image?: string;
+  icon?: string; // Emoji or icon class name set by admin
   category: BlogCategory | string;
   seo?: ISEO;
   isActive: boolean;

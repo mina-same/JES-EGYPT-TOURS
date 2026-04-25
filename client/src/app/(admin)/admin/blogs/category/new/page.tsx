@@ -58,7 +58,7 @@ interface BlogCategoryFormData {
     };
   };
   heroTitle?: ILocalizedString;
-  heroDescription?: ILocalizedMixed;
+  heroDescription?: ILocalizedString;
   sideImage?: {
     url: string;
     fileName: string;
@@ -215,6 +215,12 @@ export default function NewBlogCategoryPage() {
           },
           heroTitle: mapToLocalized(data.heroTitle),
           heroDescription: mapToLocalized(data.heroDescription),
+          sideImage: data.sideImage ? {
+            url: data.sideImage.url || '',
+            fileName: data.sideImage.fileName || '',
+            title: mapToLocalized(data.sideImage.title),
+            alt: mapToLocalized(data.sideImage.alt),
+          } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
           featuredBlogsSectionTitle: mapToLocalized(data.featuredBlogsSectionTitle),
           blogsSectionTitle: mapToLocalized(data.blogsSectionTitle),
           faqsSectionTitle: mapToLocalized(data.faqsSectionTitle),

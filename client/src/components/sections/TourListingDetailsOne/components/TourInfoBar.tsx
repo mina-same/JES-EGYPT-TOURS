@@ -2,6 +2,7 @@ import React from "react";
 import { Container } from "react-bootstrap";
 import Link from "next/link";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useTranslation } from "react-i18next";
 
 interface TourInfoBarProps {
   location: string;
@@ -19,6 +20,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
   price
 }) => {
   const { formatPrice } = useCurrency();
+  const { t } = useTranslation("tours");
   return (
     <div
       className='tour-listing-details__info-area wow fadeInUp'
@@ -33,7 +35,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
             </div>
             <div className='tour-listing-details__info-area__content'>
               <h5 className='tour-listing-details__info-area__title'>
-                Location
+                {t("tourDetails.info.location", "Location")}
               </h5>
               <p className='tour-listing-details__info-area__text'>
                 {location}
@@ -46,7 +48,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
             </div>
             <div className='tour-listing-details__info-area__content'>
               <h5 className='tour-listing-details__info-area__title'>
-                Activities Type
+                {t("tourDetails.info.activitiesType", "Activities Type")}
               </h5>
               <p className='tour-listing-details__info-area__text'>
                 {activitiesType}
@@ -59,7 +61,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
             </div>
             <div className='tour-listing-details__info-area__content'>
               <h5 className='tour-listing-details__info-area__title'>
-                Activate Day
+                {t("tourDetails.info.activateDay", "Activate Day")}
               </h5>
               <p className='tour-listing-details__info-area__text'>
                 {activateDay}
@@ -72,7 +74,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
             </div>
             <div className='tour-listing-details__info-area__content'>
               <h5 className='tour-listing-details__info-area__title'>
-                Traveler
+                {t("tourDetails.info.traveler", "Traveler")}
               </h5>
               <p className='tour-listing-details__info-area__text'>
                 {traveler}
@@ -81,7 +83,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
           </li>
           <li className="d-none d-lg-flex">
             <Link href='' className='gotur-btn'>
-              Price starts from {formatPrice(price)}
+              {t("tourDetails.info.priceStartsFrom", "Price starts from")} {formatPrice(price)}
             </Link>
           </li>
         </ul>

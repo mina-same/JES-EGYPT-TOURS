@@ -18,9 +18,10 @@ interface ListingFaqsProps {
   title?: string;
   sectionTitle?: any;
   locale: string;
+  style?: React.CSSProperties;
 }
 
-const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, locale }) => {
+const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, locale, style }) => {
   const { t } = useTranslation('faq');
   const [activeKey, setActiveKey] = useState<string | null>("0");
 
@@ -31,7 +32,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
     : (title || t('sectionTitle'));
 
   return (
-    <section className="faq-page section-space-top section-space-bottom">
+    <section className="faq-page section-space-top section-space-bottom" style={style}>
       <Container>
         <div className="sec-title text-center mb-5">
           <h2 className="sec-title__title">{displayTitle} <span>FAQs</span></h2>

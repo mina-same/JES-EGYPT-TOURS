@@ -39,7 +39,7 @@ export interface IBlogCategory extends Document {
 
   // Content Sections
   heroTitle?: ILocalizedString;
-  heroDescription?: ILocalizedMixed;
+  heroDescription?: ILocalizedString;
   sideImage?: {
     url: string;
     fileName: string;
@@ -144,7 +144,7 @@ const BlogCategorySchema: Schema = new Schema(
       type: LocalizedStringSchema,
     },
     heroDescription: {
-      type: LocalizedMixedSchema,
+      type: LocalizedStringSchema,
     },
     sideImage: {
       url: { type: String, trim: true },

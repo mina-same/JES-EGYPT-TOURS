@@ -1,6 +1,7 @@
 import React from "react";
 import { Accordion } from "react-bootstrap";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 import { Itinerary } from "../types";
 
 interface TourPlanProps {
@@ -8,6 +9,7 @@ interface TourPlanProps {
 }
 
 export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
+  const { t } = useTranslation("tours");
   console.log("DEBUG: Itinerary Image Data:", JSON.stringify(
     itinerary?.days?.flatMap(d => d.activities?.map(a => ({ heading: a.heading, imgUrl: a.image?.url, imgAlt: a.image?.alt, imgTitle: a.image?.title }))) || []
   ));
@@ -18,7 +20,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
 
   return (
     <div className='tour-listing-details__content__item tour-listing-details__ture-plan'>
-      <h4 className='tour-listing-details__title'>Tour Plan</h4>
+      <h4 className='tour-listing-details__title'>{t("tourDetails.nav.tourPlan", "Tour Plan")}</h4>
       
       {itinerary.generalDescription && (
         <div 
@@ -35,7 +37,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                 <div className='accordion-title'>
                   <h4 className='accordion-title__text' style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="day-title" style={{ color: '#1a1a1a', fontWeight: '600', fontSize: '16px' }}>
-                      <span style={{ color: '#b79c5c', fontWeight: '700' }}>Day {day.day}:</span> {day.title.replace(/^Day\s*\d+[:\s-]*/i, "").trim()}
+                      <span style={{ color: '#b79c5c', fontWeight: '700' }}>{t("tourDetails.day", "Day")} {day.day}:</span> {day.title.replace(new RegExp(`^${t("tourDetails.day", "Day")}\\s*\\d+[:\\s-]*`, 'i'), "").trim()}
                     </span>
                     <span className='accordion-title__icon'></span>
                   </h4>

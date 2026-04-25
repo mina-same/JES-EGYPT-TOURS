@@ -31,8 +31,8 @@ import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
-const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
-  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id);
+const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
+  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
   console.log("DEBUG [TourListingDetailsOne]: moreTours state:", moreTours);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
@@ -264,7 +264,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
         <TourCarousel sliderImages={sliderImages} title={title} />
 
         {/* Tour Key Facts - Screen Reader Only */}
-        <h2 className="sr-only">Tour Key Facts</h2>
+        <h2 className="sr-only">{t("tourDetails.keyFacts", "Tour Key Facts")}</h2>
 
         {/* Info Bar Section */}
         <TourInfoBar
@@ -451,7 +451,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                       </h2>
                     </div>
                     <ul className="list-unstyled row gutter-y-20" style={{ paddingLeft: 0 }}>
-                      {highlightList.map((item, index) => (
+                      {highlightList.map((item: string, index: number) => (
                         <li key={index} className="col-md-6 col-lg-4 mb-3">
                           <div className="d-flex align-items-start gap-3">
                             <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ 
@@ -841,12 +841,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                               style={{ boxShadow: '0 8px 18px rgba(0,0,0,0.06)' }}
                             >
                               <div className="p-3 border-bottom">
-                                <div className="fw-semibold" style={{ color: '#1a1a1a' }}>{v.title || 'Review'}</div>
+                                <div className="fw-semibold" style={{ color: '#1a1a1a' }}>{v.title || t("tourDetails.review", "Review")}</div>
                               </div>
                               <div className="ratio ratio-16x9">
                                 <iframe
                                   src={`https://www.youtube-nocookie.com/embed/${v.videoId}`}
-                                  title={v.title || 'YouTube review'}
+                                  title={v.title || t("tourDetails.youtubeReview", "YouTube review")}
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                   allowFullScreen
                                 />
@@ -943,7 +943,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                           </h3>
                           <div className="text-center mt-2">
                             <Link href={tour.link} className="gotur-btn gotur-btn--base py-2 px-4" style={{ fontSize: '14px' }}>
-                              View Details
+                              {t("tourDetails.relatedTours.viewDetails", "View Details")}
                             </Link>
                           </div>
                         </div>

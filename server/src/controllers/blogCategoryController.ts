@@ -186,7 +186,14 @@ export const getCategoryBySlug = async (
       ]
     })
       .populate('subcategoriesCount')
-      .populate('featuredBlogs')
+      .populate({
+        path: 'featuredBlogs',
+        select: 'title slug featuredImage excerpt readingTime publishedAt',
+      })
+      .populate({
+        path: 'featuredDestinations',
+        select: 'name slug coverImage',
+      })
       .lean();
 
     if (!category) {
