@@ -22,6 +22,8 @@ interface LocalizedFieldProps {
     currentValue: any,
     handleChange: (val: any) => void
   ) => React.ReactNode;
+  /** Error state */
+  error?: boolean | string;
 }
 
 const LANGS: AdminLanguage[] = ["en", "de", "it", "es"];
@@ -50,6 +52,7 @@ export function LocalizedField({
   globalLanguage,
   className,
   children,
+  error,
 }: LocalizedFieldProps) {
   const [activeLang, setActiveLang] = useState<AdminLanguage>(
     globalLanguage || "en"
