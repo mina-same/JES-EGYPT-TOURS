@@ -42,21 +42,38 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     const tourSlug = getLocalizedValue(t?.slug);
     const tourTitle = getLocalizedValue(t?.heading) || t?.name || "";
     const fallback = 'https://placehold.co/600x400?text=No+Image';
-    const mainImage = t?.images?.[0] || {};
+    
+    // Consolidate images for the gallery
+    const rawImages = safeArray<any>(t?.images);
+    const mainImage = rawImages[0] || {};
+    const allImages = rawImages.map(img => img?.url).filter(Boolean);
+    if (allImages.length === 0) allImages.push(fallback);
+
+    // Build metadata for the card (Duration, Location, etc.)
+    const meta = [];
+    const dur = getLocalizedValue(t?.duration);
+    if (dur) {
+      meta.push({ id: 1, title: dur, icon: "icon-clock" });
+    }
+    const loc = getLocalizedValue(t?.tourLocation);
+    if (loc) {
+      meta.push({ id: 2, title: loc, icon: "icon-location" });
+    }
 
     return {
       id: t._id || t.id,
+      slug: tourSlug,
       image: mainImage?.url || fallback,
       imageAlt: getLocalizedValue(mainImage?.alt) || tourTitle,
-      imageTitle: getLocalizedValue(mainImage?.title) || "",
+      allImages: allImages,
       title: tourTitle || "Tour",
       link: `/${currentLang}/${tourSlug}`,
       price: t.priceStartingFrom || t.price || 0,
       rating: 5,
       reviews: t.reviewsCount || t.reviews?.length || 0,
-      videoId: "",
-      discount: "",
-      meta: [],
+      videoId: t.videoLink || "",
+      discount: t.discount || "",
+      meta: meta,
     };
   };
 

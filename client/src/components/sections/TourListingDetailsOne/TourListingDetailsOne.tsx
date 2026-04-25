@@ -11,6 +11,11 @@ import Link from "next/link";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import { reviewsAPI } from "@/lib/api/reviews";
+import { tourAPI } from "@/lib/api/tour";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { toast } from "@/hooks/use-toast";
+import TourCard from "@/components/common/TourCard/TourCard";
+import VideoModal from "@/components/common/VideoModal/VideoModal";
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -51,6 +56,48 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
   const params = useParams() as { locale: string };
   const { t, i18n } = useTranslation("tours");
+  const { toggleWishlist, isInWishlist } = useWishlist();
+
+  // Video reviews modal state
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [videoIds, setVideoIds] = useState<string[]>([]);
+
+  const getYouTubeVideoId = (url: string): string => {
+    if (!url) return "";
+    const t = url.trim();
+    const s = t.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (s?.[1]) return s[1];
+    const w = t.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (w?.[1]) return w[1];
+    const e = t.match(/\/embed\/([a-zA-Z0-9_-]{6,})/); if (e?.[1]) return e[1];
+    const sh = t.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/); if (sh?.[1]) return sh[1];
+    return "";
+  };
+
+  const openVideoReviews = async (tourSlug: string) => {
+    try {
+      const res = await tourAPI.getBySlug(tourSlug);
+      if (res.success && res.data) {
+        const vids = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
+          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
+          .filter(Boolean);
+        if (vids.length > 0) {
+          setVideoIds(vids);
+          setIsVideoOpen(true);
+        } else {
+          toast({
+            title: t('status.noVideoTitle', "No video reviews"),
+            description: t('status.noVideoInfo', "This tour doesn’t have any video reviews yet."),
+            variant: "info",
+          });
+        }
+      }
+    } catch {
+      toast({
+        title: t('status.failedVideoTitle', "Failed to load videos"),
+        description: t('status.failedVideo', "Network or server error. Please try again."),
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     if (params?.locale && i18n.resolvedLanguage !== params.locale) {
@@ -916,38 +963,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
                 </div>
                 <div className="row gutter-y-30">
-                  {relatedTours.map((tour: any, index: number) => (
+                  {relatedTours.map((tour: any) => (
                     <div key={tour.id} className="col-lg-4 col-md-6">
-                      <article 
-                        className="tour-listing-one__item wow fadeInUp"
-                        data-wow-duration='1500ms'
-                        data-wow-delay={`${100 * (index + 1)}ms`}
-                      >
-                        <div className="tour-listing-one__image">
-                          <Image
-                            src={tour.image}
-                            alt={tour.imageAlt || tour.title || "Tour Image"}
-                            title={tour.imageTitle || tour.title || "Tour Image"}
-                            width={500}
-                            height={350}
-                            className="img-fluid"
-                            style={{ height: '280px', objectFit: 'cover' }}
-                          />
-                          <Link href={tour.link} className="tour-listing-one__image__link">
-                            <span className="sr-only">{tour.title}</span>
-                          </Link>
-                        </div>
-                        <div className="tour-listing-one__content">
-                          <h3 className="tour-listing-one__title text-center">
-                            <Link href={tour.link}>{tour.title}</Link>
-                          </h3>
-                          <div className="text-center mt-2">
-                            <Link href={tour.link} className="gotur-btn gotur-btn--base py-2 px-4" style={{ fontSize: '14px' }}>
-                              {t("tourDetails.relatedTours.viewDetails", "View Details")}
-                            </Link>
-                          </div>
-                        </div>
-                      </article>
+                      <TourCard 
+                        item={tour}
+                        toggleWishlist={toggleWishlist}
+                        isInWishlist={isInWishlist}
+                        openVideoReviews={openVideoReviews}
+                      />
                     </div>
                   ))}
                 </div>
@@ -1057,6 +1080,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
       {/* Mobile Sticky Booking Bar */}
       <MobileStickyBookingBar tourId={id || ""} price={price} />
+
+      <VideoModal
+        isOpen={isVideoOpen}
+        setOpen={setIsVideoOpen}
+        ids={videoIds}
+      />
     </>
   );
 };
