@@ -10206,14 +10206,8 @@ a + .listing-card-four__btns__hover {
   margin-bottom: 30px;
 }
 .tour-listing-details__ture-plan .accordion-title__text::before {
-  content: "Day" counter(serviceNumber);
-  counter-increment: serviceNumber;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 20px;
-  line-height: 130%;
-  color: var(--gotur-base, #63ab45);
-  margin-right: 5px;
+  content: none;
+  display: none;
 }
 .tour-listing-details__ture-plan .faq-accordion .active .accordion-title h4,
 .tour-listing-details__ture-plan .faq-accordion .accordion-button:not(.collapsed) .accordion-title h4 {
