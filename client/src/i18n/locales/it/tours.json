@@ -105,7 +105,14 @@
     "relatedTours": {
       "title": "Tour Correlati",
       "span": "Tour",
-      "subtitle": "Potresti anche apprezzare questi tour"
+      "subtitle": "Potresti anche apprezzare questi tour",
+      "tagline": "Selezione Curata"
+    },
+    "relatedBlogs": {
+      "title": "Blog Correlati",
+      "tagline": "Storie di Viaggio",
+      "by": "Di",
+      "readMore": "Leggi di più"
     },
     "moreTours": {
       "title": "Di più",
@@ -116,6 +123,23 @@
       "title": "I Nostri Partner di Viaggio",
       "subtitle": "Collaboriamo con partner di viaggio di fiducia locali e internazionali"
     },
+    "readMore": "Leggi di più",
+    "readLess": "Leggi meno",
+    "showAll": "Mostra tutto",
+    "showLess": "Mostra meno",
+    "whatYouWillLove": "Cosa amerai di questo tour?",
+    "whatToPack": "Cosa mettere in valigia",
+    "importantNotes": "Note importanti",
+    "day": "Giorno",
+    "info": {
+      "location": "Località",
+      "activitiesType": "Tipo di attività",
+      "activateDay": "Durata",
+      "traveler": "Viaggiatori",
+      "priceStartsFrom": "Il prezzo parte da"
+    },
+    "reviewsTitle": "Recensioni",
+    "reviewsSubtitle": "Scopri cosa dicono i nostri viaggiatori",
     "brochure": {
       "scanOnline": "Scansiona per visualizzare online",
       "mapLabel": "Mappa e Posizione",

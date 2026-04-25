@@ -3,6 +3,7 @@ import { getCategoryBySlug as getBlogCategoryBySlug, getSubCategoryBySlug as get
 import { getDestinationBySlug } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
 import { reviewsAPI } from "@/lib/api/reviews";
+import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import Layout from "@/components/layout/Layout/Layout";
@@ -36,17 +37,7 @@ interface PageProps {
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
 const LOCALES = ["en", "de", "it", "es"] as const;
 
-function formatISO8601Duration(durationStr: string): string | undefined {
-  if (!durationStr) return undefined;
-  const lower = durationStr.toLowerCase();
-  const daysMatch = lower.match(/(\d+)\s*(day|tag|giorno|día)/);
-  const hoursMatch = lower.match(/(\d+)\s*(hour|stunde|ora|hora)/);
-  if (daysMatch) return `P${daysMatch[1]}D`;
-  if (hoursMatch) return `PT${hoursMatch[1]}H`;
-  const justNumber = lower.match(/^(\d+)$/);
-  if (justNumber) return `P${justNumber[1]}D`;
-  return undefined;
-}
+// formatISO8601Duration has been moved to @/lib/seo/tourJsonLd
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug, locale } = await params;
@@ -490,17 +481,9 @@ export default async function SlugPage({ params }: PageProps) {
 
     if (tourData) {
       const tour = tourData;
-      const tourId = tour._id;
       const name = getLocalizedValue(tour.heading || tour.name, locale) || "Tour Details";
 
-      // Fetch reviews server-side for Schema.org
-      let reviews: any[] = [];
-      try {
-        const reviewsRes = await reviewsAPI.getReviewsByTour(tourId);
-        if (reviewsRes.success) reviews = Array.isArray(reviewsRes.data) ? reviewsRes.data : [];
-      } catch {}
-
-      // Breadcrumbs — flat URLs for category and subcategory
+      // ── Breadcrumbs — flat URLs for category and subcategory ────────────────
       const subcategory = tour.subcategory;
       const category = subcategory?.category;
       const breadcrumbs: { label: string; href?: string }[] = [];
@@ -521,64 +504,34 @@ export default async function SlugPage({ params }: PageProps) {
       }
       breadcrumbs.push({ label: name as string });
 
-      // Schema.org JSON-LD
-      const reviewsCountToUse = tour.reviewsCount || reviews.length;
-      const avgRating = reviewsCountToUse > 0
-        ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / (reviews.length || 1)).toFixed(1)
-        : "5.0";
-      const durationStr = getLocalizedValue(tour.duration, locale);
-      const isoDuration = formatISO8601Duration(durationStr);
-
-      const itinerarySteps = tour.itinerary?.days?.map((day: any) => ({
-        "@type": "ItemList",
-        "name": `Day ${day.day}: ${getLocalizedValue(day.title, locale)}`,
-        "description": getLocalizedValue(day.description, locale),
-        "itemListElement": day.activities?.map((act: any, idx: number) => ({
-          "@type": "ListItem",
-          "position": idx + 1,
-          "name": getLocalizedValue(act.heading, locale),
-        })),
-      })) || [];
-
-      const mapUrl = tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1];
-
-      const jsonLd: any = {
-        "@context": "https://schema.org",
-        "@type": "Tour",
-        "name": name,
-        "description": (getLocalizedValue(tour.seo?.metaDescription || tour.overview, locale)).replace(/<[^>]*>/g, ""),
-        "image": [...(tour.images?.map((img: any) => img.url) || []), ...(tour.gallery?.map((img: any) => img.url) || [])].filter(Boolean),
-        "tourDuration": isoDuration,
-        "duration": isoDuration,
-        "touristDestination": { "@type": "Place", "name": getLocalizedValue(tour.tourLocation, locale) },
-        "touristType": getLocalizedValue(tour.tourType, locale),
-        "itinerary": itinerarySteps,
-        "offers": {
-          "@type": "Offer",
-          "price": tour.priceStartingFrom || tour.price,
-          "priceCurrency": "USD",
-          "availability": "https://schema.org/InStock",
-          "url": `${baseUrl}/${locale}/${slug}`,
+      // ── JSON-LD @graph — fully dynamic, no fake reviews/ratings ────────────
+      // Currency defaults to USD at SSR time (localStorage unavailable server-side).
+      // Prices, itinerary, FAQs, and attractions update automatically when
+      // the tour data changes in the CMS/database.
+      const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
+      const jsonLd = generateTourJsonLd({
+        tour,
+        locale: locale as "en" | "de" | "it" | "es",
+        currency: "USD",
+        canonicalUrl,
+        siteUrl: baseUrl,
+        organization: {
+          name: "JES Egypt Tours",
+          url: baseUrl,
+          // logoUrl: add absolute logo URL here when available
+          // telephone: add real telephone in E.164 format when available
+          // email: add real contact email when available
         },
-        "provider": { "@type": "TravelAgency", "name": "JES Egypt Tours", "url": baseUrl, "@id": `${baseUrl}/#organization` },
-        "mainEntityOfPage": { "@type": "WebPage", "@id": `${baseUrl}/${locale}/${slug}` },
-      };
-
-      if (reviewsCountToUse > 0) {
-        jsonLd.aggregateRating = { "@type": "AggregateRating", "ratingValue": avgRating, "reviewCount": reviewsCountToUse, "bestRating": "5", "worstRating": "1" };
-        jsonLd.review = reviews.slice(0, 5).map(r => ({
-          "@type": "Review",
-          "reviewRating": { "@type": "Rating", "ratingValue": r.rating || 5 },
-          "author": { "@type": "Person", "name": r.name || "Anonymous" },
-          "reviewBody": r.comment || "",
-        }));
-      }
-      if (mapUrl) jsonLd.hasMap = mapUrl;
+        breadcrumbs,
+      });
 
       return (
         <>
           <SlugManager slugs={tour.slug as any} />
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
           <Layout>
             <TopbarOne />
             <HeaderOne linkTheme="light" />

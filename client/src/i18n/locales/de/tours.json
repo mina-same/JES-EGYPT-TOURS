@@ -105,7 +105,14 @@
     "relatedTours": {
       "title": "Ähnliche Touren",
       "span": "Touren",
-      "subtitle": "Diese Touren könnten Ihnen auch gefallen"
+      "subtitle": "Diese Touren könnten Ihnen auch gefallen",
+      "tagline": "Kuratierte Auswahl"
+    },
+    "relatedBlogs": {
+      "title": "Ähnliche Blogs",
+      "tagline": "Reisegeschichten",
+      "by": "Von",
+      "readMore": "Mehr lesen"
     },
     "moreTours": {
       "title": "Mehr",
@@ -116,6 +123,23 @@
       "title": "Unsere Reisepartner",
       "subtitle": "Wir arbeiten mit vertrauenswürdigen lokalen und internationalen Reisepartnern zusammen"
     },
+    "readMore": "Mehr lesen",
+    "readLess": "Weniger lesen",
+    "showAll": "Alle anzeigen",
+    "showLess": "Weniger anzeigen",
+    "whatYouWillLove": "Was Sie an dieser Tour lieben werden?",
+    "whatToPack": "Was Sie einpacken sollten",
+    "importantNotes": "Wichtige Notizen",
+    "day": "Tag",
+    "info": {
+      "location": "Standort",
+      "activitiesType": "Aktivitätsart",
+      "activateDay": "Dauer",
+      "traveler": "Reisende",
+      "priceStartsFrom": "Preis ab"
+    },
+    "reviewsTitle": "Bewertungen",
+    "reviewsSubtitle": "Sehen Sie, was unsere Reisenden sagen",
     "brochure": {
       "scanOnline": "Scannen zum Online-Ansehen",
       "mapLabel": "Karte & Standort",

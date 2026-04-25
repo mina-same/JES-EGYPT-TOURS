@@ -106,7 +106,11 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     
     const getLocalizedArray = (obj: any): any[] => {
       if (!obj) return [];
-      if (Array.isArray(obj)) return obj.map(item => item[currentLang] || item.en || '').filter(Boolean);
+      if (Array.isArray(obj)) {
+        const localized = obj.map(item => item[currentLang]).filter(Boolean);
+        if (localized.length > 0) return localized;
+        return obj.map(item => item.en).filter(Boolean);
+      }
       const current = safeArray(obj[currentLang]);
       if (current.length > 0) return current;
       return safeArray(obj.en);
