@@ -1,3 +1,4 @@
+"use client";
 import { useTranslation } from "react-i18next";
 import { PricingPlan } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";

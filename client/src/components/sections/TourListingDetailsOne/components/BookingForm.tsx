@@ -1,3 +1,4 @@
+"use client";
 import React, { FormEvent, useState } from "react";
 import DatePicker from "react-datepicker";
 import PhoneInput from "react-phone-number-input";
