@@ -236,16 +236,16 @@ export const bookingValidation: ValidationChain[] = [
     .trim(),
 
   // Booking Details
-  body('date')
+  body('dateFrom')
     .notEmpty()
-    .withMessage('Booking date is required')
+    .withMessage('Start date is required')
     .isISO8601()
-    .withMessage('Invalid date format'),
-  body('time')
+    .withMessage('Invalid start date format'),
+  body('dateTo')
     .notEmpty()
-    .withMessage('Booking time is required')
+    .withMessage('End date is required')
     .isISO8601()
-    .withMessage('Invalid time format'),
+    .withMessage('Invalid end date format'),
   body('adults')
     .notEmpty()
     .withMessage('Number of adults is required')

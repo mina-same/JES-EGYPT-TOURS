@@ -195,7 +195,7 @@
       "nationalityPlaceholder": "Select your Nationality",
       "mobilePlaceholder": "Mobile",
       "dateFromPlaceholder": "From *",
-      "timePlaceholder": "Time *",
+      "dateToPlaceholder": "To *",
       "adults": "No. of Adults",
       "adultsSub": "( + 12 years )",
       "children": "No. of Children",
@@ -210,8 +210,8 @@
       "validation": {
         "name": "Name is required and must be at least 2 characters",
         "email": "Please provide a valid email address",
-        "date": "Please select a booking date",
-        "time": "Please select a booking time",
+        "dateFrom": "Please select a start date",
+        "dateTo": "Please select an end date",
         "adults": "At least one adult is required"
       }
     }

@@ -198,17 +198,11 @@ const BookingPage: React.FC = () => {
   };
 
   const formatDate = (date: string | Date) => {
+    if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
-  };
-
-  const formatTime = (time: string | Date) => {
-    return new Date(time).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
     });
   };
 
@@ -290,12 +284,14 @@ const BookingPage: React.FC = () => {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
             <Calendar size={13} className="text-[#b79c5c]" />
-            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{formatDate(booking.date)}</span>
+            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+              {formatDate(booking.dateFrom)}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Clock size={13} className="text-slate-400" />
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-              {formatTime(booking.time)}
+              to {formatDate(booking.dateTo)}
             </span>
           </div>
         </div>
@@ -515,8 +511,8 @@ const BookingPage: React.FC = () => {
                         <p className="font-bold text-gray-900 dark:text-gray-100">
                           {(typeof selectedBooking.tour.heading === 'object' ? selectedBooking.tour.heading.en : selectedBooking.tour.heading) || 'N/A'}
                         </p>
-                        <p className="text-sm text-[#b79c5c] font-medium flex items-center gap-1.5 mt-1">
-                            <Calendar size={12} /> {formatDate(selectedBooking.date)} at {formatTime(selectedBooking.time)}
+                        <p className="text-sm text-[#b79c5c] font-medium flex flex-wrap items-center gap-1.5 mt-1">
+                            <Calendar size={12} /> {formatDate(selectedBooking.dateFrom)} <span className="opacity-50 mx-1">to</span> {formatDate(selectedBooking.dateTo)}
                         </p>
                     </div>
                   </div>

@@ -18,8 +18,8 @@ export interface IBooking {
   email: string;
   phone?: string;
   nationality?: string;
-  date: string | Date;
-  time: string | Date;
+  dateFrom: string | Date;
+  dateTo: string | Date;
   adults: number;
   children: number;
   infants: number;
@@ -36,8 +36,8 @@ export interface BookingFormData {
   email: string;
   phone?: string;
   nationality?: string;
-  date: string;
-  time: string;
+  dateFrom: string;
+  dateTo: string;
   adults: number;
   children: number;
   infants: number;

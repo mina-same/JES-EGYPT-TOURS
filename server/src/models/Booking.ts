@@ -11,8 +11,8 @@ export interface IBooking extends Document {
   nationality?: string;
 
   // Booking Details
-  date: Date;
-  time: Date;
+  dateFrom: Date;
+  dateTo: Date;
   adults: number;
   children: number;
   infants: number;
@@ -65,13 +65,13 @@ const bookingSchema = new Schema<IBooking>(
     },
 
     // Booking Details
-    date: {
+    dateFrom: {
       type: Date,
-      required: [true, 'Booking date is required'],
+      required: [true, 'Start date is required'],
     },
-    time: {
+    dateTo: {
       type: Date,
-      required: [true, 'Booking time is required'],
+      required: [true, 'End date is required'],
     },
     adults: {
       type: Number,
@@ -118,7 +118,8 @@ const bookingSchema = new Schema<IBooking>(
 bookingSchema.index({ tour: 1, createdAt: -1 });
 bookingSchema.index({ status: 1 });
 bookingSchema.index({ email: 1 });
-bookingSchema.index({ date: 1 });
+bookingSchema.index({ dateFrom: 1 });
+bookingSchema.index({ dateTo: 1 });
 
 // Add virtual id field
 bookingSchema.virtual('id').get(function () {

@@ -15,8 +15,9 @@ interface BookingFormProps {
 
 export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) => {
   const { t } = useTranslation('tours');
+  const formRef = React.useRef<HTMLFormElement>(null);
   const [startDate, setStartDate] = useState<Date | null>();
-  const [startTime, setStartTime] = useState<Date | null>();
+  const [endDate, setEndDate] = useState<Date | null>();
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
@@ -44,10 +45,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    const formData = new FormData(document.querySelector('form') as HTMLFormElement);
+    if (!formRef.current) return false;
+
+    const formData = new FormData(formRef.current);
     const name = formData.get('name')?.toString().trim();
     const email = formData.get('email')?.toString().trim();
-    const requirements = formData.get('requirements')?.toString().trim();
 
     if (!name || name.length < 2) {
       newErrors.name = t("tourDetails.bookingForm.validation.name");
@@ -58,11 +60,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
     }
 
     if (!startDate) {
-      newErrors.date = t("tourDetails.bookingForm.validation.date");
+      newErrors.dateFrom = t("tourDetails.bookingForm.validation.dateFrom");
     }
 
-    if (!startTime) {
-      newErrors.time = t("tourDetails.bookingForm.validation.time");
+    if (!endDate) {
+      newErrors.dateTo = t("tourDetails.bookingForm.validation.dateTo");
     }
 
     if (adults < 1) {
@@ -85,18 +87,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
     setIsSubmitting(true);
 
     try {
-    const formData = new FormData(e.currentTarget);
+      if (!formRef.current) return;
+      const formData = new FormData(formRef.current);
       const data = {
         tour: tourId,
         name: formData.get('name')?.toString().trim() || "",
         email: formData.get('email')?.toString().trim() || "",
         phone: phone || formData.get('phone')?.toString().trim() || "",
         nationality: formData.get('nationality')?.toString().trim() || "",
-        date: startDate!.toISOString(),
-        time: startTime!.toISOString(),
-      adults,
-      children,
-      infants,
+        dateFrom: startDate!.toISOString(),
+        dateTo: endDate!.toISOString(),
+        adults,
+        children,
+        infants,
         requirements: formData.get('requirements')?.toString().trim() || "",
     };
 
@@ -106,9 +109,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
         setSuccessMessage(response.message || t("tourDetails.bookingForm.success"));
         
         // Reset form
-        (e.target as HTMLFormElement).reset();
+        formRef.current.reset();
         setStartDate(null);
-        setStartTime(null);
+        setEndDate(null);
         setAdults(1);
         setChildren(0);
         setInfants(0);
@@ -116,7 +119,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
 
         // Call optional onSubmit callback
         if (onSubmit) {
-    onSubmit(data);
+          onSubmit(data);
         }
 
         // Clear success message after 5 seconds
@@ -146,6 +149,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
       </h4>
       <div className='booking-form-card'>
         <form
+          ref={formRef}
           className='booking-form-inner contact-form-validated'
           onSubmit={handleSubmit}
         >
@@ -218,35 +222,31 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
                   selected={startDate}
                   onChange={(date) => {
                     setStartDate(date);
-                    if (errors.date) setErrors(prev => ({ ...prev, date: "" }));
+                    if (errors.dateFrom) setErrors(prev => ({ ...prev, dateFrom: "" }));
                   }}
                   placeholderText={t("tourDetails.bookingForm.dateFromPlaceholder")}
-                  className={`booking-date-input ${errors.date ? 'booking-input-error' : ''}`}
+                  className={`booking-date-input ${errors.dateFrom ? 'booking-input-error' : ''}`}
                   minDate={new Date()}
                 />
                 <i className='icon-calendar'></i>
               </div>
-              {errors.date && <span className="booking-error-text">{errors.date}</span>}
+              {errors.dateFrom && <span className="booking-error-text">{errors.dateFrom}</span>}
             </div>
             <div className='booking-col-date'>
               <div className="date-input-wrapper">
                 <DatePicker
-                  selected={startTime}
+                  selected={endDate}
                   onChange={(date) => {
-                    setStartTime(date);
-                    if (errors.time) setErrors(prev => ({ ...prev, time: "" }));
+                    setEndDate(date);
+                    if (errors.dateTo) setErrors(prev => ({ ...prev, dateTo: "" }));
                   }}
-                  placeholderText={t("tourDetails.bookingForm.timePlaceholder")}
-                  className={`booking-date-input ${errors.time ? 'booking-input-error' : ''}`}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  dateFormat="h:mm aa"
-                  timeCaption={t("tourDetails.bookingForm.timePlaceholder")}
+                  placeholderText={t("tourDetails.bookingForm.dateToPlaceholder")}
+                  className={`booking-date-input ${errors.dateTo ? 'booking-input-error' : ''}`}
+                  minDate={startDate || new Date()}
                 />
                 <i className='icon-calendar'></i>
               </div>
-              {errors.time && <span className="booking-error-text">{errors.time}</span>}
+              {errors.dateTo && <span className="booking-error-text">{errors.dateTo}</span>}
             </div>
           </div>
 

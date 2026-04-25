@@ -202,7 +202,7 @@
       "nationalityPlaceholder": "Seleziona la tua Nazionalità",
       "mobilePlaceholder": "Cellulare",
       "dateFromPlaceholder": "Da *",
-      "timePlaceholder": "Ora *",
+      "dateToPlaceholder": "A *",
       "adults": "N. di Adulti",
       "adultsSub": "( + 12 anni )",
       "children": "N. di Bambini",
@@ -217,8 +217,8 @@
       "validation": {
         "name": "Il nome è richiesto e deve essere di almeno 2 caratteri",
         "email": "Fornisci un indirizzo email valido",
-        "date": "Seleziona una data per la prenotazione",
-        "time": "Seleziona un orario per la prenotazione",
+        "dateFrom": "Seleziona una data di inizio",
+        "dateTo": "Seleziona una data di fine",
         "adults": "È richiesto almeno un adulto"
       }
     }
