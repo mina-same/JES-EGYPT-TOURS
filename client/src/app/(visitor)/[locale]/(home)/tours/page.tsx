@@ -80,7 +80,7 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
       <HeaderOneCloned />
       <PageHeader
         title="Tour Categories"
-        breadcrumbs={[{ label: 'Destination', href: '/tours' }]}
+        breadcrumbs={[]}
       />
       
       <section className="category-directory section-space">

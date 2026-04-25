@@ -419,7 +419,6 @@ export default function CategoryView({
         bgImage={category.images?.[0]?.url || undefined}
         alt={getLocalizedValue(category.images?.[0]?.alt, locale)}
         breadcrumbs={[
-          { label: t('breadcrumb.destination'), href: '/' },
           { label: getLocalizedValue(category.name, locale) },
         ]}
       />

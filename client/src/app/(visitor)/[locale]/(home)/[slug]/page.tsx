@@ -503,7 +503,7 @@ export default async function SlugPage({ params }: PageProps) {
       // Breadcrumbs — flat URLs for category and subcategory
       const subcategory = tour.subcategory;
       const category = subcategory?.category;
-      const breadcrumbs: { label: string; href?: string }[] = [{ label: "Destination", href: "/" }];
+      const breadcrumbs: { label: string; href?: string }[] = [];
 
       if (category?.name) {
         const catSlug = getLocalizedValue(category.slug, locale);

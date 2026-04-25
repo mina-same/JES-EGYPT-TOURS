@@ -142,7 +142,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
           title={name}
           subTitle={subheader}
           bgImage={coverImageUrl}
-          breadcrumbs={[{ label: 'Destinations', href: `/${locale}/destinations` }, { label: name }]}
+          breadcrumbs={[{ label: name }]}
         />
 
         {/* ── Hero Details Section (Title + Description + Side Image) ──────── */}
