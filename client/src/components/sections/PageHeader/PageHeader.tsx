@@ -3,6 +3,8 @@ import bg from '@/assets/images/backgrounds/page-header-bg-1-1.jpg'
 import Link from 'next/link';
 import Image from 'next/image';
 
+import { useTranslation } from 'react-i18next';
+
 type BreadcrumbItem = {
   label: string;
   href?: string;
@@ -15,6 +17,7 @@ interface PageHeaderProps {
   alt?: string;
 }
 const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt }) => {
+  const { t } = useTranslation('common');
   const backgroundImage = bgImage || bg.src;
 
   return (
@@ -32,7 +35,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
       <div className="container relative z-10">
         <div className="page-header__content" style={{ textAlign: 'center' }}>
           <ul className="gotur-breadcrumb list-unstyled mb-3">
-            <li><Link href="/">Home</Link></li>
+            <li><Link href="/">{t('home')}</Link></li>
             {Array.isArray(breadcrumbs) && breadcrumbs.length > 0 ? (
               breadcrumbs.map((item, idx) => (
                 <li key={`${item.label}-${idx}`}>

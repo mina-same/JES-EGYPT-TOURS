@@ -38,7 +38,8 @@
     "noVideoTitle": "Keine Bewertungsvideos",
     "failedVideo": "Netzwerk- oder Serverfehler. Bitte versuchen Sie es erneut.",
     "failedVideoTitle": "Fehler beim Laden von Videos",
-    "errorFetching": "Ein Fehler ist aufgetreten"
+    "errorFetching": "Ein Fehler ist aufgetreten",
+    "networkError": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
   "breadcrumb": {
     "destination": "Reiseziel",
@@ -53,6 +54,10 @@
     "reviewFail": "Fehler beim Einreichen der Bewertung.",
     "bookConfidence": "Buchen Sie mit Vertrauen",
     "bookConfidenceDesc": "Ihr vertrauenswürdiger Partner für unvergessliche ägyptische Abenteuer",
+    "bestSeller": "Bereit zur Buchung",
+    "from": "ab",
+    "bookThisTour": "Diese Tour buchen",
+    "bookNow": "Jetzt buchen",
     "features": {
       "monthly": "Monatliche Zahlung",
       "support": "24/7 Support",
@@ -110,6 +115,88 @@
     "partners": {
       "title": "Unsere Reisepartner",
       "subtitle": "Wir arbeiten mit vertrauenswürdigen lokalen und internationalen Reisepartnern zusammen"
+    },
+    "brochure": {
+      "scanOnline": "Scannen zum Online-Ansehen",
+      "mapLabel": "Karte & Standort",
+      "scanMap": "Scannen Sie den QR-Code, um den Standort auf der Karte zu öffnen.",
+      "whySpecial": "Was das Besondere ist",
+      "pricingLabel": "Preise",
+      "choosePackage": "Wählen Sie Ihr Paket",
+      "dayByDay": "Tag für Tag",
+      "generatedOn": "Generiert am",
+      "disclaimer": "Diese Broschüre dient zu Informationszwecken. Preisänderungen vorbehalten.",
+      "title": "Tour-Broschüre herunterladen",
+      "subtitle": "Holen Sie sich einen vollständigen PDF-Leitfaden mit detailliertem Reiseverlauf, Highlights und Reiseinformationen.",
+      "generating": "Wird generiert...",
+      "downloadBtn": "PDF herunterladen",
+      "free": "Kostenloser Download",
+      "offline": "Offline-Zugriff",
+      "error": "PDF-Generierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "waMessage": "Hallo! Ich interessiere mich für \"{{title}}\" ({{url}})",
+      "contact": {
+        "phone": "Telefon",
+        "whatsapp": "WhatsApp",
+        "email": "E-Mail",
+        "available": "Verfügbar"
+      }
+    },
+    "reviews": {
+      "title": "Erfahrungsberichte unserer Reisenden",
+      "subtitle": "Sehen Sie, wie wir jede Reise zu einem außergewöhnlichen Erlebnis gemacht haben – direkt von denen, die mit uns gereist sind.",
+      "count": "{{count}} Bewertungen",
+      "verified": "Verifizierter Reisender",
+      "noReviews": "Noch keine Bewertungen.",
+      "addReview": "Eine Bewertung hinzufügen",
+      "yourRating": "Ihre Bewertung*",
+      "yourName": "Ihr Name",
+      "yourEmail": "Ihre E-Mail",
+      "writeMessage": "Nachricht schreiben",
+      "submitting": "Wird gesendet...",
+      "submitBtn": "Bewertung absenden"
+    },
+    "pricing": {
+      "emptyState": "Für diese Tour sind keine Preisinformationen verfügbar. Bitte kontaktieren Sie uns für Details.",
+      "allYear": "Ganzjährig",
+      "soloTraveler": "Alleinreisender",
+      "pax2_4": "2-4 Reisende",
+      "pax5_8": "5-8 Reisende",
+      "pax9_16": "9-16 Reisende",
+      "perPerson": "pro Person",
+      "planNotes": "Wichtige Planhinweise",
+      "noteTitle": "Hinweis:",
+      "noteSub": "Die Preise verstehen sich pro Person und können je nach Verfügbarkeit und Buchungsdatum variieren. Gruppenrabatte werden automatisch basierend auf der Anzahl der Reisenden angewendet. Kontaktieren Sie uns für individuelle Angebote oder Sonderwünsche.",
+      "affordable": "Erschwinglich",
+      "gold (5 star standard)": "Gold (5 Sterne Standard)",
+      "diamond (5 star luxury)": "Diamant (5 Sterne Luxus)",
+      "tour prices": "Tourpreise"
+    },
+    "bookingForm": {
+      "title": "Diese Tour buchen",
+      "namePlaceholder": "Name *",
+      "emailPlaceholder": "E-Mail *",
+      "nationalityPlaceholder": "Wählen Sie Ihre Nationalität",
+      "mobilePlaceholder": "Mobiltelefon",
+      "dateFromPlaceholder": "Von *",
+      "timePlaceholder": "Zeit *",
+      "adults": "Anzahl der Erwachsenen",
+      "adultsSub": "( + 12 Jahre )",
+      "children": "Anzahl der Kinder",
+      "childrenSub": "( 2 bis 11 Jahre )",
+      "infants": "Anzahl der Kleinkinder",
+      "infantsSub": "( 0 bis 2 Jahre )",
+      "requirementsPlaceholder": "Bitte teilen Sie uns Ihre Tour-Anforderungen mit",
+      "submitBtn": "Absenden",
+      "submitting": "Wird gesendet...",
+      "success": "Ihre Buchung wurde erfolgreich übermittelt!",
+      "error": "Buchung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "validation": {
+        "name": "Name ist erforderlich und muss mindestens 2 Zeichen lang sein",
+        "email": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+        "date": "Bitte wählen Sie ein Buchungsdatum aus",
+        "time": "Bitte wählen Sie eine Buchungszeit aus",
+        "adults": "Mindestens ein Erwachsener ist erforderlich"
+      }
     }
   }
 }

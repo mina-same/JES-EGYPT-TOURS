@@ -38,7 +38,8 @@
     "noVideoTitle": "No video reviews",
     "failedVideo": "Network or server error. Please try again.",
     "failedVideoTitle": "Failed to load videos",
-    "errorFetching": "An error occurred"
+    "errorFetching": "An error occurred",
+    "networkError": "Network error. Please check your connection and try again."
   },
   "breadcrumb": {
     "destination": "Destination",
@@ -53,6 +54,10 @@
     "reviewFail": "Failed to submit review.",
     "bookConfidence": "Book With Confidence",
     "bookConfidenceDesc": "Your trusted partner for unforgettable Egyptian adventures",
+    "bestSeller": "Ready to book",
+    "from": "from",
+    "bookThisTour": "Book This Tour",
+    "bookNow": "Book Now",
     "features": {
       "monthly": "Pay Monthly",
       "support": "24/7 Support",

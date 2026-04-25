@@ -38,7 +38,8 @@
     "noVideoTitle": "Sin videos de reseñas",
     "failedVideo": "Error de red o del servidor. Inténtelo de nuevo.",
     "failedVideoTitle": "Error al cargar los videos",
-    "errorFetching": "Se produjo un error"
+    "errorFetching": "Se produjo un error",
+    "networkError": "Error de red. Por favor, comprueba tu conexión e inténtalo de nuevo."
   },
   "breadcrumb": {
     "destination": "Destino",
@@ -53,6 +54,10 @@
     "reviewFail": "No se pudo enviar la revisión.",
     "bookConfidence": "Reserva con Confianza",
     "bookConfidenceDesc": "Tu socio de confianza para inolvidables aventuras egipcias",
+    "bestSeller": "Listo para reservar",
+    "from": "desde",
+    "bookThisTour": "Reservar este Tour",
+    "bookNow": "Reservar ahora",
     "features": {
       "monthly": "Pago Mensual",
       "support": "Soporte 24/7",
@@ -110,6 +115,88 @@
     "partners": {
       "title": "Nuestros Socios de Viaje",
       "subtitle": "Colaboramos con socios de viaje locales e internacionales de confianza"
+    },
+    "brochure": {
+      "scanOnline": "Escanear para ver en línea",
+      "mapLabel": "Mapa y Ubicación",
+      "scanMap": "Escanea el QR para abrir la ubicación en el mapa.",
+      "whySpecial": "Lo que lo hace especial",
+      "pricingLabel": "Precios",
+      "choosePackage": "Elige tu paquete",
+      "dayByDay": "Día a día",
+      "generatedOn": "Generado el",
+      "disclaimer": "Este folleto es para fines informativos. Precios sujetos a cambios.",
+      "title": "Descargar Folleto del Tour",
+      "subtitle": "Obtén una guía completa en PDF con el itinerario detallado, aspectos destacados e información de viaje.",
+      "generating": "Generando...",
+      "downloadBtn": "Descargar PDF",
+      "free": "Descarga gratuita",
+      "offline": "Acceso sin conexión",
+      "error": "Error al generar el PDF. Por favor, inténtalo de nuevo.",
+      "waMessage": "¡Hola! Estoy interesado en \"{{title}}\" ({{url}})",
+      "contact": {
+        "phone": "Teléfono",
+        "whatsapp": "WhatsApp",
+        "email": "Correo electrónico",
+        "available": "Disponible"
+      }
+    },
+    "reviews": {
+      "title": "Testimonios de nuestros viajeros",
+      "subtitle": "Descubre cómo hemos hecho que cada viaje sea excepcional, directamente de quienes han viajado con nosotros.",
+      "count": "{{count}} Reseñas",
+      "verified": "Viajero Verificado",
+      "noReviews": "Aún no hay reseñas.",
+      "addReview": "Añadir una Reseña",
+      "yourRating": "Tu Calificación*",
+      "yourName": "Tu Nombre",
+      "yourEmail": "Tu Correo Electrónico",
+      "writeMessage": "Escribir Mensaje",
+      "submitting": "Enviando...",
+      "submitBtn": "Enviar Reseña"
+    },
+    "pricing": {
+      "emptyState": "La información de precios no está disponible para este tour. Por favor, contáctanos para más detalles.",
+      "allYear": "Todo el año",
+      "soloTraveler": "Viajero Solo",
+      "pax2_4": "2-4 Viajeros",
+      "pax5_8": "5-8 Viajeros",
+      "pax9_16": "9-16 Viajeros",
+      "perPerson": "por persona",
+      "planNotes": "Notas Importantes del Plan",
+      "noteTitle": "Nota:",
+      "noteSub": "Los precios son por persona y pueden variar según la disponibilidad y la fecha de reserva. Los descuentos para grupos se aplican automáticamente según el número de viajeros. Contáctanos para presupuestos personalizados o solicitudes especiales.",
+      "affordable": "Asequible",
+      "gold (5 star standard)": "Oro (Estándar 5 Estrellas)",
+      "diamond (5 star luxury)": "Diamante (Lujo 5 Estrellas)",
+      "tour prices": "Precios del Tour"
+    },
+    "bookingForm": {
+      "title": "Reservar este Tour",
+      "namePlaceholder": "Nombre *",
+      "emailPlaceholder": "Correo electrónico *",
+      "nationalityPlaceholder": "Selecciona tu Nacionalidad",
+      "mobilePlaceholder": "Móvil",
+      "dateFromPlaceholder": "Desde *",
+      "timePlaceholder": "Hora *",
+      "adults": "Nº de Adultos",
+      "adultsSub": "( + 12 años )",
+      "children": "Nº de Niños",
+      "childrenSub": "( de 2 a 11 años )",
+      "infants": "Nº de Bebés",
+      "infantsSub": "( de 0 a 2 años )",
+      "requirementsPlaceholder": "Por favor, indícanos tus requisitos para el tour",
+      "submitBtn": "Enviar",
+      "submitting": "Enviando...",
+      "success": "¡Tu reserva ha sido enviada con éxito!",
+      "error": "Error al enviar la reserva. Por favor, inténtalo de nuevo.",
+      "validation": {
+        "name": "El nombre es obligatorio y debe tener al menos 2 caracteres",
+        "email": "Por favor, proporciona un correo electrónico válido",
+        "date": "Por favor, selecciona una fecha de reserva",
+        "time": "Por favor, selecciona una hora de reserva",
+        "adults": "Se requiere al menos un adulto"
+      }
     }
   }
 }

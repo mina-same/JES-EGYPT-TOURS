@@ -127,7 +127,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
       console.error("Error submitting booking:", error);
       const errorMessage = error.response?.data?.error || 
                           error.response?.data?.errors?.[0]?.msg ||
-                          "Network error. Please check your connection and try again.";
+                          t("status.networkError");
       setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
