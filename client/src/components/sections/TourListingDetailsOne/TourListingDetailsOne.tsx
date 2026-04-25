@@ -525,7 +525,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 <section id="map" className="tour-section">
                   {map && (
                     <div className='tour-listing-details__content__item'>
-                      <h4 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h4>
+                      <h2 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h2>
                       <div className="tour-listing-details__map-box" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
                         <iframe
                           title='Google Map'
@@ -635,10 +635,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       borderRight: '4px solid #b79c5c'
                     }}>
                       <div className="mb-3 d-flex align-items-center justify-content-between">
-                        <h4 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
+                        <h2 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
                           <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }}></i>
                           {t("tourDetails.whatToPack")}
-                        </h4>
+                        </h2>
                       </div>
                       <div className="row g-2">
                         {tourData.whatToPack.map((item, index) => (
@@ -659,9 +659,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <section id="important-notes" className="tour-section mt-4 pt-3 border-top">
                     <div className="mb-4 d-flex align-items-center gap-2">
                       <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
-                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
+                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
                         {t("tourDetails.importantNotes")}
-                      </h4>
+                      </h2>
                     </div>
                     <div className="d-flex flex-column gap-3">
                       {tourData.notes?.map((note, index) => (
@@ -696,7 +696,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   {images && images.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__thumb'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.gallerySubtitle")}</p>
                       </div>
                       
@@ -877,7 +877,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <section id="honest-reviews" className="tour-section">
                     <div className='tour-listing-details__content__item'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.honestReviewsSubtitle")}</p>
                       </div>
                       <div className="row gutter-y-30">
@@ -984,7 +984,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             <Container>
                 <div className="sec-title text-center mb-5">
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedBlogs.tagline", "Travel Stories")}</h6>
-                  <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
+                  <h2 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h2>
                 </div>
                 <div className="row gutter-y-30">
                   {relatedBlogs.map((blog: any, index: number) => (

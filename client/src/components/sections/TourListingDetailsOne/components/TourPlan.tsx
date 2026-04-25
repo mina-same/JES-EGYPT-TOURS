@@ -21,7 +21,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
 
   return (
     <div className='tour-listing-details__content__item tour-listing-details__ture-plan'>
-      <h4 className='tour-listing-details__title'>{t("tourDetails.nav.tourPlan", "Tour Plan")}</h4>
+      <h2 className='tour-listing-details__title'>{t("tourDetails.nav.tourPlan", "Tour Plan")}</h2>
       
       {itinerary.generalDescription && (
         <div 
@@ -36,12 +36,12 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
             <Accordion.Item eventKey={idx.toString()} key={idx}>
               <Accordion.Header as="div">
                 <div className='accordion-title'>
-                  <h4 className='accordion-title__text' style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 className='accordion-title__text' style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="day-title" style={{ color: '#1a1a1a', fontWeight: '600', fontSize: '16px' }}>
                       <span style={{ color: '#b79c5c', fontWeight: '700' }}>{t("tourDetails.day", "Day")} {day.day}:</span> {day.title.replace(/^(?:Day|Tag|Giorno|Día|Jour)\s*\d+[:\s-]*/i, "").trim()}
                     </span>
                     <span className='accordion-title__icon'></span>
-                  </h4>
+                  </h3>
                 </div>
               </Accordion.Header>
               <Accordion.Body>

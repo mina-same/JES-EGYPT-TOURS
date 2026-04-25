@@ -404,8 +404,8 @@ export function generateTourJsonLd({
   const tourAvailabilityStr = getLocalizedValue(tour.tourAvailability, loc);
   const availabilityUrl = resolveAvailability(tourAvailabilityStr);
 
-  const organizationId = `${siteUrl}#travelagency`;
-  const webSiteId = `${siteUrl}#website`;
+  const organizationId = `${siteUrl}/#travelagency`;
+  const webSiteId = `${siteUrl}/#website`;
   const webPageId = `${canonicalUrl}#webpage`;
   const productId = `${canonicalUrl}#product`;
   const offersId = `${canonicalUrl}#offers`;

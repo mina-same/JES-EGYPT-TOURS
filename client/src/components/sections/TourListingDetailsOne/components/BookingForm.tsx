@@ -144,9 +144,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
       data-wow-delay='0.4s'
       data-wow-duration='1500ms'
     >
-      <h4 className='tour-listing-details__sidebar__title'>
+      <h2 className='tour-listing-details__sidebar__title' style={{ fontSize: '1.4rem' }}>
         {t("tourDetails.bookingForm.title")}
-      </h4>
+      </h2>
       <div className='booking-form-card'>
         <form
           ref={formRef}

@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (correctSlug) {
         const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
         const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
-        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '') : "";
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
         const image = data.seo?.metaImage?.url || data.image || undefined;
         
@@ -91,7 +91,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (correctSlug) {
         const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
         const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
-        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '') : "";
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
         const image = data.seo?.metaImage?.url || data.image || undefined;
 
@@ -131,7 +131,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const cAny = category as any;
         const seoTitle = getLocalizedValue(cAny.metaTitle, locale);
         const seoDescription = getLocalizedValue(cAny.metaDescription, locale);
-        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '') : "";
         const keywords = getLocalizedValue(cAny.metaKeywords, locale);
         // Fallback chain for image
         const ogImage = cAny.ogImage || (cAny.metaImage && cAny.metaImage.url) || (typeof cAny.image === 'object' ? cAny.image.url : cAny.image) || undefined;
@@ -166,7 +166,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const sAny = subcategory as any;
         const seoTitle = getLocalizedValue(sAny.metaTitle, locale);
         const seoDescription = getLocalizedValue(sAny.metaDescription, locale);
-        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '') : "";
         const keywords = getLocalizedValue(sAny.metaKeywords, locale);
         // Fallback chain for image
         const ogImage = sAny.ogImage || (sAny.metaImage && sAny.metaImage.url) || (typeof sAny.image === 'object' ? sAny.image.url : sAny.image) || undefined;
@@ -202,7 +202,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
         const seoTitle = getLocalizedValue(bAny.metaTitle, locale);
         const seoDescription = getLocalizedValue(bAny.metaDescription, locale);
-        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '') : "";
         const keywords = getLocalizedValue(bAny.metaKeywords, locale);
         const ogImage = bAny.ogImage || (bAny.metaImage && bAny.metaImage.url) || featuredImageUrl || undefined;
 
@@ -241,7 +241,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (correctSlug) {
         const seoTitle = getLocalizedValue(destination.metaTitle, locale);
         const seoDescription = getLocalizedValue(destination.metaDescription, locale);
-        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '') : "";
         const keywords = getLocalizedValue(destination.metaKeywords, locale);
         const ogImage = destination.ogImage || destination.metaImage?.url || destination.coverImage?.url || undefined;
         const languages: Record<string, string> = {};
@@ -274,7 +274,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (correctSlug) {
         const seoTitle = getLocalizedValue(tour.seo?.metaTitle, locale);
         const seoDescription = getLocalizedValue(tour.seo?.metaDescription, locale);
-        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '') : "";
         const keywords = getLocalizedValue(tour.seo?.metaKeywords, locale);
 
         const image = tour.seo?.metaImage?.url || tour.featuredImage?.url || tour.sliderImages?.[0];

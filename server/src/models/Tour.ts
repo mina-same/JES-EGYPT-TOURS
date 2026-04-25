@@ -712,18 +712,10 @@ TourSchema.pre<ITour>('save', function (next) {
 
   if (!this.seo.metaDescription && this.Description && this.Description.text) {
     this.seo.metaDescription = {
-      en: typeof this.Description.text.en === 'string' && this.Description.text.en.length > 160 
-          ? this.Description.text.en.substring(0, 157) + '...' 
-          : this.Description.text.en,
-      de: typeof this.Description.text.de === 'string' && this.Description.text.de.length > 160 
-          ? this.Description.text.de.substring(0, 157) + '...' 
-          : this.Description.text.de,
-      it: typeof this.Description.text.it === 'string' && this.Description.text.it.length > 160 
-          ? this.Description.text.it.substring(0, 157) + '...' 
-          : this.Description.text.it,
-      es: typeof this.Description.text.es === 'string' && this.Description.text.es.length > 160 
-          ? this.Description.text.es.substring(0, 157) + '...' 
-          : this.Description.text.es,
+      en: this.Description.text.en,
+      de: this.Description.text.de,
+      it: this.Description.text.it,
+      es: this.Description.text.es,
     };
   }
 
