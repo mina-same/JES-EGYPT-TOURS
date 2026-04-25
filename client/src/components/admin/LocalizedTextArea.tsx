@@ -15,6 +15,8 @@ interface LocalizedTextAreaProps {
   rows?: number;
   activeLanguage?: AdminLanguage;
   error?: boolean | string;
+  onBlur?: () => void;
+  required?: boolean;
 }
 
 const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
@@ -26,6 +28,8 @@ const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
   rows = 4,
   activeLanguage,
   error,
+  onBlur,
+  required
 }) => {
   return (
     <LocalizedField
@@ -33,12 +37,14 @@ const LocalizedTextArea: React.FC<LocalizedTextAreaProps> = ({
       value={value}
       globalLanguage={activeLanguage}
       className={className}
-      onChange={(lang, val) => onChange({ ...value, [lang]: val }, lang)}
+      onChange={(lang, val) => onChange({ ...(value || {}), [lang]: val }, lang)}
     >
       {(lang, currentValue, handleLang) => (
         <Textarea
           value={currentValue || ""}
           onChange={(e) => handleLang(e.target.value)}
+          onBlur={onBlur}
+          required={required}
           placeholder={placeholder ? `${placeholder} (${lang.toUpperCase()})` : `Enter value in ${lang.toUpperCase()}`}
           rows={rows}
           className={cn(

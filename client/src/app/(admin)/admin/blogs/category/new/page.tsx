@@ -59,10 +59,18 @@ interface BlogCategoryFormData {
   };
   heroTitle?: ILocalizedString;
   heroDescription?: ILocalizedMixed;
+  sideImage?: {
+    url: string;
+    fileName: string;
+    title: ILocalizedString;
+    alt: ILocalizedString;
+  };
   featuredBlogs?: string[];
   featuredBlogsSectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
+  destinationsSectionTitle?: ILocalizedString;
+  featuredDestinations?: string[];
   faqs?: any[];
   isActive: boolean;
 }
@@ -97,10 +105,13 @@ const INITIAL_BLOG_CATEGORY: BlogCategoryFormData = {
   },
   heroTitle: { en: '', de: '', it: '', es: '' },
   heroDescription: { en: '', de: '', it: '', es: '' },
+  sideImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   featuredBlogs: [],
   featuredBlogsSectionTitle: { en: '', de: '', it: '', es: '' },
   blogsSectionTitle: { en: '', de: '', it: '', es: '' },
   faqsSectionTitle: { en: '', de: '', it: '', es: '' },
+  destinationsSectionTitle: { en: '', de: '', it: '', es: '' },
+  featuredDestinations: [],
   faqs: [],
   isActive: true,
 };
@@ -126,6 +137,13 @@ export default function NewBlogCategoryPage() {
   const [isSearchingBlogs, setIsSearchingBlogs] = useState(false);
   const [selectedBlogObjects, setSelectedBlogObjects] = useState<any[]>([]);
   const [isBlogSearchFocused, setIsBlogSearchFocused] = useState(false);
+  
+  // Destination Search State
+  const [destSearchQuery, setDestSearchQuery] = useState('');
+  const [destSearchResults, setDestSearchResults] = useState<any[]>([]);
+  const [isSearchingDests, setIsSearchingDests] = useState(false);
+  const [selectedDestObjects, setSelectedDestObjects] = useState<any[]>([]);
+  const [isDestSearchFocused, setIsDestSearchFocused] = useState(false);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<BlogCategoryFormData>(
     draftKey,
@@ -200,13 +218,18 @@ export default function NewBlogCategoryPage() {
           featuredBlogsSectionTitle: mapToLocalized(data.featuredBlogsSectionTitle),
           blogsSectionTitle: mapToLocalized(data.blogsSectionTitle),
           faqsSectionTitle: mapToLocalized(data.faqsSectionTitle),
+          destinationsSectionTitle: mapToLocalized(data.destinationsSectionTitle),
           featuredBlogs: Array.isArray(data.featuredBlogs) ? data.featuredBlogs.map((b: any) => typeof b === 'object' ? b._id : b) : [],
+          featuredDestinations: Array.isArray(data.featuredDestinations) ? data.featuredDestinations.map((d: any) => typeof d === 'object' ? d._id : d) : [],
           faqs: Array.isArray(data.faqs) ? data.faqs : [],
           isActive: data.isActive !== undefined ? !!data.isActive : true,
         });
 
         if (Array.isArray(data.featuredBlogs)) {
           setSelectedBlogObjects(data.featuredBlogs.filter((b: any) => typeof b === 'object'));
+        }
+        if (Array.isArray(data.featuredDestinations)) {
+          setSelectedDestObjects(data.featuredDestinations.filter((d: any) => typeof d === 'object'));
         }
       }
 
@@ -319,6 +342,50 @@ export default function NewBlogCategoryPage() {
     return () => clearTimeout(timeoutId);
   }, [blogSearchQuery, isBlogSearchFocused]);
 
+  // Destination Search logic
+  useEffect(() => {
+    const searchDests = async () => {
+      if (!isDestSearchFocused && !destSearchQuery.trim()) {
+        setDestSearchResults([]);
+        return;
+      }
+
+      setIsSearchingDests(true);
+      try {
+        const { destinationAPI } = await import('@/lib/api/blogAdmin');
+        const response = await destinationAPI.getAll({ 
+          search: destSearchQuery.trim(), 
+          limit: 50
+        });
+        if (response.success && response.data) {
+          setDestSearchResults(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to search destinations:', error);
+      } finally {
+        setIsSearchingDests(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchDests, 100);
+    return () => clearTimeout(timeoutId);
+  }, [destSearchQuery, isDestSearchFocused]);
+
+  const addFeaturedDest = (dest: any) => {
+    const current = formData.featuredDestinations || [];
+    if (!current.includes(dest._id)) {
+      handleChange('featuredDestinations', [...current, dest._id]);
+      setSelectedDestObjects(prev => [...prev, dest]);
+      setDestSearchQuery('');
+      setDestSearchResults([]);
+    }
+  };
+
+  const removeFeaturedDest = (id: string) => {
+    handleChange('featuredDestinations', (formData.featuredDestinations || []).filter((destId: string) => destId !== id));
+    setSelectedDestObjects(prev => prev.filter(d => d._id !== id));
+  };
+
   const addFeaturedBlog = (blog: any) => {
     const current = formData.featuredBlogs || [];
     if (!current.includes(blog._id)) {
@@ -396,12 +463,15 @@ export default function NewBlogCategoryPage() {
 
       if (hasEn(cleanData.heroTitle)) payload.heroTitle = cleanData.heroTitle;
       if (hasEn(cleanData.heroDescription)) payload.heroDescription = cleanData.heroDescription;
+      if (cleanData.sideImage?.url) payload.sideImage = cleanData.sideImage;
       if (hasEn(cleanData.featuredBlogsSectionTitle)) payload.featuredBlogsSectionTitle = cleanData.featuredBlogsSectionTitle;
       if (hasEn(cleanData.blogsSectionTitle)) payload.blogsSectionTitle = cleanData.blogsSectionTitle;
       if (hasEn(cleanData.faqsSectionTitle)) payload.faqsSectionTitle = cleanData.faqsSectionTitle;
+      if (hasEn(cleanData.destinationsSectionTitle)) payload.destinationsSectionTitle = cleanData.destinationsSectionTitle;
       
       if (cleanData.faqs && cleanData.faqs.length > 0) payload.faqs = cleanData.faqs;
       if (cleanData.featuredBlogs && cleanData.featuredBlogs.length > 0) payload.featuredBlogs = cleanData.featuredBlogs;
+      if (cleanData.featuredDestinations && cleanData.featuredDestinations.length > 0) payload.featuredDestinations = cleanData.featuredDestinations;
 
 
       if (cleanData.image?.url) {
@@ -614,20 +684,36 @@ export default function NewBlogCategoryPage() {
             <CardTitle>Hero Section (Top of Page)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <LocalizedInput
-              label="Hero Title"
-              value={formData.heroTitle || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('heroTitle', val, lang)}
-              placeholder="E.g. Explore our best articles"
-              activeLanguage={activeLanguage}
-            />
-            <LocalizedRichText
-              label="Hero Description"
-              value={formData.heroDescription || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('heroDescription', val)}
-              placeholder="Hero paragraph..."
-              activeLanguage={activeLanguage}
-            />
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <LocalizedInput
+                  label="Hero Title"
+                  value={formData.heroTitle || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val, lang) => handleChange('heroTitle', val, lang)}
+                  placeholder="E.g. Explore our best articles"
+                  activeLanguage={activeLanguage}
+                />
+                <LocalizedRichText
+                  label="Hero Description"
+                  value={formData.heroDescription || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('heroDescription', val)}
+                  placeholder="Hero paragraph..."
+                  activeLanguage={activeLanguage}
+                />
+              </div>
+              <div className="space-y-4">
+                <Label>Section Side Image</Label>
+                <ImageUpload
+                  images={formData.sideImage ? [formData.sideImage] : []}
+                  onAdd={() => handleChange('sideImage', { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } })}
+                  onRemove={() => handleChange('sideImage', undefined)}
+                  onUpdate={(index, field, value, lang) => handleChange(`sideImage.${field}`, value, lang)}
+                  onUpload={handleImageUpload}
+                  maxImages={1}
+                  activeLanguage={activeLanguage}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -735,6 +821,105 @@ export default function NewBlogCategoryPage() {
                         >
                           <X className="h-4 w-4" />
                         </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+ 
+        {/* Featured Destinations */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured Destinations</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <LocalizedInput
+              label="Destinations Section Title"
+              value={formData.destinationsSectionTitle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('destinationsSectionTitle', val, lang)}
+              placeholder="Popular Destinations"
+              activeLanguage={activeLanguage}
+            />
+ 
+            <div className="space-y-4">
+              <Label>Search & Select Destinations</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search destinations by name..."
+                  value={destSearchQuery}
+                  onChange={(e) => setDestSearchQuery(e.target.value)}
+                  onFocus={() => setIsDestSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsDestSearchFocused(false), 200)}
+                  className="pl-9"
+                />
+                
+                {isSearchingDests && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  </div>
+                )}
+ 
+                {isDestSearchFocused && (
+                  <div className="absolute z-50 left-0 right-0 top-full mt-1 border rounded-lg bg-background shadow-lg max-h-64 overflow-y-auto">
+                    {isSearchingDests ? (
+                      <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Searching...
+                      </div>
+                    ) : destSearchResults.length > 0 ? (
+                      destSearchResults
+                        .filter(dest => !(formData.featuredDestinations || []).includes(dest._id))
+                        .map((dest) => {
+                          const thumbUrl = dest.coverImage?.url;
+                          const title = dest.name?.en || dest.name || 'Untitled';
+                          return (
+                            <button
+                              key={dest._id}
+                              type="button"
+                              className="w-full text-left px-3 py-2.5 hover:bg-accent flex items-center gap-3 border-b last:border-b-0 transition-colors"
+                              onClick={() => addFeaturedDest(dest)}
+                            >
+                              {thumbUrl && (
+                                <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium truncate">{title}</div>
+                              </div>
+                            </button>
+                          );
+                        })
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground text-center">
+                        No destinations found for &quot;{destSearchQuery}&quot;
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+ 
+            {/* Selected Destinations List */}
+            {formData.featuredDestinations && formData.featuredDestinations.length > 0 && (
+              <div className="space-y-2">
+                <Label>Selected Featured Destinations</Label>
+                <div className="grid gap-2">
+                  {formData.featuredDestinations.map((destId) => {
+                    const destObj = selectedDestObjects.find(d => d._id === destId);
+                    const thumbUrl = destObj?.coverImage?.url;
+                    const title = destObj ? (typeof destObj.name === 'object' ? destObj.name.en : destObj.name) : destId;
+
+                    return (
+                      <div key={destId} className="flex items-center gap-3 p-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                        {thumbUrl && (
+                          <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                        )}
+                        <span className="flex-1 text-sm font-medium text-emerald-800 dark:text-emerald-200 truncate">{title}</span>
+                        <button type="button" onClick={() => removeFeaturedDest(destId)} className="flex-shrink-0 text-emerald-600 hover:text-red-600 transition-colors">
+                          <X size={16} />
+                        </button>
                       </div>
                     );
                   })}

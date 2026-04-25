@@ -407,3 +407,32 @@ export default {
   subcategories: blogSubcategoryAPI,
   posts: blogAPI,
 };
+
+// ==================== DESTINATION API ====================
+
+export const destinationAPI = {
+  getAll: async (params?: QueryParams) => {
+    const response = await axiosInstance.get<ApiResponse<any[]>>('destinations', { params });
+    return response.data;
+  },
+  getById: async (id: string) => {
+    const response = await axiosInstance.get<ApiResponse<any>>(`destinations/${id}`);
+    return response.data;
+  },
+  create: async (data: any) => {
+    const response = await axiosInstance.post<ApiResponse<any>>('destinations', data);
+    return response.data;
+  },
+  update: async (id: string, data: any) => {
+    const response = await axiosInstance.put<ApiResponse<any>>(`destinations/${id}`, data);
+    return response.data;
+  },
+  toggleStatus: async (id: string) => {
+    const response = await axiosInstance.patch<ApiResponse<any>>(`destinations/${id}/toggle-active`);
+    return response.data;
+  },
+  delete: async (id: string) => {
+    const response = await axiosInstance.delete<ApiResponse<any>>(`destinations/${id}`);
+    return response.data;
+  },
+};

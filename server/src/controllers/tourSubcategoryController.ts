@@ -189,6 +189,7 @@ export const getSubcategoryById = async (
       .populate('category', 'name slug description')
       .populate('toursCount')
       .populate('featuredBlogs')
+      .populate('featuredDestinations')
       .lean();
 
     if (!subcategory) {
@@ -254,6 +255,7 @@ export const getSubcategoryBySlug = async (
       .populate('category', 'name slug description')
       .populate('toursCount')
       .populate('featuredBlogs')
+      .populate('featuredDestinations')
       .lean();
 
     if (!subcategory) {

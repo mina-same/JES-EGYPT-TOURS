@@ -53,6 +53,8 @@ export interface ITourCategory extends Document {
   faqs?: IFAQ[];
   reviews?: ICuratedReview[]; // New field
   featuredBlogs?: Types.ObjectId[];
+  featuredDestinations?: Types.ObjectId[];
+  destinationsSectionTitle?: ILocalizedString;
   bottomSection?: ISectionHeader;
   isActive: boolean;
   createdAt: Date;
@@ -206,6 +208,16 @@ const TourCategorySchema = new Schema<ITourCategory>(
         ref: 'Blog',
       },
     ],
+    featuredDestinations: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Destination',
+      },
+    ],
+    destinationsSectionTitle: {
+      type: LocalizedStringSchema,
+      required: false,
+    },
     bottomSection: {
       type: SectionHeaderSchema,
       required: false,

@@ -27,6 +27,7 @@ import notificationRoutes from './routes/notificationRoutes';
 import faqRoutes from './routes/faqRoutes';
 import menuRoutes from './routes/menuRoutes';
 import currencyRoutes from './routes/currencyRoutes';
+import destinationRoutes from './routes/destinationRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import connectDB from './config/database';
 import { i18nMiddleware } from './middleware/i18n';
@@ -162,6 +163,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/menus', menuRoutes);
 app.use('/api/currency', currencyRoutes);
+app.use('/api/destinations', destinationRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

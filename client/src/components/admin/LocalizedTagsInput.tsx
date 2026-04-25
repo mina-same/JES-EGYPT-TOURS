@@ -15,6 +15,8 @@ interface LocalizedTagsInputProps {
   className?: string;
   activeLanguage?: AdminLanguage;
   error?: boolean;
+  onBlur?: () => void;
+  required?: boolean;
 }
 
 const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
@@ -25,6 +27,8 @@ const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
   className = "",
   activeLanguage,
   error,
+  onBlur,
+  required,
 }) => {
   const [inputValue, setInputValue] = useState("");
 
@@ -110,7 +114,10 @@ const LocalizedTagsInput: React.FC<LocalizedTagsInputProps> = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onBlur={() => addTag(lang, inputValue)}
+              onBlur={() => {
+                addTag(lang, inputValue);
+                if (onBlur) onBlur();
+              }}
               placeholder={safeValue(lang).length === 0 ? placeholder : ""}
               className="flex-1 min-w-[120px] outline-none bg-transparent text-sm"
             />

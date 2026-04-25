@@ -28,7 +28,7 @@ const LocalizedRichText: React.FC<LocalizedRichTextProps> = ({
       value={value}
       globalLanguage={activeLanguage}
       className={className}
-      onChange={(lang, val) => onChange({ ...value, [lang]: val }, lang)}
+      onChange={(lang, val) => onChange({ ...(value || {}), [lang]: val }, lang)}
     >
       {(lang, currentValue, handleLang) => (
         <RichTextEditor

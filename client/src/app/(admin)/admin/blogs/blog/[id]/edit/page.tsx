@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
+import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, destinationAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
 import { API_URL } from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,6 +81,7 @@ const INITIAL_BLOG_EDIT: any = {
   relatedPosts: [],
   category: '',
   subCategory: '',
+  destination: '',
 };
 
 export default function EditBlogPage() {
@@ -96,6 +97,7 @@ export default function EditBlogPage() {
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
+  const [destinations, setDestinations] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
   const [authors, setAuthors] = useState<AuthUser[]>([]);
 
@@ -295,6 +297,7 @@ export default function EditBlogPage() {
           relatedPosts: blog.relatedPosts?.map((post: any) => post._id || post) || [],
           category: blog.category?._id || blog.category || '',
           subCategory: blog.subCategory?._id || blog.subCategory || '',
+          destination: blog.destination?._id || blog.destination || '',
         });
       } else {
         setFormErrors([{ field: 'Server', message: response.error || 'Failed to fetch blog post' }]);
@@ -407,6 +410,9 @@ export default function EditBlogPage() {
       }
       if (!cleanData.subCategory || cleanData.subCategory === '' || cleanData.subCategory === 'none') {
         cleanData.subCategory = null;
+      }
+      if (!cleanData.destination || cleanData.destination === '' || cleanData.destination === 'none') {
+        cleanData.destination = null;
       }
 
       // Remove empty optional fields (localized)
@@ -521,9 +527,10 @@ export default function EditBlogPage() {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const [catRes, userRes] = await Promise.all([
+        const [catRes, userRes, destRes] = await Promise.all([
           blogCategoryAPI.getAll({ isActive: true }),
-          userAPI.getAllUsers()
+          userAPI.getAllUsers(),
+          destinationAPI.getAll({ isActive: true })
         ]);
         
         if (catRes.success && catRes.data) {
@@ -532,6 +539,10 @@ export default function EditBlogPage() {
 
         if (userRes.success && userRes.data?.users) {
           setAuthors(userRes.data.users);
+        }
+
+        if (destRes.success && destRes.data) {
+          setDestinations(destRes.data);
         }
       } catch (error) {
         console.error('Failed to fetch blog options:', error);
@@ -675,6 +686,25 @@ export default function EditBlogPage() {
                             {categories.map((cat) => (
                               <SelectItem key={cat._id} value={cat._id}>
                                 {cat.name?.en || cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="destination">Destination</Label>
+                        <Select 
+                          value={formData.destination || "none"} 
+                          onValueChange={(value) => handleChange('destination', value === "none" ? "" : value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Destination" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {destinations.map((dest) => (
+                              <SelectItem key={dest._id} value={dest._id}>
+                                {dest.name?.en || dest.name}
                               </SelectItem>
                             ))}
                           </SelectContent>

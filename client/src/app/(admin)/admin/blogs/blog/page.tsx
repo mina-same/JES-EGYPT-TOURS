@@ -3,13 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { blogAPI } from '@/lib/api/blogAdmin';
-import { useToast } from '@/hooks/use-toast';
-import { 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, FileText, Clock, 
-  User, Calendar, CheckCircle, XCircle, Tag
+  User, Calendar, CheckCircle, XCircle, Tag, MapPin
 } from 'lucide-react';
+import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -41,6 +39,10 @@ interface BlogPost {
   viewCount: number;
   readingTime?: number;
   tags: ILocalizedMixed;
+  destination?: {
+    _id: string;
+    name: ILocalizedString;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -57,6 +59,8 @@ export default function BlogsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
+  const [destinationFilter, setDestinationFilter] = useState<string>('all');
+  const [destinations, setDestinations] = useState<any[]>([]);
   const [featuredFilter, setFeaturedFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
@@ -87,6 +91,10 @@ export default function BlogsPage() {
 
       if (featuredFilter !== 'all') {
         params.isFeatured = featuredFilter === 'true';
+      }
+
+      if (destinationFilter !== 'all') {
+        params.destination = destinationFilter;
       }
 
       const response = await blogAPI.getAllAdmin(params);
@@ -294,6 +302,19 @@ export default function BlogsPage() {
       ),
     },
     {
+      header: 'Destination',
+      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
+      cellClassName: 'px-6 py-4',
+      render: (blog) => (
+        <div className="flex items-center">
+          <MapPin size={14} className="text-gray-400 mr-1" />
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            {blog.destination?.name ? getLocalizedValue(blog.destination.name) : '-'}
+          </span>
+        </div>
+      ),
+    },
+    {
       header: 'Featured',
       headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
       cellClassName: 'px-6 py-4',
@@ -415,7 +436,13 @@ export default function BlogsPage() {
 
   useEffect(() => {
     fetchBlogs();
-  }, [page, searchTerm, statusFilter, tagFilter, featuredFilter]);
+  }, [page, searchTerm, statusFilter, tagFilter, featuredFilter, destinationFilter]);
+
+  useEffect(() => {
+    destinationAPI.getAll({ isActive: true }).then(res => {
+      if (res.success && res.data) setDestinations(res.data);
+    });
+  }, []);
 
   return (
     <div className="tailor-made-admin">
@@ -491,6 +518,22 @@ export default function BlogsPage() {
             <option value="all">All Blogs</option>
             <option value="true">Featured Only</option>
             <option value="false">Non-Featured Only</option>
+          </select>
+        </div>
+        <div className="filter-group">
+          <select
+            value={destinationFilter}
+            onChange={(e) => {
+              setDestinationFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="all">All Destinations</option>
+            {destinations.map((dest) => (
+              <option key={dest._id} value={dest._id}>
+                {dest.name?.en || dest.name}
+              </option>
+            ))}
           </select>
         </div>
         <div className="filter-group">

@@ -72,6 +72,8 @@ const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
   faqs: [],
   reviews: [],
   featuredBlogs: [],
+  destinationsSectionTitle: { en: '', de: '', it: '', es: '' },
+  featuredDestinations: [],
   bottomSection: {
     isEnabled: true,
     title: { en: '', de: '', it: '', es: '' },
@@ -115,6 +117,13 @@ export default function NewSubcategoryPage() {
   const [isSearchingBlogs, setIsSearchingBlogs] = useState(false);
   const [selectedBlogObjects, setSelectedBlogObjects] = useState<any[]>([]);
   const [isBlogSearchFocused, setIsBlogSearchFocused] = useState(false);
+
+  // Destination Search State
+  const [destSearchQuery, setDestSearchQuery] = useState('');
+  const [destSearchResults, setDestSearchResults] = useState<any[]>([]);
+  const [isSearchingDests, setIsSearchingDests] = useState(false);
+  const [selectedDestObjects, setSelectedDestObjects] = useState<any[]>([]);
+  const [isDestSearchFocused, setIsDestSearchFocused] = useState(false);
 
   // Parallel data fetching on mount
   useEffect(() => {
@@ -211,6 +220,10 @@ export default function NewSubcategoryPage() {
             })) : [],
             featuredBlogs: Array.isArray(data.featuredBlogs)
               ? data.featuredBlogs.map((b: any) => typeof b === 'object' ? b._id : b)
+              : [],
+            destinationsSectionTitle: typeof data.destinationsSectionTitle === 'object' ? data.destinationsSectionTitle : { en: data.destinationsSectionTitle || '', de: '', it: '', es: '' },
+            featuredDestinations: Array.isArray(data.featuredDestinations)
+              ? data.featuredDestinations.map((d: any) => typeof d === 'object' ? d._id : d)
               : [],
             bottomSection: data.bottomSection
               ? {
@@ -372,6 +385,50 @@ export default function NewSubcategoryPage() {
     setSelectedBlogObjects(prev => prev.filter(b => b._id !== id));
   };
 
+  // Destination Search logic
+  useEffect(() => {
+    const searchDests = async () => {
+      if (!isDestSearchFocused && !destSearchQuery.trim()) {
+        setDestSearchResults([]);
+        return;
+      }
+
+      setIsSearchingDests(true);
+      try {
+        const { destinationAPI } = await import('@/lib/api/blogAdmin');
+        const response = await destinationAPI.getAll({ 
+          search: destSearchQuery.trim(), 
+          limit: 50
+        });
+        if (response.success && response.data) {
+          setDestSearchResults(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to search destinations:', error);
+      } finally {
+        setIsSearchingDests(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchDests, 100);
+    return () => clearTimeout(timeoutId);
+  }, [destSearchQuery, isDestSearchFocused]);
+
+  const addFeaturedDest = (dest: any) => {
+    const current = formData.featuredDestinations || [];
+    if (!current.includes(dest._id)) {
+      handleChange('featuredDestinations', [...current, dest._id]);
+      setSelectedDestObjects(prev => [...prev, dest]);
+      setDestSearchQuery('');
+      setDestSearchResults([]);
+    }
+  };
+
+  const removeFeaturedDest = (id: string) => {
+    handleChange('featuredDestinations', (formData.featuredDestinations || []).filter((destId: string) => destId !== id));
+    setSelectedDestObjects(prev => prev.filter(d => d._id !== id));
+  };
+
   // Handle Image Upload
   const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
     try {
@@ -446,6 +503,11 @@ export default function NewSubcategoryPage() {
       }
       if (formData.featuredBlogs && formData.featuredBlogs.length > 0) {
         payload.featuredBlogs = formData.featuredBlogs;
+      }
+      
+      if (hasEn(formData.destinationsSectionTitle)) payload.destinationsSectionTitle = formData.destinationsSectionTitle;
+      if (formData.featuredDestinations && formData.featuredDestinations.length > 0) {
+        payload.featuredDestinations = formData.featuredDestinations;
       }
 
       // Image cleanup
@@ -1227,6 +1289,105 @@ export default function NewSubcategoryPage() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Featured Destinations */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured Destinations</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <LocalizedInput
+              label="Destinations Section Title"
+              value={formData.destinationsSectionTitle || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('destinationsSectionTitle', val, lang)}
+              placeholder="Popular Destinations"
+              activeLanguage={activeLanguage}
+            />
+ 
+            <div className="space-y-4">
+              <Label>Search & Select Destinations</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search destinations by name..."
+                  value={destSearchQuery}
+                  onChange={(e) => setDestSearchQuery(e.target.value)}
+                  onFocus={() => setIsDestSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsDestSearchFocused(false), 200)}
+                  className="pl-9"
+                />
+                
+                {isSearchingDests && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  </div>
+                )}
+ 
+                {isDestSearchFocused && (
+                  <div className="absolute z-50 left-0 right-0 top-full mt-1 border rounded-lg bg-background shadow-lg max-h-64 overflow-y-auto">
+                    {isSearchingDests ? (
+                      <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Searching...
+                      </div>
+                    ) : destSearchResults.length > 0 ? (
+                      destSearchResults
+                        .filter(dest => !(formData.featuredDestinations || []).includes(dest._id))
+                        .map((dest) => {
+                          const thumbUrl = dest.coverImage?.url;
+                          const title = dest.name?.en || dest.name || 'Untitled';
+                          return (
+                            <button
+                              key={dest._id}
+                              type="button"
+                              className="w-full text-left px-3 py-2.5 hover:bg-accent flex items-center gap-3 border-b last:border-b-0 transition-colors"
+                              onClick={() => addFeaturedDest(dest)}
+                            >
+                              {thumbUrl && (
+                                <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium truncate">{title}</div>
+                              </div>
+                            </button>
+                          );
+                        })
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground text-center">
+                        No destinations found for &quot;{destSearchQuery}&quot;
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+ 
+            {/* Selected Destinations List */}
+            {formData.featuredDestinations && formData.featuredDestinations.length > 0 && (
+              <div className="space-y-2">
+                <Label>Selected Featured Destinations</Label>
+                <div className="grid gap-2">
+                  {formData.featuredDestinations.map((destId) => {
+                    const destObj = selectedDestObjects.find(d => d._id === destId);
+                    const thumbUrl = destObj?.coverImage?.url;
+                    const title = destObj ? (typeof destObj.name === 'object' ? destObj.name.en : destObj.name) : destId;
+
+                    return (
+                      <div key={destId} className="flex items-center gap-3 p-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                        {thumbUrl && (
+                          <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                        )}
+                        <span className="flex-1 text-sm font-medium text-emerald-800 dark:text-emerald-200 truncate">{title}</span>
+                        <button type="button" onClick={() => removeFeaturedDest(destId)} className="flex-shrink-0 text-emerald-600 hover:text-red-600 transition-colors">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </CardContent>

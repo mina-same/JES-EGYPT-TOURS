@@ -42,7 +42,7 @@ export default function BlogCategoriesPage() {
           const catsWithSubs = await Promise.all(
             cats.map(async (cat: any) => {
               try {
-                const subs = await getSubCategoriesByCategory(cat.slug);
+                const subs = await getSubCategoriesByCategory(cat._id);
                 return {
                   ...cat,
                   subcategories: Array.isArray(subs) ? subs : []

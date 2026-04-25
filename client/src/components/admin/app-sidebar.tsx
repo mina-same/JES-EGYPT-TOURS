@@ -97,6 +97,12 @@ const menuItems = [
         url: '/admin/blogs/subcategory',
       },
       {
+        id: 'blog-destination',
+        title: 'Destinations',
+        icon: Map,
+        url: '/admin/destinations',
+      },
+      {
         id: 'blog-blog',
         title: 'Blogs',
         icon: Target,

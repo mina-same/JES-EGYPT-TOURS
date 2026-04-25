@@ -153,9 +153,9 @@ export async function getCategoryBySlug(slug: string): Promise<BlogCategory> {
   return json.data;
 }
 
-// Fetch subcategories by category slug
-export async function getSubCategoriesByCategory(categorySlug: string): Promise<BlogSubCategory[]> {
-  const res = await fetch(`${API_URL}/blog/categories/${categorySlug}/subcategories`, {
+// Fetch subcategories by category ID
+export async function getSubCategoriesByCategory(categoryId: string): Promise<BlogSubCategory[]> {
+  const res = await fetch(`${API_URL}/blog/subcategories/category/${categoryId}`, {
     next: { revalidate: 3600 },
   });
   

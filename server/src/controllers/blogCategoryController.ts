@@ -131,6 +131,7 @@ export const getCategoryById = async (
     const category = await BlogCategory.findById(req.params.id)
       .populate('subcategoriesCount')
       .populate('featuredBlogs')
+      .populate('featuredDestinations')
       .lean();
 
     if (!category) {

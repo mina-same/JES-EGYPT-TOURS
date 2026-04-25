@@ -40,10 +40,23 @@ export interface IBlogCategory extends Document {
   // Content Sections
   heroTitle?: ILocalizedString;
   heroDescription?: ILocalizedMixed;
+  sideImage?: {
+    url: string;
+    fileName: string;
+    title?: ILocalizedString;
+    alt?: ILocalizedString;
+  };
+  features?: Array<{
+    icon: string;
+    title: ILocalizedString;
+    description: ILocalizedString;
+  }>;
   featuredBlogs?: mongoose.Types.ObjectId[];
   featuredBlogsSectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
+  destinationsSectionTitle?: ILocalizedString;
+  featuredDestinations?: mongoose.Types.ObjectId[];
   faqs?: IFAQ[];
 }
 
@@ -133,6 +146,17 @@ const BlogCategorySchema: Schema = new Schema(
     heroDescription: {
       type: LocalizedMixedSchema,
     },
+    sideImage: {
+      url: { type: String, trim: true },
+      fileName: { type: String, trim: true },
+      title: LocalizedStringSchema,
+      alt: LocalizedStringSchema,
+    },
+    features: [{
+      icon: { type: String, trim: true },
+      title: LocalizedStringSchema,
+      description: LocalizedStringSchema,
+    }],
     featuredBlogs: [
       {
         type: Schema.Types.ObjectId,
@@ -148,6 +172,15 @@ const BlogCategorySchema: Schema = new Schema(
     faqsSectionTitle: {
       type: LocalizedStringSchema,
     },
+    destinationsSectionTitle: {
+      type: LocalizedStringSchema,
+    },
+    featuredDestinations: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Destination',
+      },
+    ],
     faqs: [FAQSchema],
   },
   {

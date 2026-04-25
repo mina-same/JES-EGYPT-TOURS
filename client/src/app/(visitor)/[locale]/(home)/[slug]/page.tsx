@@ -1,5 +1,6 @@
 import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
 import { getCategoryBySlug as getBlogCategoryBySlug, getSubCategoryBySlug as getBlogSubCategoryBySlug, getBlogBySlug } from "@/lib/api/blog";
+import { getDestinationBySlug } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
 import { reviewsAPI } from "@/lib/api/reviews";
 import { Metadata } from "next";
@@ -17,6 +18,7 @@ import SubcategoryView from "./_views/SubcategoryView";
 import BlogCategoryView from "./_views/BlogCategoryView";
 import BlogSubcategoryView from "./_views/BlogSubcategoryView";
 import BlogDetailView from "./_views/BlogDetailView";
+import DestinationView from "./_views/DestinationView";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
@@ -240,6 +242,38 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   } catch {}
 
+  // 5.5 Try Destination
+  try {
+    const destination = await getDestinationBySlug(slug);
+    if (destination) {
+      const correctSlug = getLocaleSlug(destination.slug, locale);
+      if (correctSlug) {
+        const seoTitle = getLocalizedValue(destination.metaTitle, locale);
+        const seoDescription = getLocalizedValue(destination.metaDescription, locale);
+        const description = seoDescription ? seoDescription.replace(/<[^>]*>?/gm, '').substring(0, 160) : "";
+        const keywords = getLocalizedValue(destination.metaKeywords, locale);
+        const ogImage = destination.ogImage || destination.metaImage?.url || destination.coverImage?.url || undefined;
+        const languages: Record<string, string> = {};
+        for (const loc of LOCALES) {
+          const s = getLocalizedValue(destination.slug, loc);
+          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
+        }
+        return {
+          title: seoTitle || `${getLocalizedValue(destination.name, locale)} | JES Egypt Tours`,
+          description,
+          keywords: keywords || undefined,
+          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          openGraph: {
+            title: seoTitle || getLocalizedValue(destination.name, locale),
+            description,
+            type: "website",
+            images: ogImage ? [ogImage] : undefined,
+          },
+        };
+      }
+    }
+  } catch {}
+
   // 6. Try tour
   try {
     const tourRes = await tourAPI.getBySlug(slug, locale);
@@ -410,6 +444,27 @@ export default async function SlugPage({ params }: PageProps) {
     } catch { /* API error — fall through */ }
     if (redirectTarget) permanentRedirect(redirectTarget);
     if (renderBlogPost) return <BlogDetailView slug={slug} locale={locale} />;
+  }
+
+  // ── 5.5. Destination ──────────────────────────────────────────────────
+  {
+    let redirectTarget: string | null = null;
+    let renderDestination = false;
+    try {
+      const destination = await getDestinationBySlug(slug);
+      if (destination) {
+        const correctSlug = getLocaleSlug(destination.slug, locale);
+        if (!correctSlug) {
+          /* No translated slug for this locale, let it 404 */
+        } else if (correctSlug !== slug) {
+          redirectTarget = `/${locale}/${correctSlug}`;
+        } else {
+          renderDestination = true;
+        }
+      }
+    } catch { /* API error — fall through */ }
+    if (redirectTarget) permanentRedirect(redirectTarget);
+    if (renderDestination) return <DestinationView slug={slug} locale={locale} />;
   }
 
   // ── 6. Tour ───────────────────────────────────────────────────────────────

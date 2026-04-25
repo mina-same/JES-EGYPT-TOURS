@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
+import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, destinationAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
 import { API_URL } from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,6 +82,7 @@ const INITIAL_BLOG_POST = {
   relatedPosts: [],
   category: '',
   subCategory: '',
+  destination: '',
 };
 
 export default function NewBlogPage() {
@@ -93,6 +94,7 @@ export default function NewBlogPage() {
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
+  const [destinations, setDestinations] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
 
   const { user } = useAuth();
@@ -442,9 +444,10 @@ export default function NewBlogPage() {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const [catRes, userRes] = await Promise.all([
+        const [catRes, userRes, destRes] = await Promise.all([
           blogCategoryAPI.getAll({ isActive: true }),
-          userAPI.getAllUsers()
+          userAPI.getAllUsers(),
+          destinationAPI.getAll({ isActive: true })
         ]);
 
         if (catRes.success && catRes.data) {
@@ -453,6 +456,10 @@ export default function NewBlogPage() {
         
         if (userRes.success && userRes.data?.users) {
           setAuthors(userRes.data.users);
+        }
+
+        if (destRes.success && destRes.data) {
+          setDestinations(destRes.data);
         }
       } catch (error) {
         console.error('Failed to fetch blog options:', error);
@@ -575,6 +582,25 @@ export default function NewBlogPage() {
                             {categories.map((cat) => (
                               <SelectItem key={cat._id} value={cat._id}>
                                 {cat.name?.en || cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="destination">Destination</Label>
+                        <Select 
+                          value={formData.destination || "none"} 
+                          onValueChange={(value) => handleChange('destination', value === "none" ? "" : value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Destination" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {destinations.map((dest) => (
+                              <SelectItem key={dest._id} value={dest._id}>
+                                {dest.name?.en || dest.name}
                               </SelectItem>
                             ))}
                           </SelectContent>

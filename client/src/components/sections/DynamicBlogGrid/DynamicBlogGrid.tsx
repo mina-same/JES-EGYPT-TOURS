@@ -8,26 +8,74 @@ import { useRouter } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
 import { useTranslation } from "react-i18next";
 
-
 interface DynamicBlogGridProps {
   blogs: BlogPost[];
   pagination?: PaginationData;
   basePath: string;
+  variant?: 'standard' | 'featured';
 }
 
-const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, basePath }) => {
+const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, basePath, variant = 'standard' }) => {
   const router = useRouter();
   const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
-
 
   const handlePageChange = (page: number) => {
     const separator = basePath.includes("?") ? "&" : "?";
     router.push(`${basePath}${separator}page=${page}`);
   };
 
+  if (variant === 'featured') {
+    return (
+      <Row className='gutter-y-20'>
+        {blogs.map((post, index) => {
+          const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+          const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
+          const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
+            ? getLocalizedValue(post.featuredImage.alt, currentLocale)
+            : getLocalizedValue(post.title, currentLocale);
+          
+          const blogUrl = `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`;
+
+          return (
+            <Col lg={3} md={6} key={post._id}>
+              <Link href={blogUrl} className="group block no-underline">
+                <div 
+                  className='relative transition-all duration-500'
+                  data-wow-duration='1500ms'
+                  data-wow-delay={`${100 * (index + 1)}ms`}
+                >
+                  {/* Clean Image Container */}
+                  <div className='relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-3'>
+                    <Image 
+                      src={imageUrl || "https://placehold.co/600x400?text=Image"} 
+                      alt={imageAlt}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
+                  </div>
+
+                  {/* Minimal Content */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                       <span className="text-[9px] font-black text-[#b79c5c] uppercase tracking-widest">{day} {month}</span>
+                    </div>
+                    <h3 className='text-sm font-bold text-[#1d231f] group-hover:text-[#b79c5c] transition-colors duration-300 leading-tight line-clamp-2'>
+                      {getLocalizedValue(post.title, currentLocale)}
+                    </h3>
+                  </div>
+                </div>
+              </Link>
+            </Col>
+          );
+        })}
+      </Row>
+    );
+  }
+
   return (
-    <section className='blog-page section-space'>
+    <section className='blog-page'>
       <Container>
         <Row className='gutter-y-30'>
           {blogs.map((post, index) => {
@@ -36,7 +84,6 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
             const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
               ? getLocalizedValue(post.featuredImage.alt, currentLocale)
               : getLocalizedValue(post.title, currentLocale);
-
 
             const authorName =
               post.author && typeof post.author === 'object'
