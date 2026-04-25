@@ -78,6 +78,8 @@ export interface ITourSubcategory {
   faqs?: IFAQ[];
   reviews?: ICuratedReview[];
   featuredBlogs?: string[];
+  featuredDestinations?: string[];
+  destinationsSectionTitle?: ILocalizedString;
   bottomSection?: ISectionHeader;
   isActive: boolean;
   toursCount?: number; // Virtual field
@@ -160,6 +162,8 @@ export interface TourSubcategoryFormData {
   faqs?: IFAQ[];
   reviews?: ICuratedReview[];
   featuredBlogs?: string[];
+  featuredDestinations?: string[];
+  destinationsSectionTitle?: ILocalizedString;
   bottomSection?: ISectionHeader;
   isActive: boolean;
 }
