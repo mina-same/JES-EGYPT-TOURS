@@ -102,14 +102,14 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
   const PLAN_OPTIONS = [
     'AFFORDABLE',
     'GOLD (5 STAR STANDARD)', 
-    'DIAMOND (5 STAR LUXURY)'
+    'DIAMOND (5 STAR LUXURY)',
+    'TOUR PRICES'
   ];
 
   const SEASON_OPTIONS = [
-    "From Oct 2025 to Dec 2025",
-    "From Jan 2026 to Mar 2026",
-    "From 15 Apr 2026 to 30 Sep 2026",
-    "Peak (20 Dec 2025 - 5 Jan 2026) / (25 Mar - 15 Apr 2026)"
+    '1 May 2026 – 31 August 2026',
+    '1 September 2026 – 19 December 2026 / 6 January 2027 – 24 March 2027',
+    '20 December 2026 – 5 January 2027 / 25 March 2027 – 15 April 2027'
   ];
 
   const planIds = useMemo<string[]>(() => pricingPlans.map((_, i) => getPlanId(pricingPlans[i], i)), [pricingPlans]);

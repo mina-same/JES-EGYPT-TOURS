@@ -5,6 +5,7 @@ import { getCountries } from "react-phone-number-input";
 import en from "react-phone-number-input/locale/en";
 import { createBooking } from "@/lib/api/booking";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface BookingFormProps {
   tourId: string;
@@ -12,6 +13,7 @@ interface BookingFormProps {
 }
 
 export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) => {
+  const { t } = useTranslation('tours');
   const [startDate, setStartDate] = useState<Date | null>();
   const [startTime, setStartTime] = useState<Date | null>();
   const [adults, setAdults] = useState(1);
@@ -47,23 +49,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
     const requirements = formData.get('requirements')?.toString().trim();
 
     if (!name || name.length < 2) {
-      newErrors.name = 'Name is required and must be at least 2 characters';
+      newErrors.name = t("tourDetails.bookingForm.validation.name");
     }
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Please provide a valid email address';
+      newErrors.email = t("tourDetails.bookingForm.validation.email");
     }
 
     if (!startDate) {
-      newErrors.date = 'Please select a booking date';
+      newErrors.date = t("tourDetails.bookingForm.validation.date");
     }
 
     if (!startTime) {
-      newErrors.time = 'Please select a booking time';
+      newErrors.time = t("tourDetails.bookingForm.validation.time");
     }
 
     if (adults < 1) {
-      newErrors.adults = 'At least one adult is required';
+      newErrors.adults = t("tourDetails.bookingForm.validation.adults");
     }
 
     setErrors(newErrors);
@@ -100,7 +102,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
       const response = await createBooking(data);
 
       if (response.success) {
-        setSuccessMessage(response.message || "Your booking has been submitted successfully!");
+        setSuccessMessage(response.message || t("tourDetails.bookingForm.success"));
         
         // Reset form
         (e.target as HTMLFormElement).reset();
@@ -119,7 +121,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
         // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(""), 5000);
       } else {
-        setErrors({ submit: response.error || "Failed to submit booking. Please try again." });
+        setErrors({ submit: response.error || t("tourDetails.bookingForm.error") });
       }
     } catch (error: any) {
       console.error("Error submitting booking:", error);
@@ -139,7 +141,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
       data-wow-duration='1500ms'
     >
       <h4 className='tour-listing-details__sidebar__title'>
-        Book This Tour
+        {t("tourDetails.bookingForm.title")}
       </h4>
       <div className='booking-form-card'>
         <form
@@ -165,7 +167,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
               type="text" 
               id="name" 
               name="name" 
-              placeholder="Name *" 
+              placeholder={t("tourDetails.bookingForm.namePlaceholder")} 
               required 
               className={`booking-input ${errors.name ? 'booking-input-error' : ''}`}
             />
@@ -177,7 +179,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
               type="email" 
               id="email" 
               name="email" 
-              placeholder="E-mail *" 
+              placeholder={t("tourDetails.bookingForm.emailPlaceholder")} 
               required 
               className={`booking-input ${errors.email ? 'booking-input-error' : ''}`}
             />
@@ -186,7 +188,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
 
           <div className='booking-form-control'>
             <select id="nationality" name="nationality" className="booking-select">
-              <option value="">Select your Nationality</option>
+              <option value="">{t("tourDetails.bookingForm.nationalityPlaceholder")}</option>
               {nationalityOptions.map((c) => (
                 <option key={c.code} value={c.code}>
                   {c.name}
@@ -202,7 +204,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
                 defaultCountry="EG"
                 value={phone}
                 onChange={setPhone}
-                placeholder="Mobile"
+                placeholder={t("tourDetails.bookingForm.mobilePlaceholder")}
                 className="booking-phone-input"
               />
             </div>
@@ -217,7 +219,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
                     setStartDate(date);
                     if (errors.date) setErrors(prev => ({ ...prev, date: "" }));
                   }}
-                  placeholderText="From *"
+                  placeholderText={t("tourDetails.bookingForm.dateFromPlaceholder")}
                   className={`booking-date-input ${errors.date ? 'booking-input-error' : ''}`}
                   minDate={new Date()}
                 />
@@ -233,13 +235,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
                     setStartTime(date);
                     if (errors.time) setErrors(prev => ({ ...prev, time: "" }));
                   }}
-                  placeholderText="Time *"
+                  placeholderText={t("tourDetails.bookingForm.timePlaceholder")}
                   className={`booking-date-input ${errors.time ? 'booking-input-error' : ''}`}
                   showTimeSelect
                   showTimeSelectOnly
                   timeIntervals={15}
                   dateFormat="h:mm aa"
-                  timeCaption="Time"
+                  timeCaption={t("tourDetails.bookingForm.timePlaceholder")}
                 />
                 <i className='icon-calendar'></i>
               </div>
@@ -250,8 +252,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
           {/* Counters */}
           <div className="booking-counter-row">
             <div className="counter-label">
-              <span className="counter-title">No. of Adults</span>
-              <span className="counter-subtitle">( + 12 years )</span>
+              <span className="counter-title">{t("tourDetails.bookingForm.adults")}</span>
+              <span className="counter-subtitle">{t("tourDetails.bookingForm.adultsSub")}</span>
             </div>
             <div className="counter-controls">
               <button type="button" className="counter-btn" onClick={() => handleCounter('adults', 'dec')}>-</button>
@@ -262,8 +264,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
 
           <div className="booking-counter-row">
             <div className="counter-label">
-              <span className="counter-title">No. of Children</span>
-              <span className="counter-subtitle">( 2 to 11 years )</span>
+              <span className="counter-title">{t("tourDetails.bookingForm.children")}</span>
+              <span className="counter-subtitle">{t("tourDetails.bookingForm.childrenSub")}</span>
             </div>
             <div className="counter-controls">
               <button type="button" className="counter-btn" onClick={() => handleCounter('children', 'dec')}>-</button>
@@ -274,8 +276,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
 
           <div className="booking-counter-row">
             <div className="counter-label">
-              <span className="counter-title">No. of Infants</span>
-              <span className="counter-subtitle">( 0 to 2 years )</span>
+              <span className="counter-title">{t("tourDetails.bookingForm.infants")}</span>
+              <span className="counter-subtitle">{t("tourDetails.bookingForm.infantsSub")}</span>
             </div>
             <div className="counter-controls">
               <button type="button" className="counter-btn" onClick={() => handleCounter('infants', 'dec')}>-</button>
@@ -289,7 +291,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
               id="requirements" 
               name="requirements" 
               rows={4} 
-              placeholder="Please advise your tour requirements"
+              placeholder={t("tourDetails.bookingForm.requirementsPlaceholder")}
               className="booking-textarea"
             ></textarea>
           </div>
@@ -302,10 +304,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
             {isSubmitting ? (
               <>
                 <Loader2 size={18} className="spinning" />
-                Submitting...
+                {t("tourDetails.bookingForm.submitting")}
               </>
             ) : (
-              'Submit'
+              t("tourDetails.bookingForm.submitBtn")
             )}
           </button>
         </form>

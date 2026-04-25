@@ -5,6 +5,7 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Star, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Interface for Props
 interface TourReviews2Props {
@@ -16,6 +17,7 @@ interface TourReviews2Props {
 }
 
 const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit, averageRating = 4.96, totalReviews = 0 }) => {
+  const { t } = useTranslation('tours');
   const brandColor = '#b79c5c';
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
@@ -53,8 +55,8 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
         {/* Section Header */}
         <div className="row mb-5">
           <div className="col-12">
-            <h4 className="tour-listing-details__title mb-2">Our Travelers Testimonials</h4>
-            <p className="tour-reviews-subtitle">See how we’ve made every journey exceptional — straight from those who’ve traveled with us.</p>
+            <h4 className="tour-listing-details__title mb-2">{t("tourDetails.reviews.title")}</h4>
+            <p className="tour-reviews-subtitle">{t("tourDetails.reviews.subtitle")}</p>
           </div>
         </div>
 
@@ -79,7 +81,7 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
             
             {/* Header: Count and Stars */}
             <div className="tour-reviews-stats-header">
-                <h3 className="tour-reviews-count">{totalReviews || comments.length} Reviews</h3>
+                <h3 className="tour-reviews-count">{t("tourDetails.reviews.count", { count: totalReviews || comments.length })}</h3>
                 <div className="tour-reviews-rating-wrapper">
                   <span className="tour-reviews-avg-rating">{averageRating.toFixed(2)}</span>
                   <div className="tour-reviews-stars" style={{ color: brandColor }}>
@@ -140,7 +142,7 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
                         )}
                         <div>
                            <h4 className="tour-reviews-name">{comment.name}</h4>
-                           <p className="tour-reviews-verified">Verified Traveler</p> 
+                           <p className="tour-reviews-verified">{t("tourDetails.reviews.verified")}</p> 
                         </div>
                       </div>
                     </div>
@@ -148,7 +150,7 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
                 )) : (
                   <SwiperSlide>
                      <div className="py-4">
-                        <p className="text-[#697488]">No reviews yet.</p>
+                        <p className="text-[#697488]">{t("tourDetails.reviews.noReviews")}</p>
                      </div>
                   </SwiperSlide>
                 )}
@@ -184,10 +186,10 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
         <div className="justify-content-center w-full" >
             <div style={{ width: '100%', marginTop: '50px' }} >
                <div className="contact-page__contact">
-                  <h2 className="tour-listing-details__title">Add a Review</h2>
+                  <h2 className="tour-listing-details__title">{t("tourDetails.reviews.addReview")}</h2>
                   
                   <div className="product-details__form-ratings">
-                    <p className="product-details__form-ratings__label">Your Rating*</p>
+                    <p className="product-details__form-ratings__label">{t("tourDetails.reviews.yourRating")}</p>
                     <div className="flex gap-1" style={{ display: 'inline-flex' }}>
                       {[1, 2, 3, 4, 5].map((star) => {
                         const active = star <= (hoverRating || rating);
@@ -221,23 +223,23 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
                   <form onSubmit={handleFormSubmit} className="comments-form__form contact-form-validated product-details__form__form form-one">
                      <div className="form-one__group">
                         <div className="form-one__control">
-                           <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Your Name" />
+                           <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder={t("tourDetails.reviews.yourName")} />
                         </div>
                         <div className="form-one__control">
-                           <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="Your Email" />
+                           <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder={t("tourDetails.reviews.yourEmail")} />
                         </div>
                         <div className="form-one__control form-one__control--full">
                            <textarea
                              required
                              value={formData.comment}
                              onChange={e => setFormData({ ...formData, comment: e.target.value })}
-                             placeholder="Write Message"
+                             placeholder={t("tourDetails.reviews.writeMessage")}
                              style={{ backgroundColor: 'rgba(183, 156, 92, 0.08)' }}
                            ></textarea>
                         </div>
                         <div className="form-one__control form-one__control--full">
                            <button type="submit" disabled={isSubmitting} className="gotur-btn gotur-btn--base">
-                              {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                              {isSubmitting ? t("tourDetails.reviews.submitting") : t("tourDetails.reviews.submitBtn")}
                            </button>
                         </div>
                      </div>

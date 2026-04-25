@@ -150,7 +150,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                 fontSize: 16,
               }}
             >
-              <DollarSign size={16} /> {t("tourDetails.from", "From")} {formatPrice(tour.price)}
+              <DollarSign size={16} /> {t("tourDetails.info.priceStartsFrom")} {formatPrice(tour.price)}
             </span>
           </div>
         </div>
@@ -185,7 +185,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                     alignItems: "center",
                   }}
                 >
-                  Phone: {assets.phone}
+                  {t("tourDetails.brochure.contact.phone")}: {assets.phone}
                 </a>
               ) : null}
               {assets?.waHref ? (
@@ -207,7 +207,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                     alignItems: "center",
                   }}
                 >
-                  WhatsApp: Available
+                  {t("tourDetails.brochure.contact.whatsapp")}: {t("tourDetails.brochure.contact.available")}
                 </a>
               ) : null}
               {assets?.email ? (
@@ -227,7 +227,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                     alignItems: "center",
                   }}
                 >
-                  Email: {assets.email}
+                  {t("tourDetails.brochure.contact.email")}: {assets.email}
                 </a>
               ) : null}
             </div>
@@ -235,7 +235,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
             {assets?.qrDataUrl ? (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#8B7355" }}>
-                  {t("tourDetails.brochure.scanOnline", "Scan to view online")}
+                  {t("tourDetails.brochure.scanOnline")}
                 </div>
                 <img
                   src={assets.qrDataUrl}
@@ -251,8 +251,8 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
 
       <div style={{ padding: "48px 60px" }}>
         <SectionHeader 
-          label={t("tourDetails.overview", "Overview")} 
-          title={tour.overviewTitle || t("tourDetails.overview", "Overview")} 
+          label={t("tourDetails.nav.description")} 
+          title={tour.overviewTitle || t("tourDetails.nav.description")} 
         />
         <p
           style={{
@@ -283,10 +283,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
           >
             <div style={{ minWidth: 320, flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#2D1F0E", marginBottom: 6 }}>
-                {t("tourDetails.brochure.mapLabel", "Map & Location")}
+                {t("tourDetails.brochure.mapLabel")}
               </div>
               <div style={{ fontSize: 13, color: "#8B7355", lineHeight: 1.6 }}>
-                {t("tourDetails.brochure.scanMap", "Scan the QR to open the map location.")}
+                {t("tourDetails.brochure.scanMap")}
               </div>
               {tour.location ? (
                 <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: "#2D1F0E" }}>
@@ -342,8 +342,8 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
       {tour.highlightList?.length > 0 && (
         <div style={{ padding: "48px 60px", backgroundColor: "#F0EAE0" }}>
           <SectionHeader 
-             label={t("tourDetails.highlights", "Highlights")} 
-             title={t("tourDetails.brochure.whySpecial", "What Makes This Special")} 
+             label={t("tourDetails.highlightList")} 
+             title={t("tourDetails.brochure.whySpecial")} 
           />
           <div
             style={{
@@ -394,8 +394,8 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
       {(tour.amenities?.length > 0 || tour.amenitiesTwo?.length > 0) && (
         <div style={{ padding: "48px 60px" }}>
           <SectionHeader 
-             label={t("tourDetails.itinerary.inclusions", "What's Included")} 
-             title={t("tourDetails.brochure.inclusionsExclusions", "Inclusions & Exclusions")} 
+             label={t("tourDetails.included")} 
+             title={t("tourDetails.brochure.inclusionsExclusions")} 
           />
           <div
             style={{
@@ -415,7 +415,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                     color: "#2E7D32",
                   }}
                 >
-                  ✓ {t("tourDetails.itinerary.inclusions", "Included")}
+                  ✓ {t("tourDetails.included")}
                 </h4>
                 {tour.amenities.map((a, i) => (
                   <div
@@ -444,7 +444,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                     color: "#E65100",
                   }}
                 >
-                  ✗ {t("tourDetails.itinerary.exclusions", "Not Included")}
+                  ✗ {t("tourDetails.notIncluded")}
                 </h4>
                 {tour.amenitiesTwo.map((a, i) => (
                   <div
@@ -470,8 +470,8 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
       {pricingPlans.length > 0 && (
         <div style={{ padding: "48px 60px", backgroundColor: "#F0EAE0" }}>
           <SectionHeader 
-             label={t("tourDetails.brochure.pricingLabel", "Pricing")} 
-             title={t("tourDetails.brochure.choosePackage", "Choose Your Package")} 
+             label={t("tourDetails.brochure.pricingLabel")} 
+             title={t("tourDetails.brochure.choosePackage")} 
           />
           {pricingPlans.map((plan, i) => (
             <div key={i} style={{ marginTop: 24 }}>
@@ -519,10 +519,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                         gap: 10,
                       }}
                     >
-                      {s.prices.solo != null && <PriceTag label="Solo" price={s.prices.solo} />}
-                      {s.prices.pax_2_4 != null && <PriceTag label="2–4 pax" price={s.prices.pax_2_4} />}
-                      {s.prices.pax_5_8 != null && <PriceTag label="5–8 pax" price={s.prices.pax_5_8} />}
-                      {s.prices.pax_9_16 != null && <PriceTag label="9–16 pax" price={s.prices.pax_9_16} />}
+                      {s.prices.solo != null && <PriceTag label={t("tourDetails.pricing.soloTraveler", "Solo")} price={s.prices.solo} />}
+                      {s.prices.pax_2_4 != null && <PriceTag label={t("tourDetails.pricing.pax2_4", "2–4 pax")} price={s.prices.pax_2_4} />}
+                      {s.prices.pax_5_8 != null && <PriceTag label={t("tourDetails.pricing.pax5_8", "5–8 pax")} price={s.prices.pax_5_8} />}
+                      {s.prices.pax_9_16 != null && <PriceTag label={t("tourDetails.pricing.pax9_16", "9–16 pax")} price={s.prices.pax_9_16} />}
                     </div>
                   </div>
                 ))}
@@ -535,8 +535,8 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
       {itineraryDays.length > 0 && (
         <div style={{ padding: "48px 60px" }}>
           <SectionHeader 
-             label={t("tourDetails.brochure.dayByDay", "Day by Day")} 
-             title={t("tourDetails.itinerary.title", "Your Itinerary")} 
+             label={t("tourDetails.brochure.dayByDay")} 
+             title={t("tourDetails.nav.tourPlan")} 
           />
           <div style={{ marginTop: 24 }}>
             {itineraryDays.map((d, k) => (
@@ -664,7 +664,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
           {website ? ` \n•\n 🌐 ${website}` : null}
         </div>
         <div style={{ fontSize: 12, color: "#8B7355", marginTop: 12 }}>
-          {t("tourDetails.brochure.generatedOn", "Generated on")} {new Date().toLocaleDateString(i18n.language)} — {t("tourDetails.brochure.disclaimer", "This brochure is for informational purposes. Prices subject to change.")}
+          {t("tourDetails.brochure.generatedOn")} {new Date().toLocaleDateString(i18n.language)} — {t("tourDetails.brochure.disclaimer")}
         </div>
       </div>
     </div>

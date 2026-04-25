@@ -413,7 +413,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             </div>
                             <div>
                                <h4 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
-                                 {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
+                                 {t("tourDetails.whatYouWillLove")}
                                </h4>
                                <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
                             </div>
@@ -437,7 +437,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         className="tour-read-more-btn"
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                       >
-                        {isDescriptionExpanded ? t("tourDetails.readLess", "Read Less") : t("tourDetails.readMore", "Read More")}
+                        {isDescriptionExpanded ? t("tourDetails.readLess") : t("tourDetails.readMore")}
                       </button>
                     )}
                   </div>
@@ -544,7 +544,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                               className="tour-read-more-btn"
                               onClick={() => setIsAmenitiesExpanded(!isAmenitiesExpanded)}
                             >
-                              {isAmenitiesExpanded ? t("tourDetails.showLess", "Show Less") : t("tourDetails.showAll", "Show All Parameters")}
+                              {isAmenitiesExpanded ? t("tourDetails.showLess") : t("tourDetails.showAll")}
                             </button>
                           </div>
                         )}
@@ -590,7 +590,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       <div className="mb-3 d-flex align-items-center justify-content-between">
                         <h4 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
                           <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }}></i>
-                          {t("tourDetails.whatToPack", "What to Pack")}
+                          {t("tourDetails.whatToPack")}
                         </h4>
                       </div>
                       <div className="row g-2">
@@ -613,7 +613,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                     <div className="mb-4 d-flex align-items-center gap-2">
                       <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
                       <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
-                        {t("tourDetails.importantNotes", "Important Notes")}
+                        {t("tourDetails.importantNotes")}
                       </h4>
                     </div>
                     <div className="d-flex flex-column gap-3">

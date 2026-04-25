@@ -110,6 +110,103 @@
     "partners": {
       "title": "Our Travel Partners",
       "subtitle": "We collaborate with trusted local and international travel partners"
+    },
+    "readMore": "Read More",
+    "readLess": "Read Less",
+    "showAll": "Show All",
+    "showLess": "Show Less",
+    "whatYouWillLove": "What You Will Love about this tour?",
+    "whatToPack": "What to Pack",
+    "importantNotes": "Important Notes",
+    "day": "Day",
+    "info": {
+      "location": "Location",
+      "activitiesType": "Activities Type",
+      "activateDay": "Duration",
+      "traveler": "Traveler",
+      "priceStartsFrom": "Price starts from"
+    },
+    "brochure": {
+      "scanOnline": "Scan to view online",
+      "mapLabel": "Map & Location",
+      "scanMap": "Scan the QR to open the map location.",
+      "whySpecial": "What Makes This Special",
+      "pricingLabel": "Pricing",
+      "choosePackage": "Choose Your Package",
+      "dayByDay": "Day by Day",
+      "generatedOn": "Generated on",
+      "disclaimer": "This brochure is for informational purposes. Prices subject to change.",
+      "title": "Download Tour Brochure",
+      "subtitle": "Get a complete PDF guide with detailed itinerary, highlights, and travel information.",
+      "generating": "Generating...",
+      "downloadBtn": "Download PDF",
+      "free": "Free Download",
+      "offline": "Offline Access",
+      "error": "Failed to generate PDF. Please try again.",
+      "waMessage": "Hi! I'm interested in \"{{title}}\" ({{url}})",
+      "contact": {
+        "phone": "Phone",
+        "whatsapp": "WhatsApp",
+        "email": "Email",
+        "available": "Available"
+      }
+    },
+    "reviews": {
+      "title": "Our Travelers Testimonials",
+      "subtitle": "See how we’ve made every journey exceptional — straight from those who’ve traveled with us.",
+      "count": "{{count}} Reviews",
+      "verified": "Verified Traveler",
+      "noReviews": "No reviews yet.",
+      "addReview": "Add a Review",
+      "yourRating": "Your Rating*",
+      "yourName": "Your Name",
+      "yourEmail": "Your Email",
+      "writeMessage": "Write Message",
+      "submitting": "Submitting...",
+      "submitBtn": "Submit Review"
+    },
+    "pricing": {
+      "emptyState": "Pricing information is not available for this tour. Please contact us for details.",
+      "allYear": "All Year",
+      "soloTraveler": "Solo Traveler",
+      "pax2_4": "2-4 Travelers",
+      "pax5_8": "5-8 Travelers",
+      "pax9_16": "9-16 Travelers",
+      "perPerson": "per person",
+      "planNotes": "Important Plan Notes",
+      "noteTitle": "Note:",
+      "noteSub": "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. Contact us for custom quotes or special requests.",
+      "affordable": "Affordable",
+      "gold (5 star standard)": "Gold (5 Star Standard)",
+      "diamond (5 star luxury)": "Diamond (5 Star Luxury)",
+      "tour prices": "Tour Prices"
+    },
+    "bookingForm": {
+      "title": "Book This Tour",
+      "namePlaceholder": "Name *",
+      "emailPlaceholder": "E-mail *",
+      "nationalityPlaceholder": "Select your Nationality",
+      "mobilePlaceholder": "Mobile",
+      "dateFromPlaceholder": "From *",
+      "timePlaceholder": "Time *",
+      "adults": "No. of Adults",
+      "adultsSub": "( + 12 years )",
+      "children": "No. of Children",
+      "childrenSub": "( 2 to 11 years )",
+      "infants": "No. of Infants",
+      "infantsSub": "( 0 to 2 years )",
+      "requirementsPlaceholder": "Please advise your tour requirements",
+      "submitBtn": "Submit",
+      "submitting": "Submitting...",
+      "success": "Your booking has been submitted successfully!",
+      "error": "Failed to submit booking. Please try again.",
+      "validation": {
+        "name": "Name is required and must be at least 2 characters",
+        "email": "Please provide a valid email address",
+        "date": "Please select a booking date",
+        "time": "Please select a booking time",
+        "adults": "At least one adult is required"
+      }
     }
   }
 }

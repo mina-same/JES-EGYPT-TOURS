@@ -86,6 +86,10 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                       const sDate = new Date(season.startDate);
                       const eDate = new Date(season.endDate);
                       if (isNaN(sDate.getTime()) || isNaN(eDate.getTime())) {
+                        // If seasonName is already a date range (contains digits), don't show "All Year"
+                        if (season.seasonName !== "All Year" && /\d/.test(season.seasonName)) {
+                          return null;
+                        }
                         return t("tourDetails.pricing.allYear", "All Year");
                       }
                       return `${sDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${eDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
