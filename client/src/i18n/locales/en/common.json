@@ -1,5 +1,8 @@
 {
   "home": "Home",
+  "trustedPartners": "Our Trusted Partners",
+  "partnerAlt": "Trusted Partner {{count}}",
+  "partnerTitle": "JES Egypt Tours Partner {{count}}",
   "links": {
     "faq": "FAQ",
     "about": "About",

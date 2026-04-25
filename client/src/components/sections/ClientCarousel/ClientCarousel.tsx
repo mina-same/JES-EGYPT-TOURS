@@ -6,11 +6,14 @@ import React, { useEffect, useState } from "react";
 
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
+import { useTranslation } from "react-i18next";
+
 interface ClientCarouselProps {
   extraClass?: string;
 }
 
 const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
+  const { t } = useTranslation("common");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -71,7 +74,7 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
       data-wow-delay='500ms'
     >
       <div className='container'>
-        <h6 className='client-carousel__title'>{clientCarouselData.title}</h6>
+        <h6 className='client-carousel__title'>{t("trustedPartners")}</h6>
 
         <TinySlider
           settings={settings}

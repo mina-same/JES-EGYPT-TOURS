@@ -1,5 +1,8 @@
 {
   "home": "Startseite",
+  "trustedPartners": "Unsere vertrauenswürdigen Partner",
+  "partnerAlt": "Vertrauenswürdiger Partner {{count}}",
+  "partnerTitle": "JES Ägypten Touren Partner {{count}}",
   "links": {
     "faq": "FAQ",
     "about": "Über uns",

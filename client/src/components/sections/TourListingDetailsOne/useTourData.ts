@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
