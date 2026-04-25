@@ -98,6 +98,36 @@ html, body {
 .tour-one__item {
   width: 100%;
 }
+
+.tour-one__carousel .tns-item {
+  display: flex;
+}
+
+.tour-one__carousel .tns-item > div {
+  width: 100%;
+}
+
+.tour-one__slide-frame {
+  height: clamp(320px, 32vw, 395px) !important;
+  max-height: none !important;
+}
+
+.tour-one__slide-image {
+  object-fit: cover;
+}
+
+@media (max-width: 767px) {
+  .tour-one__slide-frame {
+    height: 320px !important;
+  }
+}
+
+@media (min-width: 1400px) {
+  .tour-one__slide-frame {
+    height: 395px !important;
+  }
+}
+
 .listing-card-four__btns,
 .listing-card-four__btns__hover {
   display: flex;
@@ -1114,6 +1144,7 @@ body {
 
 .text-google-blue { color: #0a2b4b; }
 .text-tripadvisor-green { color: #34E0A1; }
+.text-feefo-gray { color: #4B5563; }
 /* What You Will Love Section */
 .tour-listing-details__what-you-love {
   margin-top: 1.5rem;
@@ -1599,48 +1630,120 @@ div[suppressHydrationWarning] {
     margin: 0 !important;
     border-radius: 0 !important;
   }
+
+  .floating-whatsapp-button {
+    position: fixed;
+    right: 40px;
+    bottom: 110px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #31db74 0%, #25d366 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    z-index: 1200;
+    text-decoration: none;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+  }
+
+  .floating-whatsapp-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.22);
+  }
+
+  .floating-whatsapp-icon {
+    font-size: 28px;
+    line-height: 1;
+  }
   
   /* Mobile Sticky Booking Bar */
   .mobile-sticky-booking-bar {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #fff;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
-    padding: 12px 20px;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(221, 227, 234, 0.95);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+    padding: 12px;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    z-index: 1001;
+    z-index: 1300;
     display: flex !important;
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(calc(100% + 24px));
+    transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .mobile-sticky-booking-bar.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
   }
   .booking-bar-content {
     display: flex;
+    gap: 12px;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+  }
+  .booking-bar-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .booking-bar-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
   }
   .booking-bar-price {
     display: flex;
     flex-direction: column;
   }
   .booking-bar-price .price-label {
-    font-size: 13px;
-    color: #666;
+    font-size: 12px;
+    color: #64748b;
     text-transform: uppercase;
     font-weight: 600;
+    letter-spacing: 0;
   }
   .booking-bar-price .price-value {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
     color: #b79c5c;
-    line-height: 1.1;
+    line-height: 1;
+    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
   }
   .booking-bar-btn {
-    padding: 12px 30px !important;
-    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-height: 56px;
+    padding: 12px 20px !important;
+    border-radius: 16px !important;
     font-weight: 700 !important;
-    font-size: 16px !important;
+    font-size: 15px !important;
     width: auto !important;
+    box-shadow: 0 10px 22px rgba(183, 156, 92, 0.24);
   }
 
   /* Bottom Sheet */
@@ -1659,48 +1762,82 @@ div[suppressHydrationWarning] {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 90vh;
+    height: min(90vh, 920px);
     background: #fff;
-    z-index: 9999;
-    border-radius: 24px 24px 0 0;
+    z-index: 1400;
+    border-radius: 28px 28px 0 0;
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 -5px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 -12px 44px rgba(0,0,0,0.18);
   }
   .mobile-bottom-sheet.open {
     transform: translateY(0);
   }
+  .bottom-sheet-handle {
+    width: 56px;
+    height: 5px;
+    border-radius: 999px;
+    background: #d7dce3;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+  }
   .bottom-sheet-header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 24px 20px;
+    border-bottom: 1px solid #eef2f6;
+    background: #fff;
+    border-radius: 28px 28px 0 0;
+  }
+  .bottom-sheet-title-wrap {
+    min-width: 0;
+  }
+  .bottom-sheet-kicker {
+    display: inline-flex;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid #f0f0f0;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
   }
   .bottom-sheet-title {
     margin: 0;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
-    color: #1a1a1a;
+    color: #0f172a;
+    line-height: 1.2;
   }
   .bottom-sheet-close {
-    background: #f5f5f5;
+    background: #f8fafc;
     border: none;
-    color: #333;
+    color: #334155;
     padding: 8px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
+    flex-shrink: 0;
+  }
+  .bottom-sheet-close:hover {
+    background: #eef2f7;
+    transform: rotate(90deg);
   }
   .bottom-sheet-content {
-    padding: 24px;
+    padding: 20px 20px 24px;
     overflow-y: auto;
     flex-grow: 1;
+    background: #fff;
     padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   }
   .bottom-sheet-content .tour-listing-details__sidebar__item-form {
@@ -1708,14 +1845,37 @@ div[suppressHydrationWarning] {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
-    background: transparent !important;
+    background: #fff !important;
   }
   .bottom-sheet-content .tour-listing-details__sidebar__title {
     display: none !important;
   }
+  .bottom-sheet-content .booking-form-card {
+    background: #fff;
+    border: 1px solid #edf2f7;
+    border-radius: 24px;
+    padding: 18px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+  }
+
+  body.has-mobile-booking-bar .floating-whatsapp-button {
+    right: 16px;
+    bottom: calc(108px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.mobile-booking-sheet-open .floating-whatsapp-button {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+  }
 }
 
 @media (max-width: 575px) {
+  .floating-whatsapp-button {
+    width: 52px;
+    height: 52px;
+  }
+
   .tour-listing-details__destination__title {
     font-size: 22px !important;
   }
@@ -1735,6 +1895,52 @@ div[suppressHydrationWarning] {
   .tour-listing-details__destination__right {
     flex-wrap: wrap !important;
     gap: 10px !important;
+  }
+
+  .mobile-sticky-booking-bar {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    padding: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    border-radius: 20px;
+  }
+
+  .booking-bar-content {
+    gap: 10px;
+  }
+
+  .booking-bar-price .price-value {
+    font-size: 22px;
+  }
+
+  .booking-bar-btn {
+    min-height: 52px;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+
+  .bottom-sheet-header {
+    padding: 16px 18px 18px;
+  }
+
+  .bottom-sheet-title {
+    font-size: 20px;
+  }
+
+  .bottom-sheet-content {
+    padding: 16px 16px 22px;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-sheet-content .booking-form-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  body.has-mobile-booking-bar .floating-whatsapp-button {
+    right: 14px;
+    bottom: calc(104px + env(safe-area-inset-bottom, 0px));
   }
 }
 

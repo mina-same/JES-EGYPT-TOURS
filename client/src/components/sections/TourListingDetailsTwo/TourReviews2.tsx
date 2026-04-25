@@ -5,7 +5,6 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Star, ChevronRight, ChevronLeft } from 'lucide-react';
-import { Comment } from '@/lib/api/reviews';
 
 // Interface for Props
 interface TourReviews2Props {
@@ -177,67 +176,6 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
                   <ChevronRight size={24} strokeWidth={1.5} color="#ffffff" />
                 </button>
               </div>
-            </div>
-
-            {/* Platforms */}
-            <div className="row g-4">
-               {/* Google */}
-               <div className="col-12 col-md-4">
-                  <div className="tour-reviews-platform-card">
-                     <div className="tour-reviews-platform-logo">
-                        <Image src="/theme/Com2025/img/google.svg" alt="Google" width={36} height={36} unoptimized onError={(e) => (e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/300/300221.png")} />
-                     </div>
-                     <div>
-                        <span className="tour-reviews-platform-name text-google-blue">Google</span>
-                        <div className="tour-reviews-platform-rating" style={{ color: brandColor }}>
-                            <span className="tour-reviews-platform-score">4.5/5</span> 
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                        </div>
-                     </div>
-                  </div>
-               </div>
-                {/* TripAdvisor */}
-                <div className="col-12 col-md-4">
-                  <div className="tour-reviews-platform-card">
-                     <div className="tour-reviews-platform-logo">
-                         <Image src="/theme/Com2025/img/tripadvisor.svg" alt="TripAdvisor" width={36} height={36} unoptimized onError={(e) => (e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/2504/2504944.png")} />
-                     </div>
-                     <div>
-                        <span className="tour-reviews-platform-name text-tripadvisor-green">TripAdvisor</span>
-                         <div className="tour-reviews-platform-rating" style={{ color: brandColor }}>
-                           <span className="tour-reviews-platform-score">4.9/5</span>
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                        </div>
-                     </div>
-                  </div>
-               </div>
-               {/* Feefo */}
-               <div className="col-12 col-md-4">
-                  <div className="tour-reviews-platform-card">
-                     <div className="tour-reviews-platform-logo">
-                         <Image src="/theme/Com2025/img/feefo.svg" alt="Feefo" width={36} height={36} unoptimized onError={(e) => (e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/16183/16183624.png")} />
-                     </div>
-                     <div>
-                        <span className="tour-reviews-platform-name text-feefo-gray">Feefo</span>
-                         <div className="tour-reviews-platform-rating" style={{ color: brandColor }}>
-                           <span className="tour-reviews-platform-score">5/5</span>
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                            <Star size={14} fill="currentColor" stroke="none" />
-                        </div>
-                     </div>
-                  </div>
-               </div>
             </div>
           </div>
         </div>

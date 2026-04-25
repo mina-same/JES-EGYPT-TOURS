@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
@@ -9,6 +9,66 @@ interface TourCarouselProps {
 }
 
 export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title }) => {
+  const sliderRef = useRef<any>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const refreshTimeoutRef = useRef<number | null>(null);
+
+  const refreshSliderLayout = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (refreshTimeoutRef.current !== null) {
+      window.clearTimeout(refreshTimeoutRef.current);
+    }
+
+    refreshTimeoutRef.current = window.setTimeout(() => {
+      refreshTimeoutRef.current = null;
+
+      const slider = sliderRef.current?.slider;
+      if (!slider) {
+        return;
+      }
+
+      try {
+        slider.refresh?.();
+        slider.updateSliderHeight?.();
+      } catch (error) {
+        console.debug("Tour carousel refresh handled:", error);
+      }
+    }, 60);
+  }, []);
+
+  useEffect(() => {
+    refreshSliderLayout();
+
+    const lateRefreshId = window.setTimeout(() => {
+      refreshSliderLayout();
+    }, 250);
+
+    return () => {
+      window.clearTimeout(lateRefreshId);
+
+      if (refreshTimeoutRef.current !== null) {
+        window.clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, [refreshSliderLayout, sliderImages.length]);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined" || !carouselRef.current) {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      refreshSliderLayout();
+    });
+
+    observer.observe(carouselRef.current);
+
+    return () => observer.disconnect();
+  }, [refreshSliderLayout]);
+
   const settings = {
     items: 3,
     gutter: 30,
@@ -32,9 +92,16 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
 
   return (
     <div className='tour-one section-space-top'>
-      <div className='tour-one__carousel tour-two__carousel gotur-owl__carousel tns-ovh'>
+      <div
+        ref={carouselRef}
+        className='tour-one__carousel tour-two__carousel gotur-owl__carousel tns-ovh'
+      >
         <PhotoSwipeGallery>
-          <TinySlider settings={settings}>
+          <TinySlider
+            ref={sliderRef}
+            settings={settings}
+            onInit={refreshSliderLayout}
+          >
             {sliderImages.map((img, idx) => {
               const imageUrl = typeof img === 'string' 
                 ? img 
@@ -60,7 +127,7 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
                     >
                       {({ ref, open }) => (
                         <div 
-                          className='tour-one__item' 
+                          className='tour-one__item tour-one__slide-frame' 
                           ref={ref as unknown as React.Ref<HTMLDivElement>}
                           onClick={(e) => {
                             e.preventDefault();
@@ -73,11 +140,11 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
                             src={imageUrl}
                             alt={imageAlt}
                             title={imageTitle}
-                            width={800}
-                            height={600}
-                            className="object-cover w-full"
-                            style={{ height: '395px' }}
+                            fill
+                            sizes="(max-width: 575px) calc(100vw - 80px), (max-width: 767px) calc(100vw - 160px), (max-width: 1399px) 420px, 360px"
+                            className="tour-one__slide-image"
                             priority={idx === 0}
+                            onLoad={refreshSliderLayout}
                           />
                         </div>
                       )}

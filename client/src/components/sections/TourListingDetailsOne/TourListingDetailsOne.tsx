@@ -256,12 +256,15 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   return (
     <>
       <section className='tour-listing-details section-space'>
-        {/* Header Section */}
-        <TourHeader title={title} reviews={reviews} location={location} />
+        {/* Header Section - Commented out */}
+        {/* <TourHeader title={title} reviews={reviews} location={location} /> */}
 
         <PhotoSwipeGallery>
         {/* Carousel Section */}
         <TourCarousel sliderImages={sliderImages} title={title} />
+
+        {/* Tour Key Facts - Screen Reader Only */}
+        <h2 className="sr-only">Tour Key Facts</h2>
 
         {/* Info Bar Section */}
         <TourInfoBar
@@ -364,29 +367,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
           <div style={{ height: (isNavFixed && !isMobile) ? (navHeight || 0) + 40 : 0 }} />
 
           <div className='row gutter-y-30 tour-details-row' ref={sidebarRowRef}>
-            {/* Sidebar */}
-            <div className='col-lg-3'>
-              {/* Spacer to prevent layout jump when sidebar is fixed */}
-              {isSidebarFixed && (
-                <div style={{ height: sidebarRef.current?.getBoundingClientRect().height || 0 }} />
-              )}
-              <div
-                ref={sidebarRef}
-                className='tour-listing-details__sidebar'
-                style={{
-                  position: isSidebarFixed ? 'fixed' : 'relative',
-                  left: isSidebarFixed ? sidebarLeft : undefined,
-                  width: isSidebarFixed ? sidebarWidth : undefined,
-                  top: isSidebarFixed ? (isNavFixed ? navHeight : 0) + 20 : undefined,
-                  zIndex: isSidebarFixed ? 1000 : undefined,
-                  alignSelf: 'flex-start',
-                  height: 'fit-content',
-                }}
-              >
-                <BookingForm tourId={String(tourData.id || '')} onSubmit={handleBookingSubmit} />
-              </div>
-            </div>
-
             {/* Main Content */}
             <div className='col-lg-9'>
               <div className='tour-listing-details__content'>
@@ -396,9 +376,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   <div className='tour-listing-details__content__item border-0 p-0 shadow-none'>
                     <div className="d-flex align-items-center gap-3 mb-4">
                       <div style={{ width: '5px', height: '32px', borderRadius: '4px', backgroundColor: '#b79c5c' }}></div>
-                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-0.02em' }}>
+                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-0.02em' }}>
                         {overviewTitle}
-                      </h4>
+                      </h2>
                     </div>
                     
                     <div className={`tour-description-wrapper ${isMobile && !isDescriptionExpanded ? 'collapsed' : ''}`}>
@@ -462,17 +442,17 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                     )}
                   </div>
 
-                  {/* Highlight List Section */}
+                  {/* Tour Highlights Section */}
                   <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
                     <div className="d-flex align-items-center gap-2 mb-4">
                       <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
-                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
+                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
                         {t("tourDetails.highlightList")}
-                      </h4>
+                      </h2>
                     </div>
-                    <div className="row gutter-y-20">
+                    <ul className="list-unstyled row gutter-y-20" style={{ paddingLeft: 0 }}>
                       {highlightList.map((item, index) => (
-                        <div key={index} className="col-md-6 col-lg-4 mb-3">
+                        <li key={index} className="col-md-6 col-lg-4 mb-3">
                           <div className="d-flex align-items-start gap-3">
                             <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ 
                               width: '26px', 
@@ -485,9 +465,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                             </div>
                             <span className="text-dark fw-medium" style={{ fontSize: '0.93rem' }}>{item}</span>
                           </div>
-                        </div>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
                 </section>
 
@@ -517,24 +497,16 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                 <section id="amenities" className="tour-section">
                   {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
                     <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
-                      <div className="mb-4 d-flex align-items-center gap-2">
-                        <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
-                        <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
-                          {t("tourDetails.amenitiesTitle")}
-                        </h4>
-                      </div>
+                      <h2 className='tour-listing-details__title mb-4' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
+                        {t("tourDetails.amenitiesTitle")}
+                      </h2>
                       <div className="row g-4">
                         {amenities && amenities.length > 0 && (
                           <div className="col-lg-6">
                             <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
-                              <div className="d-flex align-items-center gap-3 mb-4">
-                                <div style={{ fontSize: '1.2rem', color: '#b79c5c' }}>
-                                  <i className="fas fa-check-circle"></i>
-                                </div>
-                                <h4 className='m-0 fs-6 fw-bold text-dark' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                                  {t("tourDetails.included")}
-                                </h4>
-                              </div>
+                              <h3 className='m-0 fs-6 fw-bold text-dark mb-4' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                {t("tourDetails.included")}
+                              </h3>
                               <ul className='list-unstyled m-0 d-flex flex-column gap-3'>
                                 {(isMobile && !isAmenitiesExpanded ? amenities.slice(0, 4) : amenities).map((amenity, index) => (
                                   <li key={index} className="d-flex align-items-start gap-3">
@@ -549,14 +521,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                         {amenitiesTwo && amenitiesTwo.length > 0 && (
                           <div className="col-lg-6">
                             <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
-                              <div className="d-flex align-items-center gap-3 mb-4">
-                                <div className="text-danger" style={{ fontSize: '1.2rem' }}>
-                                  <i className="fas fa-times-circle"></i>
-                                </div>
-                                <h4 className='m-0 fs-6 fw-bold text-dark' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                                  {t("tourDetails.notIncluded")}
-                                </h4>
-                              </div>
+                              <h3 className='m-0 fs-6 fw-bold text-dark mb-4' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                {t("tourDetails.notIncluded")}
+                              </h3>
                               <ul className='list-unstyled m-0 d-flex flex-column gap-3'>
                                 {(isMobile && !isAmenitiesExpanded ? amenitiesTwo.slice(0, 4) : amenitiesTwo).map((amenity, index) => (
                                   <li key={index} className="d-flex align-items-start gap-3">
@@ -597,7 +564,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {pricingPlans && pricingPlans.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__pricing'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.pricingTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.pricingTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.pricingSubtitle")}</p>
                       </div>
                       <PricingPlans pricingPlans={pricingPlans} />
@@ -798,7 +765,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                   {faqs && faqs.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__faqs'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.faqTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.faqTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
                       </div>
                       <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
@@ -899,6 +866,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
                 {/* Reviews Section */}
                 <section id="reviews" className="tour-section">
+                  <div className="mb-4">
+                    <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.reviewsTitle", "Reviews")}</h2>
+                    <p className="tour-reviews-subtitle">{t("tourDetails.reviewsSubtitle", "See what our travelers say")}</p>
+                  </div>
                   <TourReviews2
                     comments={comments}
                     tourId={id || ""}
@@ -910,21 +881,44 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
               </div>
             </div>
+
+            {/* Sidebar - Booking Form */}
+            <div className='col-lg-3'>
+              {/* Spacer to prevent layout jump when sidebar is fixed */}
+              {isSidebarFixed && (
+                <div style={{ height: sidebarRef.current?.getBoundingClientRect().height || 0 }} />
+              )}
+              <div
+                ref={sidebarRef}
+                className='tour-listing-details__sidebar'
+                style={{
+                  position: isSidebarFixed ? 'fixed' : 'relative',
+                  left: isSidebarFixed ? sidebarLeft : undefined,
+                  width: isSidebarFixed ? sidebarWidth : undefined,
+                  top: isSidebarFixed ? (isNavFixed ? navHeight : 0) + 20 : undefined,
+                  zIndex: isSidebarFixed ? 1000 : undefined,
+                  alignSelf: 'flex-start',
+                  height: 'fit-content',
+                }}
+              >
+                <BookingForm tourId={String(tourData.id || '')} onSubmit={handleBookingSubmit} />
+              </div>
+            </div>
           </div>
         </Container>
 
         {/* ── Related Tours (max 3, curated) ── */}
         {relatedTours.length > 0 && (
-          <div className="section-space-top pb-5" style={{ borderTop: '1px solid #eee' }}>
+          <section id="related-tours" className="section-space-top pb-5" style={{ borderTop: '1px solid #eee' }}>
             <Container>
                 <div className="sec-title text-center mb-5">
+                  <h2 className='sec-title__title'>{t("tourDetails.relatedTours.title", "Related Tours")}</h2>
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
-                  <h3 className='sec-title__title'>{t("tourDetails.relatedTours.title", "Related Tours")}</h3>
                 </div>
                 <div className="row gutter-y-30">
                   {relatedTours.map((tour: any, index: number) => (
                     <div key={tour.id} className="col-lg-4 col-md-6">
-                      <div 
+                      <article 
                         className="tour-listing-one__item wow fadeInUp"
                         data-wow-duration='1500ms'
                         data-wow-delay={`${100 * (index + 1)}ms`}
@@ -953,12 +947,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
                             </Link>
                           </div>
                         </div>
-                      </div>
+                      </article>
                     </div>
                   ))}
                 </div>
             </Container>
-          </div>
+          </section>
         )}
 
         {/* ── Related Blogs (max 3, curated or featured fallback) ── */}

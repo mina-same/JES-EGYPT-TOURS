@@ -94,7 +94,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                 </div>
 
                 {/* Price Grid */}
-                <div className="pricing-price-grid" style={{
+                <dl className="pricing-price-grid" style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                   gap: '15px',
@@ -135,7 +135,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                       perPersonText={t("tourDetails.pricing.perPerson", "per person")}
                     />
                   )}
-                </div>
+                </dl>
 
                 {/* Season Notes */}
                 {season.notes && season.notes.length > 0 && (
@@ -254,7 +254,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
 };
 
 // Helper component for price cards
-const PriceCard: React.FC<{ icon: string; label: string; price: number; perPersonText: string }> = ({ icon, label, price, perPersonText }) => {
+type PriceCardProps = {
+  icon: string;
+  label: string;
+  price: number;
+  perPersonText: string;
+};
+
+const PriceCard: React.FC<PriceCardProps> = ({ icon, label, price, perPersonText }) => {
   const { formatPrice } = useCurrency();
   return (
     <div className="pricing-price-card-box" style={{
@@ -264,7 +271,7 @@ const PriceCard: React.FC<{ icon: string; label: string; price: number; perPerso
       border: '1px solid rgba(183, 156, 92, 0.2)',
       textAlign: 'center'
     }}>
-      <div className="pricing-price-label" style={{
+      <dt className="pricing-price-label" style={{
         fontSize: '14px',
         color: '#666',
         marginBottom: '8px',
@@ -276,21 +283,23 @@ const PriceCard: React.FC<{ icon: string; label: string; price: number; perPerso
       }}>
         <i className={`fas ${icon}`} style={{ color: '#b79c5c', fontSize: '12px' }}></i>
         {label}
-      </div>
-      <div className="pricing-price-value" style={{
+      </dt>
+      <dd className="pricing-price-value" style={{
         fontSize: '28px',
         fontWeight: '700',
-        color: '#b79c5c'
+        color: '#b79c5c',
+        margin: 0
       }}>
         {formatPrice(price)}
-      </div>
-      <div className="pricing-price-note" style={{
+      </dd>
+      <dd className="pricing-price-note" style={{
         fontSize: '12px',
         color: '#999',
-        marginTop: '4px'
+        marginTop: '4px',
+        margin: '4px 0 0 0'
       }}>
         {perPersonText}
-      </div>
+      </dd>
     </div>
   );
 };

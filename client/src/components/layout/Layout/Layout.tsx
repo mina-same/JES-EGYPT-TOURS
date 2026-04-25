@@ -14,24 +14,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         target="_blank"
         rel="noreferrer noopener"
         aria-label="Contact us on WhatsApp"
-        style={{
-          position: "fixed",
-          right: 40,
-          bottom: 110,
-          width: 54,
-          height: 54,
-          borderRadius: "50%",
-          background: "#25D366",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
-          zIndex: 9999,
-          textDecoration: "none",
-        }}
+        className="floating-whatsapp-button"
       >
-        <i className="fab fa-whatsapp" style={{ fontSize: 28, lineHeight: 1 }} />
+        <i className="fab fa-whatsapp floating-whatsapp-icon" />
       </a>
       <ScrollTop />
     </div>
