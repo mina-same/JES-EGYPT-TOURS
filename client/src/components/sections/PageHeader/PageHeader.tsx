@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import bg from '@/assets/images/backgrounds/page-header-bg-1-1.jpg'
 import Link from 'next/link';
