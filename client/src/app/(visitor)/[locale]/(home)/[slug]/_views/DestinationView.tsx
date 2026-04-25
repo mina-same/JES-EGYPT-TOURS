@@ -378,7 +378,12 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
         )}
 
         {/* ── CTA ──────────────────────────────────────────────────────────── */}
-        <BannerCTA locale={locale} />
+        <BannerCTA
+          locale={locale}
+          variant="destination"
+          contextName={name}
+          imageUrl={destination.coverImage?.url}
+        />
 
         <ClientCarousel />
 

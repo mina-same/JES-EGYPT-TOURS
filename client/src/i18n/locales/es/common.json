@@ -21,5 +21,90 @@
   "videoSubtitle": "Mira historias auténticas de viajeros que exploraron la magia de Egipto con JES Egypt Tours.",
   "videoExperience": "Experiencia en video",
   "watchStory": "Ver historia",
-  "galleryTagline": "Un viaje visual a través de Egipto"
+  "galleryTagline": "Un viaje visual a través de Egipto",
+  "cta": {
+    "actions": {
+      "primary": "Planifica tu viaje a medida",
+      "secondary": "Explora todos los tours"
+    },
+    "labels": {
+      "articleCount": "{{count}} artículos"
+    },
+    "defaults": {
+      "destinationContext": "este destino",
+      "categoryContext": "esta colección",
+      "subcategoryContext": "este tema",
+      "parentContext": "nuestro journal"
+    },
+    "default": {
+      "eyebrow": "Egipto a medida",
+      "title": "¿Te inspiró lo que acabas de leer?",
+      "text": "Nuestros especialistas en Egipto convierten tus ideas en un viaje privado diseñado según tu ritmo, tus intereses y tus fechas.",
+      "features": {
+        "experts": {
+          "title": "Especialistas en viajes",
+          "text": "Conocimiento local y una planificación cuidada de principio a fin."
+        },
+        "itineraries": {
+          "title": "Itinerarios personalizados",
+          "text": "Rutas equilibradas, buen ritmo y hoteles pensados para ti."
+        },
+        "support": {
+          "title": "Soporte atento",
+          "text": "Acompañamiento claro antes de salir y durante el viaje."
+        }
+      }
+    },
+    "destination": {
+      "eyebrow": "Planificación privada en Egipto",
+      "title": "Crea un viaje a medida por {{context}}",
+      "text": "Convertimos lugares especiales como {{context}} en itinerarios privados fluidos, con el ritmo adecuado, alojamientos bien elegidos y guía local desde la llegada hasta la salida.",
+      "features": {
+        "routing": {
+          "title": "Ruta inteligente",
+          "text": "Secuencias pensadas para que el viaje sea cómodo y eficiente."
+        },
+        "pacing": {
+          "title": "Fechas que encajan",
+          "text": "Programas ajustados a la temporada, tu ritmo y los días disponibles."
+        },
+        "finishing": {
+          "title": "Acabado premium",
+          "text": "Hoteles, traslados y experiencias elegidos para sentirse coherentes."
+        }
+      },
+      "media": {
+        "badge": "Diseñado según tus fechas",
+        "text": "Tours privados, logística fluida y un plan que se siente tranquilo desde el primer traslado hasta la última noche."
+      }
+    },
+    "blogCategory": {
+      "eyebrow": "Recorrido editorial",
+      "title": "Planifica un viaje a Egipto inspirado en {{context}}",
+      "text": "¿Estás leyendo sobre {{context}}? Convertimos esas ideas en un itinerario privado por Egipto con la ruta, los tiempos, los hoteles y las experiencias guiadas adecuadas.",
+      "card": {
+        "title": "Apoyo para planear el viaje",
+        "text": "Convertimos la inspiración en planificación de ruta, ritmo recomendado y selección de experiencias prioritarias."
+      },
+      "points": {
+        "pointOne": "Usa la categoría para definir mejor el tipo de viaje que buscas.",
+        "pointTwo": "Comparte con nuestro equipo las ideas que más te gustaron.",
+        "pointThree": "Recibe un esquema de viaje creado según tus preferencias."
+      }
+    },
+    "blogSubcategory": {
+      "eyebrow": "Tema destacado",
+      "title": "Construye tu viaje a Egipto alrededor de {{context}}",
+      "text": "Usa {{context}} para dar forma a un plan privado por Egipto con el mejor ritmo, la ruta adecuada y experiencias guiadas que encajen con tu viaje.",
+      "meta": {
+        "topic": "Tema",
+        "collection": "Colección",
+        "articles": "Artículos"
+      },
+      "aside": {
+        "title": "De la inspiración al itinerario",
+        "text": "Mantén las mismas metas de viaje, pero pasa del modo lectura a un plan privado con tiempos expertos, recomendaciones de ruta y apoyo sobre el terreno."
+      }
+    }
+  }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -17,22 +17,19 @@ import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 import BlogHero from "@/components/sections/BlogHero/BlogHero";
 import { motion } from "framer-motion";
-import { Row, Col } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 import Image from "next/image";
+import enBlogs from "@/i18n/locales/en/blogs.json";
+import deBlogs from "@/i18n/locales/de/blogs.json";
+import itBlogs from "@/i18n/locales/it/blogs.json";
+import esBlogs from "@/i18n/locales/es/blogs.json";
+
+const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
 export default function BlogCategoryView({ slug, locale }: { slug: string; locale: string }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get("page")) || 1;
-  const t = (key: string) => {
-    const translations: any = {
-      en: require("@/i18n/locales/en/blogs.json"),
-      de: require("@/i18n/locales/de/blogs.json"),
-      it: require("@/i18n/locales/it/blogs.json"),
-      es: require("@/i18n/locales/es/blogs.json")
-    };
-    return translations[locale]?.[key] || translations['en']?.[key] || key;
-  };
+  const t = (key: string) => translations[locale]?.[key] || translations["en"]?.[key] || key;
 
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<any>(null);
@@ -221,7 +218,12 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
         />
       )}
 
-      <BannerCTA locale={locale} />
+      <BannerCTA
+        locale={locale}
+        variant="blogCategory"
+        contextName={getLocalizedValue(category.name, locale)}
+        articleCount={blogsData?.pagination?.total}
+      />
       <ClientCarousel />
       <FooterOne />
     </Layout>

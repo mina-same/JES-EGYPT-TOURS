@@ -21,5 +21,90 @@
   "videoSubtitle": "Guarda storie autentiche di viaggiatori che hanno esplorato la magia dell'Egitto con JES Egypt Tours.",
   "videoExperience": "Esperienza Video",
   "watchStory": "Guarda Storia",
-  "galleryTagline": "Un viaggio visivo attraverso l'Egitto"
+  "galleryTagline": "Un viaggio visivo attraverso l'Egitto",
+  "cta": {
+    "actions": {
+      "primary": "Pianifica il tuo viaggio su misura",
+      "secondary": "Scopri tutti i tour"
+    },
+    "labels": {
+      "articleCount": "{{count}} articoli"
+    },
+    "defaults": {
+      "destinationContext": "questa destinazione",
+      "categoryContext": "questa raccolta",
+      "subcategoryContext": "questo argomento",
+      "parentContext": "il nostro journal"
+    },
+    "default": {
+      "eyebrow": "Egitto su misura",
+      "title": "Ispirato da ciò che hai letto?",
+      "text": "I nostri specialisti dell'Egitto trasformano le tue idee in un viaggio privato costruito sul tuo ritmo, i tuoi interessi e le tue date.",
+      "features": {
+        "experts": {
+          "title": "Specialisti di viaggio",
+          "text": "Conoscenza locale e pianificazione completa curata in ogni dettaglio."
+        },
+        "itineraries": {
+          "title": "Itinerari personalizzati",
+          "text": "Ritmi equilibrati, percorsi intelligenti e hotel adatti a te."
+        },
+        "support": {
+          "title": "Supporto attento",
+          "text": "Assistenza chiara prima della partenza e durante il viaggio."
+        }
+      }
+    },
+    "destination": {
+      "eyebrow": "Pianificazione privata in Egitto",
+      "title": "Crea un viaggio su misura attraverso {{context}}",
+      "text": "Trasformiamo luoghi straordinari come {{context}} in itinerari privati fluidi, con il giusto ritmo, soggiorni selezionati e guida locale dall'arrivo alla partenza.",
+      "features": {
+        "routing": {
+          "title": "Percorso intelligente",
+          "text": "Sequenze ben studiate per un viaggio comodo ed efficiente."
+        },
+        "pacing": {
+          "title": "Date adatte a te",
+          "text": "Programmi pensati per la stagione, il tuo ritmo e i giorni disponibili."
+        },
+        "finishing": {
+          "title": "Finitura premium",
+          "text": "Hotel, trasferimenti ed esperienze scelti per creare armonia."
+        }
+      },
+      "media": {
+        "badge": "Pensato sulle tue date",
+        "text": "Tour privati, logistica fluida e un piano che resta sereno dal primo trasferimento fino all'ultima sera."
+      }
+    },
+    "blogCategory": {
+      "eyebrow": "Percorso editoriale",
+      "title": "Pianifica un viaggio in Egitto ispirato a {{context}}",
+      "text": "Stai leggendo di {{context}}? Trasformiamo queste idee in un itinerario privato in Egitto con percorso, tempi, hotel ed esperienze guidate ben scelti.",
+      "card": {
+        "title": "Supporto alla pianificazione",
+        "text": "Trasformiamo l'ispirazione in pianificazione del percorso, ritmo consigliato e priorità sulle esperienze più valide."
+      },
+      "points": {
+        "pointOne": "Usa la categoria per definire meglio il tipo di viaggio che desideri.",
+        "pointTwo": "Condividi con il nostro team le idee che ti hanno colpito di più.",
+        "pointThree": "Ricevi una bozza di viaggio costruita sulle tue preferenze."
+      }
+    },
+    "blogSubcategory": {
+      "eyebrow": "Focus sul tema",
+      "title": "Costruisci il tuo viaggio in Egitto attorno a {{context}}",
+      "text": "Usa {{context}} per creare un piano di viaggio privato in Egitto con tempi intelligenti, il percorso giusto ed esperienze guidate adatte al tuo itinerario.",
+      "meta": {
+        "topic": "Tema",
+        "collection": "Raccolta",
+        "articles": "Articoli"
+      },
+      "aside": {
+        "title": "Dall'ispirazione all'itinerario",
+        "text": "Mantieni gli stessi obiettivi di viaggio, ma passa dalla lettura a un piano privato con tempi esperti, consigli sul percorso e supporto sul posto."
+      }
+    }
+  }
 }

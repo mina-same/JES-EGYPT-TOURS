@@ -23,5 +23,89 @@
   "watchStory": "Watch Story",
   "galleryTagline": "A Visual Journey Through Egypt",
   "reviewsTagline": "Real Stories from Real Travelers",
-  "exploreVisuals": "Explore the Magic Through Our Lens"
+  "exploreVisuals": "Explore the Magic Through Our Lens",
+  "cta": {
+    "actions": {
+      "primary": "Plan Your Tailor-Made Trip",
+      "secondary": "Explore All Tours"
+    },
+    "labels": {
+      "articleCount": "{{count}} articles"
+    },
+    "defaults": {
+      "destinationContext": "this destination",
+      "categoryContext": "this collection",
+      "subcategoryContext": "this topic",
+      "parentContext": "our journal"
+    },
+    "default": {
+      "eyebrow": "Tailor-Made Egypt",
+      "title": "Inspired by your reading?",
+      "text": "Let our Egypt specialists turn your ideas into a private journey shaped around your pace, interests, and travel dates.",
+      "features": {
+        "experts": {
+          "title": "Travel specialists",
+          "text": "Local insight with polished, end-to-end planning."
+        },
+        "itineraries": {
+          "title": "Custom itineraries",
+          "text": "Balanced routes, smart pacing, and hotel choices that fit you."
+        },
+        "support": {
+          "title": "Thoughtful support",
+          "text": "Clear guidance before departure and while you travel."
+        }
+      }
+    },
+    "destination": {
+      "eyebrow": "Private Egypt Planning",
+      "title": "Build a tailor-made journey through {{context}}",
+      "text": "We turn standout places like {{context}} into seamless private itineraries with the right pacing, stays, and local guidance from arrival to departure.",
+      "features": {
+        "routing": {
+          "title": "Smart routing",
+          "text": "Thoughtful sequencing that keeps the trip comfortable and efficient."
+        },
+        "pacing": {
+          "title": "Dates that fit",
+          "text": "Schedules built around your season, pace, and available days."
+        },
+        "finishing": {
+          "title": "Premium finishing",
+          "text": "Hotels, transfers, and experiences chosen to feel cohesive."
+        }
+      },
+      "media": {
+        "badge": "Made around your dates",
+        "text": "Private touring, polished logistics, and a plan that feels calm from the first transfer to the final evening."
+      }
+    },
+    "blogCategory": {
+      "title": "Plan an Egypt trip inspired by {{context}}",
+      "text": "Reading about {{context}}? Turn those ideas into a private Egypt itinerary with the right route, timing, hotels, and guided experiences.",
+      "card": {
+        "title": "Travel planning support",
+        "text": "We translate inspiration into route planning, recommended pacing, and the experiences worth prioritizing."
+      },
+      "points": {
+        "pointOne": "Use the category to narrow the kind of trip you want.",
+        "pointTwo": "Bring your favorite ideas to our travel team.",
+        "pointThree": "Receive a trip outline built around your preferences."
+      }
+    },
+    "blogSubcategory": {
+      "eyebrow": "Topic Spotlight",
+      "title": "Build your Egypt trip around {{context}}",
+      "text": "Use {{context}} to shape a private Egypt travel plan with smart timing, the best route, and guided experiences that fit your trip.",
+      "meta": {
+        "topic": "Topic",
+        "collection": "Collection",
+        "articles": "Articles"
+      },
+      "aside": {
+        "title": "From inspiration to itinerary",
+        "text": "Keep the same travel goals, but move from reading mode into a private plan with expert timing, route advice, and on-the-ground support."
+      }
+    }
+  }
 }

@@ -21,5 +21,90 @@
   "videoSubtitle": "Sehen Sie sich authentische Geschichten von Reisenden an, die die Magie Ägyptens mit JES Egypt Tours erkundet haben.",
   "videoExperience": "Video-Erlebnis",
   "watchStory": "Geschichte ansehen",
-  "galleryTagline": "Eine visuelle Reise durch Ägypten"
+  "galleryTagline": "Eine visuelle Reise durch Ägypten",
+  "cta": {
+    "actions": {
+      "primary": "Ihre individuelle Reise planen",
+      "secondary": "Alle Touren entdecken"
+    },
+    "labels": {
+      "articleCount": "{{count}} Artikel"
+    },
+    "defaults": {
+      "destinationContext": "dieses Reiseziel",
+      "categoryContext": "diese Sammlung",
+      "subcategoryContext": "dieses Thema",
+      "parentContext": "unser Journal"
+    },
+    "default": {
+      "eyebrow": "Maßgeschneidertes Ägypten",
+      "title": "Inspiriert von Ihrer Lektüre?",
+      "text": "Unsere Ägypten-Spezialisten verwandeln Ihre Ideen in eine private Reise, abgestimmt auf Ihr Tempo, Ihre Interessen und Ihre Reisedaten.",
+      "features": {
+        "experts": {
+          "title": "Reisespezialisten",
+          "text": "Lokales Wissen kombiniert mit stilvoller Komplettplanung."
+        },
+        "itineraries": {
+          "title": "Individuelle Routen",
+          "text": "Ausgewogene Abläufe, kluges Timing und passende Hotels."
+        },
+        "support": {
+          "title": "Persönliche Betreuung",
+          "text": "Klare Unterstützung vor der Abreise und während der Reise."
+        }
+      }
+    },
+    "destination": {
+      "eyebrow": "Private Ägyptenplanung",
+      "title": "Gestalten Sie eine maßgeschneiderte Reise durch {{context}}",
+      "text": "Besondere Orte wie {{context}} verwandeln wir in nahtlose Privatreisen mit dem richtigen Tempo, passenden Unterkünften und lokaler Expertise von Anfang bis Ende.",
+      "features": {
+        "routing": {
+          "title": "Klug geplant",
+          "text": "Sinnvolle Abläufe für eine komfortable und effiziente Reise."
+        },
+        "pacing": {
+          "title": "Passende Reisedaten",
+          "text": "Zeitpläne, die zu Saison, Tempo und verfügbarer Reisedauer passen."
+        },
+        "finishing": {
+          "title": "Hochwertige Details",
+          "text": "Hotels, Transfers und Erlebnisse, die stimmig zusammenpassen."
+        }
+      },
+      "media": {
+        "badge": "Auf Ihre Termine abgestimmt",
+        "text": "Private Besichtigungen, reibungslose Logistik und ein Reiseplan, der vom ersten Transfer bis zum letzten Abend entspannt wirkt."
+      }
+    },
+    "blogCategory": {
+      "eyebrow": "Redaktionelle Reise",
+      "title": "Planen Sie eine Ägyptenreise rund um {{context}}",
+      "text": "Lesen Sie über {{context}}? Wir verwandeln diese Ideen in eine private Ägyptenreise mit passender Route, gutem Timing, Hotels und geführten Erlebnissen.",
+      "card": {
+        "title": "Unterstützung bei der Reiseplanung",
+        "text": "Wir übersetzen Inspiration in Routing, sinnvolles Tempo und die Erlebnisse, die Priorität haben sollten."
+      },
+      "points": {
+        "pointOne": "Nutzen Sie die Kategorie, um die Art Ihrer Reise zu schärfen.",
+        "pointTwo": "Teilen Sie unserem Team Ihre Lieblingsideen mit.",
+        "pointThree": "Erhalten Sie einen Reiseentwurf nach Ihren Vorstellungen."
+      }
+    },
+    "blogSubcategory": {
+      "eyebrow": "Themenfokus",
+      "title": "Gestalten Sie Ihre Ägyptenreise rund um {{context}}",
+      "text": "Nutzen Sie {{context}} als Basis für einen privaten Ägyptenplan mit klugem Timing, guter Route und geführten Erlebnissen, die zu Ihrer Reise passen.",
+      "meta": {
+        "topic": "Thema",
+        "collection": "Sammlung",
+        "articles": "Artikel"
+      },
+      "aside": {
+        "title": "Von Inspiration zur Reiseroute",
+        "text": "Behalten Sie Ihr Reiseziel im Blick und wechseln Sie vom Lesen zu einer privaten Planung mit Experten-Timing, Routing-Empfehlungen und Betreuung vor Ort."
+      }
+    }
+  }
 }

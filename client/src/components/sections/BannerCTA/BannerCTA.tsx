@@ -1,100 +1,246 @@
 'use client';
+
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
-import { ArrowRight, Calendar, Users, Map, Headphones } from 'lucide-react';
+import Image, { StaticImageData } from 'next/image';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { Container } from 'react-bootstrap';
+import {
+  ArrowRight,
+  Calendar,
+  Compass,
+  Headphones,
+  MapPinned,
+  Sparkles,
+  Users,
+} from 'lucide-react';
+
+import defaultPromoImage from '@/assets/images/resources/tour-listing-details-1-1.jpg';
+import destinationFallbackImage from '@/assets/images/resources/destinations-1-2.jpg';
+import styles from './BannerCTA.module.css';
+
+type BannerCTAVariant = 'destination' | 'blogCategory' | 'blogSubcategory';
+type ResolvedVariant = BannerCTAVariant | 'default';
 
 interface BannerCTAProps {
   locale: string;
+  variant?: BannerCTAVariant;
+  contextName?: string;
+  parentName?: string;
+  articleCount?: number;
+  imageUrl?: string;
 }
 
-const BannerCTA: React.FC<BannerCTAProps> = ({ locale }) => {
-  return (
-    <section className="banner-cta section-space-bottom pt-5">
-      <Container>
-        <div className="banner-cta__wrapper" style={{ backgroundColor: '#fdf7f0', borderRadius: '24px', padding: '50px', position: 'relative', overflow: 'hidden', border: '1px solid #f0e6d8' }}>
-          <Row className="align-items-center position-relative" style={{ zIndex: 2 }}>
-            <Col lg={7}>
-              <div className="banner-cta__left">
-                <h2 className="banner-cta__title" style={{ fontSize: '42px', fontWeight: 800, color: '#1d231f', marginBottom: '15px' }}>Inspired by Your Reading?</h2>
-                <p className="banner-cta__text" style={{ fontSize: '18px', color: '#666', marginBottom: '35px', maxWidth: '500px' }}>
-                  Turn your travel dreams into reality with a personalized itinerary designed uniquely for you by our local experts.
-                </p>
-                <div className="banner-cta__btns" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  <Link href={`/${locale}/tailorMade`} className="gotur-btn" style={{ background: '#b79c5c', color: 'white', borderRadius: '12px', padding: '16px 32px', fontWeight: 700, display: 'flex', alignItems: 'center', border: 'none', textDecoration: 'none' }}>
-                    Plan Your Tailor-Made Trip <ArrowRight className="ms-2" size={18} />
-                  </Link>
-                  <Link href={`/${locale}/tours`} className="btn-white" style={{ backgroundColor: 'white', color: '#1d231f', padding: '16px 32px', borderRadius: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', border: '1px solid #e5e5e5', textDecoration: 'none' }}>
-                    Explore All Tours <Calendar className="ms-2" size={18} />
-                  </Link>
-                </div>
-              </div>
-            </Col>
-            <Col lg={5}>
-              <div className="banner-cta__right" style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-                <div className="banner-cta__divider d-none d-lg-block" style={{ width: '1px', height: '150px', backgroundColor: '#e5d8c5' }} />
-                <div className="banner-cta__features" style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-                  <div className="banner-cta__feature" style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                    <div className="banner-cta__feature-icon" style={{ color: '#b79c5c' }}>
-                      <Users size={24} />
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#1d231f', margin: 0 }}>Expert Local Guides</h4>
-                      <p style={{ fontSize: '13px', color: '#888', margin: 0 }}>Knowledgeable & friendly</p>
-                    </div>
-                  </div>
-                  <div className="banner-cta__feature" style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                    <div className="banner-cta__feature-icon" style={{ color: '#b79c5c' }}>
-                      <Map size={24} />
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#1d231f', margin: 0 }}>Custom Itineraries</h4>
-                      <p style={{ fontSize: '13px', color: '#888', margin: 0 }}>Tailored to your interests</p>
-                    </div>
-                  </div>
-                  <div className="banner-cta__feature" style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                    <div className="banner-cta__feature-icon" style={{ color: '#b79c5c' }}>
-                      <Headphones size={24} />
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#1d231f', margin: 0 }}>24/7 Support</h4>
-                      <p style={{ fontSize: '13px', color: '#888', margin: 0 }}>We're here to help anytime</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Col>
-          </Row>
-          
-          {/* Background decoration */}
-          <div className="banner-cta__decoration" style={{ position: 'absolute', right: '-20px', bottom: '-20px', opacity: 0.1, zIndex: 1, pointerEvents: 'none' }}>
-             <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M50 250H350V100L200 50L50 100V250Z" stroke="#b79c5c" strokeWidth="2" />
-                <path d="M100 250V150" stroke="#b79c5c" strokeWidth="2" />
-                <path d="M300 250V150" stroke="#b79c5c" strokeWidth="2" />
-                <circle cx="320" cy="60" r="30" stroke="#b79c5c" strokeWidth="2" />
-                <path d="M320 20V40" stroke="#b79c5c" strokeWidth="2" />
-                <path d="M320 80V100" stroke="#b79c5c" strokeWidth="2" />
-                <path d="M280 60H300" stroke="#b79c5c" strokeWidth="2" />
-                <path d="M340 60H360" stroke="#b79c5c" strokeWidth="2" />
-             </svg>
+type PromoImageSource = string | StaticImageData;
+
+const categoryPromoImage = '/images/ctaimage1.png';
+const subcategoryPromoImage = '/images/ctaimage2.png';
+
+type FeatureItem = {
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  title: string;
+};
+
+const cardClassMap: Record<ResolvedVariant, string> = {
+  default: styles.defaultCard,
+  destination: styles.destinationCard,
+  blogCategory: styles.blogCategoryCard,
+  blogSubcategory: styles.blogSubcategoryCard,
+};
+
+const BannerCTA: React.FC<BannerCTAProps> = ({
+  locale,
+  variant,
+  contextName,
+  parentName,
+  articleCount,
+  imageUrl,
+}) => {
+  const { t } = useTranslation('common');
+  const resolvedVariant: ResolvedVariant = variant ?? 'default';
+
+  const primaryHref = `/${locale}/tailorMade`;
+  const secondaryHref = `/${locale}/tours`;
+
+  const destinationContext = contextName || t('cta.defaults.destinationContext');
+  const categoryContext = contextName || t('cta.defaults.categoryContext');
+  const subcategoryContext = contextName || t('cta.defaults.subcategoryContext');
+  const parentContext = parentName || t('cta.defaults.parentContext');
+
+  const defaultFeatures: FeatureItem[] = [
+    { icon: Users, title: t('cta.default.features.experts.title') },
+    { icon: MapPinned, title: t('cta.default.features.itineraries.title') },
+    { icon: Headphones, title: t('cta.default.features.support.title') },
+  ];
+
+  const destinationFeatures: FeatureItem[] = [
+    { icon: Compass, title: t('cta.destination.features.routing.title') },
+    { icon: Calendar, title: t('cta.destination.features.pacing.title') },
+    { icon: Sparkles, title: t('cta.destination.features.finishing.title') },
+  ];
+
+  const renderActions = (buttonClass?: string) => (
+    <div className={styles.actions}>
+      <Link href={primaryHref} className={`${styles.primaryButton} ${buttonClass || ''}`.trim()}>
+        <span>{t('cta.actions.primary')}</span>
+        <ArrowRight size={18} strokeWidth={2.2} />
+      </Link>
+      <Link href={secondaryHref} className={styles.secondaryButton}>
+        <span>{t('cta.actions.secondary')}</span>
+        <Calendar size={18} strokeWidth={2.2} />
+      </Link>
+    </div>
+  );
+
+  const renderFeatureList = (items: FeatureItem[], tone: 'light' | 'dark' = 'dark') => (
+    <div className={`${styles.featureList} ${tone === 'light' ? styles.featureListLight : ''}`.trim()}>
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <div key={item.title} className={styles.featurePill}>
+            <span className={styles.featurePillIcon}>
+              <Icon size={16} strokeWidth={2.2} />
+            </span>
+            <span>{item.title}</span>
           </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderPromoImage = (src: PromoImageSource, alt: string, badge?: string) => (
+    <div className={styles.imagePanel}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className={styles.image}
+        sizes="(max-width: 991px) 100vw, 420px"
+      />
+      <div className={styles.imageOverlay} />
+      {badge ? <span className={styles.imageBadge}>{badge}</span> : null}
+    </div>
+  );
+
+  const renderBackgroundPromo = (
+    src: PromoImageSource,
+    alt: string,
+    badge: string | undefined,
+    content: React.ReactNode
+  ) => (
+    <div className={styles.promoBanner}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className={styles.promoBannerImage}
+        sizes="100vw"
+      />
+      <div className={styles.promoBannerOverlay} />
+      <div className={styles.promoBannerContent}>
+        {badge ? <span className={styles.promoBannerBadge}>{badge}</span> : null}
+        {content}
+      </div>
+    </div>
+  );
+
+  const renderDefault = () => (
+    <div className={styles.layout}>
+      <div className={styles.content}>
+        <span className={styles.eyebrow}>{t('cta.default.eyebrow')}</span>
+        <h2 className={styles.title}>{t('cta.default.title')}</h2>
+        <p className={styles.text}>{t('cta.default.text')}</p>
+        {renderFeatureList(defaultFeatures)}
+        {renderActions()}
+      </div>
+
+      <div className={styles.visual}>
+        {renderPromoImage(defaultPromoImage, t('cta.default.title'), t('cta.default.eyebrow'))}
+      </div>
+    </div>
+  );
+
+  const renderDestination = () => (
+    <div className={`${styles.layout} ${styles.layoutWide}`.trim()}>
+      <div className={styles.content}>
+        <span className={`${styles.eyebrow} ${styles.eyebrowLight}`}>{t('cta.destination.eyebrow')}</span>
+        <h2 className={`${styles.title} ${styles.titleLight}`}>
+          {t('cta.destination.title', { context: destinationContext })}
+        </h2>
+        <p className={`${styles.text} ${styles.textLight}`}>
+          {t('cta.destination.text', { context: destinationContext })}
+        </p>
+        {renderFeatureList(destinationFeatures, 'light')}
+        {renderActions(styles.destinationButton)}
+      </div>
+
+      <div className={styles.visual}>
+        {renderPromoImage(
+          imageUrl || destinationFallbackImage,
+          destinationContext,
+          t('cta.destination.media.badge')
+        )}
+        <div className={styles.inlineNote}>
+          <p className={styles.inlineNoteText}>{t('cta.destination.media.text')}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderBlogCategory = () => (
+    renderBackgroundPromo(
+      categoryPromoImage,
+      categoryContext,
+      typeof articleCount === 'number' ? t('cta.labels.articleCount', { count: articleCount }) : t('cta.blogCategory.eyebrow'),
+      <>
+        <h2 className={`${styles.title} ${styles.titleOnImage}`}>
+          {t('cta.blogCategory.title', { context: categoryContext })}
+        </h2>
+        <p className={`${styles.text} ${styles.textOnImage}`}>
+          {t('cta.blogCategory.text', { context: categoryContext, count: articleCount ?? 0 })}
+        </p>
+        {renderActions(styles.categoryButton)}
+      </>
+    )
+  );
+
+  const renderBlogSubcategory = () => (
+    renderBackgroundPromo(
+      subcategoryPromoImage,
+      subcategoryContext,
+      t('cta.blogSubcategory.eyebrow'),
+      <>
+        <div className={styles.metaRow}>
+          <span className={`${styles.metaPill} ${styles.metaPillOnImage}`}>{subcategoryContext}</span>
+          {parentName ? <span className={`${styles.metaPill} ${styles.metaPillOnImage}`}>{parentContext}</span> : null}
+          {typeof articleCount === 'number' ? (
+            <span className={`${styles.metaPill} ${styles.metaPillOnImage}`}>{t('cta.labels.articleCount', { count: articleCount })}</span>
+          ) : null}
+        </div>
+        <h2 className={`${styles.title} ${styles.titleOnImage}`}>
+          {t('cta.blogSubcategory.title', { context: subcategoryContext })}
+        </h2>
+        <p className={`${styles.text} ${styles.textOnImage}`}>
+          {t('cta.blogSubcategory.text', {
+            context: subcategoryContext,
+            parent: parentContext,
+          })}
+        </p>
+        {renderActions(styles.subcategoryButton)}
+      </>
+    )
+  );
+
+  return (
+    <section className={`banner-cta section-space-bottom pt-5 ${styles.section}`}>
+      <Container>
+        <div className={`${styles.card} ${cardClassMap[resolvedVariant]}`}>
+          {resolvedVariant === 'destination' && renderDestination()}
+          {resolvedVariant === 'blogCategory' && renderBlogCategory()}
+          {resolvedVariant === 'blogSubcategory' && renderBlogSubcategory()}
+          {resolvedVariant === 'default' && renderDefault()}
         </div>
       </Container>
-      
-      <style jsx>{`
-        @media (max-width: 991px) {
-          .banner-cta__right {
-            margin-top: 40px !important;
-            padding-top: 40px !important;
-            border-top: 1px solid #e5d8c5 !important;
-            width: 100%;
-          }
-          .banner-cta__title {
-            font-size: 32px !important;
-          }
-        }
-      `}</style>
     </section>
   );
 };

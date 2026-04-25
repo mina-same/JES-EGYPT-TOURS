@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -30,7 +30,6 @@ import esBlogs from "@/i18n/locales/es/blogs.json";
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
 export default function BlogSubcategoryView({ slug, locale }: { slug: string; locale: string }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get("page")) || 1;
   const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
@@ -263,7 +262,13 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
         />
       )}
 
-      <BannerCTA locale={locale} />
+      <BannerCTA
+        locale={locale}
+        variant="blogSubcategory"
+        contextName={getLocalizedValue(subcategory.name, locale)}
+        parentName={parentName}
+        articleCount={blogsData?.pagination?.total}
+      />
       <ClientCarousel />
       <FooterOne />
     </Layout>
