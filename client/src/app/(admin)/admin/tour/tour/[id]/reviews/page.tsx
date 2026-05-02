@@ -9,6 +9,7 @@ import { Loader2, ArrowLeft, Check, X, Trash2, Star, User, Plus, Upload } from '
 import Image from 'next/image';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
+import ReviewAvatar from '@/components/common/ReviewAvatar';
 
 export default function TourReviewsPage() {
   const params = useParams();
@@ -227,13 +228,12 @@ export default function TourReviewsPage() {
                     <div className="flex justify-between items-start">
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                {review.avatar ? (
-                                    <Image src={review.avatar} alt={review.name} width={40} height={40} />
-                                ) : (
-                                    <span className="font-bold text-gray-500 text-sm">
-                                      {getInitials(review.name)}
-                                    </span>
-                                )}
+                                <ReviewAvatar 
+                                  src={review.avatar} 
+                                  name={review.name} 
+                                  width={40} 
+                                  height={40} 
+                                />
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-900">{review.name}</h3>

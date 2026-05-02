@@ -30,6 +30,7 @@ export interface ApiResponse<T> {
 }
 
 import { ILocalizedString, ILocalizedMixed, IImage } from '@/types/shared';
+import { IFAQ } from '@/types/tour';
 // We'll keep the local interfaces but update them to use localized types where needed
 // or just import from @/types/blog if possible. 
 // For now, let's just update the ones here to be safe and consistent.
@@ -64,6 +65,10 @@ export interface BlogFormData {
   relatedPosts?: string[];
   category?: string;
   subCategory?: string;
+  destination?: string;
+  summary?: ILocalizedString;
+  keyTakeaways?: ILocalizedMixed;
+  faqs?: IFAQ[];
 }
 
 export interface ContentBlock {

@@ -66,6 +66,9 @@ export interface BlogPost {
   comments: Comment[];
   commentsEnabled: boolean;
   relatedPosts?: BlogPost[];
+  summary?: ILocalizedString;
+  keyTakeaways?: ILocalizedMixed;
+  faqs?: IFAQ[];
   seo?: ISEO;
 }
 
@@ -83,6 +86,7 @@ export interface ContentBlock {
   url?: string;
   alt?: string;
   caption?: string;
+  title?: ILocalizedString;
 }
 
 export interface Comment {

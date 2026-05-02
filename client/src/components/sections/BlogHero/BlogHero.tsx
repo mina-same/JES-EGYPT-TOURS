@@ -86,10 +86,12 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
               transition={{ delay: 0.6 }}
               className="flex flex-wrap gap-6 text-white/80"
             >
-              <div className="flex items-center gap-2">
-                <BookOpen size={20} className="text-[#b79c5c]" />
-                <span className="text-sm font-medium">{stats.articles || 0} Articles</span>
-              </div>
+              {stats.articles !== undefined && (
+                <div className="flex items-center gap-2">
+                  <BookOpen size={20} className="text-[#b79c5c]" />
+                  <span className="text-sm font-medium">{stats.articles} Articles</span>
+                </div>
+              )}
               {stats.updatedAt && (
                 <div className="flex items-center gap-2">
                   <Clock size={20} className="text-[#b79c5c]" />

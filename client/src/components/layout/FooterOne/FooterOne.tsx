@@ -62,7 +62,8 @@ const FooterOne: React.FC = () => {
               <Link href='/'>
                 <Image
                   src={data.logo}
-                  alt='gotur logo'
+                  alt='JES EGYPT TOURS logo'
+                  title="JES EGYPT TOURS logo"
                   width={158}
                   height={45}
                   style={{ height: 'auto' }}

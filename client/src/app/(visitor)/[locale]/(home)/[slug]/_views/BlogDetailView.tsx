@@ -6,7 +6,7 @@ import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import PageHeader from "@/components/sections/PageHeader/PageHeader";
+import BlogHero from "@/components/sections/BlogHero/BlogHero";
 import DynamicBlogDetails from "@/components/sections/DynamicBlogDetails/DynamicBlogDetails";
 import { getBlogBySlug } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
@@ -136,12 +136,15 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
         <TopbarOne />
         <HeaderOne linkTheme="light" />
         <HeaderOneCloned />
-        <PageHeader 
+        <BlogHero 
           title={title} 
           subTitle={getLocalizedValue(blog.excerpt, locale) || t('ourBlog')} 
           bgImage={featuredImageUrl}
-          alt={typeof blog.featuredImage === 'object' ? getLocalizedValue(blog.featuredImage?.alt, locale) : undefined}
+          imageAlt={typeof blog.featuredImage === 'object' ? getLocalizedValue(blog.featuredImage?.alt, locale) : undefined}
           breadcrumbs={breadcrumbs}
+          stats={{
+            updatedAt: blog.updatedAt || blog.createdAt,
+          }}
         />
         <DynamicBlogDetails blog={blog} showSidebar='right' />
         <BannerCTA locale={locale} />

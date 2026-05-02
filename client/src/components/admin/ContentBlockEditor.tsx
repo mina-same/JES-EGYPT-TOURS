@@ -220,29 +220,49 @@ function BlockContent({
   switch (block.type) {
     case 'html':
       return (
-        <div className="space-y-2">
-          <LocalizedField
-            label="Content"
-            value={block.content}
-            onChange={(lang, val) => handleLocalizedUpdate('content', val, lang)}
-            globalLanguage={activeLanguage}
-          >
-            {(lang, value, onChange) => (
-              <RichTextEditor
-                key={`rich-editor-${lang}-${index}`}
-                value={value}
-                onChange={onChange}
-                placeholder="Write your content here..."
-                className="min-h-[200px] dark:bg-slate-900 dark:border-slate-800"
-              />
-            )}
-          </LocalizedField>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <LocalizedField
+              label="Block Header (Used for Table of Contents)"
+              value={block.title}
+              onChange={(lang, val) => handleLocalizedUpdate('title', val, lang)}
+              globalLanguage={activeLanguage}
+            >
+              {(lang, value, onChange) => (
+                <Input
+                  value={value}
+                  onChange={(e) => onChange(e.target.value)}
+                  placeholder={`Section header in ${lang.toUpperCase()}...`}
+                  className="font-bold dark:bg-slate-900 dark:border-slate-800"
+                />
+              )}
+            </LocalizedField>
+          </div>
+          <div className="space-y-2">
+            <LocalizedField
+              label="Content"
+              value={block.content}
+              onChange={(lang, val) => handleLocalizedUpdate('content', val, lang)}
+              globalLanguage={activeLanguage}
+            >
+              {(lang, value, onChange) => (
+                <RichTextEditor
+                  key={`rich-editor-${lang}-${index}`}
+                  value={value}
+                  onChange={onChange}
+                  placeholder="Write your content here..."
+                  className="min-h-[200px] dark:bg-slate-900 dark:border-slate-800"
+                />
+              )}
+            </LocalizedField>
+          </div>
         </div>
       );
 
     case 'blockquote':
       return (
         <div className="space-y-4">
+
           <div className="space-y-2">
             <LocalizedField
               label="Quote Content"
@@ -257,23 +277,6 @@ function BlockContent({
                   placeholder="Enter the quote text here..."
                   rows={4}
                   className="resize-none border-l-4 border-blue-500 dark:bg-slate-900 dark:border-slate-800"
-                />
-              )}
-            </LocalizedField>
-          </div>
-          <div className="space-y-2">
-            <LocalizedField
-              label="Attribution (Optional)"
-              value={block.title}
-              onChange={(lang, val) => handleLocalizedUpdate('title', val, lang)}
-              globalLanguage={activeLanguage}
-            >
-              {(lang, value, onChange) => (
-                <Input
-                  value={value}
-                  onChange={(e) => onChange(e.target.value)}
-                  placeholder="— Author or source"
-                  className="dark:bg-slate-900 dark:border-slate-800"
                 />
               )}
             </LocalizedField>
@@ -428,7 +431,7 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
       images: type === 'imageRow' ? [
         { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
       ] : undefined,
-      title: type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
+      title: type === 'html' || type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
     };
 
     onChange([...blocks, newBlock]);

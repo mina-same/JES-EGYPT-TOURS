@@ -7,6 +7,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Star, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import ReviewAvatar from '@/components/common/ReviewAvatar';
 
 // Interface for Props
 interface TourReviews2Props {
@@ -132,9 +133,9 @@ const TourReviews2: React.FC<TourReviews2Props> = ({ comments, tourId, onSubmit,
                       <div className="d-flex align-items-center gap-3">
                         {comment.avatar && (
                            <div className="flex-shrink-0" style={{ width: '50px', height: '50px', borderRadius: '50%', overflow: 'hidden', position: 'relative' }}>
-                                <Image 
+                                <ReviewAvatar 
                                   src={comment.avatar} 
-                                  alt={comment.name} 
+                                  name={comment.name} 
                                   fill 
                                   className="object-cover"
                                   unoptimized // Since we don't know the domain

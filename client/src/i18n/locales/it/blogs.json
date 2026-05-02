@@ -31,5 +31,15 @@
   "ourLatestNews": "Le Nostre Ultime Notizie",
   "seeMoreArticle": "Vedi altri articoli",
   "readMore": "Leggi tutto",
-  "blogTagline": "Storie e consigli di esperti per il tuo viaggio"
+  "blogTagline": "Storie e consigli di esperti per il tuo viaggio",
+  "publishedOn": "Pubblicato il",
+  "updatedOn": "Aggiornato il",
+  "summary": "Sommario",
+  "tableOfContents": "Indice",
+  "keyTakeaways": "Punti chiave",
+  "quickFacts": "Fatti rapidi",
+  "whatToKnow": "Cosa sapere prima di partire",
+  "popularArticles": "Articoli popolari",
+  "relatedTours": "Tour correlati",
+  "faq": "FAQ"
 }

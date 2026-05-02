@@ -67,7 +67,7 @@ export function LocalizedField({
 
   const safeValue = value || {};
   const currentValue =
-    typeof safeValue === "object" ? safeValue[activeLang] : undefined;
+    typeof safeValue === "object" ? (safeValue[activeLang] ?? "") : "";
 
   const hasContent = (lang: AdminLanguage) => {
     if (!safeValue || typeof safeValue !== "object") return false;

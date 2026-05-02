@@ -8,6 +8,10 @@ import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
+import BlogTOC from "@/components/common/BlogTOC/BlogTOC";
+import { Accordion } from "react-bootstrap";
+import { CheckCircle, Info, HelpCircle, List } from "lucide-react";
+import ReviewAvatar from "@/components/common/ReviewAvatar";
 
 
 interface DynamicBlogDetailsProps {
@@ -63,13 +67,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     switch (block.type) {
       case 'html':
         return (
-          <div 
-            key={index}
-            className='blog-details-card__text wow fadeInUp'
-            data-wow-delay='300ms'
-            data-wow-duration='1500ms'
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
+          <div key={index} className='blog-details-card__text wow fadeInUp' data-wow-delay='300ms' data-wow-duration='1500ms'>
+            {block.title && <h2 className="blog-details-card__title mt-5 mb-4" style={{ fontSize: '28px' }}>{getLocalizedValue(block.title, locale)}</h2>}
+            <div dangerouslySetInnerHTML={{ __html: content }} />
+          </div>
         );
       
       case 'imageRow':
@@ -151,23 +152,25 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         }
         
         return (
-          <blockquote
-            key={index}
-            className='blog-details__inner__text-one wow fadeInUp animated'
-            data-wow-delay='300ms'
-            data-wow-duration='1500ms'
-          >
-            {content}
-            {block.image && (
-              <Image
-                className='blog-details__inner__image'
-                src={block.image}
-                alt='Quote'
-                width={50}
-                height={50}
-              />
-            )}
-          </blockquote>
+          <div key={index} className="blockquote-wrapper">
+            {block.title && <h3 className="blog-details-card__content-title">{getLocalizedValue(block.title, locale)}</h3>}
+            <blockquote
+              className='blog-details__inner__text-one wow fadeInUp animated'
+              data-wow-delay='300ms'
+              data-wow-duration='1500ms'
+            >
+              {content}
+              {block.image && (
+                <Image
+                  className='blog-details__inner__image'
+                  src={block.image}
+                  alt='Quote'
+                  width={50}
+                  height={50}
+                />
+              )}
+            </blockquote>
+          </div>
         );
 
       
@@ -193,6 +196,79 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       default:
         return null;
     }
+  };
+
+  const TopSummary = () => {
+    // We try to use blog.summary first, fallback to keyTakeaways if summary is empty.
+    const summaryData = getLocalizedValue(blog.summary, locale);
+    let items: string[] = [];
+
+    if (summaryData && (typeof summaryData === 'string' || Array.isArray(summaryData))) {
+      items = Array.isArray(summaryData) ? summaryData : summaryData.split('\n').map((s: string) => s.trim()).filter(Boolean);
+    } else {
+      const takeaways = getLocalizedValue(blog.keyTakeaways, locale);
+      if (takeaways) {
+        items = Array.isArray(takeaways) ? takeaways : [takeaways];
+      }
+    }
+
+    if (items.length === 0) return null;
+
+
+    return (
+      <div className="blog-details__summary-list" style={{ backgroundColor: '#fff', borderRadius: '4px', height: '100%', padding: '0' }}>
+        <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1b4168', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee' }}>
+          <List size={20} color="#1b4168" />
+          {t('summary')}
+        </div>
+        <ul className="list-unstyled m-0">
+          {items.map((item: string, idx: number) => (
+            <li key={idx} className="d-flex align-items-start gap-3 mb-3" style={{ fontSize: '0.95rem', color: '#444', lineHeight: '1.6' }}>
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#1b4168', marginTop: '8px', flexShrink: 0 }}></div>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
+
+  const BlogFAQs = () => {
+    const faqs = blog.faqs || [];
+    if (faqs.length === 0) return null;
+
+    return (
+      <div className="blog-details__faq mt-5 pt-5 border-top" id="blog-faq">
+        <h3 className="mb-4 d-flex align-items-center gap-2">
+          <HelpCircle color="#b79c5c" />
+          {t('faq')}
+        </h3>
+        <Accordion defaultActiveKey="0" className="faq-accordion">
+          {faqs.map((faq, index) => (
+            <Accordion.Item eventKey={index.toString()} key={index} className="border-0 mb-3 shadow-sm rounded-4 overflow-hidden">
+              <Accordion.Header className="bg-white">
+                <span className="fw-bold" style={{ color: '#1a1a1a' }}>{getLocalizedValue(faq.question, locale)}</span>
+              </Accordion.Header>
+              <Accordion.Body className="bg-white" style={{ color: '#666', lineHeight: '1.7' }}>
+                {getLocalizedValue(faq.answer, locale)}
+              </Accordion.Body>
+            </Accordion.Item>
+          ))}
+        </Accordion>
+        <style jsx global>{`
+          .faq-accordion .accordion-button:not(.collapsed) {
+            background-color: transparent;
+            color: #b79c5c;
+            box-shadow: none;
+          }
+          .faq-accordion .accordion-button:focus {
+            box-shadow: none;
+            border-color: rgba(183, 156, 92, 0.1);
+          }
+        `}</style>
+      </div>
+    );
   };
 
   return (
@@ -261,22 +337,39 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                         </Link>
                       </li>
                     )}
-
                   </ul>
 
-                  <h3
-                    className='blog-details-card__title wow fadeInUp'
-                    data-wow-delay='300ms'
-                    data-wow-duration='1500ms'
-                  >
-                    {title}
-                  </h3>
+                  <div className="blog-details-card__dates mb-3 d-flex flex-wrap gap-3" style={{ fontSize: '0.85rem', color: '#888' }}>
+                    <div className="d-flex align-items-center gap-1">
+                      <span className="fw-bold">{t('publishedOn')}:</span>
+                      <span>{new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
+                    {blog.updatedAt && (
+                      <div className="d-flex align-items-center gap-1">
+                        <span className="fw-bold">{t('updatedOn')}:</span>
+                        <span>{new Date(blog.updatedAt).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      </div>
+                    )}
+                  </div>
 
+                  {/* Title is rendered in the BlogHero component */}
+
+                  {/* TOC & Summary Intro Layout */}
+                  <div className="row mb-5">
+                    <div className="col-lg-5 mb-4 mb-lg-0">
+                      <BlogTOC contentSelector="#blog-content" isInline={true} />
+                    </div>
+                    <div className="col-lg-7">
+                      <TopSummary />
+                    </div>
+                  </div>
 
                   {/* Render Content Blocks */}
-                  <div className='blog-details-card__content__inner'>
+                  <div className='blog-details-card__content__inner' id="blog-content">
                     {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
+                    <BlogFAQs />
                   </div>
+
                 </div>
               </div>
 
@@ -343,18 +436,12 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                         data-wow-duration='1500ms'
                       >
                         <div className='comments-one__card__image'>
-                          {comment.avatar ? (
-                            <Image 
-                              src={comment.avatar} 
-                              alt={comment.name}
-                              width={80}
-                              height={80}
-                            />
-                          ) : (
-                            <div className='comments-one__card__avatar-placeholder'>
-                              {comment.name.charAt(0)}
-                            </div>
-                          )}
+                          <ReviewAvatar 
+                            src={comment.avatar} 
+                            name={comment.name}
+                            width={80}
+                            height={80}
+                          />
                         </div>
                         <div className='comments-one__card__content'>
                           <div className='comments-one__card__top'>
@@ -457,7 +544,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           
           {showSidebar === 'right' && (
             <Col lg={4}>
-              <BlogSidebar />
+              <BlogSidebar currentBlog={blog} />
             </Col>
           )}
         </Row>

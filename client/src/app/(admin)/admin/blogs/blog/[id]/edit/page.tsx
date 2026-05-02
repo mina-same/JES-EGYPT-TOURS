@@ -31,6 +31,7 @@ import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
 import { uploadAPI } from '@/lib/api/upload';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import FaqManager from '@/components/admin/FaqManager';
 import { ILocalizedString, ILocalizedMixed, IImage } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
@@ -82,6 +83,9 @@ const INITIAL_BLOG_EDIT: any = {
   category: '',
   subCategory: '',
   destination: '',
+  summary: { en: '', de: '', it: '', es: '' },
+  keyTakeaways: { en: [], de: [], it: [], es: [] },
+  faqs: [],
 };
 
 export default function EditBlogPage() {
@@ -127,7 +131,7 @@ export default function EditBlogPage() {
       
       // Handle localized fields
       const localizedFields = ['title', 'excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
-      const localizedMixedFields = ['tags', 'metaKeywords'];
+      const localizedMixedFields = ['tags', 'keyTakeaways', 'metaKeywords', 'summary'];
 
       if (localizedFields.includes(field)) {
         updated[field] = {
@@ -298,6 +302,12 @@ export default function EditBlogPage() {
           category: blog.category?._id || blog.category || '',
           subCategory: blog.subCategory?._id || blog.subCategory || '',
           destination: blog.destination?._id || blog.destination || '',
+          summary: normalizeLocalizedMixed(blog.summary),
+          keyTakeaways: normalizeLocalizedMixed(blog.keyTakeaways),
+          faqs: (blog.faqs || []).map((faq: any) => ({
+            question: normalizeLocalizedString(faq.question),
+            answer: normalizeLocalizedString(faq.answer),
+          })),
         });
       } else {
         setFormErrors([{ field: 'Server', message: response.error || 'Failed to fetch blog post' }]);
@@ -329,6 +339,20 @@ export default function EditBlogPage() {
         return;
       }
 
+      // Helper to check if localized string is empty
+      const isLocalizedStringEmpty = (val: any) => {
+        if (!val || typeof val !== 'object') return true;
+        return !Object.values(val).some(v => typeof v === 'string' && v.trim() !== '');
+      };
+
+      const ensureEnglish = (val: any) => {
+        if (!val || typeof val !== 'object') return val;
+        if (!val.en?.trim()) {
+          val.en = val.de?.trim() || val.it?.trim() || val.es?.trim() || '';
+        }
+        return val;
+      };
+
       // Clean up empty fields
       const cleanData = { ...formData };
       
@@ -351,13 +375,17 @@ export default function EditBlogPage() {
           delete cleanedBlock._id;
         }
 
-        // Only keep 'content' for blocks that use it
         if (cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') {
           if (cleanedBlock.content) {
             // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
             if (!cleanedBlock.content.en?.trim()) {
               cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
             }
+          }
+          if (isLocalizedStringEmpty(cleanedBlock.title)) {
+            delete cleanedBlock.title;
+          } else {
+            ensureEnglish(cleanedBlock.title);
           }
         } else {
           // Remove 'content' and 'title' from blocks that don't use them to avoid validation errors
@@ -399,7 +427,9 @@ export default function EditBlogPage() {
       };
 
       cleanData.tags = processLocalizedMixed(cleanData.tags);
+      cleanData.keyTakeaways = processLocalizedMixed(cleanData.keyTakeaways);
       cleanData.metaKeywords = processLocalizedMixed(cleanData.metaKeywords);
+      cleanData.summary = processLocalizedMixed(cleanData.summary);
 
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
@@ -415,29 +445,61 @@ export default function EditBlogPage() {
         cleanData.destination = null;
       }
 
-      // Remove empty optional fields (localized)
-      const isLocalizedStringEmpty = (val: any) => {
-        if (!val || typeof val !== 'object') return true;
-        return !Object.values(val).some(v => typeof v === 'string' && v.trim() !== '');
-      };
 
-      const ensureEnglish = (val: any) => {
-        if (!val || typeof val !== 'object') return val;
-        if (!val.en?.trim()) {
-          val.en = val.de?.trim() || val.it?.trim() || val.es?.trim() || '';
-        }
-        return val;
-      };
 
       // Apply English safety fallback to all required localized fields being sent
       ensureEnglish(cleanData.title);
       ensureEnglish(cleanData.slug);
+
+      // Helper to check if localized mixed (array) is empty
+      const isLocalizedMixedEmpty = (val: any) => {
+        if (!val || typeof val !== 'object') return true;
+        return !Object.values(val).some(v => Array.isArray(v) && v.length > 0);
+      };
+
+      // Prune empty optional localized fields to avoid backend validation on 'en' requirement
+      const optionalStringFields = ['excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
+      optionalStringFields.forEach(field => {
+        if (isLocalizedStringEmpty((cleanData as any)[field])) {
+          delete (cleanData as any)[field];
+        } else {
+          ensureEnglish((cleanData as any)[field]);
+        }
+      });
+
+      const optionalMixedFields = ['metaKeywords', 'tags', 'keyTakeaways', 'summary'];
+      optionalMixedFields.forEach(field => {
+        if (isLocalizedMixedEmpty((cleanData as any)[field])) {
+          delete (cleanData as any)[field];
+        }
+      });
+
+      // Helper to prune image title/alt
+      const pruneImage = (img: any) => {
+        if (!img || typeof img !== 'object') return;
+        if (img.title && isLocalizedStringEmpty(img.title)) delete img.title;
+        else if (img.title) ensureEnglish(img.title);
+        
+        if (img.alt && isLocalizedStringEmpty(img.alt)) delete img.alt;
+        else if (img.alt) ensureEnglish(img.alt);
+      };
+
+      if (cleanData.featuredImage) pruneImage(cleanData.featuredImage);
+      if (cleanData.metaImage) pruneImage(cleanData.metaImage);
       
-      if (isLocalizedStringEmpty(cleanData.excerpt)) {
-        delete cleanData.excerpt;
-      } else {
-        ensureEnglish(cleanData.excerpt);
-      }
+      cleanData.contentBlocks?.forEach((block: any) => {
+        if (block.images) {
+          block.images.forEach((img: any) => pruneImage(img));
+        }
+        // Handle block-level alt/caption for image type blocks
+        if (block.type === 'image') {
+          if (block.alt && isLocalizedStringEmpty(block.alt)) delete block.alt;
+          else if (block.alt) ensureEnglish(block.alt);
+          
+          if (block.caption && isLocalizedStringEmpty(block.caption)) delete block.caption;
+          else if (block.caption) ensureEnglish(block.caption);
+        }
+      });
 
       // IMPORTANT: avoid sending invalid author (causes CastError). If missing/invalid, keep existing author.
       if (typeof (cleanData as any).author !== 'string' || !/^[a-f\d]{24}$/i.test((cleanData as any).author.trim())) {
@@ -457,7 +519,8 @@ export default function EditBlogPage() {
         if (cleanData.featuredImage.title) ensureEnglish(cleanData.featuredImage.title);
       }
 
-      // Remove empty optional fields (localized)
+      // Note: summary is now handled via processLocalizedMixed as an array.
+
       if (isLocalizedStringEmpty(cleanData.metaTitle)) {
         delete cleanData.metaTitle;
       } else {
@@ -780,12 +843,64 @@ export default function EditBlogPage() {
                   </CardContent>
                 </Card>
 
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Key Takeaways & Summary</CardTitle>
+                    <CardDescription>Provide a quick overview and a final summary of the article</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <LocalizedField
+                        label="Key Takeaways"
+                        value={formData.keyTakeaways}
+                        onChange={(lang, val) => handleChange('keyTakeaways', { ...(formData.keyTakeaways || {}), [lang]: val })}
+                        globalLanguage={activeLanguage}
+                      >
+                        {(lang, value, onChange) => (
+                          <TagInput
+                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
+                            onChange={onChange}
+                            placeholder={`Add a key takeaway in ${lang.toUpperCase()} and press Enter...`}
+                            maxTags={10}
+                          />
+                        )}
+                      </LocalizedField>
+                      <p className="text-sm text-muted-foreground italic">Add main points that readers should remember.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <LocalizedField
+                        label="Final Summary"
+                        value={formData.summary}
+                        onChange={(lang, val) => handleChange('summary', { ...(formData.summary || {}), [lang]: val })}
+                        globalLanguage={activeLanguage}
+                      >
+                        {(lang, value, onChange) => (
+                          <TagInput
+                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
+                            onChange={onChange}
+                            placeholder={`Add a summary bullet point in ${lang.toUpperCase()} and press Enter...`}
+                            maxTags={20}
+                          />
+                        )}
+                      </LocalizedField>
+                      <p className="text-sm text-muted-foreground italic">Add final summary points for the article.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <ContentBlockEditor
                   blocks={formData.contentBlocks}
                   onChange={(updatedBlocks: any[]) => {
                     handleChange('contentBlocks', updatedBlocks);
                   }}
                   onImageUpload={handleImageUpload}
+                  activeLanguage={activeLanguage}
+                />
+
+                <FaqManager
+                  faqs={formData.faqs || []}
+                  onChange={(faqs) => handleChange('faqs', faqs)}
                   activeLanguage={activeLanguage}
                 />
               </div>

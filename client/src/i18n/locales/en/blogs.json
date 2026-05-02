@@ -31,5 +31,15 @@
   "ourLatestNews": "Our Latest News",
   "seeMoreArticle": "See More Article",
   "readMore": "Read More",
-  "blogTagline": "Insights, Stories & Expert Tips for Your Journey"
+  "blogTagline": "Insights, Stories & Expert Tips for Your Journey",
+  "publishedOn": "Published on",
+  "updatedOn": "Updated on",
+  "summary": "Summary",
+  "tableOfContents": "Table of Contents",
+  "keyTakeaways": "Key Takeaways",
+  "quickFacts": "Quick Facts",
+  "whatToKnow": "What to Know Before You Go",
+  "popularArticles": "Popular Articles",
+  "relatedTours": "Related Tours",
+  "faq": "F&Q"
 }

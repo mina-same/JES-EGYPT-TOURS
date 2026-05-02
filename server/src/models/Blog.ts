@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
+import { IFAQ, FAQSchema } from './shared/FaqSchema';
 
 // Content Block Types
 interface IImageBlock {
@@ -96,6 +97,9 @@ export interface IBlog extends Document {
   category?: mongoose.Types.ObjectId;
   subCategory?: mongoose.Types.ObjectId;
   destination?: mongoose.Types.ObjectId;
+  summary?: ILocalizedMixed;
+  keyTakeaways?: ILocalizedMixed;
+  faqs?: IFAQ[];
   
   // Timestamps
   createdAt: Date;
@@ -137,6 +141,7 @@ const BlogSchema: Schema = new Schema(
         enum: ['html', 'imageRow', 'blockquote', 'video', 'image'],
         required: true,
       },
+      title: LocalizedStringSchema,
       content: LocalizedStringSchema,
       images: [{
         url: { type: String, required: true },
@@ -317,6 +322,13 @@ const BlogSchema: Schema = new Schema(
       ref: 'Destination',
       default: null,
     },
+    summary: {
+      type: LocalizedMixedSchema,
+    },
+    keyTakeaways: {
+      type: LocalizedMixedSchema,
+    },
+    faqs: [FAQSchema],
   },
   {
     timestamps: true,

@@ -8,6 +8,7 @@ import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 import { aboutTestimonialsData } from "@/data/aboutTestimonialsData";
+import ReviewAvatar from "@/components/common/ReviewAvatar";
 
 interface ReviewCurated {
   name: any;
@@ -105,9 +106,9 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                         </div>
                         <div className="about-testimonials__author">
                           <div className="about-testimonials__author__thumb">
-                            <Image
-                              src={review.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(getLocalizedValue(review.name, locale) || 'User')}&background=b79c5c&color=fff&bold=true`}
-                              alt={getLocalizedValue(review.name, locale) || 'Traveler'}
+                            <ReviewAvatar
+                              src={review.avatar}
+                              name={getLocalizedValue(review.name, locale)}
                               width={60}
                               height={60}
                               className="rounded-full"
