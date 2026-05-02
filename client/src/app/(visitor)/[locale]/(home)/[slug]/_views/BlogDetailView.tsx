@@ -98,7 +98,7 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
         "@type": "ImageObject",
         "url": `${baseUrl}/logo-dark.png`,
       },
-      "@id": `${baseUrl}/#organization`
+      "@id": `${baseUrl}/#travelagency`
     },
     "mainEntityOfPage": {
       "@type": "WebPage",

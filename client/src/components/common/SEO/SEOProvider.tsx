@@ -10,7 +10,7 @@ const SEOProvider: React.FC<SEOProviderProps> = ({ locale }) => {
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'TravelAgency',
-    '@id': `${baseUrl}/#organization`,
+    '@id': `${baseUrl}/#travelagency`,
     'name': 'JES Egypt Tours',
     'url': baseUrl,
     'logo': `${baseUrl}/logo-dark.png`,
@@ -38,8 +38,8 @@ const SEOProvider: React.FC<SEOProviderProps> = ({ locale }) => {
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    '@id': `${baseUrl}/${locale}/#website`,
-    'url': `${baseUrl}/${locale}`,
+    '@id': `${baseUrl}/#website`,
+    'url': `${baseUrl}`,
     'name': 'JES Egypt Tours',
     'potentialAction': {
       '@type': 'SearchAction',

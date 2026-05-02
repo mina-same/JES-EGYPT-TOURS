@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 import Masonry from 'react-masonry-css';
-import { Gallery, Item } from 'react-photoswipe-gallery';
+import { Gallery as PhotoSwipeGallery, Item } from 'react-photoswipe-gallery';
 import 'photoswipe/dist/photoswipe.css';
 
 interface ListingGalleryProps {
@@ -19,9 +19,18 @@ interface ListingGalleryProps {
 const ListingGallery: React.FC<ListingGalleryProps> = ({ images, title, sectionTitle, locale }) => {
   const { t } = useTranslation('common');
   const [mounted, setMounted] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 992);
+    };
+
+    checkMobile();
     setMounted(true);
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
   if (!images || images.length === 0) return null;
@@ -32,10 +41,29 @@ const ListingGallery: React.FC<ListingGalleryProps> = ({ images, title, sectionT
 
   const breakpointColumnsObj = {
     default: 3,
-    1100: 3,
-    700: 2,
-    500: 1
+    1100: 2,
+    700: 1
   };
+
+  const galleryImages = images
+    .map((img, idx) => {
+      const imgUrl = typeof img === 'string' ? img : img?.url || img?.src;
+      if (!imgUrl) return null;
+
+      const imageTitle = typeof img === 'object' ? getLocalizedValue(img.title, locale) : '';
+      const imgAlt = typeof img === 'object'
+        ? getLocalizedValue(img.alt, locale) || imageTitle || `${displayTitle} gallery ${idx + 1}`
+        : `${displayTitle} gallery ${idx + 1}`;
+
+      return {
+        url: imgUrl,
+        title: imageTitle,
+        alt: imgAlt,
+      };
+    })
+    .filter(Boolean) as Array<{ url: string; title: string; alt: string }>;
+
+  if (galleryImages.length === 0) return null;
 
   return (
     <section className="listing-gallery section-space" style={{ background: '#fafafa' }}>
@@ -50,62 +78,90 @@ const ListingGallery: React.FC<ListingGalleryProps> = ({ images, title, sectionT
             <div className="w-8 h-8 rounded-full border-4 border-[#b79c5c] border-t-transparent animate-spin"></div>
           </div>
         ) : (
-          <Gallery>
-            <Masonry
-              breakpointCols={breakpointColumnsObj}
-              className="my-masonry-grid"
-              columnClassName="my-masonry-grid_column"
-            >
-              {images.map((img, idx) => (
-                <Item
-                  key={idx}
-                  original={img.url}
-                  thumbnail={img.url}
-                  width="1600"
-                  height="1066"
-                  alt={getLocalizedValue(img.alt, locale) || getLocalizedValue(img.title, locale) || `${displayTitle} ${idx + 1}`}
-                >
-                  {({ ref, open }) => (
-                    <div 
-                      className="gallery-item-wrapper mb-4 group cursor-pointer overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500"
-                      onClick={open}
-                    >
-                      <div className="relative overflow-hidden aspect-[4/5]" style={{ minHeight: idx % 2 === 0 ? '300px' : '400px' }}>
-                        <Image
-                          ref={ref as any}
-                          src={img.url}
-                          alt={getLocalizedValue(img.alt, locale) || getLocalizedValue(img.title, locale) || `${displayTitle} ${idx + 1}`}
-                          fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-110"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                           <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 transform scale-50 group-hover:scale-100 transition-transform duration-500">
-                              <i className="icon-plus text-white text-xl"></i>
-                           </div>
+          <PhotoSwipeGallery>
+            {isMobile ? (
+              <div className="mobile-swipeable-gallery">
+                {galleryImages.map((img, idx) => (
+                  <Item
+                    key={`listing-mobile-img-${idx}-${img.url}`}
+                    original={img.url}
+                    thumbnail={img.url}
+                    width="1200"
+                    height="800"
+                    caption={img.title || img.alt}
+                  >
+                    {({ ref, open }) => (
+                      <a
+                        href={img.url}
+                        ref={ref as unknown as React.Ref<HTMLAnchorElement>}
+                        onClick={(e) => { e.preventDefault(); open(e); }}
+                        className="mobile-gallery-link"
+                        title={img.title}
+                      >
+                        <div className='tour-gallery-item h-100'>
+                          <div className='tour-gallery-image-wrapper h-100'>
+                            <Image
+                              src={img.url}
+                              alt={img.alt}
+                              title={img.title}
+                              width={400}
+                              height={300}
+                              className="tour-gallery-image"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-                </Item>
-              ))}
-            </Masonry>
-          </Gallery>
+                      </a>
+                    )}
+                  </Item>
+                ))}
+              </div>
+            ) : (
+              <Masonry
+                breakpointCols={breakpointColumnsObj}
+                className="tour-gallery-masonry"
+                columnClassName="tour-gallery-masonry-column"
+              >
+                {galleryImages.map((img, idx) => (
+                  <Item
+                    key={`listing-desk-img-${idx}-${img.url}`}
+                    original={img.url}
+                    thumbnail={img.url}
+                    width="1200"
+                    height="800"
+                    caption={img.title || img.alt}
+                  >
+                    {({ ref, open }) => (
+                      <a
+                        href={img.url}
+                        ref={ref as unknown as React.Ref<HTMLAnchorElement>}
+                        onClick={(e) => { e.preventDefault(); open(e); }}
+                        title={img.title}
+                        style={{ display: 'block' }}
+                      >
+                        <div className='tour-gallery-item'>
+                          <div className='tour-gallery-image-wrapper'>
+                            <Image
+                              src={img.url}
+                              alt={img.alt}
+                              title={img.title}
+                              width={400}
+                              height={300}
+                              className="tour-gallery-image"
+                              style={{ width: '100%', height: 'auto' }}
+                            />
+                          </div>
+                        </div>
+                      </a>
+                    )}
+                  </Item>
+                ))}
+              </Masonry>
+            )}
+          </PhotoSwipeGallery>
         )}
       </Container>
       <style jsx global>{`
-        .my-masonry-grid {
-          display: -webkit-box;
-          display: -ms-flexbox;
-          display: flex;
-          margin-left: -24px;
-          width: auto;
-        }
-        .my-masonry-grid_column {
-          padding-left: 24px;
-          background-clip: padding-box;
-        }
-        
         @media (max-width: 768px) {
            .sec-title__title { font-size: 28px !important; }
            .section-space { padding: 50px 0; }

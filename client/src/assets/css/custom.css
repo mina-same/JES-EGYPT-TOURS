@@ -1432,6 +1432,41 @@ div[suppressHydrationWarning] {
   visibility: visible !important;
 }
 
+.floating-whatsapp-button {
+  position: fixed;
+  right: 32px;
+  bottom: 28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #31db74 0%, #25d366 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  z-index: 1200;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+}
+
+.floating-whatsapp-button:hover {
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.22);
+}
+
+.floating-whatsapp-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.scroll-to-top {
+  right: 32px !important;
+  bottom: 96px !important;
+  z-index: 1190 !important;
+}
+
 /* ==========================================================================
    14. TOUR DETAILS MOBILE RESPONSIVENESS
    ========================================================================== */
@@ -1632,31 +1667,15 @@ div[suppressHydrationWarning] {
   }
 
   .floating-whatsapp-button {
-    position: fixed;
-    right: 40px;
-    bottom: 110px;
+    right: 18px;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
     width: 54px;
     height: 54px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, #31db74 0%, #25d366 100%);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
-    z-index: 1200;
-    text-decoration: none;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
   }
 
-  .floating-whatsapp-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.22);
-  }
-
-  .floating-whatsapp-icon {
-    font-size: 28px;
-    line-height: 1;
+  .scroll-to-top {
+    right: 18px !important;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
   
   /* Mobile Sticky Booking Bar */
@@ -1863,8 +1882,19 @@ div[suppressHydrationWarning] {
     bottom: calc(108px + env(safe-area-inset-bottom, 0px));
   }
 
+  body.has-mobile-booking-bar .scroll-to-top {
+    right: 16px !important;
+    bottom: calc(174px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
   body.mobile-booking-sheet-open .floating-whatsapp-button {
     opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+  }
+
+  body.mobile-booking-sheet-open .scroll-to-top {
+    opacity: 0 !important;
     transform: translateY(12px);
     pointer-events: none;
   }
@@ -1941,6 +1971,11 @@ div[suppressHydrationWarning] {
   body.has-mobile-booking-bar .floating-whatsapp-button {
     right: 14px;
     bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.has-mobile-booking-bar .scroll-to-top {
+    right: 14px !important;
+    bottom: calc(168px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

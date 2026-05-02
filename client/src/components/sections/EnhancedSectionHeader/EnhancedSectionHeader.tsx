@@ -11,7 +11,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 
 type SectionHeaderImage = {
   url: string;
@@ -25,7 +25,8 @@ type SectionHeaderButton = {
   newTab?: boolean;
 };
 
-const DEFAULT_HEIGHT = 240;
+const COLLAPSED_HEIGHT = 250;
+const EXPANDED_HEIGHT = 400;
 
 export default function EnhancedSectionHeader({
   title,
@@ -43,7 +44,8 @@ export default function EnhancedSectionHeader({
 
   const contentRef = useRef<HTMLDivElement | null>(null);
   const descInnerRef = useRef<HTMLDivElement | null>(null);
-  const [contentHeight, setContentHeight] = useState(DEFAULT_HEIGHT);
+  const descriptionRef = useRef<HTMLDivElement | null>(null);
+  const [contentHeight, setContentHeight] = useState(COLLAPSED_HEIGHT);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -52,27 +54,31 @@ export default function EnhancedSectionHeader({
       const content = contentRef.current;
       const inner = descInnerRef.current;
       if (!content || !inner) return;
-      
-      // Measure actual content height
+
       const height = content.getBoundingClientRect().height;
-      setContentHeight(Math.max(DEFAULT_HEIGHT, height));
-      
-      // Check if description overflows its container
-      const overflowing = inner.scrollHeight > DEFAULT_HEIGHT + 6;
+      setContentHeight(Math.max(COLLAPSED_HEIGHT, height));
+
+      const overflowing = inner.scrollHeight > COLLAPSED_HEIGHT + 6;
       setIsOverflowing(overflowing);
     };
-    
-    measure();
+
+    requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [descriptionHtml, title, button]);
+  }, [descriptionHtml, title, button, expanded]);
 
   const onToggle = () => {
-    setExpanded((v) => !v);
-    requestAnimationFrame(() => {
-      const inner = descInnerRef.current;
-      if (inner) inner.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    const wasExpanded = expanded;
+    setExpanded(!expanded);
+
+    if (!wasExpanded) {
+      setTimeout(() => {
+        const element = descriptionRef.current;
+        if (!element) return;
+        const y = element.getBoundingClientRect().top + window.pageYOffset - 100;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }, 400);
+    }
   };
 
   const hasButton = !!button?.label && !!button?.href;
@@ -158,8 +164,8 @@ export default function EnhancedSectionHeader({
             {descriptionHtml ? (
               <div className="relative">
                 <div
-                  className={'relative overflow-hidden ' + (expanded ? 'overflow-y-auto' : '')}
-                  style={{ maxHeight: DEFAULT_HEIGHT }}
+                  ref={descriptionRef}
+                  className={`enhanced-section-header__description relative transition-all duration-700 ease-in-out ${expanded ? 'is-expanded' : 'is-collapsed'}`}
                 >
                   <div
                     ref={descInnerRef}
@@ -169,18 +175,22 @@ export default function EnhancedSectionHeader({
                   </div>
 
                   {!expanded && isOverflowing ? (
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent" />
+                    <div className="pointer-events-none absolute bottom-0 left-0 h-[60px] w-full bg-gradient-to-t from-white to-transparent transition-opacity duration-300" />
                   ) : null}
                 </div>
 
                 {isOverflowing ? (
-                  <div className="mt-3">
+                  <div className="mt-2 mb-4 flex justify-center md:justify-start">
                     <button
                       type="button"
                       onClick={onToggle}
-                      className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c]/10 px-3 py-1 text-sm font-semibold text-[#8a6e2d] transition hover:bg-[#b79c5c]/20"
+                      className="group flex items-center gap-2 border-b-2 border-[#b79c5c] pb-1 text-[12px] font-black uppercase tracking-widest text-[#b79c5c] transition-all duration-300 hover:border-[#1d231f] hover:text-[#1d231f]"
                     >
-                      {expanded ? 'Show less' : 'Read more'}
+                      {expanded ? (
+                        <>Show Less <ChevronUp size={16} className="transition-transform group-hover:-translate-y-1" /></>
+                      ) : (
+                        <>Read More <ChevronDown size={16} className="transition-transform group-hover:translate-y-1" /></>
+                      )}
                     </button>
                   </div>
                 ) : null}
@@ -206,6 +216,99 @@ export default function EnhancedSectionHeader({
           </Col>
         </Row>
       </Container>
+      <style jsx global>{`
+        .enhanced-section-header__description {
+          font-size: 16px;
+          line-height: 1.8;
+          color: #666;
+          scrollbar-width: thin;
+          scrollbar-color: #b79c5c #f1f1f1;
+        }
+
+        .enhanced-section-header__description.is-expanded {
+          max-height: ${EXPANDED_HEIGHT}px !important;
+          overflow-y: auto !important;
+          padding-right: 15px;
+        }
+
+        .enhanced-section-header__description.is-collapsed {
+          max-height: ${COLLAPSED_HEIGHT}px !important;
+          overflow-y: hidden !important;
+          padding-right: 0;
+        }
+
+        .enhanced-section-header__description img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 12px;
+          margin: 1.5rem 0;
+        }
+
+        .enhanced-section-header__description h1,
+        .enhanced-section-header__description h2,
+        .enhanced-section-header__description h3,
+        .enhanced-section-header__description h4,
+        .enhanced-section-header__description h5,
+        .enhanced-section-header__description h6 {
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+          color: #1d231f;
+          font-weight: 700;
+        }
+
+        .enhanced-section-header__description p {
+          margin-bottom: 1.25rem;
+        }
+
+        .enhanced-section-header__description ul,
+        .enhanced-section-header__description ol {
+          margin-bottom: 1.5rem;
+          padding-left: 1.5rem;
+          list-style-position: outside;
+        }
+
+        .enhanced-section-header__description ul {
+          list-style-type: disc;
+        }
+
+        .enhanced-section-header__description ol {
+          list-style-type: decimal;
+        }
+
+        .enhanced-section-header__description li {
+          margin-bottom: 0.5rem;
+        }
+
+        .enhanced-section-header__description strong,
+        .enhanced-section-header__description b {
+          color: #1d231f;
+          font-weight: 700;
+        }
+
+        .enhanced-section-header__description::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .enhanced-section-header__description::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+
+        .enhanced-section-header__description::-webkit-scrollbar-thumb {
+          background: #b79c5c;
+          border-radius: 10px;
+        }
+
+        .enhanced-section-header__description::-webkit-scrollbar-thumb:hover {
+          background: #1d231f;
+        }
+
+        @media (max-width: 991px) {
+          .enhanced-section-header__description {
+            text-align: center;
+          }
+        }
+      `}</style>
     </section>
   );
 }

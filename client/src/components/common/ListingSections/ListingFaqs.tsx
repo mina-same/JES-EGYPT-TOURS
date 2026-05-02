@@ -35,7 +35,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
     <section className="faq-page section-space-top section-space-bottom" style={style}>
       <Container>
         <div className="sec-title text-center mb-5">
-          <h2 className="sec-title__title">{displayTitle} <span>FAQs</span></h2>
+          <h2 className="sec-title__title">{displayTitle}</h2>
         </div>
 
         <Row className='gutter-y-30'>
