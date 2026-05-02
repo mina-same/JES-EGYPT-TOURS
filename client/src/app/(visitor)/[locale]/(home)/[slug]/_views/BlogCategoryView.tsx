@@ -42,6 +42,11 @@ const getImageUrl = (img: any): string => {
   return '';
 };
 
+const getImageTitle = (img: any, locale: string, fallback?: string): string => {
+  if (!img || typeof img === 'string') return fallback || '';
+  return getLocalizedValue(img.title, locale) || getLocalizedValue(img.alt, locale) || fallback || '';
+};
+
 // Render icon: emoji character → as text, otherwise try gotur icon class
 const SubcatIcon: React.FC<{ icon?: string; hover?: boolean }> = ({ icon, hover }) => {
   if (!icon) {
@@ -134,6 +139,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
 
   const categoryName = getLocalizedValue(category.name, locale) || '';
   const categoryImage = getImageUrl(category.image);
+  const categoryImageTitle = getImageTitle(category.image, locale, categoryName);
   const hasFeaturedBlogs = category.featuredBlogs?.length > 0;
   const hasFeaturedDestinations = category.featuredDestinations?.length > 0;
   const hasFaqs = category.faqs?.length > 0;
@@ -153,6 +159,8 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
         title={categoryName}
         subTitle={getLocalizedValue(category.heroDescription, locale) || getLocalizedValue(category.description, locale)}
         bgImage={categoryImage || undefined}
+        imageAlt={getLocalizedValue((category.image as any)?.alt, locale) || categoryImageTitle}
+        imageTitle={categoryImageTitle}
         breadcrumbs={[
           { label: t('blog'), href: `/${locale}/blogs` },
           { label: categoryName },
@@ -200,6 +208,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                     <Image
                       src={category.sideImage.url}
                       alt={getLocalizedValue(category.sideImage.alt, locale) || categoryName}
+                      title={getImageTitle(category.sideImage, locale, categoryName)}
                       width={800}
                       height={600}
                       style={{ width: '100%', height: 'auto', display: 'block' }}
@@ -371,6 +380,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                 {category.featuredDestinations.map((dest: any, idx: number) => {
                   const destImg = getImageUrl(dest.coverImage);
                   const destName = getLocalizedValue(dest.name, locale) || '';
+                  const destImageTitle = getImageTitle(dest.coverImage, locale, destName);
                   const destSlug = getLocalizedValue(dest.slug, locale) || '';
                   return (
                     <div key={dest._id || idx} className="item">
@@ -383,7 +393,8 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                           {destImg ? (
                             <Image
                               src={destImg}
-                              alt={destName}
+                              alt={getLocalizedValue(dest.coverImage?.alt, locale) || destImageTitle}
+                              title={destImageTitle}
                               fill
                               className="object-cover"
                               style={{ transition: 'transform 0.5s ease' }}

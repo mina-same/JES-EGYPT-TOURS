@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import BlogCategory, { IBlogCategory } from '../models/BlogCategory';
 import { FilterQuery } from 'mongoose';
+import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 
 // ==================== INTERFACES ====================
 
@@ -98,15 +99,19 @@ export const getAllCategories = async (
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
+    const normalizedCategories = categories.map((category) =>
+      normalizeDocumentImage(category, category.name)
+    );
+
     res.status(200).json({
       success: true,
-      count: categories.length,
+      count: normalizedCategories.length,
       total,
       page,
       totalPages,
       hasNextPage,
       hasPrevPage,
-      data: categories,
+      data: normalizedCategories,
     });
   } catch (error: any) {
     console.error('Error fetching blog categories:', error);
@@ -144,7 +149,7 @@ export const getCategoryById = async (
 
     res.status(200).json({
       success: true,
-      data: category,
+      data: normalizeDocumentImage(category, category.name),
     });
   } catch (error: any) {
     console.error('Error fetching blog category:', error);
@@ -206,7 +211,7 @@ export const getCategoryBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: category,
+      data: normalizeDocumentImage(category, category.name),
     });
   } catch (error: any) {
     console.error('Error fetching blog category by slug:', error);
@@ -239,12 +244,18 @@ export const createCategory = async (
       return;
     }
 
-    const category = await BlogCategory.create(req.body);
+    const body = {
+      ...req.body,
+      image: normalizeImageValue(req.body.image, name),
+    };
+
+    const category = await BlogCategory.create(body);
+    const categoryObject = category.toObject();
 
     res.status(201).json({
       success: true,
       message: 'Blog category created successfully',
-      data: category,
+      data: normalizeDocumentImage(categoryObject, categoryObject.name),
     });
   } catch (error: any) {
     console.error('Error creating blog category:', error);
@@ -299,9 +310,18 @@ export const updateCategory = async (
       return;
     }
 
+    const body = {
+      ...req.body,
+      image: req.body.image !== undefined ? normalizeImageValue(req.body.image, name) : undefined,
+    };
+
+    if (req.body.image === undefined) {
+      delete body.image;
+    }
+
     const category = await BlogCategory.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      body,
       {
         new: true,
         runValidators: true,
@@ -319,7 +339,7 @@ export const updateCategory = async (
     res.status(200).json({
       success: true,
       message: 'Blog category updated successfully',
-      data: category,
+      data: normalizeDocumentImage(category.toObject(), category.name),
     });
   } catch (error: any) {
     console.error('Error updating blog category:', error);

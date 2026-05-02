@@ -16,8 +16,9 @@ interface PageHeaderProps {
   bgImage?: string;
   breadcrumbs?: BreadcrumbItem[];
   alt?: string;
+  imageTitle?: string;
 }
-const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt }) => {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt, imageTitle }) => {
   const { t } = useTranslation('common');
   const backgroundImage = bgImage || bg.src;
 
@@ -27,6 +28,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
         <Image
           src={backgroundImage}
           alt={alt || title || "Page Header"}
+          title={imageTitle || alt || title || "Page Header"}
           fill
           priority
           className="object-cover"

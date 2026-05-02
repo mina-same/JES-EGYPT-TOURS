@@ -1,13 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
 import { FAQSchema, IFAQ } from './shared/FaqSchema';
+import { IImage } from './shared/ImageSchema';
 
 export interface IBlogCategory extends Document {
   // Basic Info
   name: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedString;
-  image?: string;
+  image?: IImage | string;
   
   // SEO Meta Tags
   metaTitle?: ILocalizedString;
@@ -15,7 +16,9 @@ export interface IBlogCategory extends Document {
   metaKeywords?: ILocalizedMixed;
   metaImage?: {
     url: string;
-    alt?: string;
+    fileName?: string;
+    title?: ILocalizedString;
+    alt?: ILocalizedString;
     width?: number;
     height?: number;
   };
@@ -75,8 +78,8 @@ const BlogCategorySchema: Schema = new Schema(
       type: LocalizedStringSchema,
     },
     image: {
-      type: String,
-      trim: true,
+      type: Schema.Types.Mixed,
+      required: false,
     },
     
     // === SEO META TAGS ===
@@ -93,6 +96,13 @@ const BlogCategorySchema: Schema = new Schema(
       url: {
         type: String,
         trim: true,
+      },
+      fileName: {
+        type: String,
+        trim: true,
+      },
+      title: {
+        type: LocalizedStringSchema,
       },
       alt: {
         type: LocalizedStringSchema,
@@ -223,7 +233,7 @@ BlogCategorySchema.pre<IBlogCategory>('save', function (next) {
     this.ogDescription = this.metaDescription;
   }
   if (!this.ogImage) {
-    this.ogImage = (this.metaImage as any)?.url || this.image;
+    this.ogImage = (this.metaImage as any)?.url || (typeof this.image === 'string' ? this.image : (this.image as any)?.url);
   }
   
   // Auto-populate metaImage alt from name if not provided

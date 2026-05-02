@@ -24,7 +24,7 @@ export interface IBlogCategory {
   name: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedString; // Localized content
-  image?: IImage;
+  image?: IImage | string;
   seo?: ISEO;
   isActive: boolean;
   subcategoriesCount?: number; // Virtual field
@@ -47,7 +47,7 @@ export interface IBlogSubcategory {
   name: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedString; // Localized content
-  image?: IImage;
+  image?: IImage | string;
   seo?: ISEO;
   isActive: boolean;
   postsCount?: number; // Virtual field
@@ -68,7 +68,7 @@ export interface IContentBlock {
   type: 'html' | 'imageRow' | 'blockquote' | 'video' | 'image';
   content?: ILocalizedString;
   images?: IImage[];
-  image?: string;
+  image?: IImage | string;
   url?: string;
   thumbnail?: string;
   alt?: ILocalizedString;
@@ -133,7 +133,7 @@ export interface BlogCategoryFormData {
   name: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedString;
-  image?: string;
+  image?: IImage | string;
   seo?: ISEO;
   isActive: boolean;
   heroTitle?: ILocalizedString;

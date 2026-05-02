@@ -124,6 +124,7 @@ export default function EnhancedSectionHeader({
                         <Image
                           src={img.url}
                           alt={img.alt || img.title || title || `Image ${idx + 1}`}
+                          title={img.title || img.alt || title || `Image ${idx + 1}`}
                           fill
                           sizes="(max-width: 1024px) 100vw, 40vw"
                           className="object-cover"

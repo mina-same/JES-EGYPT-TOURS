@@ -29,6 +29,17 @@ import esBlogs from "@/i18n/locales/es/blogs.json";
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
+const getImageUrl = (img: any): string => {
+  if (!img) return '';
+  if (typeof img === 'string') return img;
+  return img.url || '';
+};
+
+const getImageTitle = (img: any, locale: string, fallback?: string): string => {
+  if (!img || typeof img === 'string') return fallback || '';
+  return getLocalizedValue(img.title, locale) || getLocalizedValue(img.alt, locale) || fallback || '';
+};
+
 export default function BlogSubcategoryView({ slug, locale }: { slug: string; locale: string }) {
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get("page")) || 1;
@@ -95,6 +106,8 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
   }
 
   const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name, locale) : '';
+  const subcategoryName = getLocalizedValue(subcategory.name, locale);
+  const subcategoryImageTitle = getImageTitle(subcategory.image, locale, subcategoryName);
 
   return (
     <Layout>
@@ -104,13 +117,15 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
       <SlugManager slugs={typeof subcategory.slug === 'object' ? subcategory.slug : { en: slug }} />
       
       <BlogHero 
-        title={getLocalizedValue(subcategory.name, locale)} 
+        title={subcategoryName} 
         subTitle={getLocalizedValue(subcategory.description, locale)} 
-        bgImage={typeof subcategory.image === 'object' ? subcategory.image?.url : subcategory.image || undefined}
+        bgImage={getImageUrl(subcategory.image) || undefined}
+        imageAlt={typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) || subcategoryImageTitle : subcategoryImageTitle}
+        imageTitle={subcategoryImageTitle}
         breadcrumbs={[
           { label: t('blog'), href: `/${locale}/blogs` },
           ...(subcategory.category ? [{ label: parentName, href: `/${locale}/${typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).slug, locale) : ''}` }] : []),
-          { label: getLocalizedValue(subcategory.name, locale) }
+          { label: subcategoryName }
         ]}
         stats={{
           articles: blogsData?.pagination?.total || 0,
@@ -185,8 +200,8 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
                 >
                   <Image 
                     src={subcategory.sideImage?.url || (typeof subcategory.image === 'object' ? subcategory.image?.url : subcategory.image) || "https://placehold.co/800x600?text=JES+Egypt+Tours"} 
-                    alt={getLocalizedValue(subcategory.sideImage?.alt, locale) || (typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) : getLocalizedValue(subcategory.name, locale))}
-                    title={getLocalizedValue(subcategory.sideImage?.title, locale) || (typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.title, locale) : getLocalizedValue(subcategory.name, locale))}
+                    alt={getLocalizedValue(subcategory.sideImage?.alt, locale) || (typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) : subcategoryName)}
+                    title={getImageTitle(subcategory.sideImage, locale, subcategoryImageTitle || subcategoryName)}
                     fill
                     className="object-cover"
                   />

@@ -447,6 +447,26 @@ export default function NewBlogSubCategoryPage() {
       const cleanData = { ...formData };
       
       const hasEn = (obj: any) => !!(obj?.en && (typeof obj.en === 'string' ? obj.en.trim() !== '' : true));
+      const hasAnyLocalizedValue = (obj: any) => {
+        if (!obj || typeof obj !== 'object') return false;
+        return ['en', 'de', 'it', 'es'].some((lang) => {
+          const localized = obj[lang];
+          return typeof localized === 'string' ? localized.trim() !== '' : !!localized;
+        });
+      };
+      const cleanLocalized = (obj: any) => hasAnyLocalizedValue(obj) ? obj : undefined;
+      const cleanImage = (img: any) => {
+        if (!img?.url) return undefined;
+        const cleaned: any = {
+          url: img.url,
+          fileName: img.fileName || img.url.split('?')[0].split('/').filter(Boolean).pop() || 'image',
+        };
+        const title = cleanLocalized(img.title);
+        const alt = cleanLocalized(img.alt);
+        if (title) cleaned.title = title;
+        if (alt) cleaned.alt = alt;
+        return cleaned;
+      };
       
       const payload: any = {
         name: cleanData.name,
@@ -458,12 +478,12 @@ export default function NewBlogSubCategoryPage() {
         metaTitle: cleanData.seo?.metaTitle,
         metaDescription: cleanData.seo?.metaDescription,
         metaKeywords: cleanData.seo?.metaKeywords,
-        metaImage: cleanData.seo?.metaImage?.url ? cleanData.seo.metaImage : undefined,
+        metaImage: cleanImage(cleanData.seo?.metaImage),
       };
       
       if (hasEn(cleanData.heroTitle)) payload.heroTitle = cleanData.heroTitle;
       if (hasEn(cleanData.heroDescription)) payload.heroDescription = cleanData.heroDescription;
-      if (cleanData.sideImage?.url) payload.sideImage = cleanData.sideImage;
+      if (cleanData.sideImage?.url) payload.sideImage = cleanImage(cleanData.sideImage);
       if (hasEn(cleanData.featuredBlogsSectionTitle)) payload.featuredBlogsSectionTitle = cleanData.featuredBlogsSectionTitle;
       if (hasEn(cleanData.blogsSectionTitle)) payload.blogsSectionTitle = cleanData.blogsSectionTitle;
       if (hasEn(cleanData.faqsSectionTitle)) payload.faqsSectionTitle = cleanData.faqsSectionTitle;
@@ -475,7 +495,7 @@ export default function NewBlogSubCategoryPage() {
 
 
       if (cleanData.image?.url) {
-        payload.image = cleanData.image.url;
+        payload.image = cleanImage(cleanData.image);
       }
 
       let response: any;

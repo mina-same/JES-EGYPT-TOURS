@@ -418,6 +418,11 @@ export default function CategoryView({
         subTitle={getLocalizedValue(category.description, locale)}
         bgImage={category.images?.[0]?.url || undefined}
         alt={getLocalizedValue(category.images?.[0]?.alt, locale)}
+        imageTitle={
+          getLocalizedValue(category.images?.[0]?.title, locale) ||
+          getLocalizedValue(category.images?.[0]?.alt, locale) ||
+          getLocalizedValue(category.name, locale)
+        }
         breadcrumbs={[
           { label: getLocalizedValue(category.name, locale) },
         ]}
@@ -470,6 +475,7 @@ export default function CategoryView({
                             <Image 
                               src={sub.images?.[0]?.url || "/assets/images/resources/tour-1-1.jpg"} 
                               alt={getLocalizedValue(sub.images?.[0]?.alt, locale) || subName} 
+                              title={getLocalizedValue(sub.images?.[0]?.title, locale) || getLocalizedValue(sub.images?.[0]?.alt, locale) || subName}
                               fill 
                               className="subcategory-card__image" 
                             />

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import BlogSubCategory from '../models/BlogSubCategory';
 import { FilterQuery } from 'mongoose';
 import { IBlogSubCategory } from '../models/BlogSubCategory';
+import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 
 // ==================== INTERFACES ====================
 
@@ -105,15 +106,19 @@ export const getAllSubcategories = async (
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
+    const normalizedSubcategories = subcategories.map((subcategory) =>
+      normalizeDocumentImage(subcategory, subcategory.name)
+    );
+
     res.status(200).json({
       success: true,
-      count: subcategories.length,
+      count: normalizedSubcategories.length,
       total,
       page,
       totalPages,
       hasNextPage,
       hasPrevPage,
-      data: subcategories,
+      data: normalizedSubcategories,
     });
   } catch (error: any) {
     console.error('Error fetching blog subcategories:', error);
@@ -148,10 +153,14 @@ export const getSubcategoriesByCategory = async (
       .sort('name')
       .lean();
 
+    const normalizedSubcategories = subcategories.map((subcategory) =>
+      normalizeDocumentImage(subcategory, subcategory.name)
+    );
+
     res.status(200).json({
       success: true,
-      count: subcategories.length,
-      data: subcategories,
+      count: normalizedSubcategories.length,
+      data: normalizedSubcategories,
     });
   } catch (error: any) {
     console.error('Error fetching subcategories by category:', error);
@@ -199,7 +208,7 @@ export const getSubcategoryById = async (
 
     res.status(200).json({
       success: true,
-      data: subcategory,
+      data: normalizeDocumentImage(subcategory, subcategory.name),
     });
   } catch (error: any) {
     console.error('Error fetching blog subcategory:', error);
@@ -264,7 +273,7 @@ export const getSubcategoryBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: subcategory,
+      data: normalizeDocumentImage(subcategory, subcategory.name),
     });
   } catch (error: any) {
     console.error('Error fetching blog subcategory by slug:', error);
@@ -297,15 +306,21 @@ export const createSubcategory = async (
       return;
     }
 
-    const subcategory = await BlogSubCategory.create(req.body);
+    const body = {
+      ...req.body,
+      image: normalizeImageValue(req.body.image, name),
+    };
+
+    const subcategory = await BlogSubCategory.create(body);
 
     // Populate category details
     await subcategory.populate('category', 'name slug');
+    const subcategoryObject = subcategory.toObject();
 
     res.status(201).json({
       success: true,
       message: 'Blog subcategory created successfully',
-      data: subcategory,
+      data: normalizeDocumentImage(subcategoryObject, subcategoryObject.name),
     });
   } catch (error: any) {
     console.error('Error creating blog subcategory:', error);
@@ -368,9 +383,18 @@ export const updateSubcategory = async (
       return;
     }
 
+    const body = {
+      ...req.body,
+      image: req.body.image !== undefined ? normalizeImageValue(req.body.image, name) : undefined,
+    };
+
+    if (req.body.image === undefined) {
+      delete body.image;
+    }
+
     const subcategory = await BlogSubCategory.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      body,
       {
         new: true,
         runValidators: true,
@@ -388,7 +412,7 @@ export const updateSubcategory = async (
     res.status(200).json({
       success: true,
       message: 'Blog subcategory updated successfully',
-      data: subcategory,
+      data: normalizeDocumentImage(subcategory.toObject(), subcategory.name),
     });
   } catch (error: any) {
     console.error('Error updating blog subcategory:', error);

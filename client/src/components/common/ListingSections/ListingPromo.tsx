@@ -80,8 +80,15 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
     return item.url || null;
   };
 
+  const getImageTitle = (item: any, fallback: string) => {
+    if (!item || typeof item === 'string') return fallback;
+    return getLocalizedValue(item.title, locale) || getLocalizedValue(item.alt, locale) || fallback;
+  };
+
   const mainImg = getImageUrl(image1) || getImageUrl(images[0]) || aboutOneData.images.mainImage;
   const smallImg = getImageUrl(image2) || getImageUrl(images[1]) || aboutOneData.images.smallImage;
+  const mainImgTitle = getImageTitle(image1 || images[0], promoTitle);
+  const smallImgTitle = getImageTitle(image2 || images[1], promoTitle);
   const shape1 = aboutOneData.images.shape1;
 
   const shouldShowReadMore = promoDesc && promoDesc.length > 800;
@@ -95,12 +102,12 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
               className='about-one__thumb wow fadeInLeft'
               data-wow-duration='1500ms'
               data-wow-delay='300ms'
-            >
+              >
               <div className='about-one__thumb__item'>
-                <Image src={mainImg} alt='promo image' width={600} height={700} style={{ borderRadius: '12px', objectFit: 'cover' }} />
+                <Image src={mainImg} alt={mainImgTitle} title={mainImgTitle} width={600} height={700} style={{ borderRadius: '12px', objectFit: 'cover' }} />
               </div>
               <div className='about-one__thumb__item-small'>
-                <Image src={smallImg} alt='promo image small' width={250} height={250} style={{ borderRadius: '12px', objectFit: 'cover' }} />
+                <Image src={smallImg} alt={smallImgTitle} title={smallImgTitle} width={250} height={250} style={{ borderRadius: '12px', objectFit: 'cover' }} />
               </div>
             </div>
           </Col>

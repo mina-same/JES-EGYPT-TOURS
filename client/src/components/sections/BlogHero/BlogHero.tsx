@@ -9,6 +9,8 @@ interface BlogHeroProps {
   title: string;
   subTitle?: string;
   bgImage?: string;
+  imageAlt?: string;
+  imageTitle?: string;
   breadcrumbs: { label: string; href?: string }[];
   stats?: {
     articles?: number;
@@ -16,7 +18,7 @@ interface BlogHeroProps {
   };
 }
 
-const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, breadcrumbs, stats }) => {
+const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt, imageTitle, breadcrumbs, stats }) => {
   return (
     <section className="relative h-[60vh] min-h-[500px] flex items-center overflow-hidden">
       {/* Background with Zoom Effect */}
@@ -28,7 +30,8 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, breadcrum
       >
         <Image
           src={bgImage || "/assets/images/backgrounds/page-header-bg-1-1.jpg"}
-          alt={title}
+          alt={imageAlt || title}
+          title={imageTitle || imageAlt || title}
           fill
           priority
           className="object-cover"

@@ -400,6 +400,11 @@ export default function SubcategoryView({
         subTitle={getLocalizedValue(subcategory.description, locale)}
         bgImage={subcategory.images?.[0]?.url || undefined}
         alt={getLocalizedValue(subcategory.images?.[0]?.alt, locale)}
+        imageTitle={
+          getLocalizedValue(subcategory.images?.[0]?.title, locale) ||
+          getLocalizedValue(subcategory.images?.[0]?.alt, locale) ||
+          getLocalizedValue(subcategory.name, locale)
+        }
         breadcrumbs={[
           {
             label: getLocalizedValue(subcategory.category?.name, locale) || t('breadcrumb.category'),

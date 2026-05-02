@@ -18,6 +18,16 @@ import { useToast } from '@/hooks/use-toast';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import { getLocalizedValue } from '@/lib/localize';
 
+const getImageUrl = (image: any) => {
+  if (!image) return '';
+  return typeof image === 'string' ? image : image.url || '';
+};
+
+const getImageTitle = (image: any, fallback: any) => {
+  if (!image || typeof image === 'string') return getLocalizedValue(fallback);
+  return getLocalizedValue(image.title) || getLocalizedValue(image.alt) || getLocalizedValue(fallback);
+};
+
 export default function BlogSubCategoriesPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -165,10 +175,11 @@ export default function BlogSubCategoriesPage() {
       header: 'Subcategory',
       render: (subcategory) => (
         <div className="category-info">
-          {subcategory.image && (
+          {getImageUrl(subcategory.image) && (
             <img
-              src={subcategory.image}
-              alt={getLocalizedValue(subcategory.name)}
+              src={getImageUrl(subcategory.image)}
+              alt={getImageTitle(subcategory.image, subcategory.name)}
+              title={getImageTitle(subcategory.image, subcategory.name)}
               className="category-image"
             />
 

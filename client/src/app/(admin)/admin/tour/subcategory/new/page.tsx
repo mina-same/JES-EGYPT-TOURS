@@ -459,10 +459,17 @@ export default function NewSubcategoryPage() {
       setFormErrors([]);
 
       const hasEn = (obj: any) => !!(obj?.en && (typeof obj.en === 'string' ? obj.en.trim() !== '' : true));
+      const hasAnyLocalizedValue = (obj: any) => {
+        if (!obj || typeof obj !== 'object') return false;
+        return ['en', 'de', 'it', 'es'].some((lang) => {
+          const localized = obj[lang];
+          return typeof localized === 'string' ? localized.trim() !== '' : !!localized;
+        });
+      };
       
       const cleanLocalized = (obj: any) => {
         if (!obj) return undefined;
-        if (hasEn(obj)) return obj;
+        if (hasAnyLocalizedValue(obj)) return obj;
         return undefined;
       };
 

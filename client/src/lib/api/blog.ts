@@ -10,7 +10,7 @@ export interface BlogCategory {
   name: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedString;
-  image?: string;
+  image?: string | ImageObject;
   seo?: ISEO;
   isActive: boolean;
   subcategoriesCount?: number;
@@ -21,7 +21,7 @@ export interface BlogSubCategory {
   name: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedString;
-  image?: string;
+  image?: string | ImageObject;
   icon?: string; // Emoji or icon class name set by admin
   category: BlogCategory | string;
   seo?: ISEO;
