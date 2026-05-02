@@ -10,7 +10,7 @@ export const headerData = {
   logo: {
     src: logoDark,
     logoLight: logoLight,
-    alt: "gotur HTML",
+    alt: "JES Egypt Tours",
     width: 160,
     height: 45,
     link: "/",  

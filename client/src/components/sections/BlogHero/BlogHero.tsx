@@ -75,7 +75,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
           </motion.h1>
 
           {subTitle && (
-            <motion.div 
+            <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}

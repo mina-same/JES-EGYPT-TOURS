@@ -148,7 +148,19 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                       <Link href={blogUrl}>{getLocalizedValue(post.title, currentLocale)}</Link>
                     </h3>
                     {post.excerpt && (
-                      <p className='blog-card__text'>{getLocalizedValue(post.excerpt, currentLocale)}</p>
+                      <p 
+                        className='blog-card__text' 
+                        style={{ 
+                          display: '-webkit-box', 
+                          WebkitLineClamp: 2, 
+                          WebkitBoxOrient: 'vertical', 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis',
+                          minHeight: '48px' 
+                        }}
+                      >
+                        {getLocalizedValue(post.excerpt, currentLocale)}
+                      </p>
                     )}
 
                     <Link href={blogUrl} className='blog-card__content__btn'>

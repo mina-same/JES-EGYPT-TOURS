@@ -35,6 +35,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
         month,
         author: authorName,
         category,
+        excerpt: getLocalizedValue(post.excerpt, locale),
         link: `/blogs/${slug}`,
       };
     });
@@ -102,6 +103,24 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
                   <h3 className='blog-card-two__title'>
                     <Link href={post.link}>{post.title}</Link>
                   </h3>
+                  {post.excerpt && (
+                    <p 
+                      className='blog-card-two__text'
+                      style={{ 
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 2, 
+                        WebkitBoxOrient: 'vertical', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        fontSize: '14px',
+                        color: '#666',
+                        lineHeight: '1.6',
+                        marginBottom: '20px'
+                      }}
+                    >
+                      {post.excerpt}
+                    </p>
+                  )}
                   <Link
                     href={post.link}
                     className='blog-card-two__content__btn'

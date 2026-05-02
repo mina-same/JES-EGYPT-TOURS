@@ -162,7 +162,6 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
         imageAlt={getLocalizedValue((category.image as any)?.alt, locale) || categoryImageTitle}
         imageTitle={categoryImageTitle}
         breadcrumbs={[
-          { label: t('blog'), href: `/${locale}/blogs` },
           { label: categoryName },
         ]}
         stats={{

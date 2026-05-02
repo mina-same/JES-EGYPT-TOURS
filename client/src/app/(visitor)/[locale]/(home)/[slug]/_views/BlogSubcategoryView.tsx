@@ -123,7 +123,6 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
         imageAlt={typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) || subcategoryImageTitle : subcategoryImageTitle}
         imageTitle={subcategoryImageTitle}
         breadcrumbs={[
-          { label: t('blog'), href: `/${locale}/blogs` },
           ...(subcategory.category ? [{ label: parentName, href: `/${locale}/${typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).slug, locale) : ''}` }] : []),
           { label: subcategoryName }
         ]}
