@@ -280,20 +280,20 @@ export default function NewBlogPage() {
           delete cleanedBlock._id;
         }
 
-        if (cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') {
-          if (cleanedBlock.content) {
-            // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
-            if (!cleanedBlock.content.en?.trim()) {
-              cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
-            }
-          }
+        if (cleanedBlock.type === 'html') {
+          // Keep content and title for html blocks
+          cleanedBlock.content = ensureEnglish(cleanedBlock.content);
           if (isLocalizedStringEmpty(cleanedBlock.title)) {
             delete cleanedBlock.title;
           } else {
             ensureEnglish(cleanedBlock.title);
           }
+        } else if (cleanedBlock.type === 'blockquote') {
+          // blockquote only uses content
+          cleanedBlock.content = ensureEnglish(cleanedBlock.content);
+          delete cleanedBlock.title;
         } else {
-          // Remove 'content' and 'title' from blocks that don't use them to avoid validation errors
+          // Others don't use top-level content/title
           delete cleanedBlock.content;
           delete cleanedBlock.title;
         }

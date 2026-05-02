@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { List } from 'lucide-react';
 
 interface TOCItem {
   id: string;
@@ -8,10 +9,8 @@ interface TOCItem {
   level: number;
 }
 
-import { List } from 'lucide-react';
-
 interface BlogTOCProps {
-  contentSelector: string; // CSS selector for the blog content container
+  contentSelector: string;
   isInline?: boolean;
 }
 
@@ -31,7 +30,6 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
       const text = header.textContent || '';
       if (!text) return;
 
-      // Ensure header has an ID for scrolling
       if (!header.id) {
         header.id = `blog-header-${index}`;
       }
@@ -45,7 +43,6 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
 
     setToc(items);
 
-    // Intersection Observer for active state
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -58,7 +55,6 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
     );
 
     headers.forEach((header) => observer.observe(header));
-
     return () => observer.disconnect();
   }, [contentSelector]);
 
@@ -68,122 +64,119 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
-      const offset = 100; // Adjust for sticky header
+      const offset = 100;
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = element.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
       const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className={`blog-toc wow fadeInUp animated ${isInline ? 'inline-toc' : 'sidebar__single'}`} data-wow-duration="1500ms" data-wow-delay="500ms">
-      <h4 className={isInline ? "inline-toc-title" : "sidebar__title"}>
-        {isInline && <List size={20} color="#1b4168" />}
-        {t('tableOfContents')}
-      </h4>
-      <ul className={isInline ? "inline-toc-list list-unstyled" : "sidebar__toc-list list-unstyled"}>
-        {toc.map((item) => (
-          <li 
-            key={item.id} 
-            className={`toc-item toc-level-${item.level} ${activeId === item.id ? 'active' : ''}`}
-            style={{ marginLeft: isInline ? '0' : `${(item.level - 2) * 15}px` }}
+    <div className="blog-toc">
+      <div className="blog-toc__header">
+        <List size={15} />
+        <span>{t('tableOfContents') || 'Table of Contents'}</span>
+      </div>
+      <ol className="blog-toc__list list-unstyled">
+        {toc.map((item, idx) => (
+          <li
+            key={item.id}
+            className={`blog-toc__item blog-toc__item--level${item.level} ${activeId === item.id ? 'is-active' : ''}`}
           >
-            <a 
-              href={`#${item.id}`} 
+            <a
+              href={`#${item.id}`}
               onClick={(e) => handleClick(e, item.id)}
-              className={activeId === item.id ? (isInline ? 'active-link' : 'text-primary fw-bold') : ''}
             >
-              {item.text}
+              <span className="blog-toc__num">{idx + 1}</span>
+              <span className="blog-toc__text">{item.text}</span>
             </a>
           </li>
         ))}
-      </ul>
+      </ol>
       <style jsx>{`
-        /* Sidebar styles */
-        .sidebar__toc-list {
-          max-height: 400px;
-          overflow-y: auto;
-          padding-right: 10px;
-        }
-        .toc-item {
-          margin-bottom: 8px;
-          line-height: 1.4;
-        }
-        .toc-item a {
-          color: #666;
-          font-size: 14px;
-          transition: all 0.3s ease;
-          text-decoration: none;
-        }
-        .toc-item a:hover {
-          color: #b79c5c;
-        }
-        .toc-item.active a {
-          color: #b79c5c;
+        .blog-toc {
+          background: #fff;
+          border: 1px solid #e8e0d0;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         }
 
-        /* Inline styles */
-        .inline-toc {
-          background-color: #f9f9f9;
-          border-radius: 4px;
-          padding: 24px;
-          height: 100%;
-        }
-        .inline-toc-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #1b4168;
+        .blog-toc__header {
           display: flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 20px;
-          padding-bottom: 15px;
-          border-bottom: 1px solid #eee;
+          padding: 14px 20px;
+          background: linear-gradient(135deg, #1b4168 0%, #1d3a5f 100%);
+          color: #fff;
+          font-weight: 700;
+          font-size: 0.78rem;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
         }
-        .inline-toc-list {
+
+        .blog-toc__list {
           margin: 0;
-          padding: 0;
+          padding: 10px 0;
+          max-height: 60vh;
+          overflow-y: auto;
         }
-        .inline-toc-list .toc-item {
-          margin-bottom: 0;
-        }
-        .inline-toc-list .toc-item a {
-          display: block;
-          padding: 12px 16px;
-          color: #555;
-          font-size: 0.95rem;
-          text-decoration: none;
+
+        .blog-toc__item a {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 8px 18px;
+          text-decoration: none !important;
+          color: #4a5568;
+          font-size: 0.875rem;
+          line-height: 1.5;
           transition: all 0.2s ease;
-          border-left: 4px solid transparent;
+          border-left: 3px solid transparent;
         }
-        .inline-toc-list .toc-item a:hover {
-          background-color: #f0f0f0;
+
+        .blog-toc__item a:hover {
+          background-color: #fdfaf3;
           color: #1b4168;
+          border-left-color: #b79c5c;
         }
-        .inline-toc-list .toc-item.active a,
-        .inline-toc-list .toc-item a.active-link {
-          background-color: #f0f0f0;
-          color: #1b4168;
-          border-left-color: #1b4168;
+
+        .blog-toc__item.is-active a {
+          background-color: #fdfaf3;
+          color: #b79c5c;
+          border-left-color: #b79c5c;
           font-weight: 600;
         }
 
-        /* Scrollbar */
-        .sidebar__toc-list::-webkit-scrollbar,
-        .inline-toc-list::-webkit-scrollbar {
-          width: 4px;
+        .blog-toc__num {
+          min-width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #f0ece4;
+          color: #b79c5c;
+          font-size: 0.68rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          margin-top: 2px;
+          transition: all 0.2s ease;
         }
-        .sidebar__toc-list::-webkit-scrollbar-thumb,
-        .inline-toc-list::-webkit-scrollbar-thumb {
-          background: #e0e0e0;
-          border-radius: 10px;
+
+        .blog-toc__item.is-active .blog-toc__num {
+          background: #b79c5c;
+          color: #fff;
         }
+
+        .blog-toc__item--level3 a { padding-left: 28px; }
+        .blog-toc__item--level4 a { padding-left: 38px; }
+
+        .blog-toc__list::-webkit-scrollbar { width: 3px; }
+        .blog-toc__list::-webkit-scrollbar-track { background: #f9f9f9; }
+        .blog-toc__list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
       `}</style>
     </div>
   );

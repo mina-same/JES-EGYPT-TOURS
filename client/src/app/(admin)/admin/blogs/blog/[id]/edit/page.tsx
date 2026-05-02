@@ -251,33 +251,43 @@ export default function EditBlogPage() {
           author: blog.author?._id || blog.author || '',
           featuredImage: normalizeImage(blog.featuredImage),
           excerpt: normalizeLocalizedString(blog.excerpt),
-          contentBlocks: (blog.contentBlocks || []).map((block: any) => {
-            const normalizedBlock: any = {
-              ...block,
-              id: block.id || block._id || `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            };
-            
-            // Only normalize content/title if block type uses them
-            if (block.type === 'html' || block.type === 'blockquote') {
-              normalizedBlock.content = normalizeLocalizedString(block.content);
-            } else {
-              delete normalizedBlock.content;
-            }
+          contentBlocks: (() => {
+            const usedIds = new Set<string>();
+            return (blog.contentBlocks || []).map((block: any) => {
+              let blockId = block._id && /^[a-f\d]{24}$/i.test(String(block._id)) ? String(block._id) : '';
+              
+              // If ID is missing or already used, generate a fresh one
+              if (!blockId || usedIds.has(blockId)) {
+                blockId = `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+              }
+              usedIds.add(blockId);
 
-            if (block.type === 'blockquote') {
-              normalizedBlock.title = normalizeLocalizedString(block.title);
-            } else {
-              delete normalizedBlock.title;
-            }
+              const normalizedBlock: any = {
+                ...block,
+                id: blockId,
+              };
+              
+              // Only normalize content/title if block type uses them
+              if (block.type === 'html') {
+                normalizedBlock.content = normalizeLocalizedString(block.content);
+                normalizedBlock.title = normalizeLocalizedString(block.title);
+              } else if (block.type === 'blockquote') {
+                normalizedBlock.content = normalizeLocalizedString(block.content);
+                delete normalizedBlock.title;
+              } else {
+                delete normalizedBlock.content;
+                delete normalizedBlock.title;
+              }
 
-            normalizedBlock.images = (block.images || []).map((img: any) => ({
-                ...img,
-                title: normalizeLocalizedString(img.title),
-                alt: normalizeLocalizedString(img.alt),
-            }));
+              normalizedBlock.images = (block.images || []).map((img: any) => ({
+                  ...img,
+                  title: normalizeLocalizedString(img.title),
+                  alt: normalizeLocalizedString(img.alt),
+              }));
 
-            return normalizedBlock;
-          }),
+              return normalizedBlock;
+            });
+          })(),
           tags: normalizeLocalizedMixed(blog.tags),
           status: blog.status || 'draft',
           isFeatured: blog.isFeatured || false,
@@ -375,20 +385,20 @@ export default function EditBlogPage() {
           delete cleanedBlock._id;
         }
 
-        if (cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') {
-          if (cleanedBlock.content) {
-            // Ensure "en" string exists to satisfy backend validation, fallback to other languages if missing
-            if (!cleanedBlock.content.en?.trim()) {
-              cleanedBlock.content.en = cleanedBlock.content.de?.trim() || cleanedBlock.content.it?.trim() || cleanedBlock.content.es?.trim() || '';
-            }
-          }
+        if (cleanedBlock.type === 'html') {
+          // Keep content and title for html blocks
+          cleanedBlock.content = ensureEnglish(cleanedBlock.content);
           if (isLocalizedStringEmpty(cleanedBlock.title)) {
             delete cleanedBlock.title;
           } else {
             ensureEnglish(cleanedBlock.title);
           }
+        } else if (cleanedBlock.type === 'blockquote') {
+          // blockquote only uses content
+          cleanedBlock.content = ensureEnglish(cleanedBlock.content);
+          delete cleanedBlock.title;
         } else {
-          // Remove 'content' and 'title' from blocks that don't use them to avoid validation errors
+          // Others don't use top-level content/title
           delete cleanedBlock.content;
           delete cleanedBlock.title;
         }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlogPost, formatBlogDate } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
@@ -10,8 +10,10 @@ import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import BlogTOC from "@/components/common/BlogTOC/BlogTOC";
 import { Accordion } from "react-bootstrap";
-import { CheckCircle, Info, HelpCircle, List } from "lucide-react";
+import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2 } from "lucide-react";
 import ReviewAvatar from "@/components/common/ReviewAvatar";
+import { getPopularBlogs } from "@/lib/api/blog";
+import { API_URL } from "@/config/api";
 
 
 interface DynamicBlogDetailsProps {
@@ -31,6 +33,50 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     email: '',
     message: ''
   });
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [popularBlogs, setPopularBlogs] = useState<any[]>([]);
+  const [relatedTours, setRelatedTours] = useState<any[]>([]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollTop;
+      const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scroll = totalScroll / windowHeight;
+      setScrollProgress(scroll);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch popular blogs and related tours
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchSideData = async () => {
+      try {
+        // Popular blogs
+        const popular = await getPopularBlogs();
+        if (isMounted) setPopularBlogs(popular.slice(0, 3));
+      } catch (e) {
+        console.error('Failed to load popular blogs:', e);
+      }
+
+      try {
+        // Related tours — use plain fetch (no auth token) for public endpoint
+        const toursRes = await fetch(`${API_URL}/tours?limit=3&isActive=true&isFeatured=true`);
+        if (isMounted && toursRes.ok) {
+          const data = await toursRes.json();
+          setRelatedTours(data.data?.slice(0, 3) || []);
+        }
+      } catch (e) {
+        console.error('Failed to load related tours:', e);
+      }
+    };
+
+    fetchSideData();
+    return () => { isMounted = false; };
+  }, [blog._id]);
 
 
 
@@ -199,17 +245,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const TopSummary = () => {
-    // We try to use blog.summary first, fallback to keyTakeaways if summary is empty.
     const summaryData = getLocalizedValue(blog.summary, locale);
     let items: string[] = [];
 
     if (summaryData && (typeof summaryData === 'string' || Array.isArray(summaryData))) {
       items = Array.isArray(summaryData) ? summaryData : summaryData.split('\n').map((s: string) => s.trim()).filter(Boolean);
-    } else {
-      const takeaways = getLocalizedValue(blog.keyTakeaways, locale);
-      if (takeaways) {
-        items = Array.isArray(takeaways) ? takeaways : [takeaways];
-      }
     }
 
     if (items.length === 0) return null;
@@ -232,7 +272,28 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       </div>
     );
   };
+  const KeyTakeawaysSection = () => {
+    const takeaways = getLocalizedValue(blog.keyTakeaways, locale);
+    if (!takeaways || (Array.isArray(takeaways) && takeaways.length === 0)) return null;
+    const items = Array.isArray(takeaways) ? takeaways : (typeof takeaways === 'string' ? [takeaways] : []);
 
+    return (
+      <div className="blog-details__key-takeaways mt-5 mb-5 p-4" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #b79c5c' }}>
+        <h3 className="mb-4 d-flex align-items-center gap-2" style={{ color: '#1d231f', fontSize: '24px', fontWeight: '700' }}>
+          <CheckCircle size={24} color="#b79c5c" />
+          {t('keyTakeaways') || 'Key Takeaways'}
+        </h3>
+        <ul className="list-unstyled m-0">
+          {items.map((item: string, idx: number) => (
+            <li key={idx} className="mb-3 d-flex align-items-start gap-3" style={{ fontSize: '1rem', color: '#444', lineHeight: '1.6' }}>
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#b79c5c', borderRadius: '50%', marginTop: '10px', flexShrink: 0 }}></div>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
   const BlogFAQs = () => {
     const faqs = blog.faqs || [];
@@ -271,8 +332,157 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     );
   };
 
+  const SocialShareFloating = () => {
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareTitle = title || '';
+
+    return (
+      <div className="social-share-floating d-none d-xl-flex flex-column gap-3 position-fixed" style={{ left: '40px', top: '50%', transform: 'translateY(-50%)', zIndex: 100 }}>
+        <Link 
+          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+          target="_blank"
+          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-primary hover:text-white transition-all"
+          style={{ width: '45px', height: '45px', color: '#3b5998' }}
+        >
+          <Facebook size={18} />
+        </Link>
+        <Link 
+          href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`}
+          target="_blank"
+          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-info hover:text-white transition-all"
+          style={{ width: '45px', height: '45px', color: '#1da1f2' }}
+        >
+          <Twitter size={18} />
+        </Link>
+        <Link 
+          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
+          target="_blank"
+          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-secondary hover:text-white transition-all"
+          style={{ width: '45px', height: '45px', color: '#0077b5' }}
+        >
+          <Linkedin size={18} />
+        </Link>
+        <button 
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({ title: shareTitle, url: shareUrl });
+            } else {
+              navigator.clipboard.writeText(shareUrl);
+              alert('Link copied to clipboard!');
+            }
+          }}
+          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-dark hover:text-white transition-all"
+          style={{ width: '45px', height: '45px', color: '#555' }}
+        >
+          <Share2 size={18} />
+        </button>
+      </div>
+    );
+  };
+
+  const RelatedPosts = () => {
+    // Use manually set related posts first, fall back to popular blogs
+    const manualRelated = blog.relatedPosts || [];
+    const posts = manualRelated.length > 0 ? manualRelated : popularBlogs;
+    if (posts.length === 0) return null;
+
+    return (
+      <div className="mt-5 pt-5 border-top">
+        <h3 className="mb-4" style={{ fontWeight: '700', fontSize: '2rem', color: '#1d231f' }}>
+          {manualRelated.length > 0 ? 'Read Next' : 'Popular Articles'}
+        </h3>
+        <Row className="g-4">
+          {posts.slice(0, 3).map((post: any, idx: number) => {
+            const postTitle = getLocalizedValue(post.title, locale);
+            const postLink = `/${locale}/blogs/${getLocalizedValue(post.slug, locale)}`;
+            const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
+
+            return (
+              <Col md={4} key={idx}>
+                <Link href={postLink} className="text-decoration-none d-block h-100">
+                  <div className="overflow-hidden rounded-3 mb-3" style={{ height: '200px', boxShadow: '0 8px 24px rgba(0,0,0,0.09)' }}>
+                    <Image
+                      src={postImage || 'https://placehold.co/600x400?text=Blog'}
+                      alt={postTitle}
+                      width={400}
+                      height={220}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                      onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                      onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1.0)')}
+                    />
+                  </div>
+                  <h5 className="text-dark fw-bold mb-2" style={{ fontSize: '1rem', lineHeight: '1.4' }}>{postTitle}</h5>
+                  <div style={{ color: '#b79c5c', fontWeight: 600, fontSize: '0.875rem' }}>Read Article →</div>
+                </Link>
+              </Col>
+            );
+          })}
+        </Row>
+      </div>
+    );
+  };
+
+  const RelatedToursSection = () => {
+    if (relatedTours.length === 0) return null;
+
+    return (
+      <div className="mt-5 pt-5 border-top">
+        <h3 className="mb-4" style={{ fontWeight: '700', fontSize: '2rem', color: '#1d231f' }}>Related Tours</h3>
+        <Row className="g-4">
+          {relatedTours.map((tour: any, idx: number) => {
+            const tourTitle = getLocalizedValue(tour.name || tour.title, locale);
+            const tourSlug = getLocalizedValue(tour.slug, locale);
+            const tourLink = `/${locale}/tours/${tourSlug}`;
+            const tourImage = tour.featuredImage?.url || tour.images?.[0]?.url || 'https://placehold.co/600x400?text=Tour';
+            const price = tour.price || tour.priceFrom;
+
+            return (
+              <Col md={4} key={idx}>
+                <Link href={tourLink} className="text-decoration-none d-block h-100">
+                  <div className="overflow-hidden rounded-3 mb-3" style={{ height: '200px', boxShadow: '0 8px 24px rgba(0,0,0,0.09)', position: 'relative' }}>
+                    <Image
+                      src={tourImage}
+                      alt={tourTitle}
+                      width={400}
+                      height={220}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                      onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                      onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1.0)')}
+                    />
+                    {price && (
+                      <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: '#b79c5c', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontWeight: 700, fontSize: '0.875rem' }}>
+                        From ${price}
+                      </div>
+                    )}
+                  </div>
+                  <h5 className="text-dark fw-bold mb-1" style={{ fontSize: '1rem', lineHeight: '1.4' }}>{tourTitle}</h5>
+                  <div style={{ color: '#b79c5c', fontWeight: 600, fontSize: '0.875rem' }}>View Tour →</div>
+                </Link>
+              </Col>
+            );
+          })}
+        </Row>
+      </div>
+    );
+  };
+
   return (
-    <section className='blog-details-page section-space'>
+    <section className='blog-details-page section-space' style={{ backgroundColor: '#fff' }}>
+      <SocialShareFloating />
+      {/* Reading Progress Bar */}
+      <div 
+        className="reading-progress-bar" 
+        style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          width: `${scrollProgress * 100}%`, 
+          height: '4px', 
+          backgroundColor: '#b79c5c', 
+          zIndex: 9999,
+          transition: 'width 0.1s ease-out'
+        }} 
+      />
       <Container>
         <Row className='justify-content-center'>
           {showSidebar === 'left' && (
@@ -306,48 +516,38 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
                 {/* Blog Content */}
                 <div className='blog-details-card__content'>
-                  <ul
-                    className='list-unstyled blog-details-card__meta wow fadeInUp'
-                    data-wow-delay='300ms'
-                    data-wow-duration='1500ms'
-                  >
-                    <li>
-                      <Link href='#'>
-                        <span className='blog-card__meta__icon'>
-                          <i className='icon-user'></i>
-                        </span>
-                        {t('by')} {author}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href='#'>
-                        <span className='blog-details-card__meta__icon'>
-                          <i className='icon-massage'></i>
-                        </span>
-                        {approvedComments.length} {t('comments')}
-                      </Link>
-                    </li>
-                    {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
-                      <li>
-                        <Link href='#'>
-                          <span className='blog-card__meta__icon'>
-                            <i className='icon-price-tag'></i>
-                          </span>
-                          {(getLocalizedValue(blog.tags) as any)[0]}
-                        </Link>
-                      </li>
-                    )}
-                  </ul>
-
-                  <div className="blog-details-card__dates mb-3 d-flex flex-wrap gap-3" style={{ fontSize: '0.85rem', color: '#888' }}>
-                    <div className="d-flex align-items-center gap-1">
-                      <span className="fw-bold">{t('publishedOn')}:</span>
+                  {/* Article Meta Bar */}
+                  <div className="blog-meta-bar">
+                    <div className="blog-meta-bar__item">
+                      <i className='icon-user' style={{ color: '#b79c5c' }}></i>
+                      <span>{t('by')} <strong>{author}</strong></span>
+                    </div>
+                    <div className="blog-meta-bar__divider" />
+                    <div className="blog-meta-bar__item">
+                      <i className='icon-calendar' style={{ color: '#b79c5c' }}></i>
                       <span>{new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
+                    {approvedComments.length > 0 && (
+                      <>
+                        <div className="blog-meta-bar__divider" />
+                        <div className="blog-meta-bar__item">
+                          <i className='icon-massage' style={{ color: '#b79c5c' }}></i>
+                          <span>{approvedComments.length} {t('comments')}</span>
+                        </div>
+                      </>
+                    )}
+                    {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
+                      <>
+                        <div className="blog-meta-bar__divider" />
+                        <div className="blog-meta-bar__item">
+                          <i className='icon-price-tag' style={{ color: '#b79c5c' }}></i>
+                          <span>{(getLocalizedValue(blog.tags) as any)[0]}</span>
+                        </div>
+                      </>
+                    )}
                     {blog.updatedAt && (
-                      <div className="d-flex align-items-center gap-1">
-                        <span className="fw-bold">{t('updatedOn')}:</span>
-                        <span>{new Date(blog.updatedAt).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                      <div className="blog-meta-bar__item ms-auto" style={{ fontSize: '0.8rem', color: '#aaa' }}>
+                        <span>Updated: {new Date(blog.updatedAt).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                       </div>
                     )}
                   </div>
@@ -356,10 +556,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
                   {/* TOC & Summary Intro Layout */}
                   <div className="row mb-5">
-                    <div className="col-lg-5 mb-4 mb-lg-0">
-                      <BlogTOC contentSelector="#blog-content" isInline={true} />
-                    </div>
-                    <div className="col-lg-7">
+                    <div className="col-lg-12">
                       <TopSummary />
                     </div>
                   </div>
@@ -367,7 +564,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                   {/* Render Content Blocks */}
                   <div className='blog-details-card__content__inner' id="blog-content">
                     {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
+                    <KeyTakeawaysSection />
                     <BlogFAQs />
+                    <RelatedPosts />
+                    <RelatedToursSection />
                   </div>
 
                 </div>
@@ -544,11 +744,176 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           
           {showSidebar === 'right' && (
             <Col lg={4}>
-              <BlogSidebar currentBlog={blog} />
+              <div className="blog-sidebar-wrapper">
+                {/* Sticky TOC — stays on screen as you scroll */}
+                <div className="blog-toc-sticky">
+                  <BlogTOC contentSelector="#blog-content" />
+                </div>
+                {/* The rest of the sidebar scrolls normally below */}
+                <div className="mt-4">
+                  <BlogSidebar currentBlog={blog} />
+                </div>
+              </div>
             </Col>
           )}
         </Row>
       </Container>
+      <style jsx global>{`
+        .blog-details-page {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Professional Drop Cap */
+        .blog-details-card__content__inner .blog-details-card__text:first-of-type p:first-of-type::first-letter {
+          float: left;
+          font-size: 4.5rem;
+          line-height: 1;
+          font-weight: 700;
+          margin-right: 0.75rem;
+          margin-top: 0.25rem;
+          color: #b79c5c;
+          text-transform: uppercase;
+        }
+
+        /* Improved Body Typography */
+        .blog-details-card__text p {
+          font-size: 1.15rem;
+          line-height: 1.85;
+          color: #2d3436;
+          margin-bottom: 2rem;
+          font-weight: 400;
+        }
+
+        /* Elegant Pull Quotes */
+        .blog-details__inner__text-one {
+          font-style: italic;
+          font-size: 1.4rem !important;
+          background-color: #fdfaf3 !important;
+          border-left: 6px solid #b79c5c !important;
+          position: relative;
+          padding: 3rem 3rem 3rem 4.5rem !important;
+          margin: 3rem 0 !important;
+          border-radius: 0 12px 12px 0 !important;
+          color: #1d231f !important;
+          line-height: 1.6 !important;
+          box-shadow: 0 10px 30px rgba(183, 156, 92, 0.05);
+        }
+        
+        .blog-details__inner__text-one::before {
+          content: '“';
+          position: absolute;
+          top: -10px;
+          left: 15px;
+          font-size: 6rem;
+          color: rgba(183, 156, 92, 0.15);
+          font-family: "Georgia", serif;
+        }
+
+        /* Section Header Polish */
+        .blog-details-card__title {
+          letter-spacing: -0.02em;
+          position: relative;
+          display: inline-block;
+        }
+
+        /* Content spacing */
+        .blog-details-card__content__inner {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        /* Image Polish */
+        .blog-details__inner__image {
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+          margin: 2.5rem 0;
+        }
+
+        .blog-details__inner__caption {
+          text-align: center;
+          font-size: 0.9rem;
+          color: #888;
+          margin-top: 0.75rem;
+          font-style: italic;
+        }
+        /* Link Styling */
+        .blog-details-card__content__inner a {
+          color: #b79c5c;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .blog-details-card__content__inner a:hover {
+          color: #1b4168;
+          text-decoration-color: #1b4168;
+        }
+
+        /* Blog Meta Bar */
+        .blog-meta-bar {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 6px 0;
+          padding: 13px 20px;
+          background: #fdfaf3;
+          border: 1px solid #e8e0d0;
+          border-radius: 10px;
+          margin-bottom: 30px;
+          font-size: 0.875rem;
+          color: #555;
+        }
+
+        .blog-meta-bar__item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 0 14px;
+        }
+
+        .blog-meta-bar__item:first-child { padding-left: 0; }
+
+        .blog-meta-bar__divider {
+          width: 1px;
+          height: 16px;
+          background: #ddd;
+          flex-shrink: 0;
+        }
+
+        /* Section header gold underline */
+        .blog-details-card__title::after {
+          content: '';
+          display: block;
+          width: 48px;
+          height: 3px;
+          background: linear-gradient(90deg, #b79c5c, transparent);
+          border-radius: 2px;
+          margin-top: 10px;
+        }
+
+        /* Featured image hero polish */
+        .blog-details-card__image {
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+          margin-bottom: 36px;
+        }
+        /* Sticky TOC sidebar */
+        .blog-sidebar-wrapper {
+          position: relative;
+        }
+
+        .blog-toc-sticky {
+          position: sticky;
+          top: 100px;
+          z-index: 10;
+          max-height: calc(100vh - 120px);
+          overflow: hidden;
+        }
+      `}</style>
     </section>
   );
 };

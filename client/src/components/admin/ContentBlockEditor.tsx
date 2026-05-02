@@ -75,7 +75,10 @@ function SortableBlockItem({
   onImageUpload,
   isCollapsed,
   onToggleCollapse,
-  activeLanguage
+  onMove,
+  activeLanguage,
+  isFirst,
+  isLast
 }: {
   block: ContentBlock;
   index: number;
@@ -85,7 +88,10 @@ function SortableBlockItem({
   onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
   isCollapsed: boolean;
   onToggleCollapse: (index: number) => void;
+  onMove: (index: number, direction: 'up' | 'down') => void;
   activeLanguage: AdminLanguage;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
   const {
     attributes,
@@ -134,6 +140,30 @@ function SortableBlockItem({
         </div>
         
         <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 border-x px-1 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={isFirst}
+              onClick={() => onMove(index, 'up')}
+              className="h-7 w-7 p-0 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30"
+              title="Move Up"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={isLast}
+              onClick={() => onMove(index, 'down')}
+              className="h-7 w-7 p-0 hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30"
+              title="Move Down"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </Button>
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -447,12 +477,24 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
     onChange(blocks.filter((_, i) => i !== index));
   }, [blocks, onChange]);
 
+  const moveBlock = useCallback((index: number, direction: 'up' | 'down') => {
+    const newBlocks = [...blocks];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex >= 0 && targetIndex < newBlocks.length) {
+      const temp = newBlocks[index];
+      newBlocks[index] = newBlocks[targetIndex];
+      newBlocks[targetIndex] = temp;
+      onChange(newBlocks);
+    }
+  }, [blocks, onChange]);
+
   const duplicateBlock = useCallback((index: number) => {
     const blockToDuplicate = blocks[index];
     const duplicatedBlock: ContentBlock = {
       ...blockToDuplicate,
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     };
+    delete (duplicatedBlock as any)._id;
     
     const newBlocks = [...blocks];
     newBlocks.splice(index + 1, 0, duplicatedBlock);
@@ -526,11 +568,15 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
                   transition={{ duration: 0.2 }}
                 >
                   <SortableBlockItem
+                    key={block.id || `block-${index}`}
                     block={block}
                     index={index}
+                    isFirst={index === 0}
+                    isLast={index === blocks.length - 1}
                     onUpdate={updateBlock}
                     onRemove={removeBlock}
                     onDuplicate={duplicateBlock}
+                    onMove={moveBlock}
                     onImageUpload={onImageUpload}
                     isCollapsed={collapsedBlocks.has(block.id)}
                     onToggleCollapse={toggleCollapse}
