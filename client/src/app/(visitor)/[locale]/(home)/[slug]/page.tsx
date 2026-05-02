@@ -2,7 +2,6 @@ import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
 import { getCategoryBySlug as getBlogCategoryBySlug, getSubCategoryBySlug as getBlogSubCategoryBySlug, getBlogBySlug } from "@/lib/api/blog";
 import { getDestinationBySlug } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
-import { reviewsAPI } from "@/lib/api/reviews";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -12,7 +11,6 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import TourListingOneDetails from "@/components/sections/TourListingDetailsOne/TourListingDetailsOne";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { SlugManager } from "@/components/common/SlugManager";
 import CategoryView from "./_views/CategoryView";
 import SubcategoryView from "./_views/SubcategoryView";
@@ -28,6 +26,24 @@ import DestinationView from "./_views/DestinationView";
 function getLocaleSlug(slugObj: any, locale: string): string | null {
   if (!slugObj || typeof slugObj !== 'object') return slugObj || null;
   return slugObj[locale] || null;
+}
+
+function ensureTourMapSchema(tour: any) {
+  if (!tour || typeof tour !== "object") return tour;
+
+  const mapSchema = tour.mapSchema || tour.seo?.mapSchema;
+  if (!Array.isArray(mapSchema?.itemListElement) || mapSchema.itemListElement.length === 0) {
+    return tour;
+  }
+
+  return {
+    ...tour,
+    mapSchema: tour.mapSchema || mapSchema,
+    seo: {
+      ...(tour.seo || {}),
+      mapSchema: tour.seo?.mapSchema || mapSchema,
+    },
+  };
 }
 
 interface PageProps {
@@ -465,7 +481,7 @@ export default async function SlugPage({ params }: PageProps) {
     try {
       const tourRes = await tourAPI.getBySlug(slug, locale);
       if (tourRes?.success && tourRes?.data) {
-        const tour = tourRes.data;
+        const tour = ensureTourMapSchema(tourRes.data);
         const correctSlug = getLocaleSlug(tour.slug, locale);
         if (!correctSlug) {
           /* No translated slug for this locale, let it 404 */

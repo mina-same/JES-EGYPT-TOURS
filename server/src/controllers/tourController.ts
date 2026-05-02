@@ -143,6 +143,22 @@ const parseFields = (fieldsParam?: string): string => {
   return fieldsParam.split(',').join(' ');
 };
 
+const ensureTourMapSchema = <T>(tour: T): T => {
+  if (!tour || typeof tour !== 'object') return tour;
+
+  const normalizedTour = tour as any;
+  const mapSchema = normalizedTour.mapSchema || normalizedTour.seo?.mapSchema;
+  if (!Array.isArray(mapSchema?.itemListElement) || mapSchema.itemListElement.length === 0) {
+    return tour;
+  }
+
+  normalizedTour.mapSchema = normalizedTour.mapSchema || mapSchema;
+  normalizedTour.seo = normalizedTour.seo || {};
+  normalizedTour.seo.mapSchema = normalizedTour.seo.mapSchema || mapSchema;
+
+  return tour;
+};
+
 // ==================== CONTROLLERS ====================
 
 /**
@@ -371,7 +387,7 @@ export const getTourById = async (
 
     res.status(200).json({
       success: true,
-      data: localize(tour, req.locale),
+      data: localize(ensureTourMapSchema(tour), req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour:', error);
@@ -433,7 +449,7 @@ export const getTourBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: tour,
+      data: ensureTourMapSchema(tour),
     });
   } catch (error: any) {
     console.error('Error fetching tour by slug:', error);
