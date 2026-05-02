@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { BlogPost, formatBlogDate } from "@/lib/api/blog";
+import { BlogPost, formatBlogDate, getPopularBlogs } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
 import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
@@ -12,8 +12,10 @@ import BlogTOC from "@/components/common/BlogTOC/BlogTOC";
 import { Accordion } from "react-bootstrap";
 import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2 } from "lucide-react";
 import ReviewAvatar from "@/components/common/ReviewAvatar";
-import { getPopularBlogs } from "@/lib/api/blog";
 import { API_URL } from "@/config/api";
+import TourCard from "@/components/common/TourCard/TourCard";
+import { useWishlist } from "@/contexts/WishlistContext";
+import VideoModal from "@/components/common/VideoModal/VideoModal";
 
 
 interface DynamicBlogDetailsProps {
@@ -36,6 +38,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const [scrollProgress, setScrollProgress] = useState(0);
   const [popularBlogs, setPopularBlogs] = useState<any[]>([]);
   const [relatedTours, setRelatedTours] = useState<any[]>([]);
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const [isVideoOpen, setVideoOpen] = useState(false);
+  const [videoIds, setVideoIds] = useState<string[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -383,37 +388,80 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const RelatedPosts = () => {
     // Use manually set related posts first, fall back to popular blogs
     const manualRelated = blog.relatedPosts || [];
-    const posts = manualRelated.length > 0 ? manualRelated : popularBlogs;
+    const posts = (manualRelated.length > 0 ? manualRelated : popularBlogs).slice(0, 3);
     if (posts.length === 0) return null;
 
     return (
-      <div className="mt-5 pt-5 border-top">
-        <h3 className="mb-4" style={{ fontWeight: '700', fontSize: '2rem', color: '#1d231f' }}>
-          {manualRelated.length > 0 ? 'Read Next' : 'Popular Articles'}
+      <div>
+        <h3 className="mb-5" style={{ fontWeight: '800', fontSize: '2.5rem', color: '#1d231f', textAlign: 'center', letterSpacing: '-1px' }}>
+          {manualRelated.length > 0 ? t('readNext', { defaultValue: 'Read Next' }) : t('popularArticles', { defaultValue: 'Popular Articles' })}
         </h3>
-        <Row className="g-4">
-          {posts.slice(0, 3).map((post: any, idx: number) => {
+        <Row className="gutter-y-30">
+          {posts.map((post: any, idx: number) => {
+            const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
             const postTitle = getLocalizedValue(post.title, locale);
             const postLink = `/${locale}/blogs/${getLocalizedValue(post.slug, locale)}`;
-            const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
+            const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
+            const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
+            const localizedTags = getLocalizedValue(post.tags, locale);
+            const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
 
             return (
               <Col md={4} key={idx}>
-                <Link href={postLink} className="text-decoration-none d-block h-100">
-                  <div className="overflow-hidden rounded-3 mb-3" style={{ height: '200px', boxShadow: '0 8px 24px rgba(0,0,0,0.09)' }}>
+                <div
+                  className='blog-card-two wow fadeInUp'
+                  data-wow-duration='1500ms'
+                  data-wow-delay={`${100 * (idx + 1)}ms`}
+                >
+                  <div className='blog-card-two__image'>
                     <Image
-                      src={postImage || 'https://placehold.co/600x400?text=Blog'}
-                      alt={postTitle}
-                      width={400}
-                      height={220}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-                      onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-                      onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1.0)')}
+                      src={postImage}
+                      alt={postTitle || "Blog post image"}
+                      className="img-fluid"
+                      width={600}
+                      height={450}
+                      style={{ width: "100%", height: "200px", objectFit: "cover" }}
                     />
+                    <div className='blog-card-two__date'>
+                      <span className='blog-card-two__date__day'>{day}</span>
+                      <span className='blog-card-two__date__month'>{month}</span>
+                    </div>
+                    <Link href={postLink} className='blog-card-two__image__link'>
+                      <span className='sr-only'>{postTitle}</span>
+                    </Link>
                   </div>
-                  <h5 className="text-dark fw-bold mb-2" style={{ fontSize: '1rem', lineHeight: '1.4' }}>{postTitle}</h5>
-                  <div style={{ color: '#b79c5c', fontWeight: 600, fontSize: '0.875rem' }}>Read Article →</div>
-                </Link>
+                  <div className='blog-card-two__content' style={{ padding: '20px' }}>
+                    <ul className='list-unstyled blog-card-two__meta' style={{ marginBottom: '10px' }}>
+                      <li>
+                        <Link href={postLink}>
+                          <span className='blog-card-two__meta__icon'>
+                            <i className='icon-user'></i>
+                          </span>{" "}
+                          {t('by')} {authorName}
+                        </Link>
+                      </li>
+                      {category && (
+                        <li>
+                          <Link href={postLink}>
+                            <span className='blog-card-two__meta__icon'>
+                              <i className='icon-price-tag'></i>
+                            </span>{" "}
+                            {category}
+                          </Link>
+                        </li>
+                      )}
+                    </ul>
+                    <h3 className='blog-card-two__title' style={{ fontSize: '18px', marginBottom: '15px' }}>
+                      <Link href={postLink}>{postTitle}</Link>
+                    </h3>
+                    <Link
+                      href={postLink}
+                      className='blog-card-two__content__btn'
+                    >
+                      {t('readMore')} <i className='icon-arrow-right'></i>
+                    </Link>
+                  </div>
+                </div>
               </Col>
             );
           })}
@@ -425,39 +473,53 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const RelatedToursSection = () => {
     if (relatedTours.length === 0) return null;
 
+    const openVideoReviews = (slug: string) => {
+      const tour = relatedTours.find(t => getLocalizedValue(t.slug, locale) === slug);
+      if (tour?.videoLink) {
+        setVideoIds([tour.videoLink]);
+        setVideoOpen(true);
+      }
+    };
+
     return (
-      <div className="mt-5 pt-5 border-top">
-        <h3 className="mb-4" style={{ fontWeight: '700', fontSize: '2rem', color: '#1d231f' }}>Related Tours</h3>
-        <Row className="g-4">
+      <div>
+        <h3 className="mb-5" style={{ fontWeight: '800', fontSize: '2.5rem', color: '#1d231f', textAlign: 'center', letterSpacing: '-1px' }}>{t('relatedTours', { defaultValue: 'Related Tours' })}</h3>
+        <Row className="gutter-y-30">
           {relatedTours.map((tour: any, idx: number) => {
-            const tourTitle = getLocalizedValue(tour.name || tour.title, locale);
-            const tourSlug = getLocalizedValue(tour.slug, locale);
-            const tourLink = `/${locale}/tours/${tourSlug}`;
-            const tourImage = tour.featuredImage?.url || tour.images?.[0]?.url || 'https://placehold.co/600x400?text=Tour';
-            const price = tour.price || tour.priceFrom;
+            const galleryImages = [
+              ...(tour.images || []).map((img: any) => img.url),
+              ...(tour.gallery || []).map((img: any) => img.url),
+            ].filter(Boolean);
+            const uniqueImages = Array.from(new Set(galleryImages));
+            
+            const item = {
+              id: tour._id,
+              slug: getLocalizedValue(tour.slug, locale),
+              image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+              imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
+              allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+              title: getLocalizedValue(tour.heading || tour.name, locale),
+              link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
+              price: tour.priceStartingFrom || { USD: 0 },
+              rating: 5,
+              reviews: tour.reviewsCount || tour.reviews?.length || 0,
+              videoId: tour.videoLink || "",
+              discount: "",
+              meta: [
+                { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
+                { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
+                { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },
+              ],
+            };
 
             return (
               <Col md={4} key={idx}>
-                <Link href={tourLink} className="text-decoration-none d-block h-100">
-                  <div className="overflow-hidden rounded-3 mb-3" style={{ height: '200px', boxShadow: '0 8px 24px rgba(0,0,0,0.09)', position: 'relative' }}>
-                    <Image
-                      src={tourImage}
-                      alt={tourTitle}
-                      width={400}
-                      height={220}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-                      onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-                      onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1.0)')}
-                    />
-                    {price && (
-                      <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: '#b79c5c', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontWeight: 700, fontSize: '0.875rem' }}>
-                        From ${price}
-                      </div>
-                    )}
-                  </div>
-                  <h5 className="text-dark fw-bold mb-1" style={{ fontSize: '1rem', lineHeight: '1.4' }}>{tourTitle}</h5>
-                  <div style={{ color: '#b79c5c', fontWeight: 600, fontSize: '0.875rem' }}>View Tour →</div>
-                </Link>
+                <TourCard 
+                  item={item} 
+                  toggleWishlist={toggleWishlist} 
+                  isInWishlist={isInWishlist} 
+                  openVideoReviews={openVideoReviews} 
+                />
               </Col>
             );
           })}
@@ -566,8 +628,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
                     <KeyTakeawaysSection />
                     <BlogFAQs />
-                    <RelatedPosts />
-                    <RelatedToursSection />
+                    <VideoModal 
+                      isOpen={isVideoOpen} 
+                      setOpen={setVideoOpen} 
+                      ids={videoIds} 
+                    />
                   </div>
 
                 </div>
@@ -743,21 +808,29 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           </Col>
           
           {showSidebar === 'right' && (
-            <Col lg={4}>
+            <Col lg={4} style={{ alignSelf: 'flex-start' }}>
               <div className="blog-sidebar-wrapper">
-                {/* Sticky TOC — stays on screen as you scroll */}
+                {/* Sticky Sidebar — TOC and Tags stay on screen as you scroll */}
                 <div className="blog-toc-sticky">
                   <BlogTOC contentSelector="#blog-content" />
-                </div>
-                {/* The rest of the sidebar scrolls normally below */}
-                <div className="mt-4">
-                  <BlogSidebar currentBlog={blog} />
+                  <div className="mt-4">
+                    <BlogSidebar currentBlog={blog} />
+                  </div>
                 </div>
               </div>
             </Col>
           )}
         </Row>
       </Container>
+
+      <div className="related-sections-wrapper" style={{ background: '#f9f9f9', marginTop: '80px', padding: '80px 0' }}>
+        <Container>
+          <RelatedPosts />
+          <div style={{ height: '60px' }} />
+          <RelatedToursSection />
+        </Container>
+      </div>
+
       <style jsx global>{`
         .blog-details-page {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -907,11 +980,24 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         }
 
         .blog-toc-sticky {
+          position: -webkit-sticky;
           position: sticky;
-          top: 100px;
-          z-index: 10;
-          max-height: calc(100vh - 120px);
-          overflow: hidden;
+          top: 120px;
+          z-index: 100;
+          max-height: calc(100vh - 140px);
+          overflow-y: auto;
+          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none; /* IE/Edge */
+          transition: top 0.3s ease;
+        }
+        .blog-toc-sticky::-webkit-scrollbar {
+          display: none; /* Chrome/Safari */
+        }
+        
+        .blog-sidebar-wrapper {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
         }
       `}</style>
     </section>

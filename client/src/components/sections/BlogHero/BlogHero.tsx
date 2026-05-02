@@ -45,16 +45,21 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
           <motion.nav 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 max-w-full overflow-hidden whitespace-nowrap"
           >
-            <Link href="/" className="text-white/80 hover:text-white text-sm transition-colors">Home</Link>
+            <Link href="/" className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0">Home</Link>
             {breadcrumbs.map((item, idx) => (
               <React.Fragment key={idx}>
-                <span className="text-white/40">/</span>
+                <span className="text-white/40 flex-shrink-0">/</span>
                 {item.href ? (
-                  <Link href={item.href} className="text-white/80 hover:text-white text-sm transition-colors">{item.label}</Link>
+                  <Link href={item.href} className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0">{item.label}</Link>
                 ) : (
-                  <span className="text-[#b79c5c] text-sm font-bold">{item.label}</span>
+                  <span 
+                    className="text-[#b79c5c] text-sm font-bold truncate block max-w-[150px] md:max-w-[350px]"
+                    title={item.label}
+                  >
+                    {item.label}
+                  </span>
                 )}
               </React.Fragment>
             ))}

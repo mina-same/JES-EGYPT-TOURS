@@ -108,21 +108,25 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
 
   const localizedSlugs = typeof blog.slug === 'object' ? blog.slug : { en: slug };
 
-  const breadcrumbs: { label: any; href?: string }[] = [
-    { label: t('blog'), href: `/${locale}/blogs` },
-  ];
-  if (blog.category) {
+  const breadcrumbs: { label: any; href?: string }[] = [];
+  
+  const blogSubCat = blog.subCategory;
+  const blogCat = blogSubCat?.category;
+
+  if (blogCat && typeof blogCat === 'object') {
     breadcrumbs.push({
-      label: getLocalizedValue(blog.category.name, locale),
-      href: `/${locale}/${getLocalizedValue(blog.category.slug, locale) || ''}`
+      label: getLocalizedValue(blogCat.name, locale),
+      href: `/${locale}/${getLocalizedValue(blogCat.slug, locale) || ''}`
     });
   }
-  if (blog.subCategory) {
+
+  if (blogSubCat && typeof blogSubCat === 'object') {
     breadcrumbs.push({
-      label: getLocalizedValue(blog.subCategory.name, locale),
-      href: `/${locale}/${getLocalizedValue(blog.subCategory.slug, locale) || ''}`
+      label: getLocalizedValue(blogSubCat.name, locale),
+      href: `/${locale}/${getLocalizedValue(blogSubCat.slug, locale) || ''}`
     });
   }
+
   breadcrumbs.push({ label: title });
 
   return (
