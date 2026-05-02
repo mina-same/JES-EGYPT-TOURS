@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { tourAPI } from '@/lib/api/tour';
 import { getAllBlogs } from '@/lib/api/blog';
 import { Button } from '@/components/ui/button';
 import { 
-  ArrowLeft, Loader2, Save,
+  Loader2, Save,
   LayoutDashboard, Image as ImageIcon, Map as MapIcon, 
-  ListChecks, DollarSign, Settings, HelpCircle
+  ListChecks, DollarSign, Settings, HelpCircle, MapPinned
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { validateTourForm } from '@/lib/validations/tourValidation';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import { normalizeTourMapSchemaForSave } from '@/lib/tourMapSchema';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +27,8 @@ import {
   ItineraryTab, 
   DetailsTab, 
   PricingTab, 
-  ResourcesTab, 
+  ResourcesTab,
+  AttractionsTab,
   SEOTab 
 } from '@/components/admin/tour';
 
@@ -40,6 +41,7 @@ const TABS = [
   { id: 'itinerary', label: 'Itinerary', icon: MapIcon },
   { id: 'details', label: 'Details', icon: ListChecks },
   { id: 'pricing', label: 'Pricing', icon: DollarSign },
+  { id: 'attractions', label: 'Attractions Schema', icon: MapPinned },
   { id: 'resources', label: 'Resources', icon: HelpCircle },
   { id: 'seo', label: 'SEO & Settings', icon: Settings },
 ];
@@ -187,13 +189,24 @@ export default function NewTourPage() {
       if (cleanData.whatToPack) cleanData.whatToPack = flattenLocalizedList(cleanData.whatToPack);
       if (cleanData.tags) cleanData.tags = flattenLocalizedList(cleanData.tags);
 
+      const normalizedMapSchema = normalizeTourMapSchemaForSave(cleanData.mapSchema || cleanData.seo?.mapSchema);
+      if (normalizedMapSchema) {
+        cleanData.mapSchema = normalizedMapSchema;
+        cleanData.seo = {
+          ...(cleanData.seo || {}),
+          mapSchema: normalizedMapSchema,
+        };
+      } else {
+        delete cleanData.mapSchema;
+        if (cleanData.seo?.mapSchema) delete cleanData.seo.mapSchema;
+      }
+
       // Remove empty optional fields
       if (!cleanData.priceStartingFrom) delete cleanData.priceStartingFrom;
       if (!cleanData.duration) delete cleanData.duration;
       if (!cleanData.tourType) delete cleanData.tourType;
       if (!cleanData.tourStyle) delete cleanData.tourStyle;
       if (!cleanData.idExternal) delete cleanData.idExternal;
-      if (!cleanData.mapSchema) delete cleanData.mapSchema;
       if (!cleanData.tourMapIframe) delete cleanData.tourMapIframe;
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
       
@@ -313,6 +326,7 @@ export default function NewTourPage() {
             if (tab.id === 'itinerary') return err.path?.startsWith('itinerary');
             if (tab.id === 'details') return ['tourHighlights', 'inclusion', 'exclusion', 'whatToPack', 'notes'].some(p => err.path?.startsWith(p));
             if (tab.id === 'pricing') return ['pricingPlans', 'priceStartingFrom', 'cancellationPolicy'].some(p => err.path?.startsWith(p));
+            if (tab.id === 'attractions') return err.path?.startsWith('mapSchema') || err.path?.startsWith('seo.mapSchema');
             if (tab.id === 'seo') return err.path?.startsWith('seo');
             return false;
           });
@@ -403,6 +417,13 @@ export default function NewTourPage() {
               handleChange={tourForm.handleChange}
               activeLanguage={activeAdminLanguage}
               formErrors={formErrors}
+            />
+          )}
+          {activeTab === 'attractions' && (
+            <AttractionsTab
+              formData={tourForm.formData}
+              handleChange={tourForm.handleChange}
+              activeLanguage={activeAdminLanguage}
             />
           )}
           {activeTab === 'resources' && (
