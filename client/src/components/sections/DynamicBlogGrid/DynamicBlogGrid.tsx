@@ -34,6 +34,9 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
           const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
             ? getLocalizedValue(post.featuredImage.alt, currentLocale)
             : getLocalizedValue(post.title, currentLocale);
+          const imageTitle = typeof post.featuredImage === 'object' && post.featuredImage?.title
+            ? getLocalizedValue(post.featuredImage.title, currentLocale)
+            : imageAlt;
           
           const blogUrl = `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`;
 
@@ -50,6 +53,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                     <Image 
                       src={imageUrl || "https://placehold.co/600x400?text=Image"} 
                       alt={imageAlt}
+                      title={imageTitle}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
@@ -84,6 +88,9 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
             const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
               ? getLocalizedValue(post.featuredImage.alt, currentLocale)
               : getLocalizedValue(post.title, currentLocale);
+            const imageTitle = typeof post.featuredImage === 'object' && post.featuredImage?.title
+              ? getLocalizedValue(post.featuredImage.title, currentLocale)
+              : imageAlt;
 
             const authorName =
               post.author && typeof post.author === 'object'
@@ -105,6 +112,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                       <Image 
                         src={imageUrl || "https://placehold.co/600x400?text=Image"} 
                         alt={imageAlt}
+                        title={imageTitle}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"

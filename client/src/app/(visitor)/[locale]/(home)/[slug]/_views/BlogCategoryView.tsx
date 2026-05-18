@@ -461,7 +461,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                 viewport={{ once: true }}
                 style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
               >
-                Top Picks
+                {t('topPicks')}
               </motion.span>
               <motion.h2
                 initial={{ opacity: 0, y: 12 }}
@@ -470,7 +470,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                 viewport={{ once: true }}
                 style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
               >
-                {getLocalizedValue(category.featuredBlogsSectionTitle, locale) || 'Popular Articles'}
+                {getLocalizedValue(category.featuredBlogsSectionTitle, locale) || t('popularArticles')}
               </motion.h2>
               <div style={{ width: '64px', height: '3px', background: '#b79c5c', margin: '0 auto', borderRadius: '2px' }} />
             </div>
@@ -497,7 +497,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
               viewport={{ once: true }}
               style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
             >
-              Explore More
+              {t('exploreMore')}
             </motion.span>
             <motion.h2
               initial={{ opacity: 0, y: 12 }}
@@ -506,7 +506,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
               viewport={{ once: true }}
               style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
             >
-              {getLocalizedValue(category.blogsSectionTitle, locale) || t('allArticles') || 'All Articles'}
+              {getLocalizedValue(category.blogsSectionTitle, locale) || t('allArticles')}
             </motion.h2>
             <div style={{ width: '64px', height: '3px', background: '#e5e5e5', margin: '0 auto', borderRadius: '2px' }} />
           </div>
@@ -514,7 +514,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
           {blogsData?.data?.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: '#888' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
-              <p style={{ fontSize: '16px' }}>No articles found in this category yet. Check back soon!</p>
+              <p style={{ fontSize: '16px' }}>{t('noArticlesInCategory')}</p>
             </div>
           ) : (
             <DynamicBlogGrid

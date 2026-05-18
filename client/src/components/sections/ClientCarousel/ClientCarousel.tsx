@@ -74,7 +74,7 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
       data-wow-delay='500ms'
     >
       <div className='container'>
-        <h6 className='client-carousel__title'>{t("trustedPartners")}</h6>
+        <h2 className='client-carousel__title'>{t("trustedPartners")}</h2>
 
         <TinySlider
           settings={settings}
@@ -85,14 +85,14 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
               <div className='client-carousel__one__item'>
                 <Image
                   src={item.image}
-                  alt={`Trusted Partner ${index + 1}`}
-                  title={`JES Egypt Tours Partner ${index + 1}`}
+                  alt={t("partnerAlt", { count: index + 1 })}
+                  title={t("partnerTitle", { count: index + 1 })}
                   className='client-carousel__one__image'
                 />
                 <Image
                   src={item.hoverImage}
-                  alt={`Trusted Partner ${index + 1}`}
-                  title={`JES Egypt Tours Partner ${index + 1}`}
+                  alt={t("partnerAlt", { count: index + 1 })}
+                  title={t("partnerTitle", { count: index + 1 })}
                   className='client-carousel__one__hover-image'
                 />
               </div>

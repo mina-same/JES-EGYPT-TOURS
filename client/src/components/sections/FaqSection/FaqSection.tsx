@@ -253,7 +253,7 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
                   data-wow-delay='500ms'
                 >
                   <div className='faq-page__sidebar__cta'>
-                    <Image src={faqData.image} alt='sidebar' />
+                    <Image src={faqData.image} alt={faqData.title} title={faqData.title} />
                     <div className='faq-page__sidebar__cta__content'>
                       <span className='faq-page__sidebar__sub-title'>
                         {faqData.subTitle}

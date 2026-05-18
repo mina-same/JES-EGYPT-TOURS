@@ -9,5 +9,7 @@
   "errorLoading": "Error al cargar las preguntas frecuentes. Por favor, inténtelo de nuevo más tarde.",
   "noFaqs": "No hay preguntas frecuentes disponibles",
   "bookNow": "Reservar ahora",
-  "categoryGeneral": "General"
+  "categoryGeneral": "General",
+  "anyQuestions": "¿Alguna pregunta?",
+  "contactUs": "Contáctanos"
 }

@@ -145,6 +145,11 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
           subTitle={getLocalizedValue(blog.excerpt, locale) || t('ourBlog')} 
           bgImage={featuredImageUrl}
           imageAlt={typeof blog.featuredImage === 'object' ? getLocalizedValue(blog.featuredImage?.alt, locale) : undefined}
+          imageTitle={
+            typeof blog.featuredImage === 'object'
+              ? getLocalizedValue(blog.featuredImage?.title, locale) || getLocalizedValue(blog.featuredImage?.alt, locale) || title
+              : title
+          }
           breadcrumbs={breadcrumbs}
           stats={{
             updatedAt: blog.updatedAt || blog.createdAt,

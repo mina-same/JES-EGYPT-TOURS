@@ -138,14 +138,6 @@ export default function EditBlogPage() {
           ...(updated[field] || { en: '', de: '', it: '', es: '' }),
           [lang]: value,
         };
-        
-        // Auto-generate slug when English title changes
-        if (field === 'title') {
-          updated.slug = {
-            ...(updated.slug || { en: '', de: '', it: '', es: '' }),
-            [lang]: generateSlug(value),
-          };
-        }
       } 
       else if (localizedMixedFields.includes(field)) {
         updated[field] = value;
@@ -720,7 +712,7 @@ export default function EditBlogPage() {
                         <LocalizedField
                           label="Title"
                           value={formData.title}
-                          onChange={(lang, val) => handleChange('title', val)}
+                          onChange={(lang, val) => handleChange('title', val, lang)}
                           globalLanguage={activeLanguage}
                         >
                           {(lang, value, onChange) => (
@@ -810,7 +802,7 @@ export default function EditBlogPage() {
                       <LocalizedField
                         label="Excerpt"
                         value={formData.excerpt}
-                        onChange={(lang, val) => handleChange('excerpt', val)}
+                        onChange={(lang, val) => handleChange('excerpt', val, lang)}
                         globalLanguage={activeLanguage}
                       >
                         {(lang, value, onChange) => (
@@ -972,7 +964,7 @@ export default function EditBlogPage() {
                         <LocalizedField
                           label="Meta Title"
                           value={formData.metaTitle}
-                          onChange={(lang, val) => handleChange('metaTitle', val)}
+                          onChange={(lang, val) => handleChange('metaTitle', val, lang)}
                           globalLanguage={activeLanguage}
                         >
                           {(lang, value, onChange) => (
@@ -1001,7 +993,7 @@ export default function EditBlogPage() {
                       <LocalizedField
                         label="Meta Description"
                         value={formData.metaDescription}
-                        onChange={(lang, val) => handleChange('metaDescription', val)}
+                        onChange={(lang, val) => handleChange('metaDescription', val, lang)}
                         globalLanguage={activeLanguage}
                       >
                         {(lang, value, onChange) => (

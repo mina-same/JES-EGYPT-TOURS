@@ -94,6 +94,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
   const featuredImageAlt = getLocalizedValue(typeof blog.featuredImage === 'object' ? blog.featuredImage?.alt : undefined, locale) || title;
+  const featuredImageTitle = getLocalizedValue(typeof blog.featuredImage === 'object' ? blog.featuredImage?.title : undefined, locale) || featuredImageAlt;
 
   
   const approvedComments = blog.comments?.filter(c => c.isApproved) || [];
@@ -150,7 +151,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       <Image 
                         src={img.url} 
                         alt={getLocalizedValue(img.alt, locale) || 'Blog image'}
-
+                        title={getLocalizedValue(img.title, locale) || getLocalizedValue(img.alt, locale) || 'Blog image'}
                         width={img.width || 800}
                         height={300}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -231,7 +232,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
             <Image 
               src={block.url || ''} 
               alt={getLocalizedValue(block.alt, locale) || 'Blog image'}
-
+              title={getLocalizedValue(block.title, locale) || getLocalizedValue(block.alt, locale) || 'Blog image'}
               width={1200}
               height={800}
               style={{ width: '100%', height: 'auto' }}
@@ -565,6 +566,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                   <Image 
                     src={featuredImageUrl || "https://placehold.co/1200x600?text=Image"} 
                     alt={featuredImageAlt}
+                    title={featuredImageTitle}
                     width={1200}
                     height={600}
                     style={{ width: '100%', height: 'auto' }}

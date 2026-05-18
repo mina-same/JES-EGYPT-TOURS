@@ -9,5 +9,7 @@
   "errorLoading": "Fehler beim Laden der FAQs. Bitte versuchen Sie es später erneut.",
   "noFaqs": "Keine FAQs verfügbar",
   "bookNow": "Jetzt buchen",
-  "categoryGeneral": "Allgemein"
+  "categoryGeneral": "Allgemein",
+  "anyQuestions": "Haben Sie Fragen?",
+  "contactUs": "Kontaktieren Sie uns"
 }

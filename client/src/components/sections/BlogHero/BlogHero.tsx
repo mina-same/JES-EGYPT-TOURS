@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Calendar, BookOpen, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface BlogHeroProps {
   title: string;
@@ -19,8 +20,10 @@ interface BlogHeroProps {
 }
 
 const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt, imageTitle, breadcrumbs, stats }) => {
+  const { t } = useTranslation('common');
+
   return (
-    <section className="relative h-[60vh] min-h-[500px] flex items-center overflow-hidden">
+    <section className="relative min-h-[500px] flex items-center overflow-hidden py-36 md:py-40">
       {/* Background with Zoom Effect */}
       <motion.div 
         className="absolute inset-0 -z-10"
@@ -47,7 +50,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 max-w-full overflow-hidden whitespace-nowrap"
           >
-            <Link href="/" className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0">Home</Link>
+            <Link href="/" className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0">{t('home')}</Link>
             {breadcrumbs.map((item, idx) => (
               <React.Fragment key={idx}>
                 <span className="text-white/40 flex-shrink-0">/</span>
@@ -75,11 +78,11 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
           </motion.h1>
 
           {subTitle && (
-            <motion.p 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-white/90 text-lg md:text-xl font-light max-w-2xl mb-8 leading-relaxed line-clamp-3"
+              className="html-content text-white/90 text-lg md:text-xl font-light max-w-3xl mb-8 leading-relaxed whitespace-normal break-words [&_p]:mb-3 [&_p:last-child]:mb-0"
               dangerouslySetInnerHTML={{ __html: subTitle }}
             />
           )}
@@ -94,13 +97,13 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
               {stats.articles !== undefined && (
                 <div className="flex items-center gap-2">
                   <BookOpen size={20} className="text-[#b79c5c]" />
-                  <span className="text-sm font-medium">{stats.articles} Articles</span>
+                  <span className="text-sm font-medium">{t('articlesCount', { count: stats.articles })}</span>
                 </div>
               )}
               {stats.updatedAt && (
                 <div className="flex items-center gap-2">
                   <Clock size={20} className="text-[#b79c5c]" />
-                  <span className="text-sm font-medium">Updated Recently</span>
+                  <span className="text-sm font-medium">{t('updatedRecently')}</span>
                 </div>
               )}
             </motion.div>

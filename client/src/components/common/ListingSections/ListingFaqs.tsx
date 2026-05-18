@@ -30,6 +30,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
   const displayTitle = sectionTitle && getLocalizedValue(sectionTitle, locale)
     ? getLocalizedValue(sectionTitle, locale)
     : (title || t('sectionTitle'));
+  const sidebarImageLabel = t('sidebarTitle');
 
   return (
     <section className="faq-page section-space-top section-space-bottom" style={style}>
@@ -47,7 +48,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
                 data-wow-delay='300ms'
               >
                 <div className='faq-page__sidebar__cta'>
-                  <Image src={faqSidebarImage} alt='sidebar' />
+                  <Image src={faqSidebarImage} alt={sidebarImageLabel} title={sidebarImageLabel} />
                   <div className='faq-page__sidebar__cta__content'>
                     <span className='faq-page__sidebar__sub-title'>
                       {t('sectionSubTitle')}

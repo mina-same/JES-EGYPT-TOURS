@@ -102,7 +102,7 @@ export async function getAllDestinations(params?: {
 export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
   try {
     const res = await fetch(`${API_URL}/destinations/slug/${slug}`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     });
     if (!res.ok) return null;
     const json = await res.json();

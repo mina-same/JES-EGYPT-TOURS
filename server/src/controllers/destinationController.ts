@@ -190,7 +190,11 @@ export const createDestination = async (req: Request, res: Response): Promise<vo
       res.status(400).json({ success: false, error: 'English name is required' });
       return;
     }
-    const destination = await Destination.create(req.body);
+    const body = { ...req.body };
+    if (body.metaImage?.url) {
+      body.ogImage = body.metaImage.url;
+    }
+    const destination = await Destination.create(body);
     res.status(201).json({ success: true, message: 'Destination created successfully', data: destination });
   } catch (error: any) {
     if (error.code === 11000) {
@@ -223,7 +227,12 @@ export const updateDestination = async (req: Request, res: Response): Promise<vo
     }
 
     // Update fields
-    Object.assign(destination, req.body);
+    const body = { ...req.body };
+    if (body.metaImage?.url) {
+      body.ogImage = body.metaImage.url;
+    }
+
+    Object.assign(destination, body);
 
     // Save triggers pre('save') hooks and full validation
     await destination.save();

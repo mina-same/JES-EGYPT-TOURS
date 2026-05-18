@@ -6,6 +6,12 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Clock, ArrowRight } from 'lucide-react';
 import { getLocalizedValue } from '@/lib/localize';
+import enBlogs from '@/i18n/locales/en/blogs.json';
+import deBlogs from '@/i18n/locales/de/blogs.json';
+import itBlogs from '@/i18n/locales/it/blogs.json';
+import esBlogs from '@/i18n/locales/es/blogs.json';
+
+const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
 interface BlogPost {
   _id: string;
@@ -30,6 +36,13 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
   articleCount,
 }) => {
   const previewBlogs = featuredBlogs.slice(0, 3);
+  const t = (key: string, params?: Record<string, string | number>) => {
+    let value = translations[locale]?.[key] || translations.en?.[key] || key;
+    Object.entries(params || {}).forEach(([paramKey, paramValue]) => {
+      value = value.replace(`{{${paramKey}}}`, String(paramValue));
+    });
+    return value;
+  };
 
   const getImageUrl = (img: any): string => {
     if (!img) return '';
@@ -114,7 +127,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                   marginBottom: '20px',
                 }}
               >
-                Plan Your Egypt Story
+                {t('categoryCtaEyebrow')}
               </p>
 
               {/* Headline */}
@@ -127,10 +140,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                   marginBottom: '24px',
                 }}
               >
-                Explore{' '}
-                <span style={{ color: '#b79c5c' }}>{categoryName}</span>
-                <br />
-                Through Expert Eyes
+                {t('categoryCtaTitle', { category: categoryName })}
               </h2>
 
               {/* Body */}
@@ -143,8 +153,9 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                   marginBottom: '40px',
                 }}
               >
-                Handpicked travel stories, destination guides and insider tips
-                {articleCount ? ` — ${articleCount}+ articles` : ''} curated by our Egypt specialists.
+                {articleCount
+                  ? t('categoryCtaTextWithCount', { count: articleCount })
+                  : t('categoryCtaText')}
               </p>
 
               {/* Buttons */}
@@ -171,7 +182,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                     (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
                   }}
                 >
-                  Plan Your Journey
+                  {t('planYourJourney')}
                   <ArrowRight size={16} />
                 </Link>
 
@@ -200,7 +211,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                     (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
                   }}
                 >
-                  Browse All Articles
+                  {t('browseAllArticles')}
                   <ArrowRight size={16} />
                 </Link>
               </div>

@@ -9,5 +9,7 @@
   "errorLoading": "Failed to load FAQs. Please try again later.",
   "noFaqs": "No FAQs available",
   "bookNow": "Book Now",
-  "categoryGeneral": "General"
+  "categoryGeneral": "General",
+  "anyQuestions": "Any Questions?",
+  "contactUs": "Contact Us"
 }

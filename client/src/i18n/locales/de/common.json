@@ -3,6 +3,8 @@
   "trustedPartners": "Unsere vertrauenswürdigen Partner",
   "partnerAlt": "Vertrauenswürdiger Partner {{count}}",
   "partnerTitle": "JES Ägypten Touren Partner {{count}}",
+  "articlesCount": "{{count}} Artikel",
+  "updatedRecently": "Kürzlich aktualisiert",
   "links": {
     "faq": "FAQ",
     "about": "Über uns",

@@ -225,10 +225,10 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
                 whileInView={{ opacity: 1, scale: 1 }}
                 className="text-[#b79c5c] font-bold text-sm uppercase tracking-widest mb-2"
               >
-                Top Picks
+                {t('topPicks')}
               </motion.span>
               <h2 className="text-4xl font-extrabold text-[#1d231f] text-center">
-                {getLocalizedValue(subcategory.featuredBlogsSectionTitle, locale) || t('featuredBlogs') || 'Featured Blogs'}
+                {getLocalizedValue(subcategory.featuredBlogsSectionTitle, locale) || t('featuredBlogs')}
               </h2>
               <div className="w-20 h-1 bg-[#b79c5c] mt-4 rounded-full" />
             </div>
@@ -251,10 +251,10 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
               whileInView={{ opacity: 1, scale: 1 }}
               className="text-[#b79c5c] font-bold text-sm uppercase tracking-widest mb-2"
             >
-              Explore More
+              {t('exploreMore')}
             </motion.span>
             <h2 className="text-4xl font-extrabold text-[#1d231f] text-center">
-              {getLocalizedValue(subcategory.blogsSectionTitle, locale) || t('allArticles') || 'All Articles'}
+              {getLocalizedValue(subcategory.blogsSectionTitle, locale) || t('allArticles')}
             </h2>
             <div className="w-20 h-1 bg-gray-200 mt-4 rounded-full" />
           </div>

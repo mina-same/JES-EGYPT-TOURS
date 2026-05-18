@@ -3,6 +3,8 @@
   "trustedPartners": "Nuestros socios de confianza",
   "partnerAlt": "Socio de confianza {{count}}",
   "partnerTitle": "JES Egypt Tours Socio {{count}}",
+  "articlesCount": "{{count}} artículos",
+  "updatedRecently": "Actualizado recientemente",
   "links": {
     "faq": "Preguntas frecuentes",
     "about": "Sobre nosotros",

@@ -589,13 +589,18 @@ export default function DestinationFormPage() {
                       onChange={(val) => handleChange('ogDescription', val)}
                       rows={2}
                     />
-                    <div>
-                      <Label>OG Image URL</Label>
-                      <Input
-                        value={formData.ogImage}
-                        onChange={e => handleChange('ogImage', e.target.value)}
-                        placeholder="https://..."
-                        className="mt-1"
+                    <div className="space-y-2">
+                      <Label>Meta / Social Image</Label>
+                      <ImageUpload
+                        images={formData.metaImage ? [formData.metaImage] : []}
+                        onAdd={() => handleChange('metaImage', { url: '', alt: { ...EMPTY_LOCALIZED } })}
+                        onRemove={() => handleChange('metaImage', undefined)}
+                        onUpdate={(_, field, value, lang) => handleChange(`metaImage.${field}`, value, lang)}
+                        onUpload={async (file) => handleUpload(file)}
+                        title="Meta / Social Image"
+                        description="Used for SEO and social sharing previews"
+                        maxImages={1}
+                        activeLanguage={activeLanguage}
                       />
                     </div>
                   </CardContent>

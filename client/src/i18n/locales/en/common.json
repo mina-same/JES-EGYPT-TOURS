@@ -3,6 +3,8 @@
   "trustedPartners": "Our Trusted Partners",
   "partnerAlt": "Trusted Partner {{count}}",
   "partnerTitle": "JES Egypt Tours Partner {{count}}",
+  "articlesCount": "{{count}} Articles",
+  "updatedRecently": "Updated Recently",
   "links": {
     "faq": "FAQ",
     "about": "About",

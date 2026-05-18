@@ -249,6 +249,10 @@ export const createCategory = async (
       image: normalizeImageValue(req.body.image, name),
     };
 
+    if ((body as any).metaImage?.url) {
+      (body as any).ogImage = (body as any).metaImage.url;
+    }
+
     const category = await BlogCategory.create(body);
     const categoryObject = category.toObject();
 
@@ -314,6 +318,10 @@ export const updateCategory = async (
       ...req.body,
       image: req.body.image !== undefined ? normalizeImageValue(req.body.image, name) : undefined,
     };
+
+    if ((body as any).metaImage?.url) {
+      (body as any).ogImage = (body as any).metaImage.url;
+    }
 
     if (req.body.image === undefined) {
       delete body.image;

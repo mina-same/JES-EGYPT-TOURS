@@ -9,5 +9,7 @@
   "errorLoading": "Impossibile caricare le FAQ. Riprova più tardi.",
   "noFaqs": "Nessuna FAQ disponibile",
   "bookNow": "Prenota ora",
-  "categoryGeneral": "Generale"
+  "categoryGeneral": "Generale",
+  "anyQuestions": "Hai domande?",
+  "contactUs": "Contattaci"
 }

@@ -24,10 +24,17 @@ import { getDestinationBySlug, getBlogsByDestination, Destination } from "@/lib/
 import { getLocalizedValue } from "@/lib/localize";
 import { Loader2 } from "lucide-react";
 
+import enBlogs from "@/i18n/locales/en/blogs.json";
+import deBlogs from "@/i18n/locales/de/blogs.json";
+import itBlogs from "@/i18n/locales/it/blogs.json";
+import esBlogs from "@/i18n/locales/es/blogs.json";
+
 interface DestinationViewProps {
   slug: string;
   locale: string;
 }
+
+const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
 const AT_A_GLANCE_ITEMS = [
   {
@@ -67,6 +74,13 @@ const AT_A_GLANCE_ITEMS = [
 export default function DestinationView({ slug, locale }: DestinationViewProps) {
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get("page")) || 1;
+  const t = (key: string, params?: Record<string, string | number>) => {
+    let value = translations[locale]?.[key] || translations.en?.[key] || key;
+    Object.entries(params || {}).forEach(([paramKey, paramValue]) => {
+      value = value.replace(`{{${paramKey}}}`, String(paramValue));
+    });
+    return value;
+  };
 
   const [loading, setLoading] = useState(true);
   const [destination, setDestination] = useState<Destination | null>(null);
@@ -110,9 +124,9 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
         <TopbarOne />
         <HeaderOne linkTheme="light" />
         <div className="text-center py-5" style={{ minHeight: '60vh' }}>
-          <h2 className="text-2xl font-bold text-gray-700">Destination not found</h2>
+          <h2 className="text-2xl font-bold text-gray-700">{t('destinationNotFound')}</h2>
           <Link href={`/${locale}`} className="mt-4 inline-block text-[#b79c5c] underline">
-            Return Home
+            {t('returnHome')}
           </Link>
         </div>
         <FooterOne />
@@ -126,6 +140,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
   const heroDescription = getLocalizedValue(destination.heroDescription, locale);
   const coverImageUrl = destination.coverImage?.url;
   const coverImageAlt = getLocalizedValue(destination.coverImage?.alt, locale) || name;
+  const coverImageTitle = getLocalizedValue(destination.coverImage?.title, locale) || coverImageAlt;
   const hasGlanceData = destination.bestFor || destination.combinesWith || destination.timeNeeded || destination.bestSeason;
 
   return (
@@ -142,6 +157,8 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
           title={name}
           subTitle={subheader}
           bgImage={coverImageUrl}
+          imageAlt={coverImageAlt}
+          imageTitle={coverImageTitle}
           breadcrumbs={[{ label: name }]}
         />
 
@@ -161,7 +178,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                       <div className="d-flex align-items-center gap-3 mb-4">
                         <div style={{ height: '3px', width: '40px', background: '#b79c5c', borderRadius: '2px' }} />
                         <span style={{ fontSize: '11px', fontWeight: 900, color: '#b79c5c', textTransform: 'uppercase', letterSpacing: '0.25em' }}>
-                          About This Destination
+                          {t('aboutThisDestination')}
                         </span>
                       </div>
                       <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 800, color: '#1d231f', lineHeight: 1.2, marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
@@ -249,10 +266,10 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                 className="d-flex flex-column align-items-center text-center mb-5"
               >
                 <span style={{ fontSize: '11px', fontWeight: 900, color: '#b79c5c', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '0.5rem' }}>
-                  Quick Overview
+                  {t('quickOverview')}
                 </span>
                 <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f', margin: 0 }}>
-                  At a Glance
+                  {t('atAGlance')}
                 </h2>
               </motion.div>
 
@@ -315,10 +332,10 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                 style={{ paddingTop: '60px' }}
               >
                 <span style={{ fontSize: '11px', fontWeight: 900, color: '#b79c5c', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '0.5rem' }}>
-                  Handpicked Articles
+                  {t('handpickedArticles')}
                 </span>
                 <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f', margin: 0 }}>
-                  {getLocalizedValue(destination.featuredBlogsSectionTitle, locale) || 'Featured Content'}
+                  {getLocalizedValue(destination.featuredBlogsSectionTitle, locale) || t('featuredContent')}
                 </h2>
               </motion.div>
 
@@ -345,10 +362,10 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                 whileInView={{ opacity: 1, scale: 1 }}
                 style={{ color: '#b79c5c', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.5rem' }}
               >
-                All Articles
+                {t('allArticles')}
               </motion.span>
               <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f' }}>
-                {`Explore ${name}`}
+                {t('exploreDestination', { name })}
               </h2>
               <div style={{ width: '48px', height: '2px', background: '#e5e7eb', marginTop: '1rem', borderRadius: '999px' }} />
             </motion.div>

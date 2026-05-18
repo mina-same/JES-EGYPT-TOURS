@@ -175,6 +175,16 @@ export default function NewBlogSubCategoryPage() {
             };
           };
 
+          const mapToLocalizedMixed = (val: any): ILocalizedMixed => {
+            if (!val) return { en: [], de: [], it: [], es: [] };
+            return {
+              en: val.en || [],
+              de: val.de || [],
+              it: val.it || [],
+              es: val.es || [],
+            };
+          };
+
           const imageObj = typeof data.image === 'string'
             ? { url: data.image, fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
             : {
@@ -193,7 +203,7 @@ export default function NewBlogSubCategoryPage() {
             seo: {
               metaTitle: mapToLocalized(data.metaTitle),
               metaDescription: mapToLocalized(data.metaDescription),
-              metaKeywords: data.seo?.metaKeywords || { en: [], de: [], it: [], es: [] },
+              metaKeywords: mapToLocalizedMixed(data.metaKeywords || data.seo?.metaKeywords),
               metaImage: {
                 url: data.metaImage?.url || '',
                 fileName: data.metaImage?.fileName || '',
@@ -203,6 +213,12 @@ export default function NewBlogSubCategoryPage() {
             },
             heroTitle: mapToLocalized(data.heroTitle),
             heroDescription: mapToLocalized(data.heroDescription),
+            sideImage: data.sideImage ? {
+              url: data.sideImage.url || '',
+              fileName: data.sideImage.fileName || '',
+              title: mapToLocalized(data.sideImage.title),
+              alt: mapToLocalized(data.sideImage.alt),
+            } : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
             featuredBlogsSectionTitle: mapToLocalized(data.featuredBlogsSectionTitle),
             blogsSectionTitle: mapToLocalized(data.blogsSectionTitle),
             faqsSectionTitle: mapToLocalized(data.faqsSectionTitle),

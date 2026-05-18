@@ -374,6 +374,7 @@ export const createBlog = async (
     // Handle metaImage migration
     if (body.metaImage) {
       body.metaImage = normalizeMetaImage(body.metaImage);
+      body.ogImage = body.metaImage?.url || body.ogImage;
     }
     
     const blog = await Blog.create(body);
@@ -436,6 +437,7 @@ export const updateBlog = async (
     // Handle metaImage migration
     if (body.metaImage !== undefined) {
       body.metaImage = normalizeMetaImage(body.metaImage);
+      body.ogImage = body.metaImage?.url || body.ogImage;
     }
     
     const blog = await Blog.findByIdAndUpdate(

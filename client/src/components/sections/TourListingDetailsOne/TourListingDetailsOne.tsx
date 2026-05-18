@@ -11,11 +11,6 @@ import Link from "next/link";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import { reviewsAPI } from "@/lib/api/reviews";
-import { tourAPI } from "@/lib/api/tour";
-import { useWishlist } from "@/contexts/WishlistContext";
-import { toast } from "@/hooks/use-toast";
-import TourCard from "@/components/common/TourCard/TourCard";
-import VideoModal from "@/components/common/VideoModal/VideoModal";
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -36,8 +31,8 @@ import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
-const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
-  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
+const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
+  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id);
   console.log("DEBUG [TourListingDetailsOne]: moreTours state:", moreTours);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
@@ -56,48 +51,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
   const params = useParams() as { locale: string };
   const { t, i18n } = useTranslation("tours");
-  const { toggleWishlist, isInWishlist } = useWishlist();
-
-  // Video reviews modal state
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [videoIds, setVideoIds] = useState<string[]>([]);
-
-  const getYouTubeVideoId = (url: string): string => {
-    if (!url) return "";
-    const t = url.trim();
-    const s = t.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (s?.[1]) return s[1];
-    const w = t.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (w?.[1]) return w[1];
-    const e = t.match(/\/embed\/([a-zA-Z0-9_-]{6,})/); if (e?.[1]) return e[1];
-    const sh = t.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/); if (sh?.[1]) return sh[1];
-    return "";
-  };
-
-  const openVideoReviews = async (tourSlug: string) => {
-    try {
-      const res = await tourAPI.getBySlug(tourSlug);
-      if (res.success && res.data) {
-        const vids = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
-          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
-          .filter(Boolean);
-        if (vids.length > 0) {
-          setVideoIds(vids);
-          setIsVideoOpen(true);
-        } else {
-          toast({
-            title: t('status.noVideoTitle', "No video reviews"),
-            description: t('status.noVideoInfo', "This tour doesn’t have any video reviews yet."),
-            variant: "info",
-          });
-        }
-      }
-    } catch {
-      toast({
-        title: t('status.failedVideoTitle', "Failed to load videos"),
-        description: t('status.failedVideo', "Network or server error. Please try again."),
-        variant: "destructive",
-      });
-    }
-  };
 
   useEffect(() => {
     if (params?.locale && i18n.resolvedLanguage !== params.locale) {
@@ -311,7 +264,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         <TourCarousel sliderImages={sliderImages} title={title} />
 
         {/* Tour Key Facts - Screen Reader Only */}
-        <h2 className="sr-only">{t("tourDetails.keyFacts", "Tour Key Facts")}</h2>
+        <h2 className="sr-only">Tour Key Facts</h2>
 
         {/* Info Bar Section */}
         <TourInfoBar
@@ -460,7 +413,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             </div>
                             <div>
                                <h4 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
-                                 {t("tourDetails.whatYouWillLove")}
+                                 {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
                                </h4>
                                <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
                             </div>
@@ -484,7 +437,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         className="tour-read-more-btn"
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                       >
-                        {isDescriptionExpanded ? t("tourDetails.readLess") : t("tourDetails.readMore")}
+                        {isDescriptionExpanded ? t("tourDetails.readLess", "Read Less") : t("tourDetails.readMore", "Read More")}
                       </button>
                     )}
                   </div>
@@ -498,7 +451,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </h2>
                     </div>
                     <ul className="list-unstyled row gutter-y-20" style={{ paddingLeft: 0 }}>
-                      {highlightList.map((item: string, index: number) => (
+                      {highlightList.map((item, index) => (
                         <li key={index} className="col-md-6 col-lg-4 mb-3">
                           <div className="d-flex align-items-start gap-3">
                             <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ 
@@ -525,7 +478,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 <section id="map" className="tour-section">
                   {map && (
                     <div className='tour-listing-details__content__item'>
-                      <h2 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h2>
+                      <h4 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h4>
                       <div className="tour-listing-details__map-box" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
                         <iframe
                           title='Google Map'
@@ -591,7 +544,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                               className="tour-read-more-btn"
                               onClick={() => setIsAmenitiesExpanded(!isAmenitiesExpanded)}
                             >
-                              {isAmenitiesExpanded ? t("tourDetails.showLess") : t("tourDetails.showAll")}
+                              {isAmenitiesExpanded ? t("tourDetails.showLess", "Show Less") : t("tourDetails.showAll", "Show All Parameters")}
                             </button>
                           </div>
                         )}
@@ -635,10 +588,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       borderRight: '4px solid #b79c5c'
                     }}>
                       <div className="mb-3 d-flex align-items-center justify-content-between">
-                        <h2 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
+                        <h4 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
                           <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }}></i>
-                          {t("tourDetails.whatToPack")}
-                        </h2>
+                          {t("tourDetails.whatToPack", "What to Pack")}
+                        </h4>
                       </div>
                       <div className="row g-2">
                         {tourData.whatToPack.map((item, index) => (
@@ -659,9 +612,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <section id="important-notes" className="tour-section mt-4 pt-3 border-top">
                     <div className="mb-4 d-flex align-items-center gap-2">
                       <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
-                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
-                        {t("tourDetails.importantNotes")}
-                      </h2>
+                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
+                        {t("tourDetails.importantNotes", "Important Notes")}
+                      </h4>
                     </div>
                     <div className="d-flex flex-column gap-3">
                       {tourData.notes?.map((note, index) => (
@@ -696,7 +649,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   {images && images.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__thumb'>
                       <div className="mb-4">
-                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h2>
+                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h4>
                         <p className="tour-reviews-subtitle">{t("tourDetails.gallerySubtitle")}</p>
                       </div>
                       
@@ -877,7 +830,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <section id="honest-reviews" className="tour-section">
                     <div className='tour-listing-details__content__item'>
                       <div className="mb-4">
-                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h2>
+                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h4>
                         <p className="tour-reviews-subtitle">{t("tourDetails.honestReviewsSubtitle")}</p>
                       </div>
                       <div className="row gutter-y-30">
@@ -888,12 +841,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                               style={{ boxShadow: '0 8px 18px rgba(0,0,0,0.06)' }}
                             >
                               <div className="p-3 border-bottom">
-                                <div className="fw-semibold" style={{ color: '#1a1a1a' }}>{v.title || t("tourDetails.review", "Review")}</div>
+                                <div className="fw-semibold" style={{ color: '#1a1a1a' }}>{v.title || 'Review'}</div>
                               </div>
                               <div className="ratio ratio-16x9">
                                 <iframe
                                   src={`https://www.youtube-nocookie.com/embed/${v.videoId}`}
-                                  title={v.title || t("tourDetails.youtubeReview", "YouTube review")}
+                                  title={v.title || 'YouTube review'}
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                   allowFullScreen
                                 />
@@ -963,14 +916,38 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
                 </div>
                 <div className="row gutter-y-30">
-                  {relatedTours.map((tour: any) => (
+                  {relatedTours.map((tour: any, index: number) => (
                     <div key={tour.id} className="col-lg-4 col-md-6">
-                      <TourCard 
-                        item={tour}
-                        toggleWishlist={toggleWishlist}
-                        isInWishlist={isInWishlist}
-                        openVideoReviews={openVideoReviews}
-                      />
+                      <article 
+                        className="tour-listing-one__item wow fadeInUp"
+                        data-wow-duration='1500ms'
+                        data-wow-delay={`${100 * (index + 1)}ms`}
+                      >
+                        <div className="tour-listing-one__image">
+                          <Image
+                            src={tour.image}
+                            alt={tour.imageAlt || tour.title || "Tour Image"}
+                            title={tour.imageTitle || tour.title || "Tour Image"}
+                            width={500}
+                            height={350}
+                            className="img-fluid"
+                            style={{ height: '280px', objectFit: 'cover' }}
+                          />
+                          <Link href={tour.link} className="tour-listing-one__image__link">
+                            <span className="sr-only">{tour.title}</span>
+                          </Link>
+                        </div>
+                        <div className="tour-listing-one__content">
+                          <h3 className="tour-listing-one__title text-center">
+                            <Link href={tour.link}>{tour.title}</Link>
+                          </h3>
+                          <div className="text-center mt-2">
+                            <Link href={tour.link} className="gotur-btn gotur-btn--base py-2 px-4" style={{ fontSize: '14px' }}>
+                              View Details
+                            </Link>
+                          </div>
+                        </div>
+                      </article>
                     </div>
                   ))}
                 </div>
@@ -984,7 +961,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             <Container>
                 <div className="sec-title text-center mb-5">
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedBlogs.tagline", "Travel Stories")}</h6>
-                  <h2 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h2>
+                  <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
                 </div>
                 <div className="row gutter-y-30">
                   {relatedBlogs.map((blog: any, index: number) => (
@@ -1080,12 +1057,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
       {/* Mobile Sticky Booking Bar */}
       <MobileStickyBookingBar tourId={id || ""} price={price} />
-
-      <VideoModal
-        isOpen={isVideoOpen}
-        setOpen={setIsVideoOpen}
-        ids={videoIds}
-      />
     </>
   );
 };
