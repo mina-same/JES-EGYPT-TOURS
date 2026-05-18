@@ -41,6 +41,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [isVideoOpen, setVideoOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
+  const [activeFaqKey, setActiveFaqKey] = useState<string | null>("0");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -311,14 +312,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           <HelpCircle color="#b79c5c" />
           {t('faq')}
         </h3>
-        <Accordion defaultActiveKey="0" className="faq-accordion">
+        <Accordion activeKey={activeFaqKey ?? undefined} onSelect={(eventKey) => setActiveFaqKey(eventKey as string | null)} className="faq-accordion">
           {faqs.map((faq, index) => (
             <Accordion.Item eventKey={index.toString()} key={index} className="border-0 mb-3 shadow-sm rounded-4 overflow-hidden">
               <Accordion.Header className="bg-white">
                 <span className="fw-bold" style={{ color: '#1a1a1a' }}>{getLocalizedValue(faq.question, locale)}</span>
               </Accordion.Header>
               <Accordion.Body className="bg-white" style={{ color: '#666', lineHeight: '1.7' }}>
-                {getLocalizedValue(faq.answer, locale)}
+                <div dangerouslySetInnerHTML={{ __html: getLocalizedValue(faq.answer, locale) }} />
               </Accordion.Body>
             </Accordion.Item>
           ))}
@@ -332,6 +333,27 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           .faq-accordion .accordion-button:focus {
             box-shadow: none;
             border-color: rgba(183, 156, 92, 0.1);
+          }
+          .faq-accordion .accordion-body a {
+            color: #b79c5c;
+            text-decoration: underline;
+            transition: color 0.2s ease;
+          }
+          .faq-accordion .accordion-body a:hover {
+            color: #1b4168;
+          }
+          .faq-accordion .accordion-body u {
+            text-decoration: underline;
+          }
+          .faq-accordion .accordion-body strong {
+            font-weight: 700;
+            color: #1a1a1a;
+          }
+          .faq-accordion .accordion-body p {
+            margin-bottom: 1rem;
+          }
+          .faq-accordion .accordion-body p:last-child {
+            margin-bottom: 0;
           }
         `}</style>
       </div>

@@ -132,7 +132,7 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
               title: tab.title,
               faqs: faqsForCategory.map((f) => ({
                 question: getLocalizedValue(f.question, currentLang),
-                answer: stripHtml(getLocalizedValue(f.answer, currentLang)),
+                answer: getLocalizedValue(f.answer, currentLang),
               })),
             },
           ],
