@@ -9,13 +9,13 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import BlogTOC from "@/components/common/BlogTOC/BlogTOC";
-import { Accordion } from "react-bootstrap";
-import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2 } from "lucide-react";
+import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2, Plus, Minus } from "lucide-react";
 import ReviewAvatar from "@/components/common/ReviewAvatar";
 import { API_URL } from "@/config/api";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
+import BlogImage from "@/components/common/BlogImage/BlogImage";
 
 
 interface DynamicBlogDetailsProps {
@@ -126,39 +126,29 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           </div>
         );
       
-      case 'imageRow':
-        // Check if next block is html or blockquote to include in inner content
-        const nextBlock = blog.contentBlocks[index + 1];
-        const isNextBlockContent = nextBlock && (nextBlock.type === 'html' || nextBlock.type === 'blockquote');
-        
-        // Dynamic column classes based on number of images
-        const getImageColumnClass = () => {
-          const imageCount = block.images?.length || 0;
-          if (imageCount === 1) return 'col-md-12';
-          return 'col-md-6'; // 2 or more images
-        };
-        
+      case 'imageRow': {
+        const imageCount = block.images?.length || 0;
+        const colClass = imageCount === 1 ? 'col-md-12' : 'col-md-6';
+        // Single image gets full 16:9; side-by-side pair gets 4:3 to avoid being too wide/thin
+        const imgAspectRatio = imageCount === 1 ? '16:9' : '4:3';
+
         return (
           <div key={index} className='blog-details__inner'>
             <div className='row gutter-y-30'>
               {block.images?.map((img: any, imgIndex: number) => (
                 <div
-                  className={`${getImageColumnClass()} wow fadeInLeft`}
+                  className={`${colClass} wow fadeInLeft`}
                   data-wow-delay={`${100 * imgIndex}ms`}
                   key={imgIndex}
                 >
-                  <div className='blog-details__inner__image'>
-                    <div style={{ height: '250px', overflow: 'hidden' }}>
-                      <Image 
-                        src={img.url} 
-                        alt={getLocalizedValue(img.alt, locale) || 'Blog image'}
-                        title={getLocalizedValue(img.title, locale) || getLocalizedValue(img.alt, locale) || 'Blog image'}
-                        width={img.width || 800}
-                        height={300}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
-                  </div>
+                  <BlogImage
+                    src={img.url}
+                    alt={getLocalizedValue(img.alt, locale) || 'Blog image'}
+                    aspectRatio={imgAspectRatio}
+                    fit="cover"
+                    focus="center"
+                    caption={getLocalizedValue(img.caption, locale) || undefined}
+                  />
                 </div>
               ))}
             </div>
@@ -174,6 +164,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
             )}
           </div>
         );
+      }
 
       
       case 'blockquote':
@@ -230,18 +221,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       case 'image':
         return (
           <div key={index} className='blog-details__inner__image wow fadeInUp'>
-            <Image 
-              src={block.url || ''} 
+            <BlogImage
+              src={block.url || ''}
               alt={getLocalizedValue(block.alt, locale) || 'Blog image'}
-              title={getLocalizedValue(block.title, locale) || getLocalizedValue(block.alt, locale) || 'Blog image'}
-              width={1200}
-              height={800}
-              style={{ width: '100%', height: 'auto' }}
+              aspectRatio={block.aspectRatio || '16:9'}
+              fit={block.fit || 'cover'}
+              focus={block.focus || 'center'}
+              caption={block.caption ? getLocalizedValue(block.caption, locale) : undefined}
             />
-            {block.caption && (
-              <p className='blog-details__inner__caption'>{getLocalizedValue(block.caption, locale)}</p>
-
-            )}
           </div>
         );
 
@@ -308,54 +295,49 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     return (
       <div className="blog-details__faq mt-5 pt-5 border-top" id="blog-faq">
-        <h3 className="mb-4 d-flex align-items-center gap-2">
-          <HelpCircle color="#b79c5c" />
-          {t('faq')}
-        </h3>
-        <Accordion activeKey={activeFaqKey ?? undefined} onSelect={(eventKey) => setActiveFaqKey(eventKey as string | null)} className="faq-accordion">
-          {faqs.map((faq, index) => (
-            <Accordion.Item eventKey={index.toString()} key={index} className="border-0 mb-3 shadow-sm rounded-4 overflow-hidden">
-              <Accordion.Header className="bg-white">
-                <span className="fw-bold" style={{ color: '#1a1a1a' }}>{getLocalizedValue(faq.question, locale)}</span>
-              </Accordion.Header>
-              <Accordion.Body className="bg-white" style={{ color: '#666', lineHeight: '1.7' }}>
-                <div dangerouslySetInnerHTML={{ __html: getLocalizedValue(faq.answer, locale) }} />
-              </Accordion.Body>
-            </Accordion.Item>
-          ))}
-        </Accordion>
-        <style jsx global>{`
-          .faq-accordion .accordion-button:not(.collapsed) {
-            background-color: transparent;
-            color: #b79c5c;
-            box-shadow: none;
-          }
-          .faq-accordion .accordion-button:focus {
-            box-shadow: none;
-            border-color: rgba(183, 156, 92, 0.1);
-          }
-          .faq-accordion .accordion-body a {
-            color: #b79c5c;
-            text-decoration: underline;
-            transition: color 0.2s ease;
-          }
-          .faq-accordion .accordion-body a:hover {
-            color: #1b4168;
-          }
-          .faq-accordion .accordion-body u {
-            text-decoration: underline;
-          }
-          .faq-accordion .accordion-body strong {
-            font-weight: 700;
-            color: #1a1a1a;
-          }
-          .faq-accordion .accordion-body p {
-            margin-bottom: 1rem;
-          }
-          .faq-accordion .accordion-body p:last-child {
-            margin-bottom: 0;
-          }
-        `}</style>
+        <div className="blog-faq-header mb-4">
+          <div className="d-flex align-items-center gap-3 mb-2">
+            <div className="blog-faq-icon-wrap">
+              <HelpCircle size={22} />
+            </div>
+            <h3 className="blog-faq-title mb-0">{t('faq')}</h3>
+          </div>
+          <div className="blog-faq-divider" />
+        </div>
+
+        <div className="blog-faq-list">
+          {faqs.map((faq, index) => {
+            const isOpen = activeFaqKey === index.toString();
+            return (
+              <div
+                key={index}
+                className={`blog-faq-item${isOpen ? ' blog-faq-item--open' : ''}`}
+              >
+                <button
+                  className="blog-faq-item__trigger"
+                  onClick={() => setActiveFaqKey(isOpen ? null : index.toString())}
+                  aria-expanded={isOpen}
+                >
+                  <span className="blog-faq-item__num">
+                    Q{String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span className="blog-faq-item__question">
+                    {getLocalizedValue(faq.question, locale)}
+                  </span>
+                  <span className="blog-faq-item__icon" aria-hidden="true">
+                    {isOpen ? <Minus size={15} /> : <Plus size={15} />}
+                  </span>
+                </button>
+                <div className="blog-faq-item__body">
+                  <div
+                    className="blog-faq-item__answer"
+                    dangerouslySetInnerHTML={{ __html: getLocalizedValue(faq.answer, locale) }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
