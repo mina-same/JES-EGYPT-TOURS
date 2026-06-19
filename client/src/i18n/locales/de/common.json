@@ -153,5 +153,17 @@
     "luxor": { "title": "Luxor", "subtitle": "Heißluftballon über dem Nil" },
     "qaitbay": { "title": "Qaitbay-Zitadelle", "subtitle": "Alexandria Küstentour" },
     "siwa": { "title": "Siwa", "subtitle": "Oase & Salzseen Tour" }
+  },
+  "tailorOffer": {
+    "tagline": "Maßgeschneidert",
+    "badge": "Privat & Exklusiv",
+    "titleLine1": "Ihr Ägypten,",
+    "titleLine2": "Ihr Tempo.",
+    "desc": "Kairo-ansässige Spezialisten, die private Touren nach Ihrem Tempo, Ihren Interessen und den Sehenswürdigkeiten planen, die Ihnen wirklich wichtig sind.",
+    "feature1": "Ihr eigener lizenzierter Reiseleiter — keine Gruppe, kein Zeitdruck",
+    "feature2": "Bleiben Sie so lange Sie möchten an jedem Ort",
+    "feature3": "Reiseroute passt sich flexibel an Ihre Wünsche an",
+    "feature4": "Klarer Preis schriftlich bestätigt, bevor Sie buchen",
+    "cta": "Ihre private Tour planen"
   }
 }

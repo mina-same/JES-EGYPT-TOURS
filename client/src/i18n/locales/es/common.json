@@ -153,5 +153,17 @@
     "luxor": { "title": "Luxor", "subtitle": "Globo Aerostático sobre el Nilo" },
     "qaitbay": { "title": "Ciudadela de Qaitbay", "subtitle": "Tour Costero de Alejandría" },
     "siwa": { "title": "Siwa", "subtitle": "Tour del Oasis y Lagos Salados" }
+  },
+  "tailorOffer": {
+    "tagline": "A medida",
+    "badge": "Privado y exclusivo",
+    "titleLine1": "Su Egipto,",
+    "titleLine2": "a su manera.",
+    "desc": "Especialistas con sede en El Cairo que planifican tours privados adaptados a su ritmo, sus intereses y los lugares que realmente importan.",
+    "feature1": "Su propio guía con licencia — sin grupo, sin prisa",
+    "feature2": "Quédese todo el tiempo que quiera en cada lugar",
+    "feature3": "Itinerario flexible que se adapta sobre la marcha",
+    "feature4": "Precio claro confirmado por escrito antes de reservar",
+    "cta": "Planificar mi tour privado"
   }
 }

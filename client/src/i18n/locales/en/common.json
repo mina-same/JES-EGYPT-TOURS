@@ -154,5 +154,17 @@
     "luxor": { "title": "Luxor", "subtitle": "Nile Hot Air Balloon View" },
     "qaitbay": { "title": "Qaitbay Citadel", "subtitle": "Alexandria Coastal Tour" },
     "siwa": { "title": "Siwa", "subtitle": "Oasis & Salt Lakes Tour" }
+  },
+  "tailorOffer": {
+    "tagline": "Tailor-Made",
+    "badge": "Private & Exclusive",
+    "titleLine1": "Your Egypt,",
+    "titleLine2": "Your Way.",
+    "desc": "Cairo-based specialists planning private tours around your pace, your interests, and the sites that matter to you — not a group schedule.",
+    "feature1": "Your own licensed guide — no sharing, no rush",
+    "feature2": "Stay as long as you want at every site",
+    "feature3": "Itinerary that adjusts as you go",
+    "feature4": "Clear price confirmed in writing before you book",
+    "cta": "Plan Your Private Tour"
   }
 }

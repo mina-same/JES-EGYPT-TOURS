@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -10,7 +10,9 @@ import { Container } from "react-bootstrap";
 import { Autoplay } from "swiper/modules";
 interface InstagramItem {
   id: number;
-  image: StaticImageData;
+  image: string;
+  alt: string;
+  title: string;
   link: string;
 }
 
@@ -61,7 +63,7 @@ const InstagramOne: React.FC<InstragramOneProps> = ({ extraClass }) => {
             {items.map((item) => (
               <SwiperSlide key={item.id}>
                 <div className='instagram-one__item'>
-                  <Image src={item.image} alt='instagram' />
+                  <Image src={item.image} alt={item.alt} title={item.title} width={400} height={400} style={{ objectFit: 'cover' }} />
                   <div className='instagram-one__item__overly'>
                     <div className='instagram-one__item__overly__icon'>
                       <i className='fab fa-instagram'></i>

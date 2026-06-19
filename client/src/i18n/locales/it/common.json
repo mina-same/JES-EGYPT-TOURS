@@ -153,5 +153,17 @@
     "luxor": { "title": "Luxor", "subtitle": "Mongolfiera sul Nilo" },
     "qaitbay": { "title": "Cittadella di Qaitbay", "subtitle": "Tour Costiero di Alessandria" },
     "siwa": { "title": "Siwa", "subtitle": "Tour dell'Oasi e Laghi Salati" }
+  },
+  "tailorOffer": {
+    "tagline": "Su misura",
+    "badge": "Privato ed esclusivo",
+    "titleLine1": "Il vostro Egitto,",
+    "titleLine2": "a modo vostro.",
+    "desc": "Specialisti con sede al Cairo che pianificano tour privati attorno al vostro ritmo, ai vostri interessi e ai luoghi che contano davvero per voi.",
+    "feature1": "La vostra guida autorizzata — senza gruppo, senza fretta",
+    "feature2": "Fermatevi quanto volete in ogni sito che visitate",
+    "feature3": "Itinerario flessibile che si adatta a voi",
+    "feature4": "Prezzo chiaro confermato per iscritto prima di prenotare",
+    "cta": "Pianifica il tuo tour privato"
   }
 }
