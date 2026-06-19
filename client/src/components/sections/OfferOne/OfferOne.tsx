@@ -106,7 +106,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
             >
               <div className="offer-one__thumb__item">
                 <Image
-                  src="/images/backgrounds/giza-pyramids-sphinx-sunset-panorama-egypt.webp"
+                  src="/images/jes-egypt-tours-giza-pyramids-family-group-photo.webp"
                   alt="Private Egypt Tour — Giza Pyramids at Sunset"
                   width={600}
                   height={480}

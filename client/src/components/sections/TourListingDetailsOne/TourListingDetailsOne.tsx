@@ -6,7 +6,8 @@ import { Container, Accordion } from "react-bootstrap";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Loader2, Calendar, Headphones, Tag, Star, Zap, ChevronDown, HelpCircle } from "lucide-react";
+import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, HelpCircle } from "lucide-react";
+import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 import Link from "next/link";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
@@ -45,7 +46,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [isAmenitiesExpanded, setIsAmenitiesExpanded] = useState(false);
   const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
   const [isMobile, setIsMobile] = useState(false);
 
@@ -208,7 +208,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   } = tourData;
 
   const hasReviewVideos = (reviewVideos || []).length > 0;
-  const hasMoreAmenities = (amenities?.length > 4) || (amenitiesTwo?.length > 4);
 
   const handleBookingSubmit = (data: any) => {
     console.log("Booking Submitted:", data);
@@ -238,11 +237,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   };
 
   if (loading) {
-    return (
-      <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '400px' }}>
-        <Loader2 className="animate-spin" style={{ width: '2rem', height: '2rem' }} />
-      </div>
-    );
+    return <TourListingDetailsOneSkeleton />;
   }
 
   if (error) {
@@ -495,60 +490,42 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
                 {/* Amenities Section */}
                 <section id="amenities" className="tour-section">
-                  {(amenities && amenities.length > 0) || (amenitiesTwo && amenitiesTwo.length > 0) ? (
+                  {(amenities && amenities.trim().length > 0) || (amenitiesTwo && amenitiesTwo.trim().length > 0) ? (
                     <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
                       <h2 className='tour-listing-details__title mb-4' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
                         {t("tourDetails.amenitiesTitle")}
                       </h2>
                       <div className="row g-4">
-                        {amenities && amenities.length > 0 && (
+                        {amenities && amenities.trim().length > 0 && (
                           <div className="col-lg-6">
                             <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
                               <h3 className='m-0 fs-6 fw-bold text-dark mb-4' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                 {t("tourDetails.included")}
                               </h3>
-                              <ul className='list-unstyled m-0 d-flex flex-column gap-3'>
-                                {(isMobile && !isAmenitiesExpanded ? amenities.slice(0, 4) : amenities).map((amenity, index) => (
-                                  <li key={index} className="d-flex align-items-start gap-3">
-                                    <i className='fas fa-check' style={{ fontSize: '0.8rem', marginTop: '5px', color: '#b79c5c' }}></i>
-                                    <span style={{ fontSize: '0.9rem', color: '#555' }}>{amenity}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                              <div
+                                className="tour-html-content"
+                                style={{ fontSize: '0.9rem', color: '#555' }}
+                                dangerouslySetInnerHTML={{ __html: amenities }}
+                              />
                             </div>
                           </div>
                         )}
-                        {amenitiesTwo && amenitiesTwo.length > 0 && (
+                        {amenitiesTwo && amenitiesTwo.trim().length > 0 && (
                           <div className="col-lg-6">
                             <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
                               <h3 className='m-0 fs-6 fw-bold text-dark mb-4' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                 {t("tourDetails.notIncluded")}
                               </h3>
-                              <ul className='list-unstyled m-0 d-flex flex-column gap-3'>
-                                {(isMobile && !isAmenitiesExpanded ? amenitiesTwo.slice(0, 4) : amenitiesTwo).map((amenity, index) => (
-                                  <li key={index} className="d-flex align-items-start gap-3">
-                                    <i className='fas fa-times text-danger' style={{ fontSize: '0.8rem', marginTop: '5px' }}></i>
-                                    <span style={{ fontSize: '0.9rem', color: '#555' }}>{amenity}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                              <div
+                                className="tour-html-content"
+                                style={{ fontSize: '0.9rem', color: '#555' }}
+                                dangerouslySetInnerHTML={{ __html: amenitiesTwo }}
+                              />
                             </div>
                           </div>
                         )}
                       </div>
-
-                        {/* Mobile Show More Button */}
-                        {isMobile && hasMoreAmenities && (
-                          <div className="text-center mt-3">
-                            <button 
-                              className="tour-read-more-btn"
-                              onClick={() => setIsAmenitiesExpanded(!isAmenitiesExpanded)}
-                            >
-                              {isAmenitiesExpanded ? t("tourDetails.showLess", "Show Less") : t("tourDetails.showAll", "Show All Parameters")}
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                    </div>
                   ) : (
                     <EmptyState
                       title={t("tourDetails.empty.amenitiesTitle")}

@@ -1,6 +1,48 @@
 import { ILocalizedString, ILocalizedMixed } from "@/types/tour";
 
 /**
+ * Extracts a locale-specific array without any cross-locale fallback.
+ * If the current locale has no array (or an empty one), returns [].
+ * Never merges or falls back to another locale's array.
+ */
+export function getLocalizedList(
+  field: any,
+  locale: string,
+  fieldName?: string
+): string[] {
+  if (!field) return [];
+
+  let raw: any;
+
+  if (Array.isArray(field)) {
+    // [{en: "...", de: "..."}, ...] — pick only the current locale key from each item
+    raw = field
+      .map((item: any) => item?.[locale])
+      .filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0);
+  } else {
+    // { en: [...], de: [...] } — take only the current locale's array
+    raw = field[locale];
+  }
+
+  if (!Array.isArray(raw)) {
+    if (process.env.NODE_ENV === "development" && fieldName) {
+      console.warn(`[i18n] Missing list for field "${fieldName}" in locale "${locale}"`);
+    }
+    return [];
+  }
+
+  const result = raw.filter(
+    (item: unknown): item is string => typeof item === "string" && item.trim().length > 0
+  );
+
+  if (process.env.NODE_ENV === "development" && result.length === 0 && fieldName) {
+    console.warn(`[i18n] Empty list for field "${fieldName}" in locale "${locale}"`);
+  }
+
+  return result;
+}
+
+/**
  * Extracts the correct localized string based on the current locale.
  * Falls back to English if the translation is missing.
  */

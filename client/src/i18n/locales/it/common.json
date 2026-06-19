@@ -156,14 +156,14 @@
   },
   "tailorOffer": {
     "tagline": "Su misura",
-    "badge": "Privato ed esclusivo",
     "titleLine1": "Il vostro Egitto,",
     "titleLine2": "a modo vostro.",
-    "desc": "Specialisti con sede al Cairo che pianificano tour privati attorno al vostro ritmo, ai vostri interessi e ai luoghi che contano davvero per voi.",
-    "feature1": "La vostra guida autorizzata — senza gruppo, senza fretta",
-    "feature2": "Fermatevi quanto volete in ogni sito che visitate",
-    "feature3": "Itinerario flessibile che si adatta a voi",
-    "feature4": "Prezzo chiaro confermato per iscritto prima di prenotare",
-    "cta": "Pianifica il tuo tour privato"
+    "desc": "Organizzate un tour privato in Egitto con un team autorizzato, con sede al Cairo. Guida, percorso e orari li gestiamo noi — voi decidete cosa vedere e quando.",
+    "feature1": "La vostra guida ufficiale — solo per voi, senza fretta",
+    "feature2": "Scegliete i luoghi che vi interessano davvero",
+    "feature3": "Tempi flessibili a ogni tappa",
+    "feature4": "Prezzo confermato per iscritto prima della prenotazione",
+    "cta": "Pianifica il mio tour privato",
+    "badge": "100% Privato — Nessun Tour di Gruppo"
   }
 }

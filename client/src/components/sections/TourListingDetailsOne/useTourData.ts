@@ -7,6 +7,7 @@ import { getBlogById } from "@/lib/api/blog";
 import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
+import { getLocalizedList } from "@/lib/localize";
 
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
@@ -104,18 +105,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       }))
       .filter(v => v.url && v.videoId);
     
-    const getLocalizedArray = (obj: any): any[] => {
-      if (!obj) return [];
-      if (Array.isArray(obj)) {
-        const localized = obj.map(item => item[currentLang]).filter(Boolean);
-        if (localized.length > 0) return localized;
-        return obj.map(item => item.en).filter(Boolean);
-      }
-      const current = safeArray(obj[currentLang]);
-      if (current.length > 0) return current;
-      return safeArray(obj.en);
-    };
-
     const subId = typeof tour.subcategory === 'object'
       ? tour.subcategory?._id || tour.subcategory
       : tour.subcategory;
@@ -134,10 +123,10 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",
       topDestinations: "",
       sliderImages,
-      highlightList: getLocalizedArray(tour.tourHighlights).map(h => String(h)).filter(Boolean),
-      amenities: getLocalizedArray(tour.inclusion).map(i => String(i)).filter(Boolean),
-      amenitiesTwo: getLocalizedArray(tour.exclusion).map(e => String(e)).filter(Boolean),
-      whatToPack: getLocalizedArray(tour.whatToPack).map(w => String(w)).filter(Boolean),
+      highlightList: getLocalizedList(tour.tourHighlights, currentLang, "tourHighlights"),
+      amenities: getLocalizedValue(tour.inclusion),
+      amenitiesTwo: getLocalizedValue(tour.exclusion),
+      whatToPack: getLocalizedList(tour.whatToPack, currentLang, "whatToPack"),
       notes: safeArray(tour.notes).map((n: any) => ({
         title: getLocalizedValue(n?.title),
         text: getLocalizedValue(n?.text),

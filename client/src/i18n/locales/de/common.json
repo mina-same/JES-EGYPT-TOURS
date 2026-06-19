@@ -156,14 +156,14 @@
   },
   "tailorOffer": {
     "tagline": "Maßgeschneidert",
-    "badge": "Privat & Exklusiv",
     "titleLine1": "Ihr Ägypten,",
-    "titleLine2": "Ihr Tempo.",
-    "desc": "Kairo-ansässige Spezialisten, die private Touren nach Ihrem Tempo, Ihren Interessen und den Sehenswürdigkeiten planen, die Ihnen wirklich wichtig sind.",
-    "feature1": "Ihr eigener lizenzierter Reiseleiter — keine Gruppe, kein Zeitdruck",
-    "feature2": "Bleiben Sie so lange Sie möchten an jedem Ort",
-    "feature3": "Reiseroute passt sich flexibel an Ihre Wünsche an",
-    "feature4": "Klarer Preis schriftlich bestätigt, bevor Sie buchen",
-    "cta": "Ihre private Tour planen"
+    "titleLine2": "Ihr Weg.",
+    "desc": "Planen Sie Ihre private Ägyptenreise mit einem lizenzierten Team aus Kairo. Wir kümmern uns um Guide, Route und Zeitplan — Sie entscheiden, was Sie sehen und wann.",
+    "feature1": "Ihr eigener lizenzierter Guide — exklusiv für Sie, ohne Zeitdruck",
+    "feature2": "Sie wählen die Orte, die Ihnen wirklich wichtig sind",
+    "feature3": "Flexible Zeiteinteilung an jeder Station",
+    "feature4": "Schriftliche Preisbestätigung vor der Buchung",
+    "cta": "Meine Privatreise planen",
+    "badge": "100% Privat — Keine Gruppenreisen"
   }
 }

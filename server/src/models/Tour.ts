@@ -135,8 +135,8 @@ export interface ITour extends Document {
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
   tourHighlights?: ILocalizedMixed[];
-  inclusion?: ILocalizedMixed[];
-  exclusion?: ILocalizedMixed[];
+  inclusion?: ILocalizedMixed;
+  exclusion?: ILocalizedMixed;
   pricingPlans: IPricingPlan[];
   priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;
@@ -573,25 +573,10 @@ const TourSchema = new Schema<ITour>(
       default: [],
     },
     inclusion: {
-      type: [LocalizedMixedSchema],
-      validate: {
-        validator: function (v: any[]) {
-          // Check if it's an array and has at least one item with an English version
-          if (!v || !Array.isArray(v)) return false;
-          return v.length > 0 && v.every(item => item.en);
-        },
-        message: 'At least one inclusion with an English version is required',
-      },
+      type: LocalizedMixedSchema,
     },
     exclusion: {
-      type: [LocalizedMixedSchema],
-      validate: {
-        validator: function (v: any[]) {
-          if (!v || !Array.isArray(v)) return false;
-          return v.length > 0 && v.every(item => item.en);
-        },
-        message: 'At least one exclusion with an English version is required',
-      },
+      type: LocalizedMixedSchema,
     },
     pricingPlans: {
       type: [PricingPlanSchema],

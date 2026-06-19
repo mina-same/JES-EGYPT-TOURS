@@ -56,30 +56,30 @@ export default function DetailsTab({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className={cn(hasError('inclusion') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>
           <CardHeader>
-            <CardTitle className={cn(hasError('inclusion') && "text-red-600")}>Inclusions *</CardTitle>
-            <CardDescription>What is included in the price (English required)</CardDescription>
+            <CardTitle className={cn(hasError('inclusion') && "text-red-600")}>Inclusions</CardTitle>
+            <CardDescription>What is included — supports bold, links, and lists</CardDescription>
           </CardHeader>
           <CardContent>
-            <LocalizedTagsInput
-              value={formData.inclusion || { en: [], de: [], it: [], es: [] }}
+            <LocalizedRichText
+              value={formData.inclusion || { en: "", de: "", it: "", es: "" }}
               onChange={(val) => handleChange('inclusion', val)}
-              placeholder="Hotel pickup, Lunch, Guide..."
-              error={hasError('inclusion')}
+              placeholder="e.g. Hotel pickup, private guide, entrance fees…"
+              activeLanguage={activeLanguage}
             />
           </CardContent>
         </Card>
 
         <Card className={cn(hasError('exclusion') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>
           <CardHeader>
-            <CardTitle className={cn(hasError('exclusion') && "text-red-600")}>Exclusions *</CardTitle>
-            <CardDescription>What is NOT included (English required)</CardDescription>
+            <CardTitle className={cn(hasError('exclusion') && "text-red-600")}>Exclusions</CardTitle>
+            <CardDescription>What is NOT included — supports bold, links, and lists</CardDescription>
           </CardHeader>
           <CardContent>
-            <LocalizedTagsInput
-              value={formData.exclusion || { en: [], de: [], it: [], es: [] }}
+            <LocalizedRichText
+              value={formData.exclusion || { en: "", de: "", it: "", es: "" }}
               onChange={(val) => handleChange('exclusion', val)}
-              placeholder="Tips, Personal expenses, Drinks..."
-              error={hasError('exclusion')}
+              placeholder="e.g. Tips, personal expenses, international flights…"
+              activeLanguage={activeLanguage}
             />
           </CardContent>
         </Card>
@@ -146,6 +146,7 @@ export default function DetailsTab({
                       value={note.title || { en: '', de: '', it: '', es: '' }}
                       onChange={(val) => updateTourNote(index, 'title', val)}
                       placeholder="Note Title (e.g., Visa Info)"
+                      activeLanguage={activeLanguage}
                     />
 
                     <LocalizedRichText
@@ -153,6 +154,7 @@ export default function DetailsTab({
                       value={note.text || { en: '', de: '', it: '', es: '' }}
                       onChange={(val) => updateTourNote(index, 'text', val)}
                       placeholder="Note content..."
+                      activeLanguage={activeLanguage}
                     />
                   </div>
                 </div>

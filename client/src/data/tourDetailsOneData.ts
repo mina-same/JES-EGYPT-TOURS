@@ -48,20 +48,8 @@ const tourDetailsOneData = {
     "Nunc in quam in quam placerat rhoncus quis",
     "Condimentum lacinia nisl vitae vehicula.",
   ],
-  amenities: [
-    "Cruise Dinner & Music Event",
-    "Pick and Drop Services",
-    "Additional Services",
-    "Specialized bilingual guide",
-    "Food and Drinks",
-  ],
-  amenitiesTwo: [
-    "Cruise Dinner & Music Event",
-    "Pick and Drop Services",
-    "Additional Services",
-    "Specialized bilingual guide",
-    "Food and Drinks",
-  ],
+  amenities: "",
+  amenitiesTwo: "",
   comments: [
     {
       name: "Leslie Alexander",

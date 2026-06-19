@@ -184,8 +184,7 @@ export default function NewTourPage() {
 
       // Sanitize list fields
       if (cleanData.tourHighlights) cleanData.tourHighlights = flattenLocalizedList(cleanData.tourHighlights);
-      if (cleanData.inclusion) cleanData.inclusion = flattenLocalizedList(cleanData.inclusion);
-      if (cleanData.exclusion) cleanData.exclusion = flattenLocalizedList(cleanData.exclusion);
+      // inclusion/exclusion are HTML strings — no array transformation needed
       if (cleanData.whatToPack) cleanData.whatToPack = flattenLocalizedList(cleanData.whatToPack);
       if (cleanData.tags) cleanData.tags = flattenLocalizedList(cleanData.tags);
 
@@ -210,10 +209,10 @@ export default function NewTourPage() {
       if (!cleanData.tourMapIframe) delete cleanData.tourMapIframe;
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
       
-      // Remove empty arrays
+      // Remove empty fields
       if (isMixedEmpty(cleanData.tourHighlights)) delete cleanData.tourHighlights;
-      if (isMixedEmpty(cleanData.inclusion)) delete cleanData.inclusion;
-      if (isMixedEmpty(cleanData.exclusion)) delete cleanData.exclusion;
+      if (!cleanData.inclusion?.en?.trim()) delete cleanData.inclusion;
+      if (!cleanData.exclusion?.en?.trim()) delete cleanData.exclusion;
       if (isMixedEmpty(cleanData.whatToPack)) delete cleanData.whatToPack;
       if (!cleanData.pricingPlans?.length) delete cleanData.pricingPlans;
       if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;

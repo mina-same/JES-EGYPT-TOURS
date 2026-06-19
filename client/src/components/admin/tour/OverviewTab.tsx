@@ -149,6 +149,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             value={formData.description?.text || { en: '', de: '', it: '', es: '' }}
             onChange={(val, lang) => handleChange('description.text', val, lang)}
             placeholder="Tell us about the tour..."
+            activeLanguage={activeLanguage}
           />
         </CardContent>
       </Card>
@@ -166,6 +167,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               value={formData.tourLocation || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('tourLocation', val, lang)}
               placeholder="Cairo, Egypt"
+              activeLanguage={activeLanguage}
             />
 
             <LocalizedInput
@@ -173,6 +175,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               value={formData.duration || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('duration', val, lang)}
               placeholder="3 days / 2 nights"
+              activeLanguage={activeLanguage}
             />
           </div>
 
@@ -183,6 +186,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               onChange={(val, lang) => handleChange('tourAvailability', val, lang)}
               placeholder="Year-round"
               error={hasError('tourAvailability') || hasError('tourAvailability.en')}
+              activeLanguage={activeLanguage}
             />
 
             <LocalizedInput
@@ -191,6 +195,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               onChange={(val, lang) => handleChange('tourType', val, lang)}
               placeholder="Private / Group"
               error={hasError('tourType') || hasError('tourType.en')}
+              activeLanguage={activeLanguage}
             />
           </div>
 
@@ -201,6 +206,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               onChange={(val, lang) => handleChange('tourStyle', val, lang)}
               placeholder="Adventure, Cultural, Luxury"
               error={hasError('tourStyle') || hasError('tourStyle.en')}
+              activeLanguage={activeLanguage}
             />
 
             <LocalizedInput
@@ -209,6 +215,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               onChange={(val, lang) => handleChange('meetingPoint', val, lang)}
               placeholder="Hotel lobby"
               error={hasError('meetingPoint') || hasError('meetingPoint.en')}
+              activeLanguage={activeLanguage}
             />
           </div>
 
@@ -235,6 +242,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               placeholder="Pickup and drop-off details..."
               rows={3}
               error={hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')}
+              activeLanguage={activeLanguage}
             />
             {(hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')) && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path?.startsWith('pickupAndDropOff'))?.message}</p>}
           </div>

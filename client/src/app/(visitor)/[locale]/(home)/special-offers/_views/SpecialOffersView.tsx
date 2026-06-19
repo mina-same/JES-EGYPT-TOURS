@@ -20,7 +20,6 @@ import { getLocalizedValue } from "@/lib/localize";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "@/hooks/use-toast";
-import bannerBg from "@/assets/images/resources/offer-1-1.jpg";
 
 const GOLD = "#b79c5c";
 const DARK = "#1d231f";
@@ -176,20 +175,14 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
         title={t("header.title")}
         subTitle={t("header.subtitle")}
         breadcrumbs={[{ label: t("header.title") }]}
+        bgImage="/egypt-nile-cruise-ancient-wonders-tour.webp"
       />
 
       {/* ── Deal Banner ──────────────────────────────────────────────── */}
-      <section style={{ position: "relative", overflow: "hidden", padding: "72px 0" }}>
+      <section style={{ position: "relative", overflow: "hidden", padding: "120px 0" }}>
         {/* Background image with dark overlay */}
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-          <Image
-            src={bannerBg}
-            alt={t("header.title")}
-            fill
-            style={{ objectFit: "cover", objectPosition: "center" }}
-            priority
-          />
-          <div style={{ position: "absolute", inset: 0, background: "rgba(29,35,31,0.88)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "rgba(29,35,31)" }} />
         </div>
 
         <Container style={{ position: "relative", zIndex: 1 }}>

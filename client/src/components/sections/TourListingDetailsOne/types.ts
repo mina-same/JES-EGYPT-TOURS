@@ -106,8 +106,8 @@ export interface TourDetailsOneData {
   topDestinations: string;
   sliderImages: (StaticImageData | string | ImageObject)[];
   highlightList: string[];
-  amenities: string[];
-  amenitiesTwo: string[];
+  amenities: string;
+  amenitiesTwo: string;
   relatedTours: Item[];
   comments: Comment[];
   images: (StaticImageData | string | ImageObject)[];

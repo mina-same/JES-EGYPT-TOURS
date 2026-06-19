@@ -95,6 +95,35 @@ export default function EditTourPage() {
             };
           };
 
+          // Load inclusion/exclusion as HTML strings.
+          // Handles new format { en: "<ul>…", de: "…" } and legacy array format.
+          const toLocalizedHtml = (val: any) => {
+            const empty = { en: "", de: "", it: "", es: "" };
+            if (!val) return empty;
+            // Already a localized string object (new format)
+            if (!Array.isArray(val) && typeof val === 'object') {
+              return {
+                en: typeof val.en === 'string' ? val.en : "",
+                de: typeof val.de === 'string' ? val.de : "",
+                it: typeof val.it === 'string' ? val.it : "",
+                es: typeof val.es === 'string' ? val.es : "",
+              };
+            }
+            // Legacy: array of localized item objects — convert per locale to <ul><li> HTML
+            if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+              const langs = ['en', 'de', 'it', 'es'] as const;
+              const result: any = { en: "", de: "", it: "", es: "" };
+              langs.forEach(lang => {
+                const items = val.map((item: any) => item[lang]).filter(Boolean);
+                if (items.length > 0) {
+                  result[lang] = `<ul>${items.map((t: string) => `<li>${t}</li>`).join('')}</ul>`;
+                }
+              });
+              return result;
+            }
+            return empty;
+          };
+
           const toLocalizedMixed = (val: any) => {
             const empty = { en: [], de: [], it: [], es: [] };
             if (!val) return empty;
@@ -188,8 +217,8 @@ export default function EditTourPage() {
                   : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
               },
               tourHighlights: toLocalizedMixed(tour.tourHighlights),
-              inclusion: toLocalizedMixed(tour.inclusion),
-              exclusion: toLocalizedMixed(tour.exclusion),
+              inclusion: toLocalizedHtml(tour.inclusion),
+              exclusion: toLocalizedHtml(tour.exclusion),
               pricingPlans: tour.pricingPlans || [],
               notes: (tour.notes || []).map((n: any) => ({
                 title: toLocalized(n.title),
@@ -369,10 +398,10 @@ export default function EditTourPage() {
       }
 
       // 3. Remove empty optional fields & Sanitize list fields
-      // We check if empty BEFORE transforming to array structure
       cleanData.tourHighlights = isMixedEmpty(cleanData.tourHighlights) ? [] : toLocalizedMixedArray(cleanData.tourHighlights);
-      cleanData.inclusion = isMixedEmpty(cleanData.inclusion) ? [] : toLocalizedMixedArray(cleanData.inclusion);
-      cleanData.exclusion = isMixedEmpty(cleanData.exclusion) ? [] : toLocalizedMixedArray(cleanData.exclusion);
+      // inclusion/exclusion are now HTML strings — save as-is, remove if empty
+      if (!cleanData.inclusion?.en?.trim()) delete cleanData.inclusion;
+      if (!cleanData.exclusion?.en?.trim()) delete cleanData.exclusion;
       cleanData.whatToPack = isMixedEmpty(cleanData.whatToPack) ? [] : toLocalizedMixedArray(cleanData.whatToPack);
       cleanData.tags = isMixedEmpty(cleanData.tags) ? [] : toLocalizedMixedArray(cleanData.tags);
 

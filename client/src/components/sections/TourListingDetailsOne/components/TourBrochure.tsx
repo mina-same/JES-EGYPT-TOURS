@@ -405,7 +405,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
               marginTop: 24,
             }}
           >
-            {tour.amenities?.length > 0 && (
+            {tour.amenities?.trim().length > 0 && (
               <div style={{ backgroundColor: "#E8F5E9", borderRadius: 16, padding: 28 }}>
                 <h4
                   style={{
@@ -417,24 +417,13 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                 >
                   ✓ {t("tourDetails.included")}
                 </h4>
-                {tour.amenities.map((a, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      fontSize: 14,
-                      marginBottom: 10,
-                      color: "#1B5E20",
-                    }}
-                  >
-                    <Check size={15} /> {a}
-                  </div>
-                ))}
+                <div
+                  style={{ fontSize: 14, color: "#1B5E20" }}
+                  dangerouslySetInnerHTML={{ __html: tour.amenities }}
+                />
               </div>
             )}
-            {tour.amenitiesTwo?.length > 0 && (
+            {tour.amenitiesTwo?.trim().length > 0 && (
               <div style={{ backgroundColor: "#FFF3E0", borderRadius: 16, padding: 28 }}>
                 <h4
                   style={{
@@ -446,21 +435,10 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                 >
                   ✗ {t("tourDetails.notIncluded")}
                 </h4>
-                {tour.amenitiesTwo.map((a, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      fontSize: 14,
-                      marginBottom: 10,
-                      color: "#BF360C",
-                    }}
-                  >
-                    <X size={15} /> {a}
-                  </div>
-                ))}
+                <div
+                  style={{ fontSize: 14, color: "#BF360C" }}
+                  dangerouslySetInnerHTML={{ __html: tour.amenitiesTwo }}
+                />
               </div>
             )}
           </div>

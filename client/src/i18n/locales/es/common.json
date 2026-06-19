@@ -156,14 +156,14 @@
   },
   "tailorOffer": {
     "tagline": "A medida",
-    "badge": "Privado y exclusivo",
     "titleLine1": "Su Egipto,",
     "titleLine2": "a su manera.",
-    "desc": "Especialistas con sede en El Cairo que planifican tours privados adaptados a su ritmo, sus intereses y los lugares que realmente importan.",
-    "feature1": "Su propio guía con licencia — sin grupo, sin prisa",
-    "feature2": "Quédese todo el tiempo que quiera en cada lugar",
-    "feature3": "Itinerario flexible que se adapta sobre la marcha",
-    "feature4": "Precio claro confirmado por escrito antes de reservar",
-    "cta": "Planificar mi tour privado"
+    "desc": "Organicen su tour privado en Egipto con un equipo con licencia afincado en El Cairo. Nosotros nos ocupamos de la guía, la ruta y los tiempos — ustedes deciden qué ver y cuándo.",
+    "feature1": "Su propia guía con licencia — solo para ustedes, sin prisas",
+    "feature2": "Elijan los lugares que de verdad les importan",
+    "feature3": "Horarios flexibles en cada visita",
+    "feature4": "Precio confirmado por escrito antes de reservar",
+    "cta": "Planificar mi tour privado",
+    "badge": "Sin tours grupales — 100% Privado"
   }
 }

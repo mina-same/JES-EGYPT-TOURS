@@ -157,7 +157,7 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
         </Row>
       </Container>
       <div className='about-one__element-one pointer-events-none'>
-        <Image src={shape1} alt='element' />
+        <Image src={shape1} alt='element' width={293} height={155} />
       </div>
       <style jsx global>{`
         .about-one {
