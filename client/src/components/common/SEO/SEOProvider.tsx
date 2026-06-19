@@ -18,7 +18,9 @@ const SEOProvider: React.FC<SEOProviderProps> = ({ locale }) => {
     'description': 'JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences.',
     'address': {
       '@type': 'PostalAddress',
-      'addressLocality': 'Cairo',
+      'streetAddress': '8 Alshams Building, Dr.Hanem Mohammed Hussein, Kafr Nassar',
+      'addressLocality': 'Al Haram, Giza',
+      'addressRegion': 'Giza Governorate',
       'addressCountry': 'EG',
     },
     'contactPoint': {
