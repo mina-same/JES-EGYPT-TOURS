@@ -21,25 +21,25 @@ export interface OfferOneData {
 }
 
 export const offerOneData: OfferOneData = {
-  sectionTagline: 'Special Offers',
-  sectionTitle: 'Offers To \nInspire You',
+  sectionTagline: 'Tailor-Made Tours',
+  sectionTitle: 'Your Journey \nYour Way',
   element: element,
   offers: [
     {
       id: 1,
-      tagline: 'Special Offer',
-      title: 'Explore All Tour Of The \nWorld With Us',
+      tagline: 'Tailor-Made',
+      title: 'Design Your Perfect \nEgypt Experience',
       image: offer1Img,
-      link: '/tour-listing-details-1',
+      link: 'tailorMade',
       alignment: 'left',
       buttonStyle: 'default',
     },
     {
       id: 2,
-      tagline: 'Get 40% Offer',
-      title: 'Tours and Trip \nPackages, Globally',
+      tagline: 'Personalized Tours',
+      title: 'Every Detail \nCrafted For You',
       image: offer2Img,
-      link: '/tour-listing-details-1',
+      link: 'tailorMade',
       alignment: 'right',
       buttonStyle: 'primary',
     },

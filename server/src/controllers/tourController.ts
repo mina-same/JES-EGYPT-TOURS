@@ -12,6 +12,7 @@ interface QueryParams {
   category?: string;
   isActive?: string;
   isFeatured?: string;
+  isSpecialOffer?: string;
   search?: string;
   minPrice?: string;
   maxPrice?: string;
@@ -52,6 +53,11 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
   // Filter by featured status
   if (queryParams.isFeatured !== undefined) {
     filter.isFeatured = queryParams.isFeatured === 'true';
+  }
+
+  // Filter by special offer status
+  if (queryParams.isSpecialOffer !== undefined) {
+    filter.isSpecialOffer = queryParams.isSpecialOffer === 'true';
   }
 
   // Search by heading or description in all languages

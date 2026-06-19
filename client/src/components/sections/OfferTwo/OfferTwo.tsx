@@ -7,6 +7,7 @@ import CountUp from "react-countup";
 import { useInView } from "react-intersection-observer";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { offerTwoData } from "@/data/offerTwoData";
 import ReactCurvedText from "react-curved-text";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
@@ -34,7 +35,6 @@ const OfferTwo = () => {
     title,
     subtitle,
     buttonText,
-    buttonLink,
     count,
     tagline,
     funfactText,
@@ -42,6 +42,10 @@ const OfferTwo = () => {
     image,
     shapes,
   }: OfferData = offerTwoData;
+
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
+  const buttonLink = `/${locale}/special-offers`;
 
   // Using IntersectionObserver to trigger animations when the section comes into view
   const { ref, inView } = useInView({

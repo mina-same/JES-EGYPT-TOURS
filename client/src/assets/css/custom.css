@@ -2077,3 +2077,24 @@ button[data-action="start"],
 button[data-action="stop"] {
   display: none !important;
 }
+
+/* =========================================================
+   About One — layout & typography fixes
+   ========================================================= */
+.about-one__feature-list li {
+  font-size: 16px !important;
+}
+
+.about-one__feature .row > [class*="col"] + [class*="col"] {
+  margin-top: 20px;
+}
+
+.about-one__button-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.about-one__button__call a {
+  white-space: nowrap;
+}

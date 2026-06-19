@@ -5,13 +5,14 @@ import type { LucideIcon } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
-type Tone = "blue" | "emerald" | "amber" | "violet";
+type Tone = "blue" | "emerald" | "amber" | "violet" | "rose";
 
 const toneClasses: Record<Tone, { icon: string; bg: string }> = {
   blue: { icon: "text-blue-600", bg: "bg-blue-50" },
   emerald: { icon: "text-emerald-600", bg: "bg-emerald-50" },
   amber: { icon: "text-amber-600", bg: "bg-amber-50" },
   violet: { icon: "text-violet-600", bg: "bg-violet-50" },
+  rose: { icon: "text-rose-600", bg: "bg-rose-50" },
 };
 
 export default function DashboardKpiCard({

@@ -3,7 +3,7 @@ import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import AboutOne from "@/components/sections/AboutOne/AboutOne";
-import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
+import FeaturedToursSection from "@/components/sections/FeatureTwo/FeaturedToursSection";
 import OfferTwo from "@/components/sections/OfferTwo/OfferTwo";
 import OfferOne from "@/components/sections/OfferOne/OfferOne";
 import DestinationCarouselTwo from "@/components/sections/DestinationCarouselTwo/DestinationCarouselTwo";
@@ -40,7 +40,7 @@ export default function HomeThree() {
       <AboutOne />
       <WhyChooseUs />
       <HomeIntro />
-      <FeatureTwo extraClass='section-space' id='popular' />
+      <FeaturedToursSection />
       <OfferTwo />
       <OfferOne />
       <DestinationCarouselTwo />

@@ -157,6 +157,8 @@ export interface ITour extends Document {
   seo?: ISEO;
   isActive: boolean;
   isFeatured: boolean;
+  isSpecialOffer: boolean;
+  specialOfferDiscount: number;
   viewCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -649,6 +651,16 @@ const TourSchema = new Schema<ITour>(
       type: Boolean,
       default: false,
     },
+    isSpecialOffer: {
+      type: Boolean,
+      default: false,
+    },
+    specialOfferDiscount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Discount cannot be negative'],
+      max: [100, 'Discount cannot exceed 100'],
+    },
     viewCount: {
       type: Number,
       default: 0,
@@ -674,6 +686,7 @@ TourSchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
 // Note: subcategory already indexed via index: true in field definition
 TourSchema.index({ isActive: 1 });
 TourSchema.index({ isFeatured: 1 });
+TourSchema.index({ isSpecialOffer: 1 });
 TourSchema.index({ viewCount: -1 });
 TourSchema.index({ createdAt: -1 });
 TourSchema.index({ heading: 'text', 'Description.text': 'text' });

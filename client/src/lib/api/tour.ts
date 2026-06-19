@@ -10,6 +10,7 @@ export interface QueryParams {
   search?: string;
   isActive?: boolean;
   isFeatured?: boolean;
+  isSpecialOffer?: boolean;
   sort?: string;
   category?: string;
   subcategory?: string;

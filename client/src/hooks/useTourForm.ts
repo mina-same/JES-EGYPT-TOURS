@@ -54,6 +54,8 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
       tourStyle: { en: '', de: '', it: '', es: '' },
       isFeatured: false,
       isActive: true,
+      isSpecialOffer: false,
+      specialOfferDiscount: 0,
       seo: {
         metaTitle: { en: '', de: '', it: '', es: '' },
         metaDescription: { en: '', de: '', it: '', es: '' },

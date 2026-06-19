@@ -112,5 +112,34 @@
         "text": "Behalten Sie Ihr Reiseziel im Blick und wechseln Sie vom Lesen zu einer privaten Planung mit Experten-Timing, Routing-Empfehlungen und Betreuung vor Ort."
       }
     }
+  },
+  "bookNow": "Jetzt buchen",
+  "whyChooseUs": {
+    "tagline": "Warum uns wählen?",
+    "title": "Warum uns wählen?",
+    "subtitle": "Wir gestalten unvergessliche Abenteuer für leidenschaftliche Entdecker in aller Welt.",
+    "reasons": {
+      "tailoredTitle": "Maßgeschneiderte Erlebnisse",
+      "tailoredDesc": "Gestalten Sie Ihre ideale Reise – passen Sie jedes Detail an oder lassen Sie uns Ihre perfekte Reiseroute nach Ihren Vorstellungen planen.",
+      "multiCountryTitle": "Mehrtägige Touren",
+      "multiCountryDesc": "Erkunden Sie mühelos mehrere Reiseziele mit fachkundiger Planung und besten Preisen, betreut von lokalen Reisespezialisten.",
+      "yearsTitle": "Über 65 Jahre Erfolg",
+      "yearsDesc": "JES Egypt Tours setzt seit über sechs Jahrzehnten Maßstäbe in der Tourismusbranche und bietet Ihnen das Vertrauen, das Sie für Ihr nächstes Abenteuer suchen.",
+      "paymentTitle": "Sichere Online-Zahlung",
+      "paymentDesc": "Buchen Sie mit Vertrauen über unser verschlüsseltes Zahlungssystem – Ihre persönlichen und finanziellen Daten sind vollständig geschützt."
+    }
+  },
+  "featuredTours": {
+    "tagline": "Handverlesen für Sie",
+    "title": "Empfohlene",
+    "titleSpan": "Touren"
+  },
+  "homeIntro": {
+    "verifiedRatings": "Verifizierte Bewertungen",
+    "licensedAgency": "Lizenziertes Reisebüro",
+    "heritageExperts": "Lokale Kulturexperten",
+    "fallbackSubtitle": "Das ultimative Ägyptenerlebnis",
+    "readMore": "Vollständige Geschichte lesen",
+    "readLess": "Weniger anzeigen"
   }
 }

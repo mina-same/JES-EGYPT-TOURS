@@ -15,7 +15,7 @@ interface HomeContent {
 }
 
 const HomeIntro: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation("common");
   const [content, setContent] = useState<HomeContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -91,7 +91,7 @@ const HomeIntro: React.FC = () => {
                 <div className="inline-flex items-center gap-3">
                   <div className="w-12 h-[2px] bg-[#b79c5c] rounded-full"></div>
                   <span className="text-[#b79c5c] font-black uppercase tracking-[0.25em] text-[10px] md:text-xs">
-                    {localizedSubtitle || "The Ultimate Egyptian Journey"}
+                    {localizedSubtitle || t("homeIntro.fallbackSubtitle")}
                   </span>
                 </div>
 
@@ -131,9 +131,9 @@ const HomeIntro: React.FC = () => {
                     className="group flex items-center gap-2 text-[#1a1a1a] font-black uppercase text-[11px] tracking-widest border-b-2 border-[#b79c5c] pb-1 hover:text-[#b79c5c] transition-all duration-300"
                   >
                     {isExpanded ? (
-                      <>Show Less <ChevronUp size={16} className="group-hover:-translate-y-1 transition-transform" /></>
+                      <>{t("homeIntro.readLess")} <ChevronUp size={16} className="group-hover:-translate-y-1 transition-transform" /></>
                     ) : (
-                      <>Read Full Story <ChevronDown size={16} className="group-hover:translate-y-1 transition-transform" /></>
+                      <>{t("homeIntro.readMore")} <ChevronDown size={16} className="group-hover:translate-y-1 transition-transform" /></>
                     )}
                   </button>
 
@@ -160,7 +160,7 @@ const HomeIntro: React.FC = () => {
                              <Star size={10} fill="#b79c5c" color="#b79c5c" />
                           </div>
                        </div>
-                       <span className="text-[9px] uppercase font-bold text-gray-400 tracking-tighter">Verified Ratings</span>
+                       <span className="text-[9px] uppercase font-bold text-gray-400 tracking-tighter">{t("homeIntro.verifiedRatings")}</span>
                     </div>
                   </div>
                 </div>
@@ -169,11 +169,11 @@ const HomeIntro: React.FC = () => {
                 <div className="pt-10 border-t border-gray-100 flex flex-wrap gap-x-10 gap-y-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
                   <div className="flex items-center gap-3">
                     <ShieldCheck size={22} strokeWidth={1.5} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">Licensed Agency</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">{t("homeIntro.licensedAgency")}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin size={22} strokeWidth={1.5} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">Local Heritage Experts</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">{t("homeIntro.heritageExperts")}</span>
                   </div>
                 </div>
               </div>

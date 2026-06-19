@@ -6,6 +6,7 @@ import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import whyChooseUsData from "@/data/destinationsTwoData";
 import { useRef } from "react";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import { useTranslation } from "react-i18next";
 
 interface Destination {
   title: string;
@@ -23,30 +24,30 @@ interface WhyChooseUsData {
 const WhyChooseUs = () => {
   const { destinations }: WhyChooseUsData = whyChooseUsData;
   const sliderRef = useRef<any>(null);
+  const { t } = useTranslation("common");
 
-  // Why Choose Us content
   const whyChooseUsContent = {
-    tagline: "Why Choose Us?",
-    title: "Why Choose Us?",
-    subtitle: "We craft unforgettable adventures for passionate explorers around the world.",
+    tagline: t("whyChooseUs.tagline"),
+    title: t("whyChooseUs.title"),
+    subtitle: t("whyChooseUs.subtitle"),
     reasons: [
       {
-        title: "Tailored Experiences",
-        description: "Design your ideal journey, Customize every detail or let us craft the perfect itinerary based on your preferences and interests."
+        title: t("whyChooseUs.reasons.tailoredTitle"),
+        description: t("whyChooseUs.reasons.tailoredDesc"),
       },
       {
-        title: "Multi-Country Trips", 
-        description: "Effortlessly explore multiple destinations with expert planning and the best prices, all managed by local travel specialists."
+        title: t("whyChooseUs.reasons.multiCountryTitle"),
+        description: t("whyChooseUs.reasons.multiCountryDesc"),
       },
       {
-        title: "Over 65 years of success",
-        description: "Memphis Tours has been setting standards in the tourism industry for over six decades giving you the trust that you look for in your next adventure."
+        title: t("whyChooseUs.reasons.yearsTitle"),
+        description: t("whyChooseUs.reasons.yearsDesc"),
       },
       {
-        title: "Secure Online Payment",
-        description: "Book with confidence using our encrypted payment system, ensuring your personal and financial information is fully protected."
-      }
-    ]
+        title: t("whyChooseUs.reasons.paymentTitle"),
+        description: t("whyChooseUs.reasons.paymentDesc"),
+      },
+    ],
   };
 
   const carouselOptions = {

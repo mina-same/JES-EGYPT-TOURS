@@ -59,6 +59,39 @@ export default function SEOTab({
               onCheckedChange={(checked) => handleChange('isFeatured', checked)}
             />
           </div>
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="space-y-0.5">
+              <Label className="text-base">Special Offer</Label>
+              <p className="text-sm text-muted-foreground">
+                Show this tour on the Special Offers page
+              </p>
+            </div>
+            <Switch
+              checked={!!formData.isSpecialOffer}
+              onCheckedChange={(checked) => handleChange('isSpecialOffer', checked)}
+            />
+          </div>
+          {formData.isSpecialOffer && (
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="text-base">Discount Percentage</Label>
+                <p className="text-sm text-muted-foreground">
+                  Shown as a badge on the tour card (e.g. -30% off)
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={formData.specialOfferDiscount ?? 0}
+                  onChange={(e) => handleChange('specialOfferDiscount', Number(e.target.value))}
+                  className="w-20 text-center"
+                />
+                <span className="text-sm font-medium text-muted-foreground">%</span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -113,5 +113,34 @@
         "text": "Keep the same travel goals, but move from reading mode into a private plan with expert timing, route advice, and on-the-ground support."
       }
     }
+  },
+  "bookNow": "Book Now",
+  "whyChooseUs": {
+    "tagline": "Why Choose Us?",
+    "title": "Why Choose Us?",
+    "subtitle": "We craft unforgettable adventures for passionate explorers around the world.",
+    "reasons": {
+      "tailoredTitle": "Tailored Experiences",
+      "tailoredDesc": "Design your ideal journey, customize every detail or let us craft the perfect itinerary based on your preferences and interests.",
+      "multiCountryTitle": "Multi-Country Trips",
+      "multiCountryDesc": "Effortlessly explore multiple destinations with expert planning and the best prices, all managed by local travel specialists.",
+      "yearsTitle": "Over 65 Years of Success",
+      "yearsDesc": "JES Egypt Tours has been setting standards in the tourism industry for over six decades, giving you the trust you look for in your next adventure.",
+      "paymentTitle": "Secure Online Payment",
+      "paymentDesc": "Book with confidence using our encrypted payment system, ensuring your personal and financial information is fully protected."
+    }
+  },
+  "featuredTours": {
+    "tagline": "Handpicked for you",
+    "title": "Featured",
+    "titleSpan": "Tours"
+  },
+  "homeIntro": {
+    "verifiedRatings": "Verified Ratings",
+    "licensedAgency": "Licensed Agency",
+    "heritageExperts": "Local Heritage Experts",
+    "fallbackSubtitle": "The Ultimate Egyptian Journey",
+    "readMore": "Read Full Story",
+    "readLess": "Show Less"
   }
 }

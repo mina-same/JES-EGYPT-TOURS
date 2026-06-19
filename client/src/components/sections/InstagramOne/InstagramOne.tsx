@@ -8,7 +8,6 @@ import "swiper/css";
 import { instagramOneData } from "@/data/instagramOne";
 import { Container } from "react-bootstrap";
 import { Autoplay } from "swiper/modules";
-import Link from "next/link";
 interface InstagramItem {
   id: number;
   image: StaticImageData;
@@ -63,16 +62,11 @@ const InstagramOne: React.FC<InstragramOneProps> = ({ extraClass }) => {
               <SwiperSlide key={item.id}>
                 <div className='instagram-one__item'>
                   <Image src={item.image} alt='instagram' />
-                  <Link
-                    href={item.link}
-                    className='instagram-one__item__overly'
-                    target='_blank'
-                    rel='noopener noreferrer'
-                  >
+                  <div className='instagram-one__item__overly'>
                     <div className='instagram-one__item__overly__icon'>
                       <i className='fab fa-instagram'></i>
                     </div>
-                  </Link>
+                  </div>
                 </div>
               </SwiperSlide>
             ))}

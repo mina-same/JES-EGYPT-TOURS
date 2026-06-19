@@ -9,6 +9,7 @@ import {
   Mail,
   MessageSquare,
   Sparkles,
+  Tag,
   Users,
 } from "lucide-react";
 
@@ -110,6 +111,7 @@ const AdminDashboard: React.FC = () => {
   const [trendLabels, setTrendLabels] = useState<string[]>([]);
   const [topTours, setTopTours] = useState<TourLite[]>([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  const [specialOffersCount, setSpecialOffersCount] = useState<number | string>("—");
 
   const router = useRouter();
 
@@ -167,7 +169,7 @@ const AdminDashboard: React.FC = () => {
 
       // Fetch latest records; we then compute last-14-day buckets client-side.
       // (Avoids needing a backend aggregation endpoint.)
-      const [bookingsRes, contactsRes, tailorRes, toursRes] = await Promise.all([
+      const [bookingsRes, contactsRes, tailorRes, toursRes, specialOffersRes] = await Promise.all([
         getAllBookings({ page: 1, limit: 250 }),
         fetch(`${API_ENDPOINTS.CONTACT.BASE}?page=1&limit=250`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -176,6 +178,7 @@ const AdminDashboard: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         }),
         tourAPI.getAll({ page: 1, limit: 30, sort: "-viewCount", fields: "heading,name,viewCount,isActive" }),
+        tourAPI.getAll({ page: 1, limit: 1, isSpecialOffer: true, fields: "heading" }),
       ]);
 
       // Bookings trend
@@ -224,6 +227,9 @@ const AdminDashboard: React.FC = () => {
       // Top tours
       const tours = (toursRes as any)?.data;
       setTopTours(Array.isArray(tours) ? (tours as TourLite[]).slice(0, 8) : []);
+
+      // Special offers count
+      setSpecialOffersCount((specialOffersRes as any)?.total ?? 0);
     } catch {
       setBookingsTrend([]);
       setLeadsTrend([]);
@@ -319,7 +325,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <DashboardKpiCard
           icon={Calendar}
           label="Pending bookings"
@@ -340,6 +346,13 @@ const AdminDashboard: React.FC = () => {
           value={dashboardStats?.tailorMadePending ?? "—"}
           tone="amber"
           onClick={() => router.push("/admin/contact-forms/tailor-made")}
+        />
+        <DashboardKpiCard
+          icon={Tag}
+          label="Special offers"
+          value={specialOffersCount}
+          tone="rose"
+          onClick={() => router.push("/admin/special-offers")}
         />
         <DashboardKpiCard
           icon={Users}

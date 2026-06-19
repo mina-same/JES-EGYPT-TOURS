@@ -79,13 +79,6 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
       ref={textRef}
       role="text"
       aria-label={text}
-      style={{
-        display: "flex",
-        position: "relative",
-        flexWrap: "wrap",
-        gap: "0.19em",
-        rowGap: "0",
-      }}
       className="text-animation"
       suppressHydrationWarning
     >

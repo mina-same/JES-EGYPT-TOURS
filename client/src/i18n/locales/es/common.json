@@ -112,5 +112,34 @@
         "text": "Mantén las mismas metas de viaje, pero pasa del modo lectura a un plan privado con tiempos expertos, recomendaciones de ruta y apoyo sobre el terreno."
       }
     }
+  },
+  "bookNow": "Reservar ahora",
+  "whyChooseUs": {
+    "tagline": "¿Por qué elegirnos?",
+    "title": "¿Por qué elegirnos?",
+    "subtitle": "Creamos aventuras inolvidables para exploradores apasionados de todo el mundo.",
+    "reasons": {
+      "tailoredTitle": "Experiencias a medida",
+      "tailoredDesc": "Diseñe su viaje ideal, personalice cada detalle o déjenos crear el itinerario perfecto según sus preferencias e intereses.",
+      "multiCountryTitle": "Viajes a varios países",
+      "multiCountryDesc": "Explore múltiples destinos sin esfuerzo con una planificación experta y los mejores precios, gestionado por especialistas locales.",
+      "yearsTitle": "Más de 65 años de éxito",
+      "yearsDesc": "JES Egypt Tours lleva más de seis décadas marcando estándares en la industria del turismo, ofreciéndole la confianza que busca para su próxima aventura.",
+      "paymentTitle": "Pago seguro en línea",
+      "paymentDesc": "Reserve con confianza usando nuestro sistema de pago cifrado, asegurando que su información personal y financiera esté completamente protegida."
+    }
+  },
+  "featuredTours": {
+    "tagline": "Seleccionados para usted",
+    "title": "Tours",
+    "titleSpan": "destacados"
+  },
+  "homeIntro": {
+    "verifiedRatings": "Valoraciones verificadas",
+    "licensedAgency": "Agencia autorizada",
+    "heritageExperts": "Expertos en patrimonio local",
+    "fallbackSubtitle": "El viaje definitivo a Egipto",
+    "readMore": "Leer historia completa",
+    "readLess": "Mostrar menos"
   }
 }

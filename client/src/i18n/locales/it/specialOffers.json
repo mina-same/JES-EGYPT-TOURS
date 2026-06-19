@@ -1,0 +1,46 @@
+{
+  "pageTitle": "Offerte Speciali | JES Egypt Tours",
+  "pageDescription": "Scopri le offerte esclusive sui tour in Egitto — sconti a tempo limitato su esperienze selezionate. Prenota ora!",
+  "seoKeywords": "offerte tour egitto, sconti egitto, tour egitto economici, pacchetti vacanza egitto",
+  "header": {
+    "title": "Offerte Speciali",
+    "subtitle": "Offerte esclusive sui migliori tour in Egitto — selezionate per te."
+  },
+  "banner": {
+    "tagline": "Offerte a Tempo Limitato",
+    "heading": "Tour Egitto Selezionati",
+    "upTo": "Fino al",
+    "off": "di Sconto",
+    "description": "Curati dai nostri esperti d'Egitto. Ogni tour su questa pagina ha un prezzo ridotto — nessun codice, nessuna sorpresa.",
+    "badge": "su tour selezionati",
+    "trust": {
+      "discountLabel": "Fino al {{percent}}% di Sconto",
+      "discountSub": "Sconti verificati",
+      "guidesLabel": "Guide Esperte",
+      "guidesSub": "Autorizzate e locali",
+      "timeLabel": "Tempo Limitato",
+      "timeSub": "Prenota prima che finiscano"
+    }
+  },
+  "controls": {
+    "found_one": "{{count}} Offerta Speciale",
+    "found_other": "{{count}} Offerte Speciali",
+    "available": "disponibili",
+    "loading": "Caricamento…",
+    "sort": "Ordina",
+    "sortNewest": "Più recenti",
+    "sortPriceAsc": "Prezzo: crescente",
+    "sortPriceDesc": "Prezzo: decrescente",
+    "sortNameAz": "Nome A–Z"
+  },
+  "empty": {
+    "title": "Nessuna offerta speciale al momento",
+    "text": "Il nostro team sta preparando nuove offerte. Torna presto o esplora tutti i nostri tour in Egitto.",
+    "button": "Esplora Tutti i Tour"
+  },
+  "faqTitle": "Domande Frequenti",
+  "promoTitle": "Perché Prenotare un Tour in Offerta Speciale?",
+  "promoDescription": "<p>I nostri tour in offerta speciale sono selezionati con cura per offrirti il massimo valore senza compromettere la qualità. Ogni offerta combina guide locali esperte, hotel selezionati e destinazioni iconiche d'Egitto — a un prezzo che rende possibile il viaggio dei tuoi sogni.</p><p>Dalle Piramidi di Giza ai templi di Luxor e alle rive del Mar Rosso, ogni tour in offerta speciale è realizzato con la stessa cura delle nostre esperienze a prezzo pieno.</p>",
+  "promoSubtitle": "JES Egypt Tours",
+  "promoButton": "Contattaci"
+}

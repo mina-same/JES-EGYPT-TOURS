@@ -1,129 +1,168 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Container, Accordion } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
-import { ChevronDown, HelpCircle, Loader2 } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
+import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 
 const HomeFAQ: React.FC = () => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeKey, setActiveKey] = useState<string | null>("0");
-  const { i18n, t } = useTranslation('common');
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const { i18n, t } = useTranslation("common");
 
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
         const response = await faqService.getAllFaqs({
           isActive: true,
           displayOnHome: true,
           sort: "category,order",
           limit: 8,
         });
-
         if (response.success && response.data) {
           setFaqs(response.data);
-          return;
+        } else {
+          setFaqs([]);
         }
-
+      } catch {
         setFaqs([]);
-      } catch (err) {
-        console.error("Error fetching home FAQs:", err);
-        setError("Failed to load FAQs");
       } finally {
         setLoading(false);
       }
     };
-
     fetchFaqs();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-      </div>
-    );
-  }
+  if (loading || faqs.length === 0) return null;
 
-  if (error || faqs.length === 0) {
-    return null;
-  }
+  const toggle = (index: number) =>
+    setOpenIndex(openIndex === index ? null : index);
+
+  const half = Math.ceil(faqs.length / 2);
+  const leftFaqs = faqs.slice(0, half);
+  const rightFaqs = faqs.slice(half);
 
   return (
     <section className="home-faq section-space" id="faq">
       <Container>
-        <div className="sec-title text-center mb-5">
-            <h6 className="sec-title__tagline">{t('gotQuestions', 'Got Questions?')}</h6>
-            <h3 className="sec-title__title">{t('frequentlyAsked', 'Frequently Asked')} <span>{t('questions', 'Questions')}</span></h3>
-            <p className="mt-3 text-muted">{t('faqSubtitle', 'Everything you need to know about our tours and services.')}</p>
+
+        {/* Section header — matches all other sections on the page */}
+        <div className="sec-title text-center">
+          <h6 className="sec-title__tagline">
+            <TextAnimation
+              text={t("gotQuestions", "Got Questions?")}
+              animationType="right"
+            />
+          </h6>
+          <h3 className="sec-title__title">
+            <TextAnimation
+              text={t("frequentlyAsked", "Frequently Asked")}
+              animationType="left"
+            />
+            {" "}<span>{t("questions", "Questions")}</span>
+          </h3>
+          <p className="hfaq-subtitle">
+            {t(
+              "faqSubtitle",
+              "Everything you need to know about our tours and services."
+            )}
+          </p>
         </div>
 
-        <div className="faq-accordion mx-auto" style={{ maxWidth: '900px' }}>
-          <Accordion
-            activeKey={activeKey ?? undefined}
-            onSelect={(eventKey) => setActiveKey(eventKey as string | null)}
-          >
-            {faqs.map((faq, index) => {
-              const eventKey = String(index);
-              const isOpen = activeKey === eventKey;
-
+        {/* Two-column FAQ grid */}
+        <Row className="g-0 hfaq-grid">
+          <Col lg={6} className="hfaq-col hfaq-col--left">
+            {leftFaqs.map((faq, i) => {
+              const isOpen = openIndex === i;
               return (
-                <Accordion.Item eventKey={eventKey} key={faq._id}>
-                  <div className="accordion-header">
-                    <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
-                      <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
-                        <div className="faq-icon-box">
-                          <HelpCircle size={20} />
-                        </div>
-                        <div className="faq-question-box text-start flex-grow-1">
-                          <h3 className="faq-question-title" style={{ margin: 0 }}>
-                            {getLocalizedValue(faq.question, i18n.language)}
-                          </h3>
-                        </div>
-                        <div
-                          className="faq-chevron"
-                          style={{
-                            marginLeft: "auto",
-                            display: "flex",
-                            alignItems: "center",
-                            transition: "transform 200ms ease",
-                            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                          }}
-                        >
-                          <ChevronDown size={18} />
-                        </div>
-                      </div>
-                    </Accordion.Button>
+                <div
+                  key={faq._id}
+                  className={`hfaq-item${isOpen ? " hfaq-item--open" : ""}`}
+                  onClick={() => toggle(i)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) =>
+                    (e.key === "Enter" || e.key === " ") && toggle(i)
+                  }
+                  aria-expanded={isOpen}
+                >
+                  <div className="hfaq-item__head">
+                    <span className="hfaq-num">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="hfaq-question">
+                      {getLocalizedValue(faq.question, i18n.language)}
+                    </span>
+                    <span className="hfaq-icon" aria-hidden="true">
+                      {isOpen ? <Minus size={14} /> : <Plus size={14} />}
+                    </span>
                   </div>
-                  <Accordion.Body>
-                    <div className="accordion-content">
-                      <div className="inner">
-                        <div
-                          className="inner__text"
-                          dangerouslySetInnerHTML={{ __html: getLocalizedValue(faq.answer, i18n.language) || "" }}
-                        />
-                        {faq.category && (
-                          <div className="mt-3">
-                            <small className="text-uppercase" style={{ fontSize: '10px', letterSpacing: '1px', color: '#b79c5c', fontWeight: '700' }}>
-                              {t('category', 'Category')}: {faq.category}
-                            </small>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Accordion.Body>
-                </Accordion.Item>
+                  <div className="hfaq-item__body">
+                    <div
+                      className="hfaq-answer"
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          getLocalizedValue(faq.answer, i18n.language) || "",
+                      }}
+                    />
+                    {faq.category && (
+                      <span className="hfaq-tag">{faq.category}</span>
+                    )}
+                  </div>
+                </div>
               );
             })}
-          </Accordion>
-        </div>
+          </Col>
+
+          <Col lg={6} className="hfaq-col hfaq-col--right">
+            {rightFaqs.map((faq, i) => {
+              const index = i + half;
+              const isOpen = openIndex === index;
+              return (
+                <div
+                  key={faq._id}
+                  className={`hfaq-item${isOpen ? " hfaq-item--open" : ""}`}
+                  onClick={() => toggle(index)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) =>
+                    (e.key === "Enter" || e.key === " ") && toggle(index)
+                  }
+                  aria-expanded={isOpen}
+                >
+                  <div className="hfaq-item__head">
+                    <span className="hfaq-num">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="hfaq-question">
+                      {getLocalizedValue(faq.question, i18n.language)}
+                    </span>
+                    <span className="hfaq-icon" aria-hidden="true">
+                      {isOpen ? <Minus size={14} /> : <Plus size={14} />}
+                    </span>
+                  </div>
+                  <div className="hfaq-item__body">
+                    <div
+                      className="hfaq-answer"
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          getLocalizedValue(faq.answer, i18n.language) || "",
+                      }}
+                    />
+                    {faq.category && (
+                      <span className="hfaq-tag">{faq.category}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </Col>
+        </Row>
+
       </Container>
     </section>
   );

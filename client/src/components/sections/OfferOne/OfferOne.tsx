@@ -6,6 +6,8 @@ import { offerOneData } from "@/data/offerOneData";
 import { Col, Container, Row } from "react-bootstrap";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface OfferCard {
   id: number;
@@ -31,6 +33,9 @@ interface OfferOneProps {
 const OfferOne: React.FC<OfferOneProps> = ({ homeThree }) => {
   const { sectionTagline, sectionTitle, offers, element }: OfferOneData =
     offerOneData;
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
+  const { t } = useTranslation("common");
   const [title, titleSpan] = sectionTitle.split("\n");
   return (
     <section className={`${homeThree ? "" : "section-space"} offer-one `}>
@@ -105,14 +110,14 @@ const OfferOne: React.FC<OfferOneProps> = ({ homeThree }) => {
 
                   <div className='offer-one__card__btn'>
                     <Link
-                      href={offer.link}
+                      href={`/${locale}/${offer.link}`}
                       className={`gotur-btn ${
                         offer.buttonStyle === "primary"
                           ? "gotur-btn--primary"
                           : ""
                       }`}
                     >
-                      Book Now{" "}
+                      {t("bookNow")}{" "}
                       <span className='icon'>
                         <i className='icon-right'></i>
                       </span>

@@ -1,0 +1,46 @@
+{
+  "pageTitle": "Special Offers | JES Egypt Tours",
+  "pageDescription": "Explore exclusive Egypt tour deals — limited-time discounts on handpicked experiences. Book now before they're gone.",
+  "seoKeywords": "egypt tour deals, special offers egypt, discount egypt tours, egypt vacation packages",
+  "header": {
+    "title": "Special Offers",
+    "subtitle": "Exclusive deals on Egypt's finest tours — handpicked for you."
+  },
+  "banner": {
+    "tagline": "Limited Time Deals",
+    "heading": "Handpicked Egypt Tours",
+    "upTo": "Up To",
+    "off": "Off",
+    "description": "Curated by our Egypt experts. Every tour on this page is priced lower — no codes needed, no fine print.",
+    "badge": "off selected tours",
+    "trust": {
+      "discountLabel": "Up to {{percent}}% Off",
+      "discountSub": "Verified discounts",
+      "guidesLabel": "Expert Guides",
+      "guidesSub": "Licensed & local",
+      "timeLabel": "Limited Time",
+      "timeSub": "Book before they're gone"
+    }
+  },
+  "controls": {
+    "found_one": "{{count}} Special Offer",
+    "found_other": "{{count}} Special Offers",
+    "available": "available",
+    "loading": "Loading…",
+    "sort": "Sort",
+    "sortNewest": "Newest first",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "sortNameAz": "Name A–Z"
+  },
+  "empty": {
+    "title": "No special offers right now",
+    "text": "Our team is preparing new deals. Check back soon or browse all our Egypt tours below.",
+    "button": "Browse All Tours"
+  },
+  "faqTitle": "Frequently Asked Questions",
+  "promoTitle": "Why Book a Special Offer Tour?",
+  "promoDescription": "<p>Our special offer tours are carefully selected to give you the best value without compromising on quality. Every deal pairs expert local guides, handpicked hotels, and iconic Egyptian destinations — at a price that makes your dream trip possible.</p><p>From the Pyramids of Giza to the temples of Luxor and the shores of the Red Sea, every special offer tour is crafted with the same care as our full-price experiences.</p>",
+  "promoSubtitle": "JES Egypt Tours",
+  "promoButton": "Contact Us"
+}

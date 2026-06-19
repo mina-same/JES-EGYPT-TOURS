@@ -42,6 +42,11 @@ import enBlogs from "@/i18n/locales/en/blogs.json";
 import deBlogs from "@/i18n/locales/de/blogs.json";
 import itBlogs from "@/i18n/locales/it/blogs.json";
 import esBlogs from "@/i18n/locales/es/blogs.json";
+
+import enSpecialOffers from "@/i18n/locales/en/specialOffers.json";
+import deSpecialOffers from "@/i18n/locales/de/specialOffers.json";
+import itSpecialOffers from "@/i18n/locales/it/specialOffers.json";
+import esSpecialOffers from "@/i18n/locales/es/specialOffers.json";
  
  if (!i18n.isInitialized) {
    i18n
@@ -49,15 +54,15 @@ import esBlogs from "@/i18n/locales/es/blogs.json";
      .use(LanguageDetector)
      .init({
        resources: {
-         en: { common: enCommon, faq: enFaq, contact: enContact, wishlist: enWishlist, tailorMade: enTailorMade, tours: enTours, search: enSearch, blogs: enBlogs },
-         de: { common: deCommon, faq: deFaq, contact: deContact, wishlist: deWishlist, tailorMade: deTailorMade, tours: deTours, search: deSearch, blogs: deBlogs },
-         it: { common: itCommon, faq: itFaq, contact: itContact, wishlist: itWishlist, tailorMade: itTailorMade, tours: itTours, search: itSearch, blogs: itBlogs },
-         es: { common: esCommon, faq: esFaq, contact: esContact, wishlist: esWishlist, tailorMade: esTailorMade, tours: esTours, search: esSearch, blogs: esBlogs },
+         en: { common: enCommon, faq: enFaq, contact: enContact, wishlist: enWishlist, tailorMade: enTailorMade, tours: enTours, search: enSearch, blogs: enBlogs, specialOffers: enSpecialOffers },
+         de: { common: deCommon, faq: deFaq, contact: deContact, wishlist: deWishlist, tailorMade: deTailorMade, tours: deTours, search: deSearch, blogs: deBlogs, specialOffers: deSpecialOffers },
+         it: { common: itCommon, faq: itFaq, contact: itContact, wishlist: itWishlist, tailorMade: itTailorMade, tours: itTours, search: itSearch, blogs: itBlogs, specialOffers: itSpecialOffers },
+         es: { common: esCommon, faq: esFaq, contact: esContact, wishlist: esWishlist, tailorMade: esTailorMade, tours: esTours, search: esSearch, blogs: esBlogs, specialOffers: esSpecialOffers },
        },
        fallbackLng: "en",
        supportedLngs: ["en", "de", "it", "es"],
        defaultNS: "common",
-       ns: ["common", "faq", "contact", "wishlist", "tailorMade", "tours", "search", "blogs"],
+       ns: ["common", "faq", "contact", "wishlist", "tailorMade", "tours", "search", "blogs", "specialOffers"],
        detection: {
          order: ["path", "cookie", "localStorage", "navigator"],
          caches: ["cookie", "localStorage"],

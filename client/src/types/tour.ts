@@ -255,6 +255,8 @@ export interface TourFormData {
   tourStyle?: ILocalizedString;
   isFeatured: boolean;
   isActive: boolean;
+  isSpecialOffer?: boolean;
+  specialOfferDiscount?: number;
   seo?: ISEO;
   // Comprehensive tour details
   tourHighlights?: ILocalizedMixed;

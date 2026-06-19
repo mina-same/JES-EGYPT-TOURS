@@ -35,8 +35,6 @@ export async function generateMetadata({
   };
 }
 
-
-
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
   subsets: ["latin"],
@@ -59,10 +57,12 @@ export default async function RootLayout({
 }>) {
   const { locale } = await params;
   return (
-    <html lang={locale || 'en'} suppressHydrationWarning>
-      <head>
-      </head>
-      <body className={`${jakartaSans.variable} ${justAnotherHand.variable}`} suppressHydrationWarning>
+    <html lang={locale || "en"} suppressHydrationWarning>
+      <head></head>
+      <body
+        className={`${jakartaSans.variable} ${justAnotherHand.variable}`}
+        suppressHydrationWarning
+      >
         <Script
           id="strip-bis-attributes"
           strategy="beforeInteractive"
