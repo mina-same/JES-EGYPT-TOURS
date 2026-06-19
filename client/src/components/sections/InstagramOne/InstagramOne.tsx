@@ -43,7 +43,7 @@ const InstagramOne: React.FC<InstragramOneProps> = ({ extraClass }) => {
         <div className='instagram-one__carousel'>
           <Swiper
             spaceBetween={30}
-            loop={false}
+            loop={true}
             speed={700}
             autoplay={{
               delay: 2500,
