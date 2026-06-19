@@ -49,7 +49,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://192.168.1.33:3000',
   'https://jes-egypt-tours.vercel.app',
-  `https://www.jesegypttours.com/`
+  'https://www.jesegypttours.com'
 ].filter(Boolean) as string[];
 
 app.use(
