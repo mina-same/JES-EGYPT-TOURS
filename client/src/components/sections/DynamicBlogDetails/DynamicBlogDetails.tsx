@@ -1005,6 +1005,175 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           display: flex;
           flex-direction: column;
         }
+
+        /* ── Blog FAQ ──────────────────────────────────────────── */
+        .blog-faq-icon-wrap {
+          width: 42px;
+          height: 42px;
+          background: linear-gradient(135deg, rgba(183,156,92,0.13), rgba(183,156,92,0.07));
+          border: 1.5px solid rgba(183,156,92,0.3);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #b79c5c;
+          flex-shrink: 0;
+        }
+
+        .blog-faq-title {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: #1d231f;
+          letter-spacing: -0.02em;
+        }
+
+        .blog-faq-divider {
+          height: 3px;
+          width: 56px;
+          background: linear-gradient(90deg, #b79c5c, transparent);
+          border-radius: 2px;
+          margin-top: 10px;
+          margin-left: 54px;
+        }
+
+        .blog-faq-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .blog-faq-item {
+          background: #fff;
+          border: 1px solid #e8e4db;
+          border-radius: 12px;
+          overflow: hidden;
+          transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .blog-faq-item:hover {
+          border-color: rgba(183,156,92,0.4);
+          box-shadow: 0 4px 20px rgba(183,156,92,0.07);
+        }
+
+        .blog-faq-item--open {
+          border-color: #b79c5c;
+          box-shadow: 0 6px 25px rgba(183,156,92,0.11);
+        }
+
+        .blog-faq-item__trigger {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 18px 20px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+          transition: background 0.2s ease;
+        }
+
+        .blog-faq-item--open .blog-faq-item__trigger {
+          background: linear-gradient(135deg, #fdfaf3, #faf6ec);
+          border-bottom: 1px solid #e8e4db;
+        }
+
+        .blog-faq-item__num {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #b79c5c;
+          background: rgba(183,156,92,0.1);
+          border-radius: 6px;
+          padding: 4px 9px;
+          letter-spacing: 0.06em;
+          flex-shrink: 0;
+          min-width: 44px;
+          text-align: center;
+          transition: background 0.2s, color 0.2s;
+        }
+
+        .blog-faq-item--open .blog-faq-item__num {
+          background: #b79c5c;
+          color: #fff;
+        }
+
+        .blog-faq-item__question {
+          flex: 1;
+          font-size: 1rem;
+          font-weight: 600;
+          color: #1a1a1a;
+          line-height: 1.5;
+          transition: color 0.2s;
+        }
+
+        .blog-faq-item--open .blog-faq-item__question {
+          color: #1b4168;
+        }
+
+        .blog-faq-item__icon {
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          background: #f0ede8;
+          color: #888;
+          flex-shrink: 0;
+          transition: background 0.2s, color 0.2s;
+        }
+
+        .blog-faq-item--open .blog-faq-item__icon {
+          background: #b79c5c;
+          color: #fff;
+        }
+
+        .blog-faq-item__body {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.35s ease, padding 0.25s ease;
+          padding: 0 20px;
+        }
+
+        .blog-faq-item--open .blog-faq-item__body {
+          max-height: 1200px;
+          padding: 20px 20px 22px;
+        }
+
+        .blog-faq-item__answer {
+          font-size: 0.975rem;
+          color: #555;
+          line-height: 1.8;
+        }
+
+        .blog-faq-item__answer a {
+          color: #b79c5c;
+          text-decoration: underline;
+          transition: color 0.2s;
+        }
+
+        .blog-faq-item__answer a:hover {
+          color: #1b4168;
+        }
+
+        .blog-faq-item__answer strong {
+          font-weight: 700;
+          color: #1a1a1a;
+        }
+
+        .blog-faq-item__answer p {
+          margin-bottom: 0.8rem;
+        }
+
+        .blog-faq-item__answer p:last-child {
+          margin-bottom: 0;
+        }
+
+        .blog-faq-item__answer ul,
+        .blog-faq-item__answer ol {
+          padding-left: 1.4rem;
+          margin-bottom: 0.8rem;
+        }
       `}</style>
     </section>
   );
