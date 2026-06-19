@@ -116,18 +116,20 @@
   "bookNow": "Prenota ora",
   "whyChooseUs": {
     "tagline": "Perché sceglierci?",
-    "title": "Perché sceglierci?",
-    "subtitle": "Creiamo avventure indimenticabili per esploratori appassionati di tutto il mondo.",
-    "reasons": {
-      "tailoredTitle": "Esperienze su misura",
-      "tailoredDesc": "Progetta il tuo viaggio ideale, personalizza ogni dettaglio o lascia che creiamo il tuo itinerario perfetto in base alle tue preferenze e interessi.",
-      "multiCountryTitle": "Viaggi multi-paese",
-      "multiCountryDesc": "Esplora più destinazioni senza fatica con una pianificazione esperta e i migliori prezzi, gestito da specialisti di viaggio locali.",
-      "yearsTitle": "Oltre 65 anni di successo",
-      "yearsDesc": "JES Egypt Tours stabilisce standard nel settore del turismo da oltre sei decenni, offrendoti la fiducia che cerchi per la tua prossima avventura.",
-      "paymentTitle": "Pagamento online sicuro",
-      "paymentDesc": "Prenota con fiducia usando il nostro sistema di pagamento criptato, assicurando che le tue informazioni personali e finanziarie siano completamente protette."
-    }
+    "title": "Perché scegliere JES Egypt Tours?",
+    "subtitle": "Specialisti dell'Egitto con sede al Cairo, che organizzano tour privati per viaggiatori che vogliono vivere l'Egitto con i propri ritmi.",
+    "card1Title": "Guide locali autorizzate",
+    "card1Desc": "Le nostre visite sono condotte da guide autorizzate dal Ministero del Turismo egiziano. Spiegano storia, contesto e racconti con chiarezza, senza correre per rispettare il programma di un gruppo.",
+    "card2Title": "Solo voi, in ogni tour",
+    "card2Desc": "Ogni tour è prenotato esclusivamente per voi. La guida si dedica completamente a voi, non alla gestione di altri viaggiatori. Questo vi dà più flessibilità e più spazio per fare domande.",
+    "card3Title": "Con sede al Cairo, non solo una pagina di prenotazione",
+    "card3Desc": "Pianifichiamo il vostro viaggio direttamente dal Cairo, non da un ufficio all'estero. Comunicazione diretta, vera conoscenza locale e qualcuno sul posto se qualcosa deve essere modificato.",
+    "card4Title": "Una giornata flessibile, costruita intorno a voi",
+    "card4Desc": "Volete fermarvi più a lungo nella Valle dei Re? Saltare una tappa che non vi interessa? Costruiamo la giornata intorno a ciò che volete davvero vedere e adattiamo il programma quando i piani cambiano.",
+    "card5Title": "Pagamento con carta o bonifico bancario",
+    "card5Desc": "Accettiamo carte di credito e di debito, oltre a bonifici bancari internazionali. I dettagli del pagamento vengono confermati per iscritto prima della prenotazione, così tutto è chiaro fin dall'inizio.",
+    "card6Title": "Rispondiamo in tempi rapidi",
+    "card6Desc": "Scriveteci le vostre date e cosa volete vedere. Vi risponderemo con un piano chiaro e un prezzo confermato, prima che vi impegniate a qualsiasi cosa."
   },
   "featuredTours": {
     "tagline": "Selezionati per te",
@@ -141,5 +143,15 @@
     "fallbackSubtitle": "Il viaggio definitivo in Egitto",
     "readMore": "Leggi la storia completa",
     "readLess": "Mostra meno"
+  },
+  "destinations": {
+    "aswan": { "title": "Assuan", "subtitle": "Tour in Feluca sul Nilo" },
+    "dahab": { "title": "Dahab", "subtitle": "Tour Mar Rosso & Montagne" },
+    "giza": { "title": "Giza", "subtitle": "Panorama Piramidi & Sfinge" },
+    "hatshepsut": { "title": "Tempio di Hatshepsut", "subtitle": "Tour Riva Ovest di Luxor" },
+    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Bazar dello Shopping del Cairo" },
+    "luxor": { "title": "Luxor", "subtitle": "Mongolfiera sul Nilo" },
+    "qaitbay": { "title": "Cittadella di Qaitbay", "subtitle": "Tour Costiero di Alessandria" },
+    "siwa": { "title": "Siwa", "subtitle": "Tour dell'Oasi e Laghi Salati" }
   }
 }

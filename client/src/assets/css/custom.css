@@ -2098,3 +2098,72 @@ button[data-action="stop"] {
 .about-one__button__call a {
   white-space: nowrap;
 }
+
+/* =========================================================
+   Destination Carousel Two — image height & ADVENTURE-style labels
+   ========================================================= */
+.destination-carousel--two .destination-carousel__item {
+  height: 650px;
+}
+
+/* Container that animates in exactly like the old ADVENTURE span */
+.destination-carousel--two .destination-carousel__text-group {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -300%);
+  opacity: 0;
+  transition: transform 1500ms ease, opacity 1500ms ease;
+  text-align: center;
+  pointer-events: none;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.destination-carousel--two .tns-slide-active .destination-carousel__text-group {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  transition-delay: 1000ms;
+}
+
+/* Big place-name text — same look as ADVENTURE */
+.destination-carousel__big-text {
+  display: block;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 200px;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+/* Small subtitle below */
+.destination-carousel__small-text {
+  display: block;
+  font-size: 22px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: capitalize;
+  letter-spacing: 2px;
+  margin: 14px 0 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+}
+
+@media (max-width: 1199px) {
+  .destination-carousel--two .destination-carousel__item { height: 500px; }
+  .destination-carousel__big-text { font-size: 100px; }
+  .destination-carousel__small-text { font-size: 18px; }
+}
+
+@media (max-width: 991px) {
+  .destination-carousel__big-text { font-size: 80px; }
+  .destination-carousel__small-text { font-size: 16px; }
+}
+
+@media (max-width: 767px) {
+  .destination-carousel--two .destination-carousel__item { height: 380px; }
+  .destination-carousel__big-text { font-size: 50px; }
+  .destination-carousel__small-text { font-size: 14px; margin-top: 8px; letter-spacing: 1px; }
+}

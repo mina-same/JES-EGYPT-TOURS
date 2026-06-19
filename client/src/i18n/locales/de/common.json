@@ -116,18 +116,20 @@
   "bookNow": "Jetzt buchen",
   "whyChooseUs": {
     "tagline": "Warum uns wählen?",
-    "title": "Warum uns wählen?",
-    "subtitle": "Wir gestalten unvergessliche Abenteuer für leidenschaftliche Entdecker in aller Welt.",
-    "reasons": {
-      "tailoredTitle": "Maßgeschneiderte Erlebnisse",
-      "tailoredDesc": "Gestalten Sie Ihre ideale Reise – passen Sie jedes Detail an oder lassen Sie uns Ihre perfekte Reiseroute nach Ihren Vorstellungen planen.",
-      "multiCountryTitle": "Mehrtägige Touren",
-      "multiCountryDesc": "Erkunden Sie mühelos mehrere Reiseziele mit fachkundiger Planung und besten Preisen, betreut von lokalen Reisespezialisten.",
-      "yearsTitle": "Über 65 Jahre Erfolg",
-      "yearsDesc": "JES Egypt Tours setzt seit über sechs Jahrzehnten Maßstäbe in der Tourismusbranche und bietet Ihnen das Vertrauen, das Sie für Ihr nächstes Abenteuer suchen.",
-      "paymentTitle": "Sichere Online-Zahlung",
-      "paymentDesc": "Buchen Sie mit Vertrauen über unser verschlüsseltes Zahlungssystem – Ihre persönlichen und finanziellen Daten sind vollständig geschützt."
-    }
+    "title": "Warum mit JES Egypt Tours reisen?",
+    "subtitle": "Ägypten-Spezialisten mit Sitz in Kairo, die private Touren für Reisende planen, die Ägypten in ihrem eigenen Tempo erleben möchten.",
+    "card1Title": "Lizenzierte lokale Reiseleiter",
+    "card1Desc": "Unsere Touren werden von Reiseleitern geführt, die vom ägyptischen Tourismusministerium lizenziert sind. Sie erklären Geschichte, Zusammenhänge und Geschichten klar — ohne Sie durch den Tag zu hetzen, nur um einem Gruppenprogramm zu folgen.",
+    "card2Title": "Nur für Sie allein",
+    "card2Desc": "Jede Tour wird exklusiv für Sie gebucht. Ihr Reiseleiter konzentriert sich vollständig auf Sie, nicht auf andere Reisende. So haben Sie mehr Flexibilität und mehr Raum für Ihre Fragen.",
+    "card3Title": "Vor Ort in Kairo, nicht nur eine Buchungsseite",
+    "card3Desc": "Wir planen Ihre Reise direkt von Kairo aus, nicht aus einem Büro im Ausland. Direkte Kommunikation, echtes lokales Wissen und jemanden vor Ort, falls etwas angepasst werden muss.",
+    "card4Title": "Ein flexibler Tag, auf Sie abgestimmt",
+    "card4Desc": "Möchten Sie länger im Tal der Könige bleiben? Einen Stopp auslassen, der Sie nicht interessiert? Wir gestalten den Tag nach dem, was Sie wirklich sehen möchten, und passen ihn an, wenn sich etwas ändert.",
+    "card5Title": "Zahlung per Karte oder Banküberweisung",
+    "card5Desc": "Wir akzeptieren Kredit- und Debitkarten sowie internationale Banküberweisungen. Alle Zahlungsdetails werden vor der Buchung schriftlich bestätigt, damit von Anfang an alles klar ist.",
+    "card6Title": "Wir antworten schnell",
+    "card6Desc": "Schreiben Sie uns Ihre Reisedaten und was Sie sehen möchten. Wir melden uns mit einem klaren Plan und einem bestätigten Preis — bevor Sie sich zu irgendetwas verpflichten."
   },
   "featuredTours": {
     "tagline": "Handverlesen für Sie",
@@ -141,5 +143,15 @@
     "fallbackSubtitle": "Das ultimative Ägyptenerlebnis",
     "readMore": "Vollständige Geschichte lesen",
     "readLess": "Weniger anzeigen"
+  },
+  "destinations": {
+    "aswan": { "title": "Assuan", "subtitle": "Nil-Feluke Segel-Tour" },
+    "dahab": { "title": "Dahab", "subtitle": "Rotes Meer & Bergtour" },
+    "giza": { "title": "Gizeh", "subtitle": "Pyramiden & Sphinx Panorama" },
+    "hatshepsut": { "title": "Hatschepsut-Tempel", "subtitle": "Luxor Westufer Tour" },
+    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Kairo Shopping-Basar" },
+    "luxor": { "title": "Luxor", "subtitle": "Heißluftballon über dem Nil" },
+    "qaitbay": { "title": "Qaitbay-Zitadelle", "subtitle": "Alexandria Küstentour" },
+    "siwa": { "title": "Siwa", "subtitle": "Oase & Salzseen Tour" }
   }
 }

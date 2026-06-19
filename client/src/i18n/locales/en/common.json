@@ -117,18 +117,20 @@
   "bookNow": "Book Now",
   "whyChooseUs": {
     "tagline": "Why Choose Us?",
-    "title": "Why Choose Us?",
-    "subtitle": "We craft unforgettable adventures for passionate explorers around the world.",
-    "reasons": {
-      "tailoredTitle": "Tailored Experiences",
-      "tailoredDesc": "Design your ideal journey, customize every detail or let us craft the perfect itinerary based on your preferences and interests.",
-      "multiCountryTitle": "Multi-Country Trips",
-      "multiCountryDesc": "Effortlessly explore multiple destinations with expert planning and the best prices, all managed by local travel specialists.",
-      "yearsTitle": "Over 65 Years of Success",
-      "yearsDesc": "JES Egypt Tours has been setting standards in the tourism industry for over six decades, giving you the trust you look for in your next adventure.",
-      "paymentTitle": "Secure Online Payment",
-      "paymentDesc": "Book with confidence using our encrypted payment system, ensuring your personal and financial information is fully protected."
-    }
+    "title": "Why Travel with JES Egypt Tours?",
+    "subtitle": "Egypt specialists based in Cairo, planning private tours for travelers who want to experience Egypt at their own pace.",
+    "card1Title": "Licensed Local Guides",
+    "card1Desc": "Our tours are led by guides licensed by the Egyptian Ministry of Tourism. They explain Egypt's history, context, and stories clearly — without rushing you through the day to fit a group schedule.",
+    "card2Title": "One Party at a Time",
+    "card2Desc": "Every tour is booked for you alone. Your guide focuses entirely on you, not on managing other travelers. That gives you more flexibility and more room to ask questions.",
+    "card3Title": "Cairo-Based, Not Just an Online Booking Page",
+    "card3Desc": "We plan your trip from Cairo, not from an office abroad. Direct communication, real local knowledge, and someone on the ground if anything needs adjusting.",
+    "card4Title": "A Flexible Day, Built Around You",
+    "card4Desc": "Want to spend longer at the Valley of the Kings? Skip a stop that doesn't interest you? We build the day around what you actually want to see and adjust when plans change.",
+    "card5Title": "Pay by Card or Bank Transfer",
+    "card5Desc": "We accept credit and debit cards as well as international bank transfers. Payment details are confirmed in writing before you book, so everything is clear from the start.",
+    "card6Title": "We Reply Fast",
+    "card6Desc": "Send us your dates and what you want to see. We'll get back to you with a clear plan and a confirmed price — before you commit to anything."
   },
   "featuredTours": {
     "tagline": "Handpicked for you",
@@ -142,5 +144,15 @@
     "fallbackSubtitle": "The Ultimate Egyptian Journey",
     "readMore": "Read Full Story",
     "readLess": "Show Less"
+  },
+  "destinations": {
+    "aswan": { "title": "Aswan", "subtitle": "Nile Felucca Sailing Tour" },
+    "dahab": { "title": "Dahab", "subtitle": "Red Sea Mountains Tour" },
+    "giza": { "title": "Giza", "subtitle": "Pyramids & Sphinx Sunset Panorama" },
+    "hatshepsut": { "title": "Hatshepsut Temple", "subtitle": "Luxor West Bank Tour" },
+    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Cairo Shopping Bazaar" },
+    "luxor": { "title": "Luxor", "subtitle": "Nile Hot Air Balloon View" },
+    "qaitbay": { "title": "Qaitbay Citadel", "subtitle": "Alexandria Coastal Tour" },
+    "siwa": { "title": "Siwa", "subtitle": "Oasis & Salt Lakes Tour" }
   }
 }

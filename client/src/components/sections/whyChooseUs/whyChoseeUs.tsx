@@ -1,54 +1,33 @@
 "use client";
 
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
-import whyChooseUsData from "@/data/destinationsTwoData";
 import { useRef } from "react";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 import { useTranslation } from "react-i18next";
 
-interface Destination {
-  title: string;
-  link: string;
-  image: StaticImageData;
-  hoverImage: StaticImageData;
-}
-
-interface WhyChooseUsData {
-  tagline: string;
-  title: string;
-  destinations: Destination[];
-}
+const CARD_IMAGES = [
+  "/images/why%20choose%20us/licensed-local-egyptologist-guide-temple-tour.webp",
+  "/images/why%20choose%20us/one-party-at-a-time-abu-simbel-private-tour.webp",
+  "/images/why%20choose%20us/cairo-based-egypt-tour-operator-nile-cityscape.webp",
+  "/images/why%20choose%20us/flexible-private-egypt-tour-temple-visit.webp",
+  "/images/why%20choose%20us/easy-card-payment-egypt-tour-booking.webp",
+  "/images/why%20choose%20us/fast-whatsapp-reply-egypt-tour-operator.webp",
+];
 
 const WhyChooseUs = () => {
-  const { destinations }: WhyChooseUsData = whyChooseUsData;
   const sliderRef = useRef<any>(null);
   const { t } = useTranslation("common");
 
-  const whyChooseUsContent = {
-    tagline: t("whyChooseUs.tagline"),
-    title: t("whyChooseUs.title"),
-    subtitle: t("whyChooseUs.subtitle"),
-    reasons: [
-      {
-        title: t("whyChooseUs.reasons.tailoredTitle"),
-        description: t("whyChooseUs.reasons.tailoredDesc"),
-      },
-      {
-        title: t("whyChooseUs.reasons.multiCountryTitle"),
-        description: t("whyChooseUs.reasons.multiCountryDesc"),
-      },
-      {
-        title: t("whyChooseUs.reasons.yearsTitle"),
-        description: t("whyChooseUs.reasons.yearsDesc"),
-      },
-      {
-        title: t("whyChooseUs.reasons.paymentTitle"),
-        description: t("whyChooseUs.reasons.paymentDesc"),
-      },
-    ],
-  };
+  const cards = [
+    { title: t("whyChooseUs.card1Title"), desc: t("whyChooseUs.card1Desc") },
+    { title: t("whyChooseUs.card2Title"), desc: t("whyChooseUs.card2Desc") },
+    { title: t("whyChooseUs.card3Title"), desc: t("whyChooseUs.card3Desc") },
+    { title: t("whyChooseUs.card4Title"), desc: t("whyChooseUs.card4Desc") },
+    { title: t("whyChooseUs.card5Title"), desc: t("whyChooseUs.card5Desc") },
+    { title: t("whyChooseUs.card6Title"), desc: t("whyChooseUs.card6Desc") },
+  ];
 
   const carouselOptions = {
     items: 1,
@@ -75,25 +54,25 @@ const WhyChooseUs = () => {
             <Col lg={8}>
               <div className='sec-title'>
                 <h6 className='sec-title__tagline'>
-                  <TextAnimation text={whyChooseUsContent.tagline} animationType='right' />
+                  <TextAnimation text={t("whyChooseUs.tagline")} animationType='right' />
                 </h6>
                 <h3 className='sec-title__title d-md-flex gap-2'>
-                  <TextAnimation text={whyChooseUsContent.title} animationType='left' />
+                  <TextAnimation text={t("whyChooseUs.title")} animationType='left' />
                 </h3>
                 <p className='sec-title__subtitle'>
-                  {whyChooseUsContent.subtitle}
+                  {t("whyChooseUs.subtitle")}
                 </p>
               </div>
             </Col>
             <Col lg={4}>
               <div className='destinations-two__bottom__nav'>
-                <button 
+                <button
                   className='destinations-two__carousel__nav--left'
                   onClick={() => sliderRef.current?.slider?.goTo("prev")}
                 >
                   <span className='icon-arrow-left'></span>
                 </button>
-                <button 
+                <button
                   className='destinations-two__carousel__nav--right'
                   onClick={() => sliderRef.current?.slider?.goTo("next")}
                 >
@@ -108,7 +87,7 @@ const WhyChooseUs = () => {
           className='destinations-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'
           settings={carouselOptions}
         >
-          {destinations.map((dest: Destination, index) => (
+          {cards.map((card, index) => (
             <div key={index}>
               <div className='item'>
                 <div
@@ -118,26 +97,16 @@ const WhyChooseUs = () => {
                 >
                   <div className='destinations-card-two__thumb'>
                     <Image
-                      src={dest.image}
-                      alt={dest.title}
+                      src={CARD_IMAGES[index]}
+                      alt={card.title}
                       className='img-fluid'
+                      width={400}
+                      height={500}
                     />
-                    <div className='destinations-card-two__hover'>
-                      <Image
-                        src={dest.hoverImage}
-                        alt={dest.title}
-                        className='img-fluid'
-                      />
-                    </div>
-                    {/* Add Why Choose Us content overlay */}
                     <div className='reason-card__overlay'></div>
                     <div className='reason-card__content'>
-                      <h4 className='reason-card__title'>
-                        {whyChooseUsContent.reasons[index]?.title || dest.title}
-                      </h4>
-                      <p className='reason-card__description'>
-                        {whyChooseUsContent.reasons[index]?.description || ''}
-                      </p>
+                      <h4 className='reason-card__title'>{card.title}</h4>
+                      <p className='reason-card__description'>{card.desc}</p>
                     </div>
                   </div>
                 </div>

@@ -116,18 +116,20 @@
   "bookNow": "Reservar ahora",
   "whyChooseUs": {
     "tagline": "¿Por qué elegirnos?",
-    "title": "¿Por qué elegirnos?",
-    "subtitle": "Creamos aventuras inolvidables para exploradores apasionados de todo el mundo.",
-    "reasons": {
-      "tailoredTitle": "Experiencias a medida",
-      "tailoredDesc": "Diseñe su viaje ideal, personalice cada detalle o déjenos crear el itinerario perfecto según sus preferencias e intereses.",
-      "multiCountryTitle": "Viajes a varios países",
-      "multiCountryDesc": "Explore múltiples destinos sin esfuerzo con una planificación experta y los mejores precios, gestionado por especialistas locales.",
-      "yearsTitle": "Más de 65 años de éxito",
-      "yearsDesc": "JES Egypt Tours lleva más de seis décadas marcando estándares en la industria del turismo, ofreciéndole la confianza que busca para su próxima aventura.",
-      "paymentTitle": "Pago seguro en línea",
-      "paymentDesc": "Reserve con confianza usando nuestro sistema de pago cifrado, asegurando que su información personal y financiera esté completamente protegida."
-    }
+    "title": "¿Por qué elegir JES Egypt Tours?",
+    "subtitle": "Especialistas en Egipto con sede en El Cairo, que organizan tours privados para viajeros que quieren conocer Egipto a su propio ritmo.",
+    "card1Title": "Guías locales con licencia",
+    "card1Desc": "Nuestros tours están dirigidos por guías con licencia del Ministerio de Turismo de Egipto. Explican la historia, el contexto y los relatos de Egipto con claridad, sin prisas para ajustarse al horario de un grupo.",
+    "card2Title": "Solo para ustedes",
+    "card2Desc": "Cada tour se reserva exclusivamente para ustedes. Su guía se dedica por completo a ustedes, no a gestionar a otros viajeros. Eso les da más flexibilidad y más espacio para hacer preguntas.",
+    "card3Title": "Con sede en El Cairo, no solo una página de reservas",
+    "card3Desc": "Planificamos su viaje directamente desde El Cairo, no desde una oficina en el extranjero. Comunicación directa, conocimiento local real y alguien sobre el terreno si algo necesita ajustarse.",
+    "card4Title": "Un día flexible, adaptado a ustedes",
+    "card4Desc": "¿Quieren pasar más tiempo en el Valle de los Reyes? ¿Saltarse una parada que no les interesa? Organizamos el día en torno a lo que realmente quieren ver y lo ajustamos cuando los planes cambian.",
+    "card5Title": "Pago con tarjeta o transferencia bancaria",
+    "card5Desc": "Aceptamos tarjetas de crédito y débito, así como transferencias bancarias internacionales. Los detalles del pago se confirman por escrito antes de reservar, para que todo quede claro desde el principio.",
+    "card6Title": "Respondemos rápido",
+    "card6Desc": "Escríbannos sus fechas y lo que quieren ver. Les responderemos con un plan claro y un precio confirmado, antes de que se comprometan a nada."
   },
   "featuredTours": {
     "tagline": "Seleccionados para usted",
@@ -141,5 +143,15 @@
     "fallbackSubtitle": "El viaje definitivo a Egipto",
     "readMore": "Leer historia completa",
     "readLess": "Mostrar menos"
+  },
+  "destinations": {
+    "aswan": { "title": "Asuán", "subtitle": "Tour en Feluca por el Nilo" },
+    "dahab": { "title": "Dahab", "subtitle": "Tour Mar Rojo & Montañas" },
+    "giza": { "title": "Guiza", "subtitle": "Panorama Pirámides & Esfinge" },
+    "hatshepsut": { "title": "Templo de Hatshepsut", "subtitle": "Tour Ribera Oeste de Luxor" },
+    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Bazar de Compras de El Cairo" },
+    "luxor": { "title": "Luxor", "subtitle": "Globo Aerostático sobre el Nilo" },
+    "qaitbay": { "title": "Ciudadela de Qaitbay", "subtitle": "Tour Costero de Alejandría" },
+    "siwa": { "title": "Siwa", "subtitle": "Tour del Oasis y Lagos Salados" }
   }
 }
