@@ -2106,6 +2106,14 @@ button[data-action="stop"] {
   height: 650px;
 }
 
+/* Subtle dark overlay so white text stays readable */
+.destination-carousel__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
 /* Container that animates in exactly like the old ADVENTURE span */
 .destination-carousel--two .destination-carousel__text-group {
   position: absolute;

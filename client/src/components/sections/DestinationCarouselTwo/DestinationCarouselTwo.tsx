@@ -42,6 +42,7 @@ const DestinationCarouselTwo = () => {
                   style={{ objectFit: "cover" }}
                   priority={item.id === 1}
                 />
+                <div className="destination-carousel__dim" />
                 <div className="destination-carousel__text-group">
                   <span className="destination-carousel__big-text">
                     {t(item.titleKey)}
