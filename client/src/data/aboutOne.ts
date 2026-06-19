@@ -1,7 +1,5 @@
 // data.ts
 import aboutImg3 from "@/assets/images/shapes/about-1-3.png";
-import aboutShape1 from "@/assets/images/shapes/about-1-1.png";
-import aboutShape2 from "@/assets/images/shapes/about-1-2.png";
 
 export const aboutOneData = {
   title: "Private Egypt Tours,",
@@ -39,7 +37,7 @@ export const aboutOneData = {
     mainImage: "/images/about/private-egypt-tours-planned-around-you-giza-pyramids.webp",
     smallImage: "/images/about/egypt-private-guide-temple-tour.webp",
     popupImage: aboutImg3,
-    shape1: aboutShape1,
-    shape2: aboutShape2,
+    shape1: "/images/shapes/about-1-1.png",
+    shape2: "/images/shapes/about-1-2.png",
   },
 };

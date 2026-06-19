@@ -211,10 +211,10 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass }) => {
       </Container>
 
       <div className='about-one__element-one'>
-        <Image src={images.shape1} alt='' aria-hidden='true' />
+        <Image src={images.shape1} alt='' aria-hidden='true' width={293} height={155} />
       </div>
       <div className='about-one__element-two'>
-        <Image src={images.shape2} alt='' aria-hidden='true' />
+        <Image src={images.shape2} alt='' aria-hidden='true' width={500} height={300} />
       </div>
     </section>
   );
