@@ -345,6 +345,18 @@ const normalizeMetaImage = (metaImage: any): any => {
   return metaImage;
 };
 
+// sparse unique indexes on slug.de/it/es only fire when the field is present,
+// so "" must be deleted — an absent field means that language page does not exist.
+const stripEmptyLocalizedSlugs = (slug: any): void => {
+  if (!slug || typeof slug !== 'object') return;
+  const optionalLangs = ['de', 'it', 'es'] as const;
+  for (const lang of optionalLangs) {
+    if (typeof slug[lang] === 'string' && slug[lang].trim() === '') {
+      delete slug[lang];
+    }
+  }
+};
+
 export const createBlog = async (
   req: Request,
   res: Response
@@ -377,6 +389,8 @@ export const createBlog = async (
       body.ogImage = body.metaImage?.url || body.ogImage;
     }
     
+    stripEmptyLocalizedSlugs(body.slug);
+
     const blog = await Blog.create(body);
     await blog.populate('author', 'name email');
 
@@ -389,9 +403,16 @@ export const createBlog = async (
     console.error('Error creating blog:', error);
     
     if (error.code === 11000) {
+      const conflictField = error.keyValue
+        ? Object.keys(error.keyValue)[0]
+        : 'slug';
+      const conflictValue = error.keyValue
+        ? Object.values(error.keyValue)[0]
+        : '';
       res.status(400).json({
         success: false,
-        error: 'Blog post with this slug already exists',
+        error: `Duplicate value on field "${conflictField}": "${conflictValue}". Please use a unique slug.`,
+        keyValue: error.keyValue,
       });
       return;
     }
@@ -440,6 +461,8 @@ export const updateBlog = async (
       body.ogImage = body.metaImage?.url || body.ogImage;
     }
     
+    stripEmptyLocalizedSlugs(body.slug);
+
     const blog = await Blog.findByIdAndUpdate(
       req.params.id,
       body,
@@ -515,10 +538,15 @@ export const updateBlog = async (
 
     // Duplicate key (usually slug uniqueness)
     if (error?.code === 11000) {
+      const conflictField = error.keyValue
+        ? Object.keys(error.keyValue)[0]
+        : 'slug';
+      const conflictValue = error.keyValue
+        ? Object.values(error.keyValue)[0]
+        : '';
       res.status(400).json({
         success: false,
-        error: 'Duplicate key',
-        details: 'A unique field already exists (often slug). Please choose a different value.',
+        error: `Duplicate value on field "${conflictField}": "${conflictValue}". Please use a unique slug.`,
         keyValue: error.keyValue,
       });
       return;
