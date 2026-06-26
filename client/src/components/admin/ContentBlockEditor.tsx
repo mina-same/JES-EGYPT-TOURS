@@ -22,9 +22,9 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { 
+import {
   GripVertical, Plus, Trash2, Copy, Settings, ChevronDown, ChevronUp,
-  Type, Quote, Images, X
+  Type, Quote, Images, X, Image as LucideImage
 } from 'lucide-react';
 import LocalizedField from './LocalizedField';
 import { Button } from '@/components/ui/button';
@@ -41,15 +41,18 @@ import { ILocalizedString } from '@/types/shared';
 
 export interface ContentBlock {
   id: string;
-  type: 'html' | 'blockquote' | 'imageRow';
+  type: 'html' | 'blockquote' | 'imageRow' | 'image';
   content?: ILocalizedString;
-  images?: any[]; // Should be localized images
+  images?: any[];
   image?: string;
   url?: string;
   alt?: ILocalizedString;
   caption?: ILocalizedString;
-  title?: ILocalizedString; // Attribution for blockquote
+  title?: ILocalizedString;
   fileName?: string;
+  aspectRatio?: '16:9' | '4:3' | '3:2' | '3:4' | 'auto';
+  fit?: 'cover' | 'contain';
+  focus?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'center-top' | 'center-bottom';
 }
 
 interface ContentBlockEditorProps {
@@ -60,9 +63,10 @@ interface ContentBlockEditorProps {
 }
 
 const BLOCK_TYPES = [
-  { type: 'html', label: 'Text', icon: Type, description: 'Rich text content' },
-  { type: 'blockquote', label: 'Quote', icon: Quote, description: 'Styled quote block' },
-  { type: 'imageRow', label: 'Gallery', icon: Images, description: 'Single image or multiple images gallery' },
+  { type: 'html',      label: 'Text',    icon: Type,         description: 'Rich text content' },
+  { type: 'blockquote',label: 'Quote',   icon: Quote,        description: 'Styled quote block' },
+  { type: 'imageRow',  label: 'Gallery', icon: Images,       description: 'Single image or multiple images gallery' },
+  { type: 'image',     label: 'Image',   icon: LucideImage,  description: 'Single image with display style control' },
 ] as const;
 
 // Sortable Block Item
@@ -78,11 +82,12 @@ function SortableBlockItem({
   onMove,
   activeLanguage,
   isFirst,
-  isLast
+  isLast,
+  textBlockNumber
 }: {
   block: ContentBlock;
   index: number;
-  onUpdate: (index: number, field: string, value: any) => void;
+  onUpdate: (index: number, fieldOrPatch: string | Record<string, any>, value?: any) => void;
   onRemove: (index: number) => void;
   onDuplicate: (index: number) => void;
   onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
@@ -92,6 +97,7 @@ function SortableBlockItem({
   activeLanguage: AdminLanguage;
   isFirst: boolean;
   isLast: boolean;
+  textBlockNumber?: number;
 }) {
   const {
     attributes,
@@ -109,6 +115,9 @@ function SortableBlockItem({
 
   const blockType = BLOCK_TYPES.find(b => b.type === block.type);
   const Icon = blockType?.icon || Type;
+  const blockLabel = block.type === 'html' && textBlockNumber
+    ? `Text Block ${textBlockNumber}`
+    : blockType?.label;
 
   return (
     <div
@@ -135,7 +144,7 @@ function SortableBlockItem({
           </div>
           <div className="flex items-center gap-2">
             <Icon className="w-4 h-4 text-gray-600 dark:text-slate-300" />
-            <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{blockType?.label}</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{blockLabel}</span>
           </div>
         </div>
         
@@ -222,17 +231,17 @@ function SortableBlockItem({
 }
 
 // Block Content Renderer
-function BlockContent({ 
-  block, 
-  index, 
-  onUpdate, 
+function BlockContent({
+  block,
+  index,
+  onUpdate,
   onImageUpload,
   activeLanguage,
   canRemoveImage
 }: {
   block: ContentBlock;
   index: number;
-  onUpdate: (index: number, field: string, value: any) => void;
+  onUpdate: (index: number, fieldOrPatch: string | Record<string, any>, value?: any) => void;
   onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
   canRemoveImage?: (imageIndex: number) => boolean;
@@ -365,6 +374,83 @@ function BlockContent({
       );
 
 
+    case 'image': {
+      const imgObj = {
+        url:      (block as any).url      || '',
+        fileName: (block as any).fileName || '',
+        alt:      (block as any).alt      || { en: '', de: '', it: '', es: '' },
+        caption:  (block as any).caption  || { en: '', de: '', it: '', es: '' },
+      };
+
+      const imageStylePreset = (() => {
+        const ar = (block as any).aspectRatio;
+        const ft = (block as any).fit;
+        const fc = (block as any).focus;
+        if (ar === '4:3'  && ft === 'cover'   && fc === 'center-top') return 'closeup';
+        if (ar === '3:4'  && ft === 'cover'   && fc === 'center-top') return 'portrait';
+        if (ar === 'auto' && ft === 'contain' && fc === 'center')      return 'infographic';
+        return 'travel';
+      })();
+
+      const IMAGE_STYLE_PRESETS: Record<string, Record<string, string>> = {
+        travel:      { aspectRatio: '16:9', fit: 'cover',   focus: 'center' },
+        closeup:     { aspectRatio: '4:3',  fit: 'cover',   focus: 'center-top' },
+        portrait:    { aspectRatio: '3:4',  fit: 'cover',   focus: 'center-top' },
+        infographic: { aspectRatio: 'auto', fit: 'contain', focus: 'center' },
+      };
+
+      return (
+        <div className="space-y-4">
+          <ImageUpload
+            images={[imgObj]}
+            onAdd={() => {}}
+            onRemove={() => {
+              onUpdate(index, { url: '', fileName: '', alt: { en: '', de: '', it: '', es: '' }, caption: { en: '', de: '', it: '', es: '' } });
+            }}
+            onUpdate={(imgIndex, field, value, lang) => {
+              if (lang && (['alt', 'caption', 'title'] as string[]).includes(field)) {
+                const current = (block as any)[field] || { en: '', de: '', it: '', es: '' };
+                onUpdate(index, field, { ...current, [lang]: value });
+              } else {
+                onUpdate(index, field, value);
+              }
+            }}
+            onUpload={async (file) => {
+              const result = await onImageUpload(file);
+              if (result) {
+                onUpdate(index, { url: result.url, fileName: result.fileName });
+              }
+              return result;
+            }}
+            title="Article Image"
+            description="Single image for this content block"
+            maxImages={1}
+            activeLanguage={activeLanguage}
+          />
+
+          <div className="space-y-2">
+            <Label>Image Display Style</Label>
+            <select
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-slate-900 dark:border-slate-800 dark:text-white"
+              value={imageStylePreset}
+              onChange={(e) => {
+                const style = IMAGE_STYLE_PRESETS[e.target.value];
+                if (style) onUpdate(index, style);
+              }}
+            >
+              <option value="travel">Normal travel photo — 16:9, fills frame</option>
+              <option value="closeup">Sphinx / people / close-up — 4:3, top-focused</option>
+              <option value="portrait">Portrait / vertical people photo</option>
+              <option value="infographic">Map / infographic / text image — natural height, no crop</option>
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Controls how this image is cropped and displayed in the article.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     default:
       return null;
   }
@@ -457,19 +543,27 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
-      content: type === 'html' || type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
-      images: type === 'imageRow' ? [
-        { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
-      ] : undefined,
-      title: type === 'html' || type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
+      content:     type === 'html' || type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
+      images:      type === 'imageRow' ? [{ url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }] : undefined,
+      title:       type === 'html' || type === 'blockquote' ? { en: '', de: '', it: '', es: '' } : undefined,
+      url:         type === 'image' ? '' : undefined,
+      alt:         type === 'image' ? { en: '', de: '', it: '', es: '' } : undefined,
+      caption:     type === 'image' ? { en: '', de: '', it: '', es: '' } : undefined,
+      aspectRatio: type === 'image' ? '16:9'   : undefined,
+      fit:         type === 'image' ? 'cover'  : undefined,
+      focus:       type === 'image' ? 'center' : undefined,
     };
 
     onChange([...blocks, newBlock]);
   }, [blocks, onChange]);
 
-  const updateBlock = useCallback((index: number, field: string, value: any) => {
+  const updateBlock = useCallback((index: number, fieldOrPatch: string | Record<string, any>, value?: any) => {
     const newBlocks = [...blocks];
-    newBlocks[index] = { ...newBlocks[index], [field]: value };
+    if (typeof fieldOrPatch === 'object') {
+      newBlocks[index] = { ...newBlocks[index], ...fieldOrPatch };
+    } else {
+      newBlocks[index] = { ...newBlocks[index], [fieldOrPatch]: value };
+    }
     onChange(newBlocks);
   }, [blocks, onChange]);
 
@@ -559,7 +653,12 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
         <SortableContext items={blocks.map((b, i) => b.id || `sort-${i}`)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
             <AnimatePresence>
-              {blocks.map((block, index) => (
+              {blocks.map((block, index) => {
+                const textBlockNumber = block.type === 'html'
+                  ? blocks.slice(0, index + 1).filter((item) => item.type === 'html').length
+                  : undefined;
+
+                return (
                 <motion.div
                   key={block.id || `div-${index}`}
                   initial={{ opacity: 0, y: 20 }}
@@ -581,9 +680,11 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
                     isCollapsed={collapsedBlocks.has(block.id)}
                     onToggleCollapse={toggleCollapse}
                     activeLanguage={activeLanguage}
+                    textBlockNumber={textBlockNumber}
                   />
                 </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
           </div>
         </SortableContext>

@@ -156,8 +156,11 @@ const BlogSchema: Schema = new Schema(
       thumbnail: String,
       alt: LocalizedStringSchema,
       caption: LocalizedStringSchema,
+      aspectRatio: { type: String, enum: ['16:9', '4:3', '3:2', '3:4', 'auto'] },
+      fit: { type: String, enum: ['cover', 'contain'] },
+      focus: { type: String, enum: ['center', 'top', 'bottom', 'left', 'right', 'center-top', 'center-bottom'] },
     }],
-    
+
     // === SEO META TAGS ===
     metaTitle: {
       type: LocalizedStringSchema,

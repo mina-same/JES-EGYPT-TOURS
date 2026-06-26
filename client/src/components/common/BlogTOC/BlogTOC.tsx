@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { List } from 'lucide-react';
 
@@ -18,12 +18,14 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
   const { t } = useTranslation('blogs');
   const [toc, setToc] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
+  const suppressScrollSpyRef = useRef(false);
+  const suppressScrollSpyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const content = document.querySelector(contentSelector);
     if (!content) return;
 
-    const headers = content.querySelectorAll('h2, h3, h4');
+    const headers = content.querySelectorAll('h2');
     const items: TOCItem[] = [];
 
     headers.forEach((header, index) => {
@@ -45,6 +47,8 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
 
     const observer = new IntersectionObserver(
       (entries) => {
+        if (suppressScrollSpyRef.current) return;
+
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setActiveId(entry.target.id);
@@ -55,16 +59,30 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
     );
 
     headers.forEach((header) => observer.observe(header));
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (suppressScrollSpyTimerRef.current) {
+        clearTimeout(suppressScrollSpyTimerRef.current);
+      }
+    };
   }, [contentSelector]);
 
   if (toc.length === 0) return null;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
+    setActiveId(id);
+    suppressScrollSpyRef.current = true;
+    if (suppressScrollSpyTimerRef.current) {
+      clearTimeout(suppressScrollSpyTimerRef.current);
+    }
+    suppressScrollSpyTimerRef.current = setTimeout(() => {
+      suppressScrollSpyRef.current = false;
+    }, 900);
+
     const element = document.getElementById(id);
     if (element) {
-      const offset = 100;
+      const offset = 160;
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = element.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
@@ -120,7 +138,7 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
         .blog-toc__list {
           margin: 0;
           padding: 10px 0;
-          max-height: 60vh;
+          max-height: 68vh;
           overflow-y: auto;
         }
 

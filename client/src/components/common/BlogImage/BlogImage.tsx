@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-type AspectRatio = "16:9" | "4:3" | "3:2" | "auto";
+type AspectRatio = "16:9" | "4:3" | "3:2" | "3:4" | "auto";
 type Fit = "cover" | "contain";
 type Focus =
   | "center"
@@ -25,6 +25,7 @@ const ASPECT_RATIO_CSS: Record<Exclude<AspectRatio, "auto">, string> = {
   "16:9": "16 / 9",
   "4:3": "4 / 3",
   "3:2": "3 / 2",
+  "3:4": "3 / 4",
 };
 
 const OBJECT_POSITION: Record<Focus, string> = {
@@ -47,10 +48,15 @@ const BlogImage: React.FC<BlogImageProps> = ({
   className,
 }) => {
   const objectPosition = OBJECT_POSITION[focus];
+  const isPortrait = aspectRatio === "3:4";
 
   return (
     <figure
-      style={{ margin: 0 }}
+      style={{
+        margin: isPortrait ? "0 auto" : 0,
+        maxWidth: isPortrait ? "640px" : undefined,
+        width: "100%",
+      }}
       className={className}
     >
       {aspectRatio === "auto" ? (
