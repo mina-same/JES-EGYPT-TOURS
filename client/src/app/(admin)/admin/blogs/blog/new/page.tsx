@@ -265,7 +265,7 @@ export default function NewBlogPage() {
       cleanData.contentBlocks = cleanData.contentBlocks.filter((block: any) => {
         if (block.type === 'html') return block.content?.en?.trim() || block.content?.de?.trim() || block.content?.it?.trim() || block.content?.es?.trim();
         if (block.type === 'blockquote') return block.content?.en?.trim() || block.content?.de?.trim() || block.content?.it?.trim() || block.content?.es?.trim();
-        if (block.type === 'image') return block.image?.trim();
+        if (block.type === 'image') return block.url?.trim() || block.image?.trim();
         if (block.type === 'video') return block.url?.trim();
         if (block.type === 'imageRow') return block.images && block.images.length > 0 && block.images.some((img: any) => img.url?.trim());
         return true;
@@ -624,12 +624,14 @@ export default function NewBlogPage() {
                           value={formData.title}
                           onChange={(val) => handleChange('title', val)}
                           placeholder="e.g., Amazing Travel Tips for Egypt"
+                          activeLanguage={activeLanguage}
                         />
                         <LocalizedInput
                           label="URL Slug"
                           value={formData.slug}
                           onChange={(val) => handleChange('slug', val)}
                           placeholder="amazing-travel-tips"
+                          activeLanguage={activeLanguage}
                         />
                     </div>
 
@@ -702,6 +704,7 @@ export default function NewBlogPage() {
                         onChange={(val) => handleChange('excerpt', val)}
                         placeholder="Brief description of the blog post..."
                         rows={3}
+                        activeLanguage={activeLanguage}
                       />
                     </div>
 
@@ -711,6 +714,7 @@ export default function NewBlogPage() {
                         value={formData.tags}
                         onChange={(val) => handleChange('tags', val)}
                         placeholder="Add a tag..."
+                        activeLanguage={activeLanguage}
                       />
                       <p className="text-sm text-muted-foreground italic">Type and press Enter to add tags. Tags are localized.</p>
                     </div>
@@ -851,6 +855,7 @@ export default function NewBlogPage() {
                           value={formData.metaTitle}
                           onChange={(val) => handleChange('metaTitle', val)}
                           placeholder="SEO title"
+                          activeLanguage={activeLanguage}
                         />
                       </div>
                       <div className="space-y-2">
@@ -872,6 +877,7 @@ export default function NewBlogPage() {
                         onChange={(val) => handleChange('metaDescription', val)}
                         placeholder="SEO description..."
                         rows={3}
+                        activeLanguage={activeLanguage}
                       />
                     </div>
 

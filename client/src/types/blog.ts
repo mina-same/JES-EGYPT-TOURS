@@ -73,6 +73,9 @@ export interface IContentBlock {
   thumbnail?: string;
   alt?: ILocalizedString;
   caption?: ILocalizedString;
+  aspectRatio?: '16:9' | '4:3' | '3:2' | '3:4' | 'auto';
+  fit?: 'cover' | 'contain';
+  focus?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'center-top' | 'center-bottom';
 }
 
 // ==================== BLOG POST ====================

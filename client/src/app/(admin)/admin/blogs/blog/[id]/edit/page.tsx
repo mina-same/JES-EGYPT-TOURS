@@ -362,7 +362,7 @@ export default function EditBlogPage() {
       cleanData.contentBlocks = cleanData.contentBlocks.filter((block: any) => {
         if (block.type === 'html') return block.content?.en?.trim() || block.content?.de?.trim() || block.content?.it?.trim() || block.content?.es?.trim();
         if (block.type === 'blockquote') return block.content?.en?.trim() || block.content?.de?.trim() || block.content?.it?.trim() || block.content?.es?.trim();
-        if (block.type === 'image') return block.image?.trim();
+        if (block.type === 'image') return block.url?.trim() || block.image?.trim();
         if (block.type === 'video') return block.url?.trim();
         if (block.type === 'imageRow') return block.images && block.images.length > 0 && block.images.some((img: any) => img.url?.trim());
         return true;
@@ -732,6 +732,7 @@ export default function EditBlogPage() {
                           value={formData.slug}
                           onChange={(val) => handleChange('slug', val)}
                           placeholder="amazing-travel-tips-for-egypt"
+                          activeLanguage={activeLanguage}
                         />
                       </div>
                     </div>

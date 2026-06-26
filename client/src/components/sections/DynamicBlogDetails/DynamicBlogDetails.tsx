@@ -118,13 +118,17 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     const content = getLocalizedValue(block.content, locale);
 
     switch (block.type) {
-      case 'html':
+      case 'html': {
+        const cleanHtml = typeof content === 'string'
+          ? content.replace(/&nbsp;/g, ' ').replace(/ /g, ' ')
+          : content;
         return (
           <div key={index} className='blog-details-card__text wow fadeInUp' data-wow-delay='300ms' data-wow-duration='1500ms'>
-            {block.title && <h2 className="blog-details-card__title mt-5 mb-4" style={{ fontSize: '28px' }}>{getLocalizedValue(block.title, locale)}</h2>}
-            <div dangerouslySetInnerHTML={{ __html: content }} />
+            {block.title && <h2 className="blog-details-card__title">{getLocalizedValue(block.title, locale)}</h2>}
+            <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
           </div>
         );
+      }
       
       case 'imageRow': {
         const imageCount = block.images?.length || 0;
@@ -251,10 +255,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     return (
       <div className="blog-details__summary-list" style={{ backgroundColor: '#fff', borderRadius: '4px', height: '100%', padding: '0' }}>
-        <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1b4168', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee' }}>
+        <h2 id="summary" style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1b4168', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid #eee' }}>
           <List size={20} color="#1b4168" />
           {t('summary')}
-        </div>
+        </h2>
         <ul className="list-unstyled m-0">
           {items.map((item: string, idx: number) => (
             <li key={idx} className="d-flex align-items-start gap-3 mb-3" style={{ fontSize: '0.95rem', color: '#444', lineHeight: '1.6' }}>
@@ -273,10 +277,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     return (
       <div className="blog-details__key-takeaways mt-5 mb-5 p-4" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #b79c5c' }}>
-        <h3 className="mb-4 d-flex align-items-center gap-2" style={{ color: '#1d231f', fontSize: '24px', fontWeight: '700' }}>
+        <h2 id="key-takeaways" className="mb-4 d-flex align-items-center gap-2" style={{ color: '#1d231f', fontSize: '24px', fontWeight: '700' }}>
           <CheckCircle size={24} color="#b79c5c" />
           {t('keyTakeaways') || 'Key Takeaways'}
-        </h3>
+        </h2>
         <ul className="list-unstyled m-0">
           {items.map((item: string, idx: number) => (
             <li key={idx} className="mb-3 d-flex align-items-start gap-3" style={{ fontSize: '1rem', color: '#444', lineHeight: '1.6' }}>
@@ -294,13 +298,13 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     if (faqs.length === 0) return null;
 
     return (
-      <div className="blog-details__faq mt-5 pt-5 border-top" id="blog-faq">
+      <div className="blog-details__faq mt-5 pt-5 border-top">
         <div className="blog-faq-header mb-4">
           <div className="d-flex align-items-center gap-3 mb-2">
             <div className="blog-faq-icon-wrap">
               <HelpCircle size={22} />
             </div>
-            <h3 className="blog-faq-title mb-0">{t('faq')}</h3>
+            <h2 id="blog-faq" className="blog-faq-title mb-0">{t('faq')}</h2>
           </div>
           <div className="blog-faq-divider" />
         </div>
@@ -622,23 +626,25 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
                   {/* Title is rendered in the BlogHero component */}
 
-                  {/* TOC & Summary Intro Layout */}
-                  <div className="row mb-5">
-                    <div className="col-lg-12">
-                      <TopSummary />
+                  <div id="blog-content">
+                    {/* TOC & Summary Intro Layout */}
+                    <div className="row mb-5">
+                      <div className="col-lg-12">
+                        <TopSummary />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Render Content Blocks */}
-                  <div className='blog-details-card__content__inner' id="blog-content">
-                    {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
-                    <KeyTakeawaysSection />
-                    <BlogFAQs />
-                    <VideoModal 
-                      isOpen={isVideoOpen} 
-                      setOpen={setVideoOpen} 
-                      ids={videoIds} 
-                    />
+                    {/* Render Content Blocks */}
+                    <div className='blog-details-card__content__inner'>
+                      {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
+                      <KeyTakeawaysSection />
+                      <BlogFAQs />
+                      <VideoModal 
+                        isOpen={isVideoOpen} 
+                        setOpen={setVideoOpen} 
+                        ids={videoIds} 
+                      />
+                    </div>
                   </div>
 
                 </div>
@@ -814,7 +820,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           </Col>
           
           {showSidebar === 'right' && (
-            <Col lg={4} style={{ alignSelf: 'flex-start' }}>
+            <Col lg={4}>
               <div className="blog-sidebar-wrapper">
                 {/* Sticky Sidebar — TOC and Tags stay on screen as you scroll */}
                 <div className="blog-toc-sticky">
@@ -842,6 +848,20 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
+        @supports (overflow: clip) {
+          html:has(.blog-details-page),
+          body:has(.blog-details-page) {
+            overflow-x: clip !important;
+          }
+        }
+
+        @supports not (overflow: clip) {
+          html:has(.blog-details-page),
+          body:has(.blog-details-page) {
+            overflow-x: visible !important;
+          }
+        }
+
         /* Professional Drop Cap */
         .blog-details-card__content__inner .blog-details-card__text:first-of-type p:first-of-type::first-letter {
           float: left;
@@ -861,6 +881,127 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           color: #2d3436;
           margin-bottom: 2rem;
           font-weight: 400;
+          overflow-wrap: break-word;
+        }
+
+        /* ── Unordered lists ──────────────────────────── */
+        .blog-details-card__text ul {
+          list-style: none;
+          padding-left: 0;
+          margin: 0.8rem 0 1.8rem;
+        }
+
+        .blog-details-card__text ul > li {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          font-size: 1.08rem;
+          line-height: 1.75;
+          color: #2d3436;
+          margin-bottom: 0.65rem;
+          padding-left: 0;
+          overflow-wrap: break-word;
+        }
+
+        .blog-details-card__text ul > li::before {
+          content: "";
+          display: block;
+          flex-shrink: 0;
+          width: 7px;
+          height: 7px;
+          background: #c7a24a;
+          border-radius: 50%;
+          margin-top: 0.54em;
+        }
+
+        /* ── Ordered lists ───────────────────────────── */
+        .blog-details-card__text ol {
+          list-style: none;
+          padding-left: 0;
+          margin: 0.8rem 0 1.8rem;
+          counter-reset: article-list;
+        }
+
+        .blog-details-card__text ol > li {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          font-size: 1.08rem;
+          line-height: 1.75;
+          color: #2d3436;
+          margin-bottom: 0.65rem;
+          padding-left: 0;
+          counter-increment: article-list;
+          overflow-wrap: break-word;
+        }
+
+        .blog-details-card__text ol > li::before {
+          content: counter(article-list) ".";
+          display: block;
+          flex-shrink: 0;
+          min-width: 1.6em;
+          font-weight: 700;
+          font-size: 0.95em;
+          color: #c7a24a;
+          line-height: 1.75;
+        }
+
+        /* ── Nested lists second level ───────────────── */
+        .blog-details-card__text ul ul,
+        .blog-details-card__text ol ul {
+          margin: 0.5rem 0 0.5rem 0.5rem;
+        }
+
+        .blog-details-card__text ul ul > li::before {
+          width: 5px;
+          height: 5px;
+          background: transparent;
+          border: 1.5px solid #c7a24a;
+          margin-top: 0.58em;
+        }
+
+        .blog-details-page .blog-details-card__content__inner .blog-details-card__text h2.blog-details-card__title {
+          display: block;
+          font-size: 32px;
+          font-weight: 800;
+          color: #0f2942;
+          line-height: 1.25;
+          letter-spacing: -0.02em;
+          margin-top: 3.5rem;
+          margin-bottom: 1.25rem;
+          position: relative;
+        }
+
+        .blog-details-page .blog-details-card__content__inner .blog-details-card__text h2.blog-details-card__title::after {
+          content: "";
+          display: block;
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(90deg, #c7a24a 0%, rgba(199, 162, 74, 0.2) 60%, transparent 100%);
+          border-radius: 999px;
+          margin-top: 12px;
+        }
+
+        .blog-details-card__text h3 {
+          position: relative;
+          font-size: 21px;
+          font-weight: 700;
+          color: #173f63;
+          line-height: 1.35;
+          margin-top: 40px;
+          margin-bottom: 14px;
+          padding-left: 16px;
+        }
+
+        .blog-details-card__text h3::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0.22em;
+          width: 4px;
+          height: 1.2em;
+          background: #c7a24a;
+          border-radius: 999px;
         }
 
         /* Elegant Pull Quotes */
@@ -962,16 +1103,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           flex-shrink: 0;
         }
 
-        /* Section header gold underline */
-        .blog-details-card__title::after {
-          content: '';
-          display: block;
-          width: 48px;
-          height: 3px;
-          background: linear-gradient(90deg, #b79c5c, transparent);
-          border-radius: 2px;
-          margin-top: 10px;
-        }
 
         /* Featured image hero polish */
         .blog-details-card__image {
@@ -980,30 +1111,35 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           box-shadow: 0 20px 60px rgba(0,0,0,0.12);
           margin-bottom: 36px;
         }
-        /* Sticky TOC sidebar */
+        /* Sidebar wrapper */
         .blog-sidebar-wrapper {
           position: relative;
-        }
-
-        .blog-toc-sticky {
-          position: -webkit-sticky;
-          position: sticky;
-          top: 120px;
-          z-index: 100;
-          max-height: calc(100vh - 140px);
-          overflow-y: auto;
-          scrollbar-width: none; /* Firefox */
-          -ms-overflow-style: none; /* IE/Edge */
-          transition: top 0.3s ease;
-        }
-        .blog-toc-sticky::-webkit-scrollbar {
-          display: none; /* Chrome/Safari */
-        }
-        
-        .blog-sidebar-wrapper {
           height: 100%;
           display: flex;
           flex-direction: column;
+        }
+
+        /* Mobile/tablet: TOC flows normally in the document */
+        .blog-toc-sticky {
+          position: relative;
+        }
+
+        /* Desktop: TOC sticks as the reader scrolls */
+        @media (min-width: 992px) {
+          .blog-toc-sticky {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 125px;
+            z-index: 100;
+            max-height: calc(100vh - 145px);
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            transition: top 0.3s ease;
+          }
+          .blog-toc-sticky::-webkit-scrollbar {
+            display: none;
+          }
         }
 
         /* ── Blog FAQ ──────────────────────────────────────────── */
@@ -1173,6 +1309,19 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         .blog-faq-item__answer ol {
           padding-left: 1.4rem;
           margin-bottom: 0.8rem;
+        }
+
+        /* Wider container — scoped only to the blog detail page */
+        @media (min-width: 1200px) {
+          .blog-details-page .container {
+            max-width: 1320px;
+          }
+        }
+
+        @media (min-width: 1440px) {
+          .blog-details-page .container {
+            max-width: 1360px;
+          }
         }
       `}</style>
     </section>
