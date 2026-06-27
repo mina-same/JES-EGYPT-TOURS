@@ -13,7 +13,12 @@ const SEOProvider: React.FC<SEOProviderProps> = ({ locale }) => {
     '@id': `${baseUrl}/#travelagency`,
     'name': 'JES Egypt Tours',
     'url': baseUrl,
-    'logo': `${baseUrl}/logo-dark.png`,
+    'logo': {
+      '@type': 'ImageObject',
+      'url': `${baseUrl}/images/logo-dark.png`,
+      'width': 632,
+      'height': 180,
+    },
     'image': `${baseUrl}/about-1-1.jpg`,
     'description': 'JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences.',
     'address': {

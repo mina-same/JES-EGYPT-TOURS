@@ -63,6 +63,23 @@
         }
       }
     },
+    "blogArticle": {
+      "eyebrow": "PLAN YOUR EGYPT TRIP",
+      "title": "Ready to see Egypt for yourself?",
+      "text": "Most of our travelers come with questions and leave with a trip they didn't expect to love this much. Tell us when you're coming — we'll handle the rest.",
+      "badges": [
+        "Private tours only",
+        "Cairo-based specialists",
+        "Secure card payment"
+      ],
+      "actions": {
+        "primary": "Start Planning Your Trip →",
+        "secondary": "Browse Egypt Tours"
+      },
+      "media": {
+        "badge": "Tailor-Made Egypt"
+      }
+    },
     "destination": {
       "eyebrow": "Private Egypt Planning",
       "title": "Build a tailor-made journey through {{context}}",

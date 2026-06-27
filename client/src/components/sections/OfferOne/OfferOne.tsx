@@ -85,7 +85,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
                 data-wow-delay="400ms"
               >
                 <Link
-                  href={`/${locale}/tailorMade`}
+                  href={`/${locale}/tailor-made`}
                   className="gotur-btn gotur-btn--primary"
                 >
                   {t("tailorOffer.cta")}{" "}

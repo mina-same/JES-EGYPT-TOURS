@@ -61,6 +61,23 @@
         }
       }
     },
+    "blogArticle": {
+      "eyebrow": "PLANIFIQUEN SU VIAJE A EGIPTO",
+      "title": "¿Listos para ver Egipto con sus propios ojos?",
+      "text": "La mayoría de nuestros viajeros llegan con preguntas — y se van con un viaje que no esperaban disfrutar tanto. Dígannos cuándo vienen. Del resto nos encargamos nosotros.",
+      "badges": [
+        "Solo tours privados",
+        "Especialistas en El Cairo",
+        "Pago seguro con tarjeta"
+      ],
+      "actions": {
+        "primary": "Empiecen a planificar →",
+        "secondary": "Ver tours por Egipto"
+      },
+      "media": {
+        "badge": "Egipto a medida"
+      }
+    },
     "destination": {
       "eyebrow": "Planificación privada en Egipto",
       "title": "Crea un viaje a medida por {{context}}",

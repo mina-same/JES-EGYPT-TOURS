@@ -61,6 +61,23 @@
         }
       }
     },
+    "blogArticle": {
+      "eyebrow": "IHRE ÄGYPTENREISE PLANEN",
+      "title": "Bereit, Ägypten mit eigenen Augen zu sehen?",
+      "text": "Die meisten unserer Gäste kommen mit Fragen — und fahren mit einer Reise nach Hause, die sie so nicht erwartet hätten. Sagen Sie uns, wann Sie kommen. Den Rest übernehmen wir.",
+      "badges": [
+        "Nur Privattouren",
+        "Spezialisten vor Ort in Kairo",
+        "Sichere Kartenzahlung"
+      ],
+      "actions": {
+        "primary": "Reise planen →",
+        "secondary": "Ägypten-Touren ansehen"
+      },
+      "media": {
+        "badge": "Ägypten nach Maß"
+      }
+    },
     "destination": {
       "eyebrow": "Private Ägyptenplanung",
       "title": "Gestalten Sie eine maßgeschneiderte Reise durch {{context}}",

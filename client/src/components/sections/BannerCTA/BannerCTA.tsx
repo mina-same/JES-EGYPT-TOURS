@@ -19,7 +19,7 @@ import defaultPromoImage from '@/assets/images/resources/tour-listing-details-1-
 import destinationFallbackImage from '@/assets/images/resources/destinations-1-2.jpg';
 import styles from './BannerCTA.module.css';
 
-type BannerCTAVariant = 'destination' | 'blogCategory' | 'blogSubcategory';
+type BannerCTAVariant = 'destination' | 'blogCategory' | 'blogSubcategory' | 'blogArticle';
 type ResolvedVariant = BannerCTAVariant | 'default';
 
 interface BannerCTAProps {
@@ -29,12 +29,14 @@ interface BannerCTAProps {
   parentName?: string;
   articleCount?: number;
   imageUrl?: string;
+  contained?: boolean;
 }
 
 type PromoImageSource = string | StaticImageData;
 
 const categoryPromoImage = '/images/ctaimage1.png';
 const subcategoryPromoImage = '/images/ctaimage2.png';
+const blogArticlePromoImage = '/images/blog/pyramids-sunset.webp';
 
 type FeatureItem = {
   icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
@@ -46,6 +48,7 @@ const cardClassMap: Record<ResolvedVariant, string> = {
   destination: styles.destinationCard,
   blogCategory: styles.blogCategoryCard,
   blogSubcategory: styles.blogSubcategoryCard,
+  blogArticle: styles.blogArticleCard,
 };
 
 const BannerCTA: React.FC<BannerCTAProps> = ({
@@ -55,17 +58,20 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
   parentName,
   articleCount,
   imageUrl,
+  contained = true,
 }) => {
   const { t } = useTranslation('common');
   const resolvedVariant: ResolvedVariant = variant ?? 'default';
 
-  const primaryHref = `/${locale}/tailorMade`;
+  const primaryHref = `/${locale}/tailor-made`;
   const secondaryHref = `/${locale}/tours`;
 
   const destinationContext = contextName || t('cta.defaults.destinationContext');
   const categoryContext = contextName || t('cta.defaults.categoryContext');
   const subcategoryContext = contextName || t('cta.defaults.subcategoryContext');
   const parentContext = parentName || t('cta.defaults.parentContext');
+  const blogArticleBadgesRaw = t('cta.blogArticle.badges', { returnObjects: true });
+  const blogArticleBadges = Array.isArray(blogArticleBadgesRaw) ? (blogArticleBadgesRaw as string[]) : [];
 
   const defaultFeatures: FeatureItem[] = [
     { icon: Users, title: t('cta.default.features.experts.title') },
@@ -105,6 +111,16 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
           </div>
         );
       })}
+    </div>
+  );
+
+  const renderTextBadges = (items: string[]) => (
+    <div className={styles.featureList}>
+      {items.map((item) => (
+        <div key={item} className={`${styles.featurePill} ${styles.textOnlyPill}`.trim()}>
+          <span>{item}</span>
+        </div>
+      ))}
     </div>
   );
 
@@ -231,16 +247,46 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
     )
   );
 
-  return (
-    <section className={`banner-cta section-space-bottom pt-5 ${styles.section}`}>
-      <Container>
-        <div className={`${styles.card} ${cardClassMap[resolvedVariant]}`}>
-          {resolvedVariant === 'destination' && renderDestination()}
-          {resolvedVariant === 'blogCategory' && renderBlogCategory()}
-          {resolvedVariant === 'blogSubcategory' && renderBlogSubcategory()}
-          {resolvedVariant === 'default' && renderDefault()}
+  const renderBlogArticle = () => (
+    <div className={styles.layout}>
+      <div className={styles.content}>
+        <span className={styles.eyebrow}>{t('cta.blogArticle.eyebrow')}</span>
+        <p className={styles.title}>{t('cta.blogArticle.title')}</p>
+        <p className={styles.text}>{t('cta.blogArticle.text')}</p>
+        {renderTextBadges(blogArticleBadges)}
+        <div className={styles.actions}>
+          <Link href={primaryHref} className={styles.primaryButton}>
+            <span>{t('cta.blogArticle.actions.primary')}</span>
+          </Link>
+          <Link href={secondaryHref} className={styles.secondaryButton}>
+            <span>{t('cta.blogArticle.actions.secondary')}</span>
+          </Link>
         </div>
-      </Container>
+      </div>
+
+      <div className={styles.visual}>
+        {renderPromoImage(
+          blogArticlePromoImage,
+          t('cta.blogArticle.title'),
+          t('cta.blogArticle.media.badge')
+        )}
+      </div>
+    </div>
+  );
+
+  const content = (
+    <div className={`${styles.card} ${cardClassMap[resolvedVariant]}`}>
+      {resolvedVariant === 'destination' && renderDestination()}
+      {resolvedVariant === 'blogCategory' && renderBlogCategory()}
+      {resolvedVariant === 'blogSubcategory' && renderBlogSubcategory()}
+      {resolvedVariant === 'blogArticle' && renderBlogArticle()}
+      {resolvedVariant === 'default' && renderDefault()}
+    </div>
+  );
+
+  return (
+    <section className={`banner-cta section-space-bottom pt-5 ${styles.section} ${resolvedVariant === 'blogArticle' ? styles.blogArticleSection : ''}`.trim()}>
+      {contained ? <Container>{content}</Container> : content}
     </section>
   );
 };

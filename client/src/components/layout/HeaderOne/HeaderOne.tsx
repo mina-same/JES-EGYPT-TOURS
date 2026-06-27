@@ -152,7 +152,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
               <i className='icon-menu-bar'></i>
             </div>
 
-            <Link href='/tailorMade' className='gotur-btn main-header__btn'>
+            <Link href='/tailor-made' className='gotur-btn main-header__btn'>
 
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>

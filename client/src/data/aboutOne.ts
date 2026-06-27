@@ -31,7 +31,7 @@ export const aboutOneData = {
   },
   secondaryButton: {
     text: "Plan a Custom Trip",
-    link: "tailorMade",
+    link: "tailor-made",
   },
   images: {
     mainImage: "/images/about/private-egypt-tours-planned-around-you-giza-pyramids.webp",

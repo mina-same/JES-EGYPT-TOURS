@@ -52,6 +52,8 @@ interface PageProps {
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
 const LOCALES = ["en", "de", "it", "es"] as const;
+const EDITORIAL_AUTHOR_NAME = "Madonna Roshdey";
+const EDITORIAL_AUTHOR_SLUG = "madonna-roshdey";
 
 export const revalidate = 0;
 
@@ -72,6 +74,18 @@ function getAbsoluteImageUrl(url: string | undefined): string | undefined {
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   const normalizedPath = url.startsWith('/') ? url : `/${url}`;
   return `${baseUrl}${normalizedPath}`;
+}
+
+function getPublicAuthorName(authorName?: string | null): string {
+  const trimmed = authorName?.trim();
+  if (trimmed && trimmed.toLowerCase() !== "admin") {
+    return trimmed;
+  }
+  return EDITORIAL_AUTHOR_NAME;
+}
+
+function isEditorialAuthor(authorName: string): boolean {
+  return authorName === EDITORIAL_AUTHOR_NAME;
 }
 
 function getSeoImage(
@@ -279,6 +293,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const description = stripHtml(seoDescription || "");
         const keywords = getLocalizedValue(bAny.metaKeywords, locale);
         const image = getSeoImage(bAny.metaImage, bAny.ogImage || bAny.featuredImage, locale, seoTitle || getLocalizedValue(bAny.title, locale));
+        const publicAuthorName = getPublicAuthorName(bAny.author?.name);
+        const publicAuthorUrl = isEditorialAuthor(publicAuthorName)
+          ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
+          : undefined;
 
         const languages: Record<string, string> = {};
         for (const loc of LOCALES) {
@@ -289,6 +307,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
+          authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
           openGraph: {
             title: seoTitle || "JES Egypt Tours",
@@ -521,6 +540,10 @@ export default async function SlugPage({ params }: PageProps) {
       const blogTitle = getLocalizedValue(blogData.title, locale);
       const blogDescription = (getLocalizedValue(blogData.excerpt, locale) || getLocalizedValue(blogData.metaDescription, locale) || "").replace(/<[^>]*>/g, "");
       const blogFeaturedImageUrl = getAbsoluteImageUrl(typeof blogData.featuredImage === "string" ? blogData.featuredImage : blogData.featuredImage?.url);
+      const publicAuthorName = getPublicAuthorName(blogData.author?.name);
+      const publicAuthorUrl = isEditorialAuthor(publicAuthorName)
+        ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
+        : undefined;
 
       const blogSubCat = blogData.subCategory;
       const blogCat = blogSubCat?.category;
@@ -536,7 +559,8 @@ export default async function SlugPage({ params }: PageProps) {
         ...(blogFeaturedImageUrl ? { "image": [blogFeaturedImageUrl] } : {}),
         "author": {
           "@type": "Person",
-          "name": blogData.author?.name || "JES Egypt Tours",
+          "name": publicAuthorName,
+          ...(publicAuthorUrl ? { "url": publicAuthorUrl } : {}),
         },
         ...(blogDescription ? { "description": blogDescription } : {}),
         "datePublished": blogData.publishedAt || blogData.createdAt,
@@ -546,7 +570,9 @@ export default async function SlugPage({ params }: PageProps) {
           "name": "JES Egypt Tours",
           "logo": {
             "@type": "ImageObject",
-            "url": `${baseUrl}/logo-dark.png`,
+            "url": `${baseUrl}/images/logo-dark.png`,
+            "width": 632,
+            "height": 180,
           },
           "@id": `${baseUrl}/#travelagency`,
         },

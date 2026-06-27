@@ -16,12 +16,21 @@ import TourCard from "@/components/common/TourCard/TourCard";
 import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
+import BannerCTA from "@/components/sections/BannerCTA/BannerCTA";
 
 
 interface DynamicBlogDetailsProps {
   blog: BlogPost;
   showSidebar?: 'left' | 'right' | 'none';
 }
+
+const EDITORIAL_AUTHOR = {
+  name: 'Madonna Roshdey',
+  role: 'Travel Specialist at Jes Egypt Tours',
+  image: '/images/authors/madonna-roshdey-author.jpg',
+  alt: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
+  bio: 'Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.',
+};
 
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
   blog, 
@@ -87,10 +96,15 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
 
   const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt);
-  const author =
+  const blogAuthorName =
     blog.author && typeof blog.author === 'object'
-      ? (blog.author as any).name || 'Admin'
-      : 'Admin';
+      ? String((blog.author as any).name || '').trim()
+      : '';
+  const author = blogAuthorName && blogAuthorName.toLowerCase() !== 'admin'
+    ? blogAuthorName
+    : EDITORIAL_AUTHOR.name;
+  const editorialAuthorHref = `/${locale}/authors/madonna-roshdey`;
+  const shouldLinkEditorialAuthor = author === EDITORIAL_AUTHOR.name;
   
   const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
@@ -312,27 +326,38 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         <div className="blog-faq-list">
           {faqs.map((faq, index) => {
             const isOpen = activeFaqKey === index.toString();
+            const questionId = `blog-faq-question-${index}`;
+            const answerId = `blog-faq-answer-${index}`;
             return (
               <div
                 key={index}
                 className={`blog-faq-item${isOpen ? ' blog-faq-item--open' : ''}`}
               >
-                <button
-                  className="blog-faq-item__trigger"
-                  onClick={() => setActiveFaqKey(isOpen ? null : index.toString())}
-                  aria-expanded={isOpen}
+                <h3 className="blog-faq-item__heading">
+                  <button
+                    id={questionId}
+                    type="button"
+                    className="blog-faq-item__trigger"
+                    onClick={() => setActiveFaqKey(isOpen ? null : index.toString())}
+                    aria-expanded={isOpen}
+                    aria-controls={answerId}
+                  >
+                    <span className="blog-faq-item__num">
+                      Q{String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="blog-faq-item__question">
+                      {getLocalizedValue(faq.question, locale)}
+                    </span>
+                    <span className="blog-faq-item__icon" aria-hidden="true">
+                      {isOpen ? <Minus size={15} /> : <Plus size={15} />}
+                    </span>
+                  </button>
+                </h3>
+                <div
+                  id={answerId}
+                  className="blog-faq-item__body"
+                  aria-labelledby={questionId}
                 >
-                  <span className="blog-faq-item__num">
-                    Q{String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="blog-faq-item__question">
-                    {getLocalizedValue(faq.question, locale)}
-                  </span>
-                  <span className="blog-faq-item__icon" aria-hidden="true">
-                    {isOpen ? <Minus size={15} /> : <Plus size={15} />}
-                  </span>
-                </button>
-                <div className="blog-faq-item__body">
                   <div
                     className="blog-faq-item__answer"
                     dangerouslySetInnerHTML={{ __html: getLocalizedValue(faq.answer, locale) }}
@@ -348,23 +373,25 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
   const AboutAuthorSection = () => {
     return (
-      <div className="blog-author-box mt-5">
+      <section className="blog-author-box mt-5" aria-labelledby="blog-author-title">
         <Image
-          src="/images/authors/madonna-roshdey-author.jpg"
-          alt="Madonna Roshdey, Travel Specialist at Jes Egypt Tours"
+          src={EDITORIAL_AUTHOR.image}
+          alt={EDITORIAL_AUTHOR.alt}
           width={84}
           height={84}
           className="blog-author-box__avatar"
         />
         <div className="blog-author-box__content">
-          <p className="blog-author-box__title">About the author</p>
-          <p className="blog-author-box__name">Madonna Roshdey</p>
-          <p className="blog-author-box__role">Travel Specialist at Jes Egypt Tours</p>
-          <p className="blog-author-box__text">
-            Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.
-          </p>
+          <h2 id="blog-author-title" className="blog-author-box__title">About the author</h2>
+          <h3 className="blog-author-box__name">
+            <Link href={editorialAuthorHref} className="blog-author-box__name-link">
+              {EDITORIAL_AUTHOR.name}
+            </Link>
+          </h3>
+          <p className="blog-author-box__role">{EDITORIAL_AUTHOR.role}</p>
+          <p className="blog-author-box__text">{EDITORIAL_AUTHOR.bio}</p>
         </div>
-      </div>
+      </section>
     );
   };
 
@@ -499,9 +526,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     return (
       <div>
-        <h3 className="mb-5" style={{ fontWeight: '800', fontSize: '2.5rem', color: '#1d231f', textAlign: 'center', letterSpacing: '-1px' }}>
-          {hasManualRelated ? t('readNext', { defaultValue: 'Read Next' }) : t('popularArticles', { defaultValue: 'Popular Articles' })}
-        </h3>
+        <h2 className="post-article-section-title">
+          {t('postArticleArticlesTitle', { defaultValue: 'Keep Exploring Egypt' })}
+        </h2>
         {hasManualRelated ? (
           <div className="related-posts-scroll">
             {postCards}
@@ -583,7 +610,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     return (
       <div>
-        <h3 className="mb-5" style={{ fontWeight: '800', fontSize: '2.5rem', color: '#1d231f', textAlign: 'center', letterSpacing: '-1px' }}>{t('relatedTours', { defaultValue: 'Related Tours' })}</h3>
+        <h2 className="post-article-section-title">{t('postArticleRelatedToursTitle', { defaultValue: 'Explore Private Tours in Egypt' })}</h2>
         {hasManualRelatedTours ? (
           <div className="related-tours-scroll">
             {tourCards}
@@ -652,7 +679,16 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                   <div className="blog-meta-bar">
                     <div className="blog-meta-bar__item">
                       <i className='icon-user' style={{ color: '#b79c5c' }}></i>
-                      <span>{t('by')} <strong>{author}</strong></span>
+                      <span>
+                        {t('by')}{" "}
+                        {shouldLinkEditorialAuthor ? (
+                          <Link href={editorialAuthorHref} className="blog-meta-bar__author-link">
+                            <strong>{author}</strong>
+                          </Link>
+                        ) : (
+                          <strong>{author}</strong>
+                        )}
+                      </span>
                     </div>
                     <div className="blog-meta-bar__divider" />
                     <div className="blog-meta-bar__item">
@@ -699,7 +735,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
                       <KeyTakeawaysSection />
                       <BlogFAQs />
-                      <AboutAuthorSection />
                       <VideoModal 
                         isOpen={isVideoOpen} 
                         setOpen={setVideoOpen} 
@@ -707,6 +742,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       />
                     </div>
                   </div>
+                  <AboutAuthorSection />
 
                 </div>
               </div>
@@ -896,6 +932,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         </Row>
       </Container>
 
+      <BannerCTA locale={locale} variant="blogArticle" />
+
       <div className="related-sections-wrapper" style={{ background: '#f9f9f9', marginTop: '80px', padding: '80px 0' }}>
         <Container>
           <RelatedToursSection />
@@ -913,6 +951,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           display: flex;
           gap: 18px;
           align-items: flex-start;
+          max-width: 900px;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
           background: #fff;
           border: 1px solid rgba(23, 63, 99, 0.1);
           border-left: 4px solid #c7a24a;
@@ -949,6 +991,18 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           margin: 0 0 3px;
         }
 
+        .blog-author-box__name-link,
+        .blog-meta-bar__author-link {
+          color: inherit;
+          text-decoration: none;
+        }
+
+        .blog-author-box__name-link:hover,
+        .blog-meta-bar__author-link:hover {
+          color: inherit;
+          text-decoration: underline;
+        }
+
         .blog-author-box__role {
           font-size: 0.88rem;
           font-weight: 500;
@@ -961,6 +1015,29 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           line-height: 1.7;
           color: #44515a;
           margin: 0;
+        }
+
+        .post-article-section-title {
+          position: relative;
+          margin: 0 0 48px;
+          padding-bottom: 16px;
+          font-size: clamp(2rem, 3vw, 2.45rem);
+          font-weight: 800;
+          color: #0f2433;
+          line-height: 1.2;
+          text-align: center;
+        }
+
+        .post-article-section-title::after {
+          content: "";
+          position: absolute;
+          left: 50%;
+          bottom: 0;
+          width: 72px;
+          height: 4px;
+          background: #c7a24a;
+          border-radius: 999px;
+          transform: translateX(-50%);
         }
 
         .related-posts-scroll {
@@ -1354,6 +1431,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         .blog-faq-item--open {
           border-color: #b79c5c;
           box-shadow: 0 6px 25px rgba(183,156,92,0.11);
+        }
+
+        .blog-faq-item__heading {
+          margin: 0;
+          padding: 0;
         }
 
         .blog-faq-item__trigger {
