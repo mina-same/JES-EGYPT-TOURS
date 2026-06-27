@@ -69,6 +69,11 @@ export default function NewTourPage() {
   // Use custom hook for form logic
   const tourForm = useTourForm(undefined, draftKey);
 
+  const handleDiscardDraft = () => {
+    tourForm.clearDraft({ suppressNextSave: true });
+    tourForm.resetFormData();
+  };
+
   // Search effects
   useEffect(() => {
     const searchTours = async () => {
@@ -293,7 +298,7 @@ export default function NewTourPage() {
 
       {/* Draft Banner */}
       {tourForm.hasDraft && (
-        <DraftBanner onDiscard={() => tourForm.clearDraft()} />
+        <DraftBanner onDiscard={handleDiscardDraft} />
       )}
 
       {/* Error Message */}

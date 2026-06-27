@@ -130,6 +130,7 @@ export default function NewBlogCategoryPage() {
   const [fetchingData, setFetchingData] = useState(isEditMode);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  const [originalFormData, setOriginalFormData] = useState<BlogCategoryFormData | null>(null);
 
   // Blog Search State
   const [blogSearchQuery, setBlogSearchQuery] = useState('');
@@ -149,6 +150,24 @@ export default function NewBlogCategoryPage() {
     draftKey,
     INITIAL_BLOG_CATEGORY
   );
+
+  const cloneFormData = (data: BlogCategoryFormData): BlogCategoryFormData =>
+    JSON.parse(JSON.stringify(data));
+
+  const handleDiscardDraft = () => {
+    if (isEditMode) {
+      if (originalFormData) {
+        clearDraft({ suppressNextSave: true });
+        setFormData(cloneFormData(originalFormData));
+      } else {
+        clearDraft();
+      }
+      return;
+    }
+
+    clearDraft({ suppressNextSave: true });
+    setFormData(INITIAL_BLOG_CATEGORY);
+  };
 
   // Fetch category data if editing
   useEffect(() => {
@@ -197,7 +216,7 @@ export default function NewBlogCategoryPage() {
               alt: mapToLocalized(data.image?.alt),
             };
 
-        setFormData({
+        const loadedFormData: BlogCategoryFormData = {
           name: mapToLocalized(data.name),
           slug: mapToLocalized(data.slug),
           description: mapToLocalized(data.description),
@@ -229,7 +248,15 @@ export default function NewBlogCategoryPage() {
           featuredDestinations: Array.isArray(data.featuredDestinations) ? data.featuredDestinations.map((d: any) => typeof d === 'object' ? d._id : d) : [],
           faqs: Array.isArray(data.faqs) ? data.faqs : [],
           isActive: data.isActive !== undefined ? !!data.isActive : true,
-        });
+        };
+
+        setOriginalFormData(cloneFormData(loadedFormData));
+
+        if (hasDraft) {
+          return;
+        }
+
+        setFormData(loadedFormData);
 
         if (Array.isArray(data.featuredBlogs)) {
           setSelectedBlogObjects(data.featuredBlogs.filter((b: any) => typeof b === 'object'));
@@ -576,8 +603,8 @@ export default function NewBlogCategoryPage() {
       </div>
 
       {/* Draft Banner */}
-      {hasDraft && !isEditMode && (
-        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_BLOG_CATEGORY); }} />
+      {hasDraft && (
+        <DraftBanner onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}

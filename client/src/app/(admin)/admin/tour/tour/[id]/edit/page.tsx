@@ -19,6 +19,7 @@ import { normalizeTourMapSchemaForSave } from '@/lib/tourMapSchema';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
+import type { TourFormData } from '@/types/tour';
 
 // Import modular components
 import { useTourForm } from '@/hooks/useTourForm';
@@ -58,6 +59,7 @@ export default function EditTourPage() {
   const [activeAdminLanguage, setActiveAdminLanguage] = useState<AdminLanguage>('en');
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const { toast } = useToast();
+  const [originalFormData, setOriginalFormData] = useState<TourFormData | null>(null);
   
   const draftKey = `draft_tour_edit_${tourId}`;
   
@@ -71,6 +73,18 @@ export default function EditTourPage() {
 
   // Use custom hook for form logic
   const tourForm = useTourForm(undefined, draftKey);
+
+  const cloneFormData = (data: TourFormData): TourFormData =>
+    JSON.parse(JSON.stringify(data));
+
+  const handleDiscardDraft = () => {
+    if (originalFormData) {
+      tourForm.clearDraft({ suppressNextSave: true });
+      tourForm.setFormData(cloneFormData(originalFormData));
+    } else {
+      tourForm.clearDraft();
+    }
+  };
 
   // Fetch tour data
   useEffect(() => {
@@ -172,25 +186,17 @@ export default function EditTourPage() {
           };
 
           // Transform the data to match form structure and update form state
-          tourForm.setFormData(prev => {
-            // If there's already data (from draft), don't overwrite it
-            // Actually, for Edit mode, we usually want the server data as base,
-            // but if a draft exists and it's newer... useTourForm already handles this in initializer.
-            // If the user just opened the page, useTourForm loads draft.
-            // When fetchTour finishes, we want to update the draft with any server changes?
-            // Usually, draft is specifically for unsaved changes.
-            // For simplicity, we only call setFormData if no draft was loaded or if we explicitly want to refresh.
-            return {
-              ...prev,
+          const loadedFormData: TourFormData = {
+              ...tourForm.getInitialFormData(),
               name: (typeof tour.heading === 'object' ? tour.heading.en : tour.heading) || tour.name || '',
-              slug: tour.slug || '',
+              slug: toLocalized(tour.slug),
               description: {
                 header: toLocalized(tour.Description?.header),
                 text: toLocalized(tour.Description?.text),
               },
               subcategory: typeof tour.subcategory === 'object' ? tour.subcategory._id : (tour.subcategory || ''),
-              images: (tour.images || []).map(toLocalizedImage).filter(Boolean),
-              gallery: (tour.gallery || []).map(toLocalizedImage).filter(Boolean),
+              images: (tour.images || []).map(toLocalizedImage).filter(Boolean) as NonNullable<TourFormData['images']>,
+              gallery: (tour.gallery || []).map(toLocalizedImage).filter(Boolean) as NonNullable<TourFormData['gallery']>,
               idExternal: tour.idExternal || '',
               heading: toLocalized(tour.heading),
               headingDescription: toLocalized(tour.headingDescription),
@@ -212,8 +218,8 @@ export default function EditTourPage() {
                 metaTitle: toLocalized(tour.seo?.metaTitle),
                 metaDescription: toLocalized(tour.seo?.metaDescription),
                 metaKeywords: toLocalizedMixed(tour.seo?.metaKeywords),
-                metaImage: tour.seo?.metaImage 
-                  ? toLocalizedImage(tour.seo.metaImage) 
+                metaImage: tour.seo?.metaImage
+                  ? toLocalizedImage(tour.seo.metaImage) || { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
                   : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
               },
               tourHighlights: toLocalizedMixed(tour.tourHighlights),
@@ -253,8 +259,15 @@ export default function EditTourPage() {
                 content: toLocalized(r.content),
               })),
               priceStartingFrom: tour.priceStartingFrom,
-            };
-          });
+          };
+
+          setOriginalFormData(cloneFormData(loadedFormData));
+
+          if (tourForm.hasDraft) {
+            return;
+          }
+
+          tourForm.setFormData(loadedFormData);
         } else {
           setError(response.error || 'Failed to fetch tour');
         }
@@ -522,7 +535,7 @@ export default function EditTourPage() {
 
       {/* Draft Banner */}
       {tourForm.hasDraft && (
-        <DraftBanner onDiscard={() => tourForm.clearDraft()} />
+        <DraftBanner onDiscard={handleDiscardDraft} />
       )}
 
       {/* Error Message */}

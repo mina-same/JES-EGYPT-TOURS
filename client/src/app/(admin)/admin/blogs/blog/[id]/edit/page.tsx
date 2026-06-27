@@ -102,13 +102,26 @@ export default function EditBlogPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
+  const [relatedPostOptions, setRelatedPostOptions] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
   const [authors, setAuthors] = useState<AuthUser[]>([]);
+  const [originalFormData, setOriginalFormData] = useState<any | null>(null);
 
-  const { formData, setFormData, clearDraft } = useFormDraft<any>(
+  const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<any>(
     `draft_blog_edit_${blogId}`,
     INITIAL_BLOG_EDIT
   );
+
+  const cloneFormData = (data: any) => JSON.parse(JSON.stringify(data));
+
+  const handleDiscardDraft = () => {
+    if (originalFormData) {
+      clearDraft({ suppressNextSave: true });
+      setFormData(cloneFormData(originalFormData));
+    } else {
+      clearDraft();
+    }
+  };
 
   // Generate slug from title
   const generateSlug = (title: string) => {
@@ -167,6 +180,22 @@ export default function EditBlogPage() {
 
       return updated;
     });
+  };
+
+  const relatedPostSlots = Array.from({ length: 3 }, (_, index) => {
+    const selectedPosts = Array.isArray(formData.relatedPosts) ? formData.relatedPosts : [];
+    return selectedPosts[index] || 'none';
+  });
+
+  const handleRelatedPostChange = (slotIndex: number, value: string) => {
+    const nextSlots = [...relatedPostSlots];
+    nextSlots[slotIndex] = value;
+
+    const cleanedPosts = Array.from(
+      new Set(nextSlots.filter((postId) => postId && postId !== 'none'))
+    );
+
+    handleChange('relatedPosts', cleanedPosts);
   };
 
   // Handle Image Upload
@@ -237,7 +266,7 @@ export default function EditBlogPage() {
         };
 
         // Transform the data to match form structure
-        setFormData({
+        const loadedFormData = {
           title: normalizeLocalizedString(blog.title),
           slug: normalizeLocalizedString(blog.slug),
           author: blog.author?._id || blog.author || '',
@@ -310,7 +339,15 @@ export default function EditBlogPage() {
             question: normalizeLocalizedString(faq.question),
             answer: normalizeLocalizedString(faq.answer),
           })),
-        });
+        };
+
+        setOriginalFormData(cloneFormData(loadedFormData));
+
+        if (hasDraft) {
+          return;
+        }
+
+        setFormData(loadedFormData);
       } else {
         setFormErrors([{ field: 'Server', message: response.error || 'Failed to fetch blog post' }]);
       }
@@ -592,10 +629,11 @@ export default function EditBlogPage() {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const [catRes, userRes, destRes] = await Promise.all([
+        const [catRes, userRes, destRes, relatedPostsRes] = await Promise.all([
           blogCategoryAPI.getAll({ isActive: true }),
           userAPI.getAllUsers(),
-          destinationAPI.getAll({ isActive: true })
+          destinationAPI.getAll({ isActive: true }),
+          blogAPI.getAll({ limit: 100, status: 'published' })
         ]);
         
         if (catRes.success && catRes.data) {
@@ -608,6 +646,14 @@ export default function EditBlogPage() {
 
         if (destRes.success && destRes.data) {
           setDestinations(destRes.data);
+        }
+
+        if (relatedPostsRes.success && relatedPostsRes.data) {
+          const publishedPostsData = relatedPostsRes.data as any;
+          const publishedPosts = Array.isArray(publishedPostsData) ? publishedPostsData : publishedPostsData.blogs || [];
+          setRelatedPostOptions(
+            publishedPosts.filter((post: any) => (post._id || post.id) !== blogId)
+          );
         }
       } catch (error) {
         console.error('Failed to fetch blog options:', error);
@@ -660,6 +706,10 @@ export default function EditBlogPage() {
         </div>
         <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
       </div>
+
+      {hasDraft && (
+        <DraftBanner onDiscard={handleDiscardDraft} />
+      )}
 
       {/* Detailed Error Panel */}
       {formErrors.length > 0 && (
@@ -906,6 +956,52 @@ export default function EditBlogPage() {
                   onChange={(faqs) => handleChange('faqs', faqs)}
                   activeLanguage={activeLanguage}
                 />
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Related Articles</CardTitle>
+                    <CardDescription>Select up to three published blog posts to show as Read Next.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 md:grid-cols-3">
+                    {[0, 1, 2].map((slotIndex) => (
+                      <div key={slotIndex} className="space-y-2">
+                        <Label>Related Article {slotIndex + 1}</Label>
+                        <Select
+                          value={relatedPostSlots[slotIndex]}
+                          onValueChange={(value) => handleRelatedPostChange(slotIndex, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {relatedPostOptions
+                              .filter((post) => post._id || post.id)
+                              .map((post) => {
+                                const postId = post._id || post.id;
+                                const isSelectedInAnotherSlot = relatedPostSlots.some(
+                                  (selectedId, selectedIndex) =>
+                                    selectedIndex !== slotIndex && selectedId === postId
+                                );
+
+                                return (
+                                  <SelectItem
+                                    key={postId}
+                                    value={postId}
+                                    disabled={isSelectedInAnotherSlot}
+                                  >
+                                    {getLocalizedValue(post.title, activeLanguage) ||
+                                      getLocalizedValue(post.title, 'en') ||
+                                      'Untitled blog'}
+                                  </SelectItem>
+                                );
+                              })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               </div>
             )}
 
@@ -925,8 +1021,8 @@ export default function EditBlogPage() {
                           handleChange('featuredImage', {
                             url: '',
                             fileName: '',
-                            title: '',
-                            alt: '',
+                            title: { en: '', de: '', it: '', es: '' },
+                            alt:   { en: '', de: '', it: '', es: '' },
                           });
                         }
                       }}
@@ -934,8 +1030,8 @@ export default function EditBlogPage() {
                         handleChange('featuredImage', {
                           url: '',
                           fileName: '',
-                          title: '',
-                          alt: '',
+                          title: { en: '', de: '', it: '', es: '' },
+                          alt:   { en: '', de: '', it: '', es: '' },
                         });
                       }}
                       onUpdate={(index, field, value, lang) => {
@@ -1019,8 +1115,8 @@ export default function EditBlogPage() {
                             handleChange('metaImage', {
                               url: '',
                               fileName: '',
-                              title: '',
-                              alt: '',
+                              title: { en: '', de: '', it: '', es: '' },
+                              alt:   { en: '', de: '', it: '', es: '' },
                             });
                           }
                         }}
@@ -1028,8 +1124,8 @@ export default function EditBlogPage() {
                           handleChange('metaImage', {
                             url: '',
                             fileName: '',
-                            title: '',
-                            alt: '',
+                            title: { en: '', de: '', it: '', es: '' },
+                            alt:   { en: '', de: '', it: '', es: '' },
                           });
                         }}
                         onUpdate={(index, field, value, lang) => {

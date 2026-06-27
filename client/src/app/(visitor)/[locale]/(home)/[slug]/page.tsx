@@ -67,6 +67,13 @@ function getImageUrl(image: any): string | undefined {
   return image.url || undefined;
 }
 
+function getAbsoluteImageUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const normalizedPath = url.startsWith('/') ? url : `/${url}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
 function getSeoImage(
   primaryImage: any,
   fallbackImage: any,
@@ -74,7 +81,7 @@ function getSeoImage(
   fallbackAlt?: string
 ) {
   const image = primaryImage || fallbackImage;
-  const url = getImageUrl(image);
+  const url = getAbsoluteImageUrl(getImageUrl(image));
   if (!url) return undefined;
 
   if (typeof image === 'string') {
@@ -494,7 +501,7 @@ export default async function SlugPage({ params }: PageProps) {
   // ── 5. Blog Post ───────────────────────────────────────────────────────────
   {
     let redirectTarget: string | null = null;
-    let renderBlogPost = false;
+    let blogData: any = null;
     try {
       const blog = await getBlogBySlug(slug);
       if (blog) {
@@ -504,12 +511,90 @@ export default async function SlugPage({ params }: PageProps) {
         } else if (correctSlug !== slug) {
           redirectTarget = `/${locale}/${correctSlug}`;
         } else {
-          renderBlogPost = true;
+          blogData = blog;
         }
       }
     } catch { /* API error — fall through */ }
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderBlogPost) return <BlogDetailView slug={slug} locale={locale} />;
+
+    if (blogData) {
+      const blogTitle = getLocalizedValue(blogData.title, locale);
+      const blogDescription = (getLocalizedValue(blogData.excerpt, locale) || getLocalizedValue(blogData.metaDescription, locale) || "").replace(/<[^>]*>/g, "");
+      const blogFeaturedImageUrl = getAbsoluteImageUrl(typeof blogData.featuredImage === "string" ? blogData.featuredImage : blogData.featuredImage?.url);
+
+      const blogSubCat = blogData.subCategory;
+      const blogCat = blogSubCat?.category;
+      const blogCatName = blogCat && typeof blogCat === 'object' ? getLocalizedValue(blogCat.name, locale) : 'Blog';
+      const blogCatUrl = blogCat && typeof blogCat === 'object'
+        ? `${baseUrl}/${locale}/${getLocalizedValue(blogCat.slug, locale) || ''}`
+        : `${baseUrl}/${locale}/blogs`;
+
+      const blogJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": blogTitle,
+        ...(blogFeaturedImageUrl ? { "image": [blogFeaturedImageUrl] } : {}),
+        "author": {
+          "@type": "Person",
+          "name": blogData.author?.name || "JES Egypt Tours",
+        },
+        ...(blogDescription ? { "description": blogDescription } : {}),
+        "datePublished": blogData.publishedAt || blogData.createdAt,
+        ...(blogData.updatedAt ? { "dateModified": blogData.updatedAt } : {}),
+        "publisher": {
+          "@type": "Organization",
+          "name": "JES Egypt Tours",
+          "logo": {
+            "@type": "ImageObject",
+            "url": `${baseUrl}/logo-dark.png`,
+          },
+          "@id": `${baseUrl}/#travelagency`,
+        },
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": `${baseUrl}/${locale}/${slug}`,
+        },
+      };
+
+      const blogBreadcrumbJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": `${baseUrl}/${locale}`,
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": blogCatName,
+            "item": blogCatUrl,
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": blogTitle,
+            "item": `${baseUrl}/${locale}/${slug}`,
+          },
+        ],
+      };
+
+      return (
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(blogBreadcrumbJsonLd) }}
+          />
+          <BlogDetailView slug={slug} locale={locale} />
+        </>
+      );
+    }
   }
 
   // ── 5.5. Destination ──────────────────────────────────────────────────

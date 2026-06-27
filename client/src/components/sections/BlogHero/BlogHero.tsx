@@ -48,6 +48,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
           <motion.nav 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
+            aria-label="Breadcrumb"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 max-w-full overflow-hidden whitespace-nowrap"
           >
             <Link href="/" className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0">{t('home')}</Link>

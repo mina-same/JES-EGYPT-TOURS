@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FileEdit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,12 @@ interface DraftBannerProps {
  * Shown at the top of a form when a localStorage draft has been auto-restored.
  */
 export default function DraftBanner({ onDiscard, className }: DraftBannerProps) {
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -8 }}
@@ -31,23 +38,38 @@ export default function DraftBanner({ onDiscard, className }: DraftBannerProps) 
           <FileEdit className="w-3.5 h-3.5 text-amber-700" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-amber-900">Unsaved draft restored</p>
-          <p className="text-xs text-amber-700">Your work from your last session has been loaded automatically.</p>
+          <p className="text-sm font-semibold text-amber-900">Your work was auto-saved</p>
+          <p className="text-xs text-amber-700">
+            We restored the latest draft saved on this device. You can keep editing normally. Do not discard it unless you are sure you want to remove these saved changes.
+          </p>
         </div>
       </div>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={onDiscard}
-        className={cn(
-          'flex-shrink-0 border-amber-400 text-amber-800 hover:bg-amber-100',
-          'gap-1.5 text-xs'
-        )}
-      >
-        <Trash2 className="w-3 h-3" />
-        Discard Draft
-      </Button>
+      <div className="flex flex-shrink-0 items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setIsVisible(false)}
+          className="text-xs"
+        >
+          Continue editing
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            onDiscard();
+            setIsVisible(false);
+          }}
+          className={cn(
+            'border-red-300 text-red-700 hover:bg-red-50',
+            'gap-1.5 text-xs'
+          )}
+        >
+          <Trash2 className="w-3 h-3" />
+          Discard draft
+        </Button>
+      </div>
     </motion.div>
   );
 }
