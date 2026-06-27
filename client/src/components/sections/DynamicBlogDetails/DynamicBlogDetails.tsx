@@ -516,59 +516,83 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const RelatedToursSection = () => {
-    if (relatedTours.length === 0) return null;
+    const manualRelatedTours = Array.isArray(blog.relatedTours) ? blog.relatedTours : [];
+    const uniqueManualRelatedTours = manualRelatedTours.filter((tour: any, index: number, tours: any[]) => {
+      const tourKey = tour?._id || tour?.id || getLocalizedValue(tour?.slug, locale);
+      if (!tourKey) return false;
+      return tours.findIndex((item: any) => (item?._id || item?.id || getLocalizedValue(item?.slug, locale)) === tourKey) === index;
+    });
+    const hasManualRelatedTours = uniqueManualRelatedTours.length > 0;
+    const toursToRender = hasManualRelatedTours ? uniqueManualRelatedTours : relatedTours;
+    if (toursToRender.length === 0) return null;
 
     const openVideoReviews = (slug: string) => {
-      const tour = relatedTours.find(t => getLocalizedValue(t.slug, locale) === slug);
+      const tour = toursToRender.find((item: any) => getLocalizedValue(item.slug, locale) === slug);
       if (tour?.videoLink) {
         setVideoIds([tour.videoLink]);
         setVideoOpen(true);
       }
     };
 
+    const tourCards = toursToRender.map((tour: any, idx: number) => {
+      const galleryImages = [
+        ...(tour.images || []).map((img: any) => img.url),
+        ...(tour.gallery || []).map((img: any) => img.url),
+      ].filter(Boolean);
+      const uniqueImages = Array.from(new Set(galleryImages));
+
+      const item = {
+        id: tour._id,
+        slug: getLocalizedValue(tour.slug, locale),
+        image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+        imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
+        allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+        title: getLocalizedValue(tour.heading || tour.name, locale),
+        link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
+        price: tour.priceStartingFrom || { USD: 0 },
+        rating: 5,
+        reviews: tour.reviewsCount || tour.reviews?.length || 0,
+        videoId: tour.videoLink || "",
+        discount: "",
+        meta: [
+          { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
+          { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
+          { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },
+        ],
+      };
+
+      const card = (
+        <TourCard
+          item={item}
+          toggleWishlist={toggleWishlist}
+          isInWishlist={isInWishlist}
+          openVideoReviews={openVideoReviews}
+        />
+      );
+
+      return hasManualRelatedTours ? (
+        <div className="related-tours-scroll__item" key={tour._id || tour.id || item.link || idx}>
+          {card}
+        </div>
+      ) : (
+        <Col md={4} key={tour._id || tour.id || item.link || idx}>
+          {card}
+        </Col>
+      );
+    });
+
     return (
       <div>
         <h3 className="mb-5" style={{ fontWeight: '800', fontSize: '2.5rem', color: '#1d231f', textAlign: 'center', letterSpacing: '-1px' }}>{t('relatedTours', { defaultValue: 'Related Tours' })}</h3>
-        <Row className="gutter-y-30">
-          {relatedTours.map((tour: any, idx: number) => {
-            const galleryImages = [
-              ...(tour.images || []).map((img: any) => img.url),
-              ...(tour.gallery || []).map((img: any) => img.url),
-            ].filter(Boolean);
-            const uniqueImages = Array.from(new Set(galleryImages));
-            
-            const item = {
-              id: tour._id,
-              slug: getLocalizedValue(tour.slug, locale),
-              image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
-              imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-              allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
-              title: getLocalizedValue(tour.heading || tour.name, locale),
-              link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
-              price: tour.priceStartingFrom || { USD: 0 },
-              rating: 5,
-              reviews: tour.reviewsCount || tour.reviews?.length || 0,
-              videoId: tour.videoLink || "",
-              discount: "",
-              meta: [
-                { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
-                { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
-                { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },
-              ],
-            };
-
-            return (
-              <Col md={4} key={idx}>
-                <TourCard 
-                  item={item} 
-                  toggleWishlist={toggleWishlist} 
-                  isInWishlist={isInWishlist} 
-                  openVideoReviews={openVideoReviews} 
-                />
-              </Col>
-            );
-          })}
-        </Row>
+        {hasManualRelatedTours ? (
+          <div className="related-tours-scroll">
+            {tourCards}
+          </div>
+        ) : (
+          <Row className="gutter-y-30">
+            {tourCards}
+          </Row>
+        )}
       </div>
     );
   };
@@ -947,14 +971,29 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           padding-bottom: 12px;
         }
 
+        .related-tours-scroll {
+          display: flex;
+          gap: 30px;
+          overflow-x: auto;
+          scroll-snap-type: x proximity;
+          padding-bottom: 12px;
+        }
+
         .related-posts-scroll__item {
           flex: 0 0 min(360px, calc((100% - 60px) / 3));
           max-width: 360px;
           scroll-snap-align: start;
         }
 
+        .related-tours-scroll__item {
+          flex: 0 0 min(360px, calc((100% - 60px) / 3));
+          max-width: 360px;
+          scroll-snap-align: start;
+        }
+
         @media (max-width: 991px) {
-          .related-posts-scroll__item {
+          .related-posts-scroll__item,
+          .related-tours-scroll__item {
             flex-basis: min(320px, 82vw);
             max-width: min(320px, 82vw);
           }

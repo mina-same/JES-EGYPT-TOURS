@@ -63,6 +63,7 @@ export interface BlogFormData {
     url: string;
   }[];
   relatedPosts?: string[];
+  relatedTours?: string[];
   category?: string;
   subCategory?: string;
   destination?: string;

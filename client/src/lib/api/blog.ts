@@ -66,6 +66,7 @@ export interface BlogPost {
   comments: Comment[];
   commentsEnabled: boolean;
   relatedPosts?: BlogPost[];
+  relatedTours?: any[];
   summary?: ILocalizedString;
   keyTakeaways?: ILocalizedMixed;
   faqs?: IFAQ[];

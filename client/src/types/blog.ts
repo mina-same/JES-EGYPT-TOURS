@@ -103,6 +103,7 @@ export interface IBlogPost {
   seo?: ISEO;
   breadcrumbs?: IBreadcrumb[];
   relatedPosts?: IBlogPost[] | string[];
+  relatedTours?: any[] | string[];
   viewCount: number;
   shareCount?: number;
   readingTime?: number;
@@ -182,4 +183,5 @@ export interface BlogFormData {
   seo?: ISEO;
   breadcrumbs?: IBreadcrumb[];
   relatedPosts?: string[];
+  relatedTours?: string[];
 }
