@@ -451,9 +451,7 @@ export default function NewBlogCategoryPage() {
   };
 
   // Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const performUpdate = async (stayOnPage = false) => {
     try {
       setLoading(true);
       setFormErrors([]);
@@ -542,7 +540,12 @@ export default function NewBlogCategoryPage() {
             description: `Blog category ${isEditMode ? 'updated' : 'created'} successfully.`,
         });
         clearDraft();
-        router.push('/admin/blogs/category');
+        if (isEditMode) {
+          setOriginalFormData(cloneFormData(formData));
+        }
+        if (!stayOnPage) {
+          router.push('/admin/blogs/category');
+        }
       } else {
         const parsed = parseApiError(response);
         setFormErrors(parsed);
@@ -563,6 +566,11 @@ export default function NewBlogCategoryPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void performUpdate(false);
   };
 
   if (fetchingData) {
@@ -1071,6 +1079,17 @@ export default function NewBlogCategoryPage() {
               Cancel
             </Button>
           </Link>
+          {isEditMode && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+              onClick={() => void performUpdate(true)}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Update & Continue
+            </Button>
+          )}
           <Button type="submit" disabled={loading} className="min-w-[140px]">
             {loading ? (
               <>

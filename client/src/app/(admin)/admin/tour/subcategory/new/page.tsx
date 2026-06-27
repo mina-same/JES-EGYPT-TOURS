@@ -473,9 +473,7 @@ export default function NewSubcategoryPage() {
   };
 
   // Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const performUpdate = async (stayOnPage = false) => {
     if (!formData.category) {
       setFormErrors([{ field: 'Category', message: 'Please select a category' }]);
       return;
@@ -628,7 +626,12 @@ export default function NewSubcategoryPage() {
       if (response.success) {
         toast({ title: isEditMode ? 'Subcategory Updated' : 'Subcategory Created', description: `Tour subcategory ${isEditMode ? 'updated' : 'created'} successfully.` });
         clearDraft();
-        router.push('/admin/tour/subcategory');
+        if (isEditMode) {
+          setOriginalFormData(cloneFormData(formData));
+        }
+        if (!stayOnPage) {
+          router.push('/admin/tour/subcategory');
+        }
       } else {
         const parsed = parseApiError(response);
         setFormErrors(parsed);
@@ -640,6 +643,11 @@ export default function NewSubcategoryPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void performUpdate(false);
   };
 
   // Get selected category name
@@ -1563,6 +1571,17 @@ export default function NewSubcategoryPage() {
               Cancel
             </Button>
           </Link>
+          {isEditMode && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading || !formData.category}
+              onClick={() => void performUpdate(true)}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Update & Continue
+            </Button>
+          )}
           <Button type="submit" disabled={loading || !formData.category}>
             {loading ? (
               <>

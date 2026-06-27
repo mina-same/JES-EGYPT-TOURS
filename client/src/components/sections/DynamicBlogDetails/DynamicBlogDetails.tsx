@@ -418,85 +418,99 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
   const RelatedPosts = () => {
     // Use manually set related posts first, fall back to popular blogs
-    const manualRelated = blog.relatedPosts || [];
-    const posts = (manualRelated.length > 0 ? manualRelated : popularBlogs).slice(0, 3);
+    const manualRelated = Array.isArray(blog.relatedPosts) ? blog.relatedPosts : [];
+    const uniqueManualRelated = manualRelated.filter((post: any, index: number, posts: any[]) => {
+      const postKey = post?._id || post?.id || getLocalizedValue(post?.slug, locale);
+      if (!postKey) return false;
+      return posts.findIndex((item: any) => (item?._id || item?.id || getLocalizedValue(item?.slug, locale)) === postKey) === index;
+    });
+    const hasManualRelated = uniqueManualRelated.length > 0;
+    const posts = hasManualRelated ? uniqueManualRelated : popularBlogs.slice(0, 3);
     if (posts.length === 0) return null;
+
+    const postCards = posts.map((post: any, idx: number) => {
+      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+      const postTitle = getLocalizedValue(post.title, locale);
+      const postLink = `/${locale}/blogs/${getLocalizedValue(post.slug, locale)}`;
+      const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
+      const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
+      const localizedTags = getLocalizedValue(post.tags, locale);
+      const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
+
+      return (
+        <Col md={4} key={post._id || post.id || postLink || idx} className={hasManualRelated ? 'related-posts-scroll__item' : undefined}>
+          <div
+            className='blog-card-two wow fadeInUp'
+            data-wow-duration='1500ms'
+            data-wow-delay={`${100 * (idx + 1)}ms`}
+          >
+            <div className='blog-card-two__image'>
+              <Image
+                src={postImage}
+                alt={postTitle || "Blog post image"}
+                className="img-fluid"
+                width={600}
+                height={450}
+                style={{ width: "100%", height: "200px", objectFit: "cover" }}
+              />
+              <div className='blog-card-two__date'>
+                <span className='blog-card-two__date__day'>{day}</span>
+                <span className='blog-card-two__date__month'>{month}</span>
+              </div>
+              <Link href={postLink} className='blog-card-two__image__link'>
+                <span className='sr-only'>{postTitle}</span>
+              </Link>
+            </div>
+            <div className='blog-card-two__content' style={{ padding: '20px' }}>
+              <ul className='list-unstyled blog-card-two__meta' style={{ marginBottom: '10px' }}>
+                <li>
+                  <Link href={postLink}>
+                    <span className='blog-card-two__meta__icon'>
+                      <i className='icon-user'></i>
+                    </span>{" "}
+                    {t('by')} {authorName}
+                  </Link>
+                </li>
+                {category && (
+                  <li>
+                    <Link href={postLink}>
+                      <span className='blog-card-two__meta__icon'>
+                        <i className='icon-price-tag'></i>
+                      </span>{" "}
+                      {category}
+                    </Link>
+                  </li>
+                )}
+              </ul>
+              <h3 className='blog-card-two__title' style={{ fontSize: '18px', marginBottom: '15px' }}>
+                <Link href={postLink}>{postTitle}</Link>
+              </h3>
+              <Link
+                href={postLink}
+                className='blog-card-two__content__btn'
+              >
+                {t('readMore')} <i className='icon-arrow-right'></i>
+              </Link>
+            </div>
+          </div>
+        </Col>
+      );
+    });
 
     return (
       <div>
         <h3 className="mb-5" style={{ fontWeight: '800', fontSize: '2.5rem', color: '#1d231f', textAlign: 'center', letterSpacing: '-1px' }}>
-          {manualRelated.length > 0 ? t('readNext', { defaultValue: 'Read Next' }) : t('popularArticles', { defaultValue: 'Popular Articles' })}
+          {hasManualRelated ? t('readNext', { defaultValue: 'Read Next' }) : t('popularArticles', { defaultValue: 'Popular Articles' })}
         </h3>
-        <Row className="gutter-y-30">
-          {posts.map((post: any, idx: number) => {
-            const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
-            const postTitle = getLocalizedValue(post.title, locale);
-            const postLink = `/${locale}/blogs/${getLocalizedValue(post.slug, locale)}`;
-            const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
-            const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
-            const localizedTags = getLocalizedValue(post.tags, locale);
-            const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
-
-            return (
-              <Col md={4} key={idx}>
-                <div
-                  className='blog-card-two wow fadeInUp'
-                  data-wow-duration='1500ms'
-                  data-wow-delay={`${100 * (idx + 1)}ms`}
-                >
-                  <div className='blog-card-two__image'>
-                    <Image
-                      src={postImage}
-                      alt={postTitle || "Blog post image"}
-                      className="img-fluid"
-                      width={600}
-                      height={450}
-                      style={{ width: "100%", height: "200px", objectFit: "cover" }}
-                    />
-                    <div className='blog-card-two__date'>
-                      <span className='blog-card-two__date__day'>{day}</span>
-                      <span className='blog-card-two__date__month'>{month}</span>
-                    </div>
-                    <Link href={postLink} className='blog-card-two__image__link'>
-                      <span className='sr-only'>{postTitle}</span>
-                    </Link>
-                  </div>
-                  <div className='blog-card-two__content' style={{ padding: '20px' }}>
-                    <ul className='list-unstyled blog-card-two__meta' style={{ marginBottom: '10px' }}>
-                      <li>
-                        <Link href={postLink}>
-                          <span className='blog-card-two__meta__icon'>
-                            <i className='icon-user'></i>
-                          </span>{" "}
-                          {t('by')} {authorName}
-                        </Link>
-                      </li>
-                      {category && (
-                        <li>
-                          <Link href={postLink}>
-                            <span className='blog-card-two__meta__icon'>
-                              <i className='icon-price-tag'></i>
-                            </span>{" "}
-                            {category}
-                          </Link>
-                        </li>
-                      )}
-                    </ul>
-                    <h3 className='blog-card-two__title' style={{ fontSize: '18px', marginBottom: '15px' }}>
-                      <Link href={postLink}>{postTitle}</Link>
-                    </h3>
-                    <Link
-                      href={postLink}
-                      className='blog-card-two__content__btn'
-                    >
-                      {t('readMore')} <i className='icon-arrow-right'></i>
-                    </Link>
-                  </div>
-                </div>
-              </Col>
-            );
-          })}
-        </Row>
+        {hasManualRelated ? (
+          <div className="related-posts-scroll">
+            {postCards}
+          </div>
+        ) : (
+          <Row className="gutter-y-30">
+            {postCards}
+          </Row>
+        )}
       </div>
     );
   };
@@ -923,6 +937,27 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           line-height: 1.7;
           color: #44515a;
           margin: 0;
+        }
+
+        .related-posts-scroll {
+          display: flex;
+          gap: 30px;
+          overflow-x: auto;
+          scroll-snap-type: x proximity;
+          padding-bottom: 12px;
+        }
+
+        .related-posts-scroll__item {
+          flex: 0 0 min(360px, calc((100% - 60px) / 3));
+          max-width: 360px;
+          scroll-snap-align: start;
+        }
+
+        @media (max-width: 991px) {
+          .related-posts-scroll__item {
+            flex-basis: min(320px, 82vw);
+            max-width: min(320px, 82vw);
+          }
         }
 
         @media (max-width: 575px) {

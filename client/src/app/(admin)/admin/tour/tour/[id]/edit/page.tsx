@@ -323,9 +323,7 @@ export default function EditTourPage() {
   }, [blogSearchQuery]);
 
   // Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const performUpdate = async (stayOnPage = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -480,7 +478,10 @@ export default function EditTourPage() {
           description: 'Tour updated successfully!',
         });
         tourForm.clearDraft();
-        router.push('/admin/tour/tour');
+        setOriginalFormData(cloneFormData(tourForm.formData));
+        if (!stayOnPage) {
+          router.push('/admin/tour/tour');
+        }
       } else {
         const parsedErrors = parseApiError(response);
         setFormErrors(parsedErrors);
@@ -493,6 +494,11 @@ export default function EditTourPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void performUpdate(false);
   };
 
   if (initialLoading) {
@@ -518,6 +524,15 @@ export default function EditTourPage() {
             <p className="text-gray-500 mt-1">Update tour package details</p>
           </div>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={loading}
+          onClick={() => void performUpdate(true)}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          Update & Continue
+        </Button>
         <Button onClick={handleSubmit} disabled={loading}>
           {loading ? (
             <>

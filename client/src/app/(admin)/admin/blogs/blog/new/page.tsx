@@ -211,20 +211,33 @@ export default function NewBlogPage() {
     });
   };
 
-  const relatedPostSlots = Array.from({ length: 3 }, (_, index) => {
-    const selectedPosts = Array.isArray(formData.relatedPosts) ? formData.relatedPosts : [];
-    return selectedPosts[index] || 'none';
-  });
+  const selectedRelatedPosts: string[] = Array.from(
+    new Set<string>((Array.isArray(formData.relatedPosts) ? formData.relatedPosts : []).filter((postId: string) => postId && postId !== 'none'))
+  );
 
-  const handleRelatedPostChange = (slotIndex: number, value: string) => {
-    const nextSlots = [...relatedPostSlots];
-    nextSlots[slotIndex] = value;
+  const handleRelatedPostChange = (index: number, value: string) => {
+    const nextPosts = [...selectedRelatedPosts];
+    nextPosts[index] = value;
 
-    const cleanedPosts = Array.from(
-      new Set(nextSlots.filter((postId) => postId && postId !== 'none'))
+    handleChange(
+      'relatedPosts',
+      Array.from(new Set(nextPosts.filter((postId) => postId && postId !== 'none')))
     );
+  };
 
-    handleChange('relatedPosts', cleanedPosts);
+  const handleAddRelatedPost = () => {
+    const nextPost = relatedPostOptions.find((post) => {
+      const postId = post._id || post.id;
+      return postId && !selectedRelatedPosts.includes(postId);
+    });
+
+    if (!nextPost) return;
+
+    handleChange('relatedPosts', [...selectedRelatedPosts, nextPost._id || nextPost.id]);
+  };
+
+  const handleRemoveRelatedPost = (index: number) => {
+    handleChange('relatedPosts', selectedRelatedPosts.filter((_, currentIndex) => currentIndex !== index));
   };
 
   // Handle Image Upload
@@ -363,7 +376,9 @@ export default function NewBlogPage() {
       cleanData.summary = processLocalizedMixed(cleanData.summary);
 
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
-      if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
+      cleanData.relatedPosts = Array.from(
+        new Set((cleanData.relatedPosts || []).filter((postId: string) => postId && postId !== 'none'))
+      );
 
       // Clean up category/subcategory IDs (must be valid Mongo IDs or removed)
       if (!cleanData.category || cleanData.category === '') delete cleanData.category;
@@ -833,46 +848,75 @@ export default function NewBlogPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Related Articles</CardTitle>
-                    <CardDescription>Select up to three published blog posts to show as Read Next.</CardDescription>
+                    <CardDescription>Recommended: 3-8 highly relevant articles.</CardDescription>
                   </CardHeader>
-                  <CardContent className="grid gap-4 md:grid-cols-3">
-                    {[0, 1, 2].map((slotIndex) => (
-                      <div key={slotIndex} className="space-y-2">
-                        <Label>Related Article {slotIndex + 1}</Label>
-                        <Select
-                          value={relatedPostSlots[slotIndex]}
-                          onValueChange={(value) => handleRelatedPostChange(slotIndex, value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            {relatedPostOptions
-                              .filter((post) => post._id || post.id)
-                              .map((post) => {
-                                const postId = post._id || post.id;
-                                const isSelectedInAnotherSlot = relatedPostSlots.some(
-                                  (selectedId, selectedIndex) =>
-                                    selectedIndex !== slotIndex && selectedId === postId
-                                );
+                  <CardContent className="space-y-4">
+                    {selectedRelatedPosts.map((selectedPostId, index) => (
+                      <div key={`${selectedPostId}-${index}`} className="flex flex-col gap-2 md:flex-row md:items-end">
+                        <div className="flex-1 space-y-2">
+                          <Label>Related Article {index + 1}</Label>
+                          <Select
+                            value={selectedPostId}
+                            onValueChange={(value) => handleRelatedPostChange(index, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select article" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {relatedPostOptions
+                                .filter((post) => post._id || post.id)
+                                .map((post) => {
+                                  const postId = post._id || post.id;
+                                  const isSelectedInAnotherRow = selectedRelatedPosts.some(
+                                    (selectedId, selectedIndex) =>
+                                      selectedIndex !== index && selectedId === postId
+                                  );
 
-                                return (
-                                  <SelectItem
-                                    key={postId}
-                                    value={postId}
-                                    disabled={isSelectedInAnotherSlot}
-                                  >
-                                    {getLocalizedValue(post.title, activeLanguage) ||
-                                      getLocalizedValue(post.title, 'en') ||
-                                      'Untitled blog'}
-                                  </SelectItem>
-                                );
-                              })}
-                          </SelectContent>
-                        </Select>
+                                  return (
+                                    <SelectItem
+                                      key={postId}
+                                      value={postId}
+                                      disabled={isSelectedInAnotherRow}
+                                    >
+                                      {getLocalizedValue(post.title, activeLanguage) ||
+                                        getLocalizedValue(post.title, 'en') ||
+                                        'Untitled blog'}
+                                    </SelectItem>
+                                  );
+                                })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleRemoveRelatedPost(index)}
+                          className="shrink-0"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
                       </div>
                     ))}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAddRelatedPost}
+                        disabled={!relatedPostOptions.some((post) => {
+                          const postId = post._id || post.id;
+                          return postId && !selectedRelatedPosts.includes(postId);
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Related Article
+                      </Button>
+                      {selectedRelatedPosts.length > 8 && (
+                        <p className="text-sm text-amber-700">
+                          You can add more, but 3-8 highly relevant articles is usually best.
+                        </p>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
