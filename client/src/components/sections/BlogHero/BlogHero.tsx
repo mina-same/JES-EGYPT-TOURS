@@ -39,7 +39,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
           priority
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/30"></div>
       </motion.div>
 
       <div className="container relative z-10">
@@ -83,7 +83,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="html-content text-white/90 text-lg md:text-xl font-light max-w-3xl mb-8 leading-relaxed whitespace-normal break-words [&_p]:mb-3 [&_p:last-child]:mb-0"
+              className="html-content text-white/95 text-lg md:text-xl font-light max-w-3xl mb-8 leading-8 md:leading-9 whitespace-pre-line break-words [&_p]:mb-3 [&_p:last-child]:mb-0 px-4 py-3 rounded-xl bg-gradient-to-br from-black/25 to-black/10 border-l-[3px] border-[#d4af37] backdrop-blur-sm"
               dangerouslySetInnerHTML={{ __html: subTitle }}
             />
           )}

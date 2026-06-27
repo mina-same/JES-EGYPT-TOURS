@@ -23,6 +23,18 @@ export function middleware(request: NextRequest) {
     return;
   }
 
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
+  const locale = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale;
+
+  if (pathname === '/tailorMade') {
+    return NextResponse.redirect(new URL(`/${locale}/tailor-made`, request.url));
+  }
+
+  const oldTailorMadeLocale = locales.find((currentLocale) => pathname === `/${currentLocale}/tailorMade`);
+  if (oldTailorMadeLocale) {
+    return NextResponse.redirect(new URL(`/${oldTailorMadeLocale}/tailor-made`, request.url));
+  }
+
   // 3. Check if the current path already has a locale prefix
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
@@ -43,9 +55,6 @@ export function middleware(request: NextRequest) {
 
   // 4. No locale prefix found: Determine the target locale and redirect
   // We check for the NEXT_LOCALE cookie first, then fall back to default Locale
-  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
-  const locale = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale;
-
   const targetPath = `/${locale}${pathname === '/' ? '' : pathname}`;
   
   // Redirect to the localized version (e.g. / -> /en, /about -> /en/about)

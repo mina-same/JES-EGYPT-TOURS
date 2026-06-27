@@ -14,6 +14,28 @@ interface BlogTOCProps {
   isInline?: boolean;
 }
 
+const createHeadingSlug = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-+/g, '-');
+
+const getUniqueHeadingId = (baseId: string, usedIds: Set<string>) => {
+  let id = baseId;
+  let suffix = 2;
+
+  while (usedIds.has(id)) {
+    id = `${baseId}-${suffix}`;
+    suffix += 1;
+  }
+
+  usedIds.add(id);
+  return id;
+};
+
 const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) => {
   const { t } = useTranslation('blogs');
   const [toc, setToc] = useState<TOCItem[]>([]);
@@ -27,14 +49,15 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
 
     const headers = content.querySelectorAll('h2');
     const items: TOCItem[] = [];
+    const usedIds = new Set<string>();
 
     headers.forEach((header, index) => {
       const text = header.textContent || '';
       if (!text) return;
 
-      if (!header.id) {
-        header.id = `blog-header-${index}`;
-      }
+      const fallbackId = `blog-header-${index}`;
+      const baseId = header.id.trim() || createHeadingSlug(text) || fallbackId;
+      header.id = getUniqueHeadingId(baseId, usedIds);
 
       items.push({
         id: header.id,
@@ -92,7 +115,7 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
   };
 
   return (
-    <div className="blog-toc">
+    <nav className="blog-toc" aria-label={t('tableOfContents') || 'Table of contents'}>
       <div className="blog-toc__header">
         <List size={15} />
         <span>{t('tableOfContents') || 'Table of Contents'}</span>
@@ -196,7 +219,7 @@ const BlogTOC: React.FC<BlogTOCProps> = ({ contentSelector, isInline = false }) 
         .blog-toc__list::-webkit-scrollbar-track { background: #f9f9f9; }
         .blog-toc__list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
       `}</style>
-    </div>
+    </nav>
   );
 };
 

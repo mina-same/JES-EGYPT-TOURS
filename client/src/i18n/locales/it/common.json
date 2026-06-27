@@ -61,6 +61,23 @@
         }
       }
     },
+    "blogArticle": {
+      "eyebrow": "PIANIFICATE IL VOSTRO VIAGGIO IN EGITTO",
+      "title": "Pronti a vedere l’Egitto di persona?",
+      "text": "La maggior parte dei nostri viaggiatori arriva con qualche domanda — e riparte con un viaggio che non si aspettava di amare così tanto. Diteci quando venite. Al resto pensiamo noi.",
+      "badges": [
+        "Solo tour privati",
+        "Specialisti basati al Cairo",
+        "Pagamento sicuro con carta"
+      ],
+      "actions": {
+        "primary": "Iniziate a pianificare →",
+        "secondary": "Esplora i tour in Egitto"
+      },
+      "media": {
+        "badge": "Egitto su misura"
+      }
+    },
     "destination": {
       "eyebrow": "Pianificazione privata in Egitto",
       "title": "Crea un viaggio su misura attraverso {{context}}",
