@@ -14,6 +14,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const isAdminWorkPage = (path: string) => {
+  const normalizedPath = path.replace(/\/+$/, '') || '/';
+
+  return [
+    /^\/admin\/tour\/category\/new$/,
+    /^\/admin\/tour\/subcategory\/new$/,
+    /^\/admin\/tour\/tour\/new$/,
+    /^\/admin\/tour\/tour\/[^/]+\/edit$/,
+    /^\/admin\/tour\/booking$/,
+    /^\/admin\/special-offers$/,
+    /^\/admin\/destinations\/new$/,
+    /^\/admin\/blogs\/category\/new$/,
+    /^\/admin\/blogs\/subcategory\/new$/,
+    /^\/admin\/blogs\/blog\/new$/,
+    /^\/admin\/blogs\/blog\/[^/]+\/edit$/,
+  ].some((pattern) => pattern.test(normalizedPath));
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,6 +79,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Other errors (network, 500) we might want to keep the session temporarily.
       console.error('Auth check failed:', error);
       if (error.response?.status === 401) {
+        if (isAdminWorkPage(window.location.pathname)) {
+          localStorage.setItem('auth_redirect', `${window.location.pathname}${window.location.search}`);
+          return;
+        }
+
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
         setUser(null);
@@ -85,8 +108,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         setUser(user);
         
-        // Redirect to admin dashboard
-        router.push('/admin');
+        const savedRedirect = localStorage.getItem('auth_redirect');
+        if (savedRedirect?.startsWith('/admin')) {
+          localStorage.removeItem('auth_redirect');
+          router.push(savedRedirect);
+        } else {
+          // Redirect to admin dashboard
+          router.push('/admin');
+        }
       } else {
         throw new Error(response.error || 'Login failed');
       }

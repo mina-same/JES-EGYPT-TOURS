@@ -5,7 +5,7 @@ const DEBOUNCE_MS = 500;
 interface UseFormDraftResult<T> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
-  clearDraft: () => void;
+  clearDraft: (options?: { suppressNextSave?: boolean }) => void;
   hasDraft: boolean;
 }
 
@@ -18,9 +18,17 @@ export function useFormDraft<T>(
   key: string,
   initialValue: T
 ): UseFormDraftResult<T> {
-  const [hasDraft, setHasDraft] = useState(false);
+  const [hasDraft, setHasDraft] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return !!localStorage.getItem(key);
+    } catch {
+      return false;
+    }
+  });
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
+  const suppressNextSave = useRef(false);
 
   // Initialize state: try to load from localStorage first
   const [formData, setFormData] = useState<T>(() => {
@@ -59,6 +67,11 @@ export function useFormDraft<T>(
       return;
     }
 
+    if (suppressNextSave.current) {
+      suppressNextSave.current = false;
+      return;
+    }
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
@@ -78,7 +91,14 @@ export function useFormDraft<T>(
     };
   }, [key, formData]);
 
-  const clearDraft = useCallback(() => {
+  const clearDraft = useCallback((options?: { suppressNextSave?: boolean }) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
+    if (options?.suppressNextSave) {
+      suppressNextSave.current = true;
+    }
     try {
       localStorage.removeItem(key);
     } catch (e) {

@@ -101,6 +101,7 @@ export default function NewBlogPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
+  const [relatedPostOptions, setRelatedPostOptions] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
 
   const { user } = useAuth();
@@ -110,6 +111,16 @@ export default function NewBlogPage() {
     'draft_blog_new',
     INITIAL_BLOG_POST
   );
+
+  const cloneFormData = (data: any) => JSON.parse(JSON.stringify(data));
+
+  const handleDiscardDraft = () => {
+    clearDraft({ suppressNextSave: true });
+    setFormData({
+      ...cloneFormData(INITIAL_BLOG_POST),
+      author: user?.id || '',
+    });
+  };
 
   // Pre-populate author with current user
   useEffect(() => {
@@ -198,6 +209,22 @@ export default function NewBlogPage() {
 
       return updated;
     });
+  };
+
+  const relatedPostSlots = Array.from({ length: 3 }, (_, index) => {
+    const selectedPosts = Array.isArray(formData.relatedPosts) ? formData.relatedPosts : [];
+    return selectedPosts[index] || 'none';
+  });
+
+  const handleRelatedPostChange = (slotIndex: number, value: string) => {
+    const nextSlots = [...relatedPostSlots];
+    nextSlots[slotIndex] = value;
+
+    const cleanedPosts = Array.from(
+      new Set(nextSlots.filter((postId) => postId && postId !== 'none'))
+    );
+
+    handleChange('relatedPosts', cleanedPosts);
   };
 
   // Handle Image Upload
@@ -510,10 +537,11 @@ export default function NewBlogPage() {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const [catRes, userRes, destRes] = await Promise.all([
+        const [catRes, userRes, destRes, relatedPostsRes] = await Promise.all([
           blogCategoryAPI.getAll({ isActive: true }),
           userAPI.getAllUsers(),
-          destinationAPI.getAll({ isActive: true })
+          destinationAPI.getAll({ isActive: true }),
+          blogAPI.getAll({ limit: 100, status: 'published' })
         ]);
 
         if (catRes.success && catRes.data) {
@@ -526,6 +554,13 @@ export default function NewBlogPage() {
 
         if (destRes.success && destRes.data) {
           setDestinations(destRes.data);
+        }
+
+        if (relatedPostsRes.success && relatedPostsRes.data) {
+          const publishedPostsData = relatedPostsRes.data as any;
+          setRelatedPostOptions(
+            Array.isArray(publishedPostsData) ? publishedPostsData : publishedPostsData.blogs || []
+          );
         }
       } catch (error) {
         console.error('Failed to fetch blog options:', error);
@@ -569,7 +604,7 @@ export default function NewBlogPage() {
 
       {/* Draft Banner */}
       {hasDraft && (
-        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_BLOG_POST); }} />
+        <DraftBanner onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}
@@ -794,6 +829,52 @@ export default function NewBlogPage() {
                   onChange={(faqs) => handleChange('faqs', faqs)}
                   activeLanguage={activeLanguage}
                 />
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Related Articles</CardTitle>
+                    <CardDescription>Select up to three published blog posts to show as Read Next.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 md:grid-cols-3">
+                    {[0, 1, 2].map((slotIndex) => (
+                      <div key={slotIndex} className="space-y-2">
+                        <Label>Related Article {slotIndex + 1}</Label>
+                        <Select
+                          value={relatedPostSlots[slotIndex]}
+                          onValueChange={(value) => handleRelatedPostChange(slotIndex, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {relatedPostOptions
+                              .filter((post) => post._id || post.id)
+                              .map((post) => {
+                                const postId = post._id || post.id;
+                                const isSelectedInAnotherSlot = relatedPostSlots.some(
+                                  (selectedId, selectedIndex) =>
+                                    selectedIndex !== slotIndex && selectedId === postId
+                                );
+
+                                return (
+                                  <SelectItem
+                                    key={postId}
+                                    value={postId}
+                                    disabled={isSelectedInAnotherSlot}
+                                  >
+                                    {getLocalizedValue(post.title, activeLanguage) ||
+                                      getLocalizedValue(post.title, 'en') ||
+                                      'Untitled blog'}
+                                  </SelectItem>
+                                );
+                              })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               </div>
             )}
 
@@ -813,8 +894,8 @@ export default function NewBlogPage() {
                           handleChange('featuredImage', {
                             url: '',
                             fileName: '',
-                            title: '',
-                            alt: '',
+                            title: { en: '', de: '', it: '', es: '' },
+                            alt:   { en: '', de: '', it: '', es: '' },
                           });
                         }
                       }}
@@ -822,8 +903,8 @@ export default function NewBlogPage() {
                         handleChange('featuredImage', {
                           url: '',
                           fileName: '',
-                          title: '',
-                          alt: '',
+                          title: { en: '', de: '', it: '', es: '' },
+                          alt:   { en: '', de: '', it: '', es: '' },
                         });
                       }}
                       onUpdate={(index, field, value, lang) => {
@@ -892,8 +973,8 @@ export default function NewBlogPage() {
                             handleChange('metaImage', {
                               url: '',
                               fileName: '',
-                              title: '',
-                              alt: '',
+                              title: { en: '', de: '', it: '', es: '' },
+                              alt:   { en: '', de: '', it: '', es: '' },
                             });
                           }
                         }}
@@ -901,8 +982,8 @@ export default function NewBlogPage() {
                           handleChange('metaImage', {
                             url: '',
                             fileName: '',
-                            title: '',
-                            alt: '',
+                            title: { en: '', de: '', it: '', es: '' },
+                            alt:   { en: '', de: '', it: '', es: '' },
                           });
                         }}
                         onUpdate={(index, field, value, lang) => {

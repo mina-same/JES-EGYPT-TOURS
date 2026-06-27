@@ -101,11 +101,30 @@ export default function NewSubcategoryPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [categories, setCategories] = useState<ITourCategory[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  const [originalFormData, setOriginalFormData] = useState<TourSubcategoryFormData | null>(null);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<TourSubcategoryFormData>(
     draftKey,
     INITIAL_TOUR_SUBCAT
   );
+
+  const cloneFormData = (data: TourSubcategoryFormData): TourSubcategoryFormData =>
+    JSON.parse(JSON.stringify(data));
+
+  const handleDiscardDraft = () => {
+    if (isEditMode) {
+      if (originalFormData) {
+        clearDraft({ suppressNextSave: true });
+        setFormData(cloneFormData(originalFormData));
+      } else {
+        clearDraft();
+      }
+      return;
+    }
+
+    clearDraft({ suppressNextSave: true });
+    setFormData(INITIAL_TOUR_SUBCAT);
+  };
 
   const getFieldError = (path: string) => {
     return formErrors.find(err => err.path === path || err.field === path)?.message;
@@ -160,7 +179,7 @@ export default function NewSubcategoryPage() {
               ? data.category._id
               : data.category || '';
 
-          setFormData({
+          const loadedFormData: TourSubcategoryFormData = {
             category: categoryValue,
             name: typeof data.name === 'object' ? data.name : { en: data.name || '', de: '', it: '', es: '' },
             slug: typeof data.slug === 'object' ? data.slug : { en: data.slug || '', de: '', it: '', es: '' },
@@ -250,7 +269,15 @@ export default function NewSubcategoryPage() {
                 }
               : INITIAL_TOUR_SUBCAT.bottomSection,
             isActive: data.isActive !== undefined ? !!data.isActive : true,
-          });
+          };
+
+          setOriginalFormData(cloneFormData(loadedFormData));
+
+          if (hasDraft) {
+            return;
+          }
+
+          setFormData(loadedFormData);
         } else if (isEditMode && !subcatRes?.success) {
           setFormErrors([{ field: 'Subcategory', message: subcatRes?.error || 'Failed to fetch subcategory data' }]);
         }
@@ -675,8 +702,8 @@ export default function NewSubcategoryPage() {
         })}
       </div>
 
-      {hasDraft && !isEditMode && (
-        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_TOUR_SUBCAT); }} />
+      {hasDraft && (
+        <DraftBanner onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}

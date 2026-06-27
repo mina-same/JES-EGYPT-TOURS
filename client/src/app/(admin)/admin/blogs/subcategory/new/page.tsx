@@ -123,6 +123,7 @@ export default function NewBlogSubCategoryPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  const [originalFormData, setOriginalFormData] = useState<BlogSubCategoryFormData | null>(null);
 
   // Blog Search State
   const [blogSearchQuery, setBlogSearchQuery] = useState('');
@@ -142,6 +143,24 @@ export default function NewBlogSubCategoryPage() {
     draftKey,
     INITIAL_BLOG_SUBCAT
   );
+
+  const cloneFormData = (data: BlogSubCategoryFormData): BlogSubCategoryFormData =>
+    JSON.parse(JSON.stringify(data));
+
+  const handleDiscardDraft = () => {
+    if (isEditMode) {
+      if (originalFormData) {
+        clearDraft({ suppressNextSave: true });
+        setFormData(cloneFormData(originalFormData));
+      } else {
+        clearDraft();
+      }
+      return;
+    }
+
+    clearDraft({ suppressNextSave: true });
+    setFormData(INITIAL_BLOG_SUBCAT);
+  };
 
   // Fetch categories and subcategory data (if editing)
   useEffect(() => {
@@ -194,7 +213,7 @@ export default function NewBlogSubCategoryPage() {
                 alt: mapToLocalized(data.image?.alt),
               };
 
-          setFormData({
+          const loadedFormData: BlogSubCategoryFormData = {
             name: mapToLocalized(data.name),
             slug: mapToLocalized(data.slug),
             category: categoryId,
@@ -228,7 +247,15 @@ export default function NewBlogSubCategoryPage() {
             faqs: Array.isArray(data.faqs) ? data.faqs : [],
             icon: data.icon || '',
             isActive: data.isActive !== undefined ? !!data.isActive : true,
-          });
+          };
+
+          setOriginalFormData(cloneFormData(loadedFormData));
+
+          if (hasDraft) {
+            return;
+          }
+
+          setFormData(loadedFormData);
 
           if (Array.isArray(data.featuredBlogs)) {
             setSelectedBlogObjects(data.featuredBlogs.filter((b: any) => typeof b === 'object'));
@@ -581,8 +608,8 @@ export default function NewBlogSubCategoryPage() {
       </div>
 
       {/* Draft Banner */}
-      {hasDraft && !isEditMode && (
-        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_BLOG_SUBCAT); }} />
+      {hasDraft && (
+        <DraftBanner onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}

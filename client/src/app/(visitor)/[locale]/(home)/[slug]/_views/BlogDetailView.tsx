@@ -22,8 +22,6 @@ import itBlogs from "@/i18n/locales/it/blogs.json";
 import esBlogs from "@/i18n/locales/es/blogs.json";
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
-
 export default function BlogDetailView({ slug, locale }: { slug: string; locale: string }) {
   const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
 
@@ -72,39 +70,7 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
   }
 
   const title = getLocalizedValue(blog.title, locale);
-  const description = getLocalizedValue(blog.excerpt, locale) || getLocalizedValue(blog.seo?.metaDescription, locale) || "";
   const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
-
-  // Professional Blog Schema (JSON-LD)
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": title,
-    "image": [
-      featuredImageUrl,
-      ...(blog.contentBlocks?.map((block: any) => block.url || block.image).filter(Boolean) || [])
-    ].filter(Boolean),
-    "author": {
-      "@type": "Person",
-      "name": blog.author?.name || "JES Egypt Tours",
-    },
-    "description": description.replace(/<[^>]*>/g, ""),
-    "datePublished": blog.publishedAt || blog.createdAt,
-    "dateModified": blog.updatedAt || blog.createdAt,
-    "publisher": {
-      "@type": "Organization",
-      "name": "JES Egypt Tours",
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${baseUrl}/logo-dark.png`,
-      },
-      "@id": `${baseUrl}/#travelagency`
-    },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `${baseUrl}/${locale}/${slug}`,
-    },
-  };
 
   const localizedSlugs = typeof blog.slug === 'object' ? blog.slug : { en: slug };
 
@@ -131,10 +97,6 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
       <SlugManager slugs={localizedSlugs} />
       <Layout>
         <TopbarOne />

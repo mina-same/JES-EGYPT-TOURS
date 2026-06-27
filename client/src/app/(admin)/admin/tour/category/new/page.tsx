@@ -96,11 +96,30 @@ export default function NewCategoryPage() {
   const [fetchingData, setFetchingData] = useState(isEditMode);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  const [originalFormData, setOriginalFormData] = useState<TourCategoryFormData | null>(null);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<TourCategoryFormData>(
     draftKey,
     INITIAL_TOUR_CATEGORY
   );
+
+  const cloneFormData = (data: TourCategoryFormData): TourCategoryFormData =>
+    JSON.parse(JSON.stringify(data));
+
+  const handleDiscardDraft = () => {
+    if (isEditMode) {
+      if (originalFormData) {
+        clearDraft({ suppressNextSave: true });
+        setFormData(cloneFormData(originalFormData));
+      } else {
+        clearDraft();
+      }
+      return;
+    }
+
+    clearDraft({ suppressNextSave: true });
+    setFormData(INITIAL_TOUR_CATEGORY);
+  };
   
   const getFieldError = (path: string) => {
     return formErrors.find(err => err.path === path || err.field === path)?.message;
@@ -152,7 +171,7 @@ export default function NewCategoryPage() {
           ? data.sectionHeader.images
           : (data.sectionHeader?.image?.url ? [data.sectionHeader.image] : []);
 
-        setFormData({
+        const loadedFormData: TourCategoryFormData = {
           name: ensureLocalized(data.name),
           slug: ensureLocalized(data.slug),
           description: ensureLocalized(data.description, true),
@@ -302,7 +321,15 @@ export default function NewCategoryPage() {
                 image2: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
               },
           isActive: data.isActive !== undefined ? !!data.isActive : true,
-        });
+        };
+
+        setOriginalFormData(cloneFormData(loadedFormData));
+
+        if (hasDraft) {
+          return;
+        }
+
+        setFormData(loadedFormData);
 
         // Populate selected objects for display
         if (Array.isArray(data.featuredBlogs)) {
@@ -723,8 +750,8 @@ export default function NewCategoryPage() {
         })}
       </div>
 
-      {hasDraft && !isEditMode && (
-        <DraftBanner onDiscard={() => { clearDraft(); setFormData(INITIAL_TOUR_CATEGORY); }} />
+      {hasDraft && (
+        <DraftBanner onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}

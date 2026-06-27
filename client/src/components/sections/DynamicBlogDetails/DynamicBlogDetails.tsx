@@ -346,6 +346,28 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     );
   };
 
+  const AboutAuthorSection = () => {
+    return (
+      <div className="blog-author-box mt-5">
+        <Image
+          src="/images/authors/madonna-roshdey-author.jpg"
+          alt="Madonna Roshdey, Travel Specialist at Jes Egypt Tours"
+          width={84}
+          height={84}
+          className="blog-author-box__avatar"
+        />
+        <div className="blog-author-box__content">
+          <p className="blog-author-box__title">About the author</p>
+          <p className="blog-author-box__name">Madonna Roshdey</p>
+          <p className="blog-author-box__role">Travel Specialist at Jes Egypt Tours</p>
+          <p className="blog-author-box__text">
+            Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const SocialShareFloating = () => {
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareTitle = title || '';
@@ -639,6 +661,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
                       <KeyTakeawaysSection />
                       <BlogFAQs />
+                      <AboutAuthorSection />
                       <VideoModal 
                         isOpen={isVideoOpen} 
                         setOpen={setVideoOpen} 
@@ -837,15 +860,78 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
       <div className="related-sections-wrapper" style={{ background: '#f9f9f9', marginTop: '80px', padding: '80px 0' }}>
         <Container>
-          <RelatedPosts />
-          <div style={{ height: '60px' }} />
           <RelatedToursSection />
+          <div style={{ height: '60px' }} />
+          <RelatedPosts />
         </Container>
       </div>
 
       <style jsx global>{`
         .blog-details-page {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .blog-author-box {
+          display: flex;
+          gap: 18px;
+          align-items: flex-start;
+          background: #fff;
+          border: 1px solid rgba(23, 63, 99, 0.1);
+          border-left: 4px solid #c7a24a;
+          border-radius: 8px;
+          box-shadow: 0 12px 30px rgba(15, 36, 51, 0.06);
+          padding: 24px;
+        }
+
+        .blog-author-box__avatar {
+          width: 84px;
+          height: 84px;
+          border-radius: 50%;
+          object-fit: cover;
+          object-position: center;
+          border: 2px solid #c7a24a;
+          flex-shrink: 0;
+          display: block;
+        }
+
+        .blog-author-box__title {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #c7a24a;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          margin: 0 0 4px;
+        }
+
+        .blog-author-box__name {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: #0f2433;
+          line-height: 1.3;
+          margin: 0 0 3px;
+        }
+
+        .blog-author-box__role {
+          font-size: 0.88rem;
+          font-weight: 500;
+          color: #173f63;
+          margin: 0 0 10px;
+        }
+
+        .blog-author-box__text {
+          font-size: 0.95rem;
+          line-height: 1.7;
+          color: #44515a;
+          margin: 0;
+        }
+
+        @media (max-width: 575px) {
+          .blog-author-box {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 22px;
+          }
         }
 
         @supports (overflow: clip) {

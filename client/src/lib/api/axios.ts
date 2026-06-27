@@ -1,7 +1,30 @@
 import axios from 'axios';
 import { API_URL } from '@/config/api';
+import { toast } from '@/hooks/use-toast';
 
 const API_BASE_URL = API_URL;
+const SESSION_EXPIRED_MESSAGE =
+  'Your session has expired. This page was kept open so your current work is not lost. You cannot save to the server until you log in again. Please log in in another tab, then return here and save.';
+
+let sessionExpiryToastShown = false;
+
+const isAdminWorkPage = (path: string) => {
+  const normalizedPath = path.replace(/\/+$/, '') || '/';
+
+  return [
+    /^\/admin\/tour\/category\/new$/,
+    /^\/admin\/tour\/subcategory\/new$/,
+    /^\/admin\/tour\/tour\/new$/,
+    /^\/admin\/tour\/tour\/[^/]+\/edit$/,
+    /^\/admin\/tour\/booking$/,
+    /^\/admin\/special-offers$/,
+    /^\/admin\/destinations\/new$/,
+    /^\/admin\/blogs\/category\/new$/,
+    /^\/admin\/blogs\/subcategory\/new$/,
+    /^\/admin\/blogs\/blog\/new$/,
+    /^\/admin\/blogs\/blog\/[^/]+\/edit$/,
+  ].some((pattern) => pattern.test(normalizedPath));
+};
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -64,11 +87,30 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       // Clear token and redirect to login
       if (typeof window !== 'undefined') {
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+        const isWorkPage = isAdminWorkPage(window.location.pathname);
+
         try {
+          if (isWorkPage) {
+            window.localStorage.setItem('auth_redirect', currentPath);
+          }
           window.localStorage.removeItem('authToken');
           window.localStorage.removeItem('user');
         } catch {
           // ignore
+        }
+
+        if (isWorkPage) {
+          if (!sessionExpiryToastShown) {
+            sessionExpiryToastShown = true;
+            toast({
+              title: 'Session expired',
+              description: SESSION_EXPIRED_MESSAGE,
+              variant: 'destructive',
+            });
+          }
+
+          return Promise.reject(error);
         }
 
         // Only redirect if not already on login page
