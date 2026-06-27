@@ -94,6 +94,7 @@ export interface IBlog extends Document {
   
   // Related Content
   relatedPosts?: mongoose.Types.ObjectId[];
+  relatedTours?: mongoose.Types.ObjectId[];
   category?: mongoose.Types.ObjectId;
   subCategory?: mongoose.Types.ObjectId;
   destination?: mongoose.Types.ObjectId;
@@ -311,6 +312,10 @@ const BlogSchema: Schema = new Schema(
     relatedPosts: [{
       type: Schema.Types.ObjectId,
       ref: 'Blog',
+    }],
+    relatedTours: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Tour',
     }],
     category: {
       type: Schema.Types.ObjectId,

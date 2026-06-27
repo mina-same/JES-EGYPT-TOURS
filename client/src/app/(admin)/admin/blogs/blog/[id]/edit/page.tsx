@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, destinationAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
+import { tourAPI } from '@/lib/api/tour';
 import { API_URL } from '@/config/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,6 +81,7 @@ const INITIAL_BLOG_EDIT: any = {
   focusKeyword: { en: '', de: '', it: '', es: '' },
   breadcrumbs: [],
   relatedPosts: [],
+  relatedTours: [],
   category: '',
   subCategory: '',
   destination: '',
@@ -103,6 +105,7 @@ export default function EditBlogPage() {
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
   const [relatedPostOptions, setRelatedPostOptions] = useState<any[]>([]);
+  const [relatedTourOptions, setRelatedTourOptions] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
   const [authors, setAuthors] = useState<AuthUser[]>([]);
   const [originalFormData, setOriginalFormData] = useState<any | null>(null);
@@ -182,20 +185,62 @@ export default function EditBlogPage() {
     });
   };
 
-  const relatedPostSlots = Array.from({ length: 3 }, (_, index) => {
-    const selectedPosts = Array.isArray(formData.relatedPosts) ? formData.relatedPosts : [];
-    return selectedPosts[index] || 'none';
-  });
+  const selectedRelatedPosts: string[] = Array.from(
+    new Set<string>((Array.isArray(formData.relatedPosts) ? formData.relatedPosts : []).filter((postId: string) => postId && postId !== 'none'))
+  );
 
-  const handleRelatedPostChange = (slotIndex: number, value: string) => {
-    const nextSlots = [...relatedPostSlots];
-    nextSlots[slotIndex] = value;
+  const handleRelatedPostChange = (index: number, value: string) => {
+    const nextPosts = [...selectedRelatedPosts];
+    nextPosts[index] = value;
 
-    const cleanedPosts = Array.from(
-      new Set(nextSlots.filter((postId) => postId && postId !== 'none'))
+    handleChange(
+      'relatedPosts',
+      Array.from(new Set(nextPosts.filter((postId) => postId && postId !== 'none')))
     );
+  };
 
-    handleChange('relatedPosts', cleanedPosts);
+  const handleAddRelatedPost = () => {
+    const nextPost = relatedPostOptions.find((post) => {
+      const postId = post._id || post.id;
+      return postId && !selectedRelatedPosts.includes(postId);
+    });
+
+    if (!nextPost) return;
+
+    handleChange('relatedPosts', [...selectedRelatedPosts, nextPost._id || nextPost.id]);
+  };
+
+  const handleRemoveRelatedPost = (index: number) => {
+    handleChange('relatedPosts', selectedRelatedPosts.filter((_, currentIndex) => currentIndex !== index));
+  };
+
+  const selectedRelatedTours: string[] = Array.from(
+    new Set<string>((Array.isArray(formData.relatedTours) ? formData.relatedTours : []).filter((tourId: string) => tourId && tourId !== 'none'))
+  );
+
+  const handleRelatedTourChange = (index: number, value: string) => {
+    const nextTours = [...selectedRelatedTours];
+    nextTours[index] = value;
+
+    handleChange(
+      'relatedTours',
+      Array.from(new Set(nextTours.filter((tourId) => tourId && tourId !== 'none')))
+    );
+  };
+
+  const handleAddRelatedTour = () => {
+    const nextTour = relatedTourOptions.find((tour) => {
+      const tourId = tour._id || tour.id;
+      return tourId && !selectedRelatedTours.includes(tourId);
+    });
+
+    if (!nextTour) return;
+
+    handleChange('relatedTours', [...selectedRelatedTours, nextTour._id || nextTour.id]);
+  };
+
+  const handleRemoveRelatedTour = (index: number) => {
+    handleChange('relatedTours', selectedRelatedTours.filter((_, currentIndex) => currentIndex !== index));
   };
 
   // Handle Image Upload
@@ -330,6 +375,7 @@ export default function EditBlogPage() {
             name: normalizeLocalizedString(b.name)
           })),
           relatedPosts: blog.relatedPosts?.map((post: any) => post._id || post) || [],
+          relatedTours: blog.relatedTours?.map((tour: any) => tour._id || tour) || [],
           category: blog.category?._id || blog.category || '',
           subCategory: blog.subCategory?._id || blog.subCategory || '',
           destination: blog.destination?._id || blog.destination || '',
@@ -360,9 +406,7 @@ export default function EditBlogPage() {
 
 
   // Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const performUpdate = async (stayOnPage = false) => {
     try {
       setLoading(true);
       setFormErrors([]);
@@ -471,7 +515,12 @@ export default function EditBlogPage() {
       cleanData.summary = processLocalizedMixed(cleanData.summary);
 
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
-      if (!cleanData.relatedPosts?.length) cleanData.relatedPosts = [];
+      cleanData.relatedPosts = Array.from(
+        new Set((cleanData.relatedPosts || []).filter((postId: string) => postId && postId !== 'none'))
+      );
+      cleanData.relatedTours = Array.from(
+        new Set((cleanData.relatedTours || []).filter((tourId: string) => tourId && tourId !== 'none'))
+      );
 
       // Clean up category/subcategory IDs (must be valid Mongo IDs or removed)
       if (!cleanData.category || cleanData.category === '' || cleanData.category === 'none') {
@@ -610,7 +659,10 @@ export default function EditBlogPage() {
       if (response.success) {
         toast({ title: 'Blog post updated', description: 'Blog post saved successfully.' });
         clearDraft();
-        router.push('/admin/blogs/blog');
+        setOriginalFormData(cloneFormData(formData));
+        if (!stayOnPage) {
+          router.push('/admin/blogs/blog');
+        }
       } else {
         const parsed = parseApiError(response);
         setFormErrors(parsed);
@@ -625,15 +677,21 @@ export default function EditBlogPage() {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void performUpdate(false);
+  };
+
   useEffect(() => {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const [catRes, userRes, destRes, relatedPostsRes] = await Promise.all([
+        const [catRes, userRes, destRes, relatedPostsRes, relatedToursRes] = await Promise.all([
           blogCategoryAPI.getAll({ isActive: true }),
           userAPI.getAllUsers(),
           destinationAPI.getAll({ isActive: true }),
-          blogAPI.getAll({ limit: 100, status: 'published' })
+          blogAPI.getAll({ limit: 100, status: 'published' }),
+          tourAPI.getAll({ limit: 100, isActive: true })
         ]);
         
         if (catRes.success && catRes.data) {
@@ -653,6 +711,13 @@ export default function EditBlogPage() {
           const publishedPosts = Array.isArray(publishedPostsData) ? publishedPostsData : publishedPostsData.blogs || [];
           setRelatedPostOptions(
             publishedPosts.filter((post: any) => (post._id || post.id) !== blogId)
+          );
+        }
+
+        if (relatedToursRes.success && relatedToursRes.data) {
+          const activeToursData = relatedToursRes.data as any;
+          setRelatedTourOptions(
+            Array.isArray(activeToursData) ? activeToursData : activeToursData.tours || []
           );
         }
       } catch (error) {
@@ -960,46 +1025,150 @@ export default function EditBlogPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Related Articles</CardTitle>
-                    <CardDescription>Select up to three published blog posts to show as Read Next.</CardDescription>
+                    <CardDescription>Recommended: 3-8 highly relevant articles.</CardDescription>
                   </CardHeader>
-                  <CardContent className="grid gap-4 md:grid-cols-3">
-                    {[0, 1, 2].map((slotIndex) => (
-                      <div key={slotIndex} className="space-y-2">
-                        <Label>Related Article {slotIndex + 1}</Label>
-                        <Select
-                          value={relatedPostSlots[slotIndex]}
-                          onValueChange={(value) => handleRelatedPostChange(slotIndex, value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="None" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            {relatedPostOptions
-                              .filter((post) => post._id || post.id)
-                              .map((post) => {
-                                const postId = post._id || post.id;
-                                const isSelectedInAnotherSlot = relatedPostSlots.some(
-                                  (selectedId, selectedIndex) =>
-                                    selectedIndex !== slotIndex && selectedId === postId
-                                );
+                  <CardContent className="space-y-4">
+                    {selectedRelatedPosts.map((selectedPostId, index) => (
+                      <div key={`${selectedPostId}-${index}`} className="flex flex-col gap-2 md:flex-row md:items-end">
+                        <div className="flex-1 space-y-2">
+                          <Label>Related Article {index + 1}</Label>
+                          <Select
+                            value={selectedPostId}
+                            onValueChange={(value) => handleRelatedPostChange(index, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select article" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {relatedPostOptions
+                                .filter((post) => post._id || post.id)
+                                .map((post) => {
+                                  const postId = post._id || post.id;
+                                  const isSelectedInAnotherRow = selectedRelatedPosts.some(
+                                    (selectedId, selectedIndex) =>
+                                      selectedIndex !== index && selectedId === postId
+                                  );
 
-                                return (
-                                  <SelectItem
-                                    key={postId}
-                                    value={postId}
-                                    disabled={isSelectedInAnotherSlot}
-                                  >
-                                    {getLocalizedValue(post.title, activeLanguage) ||
-                                      getLocalizedValue(post.title, 'en') ||
-                                      'Untitled blog'}
-                                  </SelectItem>
-                                );
-                              })}
-                          </SelectContent>
-                        </Select>
+                                  return (
+                                    <SelectItem
+                                      key={postId}
+                                      value={postId}
+                                      disabled={isSelectedInAnotherRow}
+                                    >
+                                      {getLocalizedValue(post.title, activeLanguage) ||
+                                        getLocalizedValue(post.title, 'en') ||
+                                        'Untitled blog'}
+                                    </SelectItem>
+                                  );
+                                })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleRemoveRelatedPost(index)}
+                          className="shrink-0"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
                       </div>
                     ))}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAddRelatedPost}
+                        disabled={!relatedPostOptions.some((post) => {
+                          const postId = post._id || post.id;
+                          return postId && !selectedRelatedPosts.includes(postId);
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Related Article
+                      </Button>
+                      {selectedRelatedPosts.length > 8 && (
+                        <p className="text-sm text-amber-700">
+                          You can add more, but 3-8 highly relevant articles is usually best.
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Related Tours</CardTitle>
+                    <CardDescription>Recommended: 3-8 highly relevant tours.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {selectedRelatedTours.map((selectedTourId, index) => (
+                      <div key={`${selectedTourId}-${index}`} className="flex flex-col gap-2 md:flex-row md:items-end">
+                        <div className="flex-1 space-y-2">
+                          <Label>Related Tour {index + 1}</Label>
+                          <Select
+                            value={selectedTourId}
+                            onValueChange={(value) => handleRelatedTourChange(index, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select tour" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {relatedTourOptions
+                                .filter((tour) => tour._id || tour.id)
+                                .map((tour) => {
+                                  const tourId = tour._id || tour.id;
+                                  const isSelectedInAnotherRow = selectedRelatedTours.some(
+                                    (selectedId, selectedIndex) =>
+                                      selectedIndex !== index && selectedId === tourId
+                                  );
+
+                                  return (
+                                    <SelectItem
+                                      key={tourId}
+                                      value={tourId}
+                                      disabled={isSelectedInAnotherRow}
+                                    >
+                                      {getLocalizedValue(tour.heading || tour.name, activeLanguage) ||
+                                        getLocalizedValue(tour.heading || tour.name, 'en') ||
+                                        'Untitled tour'}
+                                    </SelectItem>
+                                  );
+                                })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleRemoveRelatedTour(index)}
+                          className="shrink-0"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAddRelatedTour}
+                        disabled={!relatedTourOptions.some((tour) => {
+                          const tourId = tour._id || tour.id;
+                          return tourId && !selectedRelatedTours.includes(tourId);
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Related Tour
+                      </Button>
+                      {selectedRelatedTours.length > 8 && (
+                        <p className="text-sm text-amber-700">
+                          You can add more, but 3-8 highly relevant tours is usually best.
+                        </p>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -1235,6 +1404,15 @@ export default function EditBlogPage() {
               Cancel
             </Button>
           </Link>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading}
+            onClick={() => void performUpdate(true)}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Update & Continue
+          </Button>
           <Button type="submit" disabled={loading}>
             {loading ? (
               <>
