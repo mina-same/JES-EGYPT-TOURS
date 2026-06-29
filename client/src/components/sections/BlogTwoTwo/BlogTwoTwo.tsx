@@ -89,7 +89,7 @@ const BlogTwoTwo = () => {
         month,
         author: authorName,
         category,
-        link: `/blogs/${getLocalizedValue(post.slug, currentLocale)}`,
+        link: `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`,
       };
 
     });

@@ -1,6 +1,16 @@
 import { ILocalizedString, ILocalizedMixed, IImage } from './shared';
 export type { ILocalizedString, ILocalizedMixed, IImage };
 
+// FAQ-specific localized type — all locales are optional so each language
+// can have its own independent set of FAQs without requiring English.
+export interface IFAQLocalizedString {
+  en?: string;
+  de?: string;
+  it?: string;
+  es?: string;
+  [key: string]: string | undefined;
+}
+
 export interface ISEO {
   metaTitle?: ILocalizedString;
   metaDescription?: ILocalizedString;
@@ -219,8 +229,8 @@ export interface IItinerary {
 }
 
 export interface IFAQ {
-  question: ILocalizedString;
-  answer: ILocalizedMixed;
+  question: IFAQLocalizedString;
+  answer:   { en?: any; de?: any; it?: any; es?: any };
   isActive?: boolean;
   order?: number;
 }

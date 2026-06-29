@@ -41,6 +41,7 @@ import { useFormDraft } from '@/hooks/useFormDraft';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 // Tab definitions
 const TABS = [
@@ -562,6 +563,8 @@ export default function NewBlogPage() {
       if (!cleanData.author && user) {
         cleanData.author = user.id;
       }
+
+      cleanData.faqs = normalizeFaqsForSave(cleanData.faqs);
 
       const response = await blogAPI.create(cleanData);
 

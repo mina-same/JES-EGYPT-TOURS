@@ -36,7 +36,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
         author: authorName,
         category,
         excerpt: getLocalizedValue(post.excerpt, locale),
-        link: `/blogs/${slug}`,
+        link: `/${locale}/${slug}`,
       };
     });
   }, [blogs, locale]);

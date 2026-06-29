@@ -308,7 +308,15 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const BlogFAQs = () => {
-    const faqs = blog.faqs || [];
+    // Strict locale filter: only show rows where the active locale has BOTH question and answer.
+    // No fallback to English — a German-only FAQ must not appear on the English page.
+    const faqs = (blog.faqs || []).filter((faq: any) => {
+      const q = faq.question?.[locale];
+      const a = faq.answer?.[locale];
+      const hasQ = q != null && (typeof q === 'string' ? q.trim().length > 0 : true);
+      const hasA = a != null && (typeof a === 'string' ? a.trim().length > 0 : true);
+      return hasQ && hasA;
+    });
     if (faqs.length === 0) return null;
 
     return (
@@ -324,7 +332,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         </div>
 
         <div className="blog-faq-list">
-          {faqs.map((faq, index) => {
+          {faqs.map((faq: any, index: number) => {
             const isOpen = activeFaqKey === index.toString();
             const questionId = `blog-faq-question-${index}`;
             const answerId = `blog-faq-answer-${index}`;
@@ -346,7 +354,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       Q{String(index + 1).padStart(2, '0')}
                     </span>
                     <span className="blog-faq-item__question">
-                      {getLocalizedValue(faq.question, locale)}
+                      {faq.question?.[locale]}
                     </span>
                     <span className="blog-faq-item__icon" aria-hidden="true">
                       {isOpen ? <Minus size={15} /> : <Plus size={15} />}
@@ -360,7 +368,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 >
                   <div
                     className="blog-faq-item__answer"
-                    dangerouslySetInnerHTML={{ __html: getLocalizedValue(faq.answer, locale) }}
+                    dangerouslySetInnerHTML={{ __html: faq.answer?.[locale] || '' }}
                   />
                 </div>
               </div>
@@ -458,7 +466,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     const postCards = posts.map((post: any, idx: number) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const postTitle = getLocalizedValue(post.title, locale);
-      const postLink = `/${locale}/blogs/${getLocalizedValue(post.slug, locale)}`;
+      const postLink = `/${locale}/${getLocalizedValue(post.slug, locale)}`;
       const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
       const localizedTags = getLocalizedValue(post.tags, locale);

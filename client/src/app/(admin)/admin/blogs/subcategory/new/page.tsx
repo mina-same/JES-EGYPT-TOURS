@@ -32,6 +32,7 @@ import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import LucideIcon from '@/components/common/LucideIcon';
+import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 interface BlogSubCategoryFormData {
   name: ILocalizedString;
@@ -530,7 +531,7 @@ export default function NewBlogSubCategoryPage() {
       if (hasEn(cleanData.faqsSectionTitle)) payload.faqsSectionTitle = cleanData.faqsSectionTitle;
       if (hasEn(cleanData.destinationsSectionTitle)) payload.destinationsSectionTitle = cleanData.destinationsSectionTitle;
       
-      if (cleanData.faqs && cleanData.faqs.length > 0) payload.faqs = cleanData.faqs;
+      payload.faqs = normalizeFaqsForSave(cleanData.faqs);
       if (cleanData.featuredBlogs && cleanData.featuredBlogs.length > 0) payload.featuredBlogs = cleanData.featuredBlogs;
       if (cleanData.featuredDestinations && cleanData.featuredDestinations.length > 0) payload.featuredDestinations = cleanData.featuredDestinations;
 

@@ -38,6 +38,7 @@ import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 // Tab definitions
 const TABS = [
@@ -653,6 +654,8 @@ export default function EditBlogPage() {
         if (cleanData.metaImage.alt) ensureEnglish(cleanData.metaImage.alt);
         if (cleanData.metaImage.title) ensureEnglish(cleanData.metaImage.title);
       }
+
+      cleanData.faqs = normalizeFaqsForSave(cleanData.faqs);
 
       const response = await blogAPI.update(blogId, cleanData);
       

@@ -625,10 +625,14 @@ export function generateTourJsonLd({
   // ── 6. FAQPage ────────────────────────────────────────────────────────────
 
   const faqs: any[] = Array.isArray(tour.faqs) ? tour.faqs : [];
+  // Strict locale lookup — no fallback to English.
+  // A German-only FAQ must not appear in the English tour JSON-LD.
   const validFaqs = faqs
     .map((f: any) => {
-      const question = stripHtml(getLocalizedValue(f.question, loc));
-      const answer = stripHtml(getLocalizedValue(f.answer, loc));
+      const rawQ = f.question?.[loc];
+      const rawA = f.answer?.[loc];
+      const question = stripHtml(typeof rawQ === 'string' ? rawQ : '');
+      const answer   = stripHtml(typeof rawA === 'string' ? rawA : '');
       return { question, answer };
     })
     .filter((f) => f.question && f.answer);

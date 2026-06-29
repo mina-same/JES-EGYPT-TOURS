@@ -140,10 +140,14 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         avatar: r?.avatar || "https://placehold.co/100x100?text=User",
       })),
       images: galleryImages,
-      faqs: safeArray(tour.faqs).map((f: any) => ({
-        question: getLocalizedValue(f?.question),
-        answer: getLocalizedValue(f?.answer),
-      })).filter(f => f.question || f.answer),
+      // Strict locale lookup — no fallback to English.
+      // Only include rows where the active locale has both question and answer.
+      faqs: safeArray(tour.faqs)
+        .map((f: any) => ({
+          question: f?.question?.[currentLang] || '',
+          answer:   f?.answer?.[currentLang]   || '',
+        }))
+        .filter(f => f.question && f.answer),
       map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
       itinerary: {
         generalDescription: getLocalizedValue(tour.itinerary?.generalDescription),
@@ -319,7 +323,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
             imageAlt: getLocalizedValue(blogImageObj?.alt) || blogTitle,
             imageTitle: getLocalizedValue(blogImageObj?.title) || "",
             date: b?.publishedAt || b?.createdAt || new Date().toISOString(),
-            link: `/${currentLang}/blog/${getLocalizedValue(b?.slug)}`,
+            link: `/${currentLang}/${getLocalizedValue(b?.slug)}`,
             author: (b?.author as any)?.name || "Admin",
             category: getLocalizedValue(b?.category?.name) || "",
           };

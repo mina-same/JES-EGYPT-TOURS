@@ -30,6 +30,8 @@ import { type AdminLanguage } from './AdminLanguageTabs';
 import LocalizedField from './LocalizedField';
 import { IFAQ } from '@/types/tour';
 
+const FAQ_LOCALES: AdminLanguage[] = ['en', 'de', 'it', 'es'];
+
 interface FaqManagerProps {
   faqs: IFAQ[];
   onChange: (faqs: IFAQ[]) => void;
@@ -40,6 +42,47 @@ interface FaqManagerProps {
 
 function getFaqId(faq: any, index: number) {
   return `faq-${index}`;
+}
+
+function hasLocaleValue(value: unknown): boolean {
+  if (value == null) return false;
+
+  if (typeof value === 'string') {
+    const text = value
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/\u00a0/g, ' ')
+      .trim();
+
+    return text.length > 0;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(hasLocaleValue);
+  }
+
+  if (typeof value === 'object') {
+    return Object.values(value).some(hasLocaleValue);
+  }
+
+  return Boolean(value);
+}
+
+function hasCompleteLocale(faq: IFAQ, lang: AdminLanguage): boolean {
+  return hasLocaleValue(faq.question?.[lang]) && hasLocaleValue(faq.answer?.[lang]);
+}
+
+function getCompleteFaqLocales(faq: IFAQ): AdminLanguage[] {
+  return FAQ_LOCALES.filter(lang => hasCompleteLocale(faq, lang));
+}
+
+function getFaqHeaderTitle(faq: IFAQ, activeLang: AdminLanguage): string {
+  if (hasLocaleValue(faq.question?.[activeLang])) {
+    return String(faq.question?.[activeLang]);
+  }
+
+  const fallbackLang = FAQ_LOCALES.find(lang => hasLocaleValue(faq.question?.[lang]));
+  return fallbackLang ? String(faq.question?.[fallbackLang]) : 'Untitled question';
 }
 
 function SortableItemWrapper({
@@ -137,8 +180,8 @@ export default function FaqManager({
 
   const addFaq = useCallback(() => {
     const newFaq: IFAQ = {
-      question: { en: '', de: '', it: '' },
-      answer: { en: '', de: '', it: '' },
+      question: { en: '', de: '', it: '', es: '' },
+      answer:   { en: '', de: '', it: '', es: '' },
       isActive: true,
       order: faqs.length,
     };
@@ -226,6 +269,9 @@ export default function FaqManager({
                 {faqs.map((faq, index) => {
                   const faqId = getFaqId(faq, index);
                   const isCollapsed = collapsedFaqs[faqId] ?? true;
+                  const headerTitle = getFaqHeaderTitle(faq, activeLanguage);
+                  const completeLocales = getCompleteFaqLocales(faq);
+                  const hasCompleteContent = completeLocales.length > 0;
 
                   return (
                     <SortableItemWrapper
@@ -253,14 +299,24 @@ export default function FaqManager({
                                   <span
                                     className={cn(
                                       'text-sm font-semibold truncate',
-                                      faq.question?.[activeLanguage] ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+                                      headerTitle !== 'Untitled question' ? 'text-gray-900 dark:text-white' : 'text-gray-400'
                                     )}
                                   >
-                                    {faq.question?.[activeLanguage] || faq.question?.en || 'Untitled question'}
+                                    {headerTitle}
                                   </span>
-                                  {!faq.isActive && (
+                                  {hasCompleteContent && (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded uppercase font-bold whitespace-nowrap">
+                                      {completeLocales.map(lang => lang.toUpperCase()).join(' · ')}
+                                    </span>
+                                  )}
+                                  {!hasCompleteContent && (
                                     <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase font-bold">
                                       Draft
+                                    </span>
+                                  )}
+                                  {!faq.isActive && hasCompleteContent && (
+                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase font-bold">
+                                      Inactive
                                     </span>
                                   )}
                                 </div>
@@ -328,7 +384,6 @@ export default function FaqManager({
                                     value={currentValue}
                                     onChange={(e) => handleLang(e.target.value)}
                                     placeholder={`The question in ${lang}...`}
-                                    required={lang === 'en'}
                                     className="bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 focus:border-[#b79c5c]"
                                   />
                                 )}

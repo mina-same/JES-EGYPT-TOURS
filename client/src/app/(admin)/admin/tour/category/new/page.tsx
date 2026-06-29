@@ -31,6 +31,7 @@ import FaqManager from '@/components/admin/FaqManager';
 import ReviewCuratedManager from '@/components/admin/ReviewCuratedManager';
 import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
 import { Search, MessageSquare } from 'lucide-react';
+import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -580,7 +581,7 @@ export default function NewCategoryPage() {
       if (hasEn(formData.reviewsSectionTitle)) payload.reviewsSectionTitle = formData.reviewsSectionTitle;
       if (hasEn(formData.destinationsSectionTitle)) payload.destinationsSectionTitle = formData.destinationsSectionTitle;
       
-      if (formData.faqs && formData.faqs.length > 0) payload.faqs = formData.faqs;
+      payload.faqs = normalizeFaqsForSave(formData.faqs);
       if (formData.reviews && formData.reviews.length > 0) {
         payload.reviews = formData.reviews.map((r: any) => ({
           ...r,
