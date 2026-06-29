@@ -79,8 +79,10 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
                 {faqs.map((faq, idx) => {
                   const eventKey = idx.toString();
                   const isOpen = activeKey === eventKey;
-                  const question = getLocalizedValue(faq.question, locale);
-                  const answer = getLocalizedValue(faq.answer, locale);
+                  // Strict locale lookup — no fallback to English.
+                  // A German-only FAQ must not appear on the English or Italian page.
+                  const question = faq.question?.[locale] || '';
+                  const answer   = faq.answer?.[locale]   || '';
 
                   if (!question || !answer) return null;
 

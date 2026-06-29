@@ -25,6 +25,7 @@ import FaqManager from '@/components/admin/FaqManager';
 import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { useToast } from '@/hooks/use-toast';
+import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 const TABS = [
   { id: 'overview', label: 'Basic Info', icon: LayoutDashboard },
@@ -213,6 +214,8 @@ export default function DestinationFormPage() {
       if (Array.isArray(dataToSubmit.featuredBlogs)) {
         dataToSubmit.featuredBlogs = dataToSubmit.featuredBlogs.filter((id: any) => id && typeof id === 'string');
       }
+
+      dataToSubmit.faqs = normalizeFaqsForSave(dataToSubmit.faqs);
 
       const res = isEditing
         ? await destinationAPI.update(editId!, dataToSubmit)

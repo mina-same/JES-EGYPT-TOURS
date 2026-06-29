@@ -18,6 +18,7 @@ import { normalizeTourMapSchemaForSave } from '@/lib/tourMapSchema';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
+import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 // Import modular components
 import { useTourForm } from '@/hooks/useTourForm';
@@ -247,6 +248,8 @@ export default function NewTourPage() {
         (cleanData as any).Description = cleanData.description;
         delete (cleanData as any).description;
       }
+
+      cleanData.faqs = normalizeFaqsForSave(cleanData.faqs);
 
       const response = await tourAPI.create(cleanData);
       
