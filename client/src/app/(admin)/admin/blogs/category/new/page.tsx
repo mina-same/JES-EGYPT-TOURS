@@ -132,6 +132,8 @@ export default function NewBlogCategoryPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
   const [originalFormData, setOriginalFormData] = useState<BlogCategoryFormData | null>(null);
+  const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
+  const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
 
   // Blog Search State
   const [blogSearchQuery, setBlogSearchQuery] = useState('');
@@ -155,14 +157,34 @@ export default function NewBlogCategoryPage() {
   const cloneFormData = (data: BlogCategoryFormData): BlogCategoryFormData =>
     JSON.parse(JSON.stringify(data));
 
+  const draftVersionKey = isEditMode && categoryId ? `draft_blog_cat_edit_${categoryId}_version` : '';
+  const getDraftVersion = (): number | undefined => {
+    if (!draftVersionKey) return undefined;
+    try {
+      const raw = localStorage.getItem(draftVersionKey);
+      return raw !== null ? Number(raw) : undefined;
+    } catch { return undefined; }
+  };
+  const setStoredDraftVersion = (v: number): void => {
+    if (!draftVersionKey) return;
+    try { localStorage.setItem(draftVersionKey, String(v)); } catch {}
+  };
+  const clearStoredDraftVersion = (): void => {
+    if (!draftVersionKey) return;
+    try { localStorage.removeItem(draftVersionKey); } catch {}
+  };
+
   const handleDiscardDraft = () => {
     if (isEditMode) {
+      clearStoredDraftVersion();
       if (originalFormData) {
         clearDraft({ suppressNextSave: true });
         setFormData(cloneFormData(originalFormData));
+        setStoredDraftVersion(knownEditVersion);
       } else {
         clearDraft();
       }
+      setDraftStatus('none');
       return;
     }
 
@@ -251,12 +273,24 @@ export default function NewBlogCategoryPage() {
           isActive: data.isActive !== undefined ? !!data.isActive : true,
         };
 
+        const serverVersion: number = data.editVersion ?? 0;
+        setKnownEditVersion(serverVersion);
         setOriginalFormData(cloneFormData(loadedFormData));
 
         if (hasDraft) {
+          const storedVersion = getDraftVersion();
+          if (storedVersion === undefined) {
+            setDraftStatus('stale-no-version');
+          } else if (storedVersion !== serverVersion) {
+            setDraftStatus('stale-version-mismatch');
+          } else {
+            setDraftStatus('safe');
+          }
           return;
         }
 
+        setStoredDraftVersion(serverVersion);
+        clearDraft({ suppressNextSave: true });
         setFormData(loadedFormData);
 
         if (Array.isArray(data.featuredBlogs)) {
@@ -453,6 +487,15 @@ export default function NewBlogCategoryPage() {
 
   // Submit form
   const performUpdate = async (stayOnPage = false) => {
+    if (isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch')) {
+      toast({
+        title: 'Saving blocked - stale draft',
+        description: 'This draft may be older than the current category. Copy any important content, then click "Discard draft & load latest" before saving.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       setFormErrors([]);
@@ -530,6 +573,7 @@ export default function NewBlogCategoryPage() {
 
       let response: any;
       if (isEditMode && categoryId) {
+        payload._editVersion = knownEditVersion;
         response = await blogCategoryAPI.update(categoryId, payload);
       } else {
         response = await blogCategoryAPI.create(payload);
@@ -540,6 +584,12 @@ export default function NewBlogCategoryPage() {
             title: isEditMode ? 'Category Updated' : 'Category Created',
             description: `Blog category ${isEditMode ? 'updated' : 'created'} successfully.`,
         });
+        if (isEditMode) {
+          const newVersion: number = response.data?.editVersion ?? (knownEditVersion + 1);
+          setKnownEditVersion(newVersion);
+          setStoredDraftVersion(newVersion);
+          setDraftStatus('none');
+        }
         clearDraft();
         if (isEditMode) {
           setOriginalFormData(cloneFormData(formData));
@@ -557,6 +607,14 @@ export default function NewBlogCategoryPage() {
         });
       }
     } catch (err: any) {
+      if (isEditMode && err?.response?.status === 409) {
+        toast({
+          title: 'Save blocked - item was modified elsewhere',
+          description: 'This category was updated elsewhere since you opened it. Reload the latest version before saving. Your local draft has been preserved.',
+          variant: 'destructive',
+        });
+        return;
+      }
       const parsed = parseApiError(err?.response?.data || { message: err.message });
       setFormErrors(parsed);
       toast({
@@ -612,8 +670,14 @@ export default function NewBlogCategoryPage() {
       </div>
 
       {/* Draft Banner */}
-      {hasDraft && (
+      {!isEditMode && hasDraft && (
         <DraftBanner onDiscard={handleDiscardDraft} />
+      )}
+      {isEditMode && hasDraft && draftStatus === 'safe' && (
+        <DraftBanner draftStatus="safe" onDiscard={handleDiscardDraft} />
+      )}
+      {isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch') && (
+        <DraftBanner draftStatus={draftStatus} onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}

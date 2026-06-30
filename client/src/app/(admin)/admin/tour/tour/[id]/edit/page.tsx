@@ -61,9 +61,27 @@ export default function EditTourPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const { toast } = useToast();
   const [originalFormData, setOriginalFormData] = useState<TourFormData | null>(null);
-  
+  const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
+  const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
+
   const draftKey = `draft_tour_edit_${tourId}`;
-  
+
+  // Draft version tracking — stored separately from the draft form data so it
+  // survives clearDraft() and can be compared against the server's editVersion.
+  const draftVersionKey = `draft_tour_edit_${tourId}_version`;
+  const getDraftVersion = (): number | undefined => {
+    try {
+      const raw = localStorage.getItem(draftVersionKey);
+      return raw !== null ? Number(raw) : undefined;
+    } catch { return undefined; }
+  };
+  const setStoredDraftVersion = (v: number): void => {
+    try { localStorage.setItem(draftVersionKey, String(v)); } catch {}
+  };
+  const clearStoredDraftVersion = (): void => {
+    try { localStorage.removeItem(draftVersionKey); } catch {}
+  };
+
   // Search state for Resources tab
   const [tourSearchQuery, setTourSearchQuery] = useState('');
   const [tourSearchResults, setTourSearchResults] = useState<any[]>([]);
@@ -79,12 +97,15 @@ export default function EditTourPage() {
     JSON.parse(JSON.stringify(data));
 
   const handleDiscardDraft = () => {
+    clearStoredDraftVersion();
     if (originalFormData) {
       tourForm.clearDraft({ suppressNextSave: true });
       tourForm.setFormData(cloneFormData(originalFormData));
+      setStoredDraftVersion(knownEditVersion);
     } else {
       tourForm.clearDraft();
     }
+    setDraftStatus('none');
   };
 
   // Fetch tour data
@@ -262,12 +283,28 @@ export default function EditTourPage() {
               priceStartingFrom: tour.priceStartingFrom,
           };
 
+          const serverVersion: number = (tour as any).editVersion ?? 0;
+          setKnownEditVersion(serverVersion);
           setOriginalFormData(cloneFormData(loadedFormData));
 
           if (tourForm.hasDraft) {
+            const storedVersion = getDraftVersion();
+            if (storedVersion === undefined) {
+              // Draft predates version protection — leave visible so user can copy work
+              setDraftStatus('stale-no-version');
+            } else if (storedVersion !== serverVersion) {
+              // Draft is older than current server version — leave visible so user can copy work
+              setDraftStatus('stale-version-mismatch');
+            } else {
+              // Version matches — draft is safe to restore and save
+              setDraftStatus('safe');
+            }
             return;
           }
 
+          // No draft — load fresh server data without creating a draft
+          setStoredDraftVersion(serverVersion);
+          tourForm.clearDraft({ suppressNextSave: true });
           tourForm.setFormData(loadedFormData);
         } else {
           setError(response.error || 'Failed to fetch tour');
@@ -325,6 +362,16 @@ export default function EditTourPage() {
 
   // Submit form
   const performUpdate = async (stayOnPage = false) => {
+    // Stale draft guard — block save before making any API call
+    if (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch') {
+      toast({
+        title: 'Saving blocked — stale draft',
+        description: 'This draft may be older than the current tour. Copy any important content, then click "Discard draft & load latest" before saving.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -473,9 +520,15 @@ export default function EditTourPage() {
 
       cleanData.faqs = normalizeFaqsForSave(cleanData.faqs);
 
+      cleanData._editVersion = knownEditVersion;
+
       const response = await tourAPI.update(tourId, cleanData);
       
       if (response.success) {
+        const newVersion: number = response.data?.editVersion ?? (knownEditVersion + 1);
+        setKnownEditVersion(newVersion);
+        setStoredDraftVersion(newVersion);
+        setDraftStatus('none');
         toast({
           title: 'Success',
           description: 'Tour updated successfully!',
@@ -491,6 +544,14 @@ export default function EditTourPage() {
         setError(response.error || 'Failed to update tour');
       }
     } catch (err: any) {
+      if (err?.response?.status === 409) {
+        toast({
+          title: 'Save blocked — tour was modified elsewhere',
+          description: 'This tour was updated elsewhere since you opened it. Reload the latest version before saving. Your local draft has been preserved.',
+          variant: 'destructive',
+        });
+        return;
+      }
       const parsedErrors = parseApiError(err.response?.data || { message: err.message });
       setFormErrors(parsedErrors);
       setError(err.message || 'An error occurred');
@@ -552,8 +613,11 @@ export default function EditTourPage() {
       </div>
 
       {/* Draft Banner */}
-      {tourForm.hasDraft && (
-        <DraftBanner onDiscard={handleDiscardDraft} />
+      {tourForm.hasDraft && draftStatus === 'safe' && (
+        <DraftBanner draftStatus="safe" onDiscard={handleDiscardDraft} />
+      )}
+      {(draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch') && (
+        <DraftBanner draftStatus={draftStatus} onDiscard={handleDiscardDraft} />
       )}
 
       {/* Error Message */}

@@ -349,9 +349,37 @@ export const updateSubcategory = async (
   res: Response
 ): Promise<void> => {
   try {
+    const rawEditVersion = req.body._editVersion;
+    const submittedEditVersion = Number(rawEditVersion);
+    delete req.body._editVersion;
+
+    const currentSubcategory = await TourSubcategory.findById(req.params.id).select('editVersion');
+
+    if (!currentSubcategory) {
+      res.status(404).json({
+        success: false,
+        error: 'Tour subcategory not found',
+      });
+      return;
+    }
+
+    const currentVersion = currentSubcategory.editVersion ?? 0;
+    if (rawEditVersion === undefined || rawEditVersion === null || rawEditVersion === '' || !Number.isFinite(submittedEditVersion) || submittedEditVersion !== currentVersion) {
+      res.status(409).json({
+        success: false,
+        error: 'This item was updated elsewhere. Please reload before saving.',
+      });
+      return;
+    }
+
+    const body = {
+      ...req.body,
+      editVersion: currentVersion + 1,
+    };
+
     const subcategory = await TourSubcategory.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      body,
       {
         new: true,
         runValidators: true,

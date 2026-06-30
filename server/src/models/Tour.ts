@@ -160,6 +160,7 @@ export interface ITour extends Document {
   isSpecialOffer: boolean;
   specialOfferDiscount: number;
   viewCount: number;
+  editVersion: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -650,6 +651,10 @@ const TourSchema = new Schema<ITour>(
       type: Number,
       default: 0,
       min: [0, 'View count cannot be negative'],
+    },
+    editVersion: {
+      type: Number,
+      default: 0,
     },
   },
   {

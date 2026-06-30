@@ -432,8 +432,9 @@ export default function EditBlogPage() {
           return;
         }
 
-        // Case A: no draft — load fresh server data and record version for any new draft
+        // Case A: no draft — load fresh server data without creating a draft
         setStoredDraftVersion(serverVersion);
+        clearDraft({ suppressNextSave: true });
         setFormData(loadedFormData);
       } else {
         setFormErrors([{ field: 'Server', message: response.error || 'Failed to fetch blog post' }]);

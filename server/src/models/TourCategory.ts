@@ -57,6 +57,7 @@ export interface ITourCategory extends Document {
   destinationsSectionTitle?: ILocalizedString;
   bottomSection?: ISectionHeader;
   isActive: boolean;
+  editVersion: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -225,6 +226,10 @@ const TourCategorySchema = new Schema<ITourCategory>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    editVersion: {
+      type: Number,
+      default: 0,
     },
   },
   {

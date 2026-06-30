@@ -270,9 +270,37 @@ export const updateCategory = async (
   res: Response
 ): Promise<void> => {
   try {
+    const rawEditVersion = req.body._editVersion;
+    const submittedEditVersion = Number(rawEditVersion);
+    delete req.body._editVersion;
+
+    const currentCategory = await TourCategory.findById(req.params.id).select('editVersion');
+
+    if (!currentCategory) {
+      res.status(404).json({
+        success: false,
+        error: 'Tour category not found',
+      });
+      return;
+    }
+
+    const currentVersion = currentCategory.editVersion ?? 0;
+    if (rawEditVersion === undefined || rawEditVersion === null || rawEditVersion === '' || !Number.isFinite(submittedEditVersion) || submittedEditVersion !== currentVersion) {
+      res.status(409).json({
+        success: false,
+        error: 'This item was updated elsewhere. Please reload before saving.',
+      });
+      return;
+    }
+
+    const body = {
+      ...req.body,
+      editVersion: currentVersion + 1,
+    };
+
     const category = await TourCategory.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      body,
       {
         new: true,
         runValidators: true,
