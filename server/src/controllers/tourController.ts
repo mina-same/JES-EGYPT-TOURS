@@ -640,6 +640,29 @@ export const updateTour = async (
   res: Response
 ): Promise<void> => {
   try {
+    // Stale-save conflict guard — reject saves from stale drafts or old tabs
+    const submittedVersion: number | undefined =
+      typeof req.body._editVersion === 'number' ? req.body._editVersion : undefined;
+    delete req.body._editVersion;
+
+    const existingTour = await Tour.findById(req.params.id, 'editVersion').lean();
+    if (!existingTour) {
+      res.status(404).json({ success: false, error: 'Tour not found' });
+      return;
+    }
+    const currentVersion: number = (existingTour as any).editVersion ?? 0;
+
+    if (submittedVersion === undefined || submittedVersion !== currentVersion) {
+      res.status(409).json({
+        success: false,
+        error: 'This tour was updated elsewhere. Please reload before saving.',
+        currentVersion,
+      });
+      return;
+    }
+
+    req.body.editVersion = currentVersion + 1;
+
     // Filter out empty gallery items (items with empty fileName)
     if (req.body.gallery && Array.isArray(req.body.gallery)) {
       req.body.gallery = req.body.gallery.filter((item: any) => 

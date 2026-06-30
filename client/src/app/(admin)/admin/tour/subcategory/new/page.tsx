@@ -103,6 +103,8 @@ export default function NewSubcategoryPage() {
   const [categories, setCategories] = useState<ITourCategory[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
   const [originalFormData, setOriginalFormData] = useState<TourSubcategoryFormData | null>(null);
+  const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
+  const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<TourSubcategoryFormData>(
     draftKey,
@@ -112,14 +114,34 @@ export default function NewSubcategoryPage() {
   const cloneFormData = (data: TourSubcategoryFormData): TourSubcategoryFormData =>
     JSON.parse(JSON.stringify(data));
 
+  const draftVersionKey = isEditMode && subcategoryId ? `draft_tour_subcat_edit_${subcategoryId}_version` : '';
+  const getDraftVersion = (): number | undefined => {
+    if (!draftVersionKey) return undefined;
+    try {
+      const raw = localStorage.getItem(draftVersionKey);
+      return raw !== null ? Number(raw) : undefined;
+    } catch { return undefined; }
+  };
+  const setStoredDraftVersion = (v: number): void => {
+    if (!draftVersionKey) return;
+    try { localStorage.setItem(draftVersionKey, String(v)); } catch {}
+  };
+  const clearStoredDraftVersion = (): void => {
+    if (!draftVersionKey) return;
+    try { localStorage.removeItem(draftVersionKey); } catch {}
+  };
+
   const handleDiscardDraft = () => {
     if (isEditMode) {
+      clearStoredDraftVersion();
       if (originalFormData) {
         clearDraft({ suppressNextSave: true });
         setFormData(cloneFormData(originalFormData));
+        setStoredDraftVersion(knownEditVersion);
       } else {
         clearDraft();
       }
+      setDraftStatus('none');
       return;
     }
 
@@ -272,12 +294,24 @@ export default function NewSubcategoryPage() {
             isActive: data.isActive !== undefined ? !!data.isActive : true,
           };
 
+          const serverVersion: number = data.editVersion ?? 0;
+          setKnownEditVersion(serverVersion);
           setOriginalFormData(cloneFormData(loadedFormData));
 
           if (hasDraft) {
+            const storedVersion = getDraftVersion();
+            if (storedVersion === undefined) {
+              setDraftStatus('stale-no-version');
+            } else if (storedVersion !== serverVersion) {
+              setDraftStatus('stale-version-mismatch');
+            } else {
+              setDraftStatus('safe');
+            }
             return;
           }
 
+          setStoredDraftVersion(serverVersion);
+          clearDraft({ suppressNextSave: true });
           setFormData(loadedFormData);
         } else if (isEditMode && !subcatRes?.success) {
           setFormErrors([{ field: 'Subcategory', message: subcatRes?.error || 'Failed to fetch subcategory data' }]);
@@ -475,6 +509,15 @@ export default function NewSubcategoryPage() {
 
   // Submit form
   const performUpdate = async (stayOnPage = false) => {
+    if (isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch')) {
+      toast({
+        title: 'Saving blocked - stale draft',
+        description: 'This draft may be older than the current subcategory. Copy any important content, then click "Discard draft & load latest" before saving.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!formData.category) {
       setFormErrors([{ field: 'Category', message: 'Please select a category' }]);
       return;
@@ -619,6 +662,7 @@ export default function NewSubcategoryPage() {
 
       let response;
       if (isEditMode && subcategoryId) {
+        payload._editVersion = knownEditVersion;
         response = await tourSubcategoryAPI.update(subcategoryId, payload);
       } else {
         response = await tourSubcategoryAPI.create(payload);
@@ -626,6 +670,12 @@ export default function NewSubcategoryPage() {
       
       if (response.success) {
         toast({ title: isEditMode ? 'Subcategory Updated' : 'Subcategory Created', description: `Tour subcategory ${isEditMode ? 'updated' : 'created'} successfully.` });
+        if (isEditMode) {
+          const newVersion: number = response.data?.editVersion ?? (knownEditVersion + 1);
+          setKnownEditVersion(newVersion);
+          setStoredDraftVersion(newVersion);
+          setDraftStatus('none');
+        }
         clearDraft();
         if (isEditMode) {
           setOriginalFormData(cloneFormData(formData));
@@ -639,6 +689,14 @@ export default function NewSubcategoryPage() {
         toast({ title: 'Save failed', description: `${parsed.length} issue(s) found.`, variant: 'destructive' });
       }
     } catch (err: any) {
+      if (isEditMode && err?.response?.status === 409) {
+        toast({
+          title: 'Save blocked - item was modified elsewhere',
+          description: 'This subcategory was updated elsewhere since you opened it. Reload the latest version before saving. Your local draft has been preserved.',
+          variant: 'destructive',
+        });
+        return;
+      }
       const parsed = parseApiError(err?.response?.data || { message: err.message });
       setFormErrors(parsed);
     } finally {
@@ -711,8 +769,14 @@ export default function NewSubcategoryPage() {
         })}
       </div>
 
-      {hasDraft && (
+      {!isEditMode && hasDraft && (
         <DraftBanner onDiscard={handleDiscardDraft} />
+      )}
+      {isEditMode && hasDraft && draftStatus === 'safe' && (
+        <DraftBanner draftStatus="safe" onDiscard={handleDiscardDraft} />
+      )}
+      {isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch') && (
+        <DraftBanner draftStatus={draftStatus} onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}

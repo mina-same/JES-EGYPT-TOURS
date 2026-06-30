@@ -304,6 +304,28 @@ export const updateCategory = async (
 ): Promise<void> => {
   try {
     const { name } = req.body;
+    const rawEditVersion = req.body._editVersion;
+    const submittedEditVersion = Number(rawEditVersion);
+    delete req.body._editVersion;
+
+    const currentCategory = await BlogCategory.findById(req.params.id).select('editVersion');
+
+    if (!currentCategory) {
+      res.status(404).json({
+        success: false,
+        error: 'Blog category not found',
+      });
+      return;
+    }
+
+    const currentVersion = currentCategory.editVersion ?? 0;
+    if (rawEditVersion === undefined || rawEditVersion === null || rawEditVersion === '' || !Number.isFinite(submittedEditVersion) || submittedEditVersion !== currentVersion) {
+      res.status(409).json({
+        success: false,
+        error: 'This item was updated elsewhere. Please reload before saving.',
+      });
+      return;
+    }
 
     // Validation if name is being updated
     if (name !== undefined && (!name || !name.en)) {
@@ -317,6 +339,7 @@ export const updateCategory = async (
     const body = {
       ...req.body,
       image: req.body.image !== undefined ? normalizeImageValue(req.body.image, name) : undefined,
+      editVersion: currentVersion + 1,
     };
 
     if ((body as any).metaImage?.url) {

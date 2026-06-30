@@ -65,6 +65,7 @@ export interface IBlogSubCategory extends Document {
   
   // Status
   isActive: boolean;
+  editVersion: number;
   
   // Timestamps
   createdAt: Date;
@@ -221,6 +222,10 @@ const BlogSubCategorySchema: Schema = new Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    editVersion: {
+      type: Number,
+      default: 0,
     },
   },
   {

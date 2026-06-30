@@ -98,6 +98,8 @@ export default function NewCategoryPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
   const [originalFormData, setOriginalFormData] = useState<TourCategoryFormData | null>(null);
+  const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
+  const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<TourCategoryFormData>(
     draftKey,
@@ -107,14 +109,34 @@ export default function NewCategoryPage() {
   const cloneFormData = (data: TourCategoryFormData): TourCategoryFormData =>
     JSON.parse(JSON.stringify(data));
 
+  const draftVersionKey = isEditMode && categoryId ? `draft_tour_cat_edit_${categoryId}_version` : '';
+  const getDraftVersion = (): number | undefined => {
+    if (!draftVersionKey) return undefined;
+    try {
+      const raw = localStorage.getItem(draftVersionKey);
+      return raw !== null ? Number(raw) : undefined;
+    } catch { return undefined; }
+  };
+  const setStoredDraftVersion = (v: number): void => {
+    if (!draftVersionKey) return;
+    try { localStorage.setItem(draftVersionKey, String(v)); } catch {}
+  };
+  const clearStoredDraftVersion = (): void => {
+    if (!draftVersionKey) return;
+    try { localStorage.removeItem(draftVersionKey); } catch {}
+  };
+
   const handleDiscardDraft = () => {
     if (isEditMode) {
+      clearStoredDraftVersion();
       if (originalFormData) {
         clearDraft({ suppressNextSave: true });
         setFormData(cloneFormData(originalFormData));
+        setStoredDraftVersion(knownEditVersion);
       } else {
         clearDraft();
       }
+      setDraftStatus('none');
       return;
     }
 
@@ -324,12 +346,24 @@ export default function NewCategoryPage() {
           isActive: data.isActive !== undefined ? !!data.isActive : true,
         };
 
+        const serverVersion: number = data.editVersion ?? 0;
+        setKnownEditVersion(serverVersion);
         setOriginalFormData(cloneFormData(loadedFormData));
 
         if (hasDraft) {
+          const storedVersion = getDraftVersion();
+          if (storedVersion === undefined) {
+            setDraftStatus('stale-no-version');
+          } else if (storedVersion !== serverVersion) {
+            setDraftStatus('stale-version-mismatch');
+          } else {
+            setDraftStatus('safe');
+          }
           return;
         }
 
+        setStoredDraftVersion(serverVersion);
+        clearDraft({ suppressNextSave: true });
         setFormData(loadedFormData);
 
         // Populate selected objects for display
@@ -533,6 +567,15 @@ export default function NewCategoryPage() {
 
   // Submit form
   const performUpdate = async (stayOnPage = false) => {
+    if (isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch')) {
+      toast({
+        title: 'Saving blocked - stale draft',
+        description: 'This draft may be older than the current category. Copy any important content, then click "Discard draft & load latest" before saving.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       setFormErrors([]);
@@ -673,6 +716,7 @@ export default function NewCategoryPage() {
 
       let response;
       if (isEditMode && categoryId) {
+        payload._editVersion = knownEditVersion;
         response = await tourCategoryAPI.update(categoryId, payload);
       } else {
         response = await tourCategoryAPI.create(payload);
@@ -680,6 +724,12 @@ export default function NewCategoryPage() {
       
       if (response.success) {
         toast({ title: isEditMode ? 'Category Updated' : 'Category Created', description: `Tour category ${isEditMode ? 'updated' : 'created'} successfully.` });
+        if (isEditMode) {
+          const newVersion: number = response.data?.editVersion ?? (knownEditVersion + 1);
+          setKnownEditVersion(newVersion);
+          setStoredDraftVersion(newVersion);
+          setDraftStatus('none');
+        }
         clearDraft();
         if (isEditMode) {
           setOriginalFormData(cloneFormData(formData));
@@ -694,6 +744,14 @@ export default function NewCategoryPage() {
       }
     } catch (err: any) {
       console.error('Submit error:', err);
+      if (isEditMode && err?.response?.status === 409) {
+        toast({
+          title: 'Save blocked - item was modified elsewhere',
+          description: 'This category was updated elsewhere since you opened it. Reload the latest version before saving. Your local draft has been preserved.',
+          variant: 'destructive',
+        });
+        return;
+      }
       const errorData = err?.response?.data || { message: err.message };
       const parsed = parseApiError(errorData);
       setFormErrors(parsed);
@@ -759,8 +817,14 @@ export default function NewCategoryPage() {
         })}
       </div>
 
-      {hasDraft && (
+      {!isEditMode && hasDraft && (
         <DraftBanner onDiscard={handleDiscardDraft} />
+      )}
+      {isEditMode && hasDraft && draftStatus === 'safe' && (
+        <DraftBanner draftStatus="safe" onDiscard={handleDiscardDraft} />
+      )}
+      {isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch') && (
+        <DraftBanner draftStatus={draftStatus} onDiscard={handleDiscardDraft} />
       )}
 
       {/* Detailed Error Panel */}

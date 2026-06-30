@@ -58,6 +58,7 @@ export interface ITourSubcategory extends Document {
   featuredDestinations?: Types.ObjectId[];
   bottomSection?: ISectionHeader;
   isActive: boolean;
+  editVersion: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -232,6 +233,10 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    editVersion: {
+      type: Number,
+      default: 0,
     },
   },
   {
