@@ -449,20 +449,46 @@ export const updateBlog = async (
 
     // Normalize image fields for backward compatibility
     const body = { ...req.body };
-    
+
+    // --- Stale-save conflict guard ---
+    // Extract the client-submitted edit version. Missing or non-numeric is treated as absent.
+    const submittedVersion: number | undefined =
+      typeof body._editVersion === 'number' ? body._editVersion : undefined;
+    delete body._editVersion; // never persist this control field to the document
+
+    const existingBlog = await Blog.findById(req.params.id, 'editVersion').lean();
+    if (!existingBlog) {
+      res.status(404).json({ success: false, error: 'Blog post not found' });
+      return;
+    }
+    const currentVersion: number = (existingBlog as any).editVersion ?? 0;
+
+    if (submittedVersion === undefined || submittedVersion !== currentVersion) {
+      res.status(409).json({
+        success: false,
+        error: 'This article was updated elsewhere. Please reload before saving.',
+        currentVersion,
+      });
+      return;
+    }
+
+    // Version matches — bump it for the new save
+    body.editVersion = currentVersion + 1;
+    // --- End conflict guard ---
+
     // Handle featuredImage migration
     if (body.featuredImage !== undefined || body.featuredImageAlt !== undefined) {
       body.featuredImage = normalizeFeaturedImage(body.featuredImage, body.featuredImageAlt);
       // Remove old featuredImageAlt field
       delete body.featuredImageAlt;
     }
-    
+
     // Handle metaImage migration
     if (body.metaImage !== undefined) {
       body.metaImage = normalizeMetaImage(body.metaImage);
       body.ogImage = body.metaImage?.url || body.ogImage;
     }
-    
+
     stripEmptyLocalizedSlugs(body.slug);
 
     const blog = await Blog.findByIdAndUpdate(

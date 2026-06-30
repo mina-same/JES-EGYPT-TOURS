@@ -110,6 +110,8 @@ export default function EditBlogPage() {
   const [fetchingOptions, setFetchingOptions] = useState(false);
   const [authors, setAuthors] = useState<AuthUser[]>([]);
   const [originalFormData, setOriginalFormData] = useState<any | null>(null);
+  const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
+  const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<any>(
     `draft_blog_edit_${blogId}`,
@@ -118,13 +120,32 @@ export default function EditBlogPage() {
 
   const cloneFormData = (data: any) => JSON.parse(JSON.stringify(data));
 
+  // Draft version tracking — stored separately from the draft form data so it
+  // survives clearDraft() and can be compared against the server's editVersion.
+  const draftVersionKey = `draft_blog_edit_${blogId}_version`;
+  const getDraftVersion = (): number | undefined => {
+    try {
+      const raw = localStorage.getItem(draftVersionKey);
+      return raw !== null ? Number(raw) : undefined;
+    } catch { return undefined; }
+  };
+  const setStoredDraftVersion = (v: number): void => {
+    try { localStorage.setItem(draftVersionKey, String(v)); } catch {}
+  };
+  const clearStoredDraftVersion = (): void => {
+    try { localStorage.removeItem(draftVersionKey); } catch {}
+  };
+
   const handleDiscardDraft = () => {
+    clearStoredDraftVersion();
     if (originalFormData) {
       clearDraft({ suppressNextSave: true });
       setFormData(cloneFormData(originalFormData));
+      setStoredDraftVersion(knownEditVersion);
     } else {
       clearDraft();
     }
+    setDraftStatus('none');
   };
 
   // Generate slug from title
@@ -388,12 +409,31 @@ export default function EditBlogPage() {
           })),
         };
 
+        const serverVersion: number = blog.editVersion ?? 0;
+        setKnownEditVersion(serverVersion);
         setOriginalFormData(cloneFormData(loadedFormData));
 
         if (hasDraft) {
+          const storedVersion = getDraftVersion();
+          if (storedVersion === undefined) {
+            // Case C: draft has no version marker — predates protection.
+            // Leave the draft untouched so the user can copy unsaved work.
+            // Saving is blocked until the user explicitly discards and loads latest.
+            setDraftStatus('stale-no-version');
+          } else if (storedVersion !== serverVersion) {
+            // Case D: draft is from an older version than the server.
+            // Leave the draft untouched so the user can copy unsaved work.
+            // Saving is blocked until the user explicitly discards and loads latest.
+            setDraftStatus('stale-version-mismatch');
+          } else {
+            // Case B: version matches — draft is safe to restore and save
+            setDraftStatus('safe');
+          }
           return;
         }
 
+        // Case A: no draft — load fresh server data and record version for any new draft
+        setStoredDraftVersion(serverVersion);
         setFormData(loadedFormData);
       } else {
         setFormErrors([{ field: 'Server', message: response.error || 'Failed to fetch blog post' }]);
@@ -408,6 +448,18 @@ export default function EditBlogPage() {
 
   // Submit form
   const performUpdate = async (stayOnPage = false) => {
+    // Frontend safety guard: block saving when a stale draft is active.
+    // The backend 409 is a second line of defence, but we catch it here first
+    // so the user gets a clear message without the API call firing.
+    if (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch') {
+      toast({
+        title: 'Saving blocked — stale draft',
+        description: 'This draft may be older than the current article. Copy any important content, then click "Discard draft & load latest" before saving.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       setFormErrors([]);
@@ -657,9 +709,16 @@ export default function EditBlogPage() {
 
       cleanData.faqs = normalizeFaqsForSave(cleanData.faqs);
 
+      // Attach the conflict token — the server rejects saves that don't match the current version
+      cleanData._editVersion = knownEditVersion;
+
       const response = await blogAPI.update(blogId, cleanData);
-      
+
       if (response.success) {
+        const newVersion: number = response.data?.editVersion ?? (knownEditVersion + 1);
+        setKnownEditVersion(newVersion);
+        setStoredDraftVersion(newVersion);
+        setDraftStatus('none');
         toast({ title: 'Blog post updated', description: 'Blog post saved successfully.' });
         clearDraft();
         setOriginalFormData(cloneFormData(formData));
@@ -672,6 +731,14 @@ export default function EditBlogPage() {
         toast({ title: 'Save failed', description: `${parsed.length} issue(s) found. See error panel.`, variant: 'destructive' });
       }
     } catch (err: any) {
+      if (err?.response?.status === 409) {
+        toast({
+          title: 'Save blocked — article was modified elsewhere',
+          description: 'This article was updated elsewhere since you opened it. Reload the latest version before saving. Your local draft has been preserved.',
+          variant: 'destructive',
+        });
+        return; // do not clear draft, do not navigate away
+      }
       const parsed = parseApiError(err?.response?.data || { message: err.message });
       setFormErrors(parsed);
       toast({ title: 'Error', description: err.message || 'An error occurred', variant: 'destructive' });
@@ -775,8 +842,17 @@ export default function EditBlogPage() {
         <AdminLanguageTabs activeLanguage={activeLanguage} onLanguageChange={setActiveLanguage} />
       </div>
 
-      {hasDraft && (
-        <DraftBanner onDiscard={handleDiscardDraft} />
+      {hasDraft && draftStatus === 'safe' && (
+        <DraftBanner
+          draftStatus="safe"
+          onDiscard={handleDiscardDraft}
+        />
+      )}
+      {(draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch') && (
+        <DraftBanner
+          draftStatus={draftStatus}
+          onDiscard={handleDiscardDraft}
+        />
       )}
 
       {/* Detailed Error Panel */}
