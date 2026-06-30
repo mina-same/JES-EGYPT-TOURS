@@ -82,7 +82,8 @@ export interface IBlog extends Document {
   publishedAt?: Date;
   scheduledAt?: Date;
   lastModified: Date;
-  
+  editVersion: number;
+
   // Analytics
   viewCount: number;
   shareCount: number;
@@ -255,7 +256,11 @@ const BlogSchema: Schema = new Schema(
       type: Date,
       default: Date.now,
     },
-    
+    editVersion: {
+      type: Number,
+      default: 0,
+    },
+
     // === ANALYTICS ===
     viewCount: {
       type: Number,

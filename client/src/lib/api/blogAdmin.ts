@@ -36,6 +36,7 @@ import { IFAQ } from '@/types/tour';
 // For now, let's just update the ones here to be safe and consistent.
 
 export interface BlogFormData {
+  _editVersion?: number;
   title: ILocalizedString;
   slug: string;
   author: string;
