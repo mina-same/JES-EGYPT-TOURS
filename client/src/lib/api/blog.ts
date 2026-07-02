@@ -79,6 +79,7 @@ export interface ContentBlock {
   images?: {
     url: string;
     alt: string;
+    title?: string | ILocalizedString;
     caption?: string;
     width?: number;
     height?: number;

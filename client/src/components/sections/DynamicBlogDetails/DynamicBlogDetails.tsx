@@ -153,22 +153,28 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         return (
           <div key={index} className='blog-details__inner'>
             <div className='row gutter-y-30'>
-              {block.images?.map((img: any, imgIndex: number) => (
-                <div
-                  className={`${colClass} wow fadeInLeft`}
-                  data-wow-delay={`${100 * imgIndex}ms`}
-                  key={imgIndex}
-                >
-                  <BlogImage
-                    src={img.url}
-                    alt={getLocalizedValue(img.alt, locale) || 'Blog image'}
-                    aspectRatio={imgAspectRatio}
-                    fit="cover"
-                    focus="center"
-                    caption={getLocalizedValue(img.caption, locale) || undefined}
-                  />
-                </div>
-              ))}
+              {block.images?.map((img: any, imgIndex: number) => {
+                const imageAlt = getLocalizedValue(img.alt, locale) || 'Blog image';
+                const imageTitle = getLocalizedValue(img.title, locale) || getLocalizedValue(img.alt, locale);
+
+                return (
+                  <div
+                    className={`${colClass} wow fadeInLeft`}
+                    data-wow-delay={`${100 * imgIndex}ms`}
+                    key={imgIndex}
+                  >
+                    <BlogImage
+                      src={img.url}
+                      alt={imageAlt}
+                      title={imageTitle || undefined}
+                      aspectRatio={imgAspectRatio}
+                      fit="cover"
+                      focus="center"
+                      caption={getLocalizedValue(img.caption, locale) || undefined}
+                    />
+                  </div>
+                );
+              })}
             </div>
             {content && (
               <div className='blog-details__inner__content'>
@@ -242,6 +248,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
             <BlogImage
               src={block.url || ''}
               alt={getLocalizedValue(block.alt, locale) || 'Blog image'}
+              title={(getLocalizedValue(block.title, locale) || getLocalizedValue(block.alt, locale)) || undefined}
               aspectRatio={block.aspectRatio || '16:9'}
               fit={block.fit || 'cover'}
               focus={block.focus || 'center'}
@@ -468,6 +475,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       const postTitle = getLocalizedValue(post.title, locale);
       const postLink = `/${locale}/${getLocalizedValue(post.slug, locale)}`;
       const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
+      const postImageTitle = typeof post.featuredImage === 'object' ? getLocalizedValue(post.featuredImage?.title, locale) : '';
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
       const localizedTags = getLocalizedValue(post.tags, locale);
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
@@ -483,6 +491,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               <Image
                 src={postImage}
                 alt={postTitle || "Blog post image"}
+                title={postImageTitle || undefined}
                 className="img-fluid"
                 width={600}
                 height={450}

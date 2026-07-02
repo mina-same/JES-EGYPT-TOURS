@@ -72,7 +72,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                           }}
                         >
                           {/* Left Side: Image with vertical line */}
-                          <div style={{ position: 'relative', flexShrink: 0 }}>
+                          <div style={{ position: 'relative', flexShrink: 0, width: '60px', minWidth: '60px' }}>
                             {/* Circular Image */}
                             {activity.image && (
                               <div 
@@ -102,6 +102,31 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                               </div>
                             )}
                             
+                            {/* Placeholder dot when no image — keeps column height = 60px so vertical line top stays correct */}
+                            {!activity.image && (
+                              <div
+                                style={{
+                                  width: '60px',
+                                  height: '60px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  position: 'relative',
+                                  zIndex: 2,
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: '14px',
+                                    height: '14px',
+                                    borderRadius: '50%',
+                                    border: '2px solid #b79c5c',
+                                    backgroundColor: '#fff',
+                                  }}
+                                />
+                              </div>
+                            )}
+
                             {/* Vertical connecting line */}
                             {idx < day.activities.length - 1 && (
                               <div 

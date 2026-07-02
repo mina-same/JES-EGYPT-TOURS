@@ -32,6 +32,38 @@ import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
+const normalizeAmenityItems = (value: unknown): string[] => {
+  const values = Array.isArray(value) ? value : [value];
+
+  return values.flatMap((item) => {
+    if (!item) return [];
+
+    const rawValue =
+      typeof item === "object" && item !== null && "en" in item
+        ? (item as { en?: unknown }).en
+        : item;
+    const raw = String(rawValue ?? "").trim();
+
+    if (!raw) return [];
+
+    const listItems = [...raw.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)]
+      .map((match) => match[1].trim())
+      .filter(Boolean);
+
+    if (listItems.length > 0) return listItems;
+
+    return raw
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p\s*>/gi, "\n")
+      .replace(/<p\b[^>]*>/gi, "")
+      .replace(/<\/div\s*>/gi, "\n")
+      .replace(/<div\b[^>]*>/gi, "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+  });
+};
+
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
   const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id);
   console.log("DEBUG [TourListingDetailsOne]: moreTours state:", moreTours);
@@ -208,6 +240,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   } = tourData;
 
   const hasReviewVideos = (reviewVideos || []).length > 0;
+  const includedAmenityItems = normalizeAmenityItems(amenities);
+  const excludedAmenityItems = normalizeAmenityItems(amenitiesTwo);
 
   const handleBookingSubmit = (data: any) => {
     console.log("Booking Submitted:", data);
@@ -490,37 +524,43 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
                 {/* Amenities Section */}
                 <section id="amenities" className="tour-section">
-                  {(amenities && amenities.trim().length > 0) || (amenitiesTwo && amenitiesTwo.trim().length > 0) ? (
+                  {includedAmenityItems.length > 0 || excludedAmenityItems.length > 0 ? (
                     <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
                       <h2 className='tour-listing-details__title mb-4' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
                         {t("tourDetails.amenitiesTitle")}
                       </h2>
                       <div className="row g-4">
-                        {amenities && amenities.trim().length > 0 && (
+                        {includedAmenityItems.length > 0 && (
                           <div className="col-lg-6">
-                            <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
+                            <div className="p-4 rounded-4 h-100 inclusion-card" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
                               <h3 className='m-0 fs-6 fw-bold text-dark mb-4' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                 {t("tourDetails.included")}
                               </h3>
-                              <div
-                                className="tour-html-content"
-                                style={{ fontSize: '0.9rem', color: '#555' }}
-                                dangerouslySetInnerHTML={{ __html: amenities }}
-                              />
+                              <ul className="amenities-card-list">
+                                {includedAmenityItems.map((item, index) => (
+                                  <li key={index} className="amenities-card-item">
+                                    <i className="fas fa-check" aria-hidden="true" />
+                                    <span dangerouslySetInnerHTML={{ __html: item }} />
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
                         )}
-                        {amenitiesTwo && amenitiesTwo.trim().length > 0 && (
+                        {excludedAmenityItems.length > 0 && (
                           <div className="col-lg-6">
-                            <div className="p-4 rounded-4 h-100" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
+                            <div className="p-4 rounded-4 h-100 exclusion-card" style={{ border: '1px solid #f0f0f0', backgroundColor: '#fff' }}>
                               <h3 className='m-0 fs-6 fw-bold text-dark mb-4' style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                 {t("tourDetails.notIncluded")}
                               </h3>
-                              <div
-                                className="tour-html-content"
-                                style={{ fontSize: '0.9rem', color: '#555' }}
-                                dangerouslySetInnerHTML={{ __html: amenitiesTwo }}
-                              />
+                              <ul className="amenities-card-list">
+                                {excludedAmenityItems.map((item, index) => (
+                                  <li key={index} className="amenities-card-item">
+                                    <i className="fas fa-times text-danger" aria-hidden="true" />
+                                    <span dangerouslySetInnerHTML={{ __html: item }} />
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
                         )}
@@ -886,13 +926,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
 
         {/* ── Related Tours (max 3, curated) ── */}
         {relatedTours.length > 0 && (
-          <section id="related-tours" className="section-space-top pb-5" style={{ borderTop: '1px solid #eee' }}>
+          <section id="related-tours" className="py-5" style={{ borderTop: '1px solid #eee' }}>
             <Container>
-                <div className="sec-title text-center mb-5">
+                <div className="sec-title text-center mb-3">
                   <h2 className='sec-title__title'>{t("tourDetails.relatedTours.title", "Related Tours")}</h2>
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
                 </div>
-                <div className="row gutter-y-30">
+                <div className={`row gutter-y-30 ${relatedTours.length < 3 ? "justify-content-center" : ""}`}>
                   {relatedTours.map((tour: any, index: number) => (
                     <div key={tour.id} className="col-lg-4 col-md-6">
                       <article 

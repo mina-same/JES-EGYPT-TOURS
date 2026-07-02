@@ -110,6 +110,50 @@ function getSeoImage(
   };
 }
 
+function urlsMatch(firstUrl: string | undefined, secondUrl: string | undefined): boolean {
+  const firstAbsoluteUrl = getAbsoluteImageUrl(firstUrl);
+  const secondAbsoluteUrl = getAbsoluteImageUrl(secondUrl);
+  return !!firstAbsoluteUrl && firstAbsoluteUrl === secondAbsoluteUrl;
+}
+
+function getLocalizedImageText(image: any, locale: string): string {
+  if (!image || typeof image === 'string') return "";
+  return getLocalizedValue(image.alt, locale) || getLocalizedValue(image.title, locale) || "";
+}
+
+function getBlogSeoImage(
+  metaImage: any,
+  ogImage: any,
+  featuredImage: any,
+  locale: string,
+  fallbackAlt?: string
+) {
+  const selectedImage = getImageUrl(metaImage) ? metaImage : ogImage || featuredImage;
+  const selectedImageUrl = getImageUrl(selectedImage);
+  const url = getAbsoluteImageUrl(selectedImageUrl);
+  if (!url) return undefined;
+
+  let alt = getLocalizedImageText(selectedImage, locale);
+
+  if (!alt && typeof selectedImage === 'string') {
+    if (urlsMatch(selectedImage, getImageUrl(metaImage))) {
+      alt = getLocalizedImageText(metaImage, locale);
+    }
+    if (!alt && urlsMatch(selectedImage, getImageUrl(featuredImage))) {
+      alt = getLocalizedImageText(featuredImage, locale);
+    }
+  }
+
+  alt = alt || getLocalizedImageText(featuredImage, locale) || fallbackAlt || "JES Egypt Tours";
+
+  return {
+    url,
+    alt,
+    width: typeof selectedImage === 'object' ? selectedImage.width : undefined,
+    height: typeof selectedImage === 'object' ? selectedImage.height : undefined,
+  };
+}
+
 function withImageSource(image?: { url: string }) {
   return image?.url ? { image_src: image.url } : undefined;
 }
@@ -290,9 +334,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const bAny = blog as any;
         const seoTitle = getLocalizedValue(bAny.metaTitle, locale);
         const seoDescription = getLocalizedValue(bAny.metaDescription, locale);
-        const description = stripHtml(seoDescription || "");
+        const blogTitle = getLocalizedValue(bAny.title, locale);
+        const pageTitle = seoTitle || blogTitle || "JES Egypt Tours";
+        const description = stripHtml(seoDescription || getLocalizedValue(bAny.excerpt, locale) || "");
+        const ogTitle = getLocalizedValue(bAny.ogTitle, locale) || pageTitle;
+        const ogDescription = stripHtml(getLocalizedValue(bAny.ogDescription, locale) || description);
         const keywords = getLocalizedValue(bAny.metaKeywords, locale);
-        const image = getSeoImage(bAny.metaImage, bAny.ogImage || bAny.featuredImage, locale, seoTitle || getLocalizedValue(bAny.title, locale));
+        const image = getBlogSeoImage(bAny.metaImage, bAny.ogImage, bAny.featuredImage, locale, blogTitle || pageTitle);
         const publicAuthorName = getPublicAuthorName(bAny.author?.name);
         const publicAuthorUrl = isEditorialAuthor(publicAuthorName)
           ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
@@ -304,21 +352,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
         }
         return {
-          title: seoTitle ? seoTitle : "JES Egypt Tours",
+          title: pageTitle,
           description,
           keywords: keywords || undefined,
           authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
           alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
           openGraph: {
-            title: seoTitle || "JES Egypt Tours",
-            description,
+            title: ogTitle,
+            description: ogDescription,
             images: image ? [image] : undefined,
             type: "article",
           },
           twitter: {
             card: "summary_large_image",
-            title: seoTitle || "JES Egypt Tours",
-            description,
+            title: ogTitle,
+            description: ogDescription,
             images: image ? [image] : undefined,
           },
           other: withImageSource(image),
