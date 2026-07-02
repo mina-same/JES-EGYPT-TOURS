@@ -22,6 +22,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
     return blogs.slice(0, 3).map((post) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const image = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
+      const imageTitle = typeof post.featuredImage === 'object' ? getLocalizedValue(post.featuredImage?.title, locale) : '';
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
       const localizedTags = getLocalizedValue(post.tags, locale);
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
@@ -31,6 +32,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
         id: post._id,
         title: getLocalizedValue(post.title, locale),
         image,
+        imageTitle,
         day,
         month,
         author: authorName,
@@ -66,6 +68,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
                   <Image
                     src={post.image}
                     alt={post.title || "Blog post image"}
+                    title={post.imageTitle || undefined}
                     className="img-fluid"
                     width={600}
                     height={450}

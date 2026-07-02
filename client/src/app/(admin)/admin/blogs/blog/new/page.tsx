@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogAPI, blogCategoryAPI, blogSubcategoryAPI, destinationAPI, BlogFormData, ContentBlock } from '@/lib/api/blogAdmin';
@@ -94,6 +94,26 @@ const INITIAL_BLOG_POST = {
   faqs: [],
 };
 
+const createEmptyBlogPost = () =>
+  JSON.parse(JSON.stringify(INITIAL_BLOG_POST)) as typeof INITIAL_BLOG_POST;
+
+const getNestedValue = (source: any, path: string[]) =>
+  path.reduce((current, key) => current?.[key], source);
+
+const setNestedValueImmutable = (source: any, path: string[], value: any): any => {
+  if (path.length === 0) return value;
+
+  const [key, ...rest] = path;
+  const base = source && typeof source === 'object' ? source : {};
+
+  return {
+    ...base,
+    [key]: rest.length === 0
+      ? value
+      : setNestedValueImmutable(base[key], rest, value),
+  };
+};
+
 export default function NewBlogPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -110,18 +130,17 @@ export default function NewBlogPage() {
 
   const { user } = useAuth();
   const [authors, setAuthors] = useState<AuthUser[]>([]);
+  const emptyBlogPost = useMemo(() => createEmptyBlogPost(), []);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<any>(
     'draft_blog_new',
-    INITIAL_BLOG_POST
+    emptyBlogPost
   );
-
-  const cloneFormData = (data: any) => JSON.parse(JSON.stringify(data));
 
   const handleDiscardDraft = () => {
     clearDraft({ suppressNextSave: true });
     setFormData({
-      ...cloneFormData(INITIAL_BLOG_POST),
+      ...createEmptyBlogPost(),
       author: user?.id || '',
     });
   };
@@ -148,7 +167,7 @@ export default function NewBlogPage() {
   // Handle form field changes
   const handleChange = (field: string, value: any, langOverride?: AdminLanguage) => {
     setFormData((prev: any) => {
-      const updated = { ...prev } as any;
+      let updated = { ...prev } as any;
 
       const lang = langOverride || activeLanguage;
 
@@ -191,21 +210,17 @@ export default function NewBlogPage() {
       // Handle nested fields
       else if (field.includes('.')) {
         const keys = field.split('.');
-        let current = updated;
-        for (let i = 0; i < keys.length - 1; i++) {
-          if (!current[keys[i]]) current[keys[i]] = {};
-          current = current[keys[i]];
-        }
-
         const lastKey = keys[keys.length - 1];
+        const currentValue = getNestedValue(prev, keys);
+
         // Special case for localized image fields like featuredImage.alt
         if (['alt', 'title'].includes(lastKey) && (keys[0] === 'featuredImage' || keys[0] === 'metaImage')) {
-          current[lastKey] = {
-            ...(current[lastKey] || { en: '', de: '', it: '', es: '' }),
+          updated = setNestedValueImmutable(updated, keys, {
+            ...(currentValue || { en: '', de: '', it: '', es: '' }),
             [lang]: value,
-          };
+          });
         } else {
-          current[lastKey] = value;
+          updated = setNestedValueImmutable(updated, keys, value);
         }
       } else {
         updated[field] = value;
@@ -570,7 +585,11 @@ export default function NewBlogPage() {
 
       if (response.success) {
         toast({ title: "Blog post created", description: 'Blog post published successfully.' });
-        clearDraft();
+        clearDraft({ suppressNextSave: true });
+        setFormData({
+          ...createEmptyBlogPost(),
+          author: user?.id || '',
+        });
         router.push('/admin/blogs/blog');
       } else {
         const parsed = parseApiError(response);

@@ -14,6 +14,7 @@ type Focus =
 interface BlogImageProps {
   src: string;
   alt: string;
+  title?: string;
   caption?: string;
   aspectRatio?: AspectRatio;
   fit?: Fit;
@@ -41,6 +42,7 @@ const OBJECT_POSITION: Record<Focus, string> = {
 const BlogImage: React.FC<BlogImageProps> = ({
   src,
   alt,
+  title,
   caption,
   aspectRatio = "16:9",
   fit = "cover",
@@ -71,6 +73,7 @@ const BlogImage: React.FC<BlogImageProps> = ({
           <Image
             src={src}
             alt={alt}
+            title={title || undefined}
             width={1200}
             height={900}
             style={{
@@ -97,6 +100,7 @@ const BlogImage: React.FC<BlogImageProps> = ({
           <Image
             src={src}
             alt={alt}
+            title={title || undefined}
             fill
             style={{ objectFit: fit, objectPosition }}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 900px"
