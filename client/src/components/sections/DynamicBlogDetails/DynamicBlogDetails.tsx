@@ -119,7 +119,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     
     try {
       // TODO: Implement comment submission to API
-      console.log("Comment submitted:", commentForm);
       alert("Comment submitted successfully! It will be visible after approval.");
       setCommentForm({ name: '', email: '', message: '' });
     } catch (error) {

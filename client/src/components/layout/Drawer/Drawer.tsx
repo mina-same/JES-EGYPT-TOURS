@@ -52,8 +52,6 @@ const Drawer: React.FC = () => {
   const toggleDropdown = (itemId: number) => {
     setIsItems((prevItem) => (prevItem === itemId ? null : itemId));
     setOpenNavItemId((prev) => (prev === itemId ? null : itemId));
-
-    console.log(itemId);
   };
 
   const toggleSubItemDropdown = (subItemId: number) => {

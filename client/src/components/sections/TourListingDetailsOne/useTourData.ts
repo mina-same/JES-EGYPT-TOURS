@@ -216,8 +216,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         const tour = tourRes.data;
         const tourId = tour._id;
 
-        console.log("DEBUG [useTourData]: Raw subcategory:", tour.subcategory);
-
         // Ensure subcategory ID and Category ID
         const subId = typeof tour.subcategory === 'object'
           ? tour.subcategory?._id || tour.subcategory
@@ -332,9 +330,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         setRelatedBlogs(mappedBlogs);
         setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
         setTourData(mappedData);
-
-        console.log("DEBUG [useTourData]: moreTours count:", fetchedMoreToursRaw.length);
-        console.log("DEBUG [useTourData]: subId:", (subId as any)?._id || subId, "catId:", catId);
       } catch (err) {
         console.error("useTourData error:", err);
         setError("Failed to load tour details");

@@ -11,9 +11,6 @@ interface TourPlanProps {
 
 export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
   const { t } = useTranslation("tours");
-  console.log("DEBUG: Itinerary Image Data:", JSON.stringify(
-    itinerary?.days?.flatMap(d => d.activities?.map(a => ({ heading: a.heading, imgUrl: a.image?.url, imgAlt: a.image?.alt, imgTitle: a.image?.title }))) || []
-  ));
 
   if (!itinerary || !itinerary.days || itinerary.days.length === 0) {
     return null;
