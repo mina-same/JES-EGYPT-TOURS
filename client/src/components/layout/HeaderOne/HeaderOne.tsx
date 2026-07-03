@@ -57,7 +57,6 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
   );
   const handelClick = () => {
     changeMobileDrawerStatus();
-    console.log("clicked");
   };
 
   const nav = Array.isArray(menu?.items) ? menu!.items : [];

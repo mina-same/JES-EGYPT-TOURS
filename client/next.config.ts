@@ -78,14 +78,6 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-    domains: [
-      'media.tacdn.com',
-      'images.unsplash.com',
-      'example.com',
-      'ui-avatars.com',
-      'placehold.co',
-      'encrypted-tbn0.gstatic.com',
-    ],
   },
   /* config options here */
   reactStrictMode: false,

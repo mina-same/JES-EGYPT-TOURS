@@ -60,7 +60,6 @@ const HeaderOneCloned: React.FC = () => {
   );
   const handelClick = () => {
     changeMobileDrawerStatus();
-    console.log("clicked");
   };
   const nav = Array.isArray(menu?.items) ? menu!.items : [];
   return (

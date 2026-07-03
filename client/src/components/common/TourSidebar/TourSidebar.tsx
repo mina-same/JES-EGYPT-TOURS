@@ -34,14 +34,6 @@ const TourSidebar: React.FC = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Handle form submission here
-    console.log({
-      location,
-      activity,
-      startDate,
-
-      guests,
-      sliderValue,
-    });
   };
 
   return (

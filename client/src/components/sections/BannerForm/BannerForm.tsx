@@ -34,13 +34,6 @@ const BannerForm: React.FC = () => {
   };
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    const data = {
-      location,
-      activity,
-      guests,
-      dateRange,
-    };
-    console.log(data, "Data");
   };
   return (
     <div

@@ -58,14 +58,6 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
     // Filter and log user country/timezone
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const inferredCountry = timezone.split('/')[1]?.replace(/_/g, ' ') || timezone;
-      console.log("%cUser Location Info:", "color: #b79c5c; font-weight: bold;", {
-        timezone,
-        browserLanguage: navigator.language,
-        userCountry: inferredCountry,
-        timestamp: new Date().toLocaleString()
-      });
-      console.log(`%cDetected Country: ${inferredCountry}`, "color: #b79c5c; font-weight: bold; font-size: 14px;");
 
       // Automatic Language Detection (only on first visit if no preference is saved)
       const hasPreference = localStorage.getItem("i18nextLng");
@@ -85,7 +77,6 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
           // If detected non-english and we are currently on default 'en'
           if (detectedLocale !== 'en' && pathLocale === 'en') {
              const target = `/${detectedLocale}${normalizedPath === "/" ? "/" : normalizedPath}`;
-             console.log(`%cAuto-detecting language: ${detectedLocale}. Redirecting...`, "color: #b79c5c;");
              i18n.changeLanguage(detectedLocale);
              localStorage.setItem("i18nextLng", detectedLocale);
              document.cookie = `NEXT_LOCALE=${detectedLocale};path=/`;

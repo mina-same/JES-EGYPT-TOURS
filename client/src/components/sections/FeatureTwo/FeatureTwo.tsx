@@ -66,7 +66,6 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   const [videoId, setVideoId] = useState("");
 
   // Use custom tours if provided, otherwise use default data
-  if (tours) console.log("DEBUG [FeatureTwo]: Received tours count:", tours.length);
   const displayData = tours ? { items: tours } : featurePackageData;
 
   // Use custom title data if provided

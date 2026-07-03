@@ -66,7 +66,6 @@ const normalizeAmenityItems = (value: unknown): string[] => {
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
   const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id);
-  console.log("DEBUG [TourListingDetailsOne]: moreTours state:", moreTours);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
   const navPlaceholderRef = useRef<HTMLDivElement>(null);
@@ -244,7 +243,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => 
   const excludedAmenityItems = normalizeAmenityItems(amenitiesTwo);
 
   const handleBookingSubmit = (data: any) => {
-    console.log("Booking Submitted:", data);
     // You could send bookingData to your API here
   };
 

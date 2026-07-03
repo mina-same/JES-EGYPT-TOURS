@@ -37,7 +37,6 @@ const HeaderInnerCloned: React.FC = () => {
   );
   const handelClick = () => {
     changeMobileDrawerStatus();
-    console.log("clicked");
   };
   const nav = pathname === "/home2-one" ? headerTwoNavItems : navItems;
   return (

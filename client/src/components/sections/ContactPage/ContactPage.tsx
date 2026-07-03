@@ -46,7 +46,6 @@ const ContactPage: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     (e.nativeEvent as any)?.stopImmediatePropagation?.();
-    console.log('ContactPage: handleSubmit called');
 
     if (isSubmitting || submittedOnce) return;
     setIsSubmitting(true);
@@ -110,7 +109,6 @@ const ContactPage: React.FC = () => {
 
     let successOccurred = false;
     try {
-      console.log('ContactPage: Sending request to:', API_ENDPOINTS.CONTACT.BASE);
       const res = await fetch(API_ENDPOINTS.CONTACT.BASE, {
         method: "POST",
         headers: {
@@ -123,13 +121,10 @@ const ContactPage: React.FC = () => {
         }),
       });
 
-      console.log('ContactPage: Response status:', res.status, res.ok);
       const json = await res.json().catch(() => null);
-      console.log('ContactPage: Response JSON:', json);
 
       if (!res.ok) {
         const errMsg = json?.error || t('form.errors.failedMessage');
-        console.log('ContactPage: Setting error message:', errMsg);
         setStatus({ type: "error", message: errMsg });
         toast({
           title: t('form.errors.sendFailed'),
@@ -143,7 +138,6 @@ const ContactPage: React.FC = () => {
 
       successOccurred = true;
       const okMsg = json?.message || t('form.success.sentMessage');
-      console.log('ContactPage: Setting success message:', okMsg);
       setStatus({ type: "success", message: okMsg });
       toast({
         title: t('form.success.sentTitle'),

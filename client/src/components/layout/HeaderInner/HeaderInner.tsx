@@ -30,13 +30,7 @@ const HeaderInner: React.FC = () => {
   );
   const handelClick = () => {
     changeMobileDrawerTwoStatus();
-    console.log("clicked");
   };
-
-  const current =
-    pathname.includes("/destination-two") ||
-    pathname.includes("/destination-two");
-  console.log(current);
 
   return (
     <header className='main-header main-header--two sticky-header sticky-header--normal'>
