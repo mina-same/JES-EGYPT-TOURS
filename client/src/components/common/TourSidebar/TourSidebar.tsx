@@ -1,4 +1,6 @@
 "use client";
+import "react-datepicker/dist/react-datepicker.css";
+import "rc-slider/assets/index.css";
 import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import CustomSelect from "../CustomSelect/CustomSelect";

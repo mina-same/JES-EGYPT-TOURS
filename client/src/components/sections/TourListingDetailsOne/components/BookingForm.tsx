@@ -1,4 +1,6 @@
 "use client";
+import "react-datepicker/dist/react-datepicker.css";
+import "react-phone-number-input/style.css";
 import React, { FormEvent, useState } from "react";
 import DatePicker from "react-datepicker";
 import PhoneInput from "react-phone-number-input";
