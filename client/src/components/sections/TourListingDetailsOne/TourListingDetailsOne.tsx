@@ -64,8 +64,8 @@ const normalizeAmenityItems = (value: unknown): string[] => {
   });
 };
 
-const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id }) => {
-  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id);
+const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
+  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
   const navPlaceholderRef = useRef<HTMLDivElement>(null);

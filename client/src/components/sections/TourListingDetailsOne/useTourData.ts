@@ -202,18 +202,28 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      if (!id) return;
+      if (!id && !initialRawTour) return;
       try {
         setLoading(true);
 
-        // 1. Fetch main tour by slug (raw data)
-        const tourRes = await tourAPI.getBySlug(id);
-        if (!tourRes.success || !tourRes.data) {
-          setError("Failed to load tour details");
-          return;
+        // 1. Use the server-fetched tour when available (avoids a redundant
+        //    client getBySlug); otherwise fetch the main tour by slug (raw data).
+        let tour: any;
+        if (initialRawTour) {
+          tour = initialRawTour;
+        } else {
+          if (!id) {
+            setError("Failed to load tour details");
+            return;
+          }
+          const tourRes = await tourAPI.getBySlug(id);
+          if (!tourRes.success || !tourRes.data) {
+            setError("Failed to load tour details");
+            return;
+          }
+          tour = tourRes.data;
         }
 
-        const tour = tourRes.data;
         const tourId = tour._id;
 
         // Ensure subcategory ID and Category ID
