@@ -45,6 +45,20 @@ const buildQueryString = (params: Record<string, string | undefined>) => {
   return qs ? `?${qs}` : "";
 };
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchParams }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -235,6 +249,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
         }
 
         const mapped = (Array.isArray(res.data) ? res.data : []).map((tour: any) => {
+          const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+          if (!tourSlug) return null;
           const galleryImages = [
             ...(tour.images || []).map((img: any) => img.url),
             ...(tour.gallery || []).map((img: any) => img.url),
@@ -242,11 +258,11 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           const uniqueImages = Array.from(new Set(galleryImages));
           return {
             id: tour._id,
-            slug: getLocalizedValue(tour.slug, locale),
+            slug: tourSlug,
             image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
             allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
             title: getLocalizedValue(tour.heading || tour.name, locale),
-            link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
+            link: `/${locale}/${tourSlug}`,
             price: tour.priceStartingFrom || { USD: 0 },
             rating: 5,
             reviews: tour.reviews?.length || 0,
@@ -258,7 +274,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
               { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Location", icon: "icon-location" },
             ]
           };
-        });
+        }).filter(Boolean);
 
         setTours(mapped);
         setToursTotalPages(res.totalPages || 1);

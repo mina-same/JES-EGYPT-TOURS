@@ -28,6 +28,21 @@ import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ListingReviews from "@/components/common/ListingSections/ListingReviews";
+
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 const FiltersContent = ({ 
   t, 
   draftFilters, 
@@ -258,6 +273,8 @@ export default function CategoryView({
         if (toursResponse.success && toursResponse.data) {
           setTotalPages(toursResponse.totalPages || 1);
           const mappedTours = toursResponse.data.map((tour: any) => {
+            const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+            if (!tourSlug) return null;
             const galleryImages = [
               ...(tour.images || []).map((img: any) => img.url),
               ...(tour.gallery || []).map((img: any) => img.url),
@@ -265,12 +282,12 @@ export default function CategoryView({
             const uniqueImages = Array.from(new Set(galleryImages));
             return {
               id: tour._id,
-              slug: getLocalizedValue(tour.slug, locale),
+              slug: tourSlug,
               image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
               imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
               allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
               title: getLocalizedValue(tour.heading || tour.name, locale),
-              link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
+              link: `/${locale}/${tourSlug}`,
               price: tour.priceStartingFrom || { USD: 0 },
               rating: 5,
               reviews: tour.reviewsCount || tour.reviews?.length || 0,
@@ -282,7 +299,7 @@ export default function CategoryView({
                 { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || t('fallback.location'), icon: "icon-location" },
               ],
             };
-          });
+          }).filter(Boolean);
           setTours(mappedTours);
 
           const types = Array.from(new Set(toursResponse.data.map((t: any) => String(t?.tourType || "").trim()).filter(Boolean))).sort() as string[];
@@ -461,11 +478,13 @@ export default function CategoryView({
               <div className="subcategory-slider">
                 {subcategories.map((sub: any) => {
                   const isActive = appliedFilters.subcategoryId === sub._id;
+                  const subSlug = getStrictLocalizedSlug(sub.slug, locale);
+                  if (!isActive && !subSlug) return null;
                   const subName = getLocalizedValue(sub.name, locale);
                   return (
                     <div key={sub._id} className="subcategory-slide">
                       <Link
-                        href={isActive ? `/${locale}/${slug}` : `/${locale}/${getLocalizedValue(sub.slug, locale)}`}
+                        href={isActive ? `/${locale}/${slug}` : `/${locale}/${subSlug}`}
                         className="subcategory-card-link"
                         aria-current={isActive ? 'page' : undefined}
                         title={`View ${subName} Tours`}

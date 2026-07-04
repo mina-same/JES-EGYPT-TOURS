@@ -24,6 +24,20 @@ import { toast } from "@/hooks/use-toast";
 const GOLD = "#b79c5c";
 const DARK = "#1d231f";
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 const FAQS = [
   {
     question: { en: "What are special offer tours?", de: "Was sind Sonderangebots-Touren?", it: "Cosa sono i tour in offerta speciale?", es: "¿Qué son los tours en oferta especial?" },
@@ -88,6 +102,8 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
   }, 0);
 
   const mapTour = (tour: any) => {
+    const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+    if (!tourSlug) return null;
     const galleryImages = [
       ...(tour.images || []).map((img: any) => img.url),
       ...(tour.gallery || []).map((img: any) => img.url),
@@ -95,12 +111,12 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
     const uniqueImages = Array.from(new Set(galleryImages)) as string[];
     return {
       id: tour._id,
-      slug: getLocalizedValue(tour.slug, locale),
+      slug: tourSlug,
       image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
       imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
       allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
       title: getLocalizedValue(tour.heading || tour.name, locale),
-      link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
+      link: `/${locale}/${tourSlug}`,
       price: tour.priceStartingFrom || { USD: 0 },
       rating: 5,
       reviews: tour.reviewsCount || tour.reviews?.length || 0,
@@ -121,7 +137,7 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
       if (res.success && res.data) {
         setTotalPages(res.totalPages || 1);
         setTotal(res.total || res.count || 0);
-        setTours(res.data.map(mapTour));
+        setTours(res.data.map(mapTour).filter(Boolean));
       }
     } catch {
       toast({ title: "Error", description: "Failed to load tours.", variant: "destructive" });
