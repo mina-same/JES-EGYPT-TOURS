@@ -21,6 +21,21 @@ import itBlogs from "@/i18n/locales/it/blogs.json";
 import esBlogs from "@/i18n/locales/es/blogs.json";
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
+
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 export default function BlogDetailView({ slug, locale }: { slug: string; locale: string }) {
   const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
 
@@ -79,16 +94,18 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
   const blogCat = blogSubCat?.category;
 
   if (blogCat && typeof blogCat === 'object') {
+    const blogCatSlug = getStrictLocalizedSlug(blogCat.slug, locale);
     breadcrumbs.push({
       label: getLocalizedValue(blogCat.name, locale),
-      href: `/${locale}/${getLocalizedValue(blogCat.slug, locale) || ''}`
+      href: blogCatSlug ? `/${locale}/${blogCatSlug}` : undefined
     });
   }
 
   if (blogSubCat && typeof blogSubCat === 'object') {
+    const blogSubCatSlug = getStrictLocalizedSlug(blogSubCat.slug, locale);
     breadcrumbs.push({
       label: getLocalizedValue(blogSubCat.name, locale),
-      href: `/${locale}/${getLocalizedValue(blogSubCat.slug, locale) || ''}`
+      href: blogSubCatSlug ? `/${locale}/${blogSubCatSlug}` : undefined
     });
   }
 

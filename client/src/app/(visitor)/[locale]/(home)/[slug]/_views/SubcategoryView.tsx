@@ -29,6 +29,21 @@ import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ListingReviews from "@/components/common/ListingSections/ListingReviews";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
+
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 const FiltersContent = ({
   t,
   draftFilters,
@@ -360,7 +375,7 @@ export default function SubcategoryView({
   }
 
   // Build the category link (flat — just the category's slug)
-  const categoryLocalizedSlug = getLocalizedValue(subcategory.category?.slug, locale);
+  const categoryLocalizedSlug = getStrictLocalizedSlug(subcategory.category?.slug, locale);
 
   return (
     <Layout>

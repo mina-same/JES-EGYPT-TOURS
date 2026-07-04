@@ -29,6 +29,20 @@ function getLocaleSlug(slugObj: any, locale: string): string | null {
   return slugObj[locale] || null;
 }
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 function ensureTourMapSchema(tour: any) {
   if (!tour || typeof tour !== "object") return tour;
 
@@ -568,9 +582,10 @@ export default async function SlugPage({ params }: PageProps) {
       const blogSubCat = blogData.subCategory;
       const blogCat = blogSubCat?.category;
       const blogCatName = blogCat && typeof blogCat === 'object' ? getLocalizedValue(blogCat.name, locale) : 'Blog';
-      const blogCatUrl = blogCat && typeof blogCat === 'object'
-        ? `${baseUrl}/${locale}/${getLocalizedValue(blogCat.slug, locale) || ''}`
-        : `${baseUrl}/${locale}/blogs`;
+      const blogCatSlug = blogCat && typeof blogCat === 'object'
+        ? getStrictLocalizedSlug(blogCat.slug, locale)
+        : null;
+      const blogCatUrl = blogCatSlug ? `${baseUrl}/${locale}/${blogCatSlug}` : null;
 
       const blogJsonLd = {
         "@context": "https://schema.org",
@@ -616,7 +631,7 @@ export default async function SlugPage({ params }: PageProps) {
             "@type": "ListItem",
             "position": 2,
             "name": blogCatName,
-            "item": blogCatUrl,
+            ...(blogCatUrl ? { "item": blogCatUrl } : {}),
           },
           {
             "@type": "ListItem",
@@ -695,14 +710,14 @@ export default async function SlugPage({ params }: PageProps) {
       const breadcrumbs: { label: string; href?: string }[] = [];
 
       if (category?.name) {
-        const catSlug = getLocalizedValue(category.slug, locale);
+        const catSlug = getStrictLocalizedSlug(category.slug, locale);
         breadcrumbs.push({
           label: getLocalizedValue(category.name, locale),
           href: catSlug ? `/${locale}/${catSlug}` : undefined,
         });
       }
       if (subcategory?.name) {
-        const subSlug = getLocalizedValue(subcategory.slug, locale);
+        const subSlug = getStrictLocalizedSlug(subcategory.slug, locale);
         breadcrumbs.push({
           label: getLocalizedValue(subcategory.name, locale),
           href: subSlug ? `/${locale}/${subSlug}` : undefined,
