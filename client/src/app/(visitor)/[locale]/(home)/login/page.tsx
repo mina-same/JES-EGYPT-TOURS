@@ -7,6 +7,7 @@ import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
 import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata = {
   title: "Sign In | JES Egypt Tours",
@@ -24,7 +25,9 @@ export default function SignInPage() {
       <HeaderOne linkTheme="light"/>
       <HeaderOneCloned />
       <PageHeader title='Sign In' subTitle='Sign In' />
-      <LoginSection />
+      <AuthProvider>
+        <LoginSection />
+      </AuthProvider>
       <FooterOne />
     </Layout>
   );

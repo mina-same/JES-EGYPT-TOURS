@@ -4,7 +4,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { SlugProvider } from "@/contexts/SlugContext";
 import SEOProvider from "@/components/common/SEO/SEOProvider";
@@ -215,19 +214,17 @@ export default async function RootLayout({
           }}
         />
         <ErrorBoundary>
-          <AuthProvider>
-            <WishlistProvider>
-              <SlugProvider>
-                <I18nProvider locale={locale}>
-                  <CurrencyProvider>
-                    <SEOProvider locale={locale} />
-                    {children}
-                    <Toaster />
-                  </CurrencyProvider>
-                </I18nProvider>
-              </SlugProvider>
-            </WishlistProvider>
-          </AuthProvider>
+          <WishlistProvider>
+            <SlugProvider>
+              <I18nProvider locale={locale}>
+                <CurrencyProvider>
+                  <SEOProvider locale={locale} />
+                  {children}
+                  <Toaster />
+                </CurrencyProvider>
+              </I18nProvider>
+            </SlugProvider>
+          </WishlistProvider>
         </ErrorBoundary>
       </body>
     </html>
