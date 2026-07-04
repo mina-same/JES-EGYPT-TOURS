@@ -3,7 +3,6 @@ import Script from "next/script";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
-import { NotificationProvider } from "@/contexts/NotificationContext";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -226,15 +225,13 @@ export default async function RootLayout({
             <AuthProvider>
               <WishlistProvider>
                 <SlugProvider>
-                  <NotificationProvider>
-                    <I18nProvider locale={locale}>
-                      <CurrencyProvider>
-                        <SEOProvider locale={locale} />
-                        {children}
-                        <Toaster />
-                      </CurrencyProvider>
-                    </I18nProvider>
-                  </NotificationProvider>
+                  <I18nProvider locale={locale}>
+                    <CurrencyProvider>
+                      <SEOProvider locale={locale} />
+                      {children}
+                      <Toaster />
+                    </CurrencyProvider>
+                  </I18nProvider>
                 </SlugProvider>
               </WishlistProvider>
             </AuthProvider>
