@@ -11,11 +11,17 @@ import { FaqStructuredData, FaqBreadcrumbStructuredData } from "@/components/sec
 import { faqService } from "@/services/faqService";
 import { generateFaqMetadata } from "@/lib/seo/faqMetadata";
 import { Metadata } from "next";
+import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 
 // Generate dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  return await generateFaqMetadata({ locale });
+  const metadata = await generateFaqMetadata({ locale });
+
+  return {
+    ...metadata,
+    alternates: getStaticLocaleAlternates(locale, "faq"),
+  };
 }
 
 export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {

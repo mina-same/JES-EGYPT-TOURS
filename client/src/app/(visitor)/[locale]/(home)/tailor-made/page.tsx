@@ -1,6 +1,7 @@
 import { getServerTranslation } from "@/lib/i18n-server";
 import { Metadata } from "next";
 import TailorMadeClient from "./TailorMadeClient";
+import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -12,6 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     icons: {
       icon: "/favicon-32x32.png",
     },
+    alternates: getStaticLocaleAlternates(locale, "tailor-made"),
   };
 }
 

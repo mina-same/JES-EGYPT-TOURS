@@ -8,6 +8,7 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { getServerTranslation } from "@/lib/i18n-server";
 import { Metadata } from "next";
+import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 import './contact.css';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -20,6 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     icons: {
       icon: "/favicon-32x32.png",
     },
+    alternates: getStaticLocaleAlternates(locale, "contact"),
   };
 }
 

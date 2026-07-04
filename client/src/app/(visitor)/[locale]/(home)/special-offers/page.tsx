@@ -4,8 +4,9 @@ import enStrings from "@/i18n/locales/en/specialOffers.json";
 import deStrings from "@/i18n/locales/de/specialOffers.json";
 import itStrings from "@/i18n/locales/it/specialOffers.json";
 import esStrings from "@/i18n/locales/es/specialOffers.json";
+import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
 
-const baseUrl = "https://jes-egypt-tours.vercel.app";
+const baseUrl = SEO_BASE_URL;
 
 const strings: Record<string, typeof enStrings> = { en: enStrings, de: deStrings, it: itStrings, es: esStrings };
 
@@ -46,15 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: s.pageTitle,
     description: s.pageDescription,
     keywords: s.seoKeywords,
-    alternates: {
-      canonical: canonicalUrl,
-      languages: {
-        en: `${baseUrl}/en/special-offers`,
-        de: `${baseUrl}/de/special-offers`,
-        it: `${baseUrl}/it/special-offers`,
-        es: `${baseUrl}/es/special-offers`,
-      },
-    },
+    alternates: getStaticLocaleAlternates(locale, "special-offers"),
     openGraph: {
       title: s.pageTitle,
       description: s.pageDescription,
