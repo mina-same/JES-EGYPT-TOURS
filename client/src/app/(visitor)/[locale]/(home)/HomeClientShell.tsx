@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Preloader from "@/components/common/Preloader/Preloader";
+import useStore from "@/store/useStore";
 
 const LayoutObserver = dynamic(
   () => import("@/components/layout/LayoutObserver/LayoutObserver"),
@@ -23,8 +24,12 @@ export default function HomeClientShell({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { mobileDrawerStatus, sideBarDrawerStatus, searchPopupStatus } = useStore();
   const [showPreloader, setShowPreloader] = useState(true);
   const [enableNonCriticalUi, setEnableNonCriticalUi] = useState(false);
+  const [shouldMountDrawer, setShouldMountDrawer] = useState(false);
+  const [shouldMountSidebar, setShouldMountSidebar] = useState(false);
+  const [shouldMountSearch, setShouldMountSearch] = useState(false);
 
   useEffect(() => {
     let didEnable = false;
@@ -63,18 +68,26 @@ export default function HomeClientShell({
     };
   }, []);
 
+  useEffect(() => {
+    if (mobileDrawerStatus) {
+      setShouldMountDrawer(true);
+    }
+    if (sideBarDrawerStatus) {
+      setShouldMountSidebar(true);
+    }
+    if (searchPopupStatus) {
+      setShouldMountSearch(true);
+    }
+  }, [mobileDrawerStatus, sideBarDrawerStatus, searchPopupStatus]);
+
   return (
     <>
       {showPreloader && <Preloader />}
       {children}
-      {enableNonCriticalUi ? (
-        <>
-          <LayoutObserver />
-          <Drawer />
-          <Sidebar />
-          <Search />
-        </>
-      ) : null}
+      {enableNonCriticalUi && <LayoutObserver />}
+      {enableNonCriticalUi && shouldMountDrawer ? <Drawer /> : null}
+      {enableNonCriticalUi && shouldMountSidebar ? <Sidebar /> : null}
+      {enableNonCriticalUi && shouldMountSearch ? <Search /> : null}
     </>
   );
 }
