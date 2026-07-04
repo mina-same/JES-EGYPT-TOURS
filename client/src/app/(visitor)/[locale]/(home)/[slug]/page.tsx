@@ -2,6 +2,7 @@ import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
 import { getCategoryBySlug as getBlogCategoryBySlug, getSubCategoryBySlug as getBlogSubCategoryBySlug, getBlogBySlug } from "@/lib/api/blog";
 import { getDestinationBySlug } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -28,6 +29,20 @@ function getLocaleSlug(slugObj: any, locale: string): string | null {
   return slugObj[locale] || null;
 }
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 function ensureTourMapSchema(tour: any) {
   if (!tour || typeof tour !== "object") return tour;
 
@@ -51,7 +66,6 @@ interface PageProps {
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
-const LOCALES = ["en", "de", "it", "es"] as const;
 const EDITORIAL_AUTHOR_NAME = "Madonna Roshdey";
 const EDITORIAL_AUTHOR_SLUG = "madonna-roshdey";
 
@@ -174,16 +188,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
         const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
         
-        const languages: Record<string, string> = {};
-        for (const loc of LOCALES) {
-          const s = getLocalizedValue(data.slug, loc);
-          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
-        }
+        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
         return {
           title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
-          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          alternates,
           openGraph: {
             title: seoTitle || "JES Egypt Tours",
             description,
@@ -215,16 +225,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
         const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
 
-        const languages: Record<string, string> = {};
-        for (const loc of LOCALES) {
-          const s = getLocalizedValue(data.slug, loc);
-          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
-        }
+        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
         return {
           title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
-          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          alternates,
           openGraph: {
             title: seoTitle || "JES Egypt Tours",
             description,
@@ -256,16 +262,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const keywords = getLocalizedValue(cAny.metaKeywords, locale);
         const image = getSeoImage(cAny.metaImage, cAny.ogImage || cAny.image, locale, seoTitle || getLocalizedValue(cAny.name, locale));
 
-        const languages: Record<string, string> = {};
-        for (const loc of LOCALES) {
-          const s = getLocalizedValue(category.slug, loc);
-          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
-        }
+        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: category.slug, baseUrl });
         return {
           title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
-          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          alternates,
           openGraph: {
             title: seoTitle || "JES Egypt Tours",
             description,
@@ -297,16 +299,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const keywords = getLocalizedValue(sAny.metaKeywords, locale);
         const image = getSeoImage(sAny.metaImage, sAny.ogImage || sAny.image, locale, seoTitle || getLocalizedValue(sAny.name, locale));
 
-        const languages: Record<string, string> = {};
-        for (const loc of LOCALES) {
-          const s = getLocalizedValue(subcategory.slug, loc);
-          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
-        }
+        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: subcategory.slug, baseUrl });
         return {
           title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
-          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          alternates,
           openGraph: {
             title: seoTitle || "JES Egypt Tours",
             description,
@@ -346,17 +344,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
           : undefined;
 
-        const languages: Record<string, string> = {};
-        for (const loc of LOCALES) {
-          const s = getLocalizedValue(blog.slug, loc);
-          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
-        }
+        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: blog.slug, baseUrl });
         return {
           title: pageTitle,
           description,
           keywords: keywords || undefined,
           authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
-          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          alternates,
           openGraph: {
             title: ogTitle,
             description: ogDescription,
@@ -386,16 +380,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const description = stripHtml(seoDescription || "");
         const keywords = getLocalizedValue(destination.metaKeywords, locale);
         const image = getSeoImage(destination.metaImage, destination.ogImage || destination.coverImage, locale, seoTitle || getLocalizedValue(destination.name, locale));
-        const languages: Record<string, string> = {};
-        for (const loc of LOCALES) {
-          const s = getLocalizedValue(destination.slug, loc);
-          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
-        }
+        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: destination.slug, baseUrl });
         return {
           title: seoTitle || `${getLocalizedValue(destination.name, locale)} | JES Egypt Tours`,
           description,
           keywords: keywords || undefined,
-          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          alternates,
           openGraph: {
             title: seoTitle || getLocalizedValue(destination.name, locale),
             description,
@@ -426,16 +416,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const description = stripHtml(seoDescription || "");
         const keywords = getLocalizedValue(tour.seo?.metaKeywords, locale);
         const image = getSeoImage(tour.seo?.metaImage, tour.featuredImage || tour.sliderImages?.[0], locale, seoTitle || getLocalizedValue(tour.title, locale));
-        const languages: Record<string, string> = {};
-        for (const loc of LOCALES) {
-          const s = getLocaleSlug(tour.slug, loc);
-          if (s) languages[loc] = `${baseUrl}/${loc}/${s}`;
-        }
+        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: tour.slug, baseUrl });
         return {
           title: seoTitle ? seoTitle : "JES Egypt Tours",
           description,
           keywords: keywords || undefined,
-          alternates: { canonical: `${baseUrl}/${locale}/${slug}`, languages },
+          alternates,
           openGraph: { 
             title: seoTitle || "JES Egypt Tours", 
             description, 
@@ -596,9 +582,10 @@ export default async function SlugPage({ params }: PageProps) {
       const blogSubCat = blogData.subCategory;
       const blogCat = blogSubCat?.category;
       const blogCatName = blogCat && typeof blogCat === 'object' ? getLocalizedValue(blogCat.name, locale) : 'Blog';
-      const blogCatUrl = blogCat && typeof blogCat === 'object'
-        ? `${baseUrl}/${locale}/${getLocalizedValue(blogCat.slug, locale) || ''}`
-        : `${baseUrl}/${locale}/blogs`;
+      const blogCatSlug = blogCat && typeof blogCat === 'object'
+        ? getStrictLocalizedSlug(blogCat.slug, locale)
+        : null;
+      const blogCatUrl = blogCatSlug ? `${baseUrl}/${locale}/${blogCatSlug}` : null;
 
       const blogJsonLd = {
         "@context": "https://schema.org",
@@ -644,7 +631,7 @@ export default async function SlugPage({ params }: PageProps) {
             "@type": "ListItem",
             "position": 2,
             "name": blogCatName,
-            "item": blogCatUrl,
+            ...(blogCatUrl ? { "item": blogCatUrl } : {}),
           },
           {
             "@type": "ListItem",
@@ -723,14 +710,14 @@ export default async function SlugPage({ params }: PageProps) {
       const breadcrumbs: { label: string; href?: string }[] = [];
 
       if (category?.name) {
-        const catSlug = getLocalizedValue(category.slug, locale);
+        const catSlug = getStrictLocalizedSlug(category.slug, locale);
         breadcrumbs.push({
           label: getLocalizedValue(category.name, locale),
           href: catSlug ? `/${locale}/${catSlug}` : undefined,
         });
       }
       if (subcategory?.name) {
-        const subSlug = getLocalizedValue(subcategory.slug, locale);
+        const subSlug = getStrictLocalizedSlug(subcategory.slug, locale);
         breadcrumbs.push({
           label: getLocalizedValue(subcategory.name, locale),
           href: subSlug ? `/${locale}/${subSlug}` : undefined,

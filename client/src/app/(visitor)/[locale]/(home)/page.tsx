@@ -17,16 +17,27 @@ import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel"
 import ReflectiveReviews from "@/components/sections/ReflectiveReviews/ReflectiveReviews";
 import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
 import HomeIntro from "@/components/sections/HomeIntro/HomeIntro";
+import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { Metadata } from "next";
 
-export const metadata = {
-  title: "Home | JES Egypt Tours",
-  description:
-    "JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences. Explore the land of pharaohs with our expert-led tours.",
-  icons: {
-    icon: "/favicon-logo.png",
-    apple: "/favicon-logo.png",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return {
+    title: "Home | JES Egypt Tours",
+    description:
+      "JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences. Explore the land of pharaohs with our expert-led tours.",
+    icons: {
+      icon: "/favicon-logo.png",
+      apple: "/favicon-logo.png",
+    },
+    alternates: getStaticLocaleAlternates(locale),
+  };
+}
 
 
 

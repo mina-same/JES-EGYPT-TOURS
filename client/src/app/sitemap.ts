@@ -4,6 +4,43 @@ import { API_URL } from '@/config/api';
 const locales = ['en', 'de', 'it', 'es'];
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://jesegypttours.com';
 
+function getStrictLocalizedSlug(slugs: unknown, locale: string): string | null {
+  if (!slugs) return null;
+
+  if (typeof slugs === 'string') {
+    return locale === 'en' && slugs.trim() ? slugs.trim().replace(/^\/+|\/+$/g, '') : null;
+  }
+
+  if (typeof slugs !== 'object') return null;
+
+  const value = (slugs as Record<string, unknown>)[locale];
+  if (typeof value !== 'string') return null;
+
+  const normalized = value.trim().replace(/^\/+|\/+$/g, '');
+  return normalized || null;
+}
+
+function addLocalizedUrls(
+  entries: MetadataRoute.Sitemap,
+  slugs: unknown,
+  options: {
+    changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'];
+    priority: number;
+  }
+) {
+  locales.forEach((locale) => {
+    const localizedSlug = getStrictLocalizedSlug(slugs, locale);
+    if (!localizedSlug) return;
+
+    entries.push({
+      url: `${baseUrl}/${locale}/${localizedSlug}`,
+      lastModified: new Date(),
+      changeFrequency: options.changeFrequency,
+      priority: options.priority,
+    });
+  });
+}
+
 // Fetch all tour slugs
 async function getTourSlugs() {
   try {
@@ -52,28 +89,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 2. Tours
   tourSlugs.forEach((slugObj: any) => {
-    locales.forEach((locale) => {
-      const localizedSlug = slugObj[locale] || slugObj['en'];
-      if (localizedSlug) {
-        entries.push({
-          url: `${baseUrl}/${locale}/${localizedSlug}`,
-          lastModified: new Date(),
-          changeFrequency: 'daily',
-          priority: 0.9,
-        });
-      }
+    addLocalizedUrls(entries, slugObj, {
+      changeFrequency: 'daily',
+      priority: 0.9,
     });
   });
 
   // 3. Blogs
-  blogSlugs.forEach((slug: string) => {
-    locales.forEach((locale) => {
-      entries.push({
-        url: `${baseUrl}/${locale}/blogs/${slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.7,
-      });
+  blogSlugs.forEach((slug: any) => {
+    addLocalizedUrls(entries, slug, {
+      changeFrequency: 'monthly',
+      priority: 0.7,
     });
   });
 

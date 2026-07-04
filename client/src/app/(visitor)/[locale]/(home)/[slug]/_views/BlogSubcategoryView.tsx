@@ -29,6 +29,20 @@ import esBlogs from "@/i18n/locales/es/blogs.json";
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 const getImageUrl = (img: any): string => {
   if (!img) return '';
   if (typeof img === 'string') return img;
@@ -106,6 +120,7 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
   }
 
   const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name, locale) : '';
+  const parentSlug = typeof subcategory.category === 'object' ? getStrictLocalizedSlug((subcategory.category as any).slug, locale) : null;
   const subcategoryName = getLocalizedValue(subcategory.name, locale);
   const subcategoryImageTitle = getImageTitle(subcategory.image, locale, subcategoryName);
 
@@ -123,7 +138,7 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
         imageAlt={typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) || subcategoryImageTitle : subcategoryImageTitle}
         imageTitle={subcategoryImageTitle}
         breadcrumbs={[
-          ...(subcategory.category ? [{ label: parentName, href: `/${locale}/${typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).slug, locale) : ''}` }] : []),
+          ...(subcategory.category ? [{ label: parentName, href: parentSlug ? `/${locale}/${parentSlug}` : undefined }] : []),
           { label: subcategoryName }
         ]}
         stats={{

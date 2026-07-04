@@ -7,15 +7,27 @@ import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
 import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { Metadata } from "next";
 
-export const metadata = {
-  title: "Sign In | JES Egypt Tours",
-  description:
-    "Sign in to your JES Egypt Tours account to manage your bookings and wishlist.",
-  icons: {
-    icon: "/favicon-32x32.png",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return {
+    title: "Sign In | JES Egypt Tours",
+    description:
+      "Sign in to your JES Egypt Tours account to manage your bookings and wishlist.",
+    icons: {
+      icon: "/favicon-32x32.png",
+    },
+    alternates: getStaticLocaleAlternates(locale, "login"),
+  };
+}
 
 export default function SignInPage() {
   return (
@@ -24,7 +36,9 @@ export default function SignInPage() {
       <HeaderOne linkTheme="light"/>
       <HeaderOneCloned />
       <PageHeader title='Sign In' subTitle='Sign In' />
-      <LoginSection />
+      <AuthProvider>
+        <LoginSection />
+      </AuthProvider>
       <FooterOne />
     </Layout>
   );

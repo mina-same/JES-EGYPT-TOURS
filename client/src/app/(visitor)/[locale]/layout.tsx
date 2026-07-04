@@ -2,11 +2,8 @@ import { Plus_Jakarta_Sans, Just_Another_Hand } from "next/font/google";
 import Script from "next/script";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/theme-provider";
-import { NotificationProvider } from "@/contexts/NotificationContext";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { SlugProvider } from "@/contexts/SlugContext";
 import SEOProvider from "@/components/common/SEO/SEOProvider";
@@ -217,28 +214,17 @@ export default async function RootLayout({
           }}
         />
         <ErrorBoundary>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <AuthProvider>
-              <WishlistProvider>
-                <SlugProvider>
-                  <NotificationProvider>
-                    <I18nProvider locale={locale}>
-                      <CurrencyProvider>
-                        <SEOProvider locale={locale} />
-                        {children}
-                        <Toaster />
-                      </CurrencyProvider>
-                    </I18nProvider>
-                  </NotificationProvider>
-                </SlugProvider>
-              </WishlistProvider>
-            </AuthProvider>
-          </ThemeProvider>
+          <WishlistProvider>
+            <SlugProvider>
+              <I18nProvider locale={locale}>
+                <CurrencyProvider>
+                  <SEOProvider locale={locale} />
+                  {children}
+                  <Toaster />
+                </CurrencyProvider>
+              </I18nProvider>
+            </SlugProvider>
+          </WishlistProvider>
         </ErrorBoundary>
       </body>
     </html>

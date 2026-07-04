@@ -23,6 +23,20 @@ function getYouTubeVideoId(url: string): string {
   return '';
 }
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === 'string') {
+    const trimmed = slugValue.trim();
+    return locale === 'en' && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== 'object') return null;
+
+  const value = slugValue[locale];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 export const useTourData = (id?: string, initialRawTour?: any) => {
   const { i18n } = useTranslation();
   const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
@@ -41,7 +55,8 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
   const mapTourToItem = (t: any) => {
     if (!t) return null;
     
-    const tourSlug = getLocalizedValue(t?.slug);
+    const tourSlug = getStrictLocalizedSlug(t?.slug, currentLang);
+    if (!tourSlug) return null;
     const tourTitle = getLocalizedValue(t?.heading) || t?.name || "";
     const fallback = 'https://placehold.co/600x400?text=No+Image';
     
@@ -319,23 +334,25 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         const mappedData = mapRawTourData(tour, fetchedReviews, fetchedRelatedTours);
 
         const mappedBlogs = fetchedRelatedBlogs.map((b: any) => {
+          const blogSlug = getStrictLocalizedSlug(b?.slug, currentLang);
+          if (!blogSlug) return null;
           const blogTitle = getLocalizedValue(b?.title);
           const blogImageObj = (typeof b?.featuredImage === 'object' && b?.featuredImage !== null) ? b.featuredImage : {};
 
           return {
             id: b._id,
             title: blogTitle,
-            slug: getLocalizedValue(b?.slug),
+            slug: blogSlug,
             excerpt: getLocalizedValue(b?.excerpt),
             image: typeof b?.featuredImage === 'string' ? b.featuredImage : (b?.featuredImage?.url || 'https://placehold.co/600x400?text=No+Image'),
             imageAlt: getLocalizedValue(blogImageObj?.alt) || blogTitle,
             imageTitle: getLocalizedValue(blogImageObj?.title) || "",
             date: b?.publishedAt || b?.createdAt || new Date().toISOString(),
-            link: `/${currentLang}/${getLocalizedValue(b?.slug)}`,
+            link: `/${currentLang}/${blogSlug}`,
             author: (b?.author as any)?.name || "Admin",
             category: getLocalizedValue(b?.category?.name) || "",
           };
-        });
+        }).filter(Boolean);
 
         setRelatedBlogs(mappedBlogs);
         setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));

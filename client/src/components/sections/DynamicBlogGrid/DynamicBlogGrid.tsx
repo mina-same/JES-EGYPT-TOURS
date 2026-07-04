@@ -15,10 +15,25 @@ interface DynamicBlogGridProps {
   variant?: 'standard' | 'featured';
 }
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === "string") {
+    const trimmed = slugValue.trim();
+    return locale === "en" && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== "object") return null;
+
+  const value = slugValue[locale];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, basePath, variant = 'standard' }) => {
   const router = useRouter();
   const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
+  const renderableBlogs = blogs.filter((post) => getStrictLocalizedSlug(post.slug, currentLocale));
 
   const handlePageChange = (page: number) => {
     const separator = basePath.includes("?") ? "&" : "?";
@@ -28,7 +43,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
   if (variant === 'featured') {
     return (
       <Row className='gutter-y-20'>
-        {blogs.map((post, index) => {
+        {renderableBlogs.map((post, index) => {
           const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
           const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
           const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
@@ -38,7 +53,9 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
             ? getLocalizedValue(post.featuredImage.title, currentLocale)
             : imageAlt;
           
-          const blogUrl = `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`;
+          const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale);
+          if (!blogSlug) return null;
+          const blogUrl = `/${currentLocale}/${blogSlug}`;
 
           return (
             <Col lg={3} md={6} key={post._id}>
@@ -82,7 +99,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
     <section className='blog-page'>
       <Container>
         <Row className='gutter-y-30'>
-          {blogs.map((post, index) => {
+          {renderableBlogs.map((post, index) => {
             const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
             const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
             const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
@@ -98,7 +115,9 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                 : 'Admin';
             
             // Build blog URL using localized slug
-            const blogUrl = `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`;
+            const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale);
+            if (!blogSlug) return null;
+            const blogUrl = `/${currentLocale}/${blogSlug}`;
 
             return (
               <Col lg={4} md={6} key={post._id}>
