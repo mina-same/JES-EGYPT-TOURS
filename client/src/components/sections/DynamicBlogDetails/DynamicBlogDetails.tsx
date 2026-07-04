@@ -32,6 +32,20 @@ const EDITORIAL_AUTHOR = {
   bio: 'Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.',
 };
 
+function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
+  if (!slugValue) return null;
+
+  if (typeof slugValue === 'string') {
+    const trimmed = slugValue.trim();
+    return locale === 'en' && trimmed ? trimmed : null;
+  }
+
+  if (typeof slugValue !== 'object') return null;
+
+  const value = slugValue[locale];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
   blog, 
   showSidebar = 'right' 
@@ -466,13 +480,16 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       return posts.findIndex((item: any) => (item?._id || item?.id || getLocalizedValue(item?.slug, locale)) === postKey) === index;
     });
     const hasManualRelated = uniqueManualRelated.length > 0;
-    const posts = hasManualRelated ? uniqueManualRelated : popularBlogs.slice(0, 3);
+    const posts = (hasManualRelated ? uniqueManualRelated : popularBlogs.slice(0, 3))
+      .filter((post: any) => getStrictLocalizedSlug(post?.slug, locale));
     if (posts.length === 0) return null;
 
     const postCards = posts.map((post: any, idx: number) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const postTitle = getLocalizedValue(post.title, locale);
-      const postLink = `/${locale}/${getLocalizedValue(post.slug, locale)}`;
+      const postSlug = getStrictLocalizedSlug(post.slug, locale);
+      if (!postSlug) return null;
+      const postLink = `/${locale}/${postSlug}`;
       const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
       const postImageTitle = typeof post.featuredImage === 'object' ? getLocalizedValue(post.featuredImage?.title, locale) : '';
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
@@ -566,11 +583,12 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       return tours.findIndex((item: any) => (item?._id || item?.id || getLocalizedValue(item?.slug, locale)) === tourKey) === index;
     });
     const hasManualRelatedTours = uniqueManualRelatedTours.length > 0;
-    const toursToRender = hasManualRelatedTours ? uniqueManualRelatedTours : relatedTours;
+    const toursToRender = (hasManualRelatedTours ? uniqueManualRelatedTours : relatedTours)
+      .filter((tour: any) => getStrictLocalizedSlug(tour?.slug, locale));
     if (toursToRender.length === 0) return null;
 
     const openVideoReviews = (slug: string) => {
-      const tour = toursToRender.find((item: any) => getLocalizedValue(item.slug, locale) === slug);
+      const tour = toursToRender.find((item: any) => getStrictLocalizedSlug(item.slug, locale) === slug);
       if (tour?.videoLink) {
         setVideoIds([tour.videoLink]);
         setVideoOpen(true);
@@ -583,15 +601,17 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         ...(tour.gallery || []).map((img: any) => img.url),
       ].filter(Boolean);
       const uniqueImages = Array.from(new Set(galleryImages));
+      const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+      if (!tourSlug) return null;
 
       const item = {
         id: tour._id,
-        slug: getLocalizedValue(tour.slug, locale),
+        slug: tourSlug,
         image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
         imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
         allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
         title: getLocalizedValue(tour.heading || tour.name, locale),
-        link: `/${locale}/${getLocalizedValue(tour.slug, locale)}`,
+        link: `/${locale}/${tourSlug}`,
         price: tour.priceStartingFrom || { USD: 0 },
         rating: 5,
         reviews: tour.reviewsCount || tour.reviews?.length || 0,
