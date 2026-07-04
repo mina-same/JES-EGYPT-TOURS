@@ -1,12 +1,57 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import ScrollToTop from "react-scroll-to-top";
+import dynamic from "next/dynamic";
+
+const ScrollToTop = dynamic(() => import("react-scroll-to-top"), {
+  ssr: false,
+});
 
 const ScrollTop = () => {
+  const [shouldMount, setShouldMount] = useState(false);
   const [percentage, setPercentage] = useState(0);
 
   useEffect(() => {
+    let didMount = false;
+    const mount = () => {
+      if (didMount) return;
+      didMount = true;
+      setShouldMount(true);
+    };
+
+    const idleId = (window as any).requestIdleCallback
+      ? (window as any).requestIdleCallback(mount, { timeout: 1500 })
+      : null;
+    const mountTimer = setTimeout(mount, 1200);
+
+    const onFirstInteraction = () => {
+      mount();
+      window.removeEventListener("scroll", onFirstInteraction, true);
+      window.removeEventListener("pointerdown", onFirstInteraction, true);
+      window.removeEventListener("keydown", onFirstInteraction, true);
+      window.removeEventListener("touchstart", onFirstInteraction, true);
+    };
+
+    window.addEventListener("scroll", onFirstInteraction, true);
+    window.addEventListener("pointerdown", onFirstInteraction, true);
+    window.addEventListener("keydown", onFirstInteraction, true);
+    window.addEventListener("touchstart", onFirstInteraction, true);
+
+    return () => {
+      clearTimeout(mountTimer);
+      if (idleId && (window as any).cancelIdleCallback) {
+        (window as any).cancelIdleCallback(idleId);
+      }
+      window.removeEventListener("scroll", onFirstInteraction, true);
+      window.removeEventListener("pointerdown", onFirstInteraction, true);
+      window.removeEventListener("keydown", onFirstInteraction, true);
+      window.removeEventListener("touchstart", onFirstInteraction, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldMount) return;
+
     const handleScroll = () => {
       const bodyHeight = document.body.scrollHeight - window.innerHeight;
       const scrollPos = window.scrollY;
@@ -17,11 +62,16 @@ const ScrollTop = () => {
       setPercentage(percentage);
     };
 
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [shouldMount]);
+
+  if (!shouldMount) {
+    return null;
+  }
 
   return (
      <ScrollToTop
