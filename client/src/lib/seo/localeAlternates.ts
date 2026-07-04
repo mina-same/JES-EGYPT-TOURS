@@ -11,6 +11,70 @@ function normalizeStaticPath(path: string = ""): string {
   return trimmed ? `/${trimmed}` : "";
 }
 
+type LocalizedSlugMap = Partial<Record<SupportedLocale, string | null | undefined>>;
+type LocalizedSlugInput = LocalizedSlugMap | string | null | undefined;
+
+function normalizeSlug(slug: unknown): string | null {
+  if (typeof slug !== "string") return null;
+
+  const normalized = slug.trim().replace(/^\/+|\/+$/g, "");
+  return normalized || null;
+}
+
+function getStrictLocalizedSlug(
+  slugs: LocalizedSlugInput,
+  locale: SupportedLocale
+): string | null {
+  if (!slugs || typeof slugs !== "object") return null;
+
+  return normalizeSlug(slugs[locale]);
+}
+
+export function getStrictSlugLocaleAlternates({
+  locale,
+  currentSlug,
+  slugs,
+  baseUrl = SEO_BASE_URL,
+}: {
+  locale: string;
+  currentSlug: string;
+  slugs: LocalizedSlugInput;
+  baseUrl?: string;
+}): NonNullable<Metadata["alternates"]> {
+  const currentLocale = SUPPORTED_LOCALES.includes(locale as SupportedLocale)
+    ? (locale as SupportedLocale)
+    : "en";
+  const normalizedCurrentSlug = normalizeStaticPath(currentSlug);
+  const languages: Record<string, string> = {};
+
+  if (typeof slugs === "string") {
+    const strictCurrentSlug = normalizeSlug(slugs) || normalizeSlug(currentSlug);
+    if (strictCurrentSlug) {
+      languages[currentLocale] = `${baseUrl}/${currentLocale}/${strictCurrentSlug}`;
+      if (currentLocale === "en") {
+        languages["x-default"] = `${baseUrl}/en/${strictCurrentSlug}`;
+      }
+    }
+  } else {
+    for (const supportedLocale of SUPPORTED_LOCALES) {
+      const strictSlug = getStrictLocalizedSlug(slugs, supportedLocale);
+      if (strictSlug) {
+        languages[supportedLocale] = `${baseUrl}/${supportedLocale}/${strictSlug}`;
+      }
+    }
+
+    const englishSlug = getStrictLocalizedSlug(slugs, "en");
+    if (englishSlug) {
+      languages["x-default"] = `${baseUrl}/en/${englishSlug}`;
+    }
+  }
+
+  return {
+    canonical: `${baseUrl}/${currentLocale}${normalizedCurrentSlug}`,
+    languages,
+  };
+}
+
 export function getStaticLocaleAlternates(
   locale: string,
   path: string = ""
