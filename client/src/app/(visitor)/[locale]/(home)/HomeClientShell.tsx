@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { DarkModeProvider } from "@/context/DarkModeProvider";
 import Preloader from "@/components/common/Preloader/Preloader";
 
 const LayoutObserver = dynamic(
@@ -99,7 +98,7 @@ export default function HomeClientShell({
   }, []);
 
   return (
-    <DarkModeProvider>
+    <>
       {showPreloader && <Preloader />}
       {children}
       {enableNonCriticalUi ? (
@@ -110,6 +109,6 @@ export default function HomeClientShell({
           <Search />
         </>
       ) : null}
-    </DarkModeProvider>
+    </>
   );
 }
