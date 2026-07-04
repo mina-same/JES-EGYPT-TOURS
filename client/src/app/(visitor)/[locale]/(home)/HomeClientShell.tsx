@@ -27,38 +27,6 @@ export default function HomeClientShell({
   const [enableNonCriticalUi, setEnableNonCriticalUi] = useState(false);
 
   useEffect(() => {
-    const originalConsoleError = console.error;
-
-    console.error = (...args: any[]) => {
-      try {
-        const msg = args.map((a) => String(a)).join(" ");
-        const hasTinySlider = msg.includes("tiny-slider") || msg.includes("tiny-slider-react");
-        const hasNoMod = msg.includes("NoModificationAllowedError") || msg.includes("outerHTML");
-
-        if (hasTinySlider && hasNoMod) {
-          return;
-        }
-      } catch {
-        // ignore
-      }
-
-      originalConsoleError(...args);
-    };
-
-    const tinySliderErrorHandler = (event: ErrorEvent) => {
-      const err = event?.error as any;
-      const stack = String(err?.stack || "");
-
-      if (
-        err?.name === "NoModificationAllowedError" &&
-        (stack.includes("tiny-slider") || stack.includes("tiny-slider-react"))
-      ) {
-        event.preventDefault();
-      }
-    };
-
-    window.addEventListener("error", tinySliderErrorHandler);
-
     let didEnable = false;
     const enableUi = () => {
       if (didEnable) return;
@@ -92,8 +60,6 @@ export default function HomeClientShell({
       window.removeEventListener("pointerdown", onFirstInteraction, true);
       window.removeEventListener("keydown", onFirstInteraction, true);
       window.removeEventListener("scroll", onFirstInteraction, true);
-      window.removeEventListener("error", tinySliderErrorHandler);
-      console.error = originalConsoleError;
     };
   }, []);
 
