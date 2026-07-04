@@ -49,7 +49,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
           </ul>
           <h1 className="page-header__title bw-split-in-right">{title}</h1>
           {subTitle && (
-            <p
+            <div
               className="page-header__subtitle html-content"
               style={{
                 color: 'rgba(255,255,255,0.9)',
