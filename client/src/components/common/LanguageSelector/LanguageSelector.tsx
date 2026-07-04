@@ -18,6 +18,43 @@ const FLAG_COMPONENTS: Record<string, any> = {
   es: ES,
 };
 
+const STATIC_PATHS = new Set([
+  "/",
+  "/about",
+  "/contact",
+  "/faq",
+  "/login",
+  "/special-offers",
+  "/tailor-made",
+  "/search",
+  "/wishlist",
+  "/tours",
+  "/tours/all",
+  "/blogs",
+  "/blogs/all",
+  "/404",
+]);
+
+function getStrictSlug(value: string | undefined): string | null {
+  if (typeof value !== "string") return null;
+
+  const slug = value.trim().replace(/^\/+|\/+$/g, "");
+  return slug || null;
+}
+
+function hasRealSlugMap(slugs: Record<string, string | undefined> | null): boolean {
+  if (!slugs) return false;
+  return Object.values(slugs).some((slug) => !!getStrictSlug(slug));
+}
+
+function isLikelyDynamicSlugPath(path: string): boolean {
+  const normalized = path === "" ? "/" : path;
+  if (STATIC_PATHS.has(normalized)) return false;
+
+  const segments = normalized.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+  return segments.length === 1;
+}
+
 interface LanguageSelectorProps {
   theme?: "light" | "dark";
 }
@@ -40,20 +77,39 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
     }
     return pathname || "/";
   }, [pathname]);
-  const options = useMemo(() => [
-    { value: "en", label: t("language.english"), flag: "en" },
-    { value: "de", label: t("language.german"), flag: "de" },
-    { value: "it", label: t("language.italian"), flag: "it" },
-    { value: "es", label: t("language.spanish"), flag: "es" },
-  ], [t]);
+  const currentLocale = (pathLocale || i18n.language || "en").split("-")[0];
+  const hasDynamicSlugContext = useMemo(() => hasRealSlugMap(localizedSlugs), [localizedSlugs]);
+  const isDynamicSlugPage = hasDynamicSlugContext || isLikelyDynamicSlugPath(normalizedPath);
+  const options = useMemo(() => {
+    const baseOptions = [
+      { value: "en", label: t("language.english"), flag: "en" },
+      { value: "de", label: t("language.german"), flag: "de" },
+      { value: "it", label: t("language.italian"), flag: "it" },
+      { value: "es", label: t("language.spanish"), flag: "es" },
+    ];
+
+    return baseOptions.map((option) => {
+      const hasTargetSlug = !!getStrictSlug(localizedSlugs?.[option.value]);
+      const isCurrentLocale = option.value === currentLocale;
+      const isDisabled = isDynamicSlugPage && !isCurrentLocale && !hasTargetSlug;
+
+      return {
+        ...option,
+        isDisabled,
+      };
+    });
+  }, [currentLocale, isDynamicSlugPage, localizedSlugs, t]);
   const [mounted, setMounted] = useState(false);
   const [selectedOption, setSelectedOption] = useState(options[0]);
 
   useEffect(() => {
     setMounted(true);
-    const current = (pathLocale || i18n.language || "en").split("-")[0];
-    const found = options.find(o => o.value === current) || options[0];
+    const found = options.find(o => o.value === currentLocale) || options[0];
     setSelectedOption(found);
+
+    if (isDynamicSlugPage) {
+      return;
+    }
 
     // Filter and log user country/timezone
     try {
@@ -86,7 +142,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
     } catch (e) {
       console.error("Location/Detection failed", e);
     }
-  }, [options, pathLocale, normalizedPath, router]);
+  }, [currentLocale, isDynamicSlugPage, normalizedPath, options, pathLocale, router]);
 
   if (!mounted) {
     return <div style={{ width: '120px', height: '40px' }} />;
@@ -99,20 +155,16 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
         value={selectedOption}
         onChange={(option: any) => {
           if (!option) return;
-          setSelectedOption(option);
-          i18n.changeLanguage(option.value);
-          try {
-            localStorage.setItem("i18nextLng", option.value);
-          } catch {}
-          try {
-            document.cookie = `NEXT_LOCALE=${option.value};path=/`;
-          } catch {}
+          if (option.isDisabled) return;
 
           let targetPath = normalizedPath;
           
           // If we have localized slugs, we need to replace the last segment of the path
-          if (localizedSlugs) {
-            const newSlug = localizedSlugs[option.value];
+          if (isDynamicSlugPage) {
+            const newSlug = getStrictSlug(localizedSlugs?.[option.value]);
+            if (!newSlug && option.value !== currentLocale) {
+              return;
+            }
             if (newSlug) {
               const pathParts = normalizedPath.split("/");
               // Assuming the slug is the last part of relevant paths (tours/slug, category/slug, etc.)
@@ -123,11 +175,21 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
             }
           }
 
+          setSelectedOption(option);
+          i18n.changeLanguage(option.value);
+          try {
+            localStorage.setItem("i18nextLng", option.value);
+          } catch {}
+          try {
+            document.cookie = `NEXT_LOCALE=${option.value};path=/`;
+          } catch {}
+
           const target = `/${option.value}${targetPath === "/" ? "/" : targetPath}`;
           router.push(target);
         }}
         options={options}
         isSearchable={false}
+        isOptionDisabled={(option: any) => !!option.isDisabled}
         components={{
           IndicatorSeparator: () => null,
           Option: (props: any) => {
@@ -139,8 +201,11 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
                   "flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors text-sm",
                   props.isFocused ? "bg-[#b79c5c]/10 text-[#b79c5c]" : (theme === "dark" ? "text-white" : "text-black"),
                   "hover:bg-[#b79c5c]/10 hover:text-[#b79c5c]",
-                  props.isSelected ? "bg-[#b79c5c] text-white" : ""
+                  props.isSelected ? "bg-[#b79c5c] text-white" : "",
+                  props.isDisabled && "opacity-45 cursor-not-allowed hover:bg-transparent hover:text-inherit"
                 )}
+                aria-disabled={props.isDisabled}
+                title={props.isDisabled ? `${props.data.label} unavailable for this page` : props.data.label}
               >
                 <Flag className="w-5 h-3.5 rounded-sm object-cover shadow-sm" />
                 <span>{props.data.label}</span>
