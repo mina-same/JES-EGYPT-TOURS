@@ -2,7 +2,6 @@ import { Plus_Jakarta_Sans, Just_Another_Hand } from "next/font/google";
 import Script from "next/script";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -216,26 +215,19 @@ export default async function RootLayout({
           }}
         />
         <ErrorBoundary>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <AuthProvider>
-              <WishlistProvider>
-                <SlugProvider>
-                  <I18nProvider locale={locale}>
-                    <CurrencyProvider>
-                      <SEOProvider locale={locale} />
-                      {children}
-                      <Toaster />
-                    </CurrencyProvider>
-                  </I18nProvider>
-                </SlugProvider>
-              </WishlistProvider>
-            </AuthProvider>
-          </ThemeProvider>
+          <AuthProvider>
+            <WishlistProvider>
+              <SlugProvider>
+                <I18nProvider locale={locale}>
+                  <CurrencyProvider>
+                    <SEOProvider locale={locale} />
+                    {children}
+                    <Toaster />
+                  </CurrencyProvider>
+                </I18nProvider>
+              </SlugProvider>
+            </WishlistProvider>
+          </AuthProvider>
         </ErrorBoundary>
       </body>
     </html>
