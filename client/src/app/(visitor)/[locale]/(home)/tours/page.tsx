@@ -7,6 +7,7 @@ import { tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
 import { Loader2, ChevronRight, MapPin } from "lucide-react";
 import { use } from "react";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -22,20 +23,6 @@ interface CategoryWithSubcategories {
   description?: any;
   subcategories: any[];
 }
-
-// Strict localized slug: returns the slug ONLY when a real, non-empty string
-// exists for the current locale. Never falls back to English or another locale,
-// so we never build a fake localized URL like /de/english-slug.
-const getStrictSlug = (slug: any, locale: string): string => {
-  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
-  // string must NOT produce a link (would be a fake localized URL).
-  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
-  if (slug && typeof slug === "object") {
-    const v = slug[locale];
-    return typeof v === "string" ? v.trim() : "";
-  }
-  return "";
-};
 
 export default function TourCategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -106,7 +93,7 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
 
           <Row className="gutter-y-40">
             {categories.map((category) => {
-              const catSlug = getStrictSlug(category.slug, locale);
+              const catSlug = getStrictLocalizedSlug(category.slug, locale as SupportedLocale) || "";
               const catName = getLocalizedValue(category.name, locale);
               return (
               <Col lg={4} md={6} key={category._id} className="wow fadeInUp" data-wow-delay="100ms">
@@ -142,7 +129,7 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
                     <h4 className="category-card-premium__sub-title">Popular in {catName}</h4>
                     <ul className="category-card-premium__list">
                       {category.subcategories.slice(0, 5).map((sub) => {
-                        const subSlug = getStrictSlug(sub.slug, locale);
+                        const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale) || "";
                         const subName = getLocalizedValue(sub.name, locale);
                         return (
                         <li key={sub._id}>

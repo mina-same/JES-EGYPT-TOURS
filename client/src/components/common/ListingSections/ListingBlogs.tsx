@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 import { formatBlogDate } from '@/lib/api/blog';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 
 interface ListingBlogsProps {
   blogs?: any[];
@@ -14,26 +15,13 @@ interface ListingBlogsProps {
   locale: string;
 }
 
-// Strict localized slug: returns the slug ONLY when a real, non-empty string
-// exists for the current locale. Never falls back to English or another locale.
-const getStrictSlug = (slug: any, locale: string): string => {
-  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
-  // string must NOT produce a link (would be a fake localized URL).
-  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
-  if (slug && typeof slug === "object") {
-    const v = slug[locale];
-    return typeof v === "string" ? v.trim() : "";
-  }
-  return "";
-};
-
 const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle, locale }) => {
   const { t } = useTranslation('blogs');
 
   const viewModel = useMemo(() => {
     if (!blogs || !Array.isArray(blogs)) return [];
     return blogs
-      .filter((post) => getStrictSlug(post.slug, locale))
+      .filter((post) => getStrictLocalizedSlug(post.slug, locale as SupportedLocale))
       .slice(0, 3)
       .map((post) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
@@ -42,7 +30,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
       const localizedTags = getLocalizedValue(post.tags, locale);
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
-      const slug = getStrictSlug(post.slug, locale);
+      const slug = getStrictLocalizedSlug(post.slug, locale as SupportedLocale) || "";
 
       return {
         id: post._id,

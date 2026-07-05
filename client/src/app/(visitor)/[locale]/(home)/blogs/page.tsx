@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getCategories, getSubCategoriesByCategory } from "@/lib/api/blog";
 import { Loader2, ChevronRight, Hash } from "lucide-react";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 
 import Layout from "@/components/layout/Layout/Layout";
@@ -23,20 +24,6 @@ interface BlogCategoryWithSubs {
   description?: any;
   subcategories: any[];
 }
-
-// Strict localized slug: returns the slug ONLY when a real, non-empty string
-// exists for the current locale. Never falls back to English or another locale,
-// so we never build a fake localized URL like /de/english-slug.
-const getStrictSlug = (slug: any, locale: string): string => {
-  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
-  // string must NOT produce a link (would be a fake localized URL).
-  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
-  if (slug && typeof slug === "object") {
-    const v = slug[locale];
-    return typeof v === "string" ? v.trim() : "";
-  }
-  return "";
-};
 
 export default function BlogCategoriesPage() {
   const { t, i18n } = useTranslation('blogs');
@@ -110,7 +97,7 @@ export default function BlogCategoriesPage() {
 
           <Row className="gutter-y-30">
             {categories.map((category) => {
-              const catSlug = getStrictSlug(category.slug, currentLocale);
+              const catSlug = getStrictLocalizedSlug(category.slug, currentLocale as SupportedLocale) || "";
               const catName = getLocalizedValue(category.name, currentLocale);
               return (
               <Col lg={4} md={6} key={category._id}>
@@ -138,7 +125,7 @@ export default function BlogCategoriesPage() {
                     <div className="blog-cat-card__subs mt-4">
                       <ul className="blog-cat-card__list">
                         {category.subcategories.map((sub) => {
-                          const subSlug = getStrictSlug(sub.slug, currentLocale);
+                          const subSlug = getStrictLocalizedSlug(sub.slug, currentLocale as SupportedLocale) || "";
                           const subName = getLocalizedValue(sub.name, currentLocale);
                           return (
                           <li key={sub._id}>

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 import FeatureTwo from "./FeatureTwo";
 
@@ -25,26 +26,13 @@ function getYouTubeId(url: string): string {
   return match ? match[1] : "";
 }
 
-// Strict localized slug: returns the slug ONLY when a real, non-empty string
-// exists for the current locale. Never falls back to English or another locale.
-function getStrictSlug(slug: any, locale: string): string {
-  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
-  // string must NOT produce a link (would be a fake localized URL).
-  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
-  if (slug && typeof slug === "object") {
-    const v = slug[locale];
-    return typeof v === "string" ? v.trim() : "";
-  }
-  return "";
-}
-
 function mapTour(tour: any, locale: string): FeaturePackageItem {
   const image =
     tour.images?.[0]?.url ||
     tour.gallery?.[0]?.url ||
     "/assets/images/resources/tour-1-1.jpg";
 
-  const slug = getStrictSlug(tour.slug, locale);
+  const slug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
   const title =
     getLocalizedValue(tour.heading || tour.name, locale) ||
     tour.heading?.en ||
@@ -101,7 +89,7 @@ const FeaturedToursSection: React.FC = () => {
           // we never emit a fallback localized URL like /de/english-slug.
           setTours(
             res.data
-              .filter((t: any) => getStrictSlug(t.slug, locale))
+              .filter((t: any) => getStrictLocalizedSlug(t.slug, locale as SupportedLocale))
               .map((t: any) => mapTour(t, locale))
           );
         }

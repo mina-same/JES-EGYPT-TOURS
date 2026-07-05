@@ -16,22 +16,9 @@ import { useTranslation } from "react-i18next";
 import Image from "next/image";
 import Link from "next/link";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 
 import { use } from "react";
-
-// Strict localized slug: returns the slug ONLY when a real, non-empty string
-// exists for the current locale. Never falls back to English or another locale,
-// so we never build a fake localized URL like /de/english-slug.
-const getStrictSlug = (slug: any, locale: string): string => {
-  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
-  // string must NOT produce a link (would be a fake localized URL).
-  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
-  if (slug && typeof slug === "object") {
-    const v = slug[locale];
-    return typeof v === "string" ? v.trim() : "";
-  }
-  return "";
-};
 
 type WishlistTour = {
   _id: string;
@@ -132,8 +119,9 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           .filter((t: any) => !wishIds.has(t._id))
           // Only recommend tours that have a real slug for the current locale,
           // so the recommendation links never fall back to an English URL.
-          .filter((t: any) => getStrictSlug(t.slug, locale))
+          .filter((t: any) => getStrictLocalizedSlug(t.slug, locale as SupportedLocale))
           .map((t: any) => {
+            const slug = getStrictLocalizedSlug(t.slug, locale as SupportedLocale) || "";
             const galleryImages = [
               ...(t.images || []).map((img: any) => img.url),
               ...(t.gallery || []).map((img: any) => img.url),
@@ -143,7 +131,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               id: t._id,
               image: unique[0] || "/assets/images/resources/tour-1-1.jpg",
               title: t.heading || t.name || "Tour",
-              link: `/${locale}/${getStrictSlug(t.slug, locale)}`,
+              link: `/${locale}/${slug}`,
               price: t.priceStartingFrom || { USD: 0 },
               rating: 5,
               reviews: t.reviews?.length || 0,
@@ -224,7 +212,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 const reviews = tour.reviews?.length || 0;
                 // Keep the wishlisted item visible, but only link to its detail
                 // page when a real slug exists for the current locale.
-                const tourSlug = getStrictSlug(tour.slug, locale);
+                const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
                 return (
                   <Col lg={4} md={6} key={tour._id}>
                     <div className="item">

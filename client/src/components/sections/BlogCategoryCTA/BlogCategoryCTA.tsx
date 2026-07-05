@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Clock, ArrowRight } from 'lucide-react';
 import { getLocalizedValue } from '@/lib/localize';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import enBlogs from '@/i18n/locales/en/blogs.json';
 import deBlogs from '@/i18n/locales/de/blogs.json';
 import itBlogs from '@/i18n/locales/it/blogs.json';
@@ -54,20 +55,6 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
   const getBlogTitle = (blog: BlogPost): string => {
     if (!blog.title) return '';
     return getLocalizedValue(blog.title, locale) || '';
-  };
-
-  // Strict localized slug: returns the slug ONLY when a real, non-empty string
-  // exists for the current locale. Never falls back to English or another locale,
-  // so we never build a fake localized URL like /de/english-slug.
-  const getBlogSlug = (blog: BlogPost): string => {
-    const slug = blog.slug as any;
-    // Legacy plain-string slugs are only valid for English; for de/it/es a plain
-    // string must NOT produce a link (would be a fake localized URL).
-    if (typeof slug === 'string') return locale === 'en' ? slug.trim() : '';
-    if (slug && typeof slug === 'object' && typeof slug[locale] === 'string') {
-      return slug[locale].trim();
-    }
-    return '';
   };
 
   return (
@@ -234,7 +221,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                 {previewBlogs.map((blog, index) => {
                   const imgUrl = getImageUrl(blog.featuredImage);
                   const title = getBlogTitle(blog);
-                  const slug = getBlogSlug(blog);
+                  const slug = getStrictLocalizedSlug(blog.slug, locale as SupportedLocale) || '';
                   // No real localized slug → omit this preview card rather than
                   // linking to a fallback (English) URL from a non-English page.
                   if (!slug) return null;

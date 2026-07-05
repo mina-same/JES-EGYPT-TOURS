@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getLocalizedValue } from '@/lib/localize';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import { motion } from 'framer-motion';
 
 interface BlogSubcategoryNavProps {
@@ -22,12 +23,7 @@ const BlogSubcategoryNav: React.FC<BlogSubcategoryNavProps> = ({ subcategories, 
             // cross-locale fallback. Omit the chip when no localized slug exists.
             // Legacy plain-string slugs are only valid for English; for de/it/es
             // a plain string must NOT produce a link (would be a fake localized URL).
-            const slug =
-              typeof sub.slug === 'string'
-                ? (locale === 'en' ? sub.slug.trim() : '')
-                : (sub.slug && typeof sub.slug === 'object' && typeof sub.slug[locale] === 'string'
-                    ? sub.slug[locale].trim()
-                    : '');
+            const slug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale) || '';
             if (!slug) return null;
             const isActive = slug === currentSlug;
 
