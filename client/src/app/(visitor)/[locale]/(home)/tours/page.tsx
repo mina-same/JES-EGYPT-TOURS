@@ -23,6 +23,20 @@ interface CategoryWithSubcategories {
   subcategories: any[];
 }
 
+// Strict localized slug: returns the slug ONLY when a real, non-empty string
+// exists for the current locale. Never falls back to English or another locale,
+// so we never build a fake localized URL like /de/english-slug.
+const getStrictSlug = (slug: any, locale: string): string => {
+  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
+  // string must NOT produce a link (would be a fake localized URL).
+  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
+  if (slug && typeof slug === "object") {
+    const v = slug[locale];
+    return typeof v === "string" ? v.trim() : "";
+  }
+  return "";
+};
+
 export default function TourCategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
@@ -91,7 +105,10 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
           </div>
 
           <Row className="gutter-y-40">
-            {categories.map((category) => (
+            {categories.map((category) => {
+              const catSlug = getStrictSlug(category.slug, locale);
+              const catName = getLocalizedValue(category.name, locale);
+              return (
               <Col lg={4} md={6} key={category._id} className="wow fadeInUp" data-wow-delay="100ms">
                 <div className="category-card-premium">
                   <div className="category-card-premium__image-wrapper">
@@ -107,39 +124,57 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
                         {category.subcategories.length} Sub-destinations
                       </div>
                       <h3 className="category-card-premium__title">
-                        <Link href={`/${locale}/${getLocalizedValue(category.slug, locale)}`}>{getLocalizedValue(category.name, locale)}</Link>
+                        {catSlug ? (
+                          <Link href={`/${locale}/${catSlug}`}>{catName}</Link>
+                        ) : (
+                          <span>{catName}</span>
+                        )}
                       </h3>
-                      <Link href={`/${locale}/${getLocalizedValue(category.slug, locale)}`} className="category-card-premium__link">
-                        View All Tours <ChevronRight className="w-4 h-4" />
-                      </Link>
+                      {catSlug && (
+                        <Link href={`/${locale}/${catSlug}`} className="category-card-premium__link">
+                          View All Tours <ChevronRight className="w-4 h-4" />
+                        </Link>
+                      )}
                     </div>
                   </div>
-                  
+
                   <div className="category-card-premium__subcategories">
-                    <h4 className="category-card-premium__sub-title">Popular in {getLocalizedValue(category.name, locale)}</h4>
+                    <h4 className="category-card-premium__sub-title">Popular in {catName}</h4>
                     <ul className="category-card-premium__list">
-                      {category.subcategories.slice(0, 5).map((sub) => (
+                      {category.subcategories.slice(0, 5).map((sub) => {
+                        const subSlug = getStrictSlug(sub.slug, locale);
+                        const subName = getLocalizedValue(sub.name, locale);
+                        return (
                         <li key={sub._id}>
-                          <Link href={`/${locale}/${getLocalizedValue(sub.slug, locale)}`} className="flex items-center gap-2">
-                             <MapPin className="w-3 h-3 text-primary" />
-                             {getLocalizedValue(sub.name, locale)}
-                          </Link>
+                          {subSlug ? (
+                            <Link href={`/${locale}/${subSlug}`} className="flex items-center gap-2">
+                               <MapPin className="w-3 h-3 text-primary" />
+                               {subName}
+                            </Link>
+                          ) : (
+                            <span className="flex items-center gap-2">
+                               <MapPin className="w-3 h-3 text-primary" />
+                               {subName}
+                            </span>
+                          )}
                         </li>
-                      ))}
-                      {category.subcategories.length > 5 && (
+                        );
+                      })}
+                      {category.subcategories.length > 5 && catSlug && (
                         <li className="more-link">
-                           <Link href={`/${locale}/${getLocalizedValue(category.slug, locale)}`}>+ {category.subcategories.length - 5} more</Link>
+                           <Link href={`/${locale}/${catSlug}`}>+ {category.subcategories.length - 5} more</Link>
                         </li>
                       )}
                     </ul>
                   </div>
                 </div>
               </Col>
-            ))}
+              );
+            })}
           </Row>
 
           <div className="text-center mt-5">
-            <Link href="/tours/all" className="gotur-btn">
+            <Link href={`/${locale}/tours/all`} className="gotur-btn">
                View All Tours
                <span className="icon"><i className="icon-right"></i></span>
             </Link>

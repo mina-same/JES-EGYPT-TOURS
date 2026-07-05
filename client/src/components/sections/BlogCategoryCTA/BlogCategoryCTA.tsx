@@ -56,9 +56,18 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
     return getLocalizedValue(blog.title, locale) || '';
   };
 
+  // Strict localized slug: returns the slug ONLY when a real, non-empty string
+  // exists for the current locale. Never falls back to English or another locale,
+  // so we never build a fake localized URL like /de/english-slug.
   const getBlogSlug = (blog: BlogPost): string => {
-    if (!blog.slug) return '';
-    return getLocalizedValue(blog.slug, locale) || '';
+    const slug = blog.slug as any;
+    // Legacy plain-string slugs are only valid for English; for de/it/es a plain
+    // string must NOT produce a link (would be a fake localized URL).
+    if (typeof slug === 'string') return locale === 'en' ? slug.trim() : '';
+    if (slug && typeof slug === 'object' && typeof slug[locale] === 'string') {
+      return slug[locale].trim();
+    }
+    return '';
   };
 
   return (
@@ -226,6 +235,9 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                   const imgUrl = getImageUrl(blog.featuredImage);
                   const title = getBlogTitle(blog);
                   const slug = getBlogSlug(blog);
+                  // No real localized slug → omit this preview card rather than
+                  // linking to a fallback (English) URL from a non-English page.
+                  if (!slug) return null;
 
                   return (
                     <React.Fragment key={blog._id}>

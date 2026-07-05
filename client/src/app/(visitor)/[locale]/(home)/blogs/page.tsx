@@ -24,6 +24,20 @@ interface BlogCategoryWithSubs {
   subcategories: any[];
 }
 
+// Strict localized slug: returns the slug ONLY when a real, non-empty string
+// exists for the current locale. Never falls back to English or another locale,
+// so we never build a fake localized URL like /de/english-slug.
+const getStrictSlug = (slug: any, locale: string): string => {
+  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
+  // string must NOT produce a link (would be a fake localized URL).
+  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
+  if (slug && typeof slug === "object") {
+    const v = slug[locale];
+    return typeof v === "string" ? v.trim() : "";
+  }
+  return "";
+};
+
 export default function BlogCategoriesPage() {
   const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
@@ -95,18 +109,25 @@ export default function BlogCategoriesPage() {
           </div>
 
           <Row className="gutter-y-30">
-            {categories.map((category) => (
+            {categories.map((category) => {
+              const catSlug = getStrictSlug(category.slug, currentLocale);
+              const catName = getLocalizedValue(category.name, currentLocale);
+              return (
               <Col lg={4} md={6} key={category._id}>
                 <div className="blog-cat-card">
                   <div className="blog-cat-card__content">
                     <div className="blog-cat-card__header">
                        <h3 className="blog-cat-card__title">
-                         <Link href={`/${currentLocale}/${getLocalizedValue(category.slug, currentLocale)}`}>{getLocalizedValue(category.name, currentLocale)}</Link>
+                         {catSlug ? (
+                           <Link href={`/${currentLocale}/${catSlug}`}>{catName}</Link>
+                         ) : (
+                           <span>{catName}</span>
+                         )}
                        </h3>
 
                        <span className="blog-cat-card__count">{category.subcategories.length} {t('topics')}</span>
                     </div>
-                    
+
                     {category.description && (
                       <p className="blog-cat-card__text">
                         {getLocalizedValue(category.description, currentLocale).replace(/<[^>]*>/g, '').substring(0, 100)}...
@@ -116,29 +137,42 @@ export default function BlogCategoriesPage() {
 
                     <div className="blog-cat-card__subs mt-4">
                       <ul className="blog-cat-card__list">
-                        {category.subcategories.map((sub) => (
+                        {category.subcategories.map((sub) => {
+                          const subSlug = getStrictSlug(sub.slug, currentLocale);
+                          const subName = getLocalizedValue(sub.name, currentLocale);
+                          return (
                           <li key={sub._id}>
-                            <Link href={`/${currentLocale}/${getLocalizedValue(sub.slug, currentLocale)}`} className="flex items-center gap-2">
-                               <Hash className="w-3 h-3" />
-                               {getLocalizedValue(sub.name, currentLocale)}
-
-                            </Link>
+                            {subSlug ? (
+                              <Link href={`/${currentLocale}/${subSlug}`} className="flex items-center gap-2">
+                                 <Hash className="w-3 h-3" />
+                                 {subName}
+                              </Link>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                 <Hash className="w-3 h-3" />
+                                 {subName}
+                              </span>
+                            )}
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
                     </div>
 
-                    <Link href={`/${currentLocale}/${getLocalizedValue(category.slug, currentLocale)}`} className="blog-cat-card__btn mt-4">
-                      {t('exploreArticles')} <ChevronRight className="w-4 h-4" />
-                    </Link>
+                    {catSlug && (
+                      <Link href={`/${currentLocale}/${catSlug}`} className="blog-cat-card__btn mt-4">
+                        {t('exploreArticles')} <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               </Col>
-            ))}
+              );
+            })}
           </Row>
 
           <div className="text-center mt-5">
-            <Link href="/blogs/all" className="gotur-btn">
+            <Link href={`/${currentLocale}/blogs/all`} className="gotur-btn">
                {t('viewAllNews')}
                <span className="icon"><i className="icon-right"></i></span>
             </Link>

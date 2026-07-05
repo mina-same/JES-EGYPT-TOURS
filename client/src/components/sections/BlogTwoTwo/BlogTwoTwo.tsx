@@ -13,6 +13,19 @@ import { BlogPost, BlogResponse, formatBlogDate } from "@/lib/api/blog";
 import { getLocalizedValue } from "@/lib/localize";
 import { useTranslation } from "react-i18next";
 
+// Strict localized slug: returns the slug ONLY when a real, non-empty string
+// exists for the current locale. Never falls back to English or another locale.
+const getStrictSlug = (slug: any, locale: string): string => {
+  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
+  // string must NOT produce a link (would be a fake localized URL).
+  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
+  if (slug && typeof slug === "object") {
+    const v = slug[locale];
+    return typeof v === "string" ? v.trim() : "";
+  }
+  return "";
+};
+
 interface BlogData {
   tagline: string;
   title: string;
@@ -60,7 +73,9 @@ const BlogTwoTwo = () => {
   }, []);
 
   const featuredViewModel = useMemo(() => {
-    return featuredBlogs.map((post) => {
+    return featuredBlogs
+      .filter((post) => getStrictSlug(post.slug, currentLocale))
+      .map((post) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const image =
         typeof post.featuredImage === "string"
@@ -89,7 +104,7 @@ const BlogTwoTwo = () => {
         month,
         author: authorName,
         category,
-        link: `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`,
+        link: `/${currentLocale}/${getStrictSlug(post.slug, currentLocale)}`,
       };
 
     });

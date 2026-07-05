@@ -34,6 +34,19 @@ import esBlogs from '@/i18n/locales/es/blogs.json';
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
+// Strict localized slug: returns the slug ONLY when a real, non-empty string
+// exists for the current locale. Never falls back to English or another locale,
+// so we never build a fake localized URL like /de/english-slug.
+const getStrictSlug = (slug: any, locale: string): string => {
+  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
+  // string must NOT produce a link (would be a fake localized URL).
+  if (typeof slug === 'string') return locale === 'en' ? slug.trim() : '';
+  if (slug && typeof slug === 'object' && typeof slug[locale] === 'string') {
+    return slug[locale].trim();
+  }
+  return '';
+};
+
 // ─── Helper ───────────────────────────────────────────────────────────────────
 const getImageUrl = (img: any): string => {
   if (!img) return '';
@@ -249,8 +262,11 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
               {subcategories.map((sub: any, index: number) => {
-                const subSlug = getLocalizedValue(sub.slug, locale) || '';
+                const subSlug = getStrictSlug(sub.slug, locale);
                 const subName = getLocalizedValue(sub.name, locale) || '';
+                // No real localized slug → omit this subcategory card rather than
+                // linking to a fallback (English) URL from a non-English page.
+                if (!subSlug) return null;
                 return (
                   <motion.div key={sub._id || index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }} viewport={{ once: true }}>
                     <Link href={`/${locale}/${subSlug}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
@@ -380,7 +396,10 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                   const destImg = getImageUrl(dest.coverImage);
                   const destName = getLocalizedValue(dest.name, locale) || '';
                   const destImageTitle = getImageTitle(dest.coverImage, locale, destName);
-                  const destSlug = getLocalizedValue(dest.slug, locale) || '';
+                  const destSlug = getStrictSlug(dest.slug, locale);
+                  // No real localized slug → omit this destination card rather than
+                  // linking to a fallback (English) URL from a non-English page.
+                  if (!destSlug) return null;
                   return (
                     <div key={dest._id || idx} className="item">
                       <Link href={`/${locale}/${destSlug}`} style={{ textDecoration: 'none', display: 'block' }}>

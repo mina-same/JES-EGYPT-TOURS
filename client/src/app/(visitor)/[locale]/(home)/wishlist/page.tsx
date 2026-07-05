@@ -1,6 +1,4 @@
 "use client";
-import { getLocalizedValue } from "@/lib/localize";
-
 
 import React, { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout/Layout";
@@ -20,6 +18,20 @@ import Link from "next/link";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
 
 import { use } from "react";
+
+// Strict localized slug: returns the slug ONLY when a real, non-empty string
+// exists for the current locale. Never falls back to English or another locale,
+// so we never build a fake localized URL like /de/english-slug.
+const getStrictSlug = (slug: any, locale: string): string => {
+  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
+  // string must NOT produce a link (would be a fake localized URL).
+  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
+  if (slug && typeof slug === "object") {
+    const v = slug[locale];
+    return typeof v === "string" ? v.trim() : "";
+  }
+  return "";
+};
 
 type WishlistTour = {
   _id: string;
@@ -118,6 +130,9 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
         const wishIds = new Set(filtered.map((t) => t._id));
         const mapped = (rec || [])
           .filter((t: any) => !wishIds.has(t._id))
+          // Only recommend tours that have a real slug for the current locale,
+          // so the recommendation links never fall back to an English URL.
+          .filter((t: any) => getStrictSlug(t.slug, locale))
           .map((t: any) => {
             const galleryImages = [
               ...(t.images || []).map((img: any) => img.url),
@@ -128,7 +143,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               id: t._id,
               image: unique[0] || "/assets/images/resources/tour-1-1.jpg",
               title: t.heading || t.name || "Tour",
-              link: `/${locale}/${getLocalizedValue(t.slug, locale)}`,
+              link: `/${locale}/${getStrictSlug(t.slug, locale)}`,
               price: t.priceStartingFrom || { USD: 0 },
               rating: 5,
               reviews: t.reviews?.length || 0,
@@ -207,6 +222,9 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 const title = tour.heading || tour.name || "Untitled Tour";
                 const price = tour.priceStartingFrom || { USD: 0 };
                 const reviews = tour.reviews?.length || 0;
+                // Keep the wishlisted item visible, but only link to its detail
+                // page when a real slug exists for the current locale.
+                const tourSlug = getStrictSlug(tour.slug, locale);
                 return (
                   <Col lg={4} md={6} key={tour._id}>
                     <div className="item">
@@ -273,9 +291,13 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                             ))}
                           </div>
                           <h3 className="listing-card-four__title">
-                            <Link href={`/${locale}/${getLocalizedValue(tour.slug, locale)}`}>
-                              {title}
-                            </Link>
+                            {tourSlug ? (
+                              <Link href={`/${locale}/${tourSlug}`}>
+                                {title}
+                              </Link>
+                            ) : (
+                              <span>{title}</span>
+                            )}
                           </h3>
                           <div className="listing-card-four__content__btn">
                             <div className="listing-card-four__price">
@@ -286,15 +308,17 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                                 {formatPrice(price)}
                               </span>
                             </div>
-                            <Link
-                              href={`/${locale}/${getLocalizedValue(tour.slug, locale)}`}
-                              className="listing-card-four__btn gotur-btn"
-                            >
-                              {t("viewTour")}{" "}
-                              <span className="icon">
-                                <i className="icon-right"></i>
-                              </span>
-                            </Link>
+                            {tourSlug && (
+                              <Link
+                                href={`/${locale}/${tourSlug}`}
+                                className="listing-card-four__btn gotur-btn"
+                              >
+                                {t("viewTour")}{" "}
+                                <span className="icon">
+                                  <i className="icon-right"></i>
+                                </span>
+                              </Link>
+                            )}
                           </div>
                         </div>
                       </div>

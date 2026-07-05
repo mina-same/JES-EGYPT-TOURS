@@ -14,19 +14,35 @@ interface ListingBlogsProps {
   locale: string;
 }
 
+// Strict localized slug: returns the slug ONLY when a real, non-empty string
+// exists for the current locale. Never falls back to English or another locale.
+const getStrictSlug = (slug: any, locale: string): string => {
+  // Legacy plain-string slugs are only valid for English; for de/it/es a plain
+  // string must NOT produce a link (would be a fake localized URL).
+  if (typeof slug === "string") return locale === "en" ? slug.trim() : "";
+  if (slug && typeof slug === "object") {
+    const v = slug[locale];
+    return typeof v === "string" ? v.trim() : "";
+  }
+  return "";
+};
+
 const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle, locale }) => {
   const { t } = useTranslation('blogs');
 
   const viewModel = useMemo(() => {
     if (!blogs || !Array.isArray(blogs)) return [];
-    return blogs.slice(0, 3).map((post) => {
+    return blogs
+      .filter((post) => getStrictSlug(post.slug, locale))
+      .slice(0, 3)
+      .map((post) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const image = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
       const imageTitle = typeof post.featuredImage === 'object' ? getLocalizedValue(post.featuredImage?.title, locale) : '';
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
       const localizedTags = getLocalizedValue(post.tags, locale);
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
-      const slug = getLocalizedValue(post.slug, locale);
+      const slug = getStrictSlug(post.slug, locale);
 
       return {
         id: post._id,
