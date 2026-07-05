@@ -10,6 +10,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 
 interface NavItem {
   id: number;
@@ -23,33 +24,6 @@ type HeaderLinkTheme = "dark" | "light";
 interface HeaderOneProps {
   linkTheme?: HeaderLinkTheme;
 }
-
-const LOCALES = ["en", "de", "it", "es"];
-
-// Current route locale (source of truth for internal links) from the pathname.
-const getLocaleFromPath = (pathname: string | null): string => {
-  const seg = (pathname || "/").split("/")[1];
-  return LOCALES.includes(seg) ? seg : "en";
-};
-
-// Keep external / mailto / tel / hash links unchanged; ensure internal absolute
-// paths carry the current locale exactly once (never double-prefix).
-const localizeInternalUrl = (url: string | undefined, locale: string): string => {
-  if (!url) return `/${locale}`;
-  if (
-    /^(https?:)?\/\//i.test(url) ||
-    url.startsWith("mailto:") ||
-    url.startsWith("tel:") ||
-    url.startsWith("#")
-  ) {
-    return url;
-  }
-  if (url === "/") return `/${locale}`;
-  if (!url.startsWith("/")) return url;
-  const seg = url.split("/")[1];
-  if (LOCALES.includes(seg)) return url;
-  return `/${locale}${url}`;
-};
 
 const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
   const { i18n } = useTranslation();

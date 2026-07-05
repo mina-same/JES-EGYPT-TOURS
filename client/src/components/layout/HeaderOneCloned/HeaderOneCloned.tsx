@@ -11,6 +11,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import LanguageSelector from "../../common/LanguageSelector/LanguageSelector";
 import { useState, useEffect } from "react";
 
@@ -20,33 +21,6 @@ interface NavItem {
   link?: string;
   subMenu?: NavItem[];
 }
-
-const LOCALES = ["en", "de", "it", "es"];
-
-// Current route locale (source of truth for internal links) from the pathname.
-const getLocaleFromPath = (pathname: string | null): string => {
-  const seg = (pathname || "/").split("/")[1];
-  return LOCALES.includes(seg) ? seg : "en";
-};
-
-// Keep external / mailto / tel / hash links unchanged; ensure internal absolute
-// paths carry the current locale exactly once (never double-prefix).
-const localizeInternalUrl = (url: string | undefined, locale: string): string => {
-  if (!url) return `/${locale}`;
-  if (
-    /^(https?:)?\/\//i.test(url) ||
-    url.startsWith("mailto:") ||
-    url.startsWith("tel:") ||
-    url.startsWith("#")
-  ) {
-    return url;
-  }
-  if (url === "/") return `/${locale}`;
-  if (!url.startsWith("/")) return url;
-  const seg = url.split("/")[1];
-  if (LOCALES.includes(seg)) return url;
-  return `/${locale}${url}`;
-};
 
 const HeaderOneCloned: React.FC = () => {
   const { i18n } = useTranslation();
@@ -122,7 +96,7 @@ const HeaderOneCloned: React.FC = () => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={formatUrl(item.url || item.link)} style={{ color: "#000" }}>
+                    <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)} style={{ color: "#000" }}>
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
 

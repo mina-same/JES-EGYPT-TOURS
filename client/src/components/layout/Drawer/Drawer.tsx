@@ -7,6 +7,7 @@ import logo from "@/assets/images/logo-light.png";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 
 import { demoPages } from "@/data/demoPages";
 import { Col, Container, Row } from "react-bootstrap";
@@ -35,33 +36,6 @@ interface Page {
   darkPageLink?: string;
   viewPageLink?: string;
 }
-
-const LOCALES = ["en", "de", "it", "es"];
-
-const getLocaleFromPath = (pathname: string | null): string => {
-  const seg = (pathname || "/").split("/")[1];
-  return LOCALES.includes(seg) ? seg : "en";
-};
-
-const localizeInternalUrl = (url: string | undefined, locale: string): string => {
-  if (!url) return `/${locale}`;
-  if (
-    /^(https?:)?\/\//i.test(url) ||
-    url.startsWith("mailto:") ||
-    url.startsWith("tel:") ||
-    url.startsWith("#")
-  ) {
-    return url;
-  }
-
-  const formattedUrl = formatUrl(url);
-  if (formattedUrl === "/") return `/${locale}`;
-  if (!formattedUrl.startsWith("/")) return formattedUrl;
-
-  const seg = formattedUrl.split("/")[1];
-  if (LOCALES.includes(seg)) return formattedUrl;
-  return `/${locale}${formattedUrl}`;
-};
 
 const Drawer: React.FC = () => {
   const { i18n } = useTranslation();
@@ -167,7 +141,7 @@ const Drawer: React.FC = () => {
                 }`}
               >
                 <Link
-                  href={localizeInternalUrl(item.url || item.link, locale)}
+                  href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}
                   className={`${isItems === idx ? "expanded" : ""}`}
                 >
                   {getLocalizedValue(item.label || item.title, i18n.language)}
@@ -202,7 +176,7 @@ const Drawer: React.FC = () => {
                     >
                       <div className=' main-menu__list__wrapper'>
                         <Link
-                          href={localizeInternalUrl(subMenu.url || subMenu.link, locale)}
+                          href={localizeInternalUrl(formatUrl(subMenu.url || subMenu.link), locale)}
                           className={`${isSubItems === sidx ? "expanded" : ""}`}
                         >
                           {getLocalizedValue(subMenu.label || subMenu.title, i18n.language)}{" "}
@@ -228,7 +202,7 @@ const Drawer: React.FC = () => {
                         >
                           {subChildren.map((subSubItem: any, ssidx: number) => (
                             <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
-                              <Link href={localizeInternalUrl(subSubItem.url || subSubItem.link, locale)}>
+                              <Link href={localizeInternalUrl(formatUrl(subSubItem.url || subSubItem.link), locale)}>
                                 {getLocalizedValue(subSubItem.label || subSubItem.title, i18n.language)}
                               </Link>
                             </li>
