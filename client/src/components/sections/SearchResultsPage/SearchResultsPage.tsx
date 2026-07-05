@@ -166,6 +166,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const q = appliedFilters.q;
   const page = toNum((effectiveParams as any).page, 1);
   const blogPage = toNum((effectiveParams as any).blogPage, 1);
+  const searchBasePath = `/${locale}/search`;
 
   const updateUrl = (patch: Partial<typeof appliedFilters> & { page?: string; blogPage?: string }) => {
     const next: Record<string, string | undefined> = { 
@@ -183,7 +184,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       next.blogPage = "1";
     }
 
-    router.push(`/search${buildQueryString(next)}`);
+    router.push(`${searchBasePath}${buildQueryString(next)}`);
   };
 
   const handleApplyFilters = () => {
@@ -204,7 +205,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     };
     setDraftFilters(empty);
     setAppliedFilters(empty);
-    router.push("/search");
+    router.push(searchBasePath);
   };
 
   useEffect(() => {
@@ -578,7 +579,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                   <DynamicBlogGrid
                     blogs={blogs}
                     pagination={{ ...blogsPagination, pages: 1 }}
-                    basePath={`/search${buildQueryString({
+                    basePath={`${searchBasePath}${buildQueryString({
                       ...appliedFilters,
                       page: String(page),
                     })}`}

@@ -17,6 +17,7 @@ interface BlogSidebarProps {
 const BlogSidebar: React.FC<BlogSidebarProps> = ({ currentBlog }) => {
   const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
+  const blogsPath = `/${currentLocale}/blogs`;
   const [tags, setTags] = useState<string[]>([]);
   useEffect(() => {
     let isMounted = true;
@@ -68,7 +69,7 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ currentBlog }) => {
               {tags.map((tag, index) => (
                 <Link
                   key={index}
-                  href={`/blogs?tag=${encodeURIComponent(tag)}`}
+                  href={`${blogsPath}?tag=${encodeURIComponent(tag)}`}
                   className='gotur-btn'
                 >
                   {tag}

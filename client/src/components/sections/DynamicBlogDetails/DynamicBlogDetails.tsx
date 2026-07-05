@@ -52,6 +52,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 }) => {
   const { t, i18n } = useTranslation("blogs");
   const locale = (i18n.language || 'en');
+  const blogsPath = `/${locale}/blogs`;
 
   const [commentForm, setCommentForm] = useState({
     name: '',
@@ -795,7 +796,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     <div className='blog-details__categories__box'>
                       {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
                         <Link
-                          href={`/blogs?tag=${encodeURIComponent(tag)}`}
+                          href={`${blogsPath}?tag=${encodeURIComponent(tag)}`}
                           key={index}
                           className='blog-details__categories__btn gotur-btn'
                         >
