@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Clock, ArrowRight } from 'lucide-react';
 import { getLocalizedValue } from '@/lib/localize';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import enBlogs from '@/i18n/locales/en/blogs.json';
 import deBlogs from '@/i18n/locales/de/blogs.json';
 import itBlogs from '@/i18n/locales/it/blogs.json';
@@ -54,11 +55,6 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
   const getBlogTitle = (blog: BlogPost): string => {
     if (!blog.title) return '';
     return getLocalizedValue(blog.title, locale) || '';
-  };
-
-  const getBlogSlug = (blog: BlogPost): string => {
-    if (!blog.slug) return '';
-    return getLocalizedValue(blog.slug, locale) || '';
   };
 
   return (
@@ -225,7 +221,10 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                 {previewBlogs.map((blog, index) => {
                   const imgUrl = getImageUrl(blog.featuredImage);
                   const title = getBlogTitle(blog);
-                  const slug = getBlogSlug(blog);
+                  const slug = getStrictLocalizedSlug(blog.slug, locale as SupportedLocale) || '';
+                  // No real localized slug → omit this preview card rather than
+                  // linking to a fallback (English) URL from a non-English page.
+                  if (!slug) return null;
 
                   return (
                     <React.Fragment key={blog._id}>

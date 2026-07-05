@@ -11,6 +11,7 @@ import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGr
 import { getBlogsBySubCategory, getSubCategoryBySlug, getSubCategoriesByCategory } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { Loader2 } from "lucide-react";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA";
@@ -28,20 +29,6 @@ import itBlogs from "@/i18n/locales/it/blogs.json";
 import esBlogs from "@/i18n/locales/es/blogs.json";
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
-
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === "string") {
-    const trimmed = slugValue.trim();
-    return locale === "en" && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== "object") return null;
-
-  const value = slugValue[locale];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
 
 const getImageUrl = (img: any): string => {
   if (!img) return '';
@@ -120,7 +107,7 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
   }
 
   const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name, locale) : '';
-  const parentSlug = typeof subcategory.category === 'object' ? getStrictLocalizedSlug((subcategory.category as any).slug, locale) : null;
+  const parentSlug = typeof subcategory.category === 'object' ? getStrictLocalizedSlug((subcategory.category as any).slug, locale as SupportedLocale) : null;
   const subcategoryName = getLocalizedValue(subcategory.name, locale);
   const subcategoryImageTitle = getImageTitle(subcategory.image, locale, subcategoryName);
 

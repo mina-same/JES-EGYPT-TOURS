@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getCategories, getSubCategoriesByCategory } from "@/lib/api/blog";
 import { Loader2, ChevronRight, Hash } from "lucide-react";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 
 import Layout from "@/components/layout/Layout/Layout";
@@ -95,18 +96,25 @@ export default function BlogCategoriesPage() {
           </div>
 
           <Row className="gutter-y-30">
-            {categories.map((category) => (
+            {categories.map((category) => {
+              const catSlug = getStrictLocalizedSlug(category.slug, currentLocale as SupportedLocale) || "";
+              const catName = getLocalizedValue(category.name, currentLocale);
+              return (
               <Col lg={4} md={6} key={category._id}>
                 <div className="blog-cat-card">
                   <div className="blog-cat-card__content">
                     <div className="blog-cat-card__header">
                        <h3 className="blog-cat-card__title">
-                         <Link href={`/${currentLocale}/${getLocalizedValue(category.slug, currentLocale)}`}>{getLocalizedValue(category.name, currentLocale)}</Link>
+                         {catSlug ? (
+                           <Link href={`/${currentLocale}/${catSlug}`}>{catName}</Link>
+                         ) : (
+                           <span>{catName}</span>
+                         )}
                        </h3>
 
                        <span className="blog-cat-card__count">{category.subcategories.length} {t('topics')}</span>
                     </div>
-                    
+
                     {category.description && (
                       <p className="blog-cat-card__text">
                         {getLocalizedValue(category.description, currentLocale).replace(/<[^>]*>/g, '').substring(0, 100)}...
@@ -116,29 +124,42 @@ export default function BlogCategoriesPage() {
 
                     <div className="blog-cat-card__subs mt-4">
                       <ul className="blog-cat-card__list">
-                        {category.subcategories.map((sub) => (
+                        {category.subcategories.map((sub) => {
+                          const subSlug = getStrictLocalizedSlug(sub.slug, currentLocale as SupportedLocale) || "";
+                          const subName = getLocalizedValue(sub.name, currentLocale);
+                          return (
                           <li key={sub._id}>
-                            <Link href={`/${currentLocale}/${getLocalizedValue(sub.slug, currentLocale)}`} className="flex items-center gap-2">
-                               <Hash className="w-3 h-3" />
-                               {getLocalizedValue(sub.name, currentLocale)}
-
-                            </Link>
+                            {subSlug ? (
+                              <Link href={`/${currentLocale}/${subSlug}`} className="flex items-center gap-2">
+                                 <Hash className="w-3 h-3" />
+                                 {subName}
+                              </Link>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                 <Hash className="w-3 h-3" />
+                                 {subName}
+                              </span>
+                            )}
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
                     </div>
 
-                    <Link href={`/${currentLocale}/${getLocalizedValue(category.slug, currentLocale)}`} className="blog-cat-card__btn mt-4">
-                      {t('exploreArticles')} <ChevronRight className="w-4 h-4" />
-                    </Link>
+                    {catSlug && (
+                      <Link href={`/${currentLocale}/${catSlug}`} className="blog-cat-card__btn mt-4">
+                        {t('exploreArticles')} <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               </Col>
-            ))}
+              );
+            })}
           </Row>
 
           <div className="text-center mt-5">
-            <Link href="/blogs/all" className="gotur-btn">
+            <Link href={`/${currentLocale}/blogs/all`} className="gotur-btn">
                {t('viewAllNews')}
                <span className="icon"><i className="icon-right"></i></span>
             </Link>

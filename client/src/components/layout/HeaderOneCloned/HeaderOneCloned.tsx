@@ -11,6 +11,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import LanguageSelector from "../../common/LanguageSelector/LanguageSelector";
 import { useState, useEffect } from "react";
 
@@ -25,6 +26,7 @@ const HeaderOneCloned: React.FC = () => {
   const { i18n } = useTranslation();
   const scrollToTop = useScrollUp(500);
   const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname);
   const { menu } = useHeaderMenu("header-main");
   const [mounted, setMounted] = useState(false);
 
@@ -47,7 +49,7 @@ const HeaderOneCloned: React.FC = () => {
             ? "dropdown"
             : ""}
         >
-          <Link href={formatUrl(item.url || item.link)}>
+          <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}>
             {getLocalizedValue(item.label || item.title, i18n.language)}
           </Link>
 
@@ -71,7 +73,7 @@ const HeaderOneCloned: React.FC = () => {
       <div className='container-fluid'>
         <div className='main-header__inner'>
           <div className='main-header__logo logo-retina'>
-            <Link href='/'>
+            <Link href={`/${locale}`}>
               <Image src={main_logo} alt='JES Egypt Tours' title="JES Egypt Tours" width='100' height='30' />
             </Link>
           </div>
@@ -81,7 +83,7 @@ const HeaderOneCloned: React.FC = () => {
               <ul className='main-menu__list'>
                 {/* Render Home menu with showcase */}
                 <li className='dropdown megamenu'>
-                  <Link href='/' style={{ color: "#000" }}>Home</Link>
+                  <Link href={`/${locale}`} style={{ color: "#000" }}>Home</Link>
                 </li>
 
                 {nav.map((item: any) => (
@@ -94,7 +96,7 @@ const HeaderOneCloned: React.FC = () => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={formatUrl(item.url || item.link)} style={{ color: "#000" }}>
+                    <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)} style={{ color: "#000" }}>
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
 
@@ -122,7 +124,7 @@ const HeaderOneCloned: React.FC = () => {
                 ></i>
                 <span className='sr-only'>Search</span>
               </Link>
-              <Link href='/wishlist' className='main-header__info__item' style={{ position: "relative" }}>
+              <Link href={`/${locale}/wishlist`} className='main-header__info__item' style={{ position: "relative" }}>
                 <i
                   className={wishlist.length > 0 ? 'fas fa-heart' : 'far fa-heart'}
                   aria-hidden='true'
@@ -168,7 +170,7 @@ const HeaderOneCloned: React.FC = () => {
               <i className='icon-menu-bar' style={{ color: "#000" }}></i>
             </div>
 
-            <Link href='/tailor-made' className='gotur-btn main-header__btn'>
+            <Link href={`/${locale}/tailor-made`} className='gotur-btn main-header__btn'>
 
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>

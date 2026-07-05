@@ -4,7 +4,9 @@ import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { footerOneData } from "@/data/footerOneData";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import MailchimpSubscribe from "react-mailchimp-subscribe";
 
 const url = "//xxxx.us13.list-manage.com/subscribe/post?u=zefzefzef&id=fnfgn";
@@ -48,6 +50,8 @@ interface FooterDataType {
 }
 const FooterOne: React.FC = () => {
   const data: FooterDataType = footerOneData;
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname);
 
   return (
     <footer className='main-footer'>
@@ -59,7 +63,7 @@ const FooterOne: React.FC = () => {
             data-wow-delay='200ms'
           >
             <div className='footer-widget__logo logo-retina'>
-              <Link href='/'>
+              <Link href={`/${locale}`}>
                 <Image
                   src={data.logo}
                   alt='JES EGYPT TOURS logo'
@@ -145,7 +149,7 @@ const FooterOne: React.FC = () => {
                 <ul className='list-unstyled footer-widget__links'>
                   {data.destinations.map((item, idx) => (
                     <li key={idx}>
-                      <Link href={item.href}>{item.title}</Link>
+                      <Link href={localizeInternalUrl(item.href, locale)}>{item.title}</Link>
                     </li>
                   ))}
                 </ul>
@@ -162,7 +166,7 @@ const FooterOne: React.FC = () => {
                 <ul className='list-unstyled footer-widget__links'>
                   {data.usefulLinks.map((item, idx) => (
                     <li key={idx}>
-                      <Link href={item.href}>{item.title}</Link>
+                      <Link href={localizeInternalUrl(item.href, locale)}>{item.title}</Link>
                     </li>
                   ))}
                 </ul>
@@ -212,7 +216,7 @@ const FooterOne: React.FC = () => {
                             <input type='checkbox' name='checkbox' id='check' />
                             <label htmlFor='check'>
                               I agree to the{" "}
-                              <Link href={data.newsletter.privacyLink}>
+                              <Link href={localizeInternalUrl(data.newsletter.privacyLink, locale)}>
                                 Privacy Policy.
                               </Link>
                             </label>
@@ -255,9 +259,7 @@ const FooterOne: React.FC = () => {
               by JES Egypt Tours.
             </p>
             <div className='main-footer__bottom__pyment'>
-              <Link href='/checkout'>
-                <Image src={data.cardImage} alt='JES Egypt payment methods' title='Payment Methods' />
-              </Link>
+              <Image src={data.cardImage} alt='JES Egypt payment methods' title='Payment Methods' />
             </div>
           </div>
         </Container>

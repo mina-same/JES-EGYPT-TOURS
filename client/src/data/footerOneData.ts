@@ -56,19 +56,20 @@ export const footerOneData: FooterDataType = {
       { icon: "icon-youtube", link: "https://youtube.com", label: "Youtube" },
     ],
   },
+  // Internal hrefs are locale-prefixed at render time in FooterOne.
+  // Only real, existing routes are listed (no dead template/demo routes).
   destinations: [
-    { title: "South America", href: "/destination-details/south-america" },
-    { title: "Middle East", href: "/destination-details/middle-east" },
-    { title: "San Franc Rica", href: "/destination-details/san-franc-rica" },
-    { title: "New York", href: "/destination-details/new-york" },
-    { title: "Tokyo", href: "/destination-details/tokyo" },
+    { title: "Tours", href: "/tours" },
+    { title: "Special Offers", href: "/special-offers" },
+    { title: "Tailor-Made", href: "/tailor-made" },
+    { title: "Travel Blog", href: "/blogs" },
+    { title: "FAQ", href: "/faq" },
   ],
   usefulLinks: [
     { title: "About Us", href: "/about" },
-    { title: "Destination", href: "/destination-one" },
-    { title: "News & blog", href: "/blog-grid" },
-    { title: "Meet the Guide", href: "/team" },
-    { title: "Contacts", href: "/contact" },
+    { title: "Contact", href: "/contact" },
+    { title: "Wishlist", href: "/wishlist" },
+    { title: "Search", href: "/search" },
   ],
   newsletter: {
     text: "Sign up to searing weekly newsletter to get the latest updates.",

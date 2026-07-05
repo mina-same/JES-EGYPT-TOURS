@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 import { formatBlogDate } from '@/lib/api/blog';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 
 interface ListingBlogsProps {
   blogs?: any[];
@@ -19,14 +20,17 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
 
   const viewModel = useMemo(() => {
     if (!blogs || !Array.isArray(blogs)) return [];
-    return blogs.slice(0, 3).map((post) => {
+    return blogs
+      .filter((post) => getStrictLocalizedSlug(post.slug, locale as SupportedLocale))
+      .slice(0, 3)
+      .map((post) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const image = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
       const imageTitle = typeof post.featuredImage === 'object' ? getLocalizedValue(post.featuredImage?.title, locale) : '';
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
       const localizedTags = getLocalizedValue(post.tags, locale);
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
-      const slug = getLocalizedValue(post.slug, locale);
+      const slug = getStrictLocalizedSlug(post.slug, locale as SupportedLocale) || "";
 
       return {
         id: post._id,

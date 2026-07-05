@@ -11,6 +11,7 @@ import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { API_URL } from "@/config/api";
 import { BlogPost, BlogResponse, formatBlogDate } from "@/lib/api/blog";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 
 interface BlogData {
@@ -60,7 +61,10 @@ const BlogTwoTwo = () => {
   }, []);
 
   const featuredViewModel = useMemo(() => {
-    return featuredBlogs.map((post) => {
+    return featuredBlogs
+      .filter((post) => getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale))
+      .map((post) => {
+      const slug = getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale) || "";
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const image =
         typeof post.featuredImage === "string"
@@ -89,7 +93,7 @@ const BlogTwoTwo = () => {
         month,
         author: authorName,
         category,
-        link: `/${currentLocale}/${getLocalizedValue(post.slug, currentLocale)}`,
+        link: `/${currentLocale}/${slug}`,
       };
 
     });

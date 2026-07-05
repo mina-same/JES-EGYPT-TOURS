@@ -6,6 +6,7 @@ import { Col, Container, Row } from "react-bootstrap";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 
 interface DynamicBlogGridProps {
@@ -15,25 +16,11 @@ interface DynamicBlogGridProps {
   variant?: 'standard' | 'featured';
 }
 
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === "string") {
-    const trimmed = slugValue.trim();
-    return locale === "en" && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== "object") return null;
-
-  const value = slugValue[locale];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
 const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, basePath, variant = 'standard' }) => {
   const router = useRouter();
   const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
-  const renderableBlogs = blogs.filter((post) => getStrictLocalizedSlug(post.slug, currentLocale));
+  const renderableBlogs = blogs.filter((post) => getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale));
 
   const handlePageChange = (page: number) => {
     const separator = basePath.includes("?") ? "&" : "?";
@@ -53,7 +40,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
             ? getLocalizedValue(post.featuredImage.title, currentLocale)
             : imageAlt;
           
-          const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale);
+          const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale);
           if (!blogSlug) return null;
           const blogUrl = `/${currentLocale}/${blogSlug}`;
 
@@ -115,7 +102,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                 : 'Admin';
             
             // Build blog URL using localized slug
-            const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale);
+            const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale);
             if (!blogSlug) return null;
             const blogUrl = `/${currentLocale}/${blogSlug}`;
 

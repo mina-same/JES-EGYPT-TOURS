@@ -8,6 +8,7 @@ import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import BlogTOC from "@/components/common/BlogTOC/BlogTOC";
 import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2, Plus, Minus } from "lucide-react";
 import ReviewAvatar from "@/components/common/ReviewAvatar";
@@ -32,26 +33,13 @@ const EDITORIAL_AUTHOR = {
   bio: 'Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.',
 };
 
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === 'string') {
-    const trimmed = slugValue.trim();
-    return locale === 'en' && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== 'object') return null;
-
-  const value = slugValue[locale];
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
   blog, 
   showSidebar = 'right' 
 }) => {
   const { t, i18n } = useTranslation("blogs");
   const locale = (i18n.language || 'en');
+  const blogsPath = `/${locale}/blogs`;
 
   const [commentForm, setCommentForm] = useState({
     name: '',
@@ -481,13 +469,13 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     });
     const hasManualRelated = uniqueManualRelated.length > 0;
     const posts = (hasManualRelated ? uniqueManualRelated : popularBlogs.slice(0, 3))
-      .filter((post: any) => getStrictLocalizedSlug(post?.slug, locale));
+      .filter((post: any) => getStrictLocalizedSlug(post?.slug, locale as SupportedLocale));
     if (posts.length === 0) return null;
 
     const postCards = posts.map((post: any, idx: number) => {
       const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
       const postTitle = getLocalizedValue(post.title, locale);
-      const postSlug = getStrictLocalizedSlug(post.slug, locale);
+      const postSlug = getStrictLocalizedSlug(post.slug, locale as SupportedLocale);
       if (!postSlug) return null;
       const postLink = `/${locale}/${postSlug}`;
       const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
@@ -584,11 +572,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     });
     const hasManualRelatedTours = uniqueManualRelatedTours.length > 0;
     const toursToRender = (hasManualRelatedTours ? uniqueManualRelatedTours : relatedTours)
-      .filter((tour: any) => getStrictLocalizedSlug(tour?.slug, locale));
+      .filter((tour: any) => getStrictLocalizedSlug(tour?.slug, locale as SupportedLocale));
     if (toursToRender.length === 0) return null;
 
     const openVideoReviews = (slug: string) => {
-      const tour = toursToRender.find((item: any) => getStrictLocalizedSlug(item.slug, locale) === slug);
+      const tour = toursToRender.find((item: any) => getStrictLocalizedSlug(item.slug, locale as SupportedLocale) === slug);
       if (tour?.videoLink) {
         setVideoIds([tour.videoLink]);
         setVideoOpen(true);
@@ -601,7 +589,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         ...(tour.gallery || []).map((img: any) => img.url),
       ].filter(Boolean);
       const uniqueImages = Array.from(new Set(galleryImages));
-      const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+      const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
       if (!tourSlug) return null;
 
       const item = {
@@ -795,7 +783,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     <div className='blog-details__categories__box'>
                       {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
                         <Link
-                          href={`/blogs?tag=${encodeURIComponent(tag)}`}
+                          href={`${blogsPath}?tag=${encodeURIComponent(tag)}`}
                           key={index}
                           className='blog-details__categories__btn gotur-btn'
                         >

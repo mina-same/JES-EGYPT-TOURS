@@ -15,6 +15,7 @@ import {
 } from '@/lib/api/blog';
 import { SlugManager } from '@/components/common/SlugManager';
 import { getLocalizedValue } from '@/lib/localize';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import { Loader2, ArrowRight, MapPin } from 'lucide-react';
 import ListingFaqs from '@/components/common/ListingSections/ListingFaqs';
 import ClientCarousel from '@/components/sections/ClientCarousel/ClientCarousel';
@@ -249,8 +250,11 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
               {subcategories.map((sub: any, index: number) => {
-                const subSlug = getLocalizedValue(sub.slug, locale) || '';
+                const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale) || '';
                 const subName = getLocalizedValue(sub.name, locale) || '';
+                // No real localized slug → omit this subcategory card rather than
+                // linking to a fallback (English) URL from a non-English page.
+                if (!subSlug) return null;
                 return (
                   <motion.div key={sub._id || index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }} viewport={{ once: true }}>
                     <Link href={`/${locale}/${subSlug}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
@@ -380,7 +384,10 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                   const destImg = getImageUrl(dest.coverImage);
                   const destName = getLocalizedValue(dest.name, locale) || '';
                   const destImageTitle = getImageTitle(dest.coverImage, locale, destName);
-                  const destSlug = getLocalizedValue(dest.slug, locale) || '';
+                  const destSlug = getStrictLocalizedSlug(dest.slug, locale as SupportedLocale) || '';
+                  // No real localized slug → omit this destination card rather than
+                  // linking to a fallback (English) URL from a non-English page.
+                  if (!destSlug) return null;
                   return (
                     <div key={dest._id || idx} className="item">
                       <Link href={`/${locale}/${destSlug}`} style={{ textDecoration: 'none', display: 'block' }}>

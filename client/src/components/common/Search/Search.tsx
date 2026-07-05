@@ -2,11 +2,14 @@
 
 import useStore from "@/store/useStore";
 import React, { useEffect, useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { getLocaleFromPath } from "@/lib/url";
 
 const Search: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname);
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
@@ -22,7 +25,7 @@ const Search: React.FC = () => {
     const formData = new FormData(e.currentTarget);
     const raw = formData.get("search");
     const q = typeof raw === "string" ? raw.trim() : "";
-    const url = q ? `/search?q=${encodeURIComponent(q)}` : "/search";
+    const url = q ? `/${locale}/search?q=${encodeURIComponent(q)}` : `/${locale}/search`;
     router.push(url);
     changeSearchPopupStatus();
   };
