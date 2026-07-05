@@ -4,7 +4,11 @@ export const SUPPORTED_LOCALES = ["en", "de", "it", "es"] as const;
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
-export const SEO_BASE_URL = "https://jesegypttours.com";
+function normalizeBaseUrl(url: string | undefined): string {
+  return (url || "https://jesegypttours.com").trim().replace(/\/+$/g, "");
+}
+
+export const SEO_BASE_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_BASE_URL);
 
 function normalizeStaticPath(path: string = ""): string {
   const trimmed = path.trim().replace(/^\/+|\/+$/g, "");
@@ -19,6 +23,17 @@ function normalizeSlug(slug: unknown): string | null {
 
   const normalized = slug.trim().replace(/^\/+|\/+$/g, "");
   return normalized || null;
+}
+
+function buildLocalizedUrl(
+  baseUrl: string,
+  locale: SupportedLocale,
+  slugOrPath: string
+): string {
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  const normalizedSlugOrPath = normalizeStaticPath(slugOrPath);
+
+  return `${normalizedBaseUrl}/${locale}${normalizedSlugOrPath}`;
 }
 
 function getStrictLocalizedSlug(
@@ -45,32 +60,38 @@ export function getStrictSlugLocaleAlternates({
     ? (locale as SupportedLocale)
     : "en";
   const normalizedCurrentSlug = normalizeStaticPath(currentSlug);
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
   const languages: Record<string, string> = {};
+  let canonical = buildLocalizedUrl(normalizedBaseUrl, currentLocale, normalizedCurrentSlug);
 
   if (typeof slugs === "string") {
-    const strictCurrentSlug = normalizeSlug(slugs) || normalizeSlug(currentSlug);
-    if (strictCurrentSlug) {
-      languages[currentLocale] = `${baseUrl}/${currentLocale}/${strictCurrentSlug}`;
-      if (currentLocale === "en") {
-        languages["x-default"] = `${baseUrl}/en/${strictCurrentSlug}`;
-      }
+    const englishSlug = normalizeSlug(slugs);
+    if (englishSlug) {
+      const englishUrl = buildLocalizedUrl(normalizedBaseUrl, "en", englishSlug);
+      languages.en = englishUrl;
+      languages["x-default"] = englishUrl;
+      canonical = englishUrl;
     }
   } else {
     for (const supportedLocale of SUPPORTED_LOCALES) {
       const strictSlug = getStrictLocalizedSlug(slugs, supportedLocale);
       if (strictSlug) {
-        languages[supportedLocale] = `${baseUrl}/${supportedLocale}/${strictSlug}`;
+        languages[supportedLocale] = buildLocalizedUrl(
+          normalizedBaseUrl,
+          supportedLocale,
+          strictSlug
+        );
       }
     }
 
     const englishSlug = getStrictLocalizedSlug(slugs, "en");
     if (englishSlug) {
-      languages["x-default"] = `${baseUrl}/en/${englishSlug}`;
+      languages["x-default"] = buildLocalizedUrl(normalizedBaseUrl, "en", englishSlug);
     }
   }
 
   return {
-    canonical: `${baseUrl}/${currentLocale}${normalizedCurrentSlug}`,
+    canonical,
     languages,
   };
 }
