@@ -1,24 +1,8 @@
 import { MetadataRoute } from 'next';
 import { API_URL } from '@/config/api';
+import { getSeoBaseUrl, getStrictLocalizedSlug, SUPPORTED_LOCALES } from '@/lib/url';
 
-const locales = ['en', 'de', 'it', 'es'];
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://jesegypttours.com';
-
-function getStrictLocalizedSlug(slugs: unknown, locale: string): string | null {
-  if (!slugs) return null;
-
-  if (typeof slugs === 'string') {
-    return locale === 'en' && slugs.trim() ? slugs.trim().replace(/^\/+|\/+$/g, '') : null;
-  }
-
-  if (typeof slugs !== 'object') return null;
-
-  const value = (slugs as Record<string, unknown>)[locale];
-  if (typeof value !== 'string') return null;
-
-  const normalized = value.trim().replace(/^\/+|\/+$/g, '');
-  return normalized || null;
-}
+const baseUrl = getSeoBaseUrl();
 
 function addLocalizedUrls(
   entries: MetadataRoute.Sitemap,
@@ -28,7 +12,7 @@ function addLocalizedUrls(
     priority: number;
   }
 ) {
-  locales.forEach((locale) => {
+  SUPPORTED_LOCALES.forEach((locale) => {
     const localizedSlug = getStrictLocalizedSlug(slugs, locale);
     if (!localizedSlug) return;
 
@@ -77,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 1. Static Pages
   staticPages.forEach((path) => {
-    locales.forEach((locale) => {
+    SUPPORTED_LOCALES.forEach((locale) => {
       entries.push({
         url: `${baseUrl}/${locale}${path}`,
         lastModified: new Date(),

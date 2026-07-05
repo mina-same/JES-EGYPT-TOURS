@@ -1,28 +1,21 @@
 import type { Metadata } from "next";
+import {
+  DEFAULT_LOCALE,
+  getSeoBaseUrl,
+  getStrictLocalizedSlug,
+  normalizeLocale,
+  SUPPORTED_LOCALES,
+  type LocalizedSlugInput,
+  type SupportedLocale,
+} from "@/lib/url";
 
-export const SUPPORTED_LOCALES = ["en", "de", "it", "es"] as const;
+export { SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/url";
 
-export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
-
-function normalizeBaseUrl(url: string | undefined): string {
-  return (url || "https://jesegypttours.com").trim().replace(/\/+$/g, "");
-}
-
-export const SEO_BASE_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_BASE_URL);
+export const SEO_BASE_URL = getSeoBaseUrl();
 
 function normalizeStaticPath(path: string = ""): string {
   const trimmed = path.trim().replace(/^\/+|\/+$/g, "");
   return trimmed ? `/${trimmed}` : "";
-}
-
-type LocalizedSlugMap = Partial<Record<SupportedLocale, string | null | undefined>>;
-type LocalizedSlugInput = LocalizedSlugMap | string | null | undefined;
-
-function normalizeSlug(slug: unknown): string | null {
-  if (typeof slug !== "string") return null;
-
-  const normalized = slug.trim().replace(/^\/+|\/+$/g, "");
-  return normalized || null;
 }
 
 function buildLocalizedUrl(
@@ -30,19 +23,10 @@ function buildLocalizedUrl(
   locale: SupportedLocale,
   slugOrPath: string
 ): string {
-  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  const normalizedBaseUrl = getSeoBaseUrl(baseUrl);
   const normalizedSlugOrPath = normalizeStaticPath(slugOrPath);
 
   return `${normalizedBaseUrl}/${locale}${normalizedSlugOrPath}`;
-}
-
-function getStrictLocalizedSlug(
-  slugs: LocalizedSlugInput,
-  locale: SupportedLocale
-): string | null {
-  if (!slugs || typeof slugs !== "object") return null;
-
-  return normalizeSlug(slugs[locale]);
 }
 
 export function getStrictSlugLocaleAlternates({
@@ -56,19 +40,17 @@ export function getStrictSlugLocaleAlternates({
   slugs: LocalizedSlugInput;
   baseUrl?: string;
 }): NonNullable<Metadata["alternates"]> {
-  const currentLocale = SUPPORTED_LOCALES.includes(locale as SupportedLocale)
-    ? (locale as SupportedLocale)
-    : "en";
+  const currentLocale = normalizeLocale(locale);
   const normalizedCurrentSlug = normalizeStaticPath(currentSlug);
-  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  const normalizedBaseUrl = getSeoBaseUrl(baseUrl);
   const languages: Record<string, string> = {};
   let canonical = buildLocalizedUrl(normalizedBaseUrl, currentLocale, normalizedCurrentSlug);
 
   if (typeof slugs === "string") {
-    const englishSlug = normalizeSlug(slugs);
+    const englishSlug = getStrictLocalizedSlug(slugs, DEFAULT_LOCALE);
     if (englishSlug) {
-      const englishUrl = buildLocalizedUrl(normalizedBaseUrl, "en", englishSlug);
-      languages.en = englishUrl;
+      const englishUrl = buildLocalizedUrl(normalizedBaseUrl, DEFAULT_LOCALE, englishSlug);
+      languages[DEFAULT_LOCALE] = englishUrl;
       languages["x-default"] = englishUrl;
       canonical = englishUrl;
     }
@@ -84,9 +66,9 @@ export function getStrictSlugLocaleAlternates({
       }
     }
 
-    const englishSlug = getStrictLocalizedSlug(slugs, "en");
+    const englishSlug = getStrictLocalizedSlug(slugs, DEFAULT_LOCALE);
     if (englishSlug) {
-      languages["x-default"] = buildLocalizedUrl(normalizedBaseUrl, "en", englishSlug);
+      languages["x-default"] = buildLocalizedUrl(normalizedBaseUrl, DEFAULT_LOCALE, englishSlug);
     }
   }
 
@@ -101,9 +83,7 @@ export function getStaticLocaleAlternates(
   path: string = ""
 ): NonNullable<Metadata["alternates"]> {
   const normalizedPath = normalizeStaticPath(path);
-  const currentLocale = SUPPORTED_LOCALES.includes(locale as SupportedLocale)
-    ? (locale as SupportedLocale)
-    : "en";
+  const currentLocale = normalizeLocale(locale);
 
   const languages = SUPPORTED_LOCALES.reduce<Record<string, string>>(
     (acc, supportedLocale) => {
@@ -113,7 +93,7 @@ export function getStaticLocaleAlternates(
     {}
   );
 
-  languages["x-default"] = `${SEO_BASE_URL}/en${normalizedPath}`;
+  languages["x-default"] = `${SEO_BASE_URL}/${DEFAULT_LOCALE}${normalizedPath}`;
 
   return {
     canonical: `${SEO_BASE_URL}/${currentLocale}${normalizedPath}`,
