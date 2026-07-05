@@ -17,26 +17,13 @@ import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "@/hooks/use-toast";
 
 const GOLD = "#b79c5c";
 const DARK = "#1d231f";
-
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === "string") {
-    const trimmed = slugValue.trim();
-    return locale === "en" && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== "object") return null;
-
-  const value = slugValue[locale];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
 
 const FAQS = [
   {
@@ -102,7 +89,7 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
   }, 0);
 
   const mapTour = (tour: any) => {
-    const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+    const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
     if (!tourSlug) return null;
     const galleryImages = [
       ...(tour.images || []).map((img: any) => img.url),

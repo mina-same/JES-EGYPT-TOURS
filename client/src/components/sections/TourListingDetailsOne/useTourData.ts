@@ -8,6 +8,7 @@ import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
 import { getLocalizedList } from "@/lib/localize";
+import { getStrictLocalizedSlug } from "@/lib/url";
 
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
@@ -21,20 +22,6 @@ function getYouTubeVideoId(url: string): string {
   const shortsMatch = trimmed.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/);
   if (shortsMatch?.[1]) return shortsMatch[1];
   return '';
-}
-
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === 'string') {
-    const trimmed = slugValue.trim();
-    return locale === 'en' && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== 'object') return null;
-
-  const value = slugValue[locale];
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 export const useTourData = (id?: string, initialRawTour?: any) => {

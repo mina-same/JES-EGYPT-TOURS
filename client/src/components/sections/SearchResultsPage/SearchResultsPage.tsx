@@ -14,6 +14,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "@/hooks/use-toast";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -44,20 +45,6 @@ const buildQueryString = (params: Record<string, string | undefined>) => {
   const qs = sp.toString();
   return qs ? `?${qs}` : "";
 };
-
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === "string") {
-    const trimmed = slugValue.trim();
-    return locale === "en" && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== "object") return null;
-
-  const value = slugValue[locale];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
 
 const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchParams }) => {
   const router = useRouter();
@@ -250,7 +237,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
         }
 
         const mapped = (Array.isArray(res.data) ? res.data : []).map((tour: any) => {
-          const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+          const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
           if (!tourSlug) return null;
           const galleryImages = [
             ...(tour.images || []).map((img: any) => img.url),

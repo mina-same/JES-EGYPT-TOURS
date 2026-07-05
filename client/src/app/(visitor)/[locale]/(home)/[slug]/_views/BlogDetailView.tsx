@@ -11,6 +11,7 @@ import DynamicBlogDetails from "@/components/sections/DynamicBlogDetails/Dynamic
 import { getBlogBySlug } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { Loader2 } from "lucide-react";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 
@@ -21,20 +22,6 @@ import itBlogs from "@/i18n/locales/it/blogs.json";
 import esBlogs from "@/i18n/locales/es/blogs.json";
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
-
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === "string") {
-    const trimmed = slugValue.trim();
-    return locale === "en" && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== "object") return null;
-
-  const value = slugValue[locale];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
 
 export default function BlogDetailView({ slug, locale }: { slug: string; locale: string }) {
   const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
@@ -94,7 +81,7 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
   const blogCat = blogSubCat?.category;
 
   if (blogCat && typeof blogCat === 'object') {
-    const blogCatSlug = getStrictLocalizedSlug(blogCat.slug, locale);
+    const blogCatSlug = getStrictLocalizedSlug(blogCat.slug, locale as SupportedLocale);
     breadcrumbs.push({
       label: getLocalizedValue(blogCat.name, locale),
       href: blogCatSlug ? `/${locale}/${blogCatSlug}` : undefined
@@ -102,7 +89,7 @@ export default function BlogDetailView({ slug, locale }: { slug: string; locale:
   }
 
   if (blogSubCat && typeof blogSubCat === 'object') {
-    const blogSubCatSlug = getStrictLocalizedSlug(blogSubCat.slug, locale);
+    const blogSubCatSlug = getStrictLocalizedSlug(blogSubCat.slug, locale as SupportedLocale);
     breadcrumbs.push({
       label: getLocalizedValue(blogSubCat.name, locale),
       href: blogSubCatSlug ? `/${locale}/${blogSubCatSlug}` : undefined

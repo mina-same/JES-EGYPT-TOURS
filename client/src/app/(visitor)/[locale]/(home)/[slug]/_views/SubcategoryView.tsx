@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
 import { useTranslation } from 'react-i18next';
@@ -29,20 +30,6 @@ import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ListingReviews from "@/components/common/ListingSections/ListingReviews";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
-
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === "string") {
-    const trimmed = slugValue.trim();
-    return locale === "en" && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== "object") return null;
-
-  const value = slugValue[locale];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
 
 const FiltersContent = ({
   t,
@@ -280,7 +267,7 @@ export default function SubcategoryView({
         if (toursResponse.success && toursResponse.data) {
           setTotalPages(toursResponse.totalPages || 1);
           const mappedTours = toursResponse.data.map((tour: any) => {
-            const tourSlug = getStrictLocalizedSlug(tour.slug, locale);
+            const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
             if (!tourSlug) return null;
             const galleryImages = [
               ...(tour.images || []).map((img: any) => img.url),
@@ -377,7 +364,7 @@ export default function SubcategoryView({
   }
 
   // Build the category link (flat — just the category's slug)
-  const categoryLocalizedSlug = getStrictLocalizedSlug(subcategory.category?.slug, locale);
+  const categoryLocalizedSlug = getStrictLocalizedSlug(subcategory.category?.slug, locale as SupportedLocale);
 
   return (
     <Layout>
@@ -464,7 +451,7 @@ export default function SubcategoryView({
               <div className="subcategory-slider">
                 {siblingSubcategories.map((sub: any) => {
                   const isActive = String(sub?._id || "") === String(subcategory?._id || "") || String(sub?.slug || "") === String(slug || "");
-                  const subSlug = getStrictLocalizedSlug(sub.slug, locale);
+                  const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale);
                   if (!isActive && !subSlug) return null;
                   const subName = getLocalizedValue(sub.name, locale);
                   return (

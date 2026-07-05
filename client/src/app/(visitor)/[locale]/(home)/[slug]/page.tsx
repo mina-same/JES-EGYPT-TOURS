@@ -2,6 +2,7 @@ import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
 import { getCategoryBySlug as getBlogCategoryBySlug, getSubCategoryBySlug as getBlogSubCategoryBySlug, getBlogBySlug } from "@/lib/api/blog";
 import { getDestinationBySlug } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { Metadata } from "next";
@@ -27,20 +28,6 @@ import DestinationView from "./_views/DestinationView";
 function getLocaleSlug(slugObj: any, locale: string): string | null {
   if (!slugObj || typeof slugObj !== 'object') return slugObj || null;
   return slugObj[locale] || null;
-}
-
-function getStrictLocalizedSlug(slugValue: any, locale: string): string | null {
-  if (!slugValue) return null;
-
-  if (typeof slugValue === "string") {
-    const trimmed = slugValue.trim();
-    return locale === "en" && trimmed ? trimmed : null;
-  }
-
-  if (typeof slugValue !== "object") return null;
-
-  const value = slugValue[locale];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function ensureTourMapSchema(tour: any) {
@@ -583,7 +570,7 @@ export default async function SlugPage({ params }: PageProps) {
       const blogCat = blogSubCat?.category;
       const blogCatName = blogCat && typeof blogCat === 'object' ? getLocalizedValue(blogCat.name, locale) : 'Blog';
       const blogCatSlug = blogCat && typeof blogCat === 'object'
-        ? getStrictLocalizedSlug(blogCat.slug, locale)
+        ? getStrictLocalizedSlug(blogCat.slug, locale as SupportedLocale)
         : null;
       const blogCatUrl = blogCatSlug ? `${baseUrl}/${locale}/${blogCatSlug}` : null;
 
@@ -710,14 +697,14 @@ export default async function SlugPage({ params }: PageProps) {
       const breadcrumbs: { label: string; href?: string }[] = [];
 
       if (category?.name) {
-        const catSlug = getStrictLocalizedSlug(category.slug, locale);
+        const catSlug = getStrictLocalizedSlug(category.slug, locale as SupportedLocale);
         breadcrumbs.push({
           label: getLocalizedValue(category.name, locale),
           href: catSlug ? `/${locale}/${catSlug}` : undefined,
         });
       }
       if (subcategory?.name) {
-        const subSlug = getStrictLocalizedSlug(subcategory.slug, locale);
+        const subSlug = getStrictLocalizedSlug(subcategory.slug, locale as SupportedLocale);
         breadcrumbs.push({
           label: getLocalizedValue(subcategory.name, locale),
           href: subSlug ? `/${locale}/${subSlug}` : undefined,
