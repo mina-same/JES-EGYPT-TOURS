@@ -3,13 +3,7 @@
 import useStore from "@/store/useStore";
 import React, { useEffect, useState, FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
-const LOCALES = ["en", "de", "it", "es"];
-
-const getLocaleFromPath = (pathname: string | null): string => {
-  const seg = (pathname || "/").split("/")[1];
-  return LOCALES.includes(seg) ? seg : "en";
-};
+import { getLocaleFromPath } from "@/lib/url";
 
 const Search: React.FC = () => {
   const [mounted, setMounted] = useState(false);

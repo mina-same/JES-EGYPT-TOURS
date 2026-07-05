@@ -4,6 +4,7 @@ import { FAQ } from '@/services/faqService';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
+import { getLocaleFromPath, normalizeLocale } from '@/lib/url';
 
 interface FaqStructuredDataProps {
   faqs: FAQ[];
@@ -28,13 +29,6 @@ interface BreadcrumbItem {
 }
 
 const BASE_URL = 'https://jesegypttours.com';
-const LOCALES = ['en', 'de', 'it', 'es'];
-
-const getLocaleFromPath = (pathname: string | null, fallback: string): string => {
-  const pathLocale = (pathname || '/').split('/')[1];
-  if (LOCALES.includes(pathLocale)) return pathLocale;
-  return LOCALES.includes(fallback) ? fallback : 'en';
-};
 
 export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({ 
   faqs, 
@@ -43,7 +37,7 @@ export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({
 }) => {
   const { i18n } = useTranslation();
   const pathname = usePathname();
-  const locale = getLocaleFromPath(pathname, i18n.language);
+  const locale = getLocaleFromPath(pathname, normalizeLocale(i18n.language));
   const faqPageUrl = `${BASE_URL}/${locale}/faq`;
 
   const structuredData = {
@@ -80,7 +74,7 @@ export const FaqBreadcrumbStructuredData: React.FC<BreadcrumbStructuredDataProps
 }) => {
   const { i18n } = useTranslation();
   const pathname = usePathname();
-  const locale = getLocaleFromPath(pathname, i18n.language);
+  const locale = getLocaleFromPath(pathname, normalizeLocale(i18n.language));
   const localeHomeUrl = `${BASE_URL}/${locale}`;
   const faqPageUrl = `${localeHomeUrl}/faq`;
 
