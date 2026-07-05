@@ -262,7 +262,7 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
                         {faqData.title}
                       </h3>
                       <Link
-                        href='/tour-listing-details-2'
+                        href={`/${currentLang}/tours`}
                         className='gotur-btn'
                       >
                         {t('bookNow')}{" "}

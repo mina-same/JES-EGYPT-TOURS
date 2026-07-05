@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { FAQ } from '@/services/faqService';
+import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 
@@ -19,19 +20,41 @@ interface HowToStructuredDataProps {
   answer: string;
 }
 
+interface BreadcrumbItem {
+  "@type": "ListItem";
+  "position": number;
+  "name": string;
+  "item"?: string;
+}
+
+const BASE_URL = 'https://jesegypttours.com';
+const LOCALES = ['en', 'de', 'it', 'es'];
+
+const getLocaleFromPath = (pathname: string | null, fallback: string): string => {
+  const pathLocale = (pathname || '/').split('/')[1];
+  if (LOCALES.includes(pathLocale)) return pathLocale;
+  return LOCALES.includes(fallback) ? fallback : 'en';
+};
+
 export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({ 
   faqs, 
   title, 
   description 
 }) => {
   const { i18n } = useTranslation();
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname, i18n.language);
+  const faqPageUrl = `${BASE_URL}/${locale}/faq`;
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "url": faqPageUrl,
+    "name": title,
+    "description": description,
     "mainEntity": faqs.map(faq => {
-      const q = getLocalizedValue(faq.question, i18n.language) || '';
-      const a = getLocalizedValue(faq.answer, i18n.language) || '';
+      const q = getLocalizedValue(faq.question, locale) || '';
+      const a = getLocalizedValue(faq.answer, locale) || '';
 
       return {
         "@type": "Question",
@@ -55,18 +78,24 @@ export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({
 export const FaqBreadcrumbStructuredData: React.FC<BreadcrumbStructuredDataProps> = ({ 
   category 
 }) => {
-  const breadcrumbs = [
+  const { i18n } = useTranslation();
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname, i18n.language);
+  const localeHomeUrl = `${BASE_URL}/${locale}`;
+  const faqPageUrl = `${localeHomeUrl}/faq`;
+
+  const breadcrumbs: BreadcrumbItem[] = [
     {
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": "https://jesegypttours.com"
+      "item": localeHomeUrl
     },
     {
       "@type": "ListItem",
       "position": 2,
       "name": "FAQ",
-      "item": "https://jesegypttours.com/faq"
+      "item": faqPageUrl
     }
   ];
 
@@ -74,8 +103,7 @@ export const FaqBreadcrumbStructuredData: React.FC<BreadcrumbStructuredDataProps
     breadcrumbs.push({
       "@type": "ListItem",
       "position": 3,
-      "name": category,
-      "item": `https://jesegypttours.com/faq/${category.toLowerCase().replace(/\s+/g, '-')}`
+      "name": category
     });
   }
 
