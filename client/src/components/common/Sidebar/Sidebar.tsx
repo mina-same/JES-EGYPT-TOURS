@@ -4,9 +4,13 @@ import Image from "next/image";
 import sidebarData from "@/data/sidebardata";
 import useStore from "@/store/useStore";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import MailchimpSubscribe from "react-mailchimp-subscribe";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 
 const Sidebar: React.FC = () => {
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname);
   const { sideBarDrawerStatus, changeSideBarDrawerStatus } = useStore();
 
   return (
@@ -29,7 +33,7 @@ const Sidebar: React.FC = () => {
 
         {/* Logo Box with Image */}
         <div className='header-right-sidebar__logo-box'>
-          <Link href='/' aria-label='logo image'>
+          <Link href={localizeInternalUrl("/", locale)} aria-label='logo image'>
             {/* Using Next.js Image component for optimized loading */}
             <Image src={sidebarData.logo} width={158} height={50} alt='logo' />
           </Link>

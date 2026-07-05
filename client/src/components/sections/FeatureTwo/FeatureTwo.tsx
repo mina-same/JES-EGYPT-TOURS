@@ -237,14 +237,14 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                           <ul className='listing-card-four__meta list-unstyled'>
                             {item.meta.map((meta: Metadata) => (
                               <li key={meta.id}>
-                                <Link href='tour-listing-details-2'>
+                                <span>
                                   {" "}
                                   <span className='listing-card-four__meta__icon'>
                                     {" "}
                                     <i className={meta.icon}></i>{" "}
                                   </span>
                                   {meta.title}
-                                </Link>
+                                </span>
                               </li>
                             ))}
                           </ul>
