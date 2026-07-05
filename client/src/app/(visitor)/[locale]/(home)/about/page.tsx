@@ -7,8 +7,6 @@ import AboutOne from "@/components/sections/AboutOne/AboutOne";
 import CtaTwo from "@/components/sections/CtaTwo/CtaTwo";
 import HowItWorks from "@/components/sections/HowItWorks/HowItWorks";
 import AboutTestimonials from "@/components/sections/AboutTestimonials/AboutTestimonials";
-import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
-import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
