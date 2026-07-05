@@ -24,9 +24,37 @@ interface HeaderOneProps {
   linkTheme?: HeaderLinkTheme;
 }
 
+const LOCALES = ["en", "de", "it", "es"];
+
+// Current route locale (source of truth for internal links) from the pathname.
+const getLocaleFromPath = (pathname: string | null): string => {
+  const seg = (pathname || "/").split("/")[1];
+  return LOCALES.includes(seg) ? seg : "en";
+};
+
+// Keep external / mailto / tel / hash links unchanged; ensure internal absolute
+// paths carry the current locale exactly once (never double-prefix).
+const localizeInternalUrl = (url: string | undefined, locale: string): string => {
+  if (!url) return `/${locale}`;
+  if (
+    /^(https?:)?\/\//i.test(url) ||
+    url.startsWith("mailto:") ||
+    url.startsWith("tel:") ||
+    url.startsWith("#")
+  ) {
+    return url;
+  }
+  if (url === "/") return `/${locale}`;
+  if (!url.startsWith("/")) return url;
+  const seg = url.split("/")[1];
+  if (LOCALES.includes(seg)) return url;
+  return `/${locale}${url}`;
+};
+
 const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
   const { i18n } = useTranslation();
   const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname);
   const { menu } = useHeaderMenu("header-main");
   const {
     changeSearchPopupStatus,
@@ -44,7 +72,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
             ? "dropdown"
             : ""}
         >
-          <Link href={formatUrl(item.url || item.link)}>
+          <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}>
             {getLocalizedValue(item.label || item.title, i18n.language)}
           </Link>
 
@@ -69,7 +97,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
       <div className='container-fluid'>
         <div className='main-header__inner'>
           <div className='main-header__logo logo-retina'>
-            <Link href='/'>
+            <Link href={`/${locale}`}>
               <Image src={main_logo} alt='JES EGYPT TOURS' title='JES EGYPT TOURS' width='100' height='30' />
             </Link>
           </div>
@@ -79,7 +107,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
               <ul className='main-menu__list'>
                 {/* Render Home menu with showcase */}
                 <li className='dropdown megamenu'>
-                  <Link href='/'>Home</Link>
+                  <Link href={`/${locale}`}>Home</Link>
                 </li>
 
                 {nav.map((item: any) => (
@@ -92,7 +120,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={formatUrl(item.url || item.link)}>
+                    <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}>
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
 
@@ -119,7 +147,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                 ></i>
                 <span className='sr-only'>Search</span>
               </Link>
-              <Link href='/wishlist' className='main-header__info__item' style={{ position: "relative" }}>
+              <Link href={`/${locale}/wishlist`} className='main-header__info__item' style={{ position: "relative" }}>
                 <i className={wishlist.length > 0 ? 'fas fa-heart' : 'far fa-heart'} aria-hidden='true'></i>
                 <span className='sr-only'>Wishlist</span>
                 {wishlist.length > 0 && (
@@ -151,7 +179,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
               <i className='icon-menu-bar'></i>
             </div>
 
-            <Link href='/tailor-made' className='gotur-btn main-header__btn'>
+            <Link href={`/${locale}/tailor-made`} className='gotur-btn main-header__btn'>
 
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>
