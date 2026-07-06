@@ -33,6 +33,65 @@ const DEFAULT_RATES: Record<CurrencyCode, number> = {
 };
 
 const STORAGE_KEY = "jes_preferred_currency";
+const RATES_CACHE_KEY = "jes_currency_rates_cache_v1";
+const RATES_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
+interface CurrencyRatesCache {
+  timestamp: number;
+  rates: Record<CurrencyCode, number>;
+}
+
+const isRatesPayload = (rates: unknown): rates is Record<CurrencyCode, number> => {
+  const data = rates as Partial<Record<CurrencyCode, unknown>>;
+  return (
+    typeof data?.USD === "number" &&
+    typeof data?.EUR === "number" &&
+    typeof data?.GBP === "number"
+  );
+};
+
+const readRatesCache = (): { rates: Record<CurrencyCode, number>; expired: boolean } | null => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(RATES_CACHE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Partial<CurrencyRatesCache>;
+    if (typeof parsed.timestamp !== "number" || !isRatesPayload(parsed.rates)) {
+      window.sessionStorage.removeItem(RATES_CACHE_KEY);
+      return null;
+    }
+
+    return {
+      rates: parsed.rates,
+      expired: Date.now() - parsed.timestamp >= RATES_CACHE_TTL_MS,
+    };
+  } catch {
+    try {
+      window.sessionStorage.removeItem(RATES_CACHE_KEY);
+    } catch {
+      // sessionStorage unavailable
+    }
+    return null;
+  }
+};
+
+const writeRatesCache = (rates: Record<CurrencyCode, number>) => {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.setItem(
+      RATES_CACHE_KEY,
+      JSON.stringify({
+        timestamp: Date.now(),
+        rates,
+      })
+    );
+  } catch {
+    // sessionStorage unavailable
+  }
+};
 
 const CurrencyContext = createContext<CurrencyContextType>({
   currency: "USD",
@@ -55,8 +114,10 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Load saved currency from localStorage on mount
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved && (saved === "USD" || saved === "EUR" || saved === "GBP")) {
         setCurrencyState(saved as CurrencyCode);
       }
@@ -68,17 +129,31 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
   // Fetch exchange rates from API
   useEffect(() => {
     const fetchRates = async () => {
+      const cached = readRatesCache();
+      if (cached && !cached.expired) {
+        setRates(cached.rates);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const response = await currencyAPI.getRates();
         if (response.success && response.data) {
-          setRates({
+          const freshRates = {
             USD: 1,
             EUR: response.data.rates.EUR,
             GBP: response.data.rates.GBP,
-          });
+          };
+          setRates(freshRates);
+          writeRatesCache(freshRates);
+        } else if (cached?.rates) {
+          setRates(cached.rates);
         }
       } catch (error) {
         console.warn("Failed to fetch currency rates, using defaults:", error);
+        if (cached?.rates) {
+          setRates(cached.rates);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -89,8 +164,10 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const setCurrency = useCallback((newCurrency: CurrencyCode) => {
     setCurrencyState(newCurrency);
+    if (typeof window === "undefined") return;
+
     try {
-      localStorage.setItem(STORAGE_KEY, newCurrency);
+      window.localStorage.setItem(STORAGE_KEY, newCurrency);
     } catch {
       // localStorage unavailable
     }
