@@ -3,8 +3,6 @@ import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import Layout from "@/components/layout/Layout/Layout";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import LoginSection from "@/components/sections/LoginSection/LoginSection";
-import HeaderInner from "@/components/layout/HeaderInner/HeaderInner";
-import HeaderInnerCloned from "@/components/layout/HeaderInnerCloned/HeaderInnerCloned";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { AuthProvider } from "@/contexts/AuthContext";

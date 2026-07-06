@@ -6,6 +6,8 @@ import useCountdown from "@/hooks/useCountDown";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 
 interface CtaTwoContent {
   tagline: string;
@@ -18,6 +20,8 @@ interface CtaTwoContent {
   ctaShape: StaticImageData;
 }
 const CtaTwo = () => {
+  const pathname = usePathname();
+  const locale = getLocaleFromPath(pathname);
   const targetDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + 31);
@@ -40,6 +44,7 @@ const CtaTwo = () => {
     ctaPopup,
     ctaShape,
   }: CtaTwoContent = ctaTwoData;
+  const localizedButtonLink = localizeInternalUrl(buttonLink, locale);
 
   return (
     <section className='cta-two position-relative'>
@@ -92,7 +97,7 @@ const CtaTwo = () => {
                 </div>
 
                 <div className='cta-two__btn'>
-                  <Link href={buttonLink} className='gotur-btn gotur-btn--base'>
+                  <Link href={localizedButtonLink} className='gotur-btn gotur-btn--base'>
                     {buttonText}
                     <span className='icon'>
                       <i className='icon-right'></i>
