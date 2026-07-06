@@ -88,10 +88,16 @@ const settings = {
   speed: 1000,
 };
 
-const MainSliderFour: React.FC = () => {
+type MainSliderFourProps = {
+  initialSliders?: ApiSliderItem[];
+};
+
+const MainSliderFour: React.FC<MainSliderFourProps> = ({ initialSliders = [] }) => {
   const { i18n } = useTranslation();
   const [promo, setPromo] = React.useState<SliderUnderPromo | null>(null);
-  const [slides, setSlides] = React.useState<SlideVM[]>([]);
+  const [slides, setSlides] = React.useState<SlideVM[]>(() =>
+    initialSliders.map((item) => mapApiSlideToVm(item, i18n.language)).filter((s) => !!s.imageUrl)
+  );
 
   React.useEffect(() => {
     // Inject custom styles for dots
@@ -105,6 +111,8 @@ const MainSliderFour: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
+    let shouldLoadSlides = true;
+
     const loadSlides = async () => {
       try {
         const items = await sliderService.getActiveSliderContent();
@@ -116,6 +124,15 @@ const MainSliderFour: React.FC = () => {
       }
     };
 
+    const mappedInitialSlides = (initialSliders || [])
+      .map((item) => mapApiSlideToVm(item, i18n.language))
+      .filter((s) => !!s.imageUrl);
+
+    if (mappedInitialSlides.length) {
+      setSlides(mappedInitialSlides);
+      shouldLoadSlides = false;
+    }
+
     const loadPromo = async () => {
       try {
         const p = await sliderService.getPublicSliderPromo();
@@ -125,9 +142,11 @@ const MainSliderFour: React.FC = () => {
       }
     };
 
-    loadSlides();
+    if (shouldLoadSlides) {
+      loadSlides();
+    }
     loadPromo();
-  }, [i18n.language]);
+  }, [i18n.language, initialSliders]);
 
   if (!slides.length) {
     return null;

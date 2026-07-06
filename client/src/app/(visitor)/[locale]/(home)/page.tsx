@@ -18,6 +18,8 @@ import ReflectiveReviews from "@/components/sections/ReflectiveReviews/Reflectiv
 import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
 import HomeIntro from "@/components/sections/HomeIntro/HomeIntro";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { sliderService } from "@/services/sliderService";
+import type { SliderItem } from "@/types/slider";
 import { Metadata } from "next";
 
 export async function generateMetadata({
@@ -41,13 +43,23 @@ export async function generateMetadata({
 
 
 
-export default function HomeThree() {
+async function getInitialSliders(): Promise<SliderItem[]> {
+  try {
+    return await sliderService.getActiveSliderContent();
+  } catch {
+    return [];
+  }
+}
+
+export default async function HomeThree() {
+  const initialSliders = await getInitialSliders();
+
   return (
     <Layout>
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <MainSliderFour />
+      <MainSliderFour initialSliders={initialSliders} />
       <AboutOne />
       <WhyChooseUs />
       <HomeIntro />
