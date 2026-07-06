@@ -7,6 +7,7 @@ import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { cache } from "react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -159,43 +160,28 @@ function withImageSource(image?: { url: string }) {
   return image?.url ? { image_src: image.url } : undefined;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug, locale } = await params;
+type SlugContentType =
+  | "category"
+  | "subcategory"
+  | "blogCategory"
+  | "blogSubcategory"
+  | "blog"
+  | "destination"
+  | "tour";
 
+type ResolvedSlugContent = {
+  type: SlugContentType;
+  data: any;
+  correctSlug: string;
+};
+
+const resolveSlugContent = cache(async (slug: string, locale: string): Promise<ResolvedSlugContent | null> => {
   // 1. Try category
   try {
     const catRes = await tourCategoryAPI.getBySlug(slug, locale);
     if (catRes?.success && catRes?.data) {
-      const data = catRes.data;
-      const correctSlug = getLocaleSlug(data.slug, locale);
-      if (correctSlug) {
-        const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
-        const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
-        const description = stripHtml(seoDescription || "");
-        const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
-        const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
-        
-        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
-        return {
-          title: seoTitle ? seoTitle : "JES Egypt Tours",
-          description,
-          keywords: keywords || undefined,
-          alternates,
-          openGraph: {
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            type: "website",
-            images: image ? [image] : undefined,
-          },
-          twitter: {
-            card: "summary_large_image",
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            images: image ? [image] : undefined,
-          },
-          other: withImageSource(image),
-        };
-      }
+      const correctSlug = getLocaleSlug(catRes.data.slug, locale);
+      if (correctSlug) return { type: "category", data: catRes.data, correctSlug };
     }
   } catch {}
 
@@ -203,36 +189,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const subRes = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
     if (subRes?.success && subRes?.data) {
-      const data = subRes.data;
-      const correctSlug = getLocaleSlug(data.slug, locale);
-      if (correctSlug) {
-        const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
-        const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
-        const description = stripHtml(seoDescription || "");
-        const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
-        const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
-
-        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
-        return {
-          title: seoTitle ? seoTitle : "JES Egypt Tours",
-          description,
-          keywords: keywords || undefined,
-          alternates,
-          openGraph: {
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            type: "website",
-            images: image ? [image] : undefined,
-          },
-          twitter: {
-            card: "summary_large_image",
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            images: image ? [image] : undefined,
-          },
-          other: withImageSource(image),
-        };
-      }
+      const correctSlug = getLocaleSlug(subRes.data.slug, locale);
+      if (correctSlug) return { type: "subcategory", data: subRes.data, correctSlug };
     }
   } catch {}
 
@@ -241,35 +199,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const category = await getBlogCategoryBySlug(slug);
     if (category) {
       const correctSlug = getLocaleSlug(category.slug, locale);
-      if (correctSlug) {
-        const cAny = category as any;
-        const seoTitle = getLocalizedValue(cAny.metaTitle, locale);
-        const seoDescription = getLocalizedValue(cAny.metaDescription, locale);
-        const description = stripHtml(seoDescription || "");
-        const keywords = getLocalizedValue(cAny.metaKeywords, locale);
-        const image = getSeoImage(cAny.metaImage, cAny.ogImage || cAny.image, locale, seoTitle || getLocalizedValue(cAny.name, locale));
-
-        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: category.slug, baseUrl });
-        return {
-          title: seoTitle ? seoTitle : "JES Egypt Tours",
-          description,
-          keywords: keywords || undefined,
-          alternates,
-          openGraph: {
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            type: "website",
-            images: image ? [image] : undefined,
-          },
-          twitter: {
-            card: "summary_large_image",
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            images: image ? [image] : undefined,
-          },
-          other: withImageSource(image),
-        };
-      }
+      if (correctSlug) return { type: "blogCategory", data: category, correctSlug };
     }
   } catch {}
 
@@ -278,35 +208,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const subcategory = await getBlogSubCategoryBySlug(slug);
     if (subcategory) {
       const correctSlug = getLocaleSlug(subcategory.slug, locale);
-      if (correctSlug) {
-        const sAny = subcategory as any;
-        const seoTitle = getLocalizedValue(sAny.metaTitle, locale);
-        const seoDescription = getLocalizedValue(sAny.metaDescription, locale);
-        const description = stripHtml(seoDescription || "");
-        const keywords = getLocalizedValue(sAny.metaKeywords, locale);
-        const image = getSeoImage(sAny.metaImage, sAny.ogImage || sAny.image, locale, seoTitle || getLocalizedValue(sAny.name, locale));
-
-        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: subcategory.slug, baseUrl });
-        return {
-          title: seoTitle ? seoTitle : "JES Egypt Tours",
-          description,
-          keywords: keywords || undefined,
-          alternates,
-          openGraph: {
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            type: "website",
-            images: image ? [image] : undefined,
-          },
-          twitter: {
-            card: "summary_large_image",
-            title: seoTitle || "JES Egypt Tours",
-            description,
-            images: image ? [image] : undefined,
-          },
-          other: withImageSource(image),
-        };
-      }
+      if (correctSlug) return { type: "blogSubcategory", data: subcategory, correctSlug };
     }
   } catch {}
 
@@ -315,44 +217,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const blog = await getBlogBySlug(slug);
     if (blog) {
       const correctSlug = getLocaleSlug(blog.slug, locale);
-      if (correctSlug) {
-        const bAny = blog as any;
-        const seoTitle = getLocalizedValue(bAny.metaTitle, locale);
-        const seoDescription = getLocalizedValue(bAny.metaDescription, locale);
-        const blogTitle = getLocalizedValue(bAny.title, locale);
-        const pageTitle = seoTitle || blogTitle || "JES Egypt Tours";
-        const description = stripHtml(seoDescription || getLocalizedValue(bAny.excerpt, locale) || "");
-        const ogTitle = getLocalizedValue(bAny.ogTitle, locale) || pageTitle;
-        const ogDescription = stripHtml(getLocalizedValue(bAny.ogDescription, locale) || description);
-        const keywords = getLocalizedValue(bAny.metaKeywords, locale);
-        const image = getBlogSeoImage(bAny.metaImage, bAny.ogImage, bAny.featuredImage, locale, blogTitle || pageTitle);
-        const publicAuthorName = getPublicAuthorName(bAny.author?.name);
-        const publicAuthorUrl = isEditorialAuthor(publicAuthorName)
-          ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
-          : undefined;
-
-        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: blog.slug, baseUrl });
-        return {
-          title: pageTitle,
-          description,
-          keywords: keywords || undefined,
-          authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
-          alternates,
-          openGraph: {
-            title: ogTitle,
-            description: ogDescription,
-            images: image ? [image] : undefined,
-            type: "article",
-          },
-          twitter: {
-            card: "summary_large_image",
-            title: ogTitle,
-            description: ogDescription,
-            images: image ? [image] : undefined,
-          },
-          other: withImageSource(image),
-        };
-      }
+      if (correctSlug) return { type: "blog", data: blog, correctSlug };
     }
   } catch {}
 
@@ -361,33 +226,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const destination = await getDestinationBySlug(slug);
     if (destination) {
       const correctSlug = getLocaleSlug(destination.slug, locale);
-      if (correctSlug) {
-        const seoTitle = getLocalizedValue(destination.metaTitle, locale);
-        const seoDescription = getLocalizedValue(destination.metaDescription, locale);
-        const description = stripHtml(seoDescription || "");
-        const keywords = getLocalizedValue(destination.metaKeywords, locale);
-        const image = getSeoImage(destination.metaImage, destination.ogImage || destination.coverImage, locale, seoTitle || getLocalizedValue(destination.name, locale));
-        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: destination.slug, baseUrl });
-        return {
-          title: seoTitle || `${getLocalizedValue(destination.name, locale)} | JES Egypt Tours`,
-          description,
-          keywords: keywords || undefined,
-          alternates,
-          openGraph: {
-            title: seoTitle || getLocalizedValue(destination.name, locale),
-            description,
-            type: "website",
-            images: image ? [image] : undefined,
-          },
-          twitter: {
-            card: "summary_large_image",
-            title: seoTitle || getLocalizedValue(destination.name, locale),
-            description,
-            images: image ? [image] : undefined,
-          },
-          other: withImageSource(image),
-        };
-      }
+      if (correctSlug) return { type: "destination", data: destination, correctSlug };
     }
   } catch {}
 
@@ -395,43 +234,244 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const tourRes = await tourAPI.getBySlug(slug, locale);
     if (tourRes?.success && tourRes?.data) {
-      const tour = tourRes.data;
-      const correctSlug = getLocaleSlug(tour.slug, locale);
-      if (correctSlug) {
-        const seoTitle = getLocalizedValue(tour.seo?.metaTitle, locale);
-        const seoDescription = getLocalizedValue(tour.seo?.metaDescription, locale);
-        const description = stripHtml(seoDescription || "");
-        const keywords = getLocalizedValue(tour.seo?.metaKeywords, locale);
-        const image = getSeoImage(tour.seo?.metaImage, tour.featuredImage || tour.sliderImages?.[0], locale, seoTitle || getLocalizedValue(tour.title, locale));
-        const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: tour.slug, baseUrl });
-        return {
-          title: seoTitle ? seoTitle : "JES Egypt Tours",
-          description,
-          keywords: keywords || undefined,
-          alternates,
-          openGraph: { 
-            title: seoTitle || "JES Egypt Tours", 
-            description, 
-            images: image ? [image] : [], 
-            type: "website" 
-          },
-          twitter: { 
-            card: "summary_large_image", 
-            title: seoTitle || "JES Egypt Tours", 
-            description, 
-            images: image ? [image] : [] 
-          },
-          other: withImageSource(image),
-        };
-      }
+      const correctSlug = getLocaleSlug(tourRes.data.slug, locale);
+      if (correctSlug) return { type: "tour", data: tourRes.data, correctSlug };
     }
   } catch {}
+
+  return null;
+});
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug, locale } = await params;
+  const resolved = await resolveSlugContent(slug, locale);
+
+  if (resolved?.type === "category") {
+    const data = resolved.data;
+    const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
+    const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
+    const description = stripHtml(seoDescription || "");
+    const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
+    const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
+
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
+    return {
+      title: seoTitle ? seoTitle : "JES Egypt Tours",
+      description,
+      keywords: keywords || undefined,
+      alternates,
+      openGraph: {
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        type: "website",
+        images: image ? [image] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        images: image ? [image] : undefined,
+      },
+      other: withImageSource(image),
+    };
+  }
+
+  if (resolved?.type === "subcategory") {
+    const data = resolved.data;
+    const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
+    const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
+    const description = stripHtml(seoDescription || "");
+    const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
+    const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
+
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
+    return {
+      title: seoTitle ? seoTitle : "JES Egypt Tours",
+      description,
+      keywords: keywords || undefined,
+      alternates,
+      openGraph: {
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        type: "website",
+        images: image ? [image] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        images: image ? [image] : undefined,
+      },
+      other: withImageSource(image),
+    };
+  }
+
+  if (resolved?.type === "blogCategory") {
+    const category = resolved.data;
+    const cAny = category as any;
+    const seoTitle = getLocalizedValue(cAny.metaTitle, locale);
+    const seoDescription = getLocalizedValue(cAny.metaDescription, locale);
+    const description = stripHtml(seoDescription || "");
+    const keywords = getLocalizedValue(cAny.metaKeywords, locale);
+    const image = getSeoImage(cAny.metaImage, cAny.ogImage || cAny.image, locale, seoTitle || getLocalizedValue(cAny.name, locale));
+
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: category.slug, baseUrl });
+    return {
+      title: seoTitle ? seoTitle : "JES Egypt Tours",
+      description,
+      keywords: keywords || undefined,
+      alternates,
+      openGraph: {
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        type: "website",
+        images: image ? [image] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        images: image ? [image] : undefined,
+      },
+      other: withImageSource(image),
+    };
+  }
+
+  if (resolved?.type === "blogSubcategory") {
+    const subcategory = resolved.data;
+    const sAny = subcategory as any;
+    const seoTitle = getLocalizedValue(sAny.metaTitle, locale);
+    const seoDescription = getLocalizedValue(sAny.metaDescription, locale);
+    const description = stripHtml(seoDescription || "");
+    const keywords = getLocalizedValue(sAny.metaKeywords, locale);
+    const image = getSeoImage(sAny.metaImage, sAny.ogImage || sAny.image, locale, seoTitle || getLocalizedValue(sAny.name, locale));
+
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: subcategory.slug, baseUrl });
+    return {
+      title: seoTitle ? seoTitle : "JES Egypt Tours",
+      description,
+      keywords: keywords || undefined,
+      alternates,
+      openGraph: {
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        type: "website",
+        images: image ? [image] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        images: image ? [image] : undefined,
+      },
+      other: withImageSource(image),
+    };
+  }
+
+  if (resolved?.type === "blog") {
+    const blog = resolved.data;
+    const bAny = blog as any;
+    const seoTitle = getLocalizedValue(bAny.metaTitle, locale);
+    const seoDescription = getLocalizedValue(bAny.metaDescription, locale);
+    const blogTitle = getLocalizedValue(bAny.title, locale);
+    const pageTitle = seoTitle || blogTitle || "JES Egypt Tours";
+    const description = stripHtml(seoDescription || getLocalizedValue(bAny.excerpt, locale) || "");
+    const ogTitle = getLocalizedValue(bAny.ogTitle, locale) || pageTitle;
+    const ogDescription = stripHtml(getLocalizedValue(bAny.ogDescription, locale) || description);
+    const keywords = getLocalizedValue(bAny.metaKeywords, locale);
+    const image = getBlogSeoImage(bAny.metaImage, bAny.ogImage, bAny.featuredImage, locale, blogTitle || pageTitle);
+    const publicAuthorName = getPublicAuthorName(bAny.author?.name);
+    const publicAuthorUrl = isEditorialAuthor(publicAuthorName)
+      ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
+      : undefined;
+
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: blog.slug, baseUrl });
+    return {
+      title: pageTitle,
+      description,
+      keywords: keywords || undefined,
+      authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
+      alternates,
+      openGraph: {
+        title: ogTitle,
+        description: ogDescription,
+        images: image ? [image] : undefined,
+        type: "article",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: ogTitle,
+        description: ogDescription,
+        images: image ? [image] : undefined,
+      },
+      other: withImageSource(image),
+    };
+  }
+
+  if (resolved?.type === "destination") {
+    const destination = resolved.data;
+    const seoTitle = getLocalizedValue(destination.metaTitle, locale);
+    const seoDescription = getLocalizedValue(destination.metaDescription, locale);
+    const description = stripHtml(seoDescription || "");
+    const keywords = getLocalizedValue(destination.metaKeywords, locale);
+    const image = getSeoImage(destination.metaImage, destination.ogImage || destination.coverImage, locale, seoTitle || getLocalizedValue(destination.name, locale));
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: destination.slug, baseUrl });
+    return {
+      title: seoTitle || `${getLocalizedValue(destination.name, locale)} | JES Egypt Tours`,
+      description,
+      keywords: keywords || undefined,
+      alternates,
+      openGraph: {
+        title: seoTitle || getLocalizedValue(destination.name, locale),
+        description,
+        type: "website",
+        images: image ? [image] : undefined,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: seoTitle || getLocalizedValue(destination.name, locale),
+        description,
+        images: image ? [image] : undefined,
+      },
+      other: withImageSource(image),
+    };
+  }
+
+  if (resolved?.type === "tour") {
+    const tour = resolved.data;
+    const seoTitle = getLocalizedValue(tour.seo?.metaTitle, locale);
+    const seoDescription = getLocalizedValue(tour.seo?.metaDescription, locale);
+    const description = stripHtml(seoDescription || "");
+    const keywords = getLocalizedValue(tour.seo?.metaKeywords, locale);
+    const image = getSeoImage(tour.seo?.metaImage, tour.featuredImage || tour.sliderImages?.[0], locale, seoTitle || getLocalizedValue(tour.title, locale));
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: tour.slug, baseUrl });
+    return {
+      title: seoTitle ? seoTitle : "JES Egypt Tours",
+      description,
+      keywords: keywords || undefined,
+      alternates,
+      openGraph: {
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        images: image ? [image] : [],
+        type: "website"
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: seoTitle || "JES Egypt Tours",
+        description,
+        images: image ? [image] : []
+      },
+      other: withImageSource(image),
+    };
+  }
 
   return { title: "Not Found | JES Egypt Tours", robots: "noindex" };
 }
 
 export default async function SlugPage({ params }: PageProps) {
   const { slug, locale } = await params;
+  const resolved = await resolveSlugContent(slug, locale);
 
   // ── 1. Category ──────────────────────────────────────────────────────────
   {
@@ -440,15 +480,11 @@ export default async function SlugPage({ params }: PageProps) {
     let categoryData: any = null;
     let initialSubcategories: any[] = [];
     try {
-      const catRes = await tourCategoryAPI.getBySlug(slug, locale);
-      if (catRes?.success && catRes?.data) {
-        const correctSlug = getLocaleSlug(catRes.data.slug, locale);
-        if (!correctSlug) {
-          /* No translated slug for this locale, let it 404 */
-        } else if (correctSlug !== slug) {
-          redirectTarget = `/${locale}/${correctSlug}`;
+      if (resolved?.type === "category") {
+        if (resolved.correctSlug !== slug) {
+          redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
-          categoryData = catRes.data;
+          categoryData = resolved.data;
           renderCategory = true;
           // Optionally fetch subcategories here if needed for full SEO
           try {
@@ -470,15 +506,11 @@ export default async function SlugPage({ params }: PageProps) {
     let subcategoryData: any = null;
     let initialSiblings: any[] = [];
     try {
-      const subRes = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
-      if (subRes?.success && subRes?.data) {
-        const correctSlug = getLocaleSlug(subRes.data.slug, locale);
-        if (!correctSlug) {
-          /* No translated slug for this locale, let it 404 */
-        } else if (correctSlug !== slug) {
-          redirectTarget = `/${locale}/${correctSlug}`;
+      if (resolved?.type === "subcategory") {
+        if (resolved.correctSlug !== slug) {
+          redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
-          subcategoryData = subRes.data;
+          subcategoryData = resolved.data;
           renderSubcategory = true;
           // Fetch siblings for SEO
           const categoryId = typeof subcategoryData.category === "string" ? subcategoryData.category : subcategoryData.category?._id;
@@ -501,13 +533,9 @@ export default async function SlugPage({ params }: PageProps) {
     let redirectTarget: string | null = null;
     let renderBlogCategory = false;
     try {
-      const category = await getBlogCategoryBySlug(slug);
-      if (category) {
-        const correctSlug = getLocaleSlug(category.slug, locale);
-        if (!correctSlug) {
-          /* No translated slug for this locale, let it 404 */
-        } else if (correctSlug !== slug) {
-          redirectTarget = `/${locale}/${correctSlug}`;
+      if (resolved?.type === "blogCategory") {
+        if (resolved.correctSlug !== slug) {
+          redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
           renderBlogCategory = true;
         }
@@ -522,13 +550,9 @@ export default async function SlugPage({ params }: PageProps) {
     let redirectTarget: string | null = null;
     let renderBlogSubcategory = false;
     try {
-      const subcategory = await getBlogSubCategoryBySlug(slug);
-      if (subcategory) {
-        const correctSlug = getLocaleSlug(subcategory.slug, locale);
-        if (!correctSlug) {
-          /* No translated slug for this locale, let it 404 */
-        } else if (correctSlug !== slug) {
-          redirectTarget = `/${locale}/${correctSlug}`;
+      if (resolved?.type === "blogSubcategory") {
+        if (resolved.correctSlug !== slug) {
+          redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
           renderBlogSubcategory = true;
         }
@@ -543,15 +567,11 @@ export default async function SlugPage({ params }: PageProps) {
     let redirectTarget: string | null = null;
     let blogData: any = null;
     try {
-      const blog = await getBlogBySlug(slug);
-      if (blog) {
-        const correctSlug = getLocaleSlug(blog.slug, locale);
-        if (!correctSlug) {
-          /* No translated slug for this locale, let it 404 */
-        } else if (correctSlug !== slug) {
-          redirectTarget = `/${locale}/${correctSlug}`;
+      if (resolved?.type === "blog") {
+        if (resolved.correctSlug !== slug) {
+          redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
-          blogData = blog;
+          blogData = resolved.data;
         }
       }
     } catch { /* API error — fall through */ }
@@ -650,13 +670,9 @@ export default async function SlugPage({ params }: PageProps) {
     let redirectTarget: string | null = null;
     let renderDestination = false;
     try {
-      const destination = await getDestinationBySlug(slug);
-      if (destination) {
-        const correctSlug = getLocaleSlug(destination.slug, locale);
-        if (!correctSlug) {
-          /* No translated slug for this locale, let it 404 */
-        } else if (correctSlug !== slug) {
-          redirectTarget = `/${locale}/${correctSlug}`;
+      if (resolved?.type === "destination") {
+        if (resolved.correctSlug !== slug) {
+          redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
           renderDestination = true;
         }
@@ -671,14 +687,10 @@ export default async function SlugPage({ params }: PageProps) {
     let tourRedirectTarget: string | null = null;
     let tourData: any = null;
     try {
-      const tourRes = await tourAPI.getBySlug(slug, locale);
-      if (tourRes?.success && tourRes?.data) {
-        const tour = ensureTourMapSchema(tourRes.data);
-        const correctSlug = getLocaleSlug(tour.slug, locale);
-        if (!correctSlug) {
-          /* No translated slug for this locale, let it 404 */
-        } else if (correctSlug !== slug) {
-          tourRedirectTarget = `/${locale}/${correctSlug}`;
+      if (resolved?.type === "tour") {
+        const tour = ensureTourMapSchema(resolved.data);
+        if (resolved.correctSlug !== slug) {
+          tourRedirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
           tourData = tour;
         }
