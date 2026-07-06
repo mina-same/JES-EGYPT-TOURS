@@ -17,8 +17,17 @@ import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel"
 import ReflectiveReviews from "@/components/sections/ReflectiveReviews/ReflectiveReviews";
 import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
 import HomeIntro from "@/components/sections/HomeIntro/HomeIntro";
+import { API_URL } from "@/config/api";
+import { getFeaturedBlogs, type BlogPost } from "@/lib/api/blog";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { faqService, type FAQ } from "@/services/faqService";
+import { sliderService } from "@/services/sliderService";
+import type { SliderItem } from "@/types/slider";
 import { Metadata } from "next";
+
+const FEATURED_TOURS_LIMIT = 8;
+const FEATURED_BLOGS_LIMIT = 3;
+const HOME_FAQS_LIMIT = 8;
 
 export async function generateMetadata({
   params,
@@ -41,25 +50,90 @@ export async function generateMetadata({
 
 
 
-export default function HomeThree() {
+async function getInitialSliders(): Promise<SliderItem[]> {
+  try {
+    return await sliderService.getActiveSliderContent();
+  } catch {
+    return [];
+  }
+}
+
+async function getInitialFeaturedTours(locale: string): Promise<any[]> {
+  try {
+    const response = await fetch(`${API_URL}/tours/featured?limit=${FEATURED_TOURS_LIMIT}`, {
+      headers: {
+        "X-Locale": locale,
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+
+    return data.success && Array.isArray(data.data) ? data.data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function getInitialFeaturedBlogs(): Promise<BlogPost[]> {
+  try {
+    const response = await getFeaturedBlogs(FEATURED_BLOGS_LIMIT);
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function getInitialHomeFaqs(): Promise<FAQ[]> {
+  try {
+    const response = await faqService.getAllFaqs({
+      isActive: true,
+      displayOnHome: true,
+      sort: "category,order",
+      limit: HOME_FAQS_LIMIT,
+    });
+
+    return response.success && Array.isArray(response.data) ? response.data : [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function HomeThree({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const [initialSliders, initialTours, initialBlogs, initialFaqs] = await Promise.all([
+    getInitialSliders(),
+    getInitialFeaturedTours(locale),
+    getInitialFeaturedBlogs(),
+    getInitialHomeFaqs(),
+  ]);
+
   return (
     <Layout>
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <MainSliderFour />
+      <MainSliderFour initialSliders={initialSliders} />
       <AboutOne />
       <WhyChooseUs />
       <HomeIntro />
-      <FeaturedToursSection />
+      <FeaturedToursSection initialTours={initialTours} />
       <OfferTwo />
       <OfferOne />
       <DestinationCarouselTwo />
       <TestimonialsTwo />
       <ReflectiveReviews />
       <InstagramOne />
-      <HomeFAQ />
-      <BlogTwoTwo />
+      <HomeFAQ initialFaqs={initialFaqs} />
+      <BlogTwoTwo initialBlogs={initialBlogs} />
       <ClientCarousel />
       <FooterOne />
     </Layout>

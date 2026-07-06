@@ -1,7 +1,5 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useTranslation } from 'react-i18next';
 
 import type { TourDetailsOneData } from '../types';
@@ -49,6 +47,9 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
     setGenerating(true);
 
     try {
+      const { default: html2canvas } = await import('html2canvas');
+      const { jsPDF } = await import('jspdf');
+
       const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
       setPageUrl(currentUrl);
 

@@ -8,13 +8,23 @@ import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 
-const HomeFAQ: React.FC = () => {
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [loading, setLoading] = useState(true);
+type HomeFAQProps = {
+  initialFaqs?: FAQ[];
+};
+
+const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
+  const [faqs, setFaqs] = useState<FAQ[]>(() => initialFaqs);
+  const [loading, setLoading] = useState(initialFaqs.length === 0);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const { i18n, t } = useTranslation("common");
 
   useEffect(() => {
+    if (initialFaqs.length > 0) {
+      setFaqs(initialFaqs);
+      setLoading(false);
+      return;
+    }
+
     const fetchFaqs = async () => {
       try {
         const response = await faqService.getAllFaqs({
@@ -35,7 +45,7 @@ const HomeFAQ: React.FC = () => {
       }
     };
     fetchFaqs();
-  }, []);
+  }, [initialFaqs]);
 
   if (loading || faqs.length === 0) return null;
 
