@@ -22,11 +22,16 @@ interface BlogData {
   shape: StaticImageData;
   blogData: unknown[];
 }
-const BlogTwoTwo = () => {
+
+type BlogTwoTwoProps = {
+  initialBlogs?: BlogPost[];
+};
+
+const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
   const { link, shape }: BlogData = blogTwoInfo;
   const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
-  const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>([]);
+  const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>(() => initialBlogs);
 
 
   const [mounted, setMounted] = useState(false);
@@ -34,6 +39,13 @@ const BlogTwoTwo = () => {
   useEffect(() => {
     setMounted(true);
     let isMounted = true;
+
+    if (initialBlogs.length > 0) {
+      setFeaturedBlogs(initialBlogs);
+      return () => {
+        isMounted = false;
+      };
+    }
 
     const loadFeatured = async () => {
       try {
@@ -58,7 +70,7 @@ const BlogTwoTwo = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialBlogs]);
 
   const featuredViewModel = useMemo(() => {
     return featuredBlogs
