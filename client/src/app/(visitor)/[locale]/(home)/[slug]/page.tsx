@@ -176,7 +176,17 @@ type ResolvedSlugContent = {
 };
 
 const resolveSlugContent = cache(async (slug: string, locale: string): Promise<ResolvedSlugContent | null> => {
-  // 1. Try category
+  // 1. Try tour (checked first: most common content type, and confirmed via
+  //    DB audit to have zero slug collisions with any other content type)
+  try {
+    const tourRes = await tourAPI.getBySlug(slug, locale);
+    if (tourRes?.success && tourRes?.data) {
+      const correctSlug = getLocaleSlug(tourRes.data.slug, locale);
+      if (correctSlug) return { type: "tour", data: tourRes.data, correctSlug };
+    }
+  } catch {}
+
+  // 2. Try category
   try {
     const catRes = await tourCategoryAPI.getBySlug(slug, locale);
     if (catRes?.success && catRes?.data) {
@@ -185,7 +195,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
     }
   } catch {}
 
-  // 2. Try subcategory
+  // 3. Try subcategory
   try {
     const subRes = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
     if (subRes?.success && subRes?.data) {
@@ -194,7 +204,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
     }
   } catch {}
 
-  // 3. Try Blog Category
+  // 4. Try Blog Category
   try {
     const category = await getBlogCategoryBySlug(slug);
     if (category) {
@@ -203,7 +213,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
     }
   } catch {}
 
-  // 4. Try Blog Subcategory
+  // 5. Try Blog Subcategory
   try {
     const subcategory = await getBlogSubCategoryBySlug(slug);
     if (subcategory) {
@@ -212,7 +222,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
     }
   } catch {}
 
-  // 5. Try Blog Post
+  // 6. Try Blog Post
   try {
     const blog = await getBlogBySlug(slug);
     if (blog) {
@@ -221,21 +231,12 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
     }
   } catch {}
 
-  // 5.5 Try Destination
+  // 7. Try Destination
   try {
     const destination = await getDestinationBySlug(slug);
     if (destination) {
       const correctSlug = getLocaleSlug(destination.slug, locale);
       if (correctSlug) return { type: "destination", data: destination, correctSlug };
-    }
-  } catch {}
-
-  // 6. Try tour
-  try {
-    const tourRes = await tourAPI.getBySlug(slug, locale);
-    if (tourRes?.success && tourRes?.data) {
-      const correctSlug = getLocaleSlug(tourRes.data.slug, locale);
-      if (correctSlug) return { type: "tour", data: tourRes.data, correctSlug };
     }
   } catch {}
 
