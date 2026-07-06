@@ -73,30 +73,45 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
   };
 }
 
-const FeaturedToursSection: React.FC = () => {
-  const [tours, setTours] = useState<FeaturePackageItem[]>([]);
-  const [loading, setLoading] = useState(true);
+type FeaturedToursSectionProps = {
+  initialTours?: any[];
+};
+
+function mapToursForLocale(tours: any[], locale: string): FeaturePackageItem[] {
+  return tours
+    .filter((tour: any) => getStrictLocalizedSlug(tour.slug, locale as SupportedLocale))
+    .map((tour: any) => mapTour(tour, locale));
+}
+
+const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({ initialTours = [] }) => {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
+  const initialMappedTours = mapToursForLocale(initialTours, locale);
+  const [tours, setTours] = useState<FeaturePackageItem[]>(() => initialMappedTours);
+  const [loading, setLoading] = useState(initialMappedTours.length === 0);
   const { t } = useTranslation("common");
 
   useEffect(() => {
+    const mappedInitialTours = mapToursForLocale(initialTours, locale);
+
+    if (mappedInitialTours.length > 0) {
+      setTours(mappedInitialTours);
+      setLoading(false);
+      return;
+    }
+
     tourAPI
       .getFeatured(8)
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           // Only feature tours that have a real slug for the current locale, so
           // we never emit a fallback localized URL like /de/english-slug.
-          setTours(
-            res.data
-              .filter((t: any) => getStrictLocalizedSlug(t.slug, locale as SupportedLocale))
-              .map((t: any) => mapTour(t, locale))
-          );
+          setTours(mapToursForLocale(res.data, locale));
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [locale]);
+  }, [locale, initialTours]);
 
   if (loading || tours.length === 0) return null;
 

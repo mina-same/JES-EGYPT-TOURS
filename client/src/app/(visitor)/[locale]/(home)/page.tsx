@@ -17,10 +17,13 @@ import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel"
 import ReflectiveReviews from "@/components/sections/ReflectiveReviews/ReflectiveReviews";
 import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
 import HomeIntro from "@/components/sections/HomeIntro/HomeIntro";
+import { API_URL } from "@/config/api";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { sliderService } from "@/services/sliderService";
 import type { SliderItem } from "@/types/slider";
 import { Metadata } from "next";
+
+const FEATURED_TOURS_LIMIT = 8;
 
 export async function generateMetadata({
   params,
@@ -51,8 +54,36 @@ async function getInitialSliders(): Promise<SliderItem[]> {
   }
 }
 
-export default async function HomeThree() {
-  const initialSliders = await getInitialSliders();
+async function getInitialFeaturedTours(locale: string): Promise<any[]> {
+  try {
+    const response = await fetch(`${API_URL}/tours/featured?limit=${FEATURED_TOURS_LIMIT}`, {
+      headers: {
+        "X-Locale": locale,
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+
+    return data.success && Array.isArray(data.data) ? data.data : [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function HomeThree({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const [initialSliders, initialTours] = await Promise.all([
+    getInitialSliders(),
+    getInitialFeaturedTours(locale),
+  ]);
 
   return (
     <Layout>
@@ -63,7 +94,7 @@ export default async function HomeThree() {
       <AboutOne />
       <WhyChooseUs />
       <HomeIntro />
-      <FeaturedToursSection />
+      <FeaturedToursSection initialTours={initialTours} />
       <OfferTwo />
       <OfferOne />
       <DestinationCarouselTwo />
