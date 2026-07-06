@@ -20,12 +20,14 @@ import HomeIntro from "@/components/sections/HomeIntro/HomeIntro";
 import { API_URL } from "@/config/api";
 import { getFeaturedBlogs, type BlogPost } from "@/lib/api/blog";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { faqService, type FAQ } from "@/services/faqService";
 import { sliderService } from "@/services/sliderService";
 import type { SliderItem } from "@/types/slider";
 import { Metadata } from "next";
 
 const FEATURED_TOURS_LIMIT = 8;
 const FEATURED_BLOGS_LIMIT = 3;
+const HOME_FAQS_LIMIT = 8;
 
 export async function generateMetadata({
   params,
@@ -86,16 +88,32 @@ async function getInitialFeaturedBlogs(): Promise<BlogPost[]> {
   }
 }
 
+async function getInitialHomeFaqs(): Promise<FAQ[]> {
+  try {
+    const response = await faqService.getAllFaqs({
+      isActive: true,
+      displayOnHome: true,
+      sort: "category,order",
+      limit: HOME_FAQS_LIMIT,
+    });
+
+    return response.success && Array.isArray(response.data) ? response.data : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function HomeThree({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const [initialSliders, initialTours, initialBlogs] = await Promise.all([
+  const [initialSliders, initialTours, initialBlogs, initialFaqs] = await Promise.all([
     getInitialSliders(),
     getInitialFeaturedTours(locale),
     getInitialFeaturedBlogs(),
+    getInitialHomeFaqs(),
   ]);
 
   return (
@@ -114,7 +132,7 @@ export default async function HomeThree({
       <TestimonialsTwo />
       <ReflectiveReviews />
       <InstagramOne />
-      <HomeFAQ />
+      <HomeFAQ initialFaqs={initialFaqs} />
       <BlogTwoTwo initialBlogs={initialBlogs} />
       <ClientCarousel />
       <FooterOne />
