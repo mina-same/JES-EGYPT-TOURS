@@ -8,13 +8,12 @@ import OfferTwo from "@/components/sections/OfferTwo/OfferTwo";
 import OfferOne from "@/components/sections/OfferOne/OfferOne";
 import DestinationCarouselTwo from "@/components/sections/DestinationCarouselTwo/DestinationCarouselTwo";
 import TestimonialsTwo from "@/components/sections/TestimonialsTwo/TestimonialsTwo";
-import InstagramOne from "@/components/sections/InstagramOne/InstagramOne";
+import LazyInstagramSection from "@/components/common/LazySection/LazyInstagramSection";
 import BlogTwoTwo from "@/components/sections/BlogTwoTwo/BlogTwoTwo";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import MainSliderFour from "@/components/sections/MainSliderFour/MainSliderFour";
 import WhyChooseUs from "@/components/sections/whyChooseUs/whyChoseeUs";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
-import ReflectiveReviews from "@/components/sections/ReflectiveReviews/ReflectiveReviews";
 import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
 import HomeIntro from "@/components/sections/HomeIntro/HomeIntro";
 import { API_URL } from "@/config/api";
@@ -130,8 +129,7 @@ export default async function HomeThree({
       <OfferOne />
       <DestinationCarouselTwo />
       <TestimonialsTwo />
-      <ReflectiveReviews />
-      <InstagramOne />
+      <LazyInstagramSection />
       <HomeFAQ initialFaqs={initialFaqs} />
       <BlogTwoTwo initialBlogs={initialBlogs} />
       <ClientCarousel />
