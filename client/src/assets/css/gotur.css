@@ -6274,9 +6274,17 @@ body.megamenu-popup-active .mobile-nav__content {
   width: 100%;
   overflow: hidden;
 }
+.main-slider-four__slider-placeholder {
+  width: 100%;
+  overflow: hidden;
+}
+.main-slider-four__slider-placeholder > div:not(:first-child) {
+  display: none;
+}
 @media (max-width: 767px) {
   .main-slider-four__item {
-    height: auto;
+    height: 660px;
+    min-height: 660px;
   }
 }
 .main-slider-four__bg {
@@ -6409,6 +6417,9 @@ body.megamenu-popup-active .mobile-nav__content {
   max-width: 1024px;
   left: 50%;
   transform: translateX(-50%);
+}
+.main-slider-four__action-form {
+  min-height: 64px;
 }
 @media (max-width: 1199px) {
   .main-slider-four__form {
