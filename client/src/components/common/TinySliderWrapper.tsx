@@ -11,6 +11,8 @@ interface TinySliderWrapperProps {
   settings: any;
   children: React.ReactNode;
   className?: string;
+  placeholderClassName?: string;
+  placeholderStyle?: React.CSSProperties;
   [key: string]: any; // Allow any other props
 }
 
@@ -19,7 +21,7 @@ interface TinySliderWrapperProps {
  * by ensuring proper mounting/unmounting lifecycle in Next.js
  */
 export const TinySliderWrapper = forwardRef<any, TinySliderWrapperProps>(
-  ({ settings, children, className, ...otherProps }, ref) => {
+  ({ settings, children, className, placeholderClassName, placeholderStyle, ...otherProps }, ref) => {
     const [isMounted, setIsMounted] = useState(false);
     const internalRef = useRef<any>(null);
 
@@ -99,7 +101,14 @@ export const TinySliderWrapper = forwardRef<any, TinySliderWrapperProps>(
 
     // Don't render anything until client-side hydration is complete
     if (!isMounted) {
-      return <div className={className || "tiny-slider-placeholder"}>{children}</div>;
+      return (
+        <div
+          className={placeholderClassName || className || "tiny-slider-placeholder"}
+          style={placeholderStyle}
+        >
+          {children}
+        </div>
+      );
     }
 
     return (

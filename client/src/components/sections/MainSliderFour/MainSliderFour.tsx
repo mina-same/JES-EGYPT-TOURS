@@ -155,7 +155,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({ initialSliders = [] }) 
   return (
     <section className='main-slider-four' id='home'>
       <div className='main-slider-four__carousel gotur-owl__carousel owl-carousel'>
-        <TinySlider settings={settings}>
+        <TinySlider settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
           {slides?.map((item) => (
             <div key={item.id}>
               <div className='item'>
@@ -177,7 +177,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({ initialSliders = [] }) 
                         {item.title}{' '}
                         <span>
                           {item.titleSpan}
-                          <img src={LineShape.src} alt='line' />
+                          <img src={LineShape.src} alt='line' width={330} height={24} />
                         </span>
                         {' '}{item.titleEnd}
                       </h2>

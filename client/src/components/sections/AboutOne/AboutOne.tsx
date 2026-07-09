@@ -71,7 +71,7 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass }) => {
   const locale = (params?.locale as string) || "en";
 
   return (
-    <section className={`about-one section-space ${extraclass}`} id='about'>
+    <section className={`about-one section-space ${extraclass ?? ""}`} id='about'>
       <Container>
         <Row className='gutter-y-40'>
           <Col lg={6}>
