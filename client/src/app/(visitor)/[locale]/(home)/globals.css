@@ -108,6 +108,10 @@ a {
   text-decoration: none;
 }
 
+.top-one + .main-header--one {
+  margin-bottom: -117px;
+}
+
 /* ── AboutOne overrides ── */
 
 /* Smooth image reveal on load */
