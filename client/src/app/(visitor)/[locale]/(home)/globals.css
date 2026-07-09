@@ -109,7 +109,7 @@ a {
 }
 
 .top-one + .main-header--one {
-  margin-bottom: -97px;
+  margin-bottom: -108px;
 }
 
 @media (min-width: 1200px) {
@@ -132,7 +132,7 @@ a {
   }
 
   .top-one + .main-header--one .main-header__logo img {
-    width: 96px;
+    width: 108px;
     height: auto;
   }
 
@@ -159,7 +159,8 @@ a {
 
   .top-one + .main-header--one .main-header__right {
     gap: 28px;
-    margin-left: -28px;
+    justify-content: flex-start !important;
+    margin-left: 40px;
   }
 
   .top-one + .main-header--one .main-header__info a {
