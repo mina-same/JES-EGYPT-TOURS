@@ -12,8 +12,6 @@ const Search: React.FC = () => {
   const locale = getLocaleFromPath(pathname);
   const {
     changeSearchPopupStatus,
-    changeMobileDrawerStatus,
-    changeSideBarDrawerStatus,
     searchPopupStatus,
   } = useStore();
   useEffect(() => {

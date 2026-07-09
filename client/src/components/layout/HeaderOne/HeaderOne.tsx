@@ -33,7 +33,6 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
-    changeSideBarDrawerStatus,
   } = useStore();
   const { wishlist } = useWishlist();
 
@@ -144,13 +143,6 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                   </span>
                 )}
               </Link>
-            </div>
-
-            <div
-              className='main-header__btn-popup main-header__element__btn'
-              onClick={changeSideBarDrawerStatus}
-            >
-              <i className='icon-menu-bar'></i>
             </div>
 
             <Link href={`/${locale}/tailor-made`} className='gotur-btn main-header__btn'>

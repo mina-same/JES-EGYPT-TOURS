@@ -36,7 +36,6 @@ const HeaderOneCloned: React.FC = () => {
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
-    changeSideBarDrawerStatus,
   } = useStore();
   const { wishlist } = useWishlist();
 
@@ -161,13 +160,6 @@ const HeaderOneCloned: React.FC = () => {
                   <LanguageSelector theme="light" />
                 </div>
               )}
-            </div>
-
-            <div
-              className='main-header__btn-popup main-header__element__btn'
-              onClick={changeSideBarDrawerStatus}
-            >
-              <i className='icon-menu-bar' style={{ color: "#000" }}></i>
             </div>
 
             <Link href={`/${locale}/tailor-made`} className='gotur-btn main-header__btn'>
