@@ -148,76 +148,80 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({ initialSliders = [] }) 
     loadPromo();
   }, [i18n.language, initialSliders]);
 
-  if (!slides.length) {
-    return null;
-  }
+  const hasSlides = slides.length > 0;
 
   return (
-    <section className='main-slider-four' id='home'>
+    <section className={`main-slider-four${hasSlides ? "" : " main-slider-four--empty"}`} id='home'>
       <div className='main-slider-four__carousel gotur-owl__carousel owl-carousel'>
-        <TinySlider settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
-          {slides?.map((item) => (
-            <div key={item.id}>
-              <div className='item'>
-                <div className='main-slider-four__item'>
-                  <div
-                    className='main-slider-four__bg'
-                    role="img"
-                    aria-label={item.imageAlt}
-                    style={{
-                      backgroundImage: `url(${item.imageUrl})`,
-                    }}
-                  ></div>
-                  <div className='container'>
-                    <div className='main-slider-four__content'>
-                      <h5 className='main-slider-four__subtitle'>
-                        {item.subtitle}
-                      </h5>
-                      <h2 className='main-slider-four__title'>
-                        {item.title}{' '}
-                        <span>
-                          {item.titleSpan}
-                          <img src={LineShape.src} alt='line' width={330} height={24} />
-                        </span>
-                        {' '}{item.titleEnd}
-                      </h2>
-                      {item.buttonText && item.buttonLink && (
-                        <div className="wow fadeInUp animated mt-30" data-wow-duration="1500ms" data-wow-delay="600ms" >
-                          <Link
-                            href={item.buttonLink}
-                            target={item.buttonTarget === "_blank" ? "_blank" : undefined}
-                            rel={item.buttonTarget === "_blank" ? "noopener noreferrer" : undefined}
-                            className="gotur-btn gotur-btn--primary"
-                          >
-                            {item.buttonText} <span className="icon"><i className="icon-right"></i></span>
-                          </Link>
-                        </div>
-                      )}
+        {hasSlides ? (
+          <TinySlider settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
+            {slides.map((item) => (
+              <div key={item.id}>
+                <div className='item'>
+                  <div className='main-slider-four__item'>
+                    <div
+                      className='main-slider-four__bg'
+                      role="img"
+                      aria-label={item.imageAlt}
+                      style={{
+                        backgroundImage: `url(${item.imageUrl})`,
+                      }}
+                    ></div>
+                    <div className='container'>
+                      <div className='main-slider-four__content'>
+                        <h5 className='main-slider-four__subtitle'>
+                          {item.subtitle}
+                        </h5>
+                        <h2 className='main-slider-four__title'>
+                          {item.title}{' '}
+                          <span>
+                            {item.titleSpan}
+                            <img src={LineShape.src} alt='line' width={330} height={24} />
+                          </span>
+                          {' '}{item.titleEnd}
+                        </h2>
+                        {item.buttonText && item.buttonLink && (
+                          <div className="wow fadeInUp animated mt-30" data-wow-duration="1500ms" data-wow-delay="600ms" >
+                            <Link
+                              href={item.buttonLink}
+                              target={item.buttonTarget === "_blank" ? "_blank" : undefined}
+                              rel={item.buttonTarget === "_blank" ? "noopener noreferrer" : undefined}
+                              className="gotur-btn gotur-btn--primary"
+                            >
+                              {item.buttonText} <span className="icon"><i className="icon-right"></i></span>
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </TinySlider>
-        <div className='owl-nav'>
-          <button
-            type='button'
-            role='presentation'
-            className='owl-prev'
-            aria-label='carousel button'
-          >
-            <span className='icon-arrow-left'></span>
-          </button>
-          <button
-            type='button'
-            role='presentation'
-            className='owl-next'
-            aria-label='carousel button'
-          >
-            <span className='icon-arrow-right'></span>
-          </button>
-        </div>
+            ))}
+          </TinySlider>
+        ) : (
+          <div className='main-slider-four__empty-shell' aria-hidden='true' />
+        )}
+        {hasSlides && (
+          <div className='owl-nav'>
+            <button
+              type='button'
+              role='presentation'
+              className='owl-prev'
+              aria-label='carousel button'
+            >
+              <span className='icon-arrow-left'></span>
+            </button>
+            <button
+              type='button'
+              role='presentation'
+              className='owl-next'
+              aria-label='carousel button'
+            >
+              <span className='icon-arrow-right'></span>
+            </button>
+          </div>
+        )}
         {/* <div className='tns-dots-container'></div> */}
       </div>
       <div className='main-slider-four__action-form'>
