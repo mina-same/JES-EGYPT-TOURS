@@ -163,6 +163,10 @@ a {
     margin-left: 40px;
   }
 
+  .top-one + .main-header--one .main-header__info {
+    margin-left: auto;
+  }
+
   .top-one + .main-header--one .main-header__info a {
     font-size: 15px;
   }
