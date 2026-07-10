@@ -9,30 +9,143 @@ const currencies: { code: CurrencyCode; label: string; flag: string }[] = [
   { code: "GBP", label: "GBP", flag: "🇬🇧" },
 ];
 
-const CurrencySwitcher: React.FC = () => {
+interface CurrencySwitcherProps {
+  isOpen?: boolean;
+  onOpen?: () => void;
+  onClose?: () => void;
+}
+
+const OPEN_DELAY_MS = 160;
+const CLOSE_DELAY_MS = 250;
+
+const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
+  isOpen,
+  onOpen,
+  onClose,
+}) => {
   const { currency, setCurrency } = useCurrency();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [canHoverOpen, setCanHoverOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isControlled = typeof isOpen === "boolean";
+  const dropdownIsOpen = isControlled ? isOpen : internalIsOpen;
 
   const currentCurrency = currencies.find((c) => c.code === currency) || currencies[0];
+
+  const clearOpenTimer = () => {
+    if (openTimerRef.current) {
+      clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+  };
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const openDropdown = () => {
+    if (isControlled) {
+      onOpen?.();
+      return;
+    }
+
+    setInternalIsOpen(true);
+    onOpen?.();
+  };
+
+  const closeDropdown = () => {
+    if (isControlled) {
+      onClose?.();
+      return;
+    }
+
+    setInternalIsOpen(false);
+    onClose?.();
+  };
+
+  const toggleDropdown = () => {
+    clearOpenTimer();
+    clearCloseTimer();
+
+    if (dropdownIsOpen) {
+      closeDropdown();
+      return;
+    }
+
+    openDropdown();
+  };
+
+  const handlePointerEnter = () => {
+    if (!canHoverOpen) return;
+    clearCloseTimer();
+    clearOpenTimer();
+    openTimerRef.current = setTimeout(openDropdown, OPEN_DELAY_MS);
+  };
+
+  const handlePointerLeave = () => {
+    if (!canHoverOpen) return;
+    clearOpenTimer();
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(closeDropdown, CLOSE_DELAY_MS);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        closeDropdown();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeDropdown();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  });
+
+  useEffect(() => {
+    const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const updateHoverCapability = () => setCanHoverOpen(hoverQuery.matches);
+
+    updateHoverCapability();
+    hoverQuery.addEventListener("change", updateHoverCapability);
+
+    return () => {
+      hoverQuery.removeEventListener("change", updateHoverCapability);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearOpenTimer();
+      clearCloseTimer();
+    };
   }, []);
 
   return (
-    <div className="currency-switcher" ref={dropdownRef}>
+    <div
+      className="currency-switcher"
+      ref={dropdownRef}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+    >
       <button 
-        className={`currency-switcher__btn ${isOpen ? "is-open" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
+        className={`currency-switcher__btn ${dropdownIsOpen ? "is-open" : ""}`}
+        onClick={toggleDropdown}
         aria-haspopup="true"
-        aria-expanded={isOpen}
+        aria-expanded={dropdownIsOpen}
       >
         <span className="currency-switcher__flag">{currentCurrency.flag}</span>
         <span className="currency-switcher__label">{currentCurrency.label}</span>
@@ -41,7 +154,7 @@ const CurrencySwitcher: React.FC = () => {
         </span>
       </button>
 
-      {isOpen && (
+      {dropdownIsOpen && (
         <ul className="currency-switcher__dropdown">
           {currencies.map((c) => (
             <li key={c.code}>
@@ -49,7 +162,7 @@ const CurrencySwitcher: React.FC = () => {
                 className={`currency-switcher__option ${c.code === currency ? "is-active" : ""}`}
                 onClick={() => {
                   setCurrency(c.code);
-                  setIsOpen(false);
+                  closeDropdown();
                 }}
               >
                 <span className="currency-switcher__flag">{c.flag}</span>

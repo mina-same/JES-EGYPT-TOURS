@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import './langusgeSelect.css'
 import i18n from "@/lib/i18n";
@@ -57,9 +57,20 @@ function isLikelyDynamicSlugPath(path: string): boolean {
 
 interface LanguageSelectorProps {
   theme?: "light" | "dark";
+  isOpen?: boolean;
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
-const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) => {
+const OPEN_DELAY_MS = 160;
+const CLOSE_DELAY_MS = 250;
+
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({
+  theme = "dark",
+  isOpen,
+  onOpen,
+  onClose,
+}) => {
   const { t } = useTranslation("common");
   const { localizedSlugs } = useSlugs();
   const router = useRouter();
@@ -101,6 +112,60 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
   }, [currentLocale, isDynamicSlugPage, localizedSlugs, t]);
   const [mounted, setMounted] = useState(false);
   const [selectedOption, setSelectedOption] = useState(options[0]);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [canHoverOpen, setCanHoverOpen] = useState(false);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isControlled = typeof isOpen === "boolean";
+  const menuIsOpen = isControlled ? isOpen : internalIsOpen;
+
+  const clearOpenTimer = () => {
+    if (openTimerRef.current) {
+      clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+  };
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const openMenu = () => {
+    if (isControlled) {
+      onOpen?.();
+      return;
+    }
+
+    setInternalIsOpen(true);
+    onOpen?.();
+  };
+
+  const closeMenu = () => {
+    if (isControlled) {
+      onClose?.();
+      return;
+    }
+
+    setInternalIsOpen(false);
+    onClose?.();
+  };
+
+  const handlePointerEnter = () => {
+    if (!canHoverOpen) return;
+    clearCloseTimer();
+    clearOpenTimer();
+    openTimerRef.current = setTimeout(openMenu, OPEN_DELAY_MS);
+  };
+
+  const handlePointerLeave = () => {
+    if (!canHoverOpen) return;
+    clearOpenTimer();
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(closeMenu, CLOSE_DELAY_MS);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -144,13 +209,38 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
     }
   }, [currentLocale, isDynamicSlugPage, normalizedPath, options, pathLocale, router]);
 
+  useEffect(() => {
+    const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const updateHoverCapability = () => setCanHoverOpen(hoverQuery.matches);
+
+    updateHoverCapability();
+    hoverQuery.addEventListener("change", updateHoverCapability);
+
+    return () => {
+      hoverQuery.removeEventListener("change", updateHoverCapability);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearOpenTimer();
+      clearCloseTimer();
+    };
+  }, []);
+
   if (!mounted) {
     return <div style={{ width: '120px', height: '40px' }} />;
   }
 
   return (
-    <div className={cn("top-one__language-sort", theme === "light" && "light")} suppressHydrationWarning>
+    <div
+      className={cn("top-one__language-sort", theme === "light" && "light")}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+      suppressHydrationWarning
+    >
       <Select
+        className={cn("language-select", menuIsOpen && "is-open")}
         classNamePrefix="custom-select"
         value={selectedOption}
         onChange={(option: any) => {
@@ -176,6 +266,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
           }
 
           setSelectedOption(option);
+          closeMenu();
           i18n.changeLanguage(option.value);
           try {
             localStorage.setItem("i18nextLng", option.value);
@@ -189,6 +280,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
         }}
         options={options}
         isSearchable={false}
+        menuIsOpen={menuIsOpen}
+        onMenuOpen={openMenu}
+        onMenuClose={closeMenu}
         isOptionDisabled={(option: any) => !!option.isDisabled}
         components={{
           IndicatorSeparator: () => null,
@@ -223,11 +317,18 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
           }
         }}
         styles={{
+          container: (base) => ({
+            ...base,
+            width: 'max-content',
+            minWidth: 0,
+          }),
           control: (base) => ({
             ...base,
             backgroundColor: 'transparent',
             border: '1px solid rgba(183, 156, 92, 0.3)',
             borderRadius: '8px',
+            width: 'max-content',
+            minWidth: 0,
             minHeight: '38px',
             height: '38px',
             display: 'flex !important',
@@ -248,11 +349,17 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
             borderRadius: '8px',
             overflow: 'hidden',
             boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            zIndex: 999
+            minWidth: '160px',
+            zIndex: 999,
+            animation: 'language-dropdown-enter 170ms ease-out'
+          }),
+          menuList: (base) => ({
+            ...base,
+            minWidth: '160px',
           }),
           valueContainer: (base) => ({
             ...base,
-            padding: '0 8px',
+            padding: '0 4px 0 8px',
             display: 'flex !important',
             flexDirection: 'row !important' as any,
             flexWrap: 'nowrap !important' as any,
@@ -265,11 +372,13 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
             ...base,
             height: '38px',
             alignItems: 'center',
-            paddingRight: '4px'
+            flex: '0 0 auto',
+            paddingRight: '0'
           }),
           dropdownIndicator: (base) => ({
             ...base,
             color: '#b79c5c',
+            padding: '8px 8px 8px 1px',
             '&:hover': {
               color: '#d4bb7d'
             }

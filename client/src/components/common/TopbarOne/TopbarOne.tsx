@@ -38,11 +38,14 @@ interface TopbarOneProps {
   extraClass?: string;
 }
 
+type ActiveTopbarDropdown = "language" | "currency" | null;
+
 const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
   const { contactInfo, contactInfoTwo, address }: TopbarOneData =
     topbarOne;
 
   const [mounted, setMounted] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<ActiveTopbarDropdown>(null);
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -85,8 +88,16 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
             ) : (
               mounted ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <CurrencySwitcher />
-                  <LanguageSelector />
+                  <CurrencySwitcher
+                    isOpen={activeDropdown === "currency"}
+                    onOpen={() => setActiveDropdown("currency")}
+                    onClose={() => setActiveDropdown((current) => current === "currency" ? null : current)}
+                  />
+                  <LanguageSelector
+                    isOpen={activeDropdown === "language"}
+                    onOpen={() => setActiveDropdown("language")}
+                    onClose={() => setActiveDropdown((current) => current === "language" ? null : current)}
+                  />
                 </div>
               ) : <div style={{ width: '220px', height: '40px' }} />
             )}
