@@ -1,12 +1,15 @@
 import axiosInstance from '@/lib/api/axios';
 import { ILocalizedString } from '@/types/tour';
 
+export type MenuDisplayVariant = 'default' | 'promotion';
+
 export interface MenuItem {
   _id?: string;
   label: ILocalizedString;
   url?: string;
   isActive: boolean;
   order: number;
+  displayVariant?: MenuDisplayVariant;
   children?: MenuItem[];
 }
 

@@ -2175,3 +2175,100 @@ button[data-action="stop"] {
   .destination-carousel__big-text { font-size: 50px; }
   .destination-carousel__small-text { font-size: 14px; margin-top: 8px; letter-spacing: 1px; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Promotional navigation item (admin displayVariant: "promotion")
+   Applied only to top-level menu links by the header renderers.
+   Restrained rose/red pill — deliberately distinct from, and less
+   dominant than, the yellow Tailor-Made CTA.
+   ───────────────────────────────────────────────────────────── */
+
+/* Desktop pill. High-specificity color/background so it wins over the
+   theme link-color rules in gotur.css for both the normal and cloned
+   (sticky) headers, without broad overrides. */
+.main-header .main-menu__list > li > a.main-menu__promotion-link,
+.sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 9999px;
+  background-color: #e04f5f;
+  color: #fff !important;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.main-header .main-menu__list > li > a.main-menu__promotion-link:hover,
+.main-header .main-menu__list > li > a.main-menu__promotion-link:focus,
+.sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link:hover,
+.sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link:focus {
+  background-color: #d63e50;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+.main-header .main-menu__list > li > a.main-menu__promotion-link:focus-visible,
+.sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Keep the pill background on the active/current top-level item too. */
+.main-header .main-menu__list > li.current > a.main-menu__promotion-link {
+  background-color: #d63e50;
+  color: #fff !important;
+}
+
+.main-menu__promotion-icon {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+
+/* 992–1199px: tighten so the pill does not force the nav to wrap. */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .main-header .main-menu__list > li > a.main-menu__promotion-link,
+  .sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link {
+    padding: 8px 12px;
+    gap: 5px;
+  }
+}
+
+/* Mobile Drawer: full-width highlighted row on the dark drawer panel.
+   White text on a rose-tinted background + rose left accent — meaning is
+   conveyed by the accent/icon/label, not text color alone. */
+.mobile-nav__wrapper .main-menu__list a.mobile-menu__promotion-link {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(224, 79, 95, 0.18);
+  border-left: 3px solid #e04f5f;
+  border-radius: 6px;
+  padding-left: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.mobile-menu__promotion-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #f2889a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-header .main-menu__list > li > a.main-menu__promotion-link,
+  .sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link {
+    transition: none;
+  }
+  .main-header .main-menu__list > li > a.main-menu__promotion-link:hover,
+  .main-header .main-menu__list > li > a.main-menu__promotion-link:focus,
+  .sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link:hover,
+  .sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link:focus {
+    transform: none;
+  }
+}

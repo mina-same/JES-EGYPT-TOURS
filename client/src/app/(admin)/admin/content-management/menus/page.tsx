@@ -67,8 +67,13 @@ export default function MenusAdminPage() {
             <MenuIcon size={20} className="text-[#b79c5c]" />
           </div>
           <div className="min-w-0">
-            <div className="font-semibold text-sm text-gray-900 truncate">
+            <div className="font-semibold text-sm text-gray-900 truncate flex items-center gap-2">
               {getLocalizedValue(item.title, 'en')}
+              {Array.isArray(item.items) && item.items.some((topLevel) => topLevel?.displayVariant === 'promotion') ? (
+                <span className="inline-flex items-center rounded-full bg-[#e04f5f]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#e04f5f]">
+                  Promo
+                </span>
+              ) : null}
             </div>
             <div className="text-xs text-gray-500 font-mono">key: {item.key}</div>
           </div>

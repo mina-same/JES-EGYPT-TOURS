@@ -1,6 +1,24 @@
 import { Request, Response } from 'express';
 import Menu from '../models/Menu';
 
+/**
+ * Recursively normalize `displayVariant` on the incoming items tree.
+ * - "promotion" is honored ONLY for top-level items (level 0).
+ * - Every other value (child items, missing, or invalid) becomes "default".
+ * This rejects any admin-supplied value that is not exactly "promotion" and
+ * enforces the top-level-only product rule server-side. All other item
+ * properties (label, url, isActive, order, _id, ...) are preserved untouched.
+ * A new array/objects are produced so req.body is not mutated.
+ */
+const sanitizeMenuItems = (items: any[], level = 0): any[] => {
+  if (!Array.isArray(items)) return [];
+  return items.map((item) => ({
+    ...item,
+    displayVariant: level === 0 && item?.displayVariant === 'promotion' ? 'promotion' : 'default',
+    children: sanitizeMenuItems(Array.isArray(item?.children) ? item.children : [], level + 1),
+  }));
+};
+
 const sortItems = (items: any[]): any[] => {
   const arr = Array.isArray(items) ? items : [];
   return arr
@@ -116,7 +134,7 @@ export const adminCreateMenu = async (req: Request, res: Response): Promise<void
       key,
       title,
       isActive: isActive !== false,
-      items: Array.isArray(items) ? items : [],
+      items: sanitizeMenuItems(Array.isArray(items) ? items : []),
     });
 
     res.status(201).json({ success: true, message: 'Menu created', data: menu });
@@ -136,7 +154,7 @@ export const adminUpdateMenu = async (req: Request, res: Response): Promise<void
     const updates: any = {};
     if (req.body?.title !== undefined) updates.title = req.body.title;
     if (req.body?.isActive !== undefined) updates.isActive = !!req.body.isActive;
-    if (req.body?.items !== undefined) updates.items = Array.isArray(req.body.items) ? req.body.items : [];
+    if (req.body?.items !== undefined) updates.items = sanitizeMenuItems(Array.isArray(req.body.items) ? req.body.items : []);
 
     const menu = await Menu.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
     if (!menu) {

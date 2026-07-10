@@ -12,6 +12,7 @@ import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
+import { Flame } from "lucide-react";
 import LanguageSelector from "../../common/LanguageSelector/LanguageSelector";
 import { useState, useEffect } from "react";
 
@@ -88,6 +89,7 @@ const HeaderOneCloned: React.FC = () => {
                 {nav.map((item: any) => (
                   (() => {
                     const hasChildren = (Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0);
+                    const isPromotion = item?.displayVariant === "promotion";
                     return (
                   <li
                     className={`${hasChildren ? "dropdown" : ""} ${
@@ -95,7 +97,14 @@ const HeaderOneCloned: React.FC = () => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)} style={{ color: "#000" }}>
+                    <Link
+                      href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}
+                      className={isPromotion ? "main-menu__promotion-link" : undefined}
+                      style={isPromotion ? undefined : { color: "#000" }}
+                    >
+                      {isPromotion ? (
+                        <Flame size={15} aria-hidden="true" focusable={false} className="main-menu__promotion-icon" />
+                      ) : null}
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
 

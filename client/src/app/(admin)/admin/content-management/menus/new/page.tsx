@@ -35,6 +35,7 @@ const makeItem = (): MenuItem => ({
   url: '',
   isActive: true,
   order: 0,
+  displayVariant: 'default',
   children: [],
 });
 
@@ -311,6 +312,37 @@ export default function NewMenuPage() {
                     <Input type="number" value={String(it.order ?? 0)} onChange={(e) => updateItem(path, { order: Number(e.target.value) })} />
                   </div>
                 </div>
+                {level === 0 ? (
+                  <div className="md:col-span-12">
+                    <label className="text-sm font-medium">Navigation Style</label>
+                    <div className="mt-2">
+                      <select
+                        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={it.displayVariant === 'promotion' ? 'promotion' : 'default'}
+                        onChange={(e) => {
+                          const value = e.target.value === 'promotion' ? 'promotion' : 'default';
+                          updateItem(path, { displayVariant: value as any });
+                          if (
+                            value === 'promotion' &&
+                            items.some((root, i) => i !== path[0] && root.displayVariant === 'promotion')
+                          ) {
+                            toast({
+                              title: 'Heads up',
+                              description:
+                                'More than one promotional navigation item may make the header look crowded. One promotional item is recommended.',
+                            });
+                          }
+                        }}
+                      >
+                        <option value="default">Standard</option>
+                        <option value="promotion">Promotional Highlight</option>
+                      </select>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Use Promotional Highlight for an important offer or campaign. It appears as a colored CTA in the website navigation. Recommended for one top-level item only.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="md:col-span-12 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-xs text-muted-foreground">{hasChildren ? `${it.children!.length} children` : 'No children'}</div>
                   <Button type="button" variant="outline" size="sm" onClick={() => addChild(path)}>

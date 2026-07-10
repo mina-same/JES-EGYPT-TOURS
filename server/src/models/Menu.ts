@@ -1,12 +1,15 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { LocalizedStringSchema, ILocalizedString } from './shared/LocalizedSchema';
 
+export type MenuDisplayVariant = 'default' | 'promotion';
+
 export interface IMenuItem {
   _id: Types.ObjectId;
   label: ILocalizedString;
   url?: string;
   isActive: boolean;
   order: number;
+  displayVariant?: MenuDisplayVariant;
   children?: IMenuItem[];
 }
 
@@ -36,6 +39,11 @@ const MenuItemSchema = new Schema<IMenuItem>(
     order: {
       type: Number,
       default: 0,
+    },
+    displayVariant: {
+      type: String,
+      enum: ['default', 'promotion'],
+      default: 'default',
     },
   },
   { _id: true }
