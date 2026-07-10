@@ -2301,3 +2301,60 @@ button[data-action="stop"] {
     transform: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Tailor-Made header CTA (experiment): muted-gold resting pill with
+   navy text; brighter gold + subtle lift on hover. Scoped to the header
+   CTA only — both the normal and sticky/cloned headers share
+   `.main-header--one .main-header__btn`. Other `.gotur-btn` buttons
+   across the site are untouched.
+   ───────────────────────────────────────────────────────────── */
+.main-header--one .main-header__btn {
+  background-color: #e5b83b;
+  color: #19374a !important;
+  border: 1px solid #e5b83b;
+  border-radius: 9999px;
+  padding: 13px 27px;
+  font-weight: 700;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.14);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+/* Neutralize the gotur hover-wipe pseudo layers so the flat gold hover
+   reads cleanly (no wipe/scale). These pseudos are background-only. */
+.main-header--one .main-header__btn::before,
+.main-header--one .main-header__btn::after {
+  display: none;
+}
+
+/* icon-paper-plane is an icon font — follow the navy text color. */
+.main-header--one .main-header__btn i {
+  color: inherit !important;
+}
+
+.main-header--one .main-header__btn:hover {
+  background-color: #f6c945;
+  border-color: #f6c945;
+  color: #19374a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+.main-header--one .main-header__btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-header--one .main-header__btn {
+    transition: none;
+  }
+  .main-header--one .main-header__btn:hover {
+    transform: none;
+  }
+}
