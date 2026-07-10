@@ -119,18 +119,6 @@ a {
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
   }
 
-  .top-one .top-one__language-sort .custom-select__value-container {
-    padding-right: 8px !important;
-  }
-
-  .top-one .top-one__language-sort .custom-select__single-value {
-    margin-right: 12px !important;
-  }
-
-  .top-one .top-one__language-sort .custom-select__dropdown-indicator svg {
-    margin-left: 8px;
-  }
-
   .top-one + .main-header--one .main-header__logo img {
     width: 108px;
     height: auto;

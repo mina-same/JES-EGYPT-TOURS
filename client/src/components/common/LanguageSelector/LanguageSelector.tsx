@@ -234,7 +234,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
             flexDirection: 'row !important' as any,
             flexWrap: 'nowrap !important' as any,
             alignItems: 'center !important' as any,
-            justifyContent: 'space-between',
+            justifyContent: 'flex-start',
             cursor: 'pointer',
             boxShadow: 'none',
             '&:hover': {
@@ -259,7 +259,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ theme = "dark" }) =
             alignItems: 'center !important' as any,
             gap: '8px',
             overflow: 'visible',
-            flex: '1',
+            flex: '0 0 auto',
           }),
           indicatorsContainer: (base) => ({
             ...base,
