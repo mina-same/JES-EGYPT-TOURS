@@ -2254,27 +2254,39 @@ button[data-action="stop"] {
   }
 }
 
-/* Mobile Drawer: full-width highlighted row on the dark drawer panel.
-   White text on a rose-tinted background + rose left accent — meaning is
-   conveyed by the accent/icon/label, not text color alone. */
+/* Mobile Drawer: full-width highlighted row on the dark drawer panel,
+   coordinated with the desktop gold design. `justify-content: flex-start`
+   overrides the Drawer's base `space-between` anchor rule (gotur.css) so the
+   flame + label group together on the left instead of being pushed apart. */
 .mobile-nav__wrapper .main-menu__list a.mobile-menu__promotion-link {
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 8px;
-  background-color: rgba(224, 79, 95, 0.18);
-  border-left: 3px solid #e04f5f;
-  border-radius: 6px;
-  padding-left: 12px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-left: 14px;
+  padding-right: 14px;
+  background-color: rgba(246, 201, 69, 0.1);
+  border-left: 3px solid #f6c945;
+  border-radius: 0 6px 6px 0;
+  color: #f6c945 !important;
   font-weight: 700;
-  color: #fff;
+  text-align: left;
+}
+
+.mobile-nav__wrapper .main-menu__list a.mobile-menu__promotion-link:hover,
+.mobile-nav__wrapper .main-menu__list a.mobile-menu__promotion-link:focus-visible {
+  background-color: rgba(246, 201, 69, 0.17);
+  color: #f6c945 !important;
 }
 
 .mobile-menu__promotion-icon {
-  flex-shrink: 0;
   width: 16px;
   height: 16px;
-  color: #f2889a;
+  flex-shrink: 0;
+  color: inherit;
+  stroke: currentColor;
+  fill: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
