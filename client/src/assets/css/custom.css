@@ -2358,3 +2358,142 @@ button[data-action="stop"] {
     transform: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Sticky (cloned) desktop header — condensed, premium restyle.
+   The cloned header reuses `.main-header--one`, which was built for the
+   tall, transparent header that overlays the hero. Inheriting those
+   rules made the sticky bar too tall, too pale, and prone to two-line
+   label wrapping once the Language Selector is added to its right
+   cluster. Everything below is scoped to `.sticky-header--cloned` so it
+   reads as a condensed version of the main navigation — dark surface,
+   white text, gold accents — and nothing else on the site is affected.
+   Desktop nav is ≥1200px; tablet/mobile fall back to the hamburger, so
+   the nav-spacing rules here only take effect on desktop.
+   ───────────────────────────────────────────────────────────── */
+
+/* Dark, brand-consistent surface (matches the dark top contact bar),
+   with a refined shadow and a hairline gold seam so the change from the
+   dark hero header no longer feels abrupt or visually "white/heavy".
+   Overrides the pale `--gotur-gray` fill from gotur.css. */
+.sticky-header--cloned.main-header--one {
+  background-color: var(--gotur-black, #1d231f);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  border-bottom: 1px solid rgba(246, 201, 69, 0.28);
+}
+
+/* Compact height: the overlay header uses 40px of vertical padding on
+   each nav item; halve it so the sticky bar takes far less space. */
+.sticky-header--cloned .main-menu .main-menu__list > li {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+/* Compact, uncluttered nav text. The theme's 16px links look oversized in
+   a condensed sticky bar (especially once the bar grows for the larger
+   logo); 14px reads as a tighter, more premium condensed navigation. This
+   also covers the Special Offers pill (a `li > a`). */
+.sticky-header--cloned .main-menu .main-menu__list > li > a {
+  font-size: 14px;
+}
+
+/* Keep every top-level label on a single line — this is the direct fix
+   for the "Egypt Tour Packages / Egypt Nile Cruises / Egypt Day Tours"
+   two-line wrapping. */
+.sticky-header--cloned .main-menu__list > li > a {
+  white-space: nowrap;
+}
+
+/* Even, balanced spacing: replace the oversized 42px item gap and 60px
+   right-cluster gap (tuned for the wide overlay header) with tighter,
+   consistent values. The space this frees exceeds the width of the
+   added Language Selector, so the nav fits on one line without wrapping
+   or horizontal overflow. */
+.sticky-header--cloned .main-menu .main-menu__list > li + li {
+  margin-left: 26px;
+}
+.sticky-header--cloned .main-header__right {
+  gap: 28px;
+}
+
+/* Narrow-desktop safety: the sticky header carries an extra control that
+   the normal header keeps in the top bar (currency + language). On
+   smaller desktop widths, tighten the gaps a touch more so the added
+   control never forces a wrap or horizontal overflow. */
+@media (min-width: 1200px) and (max-width: 1460px) {
+  .sticky-header--cloned .main-menu .main-menu__list > li + li {
+    margin-left: 20px;
+  }
+  .sticky-header--cloned .main-header__right {
+    gap: 20px;
+  }
+}
+
+/* Proportionate logo for the shorter bar. The source logo is a SQUARE
+   image (falcon + stacked wordmark, 313x313), but the Next <Image> carries
+   width="100" height="30" attributes, so `width: auto` derives a wrong
+   ~3.3:1 box and the mark renders distorted/tiny. Size it explicitly as a
+   square and force `aspect-ratio: 1/1` + `object-fit: contain` so it always
+   displays correctly at a clear, recognizable size, independent of those
+   attributes. `flex-shrink: 0` on the box stops the flex row from ever
+   squeezing the logo down to a sliver. 56px keeps a strong brand presence
+   while still fitting the compact bar. */
+.sticky-header--cloned .main-header__logo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.sticky-header--cloned .main-header__logo img {
+  height: 72px;
+  width: 72px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
+
+/* Phones: the compact bar keeps search + wishlist + language + hamburger
+   (as before). The newly added currency control would crowd/overflow the
+   narrow row, and currency was never shown in the mobile header, so hide
+   just the currency selector here. The language selector is preserved at
+   every width; tablet/desktop keep both controls. */
+@media (max-width: 767px) {
+  .sticky-header--cloned .currency-switcher {
+    display: none;
+  }
+}
+
+/* Tailor-Made CTA: smaller footprint so it no longer dominates the bar
+   or compete head-to-head with the Special Offers pill — clear hierarchy
+   (solid gold primary vs. gold-outline secondary), just rightsized.
+   `nowrap` + `inline-flex` keep the label and icon on a single centered
+   line (the hyphen in "Tailor-Made" was breaking onto two lines); the
+   base `.gotur-btn` is `inline-block` with no nowrap. `flex-shrink: 0`
+   stops the flex row from squeezing the button. */
+.sticky-header--cloned .main-header__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 9px 20px;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+}
+
+/* Special Offers pill: trim padding to match the compact bar height. */
+.sticky-header--cloned .main-menu__list > li > a.main-menu__promotion-link {
+  padding: 8px 14px;
+}
+
+/* Smoother, slightly quicker show/hide so the bar glides in on scroll-up
+   instead of appearing abruptly. */
+.sticky-header--cloned {
+  transition: transform 450ms cubic-bezier(0.24, 0.74, 0.58, 1),
+    visibility 450ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-header--cloned {
+    transition: none;
+  }
+}
