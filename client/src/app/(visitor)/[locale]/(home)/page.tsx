@@ -25,7 +25,10 @@ import type { SliderItem } from "@/types/slider";
 import { Metadata } from "next";
 
 const FEATURED_TOURS_LIMIT = 8;
-const FEATURED_BLOGS_LIMIT = 3;
+// Fetch the featured-blogs pool for the homepage carousel. BlogTwoTwo shows
+// all of them (filtered to the active locale) in a rewinding slider, so this
+// is a generous upper bound. Keep in sync with FEATURED_FETCH_POOL there.
+const FEATURED_BLOGS_POOL = 24;
 const HOME_FAQS_LIMIT = 8;
 
 export async function generateMetadata({
@@ -79,7 +82,7 @@ async function getInitialFeaturedTours(locale: string): Promise<any[]> {
 
 async function getInitialFeaturedBlogs(): Promise<BlogPost[]> {
   try {
-    const response = await getFeaturedBlogs(FEATURED_BLOGS_LIMIT);
+    const response = await getFeaturedBlogs(FEATURED_BLOGS_POOL);
 
     return Array.isArray(response.data) ? response.data : [];
   } catch {

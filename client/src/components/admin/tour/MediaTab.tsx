@@ -164,12 +164,14 @@ export default function MediaTab({
                     value={image.title || { en: '', de: '', it: '', es: '' }}
                     onChange={(val) => updateImage(index, 'title', val)}
                     placeholder="Image title"
+                    activeLanguage={activeLanguage}
                   />
                   <LocalizedInput
                     label="Alt Text"
                     value={image.alt || { en: '', de: '', it: '', es: '' }}
                     onChange={(val) => updateImage(index, 'alt', val)}
                     placeholder="Alt text"
+                    activeLanguage={activeLanguage}
                   />
                 </div>
               </div>
@@ -276,12 +278,14 @@ export default function MediaTab({
                     value={image.title || { en: '', de: '', it: '', es: '' }}
                     onChange={(val) => updateGalleryImage(index, 'title', val)}
                     placeholder="Image title"
+                    activeLanguage={activeLanguage}
                   />
                   <LocalizedInput
                     label="Alt Text"
                     value={image.alt || { en: '', de: '', it: '', es: '' }}
                     onChange={(val) => updateGalleryImage(index, 'alt', val)}
                     placeholder="Alt text"
+                    activeLanguage={activeLanguage}
                   />
                 </div>
               </div>

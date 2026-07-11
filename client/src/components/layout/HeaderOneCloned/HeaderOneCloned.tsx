@@ -12,8 +12,12 @@ import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
+import { Flame } from "lucide-react";
 import LanguageSelector from "../../common/LanguageSelector/LanguageSelector";
+import CurrencySwitcher from "../../common/CurrencySwitcher/CurrencySwitcher";
 import { useState, useEffect } from "react";
+
+type ActiveHeaderDropdown = "language" | "currency" | null;
 
 interface NavItem {
   id: number;
@@ -29,6 +33,7 @@ const HeaderOneCloned: React.FC = () => {
   const locale = getLocaleFromPath(pathname);
   const { menu } = useHeaderMenu("header-main");
   const [mounted, setMounted] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<ActiveHeaderDropdown>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -36,7 +41,6 @@ const HeaderOneCloned: React.FC = () => {
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
-    changeSideBarDrawerStatus,
   } = useStore();
   const { wishlist } = useWishlist();
 
@@ -66,7 +70,7 @@ const HeaderOneCloned: React.FC = () => {
   const nav = Array.isArray(menu?.items) ? menu!.items : [];
   return (
     <header
-      className={`main-header main-header--one sticky-header sticky-header--normal sticky-header--cloned ${
+      className={`main-header main-header--one main-header--links-light sticky-header sticky-header--normal sticky-header--cloned ${
         scrollToTop ? " active" : ""
       }`}
     >
@@ -83,12 +87,13 @@ const HeaderOneCloned: React.FC = () => {
               <ul className='main-menu__list'>
                 {/* Render Home menu with showcase */}
                 <li className='dropdown megamenu'>
-                  <Link href={`/${locale}`} style={{ color: "#000" }}>Home</Link>
+                  <Link href={`/${locale}`}>Home</Link>
                 </li>
 
                 {nav.map((item: any) => (
                   (() => {
                     const hasChildren = (Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0);
+                    const isPromotion = item?.displayVariant === "promotion";
                     return (
                   <li
                     className={`${hasChildren ? "dropdown" : ""} ${
@@ -96,7 +101,13 @@ const HeaderOneCloned: React.FC = () => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)} style={{ color: "#000" }}>
+                    <Link
+                      href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}
+                      className={isPromotion ? "main-menu__promotion-link" : undefined}
+                    >
+                      {isPromotion ? (
+                        <Flame size={15} aria-hidden="true" focusable={false} className="main-menu__promotion-icon" />
+                      ) : null}
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
 
@@ -120,7 +131,6 @@ const HeaderOneCloned: React.FC = () => {
                 <i
                   className='icon-search-interface-symbol'
                   aria-hidden='true'
-                  style={{ color: "#000" }}
                 ></i>
                 <span className='sr-only'>Search</span>
               </Link>
@@ -128,7 +138,6 @@ const HeaderOneCloned: React.FC = () => {
                 <i
                   className={wishlist.length > 0 ? 'fas fa-heart' : 'far fa-heart'}
                   aria-hidden='true'
-                  style={{ color: "#000" }}
                 ></i>
                 <span className='sr-only'>Wishlist</span>
                 {wishlist.length > 0 && (
@@ -157,17 +166,20 @@ const HeaderOneCloned: React.FC = () => {
                 )}
               </Link>
               {mounted && (
-                <div style={{ marginLeft: "5px" }}>
-                  <LanguageSelector theme="light" />
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "5px" }}>
+                  <CurrencySwitcher
+                    isOpen={activeDropdown === "currency"}
+                    onOpen={() => setActiveDropdown("currency")}
+                    onClose={() => setActiveDropdown((current) => (current === "currency" ? null : current))}
+                  />
+                  <LanguageSelector
+                    theme="dark"
+                    isOpen={activeDropdown === "language"}
+                    onOpen={() => setActiveDropdown("language")}
+                    onClose={() => setActiveDropdown((current) => (current === "language" ? null : current))}
+                  />
                 </div>
               )}
-            </div>
-
-            <div
-              className='main-header__btn-popup main-header__element__btn'
-              onClick={changeSideBarDrawerStatus}
-            >
-              <i className='icon-menu-bar' style={{ color: "#000" }}></i>
             </div>
 
             <Link href={`/${locale}/tailor-made`} className='gotur-btn main-header__btn'>

@@ -108,6 +108,72 @@ a {
   text-decoration: none;
 }
 
+.top-one + .main-header--one {
+  margin-bottom: -108px;
+}
+
+@media (min-width: 1200px) {
+  .top-one {
+    position: relative;
+    z-index: 100;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .top-one + .main-header--one .main-header__logo img {
+    width: 108px;
+    height: auto;
+  }
+
+  .top-one + .main-header--one .main-header__nav {
+    margin-left: 0;
+    margin-right: 30px;
+  }
+
+  .top-one + .main-header--one .main-menu .main-menu__list > li {
+    padding-top: 31px;
+    padding-bottom: 31px;
+  }
+
+  .top-one + .main-header--one .main-menu .main-menu__list > li + li {
+    margin-left: 28px;
+  }
+
+  .top-one + .main-header--one .main-menu .main-menu__list > li > a {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.18;
+    text-align: center;
+  }
+
+  .top-one + .main-header--one .main-header__right {
+    gap: 28px;
+    justify-content: flex-start !important;
+    margin-left: 40px;
+  }
+
+  .top-one + .main-header--one .main-header__info {
+    margin-left: auto;
+  }
+
+  .top-one + .main-header--one .main-header__info a {
+    font-size: 15px;
+  }
+
+  .top-one + .main-header--one .main-header__info a + a {
+    margin-left: 18px;
+  }
+
+  .top-one + .main-header--one .main-header__btn {
+    padding: 14px 42px;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .top-one + .main-header--one .main-header__btn i {
+    margin-left: 6px;
+  }
+}
+
 /* ── AboutOne overrides ── */
 
 /* Smooth image reveal on load */

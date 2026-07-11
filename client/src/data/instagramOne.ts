@@ -30,6 +30,6 @@ export const instagramOneData: InstagramOneData = {
     { id: 12, image: '/images/instragarm/saqqara-step-pyramid-group-tour-jes-egypt-tours.webp',            alt: 'Group tour at the Saqqara Step Pyramid Egypt',                 title: 'Saqqara Step Pyramid Group Tour — JES Egypt Tours',            link: URL },
     { id: 13, image: '/images/instragarm/qaitbay-citadel-alexandria-private-tour-jes-egypt-tours.webp',   alt: 'Private tour at Qaitbay Citadel Alexandria Egypt',              title: 'Qaitbay Citadel Alexandria Private Tour — JES Egypt Tours',    link: URL },
     { id: 14, image: '/images/instragarm/fayoum-wadi-el-rayan-lakes-tour-egypt.webp',                     alt: 'Wadi El Rayan lakes tour in Fayoum Egypt',                     title: 'Fayoum Wadi El Rayan Lakes Tour — JES Egypt Tours',            link: URL },
-    { id: 15, image: '/images/instragarm/bibliotheca-alexandrina-alexandria-corniche-tour-egypt.webp',     alt: 'Bibliotheca Alexandrina on the Alexandria Corniche tour',       title: 'Bibliotheca Alexandrina Alexandria Tour — JES Egypt Tours',    link: URL },
+    { id: 15, image: '/images/instragarm/alexandrina-alexandria-corniche-tour-egypt.jpg',                  alt: 'Bibliotheca Alexandrina on the Alexandria Corniche tour',       title: 'Bibliotheca Alexandrina Alexandria Tour — JES Egypt Tours',    link: URL },
   ],
 };

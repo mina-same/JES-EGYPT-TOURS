@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
+import { Flame } from "lucide-react";
 
 import { demoPages } from "@/data/demoPages";
 import { Col, Container, Row } from "react-bootstrap";
@@ -133,6 +134,7 @@ const Drawer: React.FC = () => {
               (() => {
                 const children = item.children || item.subMenu;
                 const hasChildren = Array.isArray(children) && children.length > 0;
+                const isPromotion = item?.displayVariant === "promotion";
                 return (
               <li
                 key={item._id || item.id || `${item.label || item.title}-${idx}`}
@@ -142,8 +144,11 @@ const Drawer: React.FC = () => {
               >
                 <Link
                   href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}
-                  className={`${isItems === idx ? "expanded" : ""}`}
+                  className={`${isItems === idx ? "expanded" : ""} ${isPromotion ? "mobile-menu__promotion-link" : ""}`}
                 >
+                  {isPromotion ? (
+                    <Flame size={16} aria-hidden="true" focusable={false} className="mobile-menu__promotion-icon" />
+                  ) : null}
                   {getLocalizedValue(item.label || item.title, i18n.language)}
 
                   {hasChildren && (

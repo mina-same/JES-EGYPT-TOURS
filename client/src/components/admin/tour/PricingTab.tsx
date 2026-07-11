@@ -49,6 +49,7 @@ export default function PricingTab({ formData, handleChange, activeLanguage, for
               placeholder="e.g., Free cancellation up to 24h before"
               data-field="cancellationPolicy"
               error={formErrors.some(e => e.path === 'cancellationPolicy' || e.path === 'cancellationPolicy.en')}
+              activeLanguage={activeLanguage}
             />
             {(formErrors.some(e => e.path === 'cancellationPolicy' || e.path === 'cancellationPolicy.en')) && (
               <p className="text-xs text-red-600">

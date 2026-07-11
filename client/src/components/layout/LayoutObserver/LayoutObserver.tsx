@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import useStore from "@/store/useStore";
 import { usePathname } from "next/navigation";
 
@@ -8,11 +8,8 @@ const LayoutObserver = () => {
   const {
     mobileDrawerStatus,
     mobileDrawerTwoStatus,
-    changeMobileDrawerStatus,
-    changeMobileDrawerTwoStatus,
     setMobileDrawerTwoStatus,
     setMobileDrawerStatus,
-    setSideBarDrawerStatus,
   } = useStore();
   const pathname = usePathname();
   useEffect(() => {
@@ -34,7 +31,6 @@ const LayoutObserver = () => {
     if (mobileDrawerTwoStatus) {
       setMobileDrawerTwoStatus(false);
     }
-    // setSideBarDrawerStatus(false);
   }, [pathname]);
 
   return null;

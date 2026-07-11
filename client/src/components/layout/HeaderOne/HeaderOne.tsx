@@ -11,6 +11,7 @@ import { useHeaderMenu } from "@/hooks/useHeaderMenu";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue, formatUrl } from "@/lib/localize";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
+import { Flame } from "lucide-react";
 
 interface NavItem {
   id: number;
@@ -33,7 +34,6 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
   const {
     changeSearchPopupStatus,
     changeMobileDrawerStatus,
-    changeSideBarDrawerStatus,
   } = useStore();
   const { wishlist } = useWishlist();
 
@@ -87,6 +87,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                 {nav.map((item: any) => (
                   (() => {
                     const hasChildren = (Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0);
+                    const isPromotion = item?.displayVariant === "promotion";
                     return (
                   <li
                     className={`${hasChildren ? "dropdown" : ""} ${
@@ -94,7 +95,13 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
-                    <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}>
+                    <Link
+                      href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}
+                      className={isPromotion ? "main-menu__promotion-link" : undefined}
+                    >
+                      {isPromotion ? (
+                        <Flame size={15} aria-hidden="true" focusable={false} className="main-menu__promotion-icon" />
+                      ) : null}
                       {getLocalizedValue(item.label || item.title, i18n.language)}
                     </Link>
 
@@ -144,13 +151,6 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                   </span>
                 )}
               </Link>
-            </div>
-
-            <div
-              className='main-header__btn-popup main-header__element__btn'
-              onClick={changeSideBarDrawerStatus}
-            >
-              <i className='icon-menu-bar'></i>
             </div>
 
             <Link href={`/${locale}/tailor-made`} className='gotur-btn main-header__btn'>
