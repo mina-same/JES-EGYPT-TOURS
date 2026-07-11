@@ -21,11 +21,8 @@ interface OfferData {
   tagline: string;
   funfactText: string;
   upToText: string;
-  image: StaticImageData;
   shapes: {
     shape1: StaticImageData;
-    bgShape: StaticImageData;
-    aboutShape: StaticImageData;
     planShape: StaticImageData;
   };
 }
@@ -39,7 +36,6 @@ const OfferTwo = () => {
     tagline,
     funfactText,
     upToText,
-    image,
     shapes,
   }: OfferData = offerTwoData;
 
@@ -93,7 +89,13 @@ const OfferTwo = () => {
             data-wow-delay='400ms'
           >
             <div className='offer-two__thumb__item offer-two__thumb__item'>
-              <Image src={image} alt='offer image' />
+              <Image
+                src='/images/egypt-tour-traveler-with-suitcase-jes-egypt-tour.webp'
+                alt='Female traveler with a suitcase exploring Egypt'
+                width={489}
+                height={652}
+                style={{ objectFit: "contain" }}
+              />
             </div>
             <div className='offer-two__thumb__element'></div>
           </div>
@@ -119,7 +121,7 @@ const OfferTwo = () => {
             <div className='offer-two__funfact__cercle'>
               <div className='offer-two__funfact__cercle__inner curved-circle__item'>
                 <ReactCurvedText
-                  text='new year sales'
+                  text='LIMITED-TIME SALE'
                   cx={180}
                   cy={200}
                   rx={120}
@@ -137,11 +139,23 @@ const OfferTwo = () => {
             </div>
           </div>
 
-          <div className='offer-two__element w-full max-w-[50%] pointer-events-none'>
-            <Image src={shapes.bgShape} alt='background shape' className="max-w-full h-auto" />
+          <div className='offer-two__element w-full max-w-[60%] pointer-events-none'>
+            <Image
+              src='/images/egypt-nile-felucca-pyramids-travel-scene.webp'
+              alt=''
+              width={720}
+              height={480}
+              className="max-w-full h-auto"
+            />
           </div>
           <div className='offer-two__element-two w-full max-w-[50%] pointer-events-none'>
-            <Image src={shapes.aboutShape} alt='about shape' className="max-w-full h-auto" />
+            <Image
+              src='/images/egypt-tour-airplane-decoration.png'
+              alt='about shape'
+              width={293}
+              height={155}
+              className="max-w-full h-auto"
+            />
           </div>
           <div className='offer-two__element-three w-full max-w-[50%] pointer-events-none'>
             <Image src={shapes.planShape} alt='plan shape' className="max-w-full h-auto" />
