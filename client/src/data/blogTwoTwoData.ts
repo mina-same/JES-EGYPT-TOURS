@@ -4,15 +4,11 @@ import blogImg1 from '@/assets/images/blog/blog-2-4.jpg';
 import blogImg2 from '@/assets/images/blog/blog-2-5.jpg';
 import blogImg3 from '@/assets/images/blog/blog-2-6.jpg';
 
-import shape from '@/assets/images/shapes/city.png'
-
 export const blogTwoInfo = {
   tagline: 'Blog & News',
   title: 'Our Latest News',
   link: '/blogs',
   linkLabel: 'See More Article',
-  shape: shape,
-
 blogData : [
     {
       title: 'The 5 best things about Touristy',

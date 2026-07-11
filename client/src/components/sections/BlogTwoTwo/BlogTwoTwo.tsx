@@ -1,6 +1,6 @@
 "use client";
 
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { Container, Row, Col } from "react-bootstrap";
@@ -19,7 +19,6 @@ interface BlogData {
   title: string;
   link: string;
   linkLabel: string;
-  shape: StaticImageData;
   blogData: unknown[];
 }
 
@@ -28,7 +27,7 @@ type BlogTwoTwoProps = {
 };
 
 const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
-  const { link, shape }: BlogData = blogTwoInfo;
+  const { link }: BlogData = blogTwoInfo;
   const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
   const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>(() => initialBlogs);
@@ -203,9 +202,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
         </Row>
       </Container>
 
-      <div className='blog-two__element'>
-        <Image src={shape} alt='element shape' />
-      </div>
+      <div className='blog-two__element'></div>
     </section>
   );
 };
