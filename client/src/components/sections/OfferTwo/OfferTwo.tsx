@@ -8,8 +8,8 @@ import { useInView } from "react-intersection-observer";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Clock } from "lucide-react";
 import { offerTwoData } from "@/data/offerTwoData";
-import ReactCurvedText from "react-curved-text";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 
 interface OfferData {
@@ -101,6 +101,15 @@ const OfferTwo = () => {
           </div>
 
           <div className='offer-two__funfact'>
+            <span className='offer-two__sale-label'>
+              <Clock
+                size={14}
+                strokeWidth={2.5}
+                aria-hidden='true'
+                className='offer-two__sale-label__icon'
+              />
+              Limited-Time Offer
+            </span>
             <div className='offer-two__funfact__item'>
               <div className='offer-two__funfact__item__inner count-box'>
                 <h2 className='offer-two__funfact__item__count'>
@@ -116,25 +125,6 @@ const OfferTwo = () => {
                 <div className='offer-two__funfact__item__shape'>
                   <Image src={shapes.shape1} alt='shape' />
                 </div>
-              </div>
-            </div>
-            <div className='offer-two__funfact__cercle'>
-              <div className='offer-two__funfact__cercle__inner curved-circle__item'>
-                <ReactCurvedText
-                  text='LIMITED-TIME SALE'
-                  cx={180}
-                  cy={200}
-                  rx={120}
-                  ry={130}
-                  radius={197}
-                  fontSize={20}
-                  fontWeight={500}
-                  fill='#fff'
-                  reversed={true}
-                  width={500}
-                  height={300}
-                  tspanProps={{ dy: "-20" }}
-                />
               </div>
             </div>
           </div>
