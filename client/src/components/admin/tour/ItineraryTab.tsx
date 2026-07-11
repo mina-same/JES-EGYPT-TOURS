@@ -241,6 +241,7 @@ export default function ItineraryTab({
             value={formData.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' }}
             onChange={(val) => handleChange('itinerary.generalDescription', val)}
             placeholder="Provide an overview of the tour itinerary..."
+            activeLanguage={activeLanguage}
           />
         </CardContent>
       </Card>
@@ -418,6 +419,7 @@ export default function ItineraryTab({
                                 value={day.title || { en: '', de: '', it: '', es: '' }}
                                 onChange={(val) => updateItineraryDay(dayIndex, 'title', val)}
                                 placeholder="e.g., Arrival in Cairo"
+                                activeLanguage={activeLanguage}
                               />
 
                               <LocalizedRichText
@@ -425,6 +427,7 @@ export default function ItineraryTab({
                                 value={day.description || { en: '', de: '', it: '', es: '' }}
                                 onChange={(val) => updateItineraryDay(dayIndex, 'description', val)}
                                 placeholder="Describe what happens on this day..."
+                                activeLanguage={activeLanguage}
                               />
 
                               {/* Activities */}
@@ -525,6 +528,7 @@ export default function ItineraryTab({
                                                       value={activity.heading || { en: '', de: '', it: '', es: '' }}
                                                       onChange={(val) => updateActivity(actIndex, 'heading', val)}
                                                       placeholder="e.g., Visit the Pyramids"
+                                                      activeLanguage={activeLanguage}
                                                     />
 
                                                     <LocalizedRichText
@@ -532,6 +536,7 @@ export default function ItineraryTab({
                                                       value={activity.description || { en: '', de: '', it: '', es: '' }}
                                                       onChange={(val) => updateActivity(actIndex, 'description', val)}
                                                       placeholder="Describe this activity..."
+                                                      activeLanguage={activeLanguage}
                                                     />
 
                                                     <div className="space-y-4 pt-2 border-t mt-4">
@@ -591,12 +596,14 @@ export default function ItineraryTab({
                                                                 value={image.title || { en: '', de: '', it: '', es: '' }}
                                                                 onChange={(val) => updateActivity(actIndex, 'image', { ...image, title: val })}
                                                                 placeholder="Title"
+                                                                activeLanguage={activeLanguage}
                                                               />
                                                               <LocalizedInput
                                                                 label="Alt Text"
                                                                 value={image.alt || { en: '', de: '', it: '', es: '' }}
                                                                 onChange={(val) => updateActivity(actIndex, 'image', { ...image, alt: val })}
                                                                 placeholder="Alt text"
+                                                                activeLanguage={activeLanguage}
                                                               />
                                                             </div>
                                                           </div>

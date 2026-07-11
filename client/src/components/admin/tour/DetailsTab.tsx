@@ -48,6 +48,7 @@ export default function DetailsTab({
             value={formData.tourHighlights || { en: [], de: [], it: [], es: [] }}
             onChange={(val) => handleChange('tourHighlights', val)}
             placeholder="Visit the Pyramids, Sphinx, Egyptian Museum..."
+            activeLanguage={activeLanguage}
           />
         </CardContent>
       </Card>
@@ -96,6 +97,7 @@ export default function DetailsTab({
             value={formData.whatToPack || { en: [], de: [], it: [], es: [] }}
             onChange={(val) => handleChange('whatToPack', val)}
             placeholder="Sunscreen, Hat, Comfortable shoes..."
+            activeLanguage={activeLanguage}
           />
         </CardContent>
       </Card>

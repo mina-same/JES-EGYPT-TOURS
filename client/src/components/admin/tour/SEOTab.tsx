@@ -107,6 +107,7 @@ export default function SEOTab({
             value={formData.seo?.metaTitle || { en: '', de: '', it: '', es: '' }}
             onChange={(val, lang) => handleChange('seo.metaTitle', val, lang)}
             placeholder="SEO Title"
+            activeLanguage={activeLanguage}
           />
 
           <LocalizedTextArea
@@ -115,6 +116,7 @@ export default function SEOTab({
             onChange={(val, lang) => handleChange('seo.metaDescription', val, lang)}
             placeholder="Brief description for search results"
             rows={3}
+            activeLanguage={activeLanguage}
           />
 
           <LocalizedTagsInput
@@ -122,6 +124,7 @@ export default function SEOTab({
             value={formData.seo?.metaKeywords || { en: [], de: [], it: [], es: [] }}
             onChange={(val, lang) => handleKeywordsChange(val, lang)}
             placeholder="egypt tours, cairo, pyramids..."
+            activeLanguage={activeLanguage}
           />
           
           <div className="space-y-2">
@@ -167,12 +170,14 @@ export default function SEOTab({
                   value={formData.seo?.metaImage?.title || { en: '', de: '', it: '', es: '' }}
                   onChange={(val, lang) => handleChange('seo.metaImage.title', val, lang)}
                   placeholder="Title for social share image"
+                  activeLanguage={activeLanguage}
                 />
                 <LocalizedInput
                   label="Alt Text"
                   value={formData.seo?.metaImage?.alt || { en: '', de: '', it: '', es: '' }}
                   onChange={(val, lang) => handleChange('seo.metaImage.alt', val, lang)}
                   placeholder="Accessibility description"
+                  activeLanguage={activeLanguage}
                 />
               </div>
             )}

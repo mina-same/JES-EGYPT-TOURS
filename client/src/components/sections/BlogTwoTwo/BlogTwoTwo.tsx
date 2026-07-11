@@ -4,6 +4,10 @@ import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { Container, Row, Col } from "react-bootstrap";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass } from "swiper";
+import "swiper/css";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { blogTwoInfo } from "@/data/blogTwoTwoData";
 import Link from "next/link";
@@ -26,12 +30,18 @@ type BlogTwoTwoProps = {
   initialBlogs?: BlogPost[];
 };
 
+// All featured blogs are shown in a rewinding carousel (no fixed count).
+// This is a generous upper bound fetched from the API — enough for any
+// realistic admin-curated "featured" set while protecting page weight.
+// Must match the pool used in the homepage's server-side fetch.
+const FEATURED_FETCH_POOL = 24;
+
 const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
   const { link }: BlogData = blogTwoInfo;
   const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
   const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>(() => initialBlogs);
-
+  const [swiper, setSwiper] = useState<SwiperClass | null>(null);
 
   const [mounted, setMounted] = useState(false);
 
@@ -48,7 +58,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
 
     const loadFeatured = async () => {
       try {
-        const res = await fetch(`${API_URL}/blog/posts/featured?limit=3`);
+        const res = await fetch(`${API_URL}/blog/posts/featured?limit=${FEATURED_FETCH_POOL}`);
         if (!res.ok) {
           throw new Error("Failed to fetch featured blogs");
         }
@@ -126,28 +136,57 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
               </div>
             </Col>
             <Col lg={4}>
-              <div className='blog-two__top__btn'>
-                {mounted ? (
-                  <Link href={link} className='gotur-btn gotur-btn--base'>
-                    {t('seeMoreArticle')}{" "}
-                    <span className='icon'>
-                      <i className='icon-right'></i>
-                    </span>
-                  </Link>
-                ) : <div style={{ height: '50px' }} />}
+              <div className='blog-two__actions'>
+                {mounted && featuredViewModel.length > 1 && (
+                  <div className='blog-two__nav'>
+                    <button
+                      type='button'
+                      className='blog-two__nav__btn'
+                      aria-label='Previous articles'
+                      onClick={() => swiper?.slidePrev()}
+                    >
+                      <ChevronLeft size={20} aria-hidden='true' />
+                    </button>
+                    <button
+                      type='button'
+                      className='blog-two__nav__btn'
+                      aria-label='Next articles'
+                      onClick={() => swiper?.slideNext()}
+                    >
+                      <ChevronRight size={20} aria-hidden='true' />
+                    </button>
+                  </div>
+                )}
+                <div className='blog-two__top__btn'>
+                  {mounted ? (
+                    <Link href={link} className='gotur-btn gotur-btn--base'>
+                      {t('seeMoreArticle')}{" "}
+                      <span className='icon'>
+                        <i className='icon-right'></i>
+                      </span>
+                    </Link>
+                  ) : <div style={{ height: '50px' }} />}
+                </div>
               </div>
             </Col>
           </Row>
         </div>
 
-        <Row className='gutter-y-30'>
-          {featuredViewModel.map((post, index: number) => (
-            <Col lg={4} md={6} key={index}>
-              <div
-                className='blog-card-two blog-card-two--one wow fadeInUp'
-                data-wow-duration='1500ms'
-                data-wow-delay={`${100 * (index + 1)}ms`}
-              >
+        <Swiper
+          onSwiper={setSwiper}
+          className='blog-two__carousel'
+          spaceBetween={30}
+          rewind={true}
+          speed={600}
+          breakpoints={{
+            0: { slidesPerView: 1 },
+            576: { slidesPerView: 2 },
+            992: { slidesPerView: 3 },
+          }}
+        >
+          {featuredViewModel.map((post) => (
+            <SwiperSlide key={post.id}>
+              <div className='blog-card-two blog-card-two--one'>
                 <div className='blog-card-two__image'>
                   <Image
                     src={post.image}
@@ -197,9 +236,9 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                   </Link>
                 </div>
               </div>
-            </Col>
+            </SwiperSlide>
           ))}
-        </Row>
+        </Swiper>
       </Container>
 
       <div className='blog-two__element'></div>

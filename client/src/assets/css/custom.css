@@ -2497,3 +2497,63 @@ button[data-action="stop"] {
     transition: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   "Our Latest News" (BlogTwoTwo) — featured-blogs carousel.
+   The section now shows ALL featured blogs in a rewinding Swiper
+   slider (prev/next arrows, wraps to the start). These styles cover
+   the header arrow buttons and give the slider a little breathing
+   room so card shadows/hover-lift are not clipped.
+   ───────────────────────────────────────────────────────────── */
+.blog-two__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.blog-two__nav {
+  display: flex;
+  gap: 10px;
+}
+.blog-two__nav__btn {
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--gotur-base, #d4af37);
+  background: transparent;
+  color: var(--gotur-base, #d4af37);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    transform 0.2s ease, box-shadow 0.2s ease;
+}
+.blog-two__nav__btn:hover {
+  background: var(--gotur-base, #d4af37);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(var(--gotur-base-rgb, 212, 175, 55), 0.35);
+}
+.blog-two__nav__btn:focus-visible {
+  outline: 2px solid var(--gotur-base, #d4af37);
+  outline-offset: 3px;
+}
+/* Vertical padding so the cards' shadow/hover-lift is not clipped by the
+   slider's overflow; the SwiperSlide stretches so cards share a row height. */
+.blog-two__carousel {
+  padding-top: 6px;
+  padding-bottom: 16px;
+}
+.blog-two__carousel .swiper-slide {
+  height: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .blog-two__nav__btn {
+    transition: none;
+  }
+  .blog-two__nav__btn:hover {
+    transform: none;
+  }
+}
