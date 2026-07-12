@@ -12,6 +12,7 @@ import FeatureTwo from "./FeatureTwo";
 interface FeaturePackageItem {
   id: string;
   image: string;
+  images: string[];
   title: string;
   link: string;
   price: number | ICurrencyPrice;
@@ -28,8 +29,14 @@ function getYouTubeId(url: string): string {
 }
 
 function mapTour(tour: any, locale: string): FeaturePackageItem {
+  // All of the tour's own image URLs — used to open a per-tour lightbox on
+  // click. Just strings (no downloads until the gallery opens).
+  const images: string[] = Array.isArray(tour.images)
+    ? tour.images.map((img: any) => img?.url).filter(Boolean)
+    : [];
+
   const image =
-    tour.images?.[0]?.url ||
+    images[0] ||
     tour.gallery?.[0]?.url ||
     "/assets/images/resources/tour-1-1.jpg";
 
@@ -62,6 +69,7 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
   return {
     id: tour._id || tour.id || slug,
     image,
+    images,
     title,
     link: `/${locale}/${slug}`,
     price,

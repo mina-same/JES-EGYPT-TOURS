@@ -6,7 +6,7 @@ import Image, { StaticImageData } from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { featurePackageData } from "@/data/featureTwoData";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
-import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
+import PhotoSwipe from "photoswipe";
 import Link from "next/link";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -14,6 +14,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 interface FeaturePackageItem {
   id: number | string;
   image: StaticImageData | string;
+  images?: string[];
   title: string;
   link: string;
   price: string | number;
@@ -23,6 +24,20 @@ interface FeaturePackageItem {
   discount: string;
   meta: Metadata[];
 }
+
+// Opens a PhotoSwipe lightbox containing only this tour's own images.
+// Built programmatically on click: no gallery DOM is rendered and no image
+// is downloaded until the button is pressed, keeping the page light. The
+// stored images have no dimensions, so a sensible default is passed and the
+// viewer fits each photo to the screen.
+const openTourImages = (images: string[]) => {
+  if (!images.length) return;
+  const pswp = new PhotoSwipe({
+    dataSource: images.map((src) => ({ src, width: 1600, height: 1067 })),
+    showHideAnimationType: "fade",
+  });
+  pswp.init();
+};
 interface Metadata {
   id: number;
   title: string;
@@ -144,7 +159,6 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
         <div className='container-fluid'>
           <div className='feature-package__inner'>
             <div className='feature-package__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'>
-              <PhotoSwipeGallery>
                 <TinySlider
                   settings={{
                     items: 1,
@@ -207,26 +221,27 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                               <i className='far fa-heart'></i>
                             </Link>
                             <div className='listing-card-four__btns__hover'>
-                              <Item
-                                original={typeof item.image === 'string' ? item.image : item.image.src}
-                                thumbnail={typeof item.image === 'string' ? item.image : item.image.src}
-                                width='370'
-                                height='220'
+                              <Link
+                                className='listing-card-four__popup card__popup'
+                                href='#'
+                                aria-label='View tour photos'
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  const single =
+                                    typeof item.image === 'string'
+                                      ? item.image
+                                      : item.image?.src;
+                                  const imgs =
+                                    item.images && item.images.length > 0
+                                      ? item.images
+                                      : single
+                                        ? [single]
+                                        : [];
+                                  openTourImages(imgs);
+                                }}
                               >
-                                {({ ref, open }) => (
-                                  <Link
-                                    className='listing-card-four__popup card__popup'
-                                    ref={ref}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      open(e);
-                                    }}
-                                    href='#'
-                                  >
-                                    <span className='icon-image'></span>
-                                  </Link>
-                                )}
-                              </Item>
+                                <span className='icon-image'></span>
+                              </Link>
 
                               <Link
                                 className='video-popup'
@@ -291,7 +306,6 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                     </div>
                   ))}
                 </TinySlider>
-              </PhotoSwipeGallery>
             </div>
           </div>
         </div>
