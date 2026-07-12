@@ -16,6 +16,8 @@ interface LocalizedFieldProps {
   globalLanguage?: AdminLanguage;
   /** Additional class for the wrapper */
   className?: string;
+  /** Hide per-field tabs when a page-level language switcher is used */
+  hideLanguageTabs?: boolean;
   /** Render the actual input/textarea/editor as a function-child, receiving the active language value and a change handler */
   children: (
     activeLang: AdminLanguage,
@@ -51,6 +53,7 @@ export function LocalizedField({
   label,
   globalLanguage,
   className,
+  hideLanguageTabs = false,
   children,
   error,
 }: LocalizedFieldProps) {
@@ -85,40 +88,42 @@ export function LocalizedField({
   return (
     <div className={cn("space-y-1", className)}>
       {/* Language tab strip */}
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 items-center gap-1">
         {label && (
           <span className="text-xs text-muted-foreground font-medium mr-1 flex-1">
             {label}
           </span>
         )}
-        <div className="flex items-center gap-0.5 rounded border bg-muted/40 px-0.5 py-0.5 ml-auto">
-          {LANGS.map((lang) => {
-            const isActive = activeLang === lang;
-            const filled = hasContent(lang);
-            const Flag = FLAG_COMPONENTS[lang];
-            return (
-              <button
-                key={lang}
-                type="button"
-                onClick={() => setActiveLang(lang)}
-                className={cn(
-                  "relative flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded transition-all uppercase tracking-wide",
-                  isActive
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/60"
-                )}
-                title={LANG_LABELS[lang]}
-              >
-                <Flag className="w-3 h-2 rounded-[0.5px]" />
-                {lang.toUpperCase()}
-                {/* Dot indicator for content presence */}
-                {filled && !isActive && (
-                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 border border-background shadow-xs" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+        {!hideLanguageTabs && (
+          <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-0.5 rounded border bg-muted/40 px-0.5 py-0.5">
+            {LANGS.map((lang) => {
+              const isActive = activeLang === lang;
+              const filled = hasContent(lang);
+              const Flag = FLAG_COMPONENTS[lang];
+              return (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setActiveLang(lang)}
+                  className={cn(
+                    "relative flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded transition-all uppercase tracking-wide",
+                    isActive
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-background/60"
+                  )}
+                  title={LANG_LABELS[lang]}
+                >
+                  <Flag className="w-3 h-2 rounded-[0.5px]" />
+                  {lang.toUpperCase()}
+                  {/* Dot indicator for content presence */}
+                  {filled && !isActive && (
+                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 border border-background shadow-xs" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* The actual input wrapped by parent */}

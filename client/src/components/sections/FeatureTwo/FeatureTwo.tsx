@@ -25,16 +25,36 @@ interface FeaturePackageItem {
   meta: Metadata[];
 }
 
+// Reads an image's real dimensions in the browser (used only when the gallery
+// is opened). Falls back to a sane default if the image fails to load.
+const measureImage = (src: string) =>
+  new Promise<{ src: string; width: number; height: number }>((resolve) => {
+    const img = new window.Image();
+    img.onload = () =>
+      resolve({
+        src,
+        width: img.naturalWidth || 1600,
+        height: img.naturalHeight || 1067,
+      });
+    img.onerror = () => resolve({ src, width: 1600, height: 1067 });
+    img.src = src;
+  });
+
 // Opens a PhotoSwipe lightbox containing only this tour's own images.
-// Built programmatically on click: no gallery DOM is rendered and no image
-// is downloaded until the button is pressed, keeping the page light. The
-// stored images have no dimensions, so a sensible default is passed and the
-// viewer fits each photo to the screen.
-const openTourImages = (images: string[]) => {
+// Built programmatically on click: no gallery DOM is rendered and no image is
+// downloaded until the button is pressed, keeping the page light. Dimensions
+// are measured on the client at open time so every photo shows at its true
+// aspect ratio (no distortion) without storing sizes server-side.
+const openTourImages = async (images: string[]) => {
   if (!images.length) return;
+  const dataSource = await Promise.all(images.map(measureImage));
   const pswp = new PhotoSwipe({
-    dataSource: images.map((src) => ({ src, width: 1600, height: 1067 })),
+    dataSource,
     showHideAnimationType: "fade",
+    // On close PhotoSwipe re-focuses the clicked button. That button lives
+    // inside the slider's overflow viewport, so the browser scrolls it into
+    // view and shifts the whole carousel (broken card layout). Disable it.
+    returnFocus: false,
   });
   pswp.init();
 };
@@ -243,17 +263,20 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                                 <span className='icon-image'></span>
                               </Link>
 
-                              <Link
-                                className='video-popup'
-                                href={`https://www.youtube.com/watch?v=${item.videoId}`}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setOpen(true);
-                                  setVideoId(item.videoId);
-                                }}
-                              >
-                                <span className='icon-video'></span>
-                              </Link>
+                              {item.videoId ? (
+                                <Link
+                                  className='video-popup'
+                                  href={`https://www.youtube.com/watch?v=${item.videoId}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!item.videoId) return;
+                                    setVideoId(item.videoId);
+                                    setOpen(true);
+                                  }}
+                                >
+                                  <span className='icon-video'></span>
+                                </Link>
+                              ) : null}
                             </div>
                           </div>
                           <ul className='listing-card-four__meta list-unstyled'>
@@ -317,7 +340,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
           </div>
         )}
       </section>
-      <VideoModal isOpen={isOpen} setOpen={setOpen} id={videoId} />
+      <VideoModal isOpen={isOpen && !!videoId} setOpen={setOpen} id={videoId} />
     </>
   );
 };

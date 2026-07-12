@@ -55,12 +55,9 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
       ? tour.priceStartingFrom
       : (typeof tour.price === "number" ? tour.price : 0);
 
-  const videoId =
-    Array.isArray(tour.reviews)
-      ? getYouTubeId(
-          tour.reviews.find((r: any) => typeof r?.url === "string")?.url || ""
-        )
-      : "";
+  // Server sends a single lightweight `videoUrl` (or none). Extract the
+  // YouTube id; empty string means the tour has no video (button is hidden).
+  const videoId = tour.videoUrl ? getYouTubeId(tour.videoUrl) : "";
 
   const duration = getLocalizedValue(tour.duration, locale) || "1 Day";
   const location =

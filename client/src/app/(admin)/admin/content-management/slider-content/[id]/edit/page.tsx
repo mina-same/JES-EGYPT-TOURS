@@ -388,6 +388,7 @@ export default function EditSliderContentPage() {
                 label='Subtitle'
                 value={formData.subtitle}
                 globalLanguage={activeLanguage}
+                hideLanguageTabs
                 onChange={(lang, val) => updateField('subtitle', { ...formData.subtitle, [lang]: val })}
               >
                 {(lang, currentValue, handleLang) => (
@@ -407,6 +408,7 @@ export default function EditSliderContentPage() {
                   label='Title'
                   value={formData.title}
                   globalLanguage={activeLanguage}
+                  hideLanguageTabs
                   onChange={(lang, val) => updateField('title', { ...formData.title, [lang]: val })}
                 >
                   {(lang, currentValue, handleLang) => (
@@ -424,6 +426,7 @@ export default function EditSliderContentPage() {
                   label='Title Span'
                   value={formData.titleSpan}
                   globalLanguage={activeLanguage}
+                  hideLanguageTabs
                   onChange={(lang, val) => updateField('titleSpan', { ...formData.titleSpan, [lang]: val })}
                 >
                   {(lang, currentValue, handleLang) => (
@@ -441,6 +444,7 @@ export default function EditSliderContentPage() {
                   label='Title End'
                   value={formData.titleEnd}
                   globalLanguage={activeLanguage}
+                  hideLanguageTabs
                   onChange={(lang, val) => updateField('titleEnd', { ...formData.titleEnd, [lang]: val })}
                 >
                   {(lang, currentValue, handleLang) => (
@@ -549,6 +553,7 @@ export default function EditSliderContentPage() {
                   label='Alt'
                   value={formData.image.alt}
                   globalLanguage={activeLanguage}
+                  hideLanguageTabs
                   onChange={(lang, val) => updateImageField('alt', { ...formData.image.alt, [lang]: val })}
                 >
                   {(lang, currentValue, handleLang) => (
@@ -596,6 +601,7 @@ export default function EditSliderContentPage() {
                       label='Button Text'
                       value={formData.button.text}
                       globalLanguage={activeLanguage}
+                      hideLanguageTabs
                       onChange={(lang, val) => updateButtonField('text', { ...formData.button!.text, [lang]: val })}
                     >
                       {(lang, currentValue, handleLang) => (
@@ -609,7 +615,7 @@ export default function EditSliderContentPage() {
                     </LocalizedField>
                   </label>
                   <label className='block text-xs text-gray-600'>
-                    <div className='mb-1 mt-5'>Link</div>
+                    <div className='mb-1'>Link</div>
                     <input
                       className='w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#63ab45]'
                       value={formData.button.link}
