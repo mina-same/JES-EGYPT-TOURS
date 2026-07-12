@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { generalContentAPI } from "@/lib/api/generalContent";
-import { Loader2, ChevronDown, ChevronUp, MapPin, Star, ShieldCheck } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, MapPin, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
@@ -124,8 +124,8 @@ const HomeIntro: React.FC = () => {
                   )}
                 </div>
 
-                {/* Interactive Controls & Social Proof */}
-                <div className="flex flex-wrap items-center justify-between gap-8 pt-4">
+                {/* Interactive Controls */}
+                <div className="flex flex-wrap items-center gap-8 pt-4">
                   <button 
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="group flex items-center gap-2 text-[#1a1a1a] font-black uppercase text-[11px] tracking-widest border-b-2 border-[#b79c5c] pb-1 hover:text-[#b79c5c] transition-all duration-300"
@@ -137,32 +137,6 @@ const HomeIntro: React.FC = () => {
                     )}
                   </button>
 
-                  <div className="flex items-center gap-6">
-                    <div className="flex -space-x-2">
-                       {[1,2,3,4].map(i => (
-                         <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 overflow-hidden">
-                            <Image
-                              src={`https://i.pravatar.cc/100?img=${i+10}`}
-                              alt="User"
-                              width={32}
-                              height={32}
-                              className="object-cover w-full h-full"
-                            />
-                         </div>
-                       ))}
-                       <div className="w-8 h-8 rounded-full border-2 border-white bg-[#1a1a1a] flex items-center justify-center text-[8px] font-bold text-white">15K+</div>
-                    </div>
-                    <div className="flex flex-col">
-                       <div className="flex items-center gap-1">
-                          <span className="text-[#1a1a1a] font-bold text-sm">4.9/5</span>
-                          <div className="flex">
-                             <Star size={10} fill="#b79c5c" color="#b79c5c" />
-                             <Star size={10} fill="#b79c5c" color="#b79c5c" />
-                          </div>
-                       </div>
-                       <span className="text-[9px] uppercase font-bold text-gray-400 tracking-tighter">{t("homeIntro.verifiedRatings")}</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Trust Footer */}

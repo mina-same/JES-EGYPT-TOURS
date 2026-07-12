@@ -6,14 +6,16 @@ import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
+import { type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import FeatureTwo from "./FeatureTwo";
 
 interface FeaturePackageItem {
   id: string;
   image: string;
+  images: string[];
   title: string;
   link: string;
-  price: number;
+  price: number | ICurrencyPrice;
   rating: number;
   reviews: number;
   videoId: string;
@@ -27,8 +29,14 @@ function getYouTubeId(url: string): string {
 }
 
 function mapTour(tour: any, locale: string): FeaturePackageItem {
+  // All of the tour's own image URLs — used to open a per-tour lightbox on
+  // click. Just strings (no downloads until the gallery opens).
+  const images: string[] = Array.isArray(tour.images)
+    ? tour.images.map((img: any) => img?.url).filter(Boolean)
+    : [];
+
   const image =
-    tour.images?.[0]?.url ||
+    images[0] ||
     tour.gallery?.[0]?.url ||
     "/assets/images/resources/tour-1-1.jpg";
 
@@ -39,18 +47,17 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
     tour.name?.en ||
     "";
 
-  const price =
-    tour.priceStartingFrom?.USD ??
-    tour.priceStartingFrom?.EUR ??
-    tour.price ??
-    0;
+  // Pass the full multi-currency object so the card shows the admin's real
+  // per-currency prices (USD/EUR/GBP) via the currency context, instead of a
+  // single USD amount that would only be rate-converted for EUR/GBP.
+  const price: number | ICurrencyPrice =
+    tour.priceStartingFrom?.USD != null
+      ? tour.priceStartingFrom
+      : (typeof tour.price === "number" ? tour.price : 0);
 
-  const videoId =
-    Array.isArray(tour.reviews)
-      ? getYouTubeId(
-          tour.reviews.find((r: any) => typeof r?.url === "string")?.url || ""
-        )
-      : "";
+  // Server sends a single lightweight `videoUrl` (or none). Extract the
+  // YouTube id; empty string means the tour has no video (button is hidden).
+  const videoId = tour.videoUrl ? getYouTubeId(tour.videoUrl) : "";
 
   const duration = getLocalizedValue(tour.duration, locale) || "1 Day";
   const location =
@@ -59,6 +66,7 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
   return {
     id: tour._id || tour.id || slug,
     image,
+    images,
     title,
     link: `/${locale}/${slug}`,
     price,
@@ -76,6 +84,11 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
 type FeaturedToursSectionProps = {
   initialTours?: any[];
 };
+
+// Upper bound for the featured-tours carousel (looping slider shows all of
+// them, filtered to the active locale). Keep in sync with the homepage's
+// server-side FEATURED_TOURS_LIMIT.
+const FEATURED_TOURS_LIMIT = 24;
 
 function mapToursForLocale(tours: any[], locale: string): FeaturePackageItem[] {
   return tours
@@ -101,7 +114,7 @@ const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({ initialTour
     }
 
     tourAPI
-      .getFeatured(8)
+      .getFeatured(FEATURED_TOURS_LIMIT)
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           // Only feature tours that have a real slug for the current locale, so
@@ -119,6 +132,7 @@ const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({ initialTour
     <FeatureTwo
       extraClass="section-space"
       id="featured-tours"
+      rewind
       tours={tours as any}
       title={t("featuredTours.title")}
       titleSpan={t("featuredTours.titleSpan")}

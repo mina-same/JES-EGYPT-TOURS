@@ -2557,3 +2557,15 @@ button[data-action="stop"] {
     transform: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Featured Tours (homepage) rating stars — full 5-star gold.
+   The theme grays out the 5th star (a static "4/5" look) via
+   `.listing-card-four__rating i:nth-child(6)`. Tours have no real
+   rating field, and this section is meant to show a full 5-star
+   rating, so restore the 5th star to the same gold as the others.
+   Scoped to #featured-tours so other listing cards are unchanged.
+   ───────────────────────────────────────────────────────────── */
+#featured-tours .listing-card-four__rating i:nth-child(6) {
+  color: var(--gotur-primary, #f7921e);
+}

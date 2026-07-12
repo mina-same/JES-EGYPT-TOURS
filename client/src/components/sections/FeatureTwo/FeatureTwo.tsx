@@ -6,7 +6,7 @@ import Image, { StaticImageData } from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { featurePackageData } from "@/data/featureTwoData";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
-import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
+import PhotoSwipe from "photoswipe";
 import Link from "next/link";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -14,6 +14,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 interface FeaturePackageItem {
   id: number | string;
   image: StaticImageData | string;
+  images?: string[];
   title: string;
   link: string;
   price: string | number;
@@ -23,6 +24,40 @@ interface FeaturePackageItem {
   discount: string;
   meta: Metadata[];
 }
+
+// Reads an image's real dimensions in the browser (used only when the gallery
+// is opened). Falls back to a sane default if the image fails to load.
+const measureImage = (src: string) =>
+  new Promise<{ src: string; width: number; height: number }>((resolve) => {
+    const img = new window.Image();
+    img.onload = () =>
+      resolve({
+        src,
+        width: img.naturalWidth || 1600,
+        height: img.naturalHeight || 1067,
+      });
+    img.onerror = () => resolve({ src, width: 1600, height: 1067 });
+    img.src = src;
+  });
+
+// Opens a PhotoSwipe lightbox containing only this tour's own images.
+// Built programmatically on click: no gallery DOM is rendered and no image is
+// downloaded until the button is pressed, keeping the page light. Dimensions
+// are measured on the client at open time so every photo shows at its true
+// aspect ratio (no distortion) without storing sizes server-side.
+const openTourImages = async (images: string[]) => {
+  if (!images.length) return;
+  const dataSource = await Promise.all(images.map(measureImage));
+  const pswp = new PhotoSwipe({
+    dataSource,
+    showHideAnimationType: "fade",
+    // On close PhotoSwipe re-focuses the clicked button. That button lives
+    // inside the slider's overflow viewport, so the browser scrolls it into
+    // view and shifts the whole carousel (broken card layout). Disable it.
+    returnFocus: false,
+  });
+  pswp.init();
+};
 interface Metadata {
   id: number;
   title: string;
@@ -34,6 +69,7 @@ interface FeatureTwoProps {
   homeThree?: boolean;
   tours?: FeaturePackageItem[];
   itemsPerRow?: number;
+  rewind?: boolean;
   title?: string;
   titleSpan?: string;
   subtitle?: string;
@@ -56,6 +92,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   homeThree,
   tours,
   itemsPerRow = 4,
+  rewind = false,
   title,
   titleSpan,
   subtitle,
@@ -142,12 +179,16 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
         <div className='container-fluid'>
           <div className='feature-package__inner'>
             <div className='feature-package__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'>
-              <PhotoSwipeGallery>
                 <TinySlider
                   settings={{
                     items: 1,
                     gutter: 30,
+                    // `rewind` wraps back to the start at the end WITHOUT
+                    // cloning slides (tiny-slider's `loop` clones, which shows
+                    // a duplicate card when there are few tours). loop must be
+                    // false for rewind to take effect.
                     loop: false,
+                    rewind: rewind,
                     smartSpeed: 700,
                     nav: false,
                     dots: true,
@@ -200,38 +241,42 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                               <i className='far fa-heart'></i>
                             </Link>
                             <div className='listing-card-four__btns__hover'>
-                              <Item
-                                original={typeof item.image === 'string' ? item.image : item.image.src}
-                                thumbnail={typeof item.image === 'string' ? item.image : item.image.src}
-                                width='370'
-                                height='220'
-                              >
-                                {({ ref, open }) => (
-                                  <Link
-                                    className='listing-card-four__popup card__popup'
-                                    ref={ref}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      open(e);
-                                    }}
-                                    href='#'
-                                  >
-                                    <span className='icon-image'></span>
-                                  </Link>
-                                )}
-                              </Item>
-
                               <Link
-                                className='video-popup'
-                                href={`https://www.youtube.com/watch?v=${item.videoId}`}
+                                className='listing-card-four__popup card__popup'
+                                href='#'
+                                aria-label='View tour photos'
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  setOpen(true);
-                                  setVideoId(item.videoId);
+                                  const single =
+                                    typeof item.image === 'string'
+                                      ? item.image
+                                      : item.image?.src;
+                                  const imgs =
+                                    item.images && item.images.length > 0
+                                      ? item.images
+                                      : single
+                                        ? [single]
+                                        : [];
+                                  openTourImages(imgs);
                                 }}
                               >
-                                <span className='icon-video'></span>
+                                <span className='icon-image'></span>
                               </Link>
+
+                              {item.videoId ? (
+                                <Link
+                                  className='video-popup'
+                                  href={`https://www.youtube.com/watch?v=${item.videoId}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!item.videoId) return;
+                                    setVideoId(item.videoId);
+                                    setOpen(true);
+                                  }}
+                                >
+                                  <span className='icon-video'></span>
+                                </Link>
+                              ) : null}
                             </div>
                           </div>
                           <ul className='listing-card-four__meta list-unstyled'>
@@ -284,7 +329,6 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                     </div>
                   ))}
                 </TinySlider>
-              </PhotoSwipeGallery>
             </div>
           </div>
         </div>
@@ -296,7 +340,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
           </div>
         )}
       </section>
-      <VideoModal isOpen={isOpen} setOpen={setOpen} id={videoId} />
+      <VideoModal isOpen={isOpen && !!videoId} setOpen={setOpen} id={videoId} />
     </>
   );
 };

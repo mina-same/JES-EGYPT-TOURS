@@ -248,13 +248,35 @@ export const getFeaturedTours = async (
       .populate('subcategory', 'name slug')
       .sort('-viewCount -createdAt')
       .limit(limit)
-      .select('heading slug images Description tourLocation tourType pricingPlans')
+      // `reviews.url` only (not full reviews) so we can derive a video link
+      // without shipping the heavy reviews array to the client.
+      .select(
+        'heading slug images Description tourLocation tourType pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer reviews.url'
+      )
       .lean();
 
+    // Collapse reviews into a single lightweight `videoUrl` (first review that
+    // has a URL) and drop the reviews array, so the homepage card can show a
+    // working video button without receiving all reviews. Tours without a
+    // video simply have no `videoUrl` (the client then hides the button).
+    const data = tours.map((tour: any) => {
+      const { reviews, ...rest } = tour;
+      const videoUrl = Array.isArray(reviews)
+        ? reviews.find((r: any) => typeof r?.url === 'string' && r.url)?.url
+        : undefined;
+      return videoUrl ? { ...rest, videoUrl } : rest;
+    });
+
+    // Return RAW (non-localized) documents — same as getFeaturedBlogs. The
+    // homepage localizes on the client (getLocalizedValue / getStrictLocalizedSlug),
+    // which needs the localized `slug` as an OBJECT { en, de, it, es } to build
+    // correct per-locale URLs. Server-side localize() would flatten slug to a
+    // single string, which the strict-slug filter treats as English-only,
+    // hiding all tours on the de/it/es pages.
     res.status(200).json({
       success: true,
-      count: tours.length,
-      data: localize(tours, req.locale),
+      count: data.length,
+      data,
     });
   } catch (error: any) {
     console.error('Error fetching featured tours:', error);
