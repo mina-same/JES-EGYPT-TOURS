@@ -17,11 +17,14 @@ import {
 } from '../controllers/blogController';
 import { protect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
+import { getEditorialAuthorBySlug, getEditorialAuthors } from '../controllers/editorialAuthorController';
 
 const router = express.Router();
 
 // ===== BLOG POST ROUTES =====
 // Public routes
+router.get('/authors', getEditorialAuthors);
+router.get('/authors/:slug', getEditorialAuthorBySlug);
 router.get('/posts/popular', getPopularBlogs); // Must be before /:slug
 router.get('/posts/featured', getFeaturedBlogs);
 router.get('/posts', getAllBlogs);

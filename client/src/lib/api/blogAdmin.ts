@@ -40,6 +40,7 @@ export interface BlogFormData {
   title: ILocalizedString;
   slug: string;
   author: string;
+  editorialAuthor?: string;
   featuredImage: IImage;
   excerpt?: ILocalizedString;
   contentBlocks: ContentBlock[];
@@ -267,6 +268,10 @@ export const blogSubcategoryAPI = {
 // ==================== BLOG POST API ====================
 
 export const blogAPI = {
+  getEditorialAuthors: async () => {
+    const response = await axiosInstance.get<ApiResponse<any[]>>(`${API_BASE}/authors`);
+    return response.data;
+  },
   /**
    * Get all blog posts with filtering
    */

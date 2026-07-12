@@ -52,6 +52,14 @@ export interface BlogPost {
     name: string;
     email: string;
   };
+  editorialAuthor?: {
+    _id: string;
+    name: string;
+    slug: string;
+    role: ILocalizedString;
+    bio: ILocalizedString;
+    image: { url: string; alt: ILocalizedString };
+  };
   featuredImage: string | ImageObject;
   excerpt?: string | ILocalizedString;
   contentBlocks: ContentBlock[];

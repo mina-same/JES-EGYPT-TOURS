@@ -6231,9 +6231,11 @@ body.megamenu-popup-active .mobile-nav__content {
 }
 .main-slider-four__item {
   position: relative;
-  height: 895px;
+  min-height: 895px;
   width: 100%;
   overflow: hidden;
+  display: flex;
+  align-items: center;
 }
 .main-slider-four__slider-placeholder {
   width: 100%;
@@ -6259,7 +6261,6 @@ body.megamenu-popup-active .mobile-nav__content {
     height: 660px;
   }
   .main-slider-four__item {
-    height: 660px;
     min-height: 660px;
   }
 }
@@ -6286,17 +6287,47 @@ body.megamenu-popup-active .mobile-nav__content {
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 1;
   background-color: RGBA(var(--gotur-black-rgb, 29, 35, 31), 0.7);
+}
+/* next/image (fill) background — cover the slide like the old CSS background. */
+.main-slider-four__bg img {
+  object-fit: cover;
+}
+/* Carousel dots (moved here from a runtime-injected <style> in the component). */
+.tns-dots-container {
+  text-align: center;
+  margin-top: 20px;
+}
+.tns-dots {
+  display: inline-flex;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.tns-dots button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+.tns-dots button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.tns-dots button.tns-nav-active {
+  background: #fff;
 }
 .main-slider-four__content {
   text-align: center;
-  padding-top: 320px;
-}
-@media (max-width: 767px) {
-  .main-slider-four__content {
-    padding-top: 200px;
-    padding-bottom: 100px;
-  }
+  max-width: 1040px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 15px;
 }
 .main-slider-four__subtitle {
   margin: 0 0 13px;
@@ -6309,18 +6340,8 @@ body.megamenu-popup-active .mobile-nav__content {
   color: var(--gotur-white, #fff);
   font-style: normal;
   font-weight: 400;
-  font-size: 50px;
+  font-size: clamp(1.875rem, 2.8vw, 3.125rem);
   line-height: 1.2;
-}
-@media (max-width: 767px) {
-  .main-slider-four__subtitle {
-    font-size: 40px;
-  }
-}
-@media (max-width: 575px) {
-  .main-slider-four__subtitle {
-    font-size: 30px;
-  }
 }
 .main-slider-four__title {
   margin-bottom: 0px;
@@ -6328,9 +6349,13 @@ body.megamenu-popup-active .mobile-nav__content {
   text-transform: capitalize;
   font-style: normal;
   font-weight: 800;
-  font-size: 80px;
-  line-height: 138%;
+  /* Fluid size: scales smoothly with the viewport. Replaces the old ladder
+     that REVERSED at <=1850px (jumped to 100px) and clipped long CMS titles.
+     Caps at 72px so even long, admin-entered headings fit the hero. */
+  font-size: clamp(2.25rem, 4.6vw, 4.5rem);
+  line-height: 1.12;
   text-align: center;
+  text-wrap: balance;
   opacity: 0;
   transform: scale(0.8);
   transition: transform 1500ms ease, opacity 1500ms ease;
@@ -6342,31 +6367,8 @@ body.megamenu-popup-active .mobile-nav__content {
   position: absolute;
   left: 0;
   bottom: -10px;
-}
-@media (max-width: 1850px) {
-  .main-slider-four__title {
-    font-size: 100px;
-  }
-}
-@media (max-width: 1399px) {
-  .main-slider-four__title {
-    font-size: 80px;
-  }
-}
-@media (max-width: 991px) {
-  .main-slider-four__title {
-    font-size: 60px;
-  }
-}
-@media (max-width: 767px) {
-  .main-slider-four__title {
-    font-size: 50px;
-  }
-}
-@media (max-width: 575px) {
-  .main-slider-four__title {
-    font-size: 45px;
-  }
+  max-width: 100%;
+  height: auto;
 }
 .main-slider-four .active .main-slider-four__bg,
 .main-slider-four .tns-slide-active .main-slider-four__bg {

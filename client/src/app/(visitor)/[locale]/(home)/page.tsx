@@ -21,7 +21,7 @@ import { getFeaturedBlogs, type BlogPost } from "@/lib/api/blog";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { faqService, type FAQ } from "@/services/faqService";
 import { sliderService } from "@/services/sliderService";
-import type { SliderItem } from "@/types/slider";
+import type { SliderItem, SliderUnderPromo } from "@/types/slider";
 import { Metadata } from "next";
 
 // Upper bound for the homepage Featured Tours carousel (looping slider shows
@@ -59,6 +59,14 @@ async function getInitialSliders(): Promise<SliderItem[]> {
     return await sliderService.getActiveSliderContent();
   } catch {
     return [];
+  }
+}
+
+async function getInitialSliderPromo(): Promise<SliderUnderPromo | null> {
+  try {
+    return await sliderService.getPublicSliderPromo();
+  } catch {
+    return null;
   }
 }
 
@@ -113,8 +121,9 @@ export default async function HomeThree({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const [initialSliders, initialTours, initialBlogs, initialFaqs] = await Promise.all([
+  const [initialSliders, initialSliderPromo, initialTours, initialBlogs, initialFaqs] = await Promise.all([
     getInitialSliders(),
+    getInitialSliderPromo(),
     getInitialFeaturedTours(locale),
     getInitialFeaturedBlogs(),
     getInitialHomeFaqs(),
@@ -125,7 +134,7 @@ export default async function HomeThree({
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <MainSliderFour initialSliders={initialSliders} />
+      <MainSliderFour initialSliders={initialSliders} initialPromo={initialSliderPromo} />
       <AboutOne />
       <WhyChooseUs />
       <HomeIntro />

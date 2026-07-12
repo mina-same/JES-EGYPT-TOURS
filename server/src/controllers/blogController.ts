@@ -60,6 +60,7 @@ export const getAllBlogs = async (
 
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .select('-comments') // Exclude comments from list view
@@ -132,6 +133,7 @@ export const getAllBlogsAdmin = async (
 
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .select('-comments')
@@ -178,6 +180,7 @@ export const getFeaturedBlogs = async (
       isFeatured: true 
     })
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .select('-comments')
@@ -220,6 +223,7 @@ export const getBlogBySlug = async (
       ]
     })
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
@@ -265,6 +269,7 @@ export const getBlogByIdPublic = async (
       status: 'published' 
     })
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
@@ -395,6 +400,7 @@ export const createBlog = async (
 
     const blog = await Blog.create(body);
     await blog.populate('author', 'name email');
+    await blog.populate('editorialAuthor');
 
     res.status(201).json({
       success: true,
@@ -500,6 +506,7 @@ export const updateBlog = async (
       }
     )
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug');
 
@@ -734,6 +741,7 @@ export const getBlogById = async (
   try {
     const blog = await Blog.findById(req.params.id)
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
@@ -913,6 +921,7 @@ export const getBlogsByCategory = async (
 
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .select('-comments')
@@ -983,6 +992,7 @@ export const getBlogsBySubCategory = async (
 
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
+      .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .select('-comments')

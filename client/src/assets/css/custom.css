@@ -540,6 +540,7 @@ body {
   left: auto !important;
   transform: none !important;
   max-width: none !important;
+  margin: 0;
 }
 
 /* ==========================================================================
@@ -1313,10 +1314,6 @@ div[suppressHydrationWarning] {
   margin: 0;
 }
 
-.main-slider-four__form {
-  margin: 0;
-}
-
 .main-slider-four__promo-text {
   display: flex;
   align-items: center;
@@ -1349,34 +1346,6 @@ div[suppressHydrationWarning] {
   text-decoration: none;
 }
 
-/* Position explore button on slider */
-.main-slider-four__explore-btn {
-  margin-top: 20px;
-}
-
-.main-slider-four__explore-btn .gotur-btn {
-  background: linear-gradient(45deg, var(--gotur-base, #d4af37), #f4d03f);
-  color: #fff;
-  border: none;
-  border-radius: 30px;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-}
-
-.main-slider-four__explore-btn .gotur-btn:hover {
-  background: linear-gradient(45deg, #f4d03f, var(--gotur-base, #d4af37));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
-  color: #fff;
-  text-decoration: none;
-}
 /* ==========================================================================
    7. PHOTOSWIPE LIGHTBOX FIXES
    ========================================================================== */

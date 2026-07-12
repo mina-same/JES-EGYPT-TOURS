@@ -381,10 +381,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const ogDescription = stripHtml(getLocalizedValue(bAny.ogDescription, locale) || description);
     const keywords = getLocalizedValue(bAny.metaKeywords, locale);
     const image = getBlogSeoImage(bAny.metaImage, bAny.ogImage, bAny.featuredImage, locale, blogTitle || pageTitle);
-    const publicAuthorName = getPublicAuthorName(bAny.author?.name);
-    const publicAuthorUrl = isEditorialAuthor(publicAuthorName)
-      ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
-      : undefined;
+    const publicAuthorName = bAny.editorialAuthor?.name || getPublicAuthorName(bAny.author?.name);
+    const publicAuthorSlug = bAny.editorialAuthor?.slug || (isEditorialAuthor(publicAuthorName) ? EDITORIAL_AUTHOR_SLUG : undefined);
+    const publicAuthorUrl = publicAuthorSlug ? `${baseUrl}/${locale}/authors/${publicAuthorSlug}` : undefined;
 
     const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: blog.slug, baseUrl });
     return {
@@ -582,10 +581,9 @@ export default async function SlugPage({ params }: PageProps) {
       const blogTitle = getLocalizedValue(blogData.title, locale);
       const blogDescription = (getLocalizedValue(blogData.excerpt, locale) || getLocalizedValue(blogData.metaDescription, locale) || "").replace(/<[^>]*>/g, "");
       const blogFeaturedImageUrl = getAbsoluteImageUrl(typeof blogData.featuredImage === "string" ? blogData.featuredImage : blogData.featuredImage?.url);
-      const publicAuthorName = getPublicAuthorName(blogData.author?.name);
-      const publicAuthorUrl = isEditorialAuthor(publicAuthorName)
-        ? `${baseUrl}/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`
-        : undefined;
+      const publicAuthorName = blogData.editorialAuthor?.name || getPublicAuthorName(blogData.author?.name);
+      const publicAuthorSlug = blogData.editorialAuthor?.slug || (isEditorialAuthor(publicAuthorName) ? EDITORIAL_AUTHOR_SLUG : undefined);
+      const publicAuthorUrl = publicAuthorSlug ? `${baseUrl}/${locale}/authors/${publicAuthorSlug}` : undefined;
 
       const blogSubCat = blogData.subCategory;
       const blogCat = blogSubCat?.category;

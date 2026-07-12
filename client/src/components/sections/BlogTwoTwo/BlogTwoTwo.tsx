@@ -97,10 +97,8 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
           : getLocalizedValue(post.title, currentLocale);
 
 
-      const authorName =
-        post.author && typeof post.author === "object"
-          ? (post.author as any).name || "Admin"
-          : "Admin";
+      const authorName = post.editorialAuthor?.name || "Madonna Roshdey";
+      const authorLink = `/${currentLocale}/authors/${post.editorialAuthor?.slug || 'madonna-roshdey'}`;
 
       const localizedTags = getLocalizedValue(post.tags, currentLocale);
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : "";
@@ -113,6 +111,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
         day,
         month,
         author: authorName,
+        authorLink,
         category,
         link: `/${currentLocale}/${slug}`,
       };
@@ -209,7 +208,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                 <div className='blog-card-two__content'>
                   <ul className='list-unstyled blog-card-two__meta'>
                     <li>
-                      <Link href={post.link}>
+                      <Link href={post.authorLink}>
                         <span className='blog-card-two__meta__icon'>
                           <i className='icon-user'></i>
                         </span>{" "}
