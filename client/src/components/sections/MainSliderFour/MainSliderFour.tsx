@@ -2,8 +2,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 import Image from "next/image";
-import LineShape from "@/assets/images/shapes/line-shape.png";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { ArrowRight, ChevronDown, Headset, ShieldCheck, Wallet } from "lucide-react";
+
+import LineShape from "@/assets/images/shapes/line-shape.png";
 import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
 import { sliderService } from "@/services/sliderService";
 import { useTranslation } from "react-i18next";
@@ -39,7 +42,7 @@ const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
   buttonTarget: item.button?.linkDirection,
 });
 
-const settings = {
+const baseSettings = {
   loop: true,
   autoplay: true,
   mode: "gallery",
@@ -52,7 +55,6 @@ const settings = {
   nav: false,
   autoplayButtonOutput: false,
   controlsContainer: ".owl-nav",
-  dots: true,
   autoplayTimeout: 6000,
   speed: 1000,
 };
@@ -66,8 +68,10 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   initialSliders = [],
   initialPromo = null,
 }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
 
   // Single source of truth for the server-fed slides (maps + filters once).
   const initialSlides = useMemo(
@@ -126,64 +130,106 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   }, [initialPromo]);
 
   const hasSlides = slides.length > 0;
+  const hasMultiple = slides.length > 1;
+
+  // Dots only make sense with more than one slide.
+  const settings = useMemo(() => ({ ...baseSettings, dots: hasMultiple }), [hasMultiple]);
+
+  const scrollDown = () => {
+    if (typeof window !== "undefined") {
+      window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" });
+    }
+  };
 
   return (
     <section className={`main-slider-four${hasSlides ? "" : " main-slider-four--empty"}`} id="home">
       <div className="main-slider-four__carousel gotur-owl__carousel owl-carousel">
         {hasSlides ? (
           <TinySlider settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
-            {slides.map((item, index) => (
-              <div key={item.id}>
-                <div className="item">
-                  <div className="main-slider-four__item">
-                    <div className="main-slider-four__bg">
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.imageAlt || "slider image"}
-                        fill
-                        priority={index === 0}
-                        sizes="100vw"
-                      />
-                    </div>
-                    <div className="container">
-                      <div className="main-slider-four__content">
-                        <h5 className="main-slider-four__subtitle">{item.subtitle}</h5>
-                        <h2 className="main-slider-four__title">
-                          {item.title}
-                          {item.titleSpan && (
-                            <>
-                              {" "}
-                              <span>
-                                {item.titleSpan}
-                                <Image src={LineShape} alt="" aria-hidden width={330} height={24} />
-                              </span>
-                            </>
+            {slides.map((item, index) => {
+              const primaryLabel = item.buttonText || t("hero.primaryCtaFallback");
+              const primaryHref = item.buttonLink || `/${locale}/tailor-made`;
+              const primaryExternal = item.buttonTarget === "_blank";
+              return (
+                <div key={item.id}>
+                  <div className="item">
+                    <div className="main-slider-four__item">
+                      <div className="main-slider-four__bg">
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.imageAlt || "slider image"}
+                          fill
+                          priority={index === 0}
+                          sizes="100vw"
+                        />
+                      </div>
+                      <div className="container">
+                        <div className="main-slider-four__content">
+                          {item.subtitle && (
+                            <h5 className="main-slider-four__subtitle">
+                              <span className="main-slider-four__eyebrow-line" aria-hidden="true" />
+                              <span>{item.subtitle}</span>
+                              <span className="main-slider-four__eyebrow-line" aria-hidden="true" />
+                            </h5>
                           )}
-                          {item.titleEnd && <> {item.titleEnd}</>}
-                        </h2>
-                        {item.buttonText && item.buttonLink && (
-                          <div className="wow fadeInUp animated mt-30" data-wow-duration="1500ms" data-wow-delay="600ms">
+                          <h2 className="main-slider-four__title">
+                            {item.title}
+                            {item.titleSpan && (
+                              <>
+                                {" "}
+                                <span>
+                                  {item.titleSpan}
+                                  <Image src={LineShape} alt="" aria-hidden width={330} height={24} />
+                                </span>
+                              </>
+                            )}
+                            {item.titleEnd && <> {item.titleEnd}</>}
+                          </h2>
+                          <span className="main-slider-four__divider" aria-hidden="true" />
+                          <div className="main-slider-four__cta">
                             <Link
-                              href={item.buttonLink}
-                              target={item.buttonTarget === "_blank" ? "_blank" : undefined}
-                              rel={item.buttonTarget === "_blank" ? "noopener noreferrer" : undefined}
-                              className="gotur-btn gotur-btn--primary"
+                              href={primaryHref}
+                              target={primaryExternal ? "_blank" : undefined}
+                              rel={primaryExternal ? "noopener noreferrer" : undefined}
+                              className="main-slider-four__cta-primary"
                             >
-                              {item.buttonText} <span className="icon"><i className="icon-right"></i></span>
+                              {primaryLabel}
+                              <ArrowRight size={18} aria-hidden="true" />
+                            </Link>
+                            <Link
+                              href={`/${locale}/special-offers`}
+                              className="main-slider-four__cta-secondary"
+                            >
+                              {t("hero.secondaryCta")}
+                              <ArrowRight size={18} aria-hidden="true" />
                             </Link>
                           </div>
-                        )}
+                          <ul className="main-slider-four__trust">
+                            <li>
+                              <ShieldCheck size={18} aria-hidden="true" />
+                              {t("hero.trust1")}
+                            </li>
+                            <li>
+                              <Wallet size={18} aria-hidden="true" />
+                              {t("hero.trust2")}
+                            </li>
+                            <li>
+                              <Headset size={18} aria-hidden="true" />
+                              {t("hero.trust3")}
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </TinySlider>
         ) : (
           <div className="main-slider-four__empty-shell" aria-hidden="true" />
         )}
-        {hasSlides && (
+        {hasMultiple && (
           <div className="owl-nav">
             <button type="button" role="presentation" className="owl-prev" aria-label="carousel button">
               <span className="icon-arrow-left"></span>
@@ -192,6 +238,17 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
               <span className="icon-arrow-right"></span>
             </button>
           </div>
+        )}
+        {hasSlides && (
+          <button
+            type="button"
+            className="main-slider-four__scroll"
+            aria-label={t("hero.scroll")}
+            onClick={scrollDown}
+          >
+            <span>{t("hero.scroll")}</span>
+            <ChevronDown size={20} aria-hidden="true" />
+          </button>
         )}
       </div>
       <div className="main-slider-four__action-form">

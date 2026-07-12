@@ -182,5 +182,13 @@
     "feature4": "Schriftliche Preisbestätigung vor der Buchung",
     "cta": "Meine Privatreise planen",
     "badge": "100% Privat — Keine Gruppenreisen"
+  },
+  "hero": {
+    "primaryCtaFallback": "Reise planen",
+    "secondaryCta": "Sonderangebote",
+    "trust1": "Lizenzierte Experten-Guides",
+    "trust2": "Keine versteckten Gebühren",
+    "trust3": "24/7 Support",
+    "scroll": "Scrollen"
   }
 }

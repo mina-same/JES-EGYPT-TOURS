@@ -2538,3 +2538,197 @@ button[data-action="stop"] {
 #featured-tours .listing-card-four__rating i:nth-child(6) {
   color: var(--gotur-primary, #f7921e);
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Hero (MainSliderFour) — cinematic restyle: gold eyebrow, title
+   accent, divider, primary/secondary CTAs, safe trust strip, scroll
+   cue, staggered reveal. Scoped to .main-slider-four. CSS/SVG only.
+   ───────────────────────────────────────────────────────────── */
+
+/* Positioning context for the scroll cue. */
+.main-slider-four__carousel {
+  position: relative;
+}
+
+/* Eyebrow: the script subtitle flanked by thin gold lines. */
+.main-slider-four__subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.main-slider-four__eyebrow-line {
+  height: 2px;
+  width: clamp(22px, 6vw, 72px);
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--gotur-base, #d4af37));
+}
+.main-slider-four__eyebrow-line:last-child {
+  background: linear-gradient(90deg, var(--gotur-base, #d4af37), transparent);
+}
+
+/* Title accent: the CMS "span" word takes the brand gold. */
+.main-slider-four__title span {
+  color: var(--gotur-base, #d4af37);
+}
+
+/* Gold divider under the title. */
+.main-slider-four__divider {
+  display: block;
+  width: 64px;
+  height: 3px;
+  border-radius: 3px;
+  margin: 30px auto 0;
+  background: var(--gotur-base, #d4af37);
+}
+
+/* CTA cluster — solid-gold primary + ghost secondary. */
+.main-slider-four__cta {
+  margin-top: 34px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+.main-slider-four__cta-primary,
+.main-slider-four__cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  padding: 16px 32px;
+  white-space: nowrap;
+  transition: transform 0.25s ease, background-color 0.25s ease,
+    color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.main-slider-four__cta-primary {
+  background: var(--gotur-base, #d4af37);
+  color: #14273a;
+  border: 2px solid var(--gotur-base, #d4af37);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+.main-slider-four__cta-primary:hover {
+  background: #f4d03f;
+  border-color: #f4d03f;
+  color: #14273a;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(212, 175, 55, 0.4);
+}
+.main-slider-four__cta-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+}
+.main-slider-four__cta-secondary:hover {
+  background: #fff;
+  color: #14273a;
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+.main-slider-four__cta-primary svg,
+.main-slider-four__cta-secondary svg {
+  flex-shrink: 0;
+}
+
+/* Trust strip — safe value props (no fabricated ratings/numbers). */
+.main-slider-four__trust {
+  list-style: none;
+  padding: 0;
+  margin: 30px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  justify-content: center;
+}
+.main-slider-four__trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  font-weight: 500;
+}
+.main-slider-four__trust svg {
+  color: var(--gotur-base, #d4af37);
+  flex-shrink: 0;
+}
+
+/* Scroll cue (bottom-center of the hero visual). */
+.main-slider-four__scroll {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.main-slider-four__scroll svg {
+  animation: sliderScrollBounce 1.8s ease-in-out infinite;
+}
+@keyframes sliderScrollBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@media (max-width: 767px) {
+  .main-slider-four__scroll {
+    display: none;
+  }
+}
+
+/* Staggered entrance — reuses the slider's active-slide reveal so it
+   matches the existing title/subtitle animation timing. */
+.main-slider-four__divider,
+.main-slider-four__cta,
+.main-slider-four__trust {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 1100ms ease, transform 1100ms ease;
+}
+.main-slider-four .tns-slide-active .main-slider-four__divider {
+  opacity: 1;
+  transform: none;
+  transition-delay: 1500ms;
+}
+.main-slider-four .tns-slide-active .main-slider-four__cta {
+  opacity: 1;
+  transform: none;
+  transition-delay: 1650ms;
+}
+.main-slider-four .tns-slide-active .main-slider-four__trust {
+  opacity: 1;
+  transform: none;
+  transition-delay: 1800ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .main-slider-four__scroll svg {
+    animation: none;
+  }
+  .main-slider-four__divider,
+  .main-slider-four__cta,
+  .main-slider-four__trust {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
