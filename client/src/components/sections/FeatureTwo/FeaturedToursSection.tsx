@@ -6,6 +6,7 @@ import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
+import { type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import FeatureTwo from "./FeatureTwo";
 
 interface FeaturePackageItem {
@@ -13,7 +14,7 @@ interface FeaturePackageItem {
   image: string;
   title: string;
   link: string;
-  price: number;
+  price: number | ICurrencyPrice;
   rating: number;
   reviews: number;
   videoId: string;
@@ -39,11 +40,13 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
     tour.name?.en ||
     "";
 
-  const price =
-    tour.priceStartingFrom?.USD ??
-    tour.priceStartingFrom?.EUR ??
-    tour.price ??
-    0;
+  // Pass the full multi-currency object so the card shows the admin's real
+  // per-currency prices (USD/EUR/GBP) via the currency context, instead of a
+  // single USD amount that would only be rate-converted for EUR/GBP.
+  const price: number | ICurrencyPrice =
+    tour.priceStartingFrom?.USD != null
+      ? tour.priceStartingFrom
+      : (typeof tour.price === "number" ? tour.price : 0);
 
   const videoId =
     Array.isArray(tour.reviews)
@@ -77,6 +80,11 @@ type FeaturedToursSectionProps = {
   initialTours?: any[];
 };
 
+// Upper bound for the featured-tours carousel (looping slider shows all of
+// them, filtered to the active locale). Keep in sync with the homepage's
+// server-side FEATURED_TOURS_LIMIT.
+const FEATURED_TOURS_LIMIT = 24;
+
 function mapToursForLocale(tours: any[], locale: string): FeaturePackageItem[] {
   return tours
     .filter((tour: any) => getStrictLocalizedSlug(tour.slug, locale as SupportedLocale))
@@ -101,7 +109,7 @@ const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({ initialTour
     }
 
     tourAPI
-      .getFeatured(8)
+      .getFeatured(FEATURED_TOURS_LIMIT)
       .then((res) => {
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           // Only feature tours that have a real slug for the current locale, so
@@ -119,6 +127,7 @@ const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({ initialTour
     <FeatureTwo
       extraClass="section-space"
       id="featured-tours"
+      rewind
       tours={tours as any}
       title={t("featuredTours.title")}
       titleSpan={t("featuredTours.titleSpan")}

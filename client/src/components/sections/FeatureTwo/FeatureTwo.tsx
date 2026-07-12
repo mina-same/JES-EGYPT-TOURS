@@ -34,6 +34,7 @@ interface FeatureTwoProps {
   homeThree?: boolean;
   tours?: FeaturePackageItem[];
   itemsPerRow?: number;
+  rewind?: boolean;
   title?: string;
   titleSpan?: string;
   subtitle?: string;
@@ -56,6 +57,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   homeThree,
   tours,
   itemsPerRow = 4,
+  rewind = false,
   title,
   titleSpan,
   subtitle,
@@ -147,7 +149,12 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                   settings={{
                     items: 1,
                     gutter: 30,
+                    // `rewind` wraps back to the start at the end WITHOUT
+                    // cloning slides (tiny-slider's `loop` clones, which shows
+                    // a duplicate card when there are few tours). loop must be
+                    // false for rewind to take effect.
                     loop: false,
+                    rewind: rewind,
                     smartSpeed: 700,
                     nav: false,
                     dots: true,

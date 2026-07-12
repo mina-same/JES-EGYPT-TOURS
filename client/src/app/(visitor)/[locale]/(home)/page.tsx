@@ -24,7 +24,9 @@ import { sliderService } from "@/services/sliderService";
 import type { SliderItem } from "@/types/slider";
 import { Metadata } from "next";
 
-const FEATURED_TOURS_LIMIT = 8;
+// Upper bound for the homepage Featured Tours carousel (looping slider shows
+// all of them, filtered to the active locale). Generous but bounded for perf.
+const FEATURED_TOURS_LIMIT = 24;
 // Fetch the featured-blogs pool for the homepage carousel. BlogTwoTwo shows
 // all of them (filtered to the active locale) in a rewinding slider, so this
 // is a generous upper bound. Keep in sync with FEATURED_FETCH_POOL there.

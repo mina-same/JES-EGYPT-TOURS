@@ -248,13 +248,21 @@ export const getFeaturedTours = async (
       .populate('subcategory', 'name slug')
       .sort('-viewCount -createdAt')
       .limit(limit)
-      .select('heading slug images Description tourLocation tourType pricingPlans')
+      .select(
+        'heading slug images Description tourLocation tourType pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer'
+      )
       .lean();
 
+    // Return RAW (non-localized) documents — same as getFeaturedBlogs. The
+    // homepage localizes on the client (getLocalizedValue / getStrictLocalizedSlug),
+    // which needs the localized `slug` as an OBJECT { en, de, it, es } to build
+    // correct per-locale URLs. Server-side localize() would flatten slug to a
+    // single string, which the strict-slug filter treats as English-only,
+    // hiding all tours on the de/it/es pages.
     res.status(200).json({
       success: true,
       count: tours.length,
-      data: localize(tours, req.locale),
+      data: tours,
     });
   } catch (error: any) {
     console.error('Error fetching featured tours:', error);

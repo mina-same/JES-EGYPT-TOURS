@@ -81,7 +81,7 @@
     "highlightList": "Highlight-Liste",
     "amenitiesTitle": "Ausstattung der Tour",
     "amenitiesSubtitle": "Umfassende Liste dessen, was für Ihre bequeme Reise bereitgestellt wird.",
-    "included": "Was ist inbegriffen",
+    "included": "Was nicht inbegriffen ist (aber leicht organisiert werden kann)",
     "notIncluded": "Was nicht inbegriffen ist",
     "empty": {
       "amenitiesTitle": "Keine Informationen zu den Annehmlichkeiten",
