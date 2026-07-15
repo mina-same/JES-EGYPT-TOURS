@@ -135,7 +135,7 @@ export default async function HomeThree({
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <MainSliderFour initialSliders={initialSliders} initialPromo={initialSliderPromo} />
-      <AboutOne />
+      <AboutOne headingLevel="h1" />
       <WhyChooseUs />
       <HomeIntro />
       <FeaturedToursSection initialTours={initialTours} />

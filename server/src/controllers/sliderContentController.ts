@@ -219,6 +219,7 @@ export const createSliderContent = async (req: Request, res: Response) => {
       image,
       lineShape,
       button,
+      buttonSecondary,
       underPromo,
       order,
       isActive = true,
@@ -238,6 +239,15 @@ export const createSliderContent = async (req: Request, res: Response) => {
         return res.status(400).json({
           success: false,
           message: 'English Button text and link are required when the button is enabled',
+        });
+      }
+    }
+
+    if (buttonSecondary !== undefined && buttonSecondary !== null) {
+      if (!buttonSecondary.text?.en?.trim() || !normalizeButtonLink(buttonSecondary.link).en) {
+        return res.status(400).json({
+          success: false,
+          message: 'English Secondary Button text and link are required when it is enabled',
         });
       }
     }
@@ -275,6 +285,10 @@ export const createSliderContent = async (req: Request, res: Response) => {
       image,
       lineShape,
       button: button === undefined || button === null ? undefined : normalizeButton(button),
+      buttonSecondary:
+        buttonSecondary === undefined || buttonSecondary === null
+          ? undefined
+          : normalizeButton(buttonSecondary),
       underPromo: underPromo === null ? undefined : underPromo,
       order,
       isActive,
@@ -348,6 +362,18 @@ export const updateSliderContent = async (req: Request, res: Response) => {
       }
     }
 
+    if (updateData.buttonSecondary !== undefined && updateData.buttonSecondary !== null) {
+      if (
+        !updateData.buttonSecondary.text?.en?.trim() ||
+        !normalizeButtonLink(updateData.buttonSecondary.link).en
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'English Secondary Button text and link are required when it is enabled',
+        });
+      }
+    }
+
     const updatePayload: any = { ...updateData };
 
     // Normalize heading text (trim + no stray spaces before punctuation).
@@ -366,13 +392,15 @@ export const updateSliderContent = async (req: Request, res: Response) => {
       }
     }
 
-    // Button: explicit null = "disabled" → actually remove it (previously a
-    // dropped key silently kept the old button in the document).
-    if (updateData.button === null) {
-      delete updatePayload.button;
-      updatePayload.$unset = { ...(updatePayload.$unset || {}), button: 1 };
-    } else if (updateData.button !== undefined) {
-      updatePayload.button = normalizeButton(updateData.button);
+    // Buttons: explicit null = "disabled" → actually remove them (previously
+    // a dropped key silently kept the old button in the document).
+    for (const field of ['button', 'buttonSecondary'] as const) {
+      if (updateData[field] === null) {
+        delete updatePayload[field];
+        updatePayload.$unset = { ...(updatePayload.$unset || {}), [field]: 1 };
+      } else if (updateData[field] !== undefined) {
+        updatePayload[field] = normalizeButton(updateData[field]);
+      }
     }
 
     if (updateData.underPromo === null) {

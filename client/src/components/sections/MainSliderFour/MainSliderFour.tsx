@@ -23,6 +23,9 @@ type SlideVM = {
   buttonText?: string;
   buttonLink?: string;
   buttonTarget?: "_blank" | "_self";
+  secondaryText?: string;
+  secondaryLink?: string;
+  secondaryTarget?: "_blank" | "_self";
 };
 
 // Display-side text hygiene: trim + collapse stray spaces before punctuation
@@ -30,6 +33,20 @@ type SlideVM = {
 // normalization so the homepage always renders clean even for legacy content.
 const cleanHeroText = (value: unknown): string =>
   (typeof value === "string" ? value : "").replace(/\s+([,.;:!?…])/g, "$1").trim();
+
+// An admin-typed "|" inside a heading field is a DELIBERATE line break: it
+// renders as <br>, so the slide's line composition is identical at every
+// screen width (instead of depending on where the browser happens to wrap).
+const renderWithLineBreaks = (text: string): React.ReactNode => {
+  const parts = text.split("|");
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => (
+    <React.Fragment key={i}>
+      {part.trim()}
+      {i < parts.length - 1 && <br />}
+    </React.Fragment>
+  ));
+};
 
 const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
   id: item._id,
@@ -48,6 +65,15 @@ const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
   // language and falls back to English when a translation is empty.
   buttonLink: item.button?.link ? getLocalizedValue(item.button.link, lang) || undefined : undefined,
   buttonTarget: item.button?.linkDirection,
+  // Secondary (outline) CTA — optional per slide; the component falls back to
+  // the site default (Special Offers) when absent.
+  secondaryText: item.buttonSecondary?.text
+    ? getLocalizedValue(item.buttonSecondary.text, lang) || undefined
+    : undefined,
+  secondaryLink: item.buttonSecondary?.link
+    ? getLocalizedValue(item.buttonSecondary.link, lang) || undefined
+    : undefined,
+  secondaryTarget: item.buttonSecondary?.linkDirection,
 });
 
 // Keep in sync with the dot progress-fill duration in custom.css
@@ -222,6 +248,11 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
               const primaryLabel = item.buttonText || t("hero.primaryCtaFallback");
               const primaryHref = item.buttonLink || `/${locale}/tailor-made`;
               const primaryExternal = item.buttonTarget === "_blank";
+              // Secondary (outline) CTA: admin-configured per slide, or the
+              // site default (Special Offers) when not set.
+              const secondaryLabel = item.secondaryText || t("hero.secondaryCta");
+              const secondaryHref = item.secondaryLink || `/${locale}/special-offers`;
+              const secondaryExternal = item.secondaryLink ? item.secondaryTarget === "_blank" : false;
               // Leading punctuation of titleEnd (e.g. ", your guide…") must
               // stay GLUED to the gold phrase — browsers may otherwise break
               // the line right before the comma (inline-block boundary is a
@@ -249,20 +280,20 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                       <div className="container">
                         <div className="main-slider-four__content">
                           {item.subtitle && (
-                            <h5 className="main-slider-four__subtitle">
+                            <p className="main-slider-four__subtitle">
                               <span className="main-slider-four__eyebrow-line" aria-hidden="true" />
                               <span>{item.subtitle}</span>
                               <span className="main-slider-four__eyebrow-line" aria-hidden="true" />
-                            </h5>
+                            </p>
                           )}
-                          <h2 className="main-slider-four__title">
-                            {item.title}
+                          <p className="main-slider-four__title">
+                            {renderWithLineBreaks(item.title)}
                             {item.titleSpan && (
                               <>
                                 {" "}
                                 <span className="main-slider-four__nobreak">
                                   <span className="main-slider-four__title-accent">
-                                    {item.titleSpan}
+                                    {renderWithLineBreaks(item.titleSpan)}
                                     {/* Hand-drawn gold underline (inline SVG):
                                         stretches to the phrase width and takes
                                         the brand gold via currentColor. */}
@@ -286,9 +317,9 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                               </>
                             )}
                             {endRest && (
-                              <>{item.titleSpan || !/^[,.;:!?…]/.test(endRest) ? " " : ""}{endRest}</>
+                              <>{item.titleSpan || !/^[,.;:!?…]/.test(endRest) ? " " : ""}{renderWithLineBreaks(endRest)}</>
                             )}
-                          </h2>
+                          </p>
                           <span className="main-slider-four__divider" aria-hidden="true" />
                           <div className="main-slider-four__cta">
                             <Link
@@ -301,10 +332,12 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                               <ArrowRight size={18} aria-hidden="true" />
                             </Link>
                             <Link
-                              href={`/${locale}/special-offers`}
+                              href={secondaryHref}
+                              target={secondaryExternal ? "_blank" : undefined}
+                              rel={secondaryExternal ? "noopener noreferrer" : undefined}
                               className="main-slider-four__cta-secondary"
                             >
-                              {t("hero.secondaryCta")}
+                              {secondaryLabel}
                               <ArrowRight size={18} aria-hidden="true" />
                             </Link>
                           </div>

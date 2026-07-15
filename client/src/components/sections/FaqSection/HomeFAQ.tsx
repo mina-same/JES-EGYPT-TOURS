@@ -62,19 +62,21 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
 
         {/* Section header — matches all other sections on the page */}
         <div className="sec-title text-center">
-          <h6 className="sec-title__tagline">
+          <p className="sec-title__tagline">
             <TextAnimation
               text={t("gotQuestions", "Got Questions?")}
               animationType="right"
+              semantic
             />
-          </h6>
-          <h3 className="sec-title__title">
+          </p>
+          <h2 className="sec-title__title">
             <TextAnimation
               text={t("frequentlyAsked", "Frequently Asked")}
               animationType="left"
+              semantic
             />
             {" "}<span>{t("questions", "Questions")}</span>
-          </h3>
+          </h2>
           <p className="hfaq-subtitle">
             {t(
               "faqSubtitle",
@@ -104,9 +106,9 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
                     <span className="hfaq-num">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="hfaq-question">
+                    <h3 className="hfaq-question">
                       {getLocalizedValue(faq.question, i18n.language)}
-                    </span>
+                    </h3>
                     <span className="hfaq-icon" aria-hidden="true">
                       {isOpen ? <Minus size={14} /> : <Plus size={14} />}
                     </span>
@@ -148,9 +150,9 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
                     <span className="hfaq-num">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="hfaq-question">
+                    <h3 className="hfaq-question">
                       {getLocalizedValue(faq.question, i18n.language)}
-                    </span>
+                    </h3>
                     <span className="hfaq-icon" aria-hidden="true">
                       {isOpen ? <Minus size={14} /> : <Plus size={14} />}
                     </span>

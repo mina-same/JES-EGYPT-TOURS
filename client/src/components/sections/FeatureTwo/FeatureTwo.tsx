@@ -142,24 +142,28 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
             <div className='row align-items-end'>
               <div className='col-lg-8'>
                 <div className='sec-title'>
-                  <h6 className='sec-title__tagline bw-split-in-right'>
+                  <p className='sec-title__tagline bw-split-in-right'>
                     <TextAnimation
                       text={displaySubtitle}
                       animationType='right'
+                      semantic
                     />
-                  </h6>
-                  <h3 className='sec-title__title bw-split-in-left d-flex gap-2'>
+                  </p>
+                  <h2 className='sec-title__title bw-split-in-left'>
                     <TextAnimation
                       text={displayTitle}
                       animationType='left'
+                      semantic
                     />
+                    {" "}
                     <span>
                       <TextAnimation
                         text={displayTitleSpan}
                         animationType='left'
+                        semantic
                       />
                     </span>
-                  </h3>
+                  </h2>
                 </div>
               </div>
               <div className='col-lg-4'>

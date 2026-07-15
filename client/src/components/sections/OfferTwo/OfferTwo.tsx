@@ -57,15 +57,16 @@ const OfferTwo = () => {
             <Col lg={8} xl={6}>
               <div className='offer-two__content'>
                 <div className='sec-title text-start'>
-                  <h6 className='sec-title__tagline bw-split-in-right'>
-                    <TextAnimation text={tagline} animationType='right' />
-                  </h6>{" "}
-                  <h3 className='sec-title__title bw-split-in-left'>
-                    <TextAnimation text={title} animationType='left' />
+                  <p className='sec-title__tagline bw-split-in-right'>
+                    <TextAnimation text={tagline} animationType='right' semantic />
+                  </p>{" "}
+                  <h2 className='sec-title__title bw-split-in-left'>
+                    <TextAnimation text={title} animationType='left' semantic />
+                    {" "}
                     <span>
-                      <TextAnimation text={subtitle} animationType='left' />
+                      <TextAnimation text={subtitle} animationType='left' semantic />
                     </span>
-                  </h3>
+                  </h2>
                 </div>
                 <div
                   className='offer-two__btn wow fadeInUp'
@@ -112,12 +113,12 @@ const OfferTwo = () => {
             </span>
             <div className='offer-two__funfact__item'>
               <div className='offer-two__funfact__item__inner count-box'>
-                <h2 className='offer-two__funfact__item__count'>
+                <div className='offer-two__funfact__item__count'>
                   <span className='count-text'>
                     {inView && <CountUp start={0} end={count} duration={2} />}
                   </span>
                   <span>%</span>
-                </h2>
+                </div>
                 <p className='offer-two__funfact__item__text'>{funfactText}</p>{" "}
                 <span className='offer-two__funfact__item__upto'>
                   {upToText}

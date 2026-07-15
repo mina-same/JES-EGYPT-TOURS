@@ -40,10 +40,22 @@ export type SliderFormData = {
   titleSpan: ILocalizedString;
   titleEnd: ILocalizedString;
   image: { url: string; fileName: string; title: ILocalizedString; alt: ILocalizedString };
-  button: { text: ILocalizedString; link: ILocalizedString; linkDirection: '_blank' | '_self' } | null;
+  /** Primary CTA — solid gold (left). */
+  button: SliderFormButton | null;
+  /** Secondary CTA — outline (right). null = the site default (Special
+   *  Offers) is shown instead. */
+  buttonSecondary: SliderFormButton | null;
   order: number;
   isActive: boolean;
 };
+
+export type SliderFormButton = {
+  text: ILocalizedString;
+  link: ILocalizedString;
+  linkDirection: '_blank' | '_self';
+};
+
+type ButtonKey = 'button' | 'buttonSecondary';
 
 const LANGS: AdminLanguage[] = ['en', 'de', 'it', 'es'];
 
@@ -60,6 +72,7 @@ export function emptySliderFormData(): SliderFormData {
     titleEnd: emptyLocalized(),
     image: { url: '', fileName: '', title: emptyLocalized(), alt: emptyLocalized() },
     button: null,
+    buttonSecondary: null,
     order: 0,
     isActive: true,
   };
@@ -86,6 +99,13 @@ export function sliderItemToFormData(item: SliderItem): SliderFormData {
           linkDirection: item.button.linkDirection === '_blank' ? '_blank' : '_self',
         }
       : null,
+    buttonSecondary: item.buttonSecondary
+      ? {
+          text: toLocalized(item.buttonSecondary.text),
+          link: toLocalized(item.buttonSecondary.link),
+          linkDirection: item.buttonSecondary.linkDirection === '_blank' ? '_blank' : '_self',
+        }
+      : null,
     order: Number(item.order) || 0,
     isActive: Boolean(item.isActive),
   };
@@ -106,8 +126,14 @@ export function validateSliderFormData(d: SliderFormData): string | null {
   if (!d.image.url?.trim()) return 'Main image is required';
   if (Number.isNaN(Number(d.order))) return 'Order must be a number';
   if (d.button) {
-    if (!d.button.text.en?.trim()) return 'English Button text is required (or disable the button)';
-    if (!d.button.link.en?.trim()) return 'English Button link is required (or disable the button)';
+    if (!d.button.text.en?.trim()) return 'English Primary Button text is required (or disable it)';
+    if (!d.button.link.en?.trim()) return 'English Primary Button link is required (or disable it)';
+  }
+  if (d.buttonSecondary) {
+    if (!d.buttonSecondary.text.en?.trim())
+      return 'English Secondary Button text is required (or disable it to show the default)';
+    if (!d.buttonSecondary.link.en?.trim())
+      return 'English Secondary Button link is required (or disable it to show the default)';
   }
   return null;
 }
@@ -140,12 +166,32 @@ export function buildSliderPayload(d: SliderFormData): Record<string, unknown> {
           linkDirection: d.button.linkDirection,
         }
       : null,
+    buttonSecondary: d.buttonSecondary
+      ? {
+          text: trimLocalized(d.buttonSecondary.text),
+          link: trimLocalized(d.buttonSecondary.link),
+          linkDirection: d.buttonSecondary.linkDirection,
+        }
+      : null,
   };
 }
 
 // Same punctuation-aware join the hero uses between the gold phrase and the
 // rest of the heading.
 const joinSep = (next: string) => (/^[,.;:!?…]/.test(next) ? '' : ' ');
+
+// "|" typed in a heading field = deliberate line break (mirrors the homepage
+// hero exactly, so the preview shows the same line composition).
+const renderWithLineBreaks = (text: string): React.ReactNode => {
+  const parts = text.split('|');
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => (
+    <React.Fragment key={i}>
+      {part.trim()}
+      {i < parts.length - 1 && <br />}
+    </React.Fragment>
+  ));
+};
 
 const HEADING_SOFT_LIMIT = 90;
 
@@ -176,19 +222,18 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
     onChange((prev) => ({ ...prev, image: { ...prev.image, [field]: val } }));
   };
 
-  const toggleButton = (enabled: boolean) => {
+  // Shared helpers for BOTH hero buttons (primary gold / secondary outline).
+  const toggleButtonKey = (key: ButtonKey, enabled: boolean) => {
     onChange((prev) => ({
       ...prev,
-      button: enabled
-        ? prev.button ?? { text: emptyLocalized(), link: emptyLocalized(), linkDirection: '_self' }
+      [key]: enabled
+        ? prev[key] ?? { text: emptyLocalized(), link: emptyLocalized(), linkDirection: '_self' }
         : null,
     }));
   };
 
-  const updateButtonField = (field: 'text' | 'link' | 'linkDirection', val: unknown) => {
-    onChange((prev) =>
-      prev.button ? { ...prev, button: { ...prev.button, [field]: val } } : prev
-    );
+  const updateButtonKeyField = (key: ButtonKey, field: 'text' | 'link' | 'linkDirection', val: unknown) => {
+    onChange((prev) => (prev[key] ? { ...prev, [key]: { ...prev[key]!, [field]: val } } : prev));
   };
 
   const handleImageUpload = async (file: File) => {
@@ -238,12 +283,121 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
   const pvSpan = pv(formData.titleSpan);
   const pvEnd = pv(formData.titleEnd);
   const pvButtonText = formData.button ? pv(formData.button.text) : '';
-  const headingLength = (pvTitle + (pvSpan ? ` ${pvSpan}` : '') + (pvEnd ? joinSep(pvEnd) + pvEnd : '')).length;
+  // "|" markers are layout, not content — exclude them from the count.
+  const headingLength = (pvTitle + (pvSpan ? ` ${pvSpan}` : '') + (pvEnd ? joinSep(pvEnd) + pvEnd : ''))
+    .replace(/\|/g, '')
+    .length;
   const hasPreviewContent = Boolean(pvSubtitle || pvTitle || pvSpan || pvEnd);
   // Same no-break join the hero uses: leading punctuation stays glued to the
   // gold phrase so the preview matches the homepage line-wrapping behavior.
   const pvEndPunct = pvSpan ? pvEnd.match(/^[,.;:!?…]+/)?.[0] ?? '' : '';
   const pvEndRest = pvSpan ? pvEnd.slice(pvEndPunct.length).trimStart() : pvEnd;
+  // Secondary button preview label: the per-slide text when set, otherwise
+  // the site default shown to visitors.
+  const pvButton2Text = formData.buttonSecondary
+    ? pv(formData.buttonSecondary.text) || formData.buttonSecondary.text.en || 'Special Offers'
+    : 'Special Offers';
+
+  // One editing group per hero button (primary gold / secondary outline),
+  // with a visual sample so the admin always knows which button this is.
+  const renderButtonGroup = (
+    key: ButtonKey,
+    heading: string,
+    description: string,
+    sample: React.ReactNode
+  ) => {
+    const btn = formData[key];
+    const enabled = Boolean(btn);
+    return (
+      <div className='rounded-lg border border-gray-100 bg-gray-50/60 p-3'>
+        <div className='mb-2 flex flex-wrap items-center justify-between gap-2'>
+          <div>
+            <div className='flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-800'>
+              {heading}
+              {sample}
+            </div>
+            <p className='mt-1 text-[11px] text-gray-400'>{description}</p>
+          </div>
+          <button
+            type='button'
+            className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium ${
+              enabled ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-700'
+            }`}
+            onClick={() => toggleButtonKey(key, !enabled)}
+            disabled={saving}
+          >
+            {enabled ? (
+              <>
+                <EyeOff size={14} /> Enabled
+              </>
+            ) : (
+              <>
+                <Eye size={14} /> Disabled
+              </>
+            )}
+          </button>
+        </div>
+
+        {btn && (
+          <>
+            <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+              <label className='block text-xs text-gray-600'>
+                <LocalizedField
+                  label='Button Text'
+                  value={btn.text}
+                  globalLanguage={activeLanguage}
+                  hideLanguageTabs
+                  onChange={(lang, val) => updateButtonKeyField(key, 'text', { ...btn.text, [lang]: val })}
+                >
+                  {(lang, currentValue, handleLang) => (
+                    <input
+                      className={inputCls}
+                      value={currentValue || ''}
+                      onChange={(e) => handleLang(e.target.value)}
+                      placeholder={`Button text in ${lang}`}
+                    />
+                  )}
+                </LocalizedField>
+              </label>
+              <label className='block text-xs text-gray-600'>
+                <LocalizedField
+                  label='Button Link (per language)'
+                  value={btn.link}
+                  globalLanguage={activeLanguage}
+                  hideLanguageTabs
+                  onChange={(lang, val) => updateButtonKeyField(key, 'link', { ...btn.link, [lang]: val })}
+                >
+                  {(lang, currentValue, handleLang) => (
+                    <input
+                      className={inputCls}
+                      value={currentValue || ''}
+                      onChange={(e) => handleLang(e.target.value)}
+                      placeholder={`Destination URL for ${lang}`}
+                    />
+                  )}
+                </LocalizedField>
+                <span className='mt-1 block text-[11px] text-gray-400'>
+                  Empty language = the English link is used.
+                </span>
+              </label>
+            </div>
+
+            <label className='mt-3 block text-xs text-gray-600'>
+              <div className='mb-1'>Link Direction</div>
+              <select
+                className={inputCls}
+                value={btn.linkDirection}
+                onChange={(e) => updateButtonKeyField(key, 'linkDirection', e.target.value as '_blank' | '_self')}
+              >
+                <option value='_self'>Same tab</option>
+                <option value='_blank'>New tab</option>
+              </select>
+            </label>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className='space-y-4'>
@@ -304,13 +458,13 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                   } as React.CSSProperties
                 }
               >
-                {pvTitle}
+                {renderWithLineBreaks(pvTitle)}
                 {pvSpan && (
                   <>
                     {' '}
                     <span className='whitespace-nowrap'>
                       <span className='relative inline-block text-[#d4af37]'>
-                        {pvSpan}
+                        {renderWithLineBreaks(pvSpan)}
                         <svg
                           className='pointer-events-none absolute left-0 w-full'
                           style={{ bottom: '-0.2em', height: '0.22em', color: '#d4af37' }}
@@ -329,23 +483,38 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                 {pvEndRest && (
                   <>
                     {pvSpan || !/^[,.;:!?…]/.test(pvEndRest) ? ' ' : ''}
-                    {pvEndRest}
+                    {renderWithLineBreaks(pvEndRest)}
                   </>
                 )}
               </div>
-              {hasButton && pvButtonText && (
+              <div className='mt-6 flex flex-wrap items-center justify-center gap-4'>
+                {hasButton && pvButtonText && (
+                  <span
+                    className='inline-flex items-center gap-2 rounded-full bg-[#d4af37] font-bold text-[#14273a]'
+                    style={{
+                      padding: '16px 32px',
+                      fontSize: '16px',
+                      lineHeight: 1,
+                      fontFamily: 'var(--font-jakarta-sans), "Plus Jakarta Sans", sans-serif',
+                    }}
+                  >
+                    {pvButtonText} →
+                  </span>
+                )}
                 <span
-                  className='mt-6 inline-flex items-center gap-2 rounded-full bg-[#d4af37] font-bold text-[#14273a]'
+                  className='inline-flex items-center gap-2 rounded-full font-semibold text-white'
                   style={{
                     padding: '16px 32px',
                     fontSize: '16px',
                     lineHeight: 1,
+                    border: '2px solid rgba(255, 255, 255, 0.55)',
+                    background: 'rgba(255, 255, 255, 0.08)',
                     fontFamily: 'var(--font-jakarta-sans), "Plus Jakarta Sans", sans-serif',
                   }}
                 >
-                  {pvButtonText} →
+                  {pvButton2Text} →
                 </span>
-              )}
+              </div>
             </>
           ) : (
             <div className='py-4 text-sm text-white/50'>
@@ -409,7 +578,9 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                   />
                 )}
               </LocalizedField>
-              <span className='mt-1 block text-[11px] text-gray-400'>White text.</span>
+              <span className='mt-1 block text-[11px] text-gray-400'>
+                White text. Type “|” to force a line break (e.g. “Your pace |”).
+              </span>
             </label>
             <label className='block text-xs text-gray-600'>
               <LocalizedField
@@ -450,7 +621,7 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                 )}
               </LocalizedField>
               <span className='mt-1 block text-[11px] text-gray-400'>
-                May start with punctuation (e.g. “, your guide…”).
+                May start with punctuation (e.g. “, your guide…”). “|” forces a line break.
               </span>
             </label>
           </div>
@@ -588,88 +759,26 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
           </div>
         </div>
 
-        {/* ============ BUTTON ============ */}
+        {/* ============ HERO BUTTONS ============ */}
         <div className='rounded-xl border border-gray-200 bg-white p-4'>
-          <div className='mb-3 text-sm font-semibold text-gray-900'>Button</div>
-
-          <div className='mb-3'>
-            <button
-              type='button'
-              className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium ${
-                hasButton ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-700'
-              }`}
-              onClick={() => toggleButton(!hasButton)}
-              disabled={saving}
-            >
-              {hasButton ? (
-                <>
-                  <EyeOff size={16} /> Enabled
-                </>
-              ) : (
-                <>
-                  <Eye size={16} /> Disabled
-                </>
-              )}
-            </button>
+          <div className='mb-1 text-sm font-semibold text-gray-900'>Hero Buttons</div>
+          <p className='mb-3 text-xs text-gray-500'>
+            Two distinct buttons — the samples show exactly which one you are editing.
+          </p>
+          <div className='space-y-3'>
+            {renderButtonGroup(
+              'button',
+              'Primary Button',
+              'The solid GOLD button on the LEFT.',
+              <span aria-hidden className='inline-block h-4 w-10 rounded-full bg-[#d4af37]' />
+            )}
+            {renderButtonGroup(
+              'buttonSecondary',
+              'Secondary Button',
+              'The OUTLINE button on the RIGHT. Disabled = visitors see the default “Special Offers” button.',
+              <span aria-hidden className='inline-block h-4 w-10 rounded-full border-2 border-gray-400 bg-white' />
+            )}
           </div>
-
-          {formData.button && (
-            <>
-              <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                <label className='block text-xs text-gray-600'>
-                  <LocalizedField
-                    label='Button Text'
-                    value={formData.button.text}
-                    globalLanguage={activeLanguage}
-                    hideLanguageTabs
-                    onChange={(lang, val) => updateButtonField('text', { ...formData.button!.text, [lang]: val })}
-                  >
-                    {(lang, currentValue, handleLang) => (
-                      <input
-                        className={inputCls}
-                        value={currentValue || ''}
-                        onChange={(e) => handleLang(e.target.value)}
-                        placeholder={`Button text in ${lang}`}
-                      />
-                    )}
-                  </LocalizedField>
-                </label>
-                <label className='block text-xs text-gray-600'>
-                  <LocalizedField
-                    label='Button Link (per language)'
-                    value={formData.button.link}
-                    globalLanguage={activeLanguage}
-                    hideLanguageTabs
-                    onChange={(lang, val) => updateButtonField('link', { ...formData.button!.link, [lang]: val })}
-                  >
-                    {(lang, currentValue, handleLang) => (
-                      <input
-                        className={inputCls}
-                        value={currentValue || ''}
-                        onChange={(e) => handleLang(e.target.value)}
-                        placeholder={`Destination URL for ${lang}`}
-                      />
-                    )}
-                  </LocalizedField>
-                  <span className='mt-1 block text-[11px] text-gray-400'>
-                    Empty language = the English link is used.
-                  </span>
-                </label>
-              </div>
-
-              <label className='mt-3 block text-xs text-gray-600'>
-                <div className='mb-1'>Link Direction</div>
-                <select
-                  className={inputCls}
-                  value={formData.button.linkDirection}
-                  onChange={(e) => updateButtonField('linkDirection', e.target.value as '_blank' | '_self')}
-                >
-                  <option value='_self'>Same tab</option>
-                  <option value='_blank'>New tab</option>
-                </select>
-              </label>
-            </>
-          )}
         </div>
       </div>
     </div>

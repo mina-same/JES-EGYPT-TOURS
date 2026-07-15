@@ -53,12 +53,12 @@ const WhyChooseUs = () => {
           <Row className='align-items-end'>
             <Col lg={8}>
               <div className='sec-title'>
-                <h6 className='sec-title__tagline'>
-                  <TextAnimation text={t("whyChooseUs.tagline")} animationType='right' />
-                </h6>
-                <h3 className='sec-title__title d-md-flex gap-2'>
-                  <TextAnimation text={t("whyChooseUs.title")} animationType='left' />
-                </h3>
+                <p className='sec-title__tagline'>
+                  <TextAnimation text={t("whyChooseUs.tagline")} animationType='right' semantic />
+                </p>
+                <h2 className='sec-title__title'>
+                  <TextAnimation text={t("whyChooseUs.title")} animationType='left' semantic />
+                </h2>
                 <p className='sec-title__subtitle'>
                   {t("whyChooseUs.subtitle")}
                 </p>
@@ -105,7 +105,7 @@ const WhyChooseUs = () => {
                     />
                     <div className='reason-card__overlay'></div>
                     <div className='reason-card__content'>
-                      <h4 className='reason-card__title'>{card.title}</h4>
+                      <h3 className='reason-card__title'>{card.title}</h3>
                       <p className='reason-card__description'>{card.desc}</p>
                     </div>
                   </div>

@@ -25,7 +25,11 @@ export interface ISliderContent extends Document {
   titleEnd: ILocalizedString;
   image: IImage;
   lineShape?: IImage;
+  /** Primary CTA — solid gold button (left). */
   button?: ISliderButton;
+  /** Secondary CTA — outline button (right). Falls back to the site default
+   *  (Special Offers) when absent. */
+  buttonSecondary?: ISliderButton;
   underPromo?: ISliderUnderPromo;
   order: number;
   isActive: boolean;
@@ -108,6 +112,10 @@ const SliderContentSchema = new Schema<ISliderContent>(
       required: false,
     },
     button: {
+      type: SliderButtonSchema,
+      required: false,
+    },
+    buttonSecondary: {
       type: SliderButtonSchema,
       required: false,
     },

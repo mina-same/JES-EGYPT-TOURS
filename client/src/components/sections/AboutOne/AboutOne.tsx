@@ -52,9 +52,10 @@ export interface AboutData {
 
 interface AboutOneProps {
   extraclass?: string;
+  headingLevel?: "h1" | "h2";
 }
 
-const AboutOne: React.FC<AboutOneProps> = ({ extraclass }) => {
+const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) => {
   const {
     title,
     titleHighlight,
@@ -69,6 +70,8 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass }) => {
 
   const params = useParams();
   const locale = (params?.locale as string) || "en";
+  const HeadingTag = headingLevel;
+  const MissionHeadingTag = headingLevel === "h1" ? "h2" : "h3";
 
   return (
     <section className={`about-one section-space ${extraclass ?? ""}`} id='about'>
@@ -107,13 +110,13 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass }) => {
           <Col lg={6}>
             <div className='about-one__right'>
               <div className='sec-title wow fadeInUp' data-wow-duration='1200ms' data-wow-delay='100ms'>
-                <h6 className='sec-title__tagline bw-split-in-right'>
-                  <TextAnimation text={subtitle} animationType='right' />
-                </h6>
-                <h3 className='sec-title__title bw-split-in-left'>
+                <p className='sec-title__tagline bw-split-in-right'>
+                  <TextAnimation text={subtitle} animationType='right' semantic />
+                </p>
+                <HeadingTag className='sec-title__title bw-split-in-left'>
                   {title}{" "}
                   {titleHighlight && <span>{titleHighlight}</span>}
-                </h3>
+                </HeadingTag>
               </div>
 
               <p
@@ -152,9 +155,9 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass }) => {
                         <i className={mission.icon}></i>
                       </div>
                       <div className='about-one__feature-content'>
-                        <h5 className='about-one__feature-title'>
+                        <MissionHeadingTag className='about-one__feature-title'>
                           {mission.title}
-                        </h5>
+                        </MissionHeadingTag>
                         <p className='about-one__feature-text'>
                           {mission.text}
                         </p>
