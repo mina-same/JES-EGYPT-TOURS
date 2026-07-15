@@ -6,7 +6,8 @@ import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchem
 
 export interface ISliderButton {
   text: ILocalizedString;
-  link: string;
+  /** Per-language destination URL (legacy documents may hold a plain string). */
+  link: ILocalizedString;
   linkDirection: '_blank' | '_self'; // Controls how the link opens
 }
 
@@ -41,9 +42,8 @@ const SliderButtonSchema = new Schema<ISliderButton>(
       required: [true, 'Button text is required'],
     },
     link: {
-      type: String,
+      type: LocalizedStringSchema,
       required: [true, 'Button link is required'],
-      trim: true,
     },
     linkDirection: {
       type: String,
@@ -88,13 +88,16 @@ const SliderContentSchema = new Schema<ISliderContent>(
       type: LocalizedStringSchema,
       required: [true, 'Title is required'],
     },
+    // titleSpan (the gold highlighted phrase) and titleEnd are OPTIONAL: a
+    // slide may use a plain title with no highlight, or end on the highlight.
+    // The homepage hero already renders both conditionally.
     titleSpan: {
       type: LocalizedStringSchema,
-      required: [true, 'Title span is required'],
+      required: false,
     },
     titleEnd: {
       type: LocalizedStringSchema,
-      required: [true, 'Title end is required'],
+      required: false,
     },
     image: {
       type: ImageSchema,

@@ -25,19 +25,28 @@ type SlideVM = {
   buttonTarget?: "_blank" | "_self";
 };
 
+// Display-side text hygiene: trim + collapse stray spaces before punctuation
+// ("Your Guide , And" → "Your Guide, And"), matching the admin's save-time
+// normalization so the homepage always renders clean even for legacy content.
+const cleanHeroText = (value: unknown): string =>
+  (typeof value === "string" ? value : "").replace(/\s+([,.;:!?…])/g, "$1").trim();
+
 const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
   id: item._id,
-  subtitle: (getLocalizedValue(item.subtitle, lang) || "").trim(),
-  title: (getLocalizedValue(item.title, lang) || "").trim(),
-  titleSpan: (getLocalizedValue(item.titleSpan, lang) || "").trim(),
-  titleEnd: (getLocalizedValue(item.titleEnd, lang) || "").trim(),
+  subtitle: cleanHeroText(getLocalizedValue(item.subtitle, lang)),
+  title: cleanHeroText(getLocalizedValue(item.title, lang)),
+  titleSpan: cleanHeroText(getLocalizedValue(item.titleSpan, lang)),
+  titleEnd: cleanHeroText(getLocalizedValue(item.titleEnd, lang)),
   imageUrl: item.image?.url,
   imageAlt:
     getLocalizedValue(item.image?.alt, lang) ||
     getLocalizedValue(item.image?.title, lang) ||
     "slider image",
   buttonText: item.button?.text ? getLocalizedValue(item.button.text, lang) : undefined,
-  buttonLink: item.button?.link,
+  // The button link is localized per language (legacy items may hold a plain
+  // string = the English link); getLocalizedValue resolves the active
+  // language and falls back to English when a translation is empty.
+  buttonLink: item.button?.link ? getLocalizedValue(item.button.link, lang) || undefined : undefined,
   buttonTarget: item.button?.linkDirection,
 });
 
@@ -149,6 +158,17 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
               const primaryLabel = item.buttonText || t("hero.primaryCtaFallback");
               const primaryHref = item.buttonLink || `/${locale}/tailor-made`;
               const primaryExternal = item.buttonTarget === "_blank";
+              // Leading punctuation of titleEnd (e.g. ", your guide…") must
+              // stay GLUED to the gold phrase — browsers may otherwise break
+              // the line right before the comma (inline-block boundary is a
+              // wrap opportunity). It is rendered inside a no-break wrapper
+              // with the phrase; the rest of the text flows normally.
+              const endPunct = item.titleSpan
+                ? item.titleEnd.match(/^[,.;:!?…]+/)?.[0] ?? ""
+                : "";
+              const endRest = item.titleSpan
+                ? item.titleEnd.slice(endPunct.length).trimStart()
+                : item.titleEnd;
               return (
                 <div key={item.id}>
                   <div className="item">
@@ -176,34 +196,33 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                             {item.titleSpan && (
                               <>
                                 {" "}
-                                <span>
-                                  {item.titleSpan}
-                                  {/* Hand-drawn gold underline (inline SVG):
-                                      stretches to the phrase width and takes
-                                      the brand gold via currentColor — the
-                                      old PNG asset was green (off-palette). */}
-                                  <svg
-                                    className="main-slider-four__title-line"
-                                    viewBox="0 0 330 24"
-                                    preserveAspectRatio="none"
-                                    fill="none"
-                                    aria-hidden="true"
-                                  >
-                                    <path
-                                      d="M8 17 C 90 7, 240 5, 322 11"
-                                      stroke="currentColor"
-                                      strokeWidth="5"
-                                      strokeLinecap="round"
-                                    />
-                                  </svg>
+                                <span className="main-slider-four__nobreak">
+                                  <span className="main-slider-four__title-accent">
+                                    {item.titleSpan}
+                                    {/* Hand-drawn gold underline (inline SVG):
+                                        stretches to the phrase width and takes
+                                        the brand gold via currentColor. */}
+                                    <svg
+                                      className="main-slider-four__title-line"
+                                      viewBox="0 0 330 24"
+                                      preserveAspectRatio="none"
+                                      fill="none"
+                                      aria-hidden="true"
+                                    >
+                                      <path
+                                        d="M8 17 C 90 7, 240 5, 322 11"
+                                        stroke="currentColor"
+                                        strokeWidth="5"
+                                        strokeLinecap="round"
+                                      />
+                                    </svg>
+                                  </span>
+                                  {endPunct}
                                 </span>
                               </>
                             )}
-                            {/* No space before a titleEnd that starts with
-                                punctuation (e.g. ", Your Guide…") so CMS text
-                                never renders as "You , Your Guide". */}
-                            {item.titleEnd && (
-                              <>{/^[,.;:!?…]/.test(item.titleEnd) ? "" : " "}{item.titleEnd}</>
+                            {endRest && (
+                              <>{item.titleSpan || !/^[,.;:!?…]/.test(endRest) ? " " : ""}{endRest}</>
                             )}
                           </h2>
                           <span className="main-slider-four__divider" aria-hidden="true" />

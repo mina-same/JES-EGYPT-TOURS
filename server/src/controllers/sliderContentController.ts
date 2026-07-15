@@ -12,6 +12,49 @@ interface QueryParams {
   sort?: string;
 }
 
+// ==================== NORMALIZATION HELPERS ====================
+
+const SLIDER_LOCALES = ['en', 'de', 'it', 'es'] as const;
+
+/** Trims every language and removes stray spaces before punctuation
+ *  (e.g. "You , Your Guide" → "You, Your Guide") so admin-entered text can
+ *  never break the hero title's spacing. */
+const normalizeLocalizedText = (value: any): any => {
+  if (!value || typeof value !== 'object') return value;
+  const out: any = { ...value };
+  for (const l of SLIDER_LOCALES) {
+    if (typeof out[l] === 'string') {
+      out[l] = out[l].replace(/\s+([,.;:!?…])/g, '$1').trim();
+    }
+  }
+  return out;
+};
+
+/** Optional localized fields (titleSpan/titleEnd): store as ABSENT when the
+ *  English text is empty, instead of failing the schema's "English version is
+ *  required" on an empty string. */
+const emptyLocalizedToUndefined = (value: any): any =>
+  value && typeof value === 'object' && typeof value.en === 'string' && value.en.trim()
+    ? value
+    : undefined;
+
+/** Button link: accepts the localized { en, de, it, es } object or a legacy
+ *  plain string (treated as the English link). */
+const normalizeButtonLink = (link: any): { en: string; de: string; it: string; es: string } => {
+  if (typeof link === 'string') {
+    return { en: link.trim(), de: '', it: '', es: '' };
+  }
+  const clean = (v: any) => (typeof v === 'string' ? v.trim() : '');
+  return { en: clean(link?.en), de: clean(link?.de), it: clean(link?.it), es: clean(link?.es) };
+};
+
+/** Normalizes a full button payload (text + localized link + direction). */
+const normalizeButton = (button: any) => ({
+  text: normalizeLocalizedText(button?.text),
+  link: normalizeButtonLink(button?.link),
+  linkDirection: button?.linkDirection === '_blank' ? '_blank' : '_self',
+});
+
 // ==================== PUBLIC ENDPOINTS ====================
 
 /**
@@ -181,12 +224,22 @@ export const createSliderContent = async (req: Request, res: Response) => {
       isActive = true,
     } = req.body;
 
-    // Validation
-    if (!subtitle?.en?.trim() || !title?.en?.trim() || !titleSpan?.en?.trim() || !titleEnd?.en?.trim()) {
+    // Validation — only subtitle + title are required; titleSpan (gold
+    // highlight) and titleEnd are optional parts of the heading.
+    if (!subtitle?.en?.trim() || !title?.en?.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'English Subtitle, title, titleSpan, and titleEnd are required',
+        message: 'English Subtitle and Title are required',
       });
+    }
+
+    if (button !== undefined && button !== null) {
+      if (!button.text?.en?.trim() || !normalizeButtonLink(button.link).en) {
+        return res.status(400).json({
+          success: false,
+          message: 'English Button text and link are required when the button is enabled',
+        });
+      }
     }
 
     if (!image || !image.url || !image.fileName) {
@@ -212,15 +265,16 @@ export const createSliderContent = async (req: Request, res: Response) => {
       }
     }
 
-    // Create slider content
+    // Create slider content (normalized: trimmed text, no stray spaces
+    // before punctuation, optional heading parts stored as absent).
     const sliderContent = new SliderContent({
-      subtitle,
-      title,
-      titleSpan,
-      titleEnd,
+      subtitle: normalizeLocalizedText(subtitle),
+      title: normalizeLocalizedText(title),
+      titleSpan: emptyLocalizedToUndefined(normalizeLocalizedText(titleSpan)),
+      titleEnd: emptyLocalizedToUndefined(normalizeLocalizedText(titleEnd)),
       image,
       lineShape,
-      button,
+      button: button === undefined || button === null ? undefined : normalizeButton(button),
       underPromo: underPromo === null ? undefined : underPromo,
       order,
       isActive,
@@ -285,7 +339,42 @@ export const updateSliderContent = async (req: Request, res: Response) => {
       }
     }
 
+    if (updateData.button !== undefined && updateData.button !== null) {
+      if (!updateData.button.text?.en?.trim() || !normalizeButtonLink(updateData.button.link).en) {
+        return res.status(400).json({
+          success: false,
+          message: 'English Button text and link are required when the button is enabled',
+        });
+      }
+    }
+
     const updatePayload: any = { ...updateData };
+
+    // Normalize heading text (trim + no stray spaces before punctuation).
+    for (const field of ['subtitle', 'title', 'titleSpan', 'titleEnd']) {
+      if (updatePayload[field] !== undefined) {
+        updatePayload[field] = normalizeLocalizedText(updatePayload[field]);
+      }
+    }
+
+    // Optional heading parts: when cleared in the admin, remove them from the
+    // document instead of saving an empty-English object (schema rejects it).
+    for (const field of ['titleSpan', 'titleEnd']) {
+      if (updatePayload[field] !== undefined && !emptyLocalizedToUndefined(updatePayload[field])) {
+        delete updatePayload[field];
+        updatePayload.$unset = { ...(updatePayload.$unset || {}), [field]: 1 };
+      }
+    }
+
+    // Button: explicit null = "disabled" → actually remove it (previously a
+    // dropped key silently kept the old button in the document).
+    if (updateData.button === null) {
+      delete updatePayload.button;
+      updatePayload.$unset = { ...(updatePayload.$unset || {}), button: 1 };
+    } else if (updateData.button !== undefined) {
+      updatePayload.button = normalizeButton(updateData.button);
+    }
+
     if (updateData.underPromo === null) {
       delete updatePayload.underPromo;
       updatePayload.$unset = { ...(updatePayload.$unset || {}), underPromo: 1 };

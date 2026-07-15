@@ -2586,10 +2586,17 @@ button[data-action="stop"] {
    the decorative line was invisible when the phrase broke across lines.
    With `max-width: 100%` (set in gotur.css) the underline now also sizes
    to the phrase instead of overflowing it. */
-.main-slider-four__title span {
+.main-slider-four__title-accent {
   color: var(--gotur-base, #d4af37);
   display: inline-block;
   position: relative;
+}
+/* Keeps the gold phrase and any leading punctuation of the following text
+   (e.g. the comma in "Just you, your guide") on the same line — the
+   inline-block boundary is otherwise a valid wrap point and the comma could
+   land at the start of the next line. */
+.main-slider-four__nobreak {
+  white-space: nowrap;
 }
 /* Gold hand-drawn underline (inline SVG): spans the exact width of the gold
    phrase and inherits its color, replacing the old green PNG asset. */

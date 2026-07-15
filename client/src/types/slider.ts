@@ -2,7 +2,9 @@ import { ILocalizedString } from "./tour";
 
 export interface SliderButton {
   text: ILocalizedString;
-  link: string;
+  /** Per-language destination URL. Legacy documents may still hold a plain
+   *  string (treated as the English link everywhere). */
+  link: ILocalizedString | string;
   linkDirection: '_blank' | '_self';
 }
 
