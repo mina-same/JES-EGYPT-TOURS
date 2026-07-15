@@ -1,5 +1,3 @@
-import image3 from '@/assets/images/resources/about-4-1.png';
-
 export interface TestimonialItem {
   id: number;
   name: { en: string; de: string; it: string; es: string };
@@ -10,7 +8,6 @@ const testimonialsTwoData = {
   tagline: 'Clients Testimonial',
   title: 'Recent Clients',
   highlighted: 'Feedback',
-  elementImage: image3,
   testimonials: [
     {
       id: 1,

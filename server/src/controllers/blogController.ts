@@ -102,12 +102,18 @@ export const getAllBlogsAdmin = async (
       isFeatured,
       search,
       status,
+      destination,
     } = req.query;
 
     const query: any = {};
 
     if (status) {
       query.status = status;
+    }
+
+    // Filter by destination (valid ObjectId only, to avoid cast errors).
+    if (typeof destination === 'string' && /^[0-9a-fA-F]{24}$/.test(destination)) {
+      query.destination = destination;
     }
 
     if (isFeatured === 'true') {
@@ -136,6 +142,9 @@ export const getAllBlogsAdmin = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
+      // Resolve the destination reference so the admin list can show its
+      // name (it was previously returned as a raw ObjectId → shown as "-").
+      .populate('destination', 'name slug')
       .select('-comments')
       .sort({ updatedAt: -1 })
       .skip(skip)

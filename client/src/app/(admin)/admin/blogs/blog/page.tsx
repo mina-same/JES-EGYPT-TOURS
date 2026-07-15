@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, FileText, Clock, 
-  User, Calendar, CheckCircle, XCircle, Tag, MapPin
+  Calendar, CheckCircle, XCircle, Tag, MapPin, Star
 } from 'lucide-react';
 import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -266,7 +266,18 @@ export default function BlogsPage() {
             })()}
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{getLocalizedValue(blog.title)}</div>
+            <div className="flex items-start gap-2">
+              <div className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{getLocalizedValue(blog.title)}</div>
+              {blog.isFeatured && (
+                <span
+                  className="mt-0.5 inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500"
+                  title="Shown in the homepage featured section"
+                >
+                  <Star size={10} />
+                  Featured
+                </span>
+              )}
+            </div>
             {blog.excerpt && <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">{getLocalizedValue(blog.excerpt)}</div>}
             {blog.readingTime && (
               <div className="flex items-center text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -313,34 +324,6 @@ export default function BlogsPage() {
           <span className="text-sm text-gray-600 dark:text-gray-400">
             {blog.destination?.name ? getLocalizedValue(blog.destination.name) : '-'}
           </span>
-        </div>
-      ),
-    },
-    {
-      header: 'Featured',
-      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-      cellClassName: 'px-6 py-4',
-      render: (blog) =>
-        blog.isFeatured ? (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500">
-            <CheckCircle size={12} className="mr-1" />
-            Featured
-          </span>
-        ) : (
-          <span className="text-xs text-gray-400">-</span>
-        ),
-    },
-    {
-      header: 'Author',
-      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-      cellClassName: 'px-6 py-4',
-      render: (blog) => (
-        <div className="flex items-center">
-          <User size={16} className="text-gray-400 dark:text-gray-500 mr-2" />
-          <div>
-            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{blog.author?.name || 'Unknown Author'}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">{blog.author?.email || 'No email'}</div>
-          </div>
         </div>
       ),
     },

@@ -2539,6 +2539,22 @@ button[data-action="stop"] {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   Testimonials cards — quote mark in normal flow.
+   The theme pins .testimonials-two-card__quite at top:40px/left:40px
+   (absolute), which lands ON TOP of the centered testimonial text.
+   The markup now places it above the content; these overrides undo the
+   absolute positioning and center it as a small decorative lead-in.
+   ───────────────────────────────────────────────────────────── */
+.testimonials-two-card__inner .testimonials-two-card__quite {
+  position: static;
+  display: flex;
+  justify-content: center;
+  font-size: 36px;
+  line-height: 1;
+  margin: 0 0 6px;
+}
+
+/* ─────────────────────────────────────────────────────────────
    Featured Tours (homepage) rating stars — full 5-star gold.
    The theme grays out the 5th star (a static "4/5" look) via
    `.listing-card-four__rating i:nth-child(6)`. Tours have no real
