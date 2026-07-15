@@ -39,7 +39,7 @@ export type SliderFormData = {
   title: ILocalizedString;
   titleSpan: ILocalizedString;
   titleEnd: ILocalizedString;
-  image: { url: string; fileName: string; alt: ILocalizedString };
+  image: { url: string; fileName: string; title: ILocalizedString; alt: ILocalizedString };
   button: { text: ILocalizedString; link: ILocalizedString; linkDirection: '_blank' | '_self' } | null;
   order: number;
   isActive: boolean;
@@ -58,7 +58,7 @@ export function emptySliderFormData(): SliderFormData {
     title: emptyLocalized(),
     titleSpan: emptyLocalized(),
     titleEnd: emptyLocalized(),
-    image: { url: '', fileName: '', alt: emptyLocalized() },
+    image: { url: '', fileName: '', title: emptyLocalized(), alt: emptyLocalized() },
     button: null,
     order: 0,
     isActive: true,
@@ -76,6 +76,7 @@ export function sliderItemToFormData(item: SliderItem): SliderFormData {
     image: {
       url: item.image?.url || '',
       fileName: item.image?.fileName || '',
+      title: toLocalized(item.image?.title),
       alt: toLocalized(item.image?.alt),
     },
     button: item.button
@@ -122,7 +123,14 @@ export function buildSliderPayload(d: SliderFormData): Record<string, unknown> {
     isActive: Boolean(d.isActive),
     image: {
       url: d.image.url.trim(),
-      fileName: d.image.fileName,
+      // fileName is internal bookkeeping (auto-filled by the upload). When
+      // an admin pastes a URL directly, derive a name from it so the
+      // server's required-fileName validation still passes.
+      fileName:
+        d.image.fileName.trim() ||
+        d.image.url.trim().split('/').pop()?.split('?')[0] ||
+        'image',
+      title: trimLocalized(d.image.title),
       alt: trimLocalized(d.image.alt),
     },
     button: d.button
@@ -529,14 +537,31 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
             </div>
           </label>
 
+          {/* The old "File Name" input was internal bookkeeping with no
+              effect on the site — it is now auto-managed (from the upload,
+              or derived from the URL). The admin edits the fields that
+              actually matter: localized image Title + Alt. */}
           <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
             <label className='block text-xs text-gray-600'>
-              <div className='mb-1'>File Name</div>
-              <input
-                className={inputCls}
-                value={formData.image.fileName}
-                onChange={(e) => updateImageField('fileName', e.target.value)}
-              />
+              <LocalizedField
+                label='Image Title'
+                value={formData.image.title}
+                globalLanguage={activeLanguage}
+                hideLanguageTabs
+                onChange={(lang, val) => updateImageField('title', { ...formData.image.title, [lang]: val })}
+              >
+                {(lang, currentValue, handleLang) => (
+                  <input
+                    className={inputCls}
+                    value={currentValue || ''}
+                    onChange={(e) => handleLang(e.target.value)}
+                    placeholder={`Image title in ${lang}`}
+                  />
+                )}
+              </LocalizedField>
+              <span className='mt-1 block text-[11px] text-gray-400'>
+                Short name of the photo; also used as a fallback when Alt is empty.
+              </span>
             </label>
             <label className='block text-xs text-gray-600'>
               <LocalizedField
