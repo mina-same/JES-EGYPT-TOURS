@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowRight, ChevronDown, Headset, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 
-import LineShape from "@/assets/images/shapes/line-shape.png";
 import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
 import { sliderService } from "@/services/sliderService";
 import { useTranslation } from "react-i18next";
@@ -28,10 +27,10 @@ type SlideVM = {
 
 const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
   id: item._id,
-  subtitle: getLocalizedValue(item.subtitle, lang),
-  title: getLocalizedValue(item.title, lang),
-  titleSpan: getLocalizedValue(item.titleSpan, lang),
-  titleEnd: getLocalizedValue(item.titleEnd, lang),
+  subtitle: (getLocalizedValue(item.subtitle, lang) || "").trim(),
+  title: (getLocalizedValue(item.title, lang) || "").trim(),
+  titleSpan: (getLocalizedValue(item.titleSpan, lang) || "").trim(),
+  titleEnd: (getLocalizedValue(item.titleEnd, lang) || "").trim(),
   imageUrl: item.image?.url,
   imageAlt:
     getLocalizedValue(item.image?.alt, lang) ||
@@ -179,11 +178,33 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                                 {" "}
                                 <span>
                                   {item.titleSpan}
-                                  <Image src={LineShape} alt="" aria-hidden width={330} height={24} />
+                                  {/* Hand-drawn gold underline (inline SVG):
+                                      stretches to the phrase width and takes
+                                      the brand gold via currentColor — the
+                                      old PNG asset was green (off-palette). */}
+                                  <svg
+                                    className="main-slider-four__title-line"
+                                    viewBox="0 0 330 24"
+                                    preserveAspectRatio="none"
+                                    fill="none"
+                                    aria-hidden="true"
+                                  >
+                                    <path
+                                      d="M8 17 C 90 7, 240 5, 322 11"
+                                      stroke="currentColor"
+                                      strokeWidth="5"
+                                      strokeLinecap="round"
+                                    />
+                                  </svg>
                                 </span>
                               </>
                             )}
-                            {item.titleEnd && <> {item.titleEnd}</>}
+                            {/* No space before a titleEnd that starts with
+                                punctuation (e.g. ", Your Guide…") so CMS text
+                                never renders as "You , Your Guide". */}
+                            {item.titleEnd && (
+                              <>{/^[,.;:!?…]/.test(item.titleEnd) ? "" : " "}{item.titleEnd}</>
+                            )}
                           </h2>
                           <span className="main-slider-four__divider" aria-hidden="true" />
                           <div className="main-slider-four__cta">

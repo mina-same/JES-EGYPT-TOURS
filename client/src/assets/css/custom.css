@@ -2579,9 +2579,29 @@ button[data-action="stop"] {
   background: linear-gradient(90deg, var(--gotur-base, #d4af37), transparent);
 }
 
-/* Title accent: the CMS "span" word takes the brand gold. */
+/* Title accent: the CMS "span" phrase takes the brand gold.
+   `inline-block` keeps the phrase as ONE unit — it wraps to the next line
+   whole instead of fragmenting mid-phrase; a fragmented inline span has no
+   reliable box for the absolutely-positioned underline image, which is why
+   the decorative line was invisible when the phrase broke across lines.
+   With `max-width: 100%` (set in gotur.css) the underline now also sizes
+   to the phrase instead of overflowing it. */
 .main-slider-four__title span {
   color: var(--gotur-base, #d4af37);
+  display: inline-block;
+  position: relative;
+}
+/* Gold hand-drawn underline (inline SVG): spans the exact width of the gold
+   phrase and inherits its color, replacing the old green PNG asset. */
+.main-slider-four__title-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.18em;
+  width: 100%;
+  height: 0.22em;
+  color: var(--gotur-base, #d4af37);
+  pointer-events: none;
 }
 
 /* Gold divider under the title. */

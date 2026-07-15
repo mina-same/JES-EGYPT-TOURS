@@ -6360,7 +6360,9 @@ body.megamenu-popup-active .mobile-nav__content {
 .main-slider-four__title {
   margin-bottom: 0px;
   color: var(--gotur-white, #fff);
-  text-transform: capitalize;
+  /* No forced Title Case: the hero renders the admin's sentence exactly as
+     written — sentence case reads more editorial/premium. */
+  text-transform: none;
   font-style: normal;
   font-weight: 800;
   /* Fluid size: scales smoothly with the viewport. Replaces the old ladder
