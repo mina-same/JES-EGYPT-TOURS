@@ -2572,9 +2572,15 @@ button[data-action="stop"] {
    cue, staggered reveal. Scoped to .main-slider-four. CSS/SVG only.
    ───────────────────────────────────────────────────────────── */
 
-/* Positioning context for the scroll cue. */
+/* Positioning context for the scroll cue + custom swipe behavior:
+   `pan-y` keeps normal vertical page scrolling on touch while horizontal
+   gestures reach our swipe handler; text selection is disabled so a mouse
+   drag swipes instead of selecting the heading. */
 .main-slider-four__carousel {
   position: relative;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Eyebrow: the script subtitle flanked by thin gold lines. */
@@ -2710,6 +2716,90 @@ button[data-action="stop"] {
 .main-slider-four__trust svg {
   color: var(--gotur-base, #d4af37);
   flex-shrink: 0;
+}
+
+/* Slide indicator — glass pill with gold "worm" dots (shown only when the
+   hero has 2+ slides). One button per slide; tiny-slider (navContainer)
+   wires the clicks and toggles `tns-nav-active`. The active dot stretches
+   into a gold capsule whose fill visualizes the auto-rotation interval
+   (keep the animation duration in sync with AUTOPLAY_MS in
+   MainSliderFour.tsx). */
+.main-slider-four__dots {
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(13, 26, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.main-slider-four__dots button {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  overflow: hidden;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+.main-slider-four__dots button:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+.main-slider-four__dots button:focus-visible {
+  outline: 2px solid var(--gotur-base, #d4af37);
+  outline-offset: 3px;
+}
+.main-slider-four__dots button.tns-nav-active {
+  width: 28px;
+  background: rgba(212, 175, 55, 0.3);
+}
+/* Gold progress fill inside the active dot (6s = autoplayTimeout). */
+.main-slider-four__dots button.tns-nav-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--gotur-base, #d4af37);
+  transform-origin: left center;
+  animation: heroDotProgress 6s linear forwards;
+}
+@keyframes heroDotProgress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* The rotation pauses on hover (autoplayHoverPause) — pause the fill too. */
+.main-slider-four__carousel:hover .main-slider-four__dots button.tns-nav-active::after {
+  animation-play-state: paused;
+}
+@media (max-width: 767px) {
+  .main-slider-four__dots {
+    bottom: 24px;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .main-slider-four__dots button {
+    transition: none;
+  }
+  .main-slider-four__dots button.tns-nav-active::after {
+    animation: none;
+    transform: none;
+  }
 }
 
 /* Scroll cue (bottom-center of the hero visual). */

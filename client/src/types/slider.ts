@@ -34,7 +34,11 @@ export interface SliderItem {
   titleEnd: ILocalizedString;
   image: SliderImage;
   lineShape?: SliderImage;
+  /** Primary CTA — solid gold button (left). */
   button?: SliderButton;
+  /** Secondary CTA — outline button (right); site default (Special Offers)
+   *  is used when absent. */
+  buttonSecondary?: SliderButton;
   underPromo?: SliderUnderPromo | null;
   order: number;
   isActive: boolean;

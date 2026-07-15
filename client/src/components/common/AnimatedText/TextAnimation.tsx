@@ -6,11 +6,13 @@ import { motion } from "framer-motion";
 interface TextAnimationProps {
   text: string;
   animationType: "fade" | "right" | "left" | "up" | "down" | "scale";
+  semantic?: boolean;
 }
 
 const TextAnimation: React.FC<TextAnimationProps> = ({
   text,
   animationType,
+  semantic = false,
 }) => {
   // Initialize with the split text to ensure server-side and client-side match
   const [words, setWords] = useState<string[][]>(() => 
@@ -18,6 +20,7 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
   );
   const [isVisible, setIsVisible] = useState(false);
   const textRef = useRef<HTMLDivElement | null>(null);
+  const semanticTextRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     if (text) {
@@ -36,16 +39,18 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
       }
     );
 
-    if (textRef.current) {
-      observer.observe(textRef.current);
+    const currentTextRef = semantic ? semanticTextRef.current : textRef.current;
+
+    if (currentTextRef) {
+      observer.observe(currentTextRef);
     }
 
     return () => {
-      if (textRef.current) {
-        observer.unobserve(textRef.current);
+      if (currentTextRef) {
+        observer.unobserve(currentTextRef);
       }
     };
-  }, []);
+  }, [semantic]);
 
   const variants = {
     fade: {
@@ -73,6 +78,42 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
       animate: { opacity: 1, scale: 1 },
     },
   };
+
+  if (semantic) {
+    return (
+      <span
+        ref={semanticTextRef}
+        className="text-animation"
+        style={{ display: "inline" }}
+        suppressHydrationWarning
+      >
+        {words.map((word, wordIndex) => (
+          <span
+            key={wordIndex}
+            style={{ display: "inline-block", whiteSpace: "pre" }}
+          >
+            {word.map((char, charIndex) => (
+              <motion.span
+                key={charIndex}
+                variants={variants[animationType]}
+                initial="initial"
+                animate={isVisible ? "animate" : "initial"}
+                transition={{
+                  delay: wordIndex * 0.1 + charIndex * 0.02,
+                  duration: 0.6,
+                  ease: "easeOut",
+                }}
+                style={{ display: "inline-block" }}
+              >
+                {char}
+              </motion.span>
+            ))}
+            {wordIndex !== words.length - 1 ? " " : null}
+          </span>
+        ))}
+      </span>
+    );
+  }
 
   return (
     <div

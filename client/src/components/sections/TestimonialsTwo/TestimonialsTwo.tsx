@@ -40,15 +40,16 @@ const TestimonialsTwo = () => {
           <Col xl={4} xxl={3}>
             <div className='mb-4'>
               <div className='sec-title'>
-                <h6 className='sec-title__tagline'>
-                  <TextAnimation text={tagline} animationType='right' />
-                </h6>
-                <h3 className='sec-title__title'>
-                  <TextAnimation text={title} animationType='left' />
+                <p className='sec-title__tagline'>
+                  <TextAnimation text={tagline} animationType='right' semantic />
+                </p>
+                <h2 className='sec-title__title'>
+                  <TextAnimation text={title} animationType='left' semantic />
+                  {" "}
                   <span>
-                    <TextAnimation text={highlighted} animationType='left' />
+                    <TextAnimation text={highlighted} animationType='left' semantic />
                   </span>
-                </h3>
+                </h2>
               </div>
               {testimonials.length > 1 && (
                 <div className='testimonials-two__bottom__nav'>
@@ -87,7 +88,7 @@ const TestimonialsTwo = () => {
                         </div>
                         <div className='testimonials-two-card__content'>
                           <div className='testimonials-two-card__author'>
-                            <h4 className='testimonials-two-card__author__name'>{name}</h4>
+                            <h3 className='testimonials-two-card__author__name'>{name}</h3>
                           </div>
                           <p className='testimonials-two-card__text'>{text}</p>
                         </div>

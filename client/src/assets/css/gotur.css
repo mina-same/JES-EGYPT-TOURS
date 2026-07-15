@@ -6159,76 +6159,8 @@ body.megamenu-popup-active .mobile-nav__content {
 .main-slider-four--empty .main-slider-four__carousel {
   background-color: var(--gotur-black, #1d231f);
 }
-.main-slider-four__carousel .owl-nav {
-  margin-top: 0;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-.main-slider-four__carousel .owl-nav .owl-prev,
-.main-slider-four__carousel .owl-nav .owl-next {
-  border: none;
-  outline: none;
-  border-radius: 50%;
-  margin: 0;
-  padding: 0;
-  width: 56px;
-  height: 56px;
-  background-color: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 18px;
-  color: var(--gotur-white, #fff) !important;
-  border: 1px solid var(--gotur-white, #fff) !important;
-  transition: all 400ms ease;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.main-slider-four__carousel .owl-nav .owl-prev svg,
-.main-slider-four__carousel .owl-nav .owl-next svg {
-  width: 1em;
-  height: 1em;
-  fill: currentColor;
-}
-.main-slider-four__carousel .owl-nav .owl-prev:hover,
-.main-slider-four__carousel .owl-nav .owl-next:hover {
-  background-color: var(--gotur-base, #63ab45);
-  color: var(--gotur-white, #fff);
-  border-color: transparent !important;
-}
-.main-slider-four__carousel .owl-nav .owl-prev span,
-.main-slider-four__carousel .owl-nav .owl-next span {
-  border: none;
-  outline: none;
-  color: inherit;
-}
-@media (min-width: 992px) {
-  .main-slider-four__carousel .owl-nav .owl-prev {
-    left: 60px;
-  }
-}
-@media (max-width: 991px) {
-  .main-slider-four__carousel .owl-nav .owl-prev {
-    left: 20px;
-  }
-}
-@media (min-width: 992px) {
-  .main-slider-four__carousel .owl-nav .owl-next {
-    right: 60px;
-  }
-}
-@media (max-width: 991px) {
-  .main-slider-four__carousel .owl-nav .owl-next {
-    right: 20px;
-  }
-}
-@media (max-width: 767px) {
-  .main-slider-four__carousel .owl-nav {
-    display: none;
-  }
-}
+/* (Hero prev/next arrows removed: navigation is swipe/drag + the glass-pill
+   dot indicator styled in custom.css — .main-slider-four__dots.) */
 .main-slider-four__item {
   position: relative;
   min-height: 895px;
@@ -6308,34 +6240,9 @@ body.megamenu-popup-active .mobile-nav__content {
 .main-slider-four__bg img {
   object-fit: cover;
 }
-/* Carousel dots (moved here from a runtime-injected <style> in the component). */
-.tns-dots-container {
-  text-align: center;
-  margin-top: 20px;
-}
-.tns-dots {
-  display: inline-flex;
-  gap: 8px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-.tns-dots button {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0;
-}
-.tns-dots button:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-.tns-dots button.tns-nav-active {
-  background: #fff;
-}
+/* (Orphaned .tns-dots styles removed — tiny-slider never generated those
+   classes; the working dot indicator is .main-slider-four__dots in
+   custom.css.) */
 .main-slider-four__content {
   text-align: center;
   max-width: 1040px;

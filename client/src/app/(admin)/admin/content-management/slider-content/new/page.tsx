@@ -72,6 +72,7 @@ export default function NewSliderContentPage() {
       // meaningful as "remove" on update).
       const payload = buildSliderPayload(formData);
       if (payload.button === null) delete payload.button;
+      if (payload.buttonSecondary === null) delete payload.buttonSecondary;
 
       const res = await sliderAPI.create(payload);
       if (!res.success) {

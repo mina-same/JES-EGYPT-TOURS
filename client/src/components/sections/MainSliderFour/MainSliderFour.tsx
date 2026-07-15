@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -23,6 +23,9 @@ type SlideVM = {
   buttonText?: string;
   buttonLink?: string;
   buttonTarget?: "_blank" | "_self";
+  secondaryText?: string;
+  secondaryLink?: string;
+  secondaryTarget?: "_blank" | "_self";
 };
 
 // Display-side text hygiene: trim + collapse stray spaces before punctuation
@@ -30,6 +33,20 @@ type SlideVM = {
 // normalization so the homepage always renders clean even for legacy content.
 const cleanHeroText = (value: unknown): string =>
   (typeof value === "string" ? value : "").replace(/\s+([,.;:!?…])/g, "$1").trim();
+
+// An admin-typed "|" inside a heading field is a DELIBERATE line break: it
+// renders as <br>, so the slide's line composition is identical at every
+// screen width (instead of depending on where the browser happens to wrap).
+const renderWithLineBreaks = (text: string): React.ReactNode => {
+  const parts = text.split("|");
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => (
+    <React.Fragment key={i}>
+      {part.trim()}
+      {i < parts.length - 1 && <br />}
+    </React.Fragment>
+  ));
+};
 
 const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
   id: item._id,
@@ -48,7 +65,20 @@ const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
   // language and falls back to English when a translation is empty.
   buttonLink: item.button?.link ? getLocalizedValue(item.button.link, lang) || undefined : undefined,
   buttonTarget: item.button?.linkDirection,
+  // Secondary (outline) CTA — optional per slide; the component falls back to
+  // the site default (Special Offers) when absent.
+  secondaryText: item.buttonSecondary?.text
+    ? getLocalizedValue(item.buttonSecondary.text, lang) || undefined
+    : undefined,
+  secondaryLink: item.buttonSecondary?.link
+    ? getLocalizedValue(item.buttonSecondary.link, lang) || undefined
+    : undefined,
+  secondaryTarget: item.buttonSecondary?.linkDirection,
 });
+
+// Keep in sync with the dot progress-fill duration in custom.css
+// (heroDotProgress animation).
+const AUTOPLAY_MS = 6000;
 
 const baseSettings = {
   loop: true,
@@ -58,12 +88,20 @@ const baseSettings = {
   animateIn: "tns-fadeIn",
   items: 1,
   gutter: 0,
-  mouseDrag: true,
-  preventScrollOnTouch: "auto",
-  nav: false,
+  // The library's own drag/touch is BROKEN in gallery (fade) mode: any 1px
+  // movement counts as a swipe (no threshold) and transitions interrupt each
+  // other, causing rapid uncontrolled flipping. Both are disabled — swiping
+  // is reimplemented with a proper threshold in this component instead.
+  mouseDrag: false,
+  touch: false,
+  // Never let a new transition cut into a running fade.
+  preventActionWhenRunning: true,
+  // No prev/next arrows: navigation is swipe/drag + the dot indicator.
+  controls: false,
   autoplayButtonOutput: false,
-  controlsContainer: ".owl-nav",
-  autoplayTimeout: 6000,
+  // Pause the rotation while the visitor hovers/reads the hero.
+  autoplayHoverPause: true,
+  autoplayTimeout: AUTOPLAY_MS,
   speed: 1000,
 };
 
@@ -140,8 +178,16 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   const hasSlides = slides.length > 0;
   const hasMultiple = slides.length > 1;
 
-  // Dots only make sense with more than one slide.
-  const settings = useMemo(() => ({ ...baseSettings, dots: hasMultiple }), [hasMultiple]);
+  // The dot indicator only makes sense with more than one slide. tiny-slider
+  // binds clicks + toggles `tns-nav-active` on the buttons we render in
+  // `.main-slider-four__dots` (its real option is `nav`, not owl's `dots`).
+  const settings = useMemo(
+    () =>
+      hasMultiple
+        ? { ...baseSettings, nav: true, navContainer: ".main-slider-four__dots" }
+        : { ...baseSettings, nav: false },
+    [hasMultiple]
+  );
 
   const scrollDown = () => {
     if (typeof window !== "undefined") {
@@ -149,15 +195,64 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
     }
   };
 
+  // ---- Custom swipe navigation (replaces the library's gallery-mode drag,
+  // which flips on any 1px movement). A gesture counts as a swipe only when
+  // it is clearly horizontal and travels >= 50px — then exactly ONE flip.
+  const SWIPE_THRESHOLD_PX = 50;
+  const sliderRef = useRef<any>(null);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    swipeStart.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start || !hasMultiple) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dx) >= SWIPE_THRESHOLD_PX && Math.abs(dx) > Math.abs(dy)) {
+      // Swallow the click that follows the gesture so a swipe ending on a
+      // link/button doesn't also activate it.
+      suppressClick.current = true;
+      sliderRef.current?.slider?.goTo(dx < 0 ? "next" : "prev");
+    }
+  };
+
+  const onPointerCancel = () => {
+    swipeStart.current = null;
+  };
+
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   return (
     <section className={`main-slider-four${hasSlides ? "" : " main-slider-four--empty"}`} id="home">
-      <div className="main-slider-four__carousel gotur-owl__carousel owl-carousel">
+      <div
+        className="main-slider-four__carousel gotur-owl__carousel owl-carousel"
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+        onClickCapture={onClickCapture}
+      >
         {hasSlides ? (
-          <TinySlider settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
+          <TinySlider ref={sliderRef} settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
             {slides.map((item, index) => {
               const primaryLabel = item.buttonText || t("hero.primaryCtaFallback");
               const primaryHref = item.buttonLink || `/${locale}/tailor-made`;
               const primaryExternal = item.buttonTarget === "_blank";
+              // Secondary (outline) CTA: admin-configured per slide, or the
+              // site default (Special Offers) when not set.
+              const secondaryLabel = item.secondaryText || t("hero.secondaryCta");
+              const secondaryHref = item.secondaryLink || `/${locale}/special-offers`;
+              const secondaryExternal = item.secondaryLink ? item.secondaryTarget === "_blank" : false;
               // Leading punctuation of titleEnd (e.g. ", your guide…") must
               // stay GLUED to the gold phrase — browsers may otherwise break
               // the line right before the comma (inline-block boundary is a
@@ -185,20 +280,20 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                       <div className="container">
                         <div className="main-slider-four__content">
                           {item.subtitle && (
-                            <h5 className="main-slider-four__subtitle">
+                            <p className="main-slider-four__subtitle">
                               <span className="main-slider-four__eyebrow-line" aria-hidden="true" />
                               <span>{item.subtitle}</span>
                               <span className="main-slider-four__eyebrow-line" aria-hidden="true" />
-                            </h5>
+                            </p>
                           )}
-                          <h2 className="main-slider-four__title">
-                            {item.title}
+                          <p className="main-slider-four__title">
+                            {renderWithLineBreaks(item.title)}
                             {item.titleSpan && (
                               <>
                                 {" "}
                                 <span className="main-slider-four__nobreak">
                                   <span className="main-slider-four__title-accent">
-                                    {item.titleSpan}
+                                    {renderWithLineBreaks(item.titleSpan)}
                                     {/* Hand-drawn gold underline (inline SVG):
                                         stretches to the phrase width and takes
                                         the brand gold via currentColor. */}
@@ -222,9 +317,9 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                               </>
                             )}
                             {endRest && (
-                              <>{item.titleSpan || !/^[,.;:!?…]/.test(endRest) ? " " : ""}{endRest}</>
+                              <>{item.titleSpan || !/^[,.;:!?…]/.test(endRest) ? " " : ""}{renderWithLineBreaks(endRest)}</>
                             )}
-                          </h2>
+                          </p>
                           <span className="main-slider-four__divider" aria-hidden="true" />
                           <div className="main-slider-four__cta">
                             <Link
@@ -237,10 +332,12 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                               <ArrowRight size={18} aria-hidden="true" />
                             </Link>
                             <Link
-                              href={`/${locale}/special-offers`}
+                              href={secondaryHref}
+                              target={secondaryExternal ? "_blank" : undefined}
+                              rel={secondaryExternal ? "noopener noreferrer" : undefined}
                               className="main-slider-four__cta-secondary"
                             >
-                              {t("hero.secondaryCta")}
+                              {secondaryLabel}
                               <ArrowRight size={18} aria-hidden="true" />
                             </Link>
                           </div>
@@ -269,14 +366,18 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
         ) : (
           <div className="main-slider-four__empty-shell" aria-hidden="true" />
         )}
+        {/* Glass-pill slide indicator: one dot per slide, clickable; the
+            active dot stretches into a gold "worm" whose fill visualizes the
+            auto-rotation. tiny-slider wires the clicks via navContainer. */}
         {hasMultiple && (
-          <div className="owl-nav">
-            <button type="button" role="presentation" className="owl-prev" aria-label="carousel button">
-              <span className="icon-arrow-left"></span>
-            </button>
-            <button type="button" role="presentation" className="owl-next" aria-label="carousel button">
-              <span className="icon-arrow-right"></span>
-            </button>
+          <div className="main-slider-four__dots" aria-label="Slides">
+            {slides.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-label={`Go to slide ${index + 1} of ${slides.length}`}
+              />
+            ))}
           </div>
         )}
         {hasSlides && (

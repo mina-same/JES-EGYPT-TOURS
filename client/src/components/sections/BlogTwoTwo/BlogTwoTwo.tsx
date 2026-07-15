@@ -126,12 +126,12 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
           <Row className='align-items-end gutter-y-20'>
             <Col lg={8}>
               <div className='sec-title'>
-                <h6 className='sec-title__tagline bw-split-in-right'>
-                  {mounted ? <TextAnimation text={t('blogAndNews')} animationType='right' /> : <div style={{ height: '24px' }} />}
-                </h6>
-                <h3 className='sec-title__title bw-split-in-left'>
-                  {mounted ? <TextAnimation text={t('ourLatestNews')} animationType='left' /> : <div style={{ height: '40px' }} />}
-                </h3>
+                <p className='sec-title__tagline bw-split-in-right'>
+                  {mounted ? <TextAnimation text={t('blogAndNews')} animationType='right' semantic /> : <span>{t('blogAndNews')}</span>}
+                </p>
+                <h2 className='sec-title__title bw-split-in-left'>
+                  {mounted ? <TextAnimation text={t('ourLatestNews')} animationType='left' semantic /> : <span>{t('ourLatestNews')}</span>}
+                </h2>
               </div>
             </Col>
             <Col lg={4}>

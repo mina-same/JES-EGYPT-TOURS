@@ -37,24 +37,27 @@ const OfferOne: React.FC<OfferOneProps> = () => {
                 data-wow-duration="1200ms"
                 data-wow-delay="100ms"
               >
-                <h6 className="sec-title__tagline bw-split-in-right">
+                <p className="sec-title__tagline bw-split-in-right">
                   <TextAnimation
                     text={t("tailorOffer.tagline")}
                     animationType="right"
+                    semantic
                   />
-                </h6>
-                <h3 className="sec-title__title bw-split-in-left">
+                </p>
+                <h2 className="sec-title__title bw-split-in-left">
                   <TextAnimation
                     text={t("tailorOffer.titleLine1")}
                     animationType="left"
+                    semantic
                   />{" "}
                   <span>
                     <TextAnimation
                       text={t("tailorOffer.titleLine2")}
                       animationType="left"
+                      semantic
                     />
                   </span>
-                </h3>
+                </h2>
               </div>
 
               <p
