@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowRight, ChevronDown, Headset, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowRight, ChevronDown, Headset, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 
 import LineShape from "@/assets/images/shapes/line-shape.png";
 import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
@@ -251,25 +251,32 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
           </button>
         )}
       </div>
-      <div className="main-slider-four__action-form">
-        <div className="main-slider-four__form text-center">
-          {promo?.text && promo?.link && promo?.linkText && (
-            <div className="main-slider-four__promo-wrapper">
-              <span className="main-slider-four__promo-text">
-                🎉 {getLocalizedValue(promo.text, lang)}{" "}
-                <Link
-                  href={promo.link}
-                  target={promo.linkDirection === "_blank" ? "_blank" : undefined}
-                  rel={promo.linkDirection === "_blank" ? "noopener noreferrer" : undefined}
-                  className="main-slider-four__promo-btn"
-                >
-                  {getLocalizedValue(promo.linkText, lang)} →
-                </Link>
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+      {(() => {
+        // The link is localized per language (legacy documents may still hold
+        // a plain string = the English link). getLocalizedValue resolves the
+        // active language and falls back to English when a translation is
+        // empty, so the bar never disappears for untranslated locales.
+        const promoText = getLocalizedValue(promo?.text, lang);
+        const promoHref = getLocalizedValue(promo?.link, lang);
+        const promoLinkText = getLocalizedValue(promo?.linkText, lang);
+        if (!promoText || !promoHref || !promoLinkText) return null;
+        return (
+          <div className="main-slider-four__promo-wrapper">
+            <span className="main-slider-four__promo-text">
+              <Sparkles size={16} aria-hidden="true" className="main-slider-four__promo-icon" />
+              {promoText}{" "}
+              <Link
+                href={promoHref}
+                target={promo?.linkDirection === "_blank" ? "_blank" : undefined}
+                rel={promo?.linkDirection === "_blank" ? "noopener noreferrer" : undefined}
+                className="main-slider-four__promo-btn"
+              >
+                {promoLinkText} →
+              </Link>
+            </span>
+          </div>
+        );
+      })()}
     </section>
   );
 };

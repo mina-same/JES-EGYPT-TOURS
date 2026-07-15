@@ -6400,42 +6400,9 @@ body.megamenu-popup-active .mobile-nav__content {
   transform: translateX(0);
   transition-delay: 1300ms;
 }
-.main-slider-four__form {
-  position: absolute;
-  bottom: 220px;
-  z-index: 1;
-  margin: 0 auto;
-  padding: 0 0 0;
-  max-width: 1024px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.main-slider-four__action-form {
-  min-height: 72px;
-}
-@media (max-width: 1199px) {
-  .main-slider-four__form {
-    bottom: 50px;
-  }
-}
-@media (max-width: 991px) {
-  .main-slider-four__form {
-    left: 0;
-    transform: translateX(0%);
-  }
-}
-@media (max-width: 767px) {
-  .main-slider-four__action-form {
-    min-height: 88px;
-  }
-  .main-slider-four__form {
-    padding-top: 20px;
-    padding-bottom: 20px;
-    position: relative;
-    z-index: 1;
-    bottom: auto;
-  }
-}
+/* (Old absolute-positioned .main-slider-four__form / __action-form rules
+   removed: the promo bar is now a simple conditional block styled in
+   custom.css, so no space is reserved when no promo is active.) */
 
 /*--------------------------------------------------------------
 # Banner Form

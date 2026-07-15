@@ -4,7 +4,8 @@ import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchem
 export interface ISliderUnderPromoConfig {
   text: ILocalizedString;
   linkText: ILocalizedString;
-  link: string;
+  /** Per-language destination URL (legacy documents may hold a plain string). */
+  link: ILocalizedString;
   linkDirection: '_blank' | '_self';
 }
 
@@ -19,7 +20,7 @@ const SliderUnderPromoConfigSchema = new Schema<ISliderUnderPromoConfig>(
   {
     text: { type: LocalizedStringSchema },
     linkText: { type: LocalizedStringSchema },
-    link: { type: String, trim: true },
+    link: { type: LocalizedStringSchema },
     linkDirection: { type: String, enum: ['_blank', '_self'], default: '_self' },
   },
   { _id: false }

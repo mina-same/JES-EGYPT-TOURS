@@ -534,14 +534,8 @@ body {
   width: 100% !important;
 }
 
-.main-slider-four__form {
-  position: relative !important;
-  bottom: auto !important;
-  left: auto !important;
-  transform: none !important;
-  max-width: none !important;
-  margin: 0;
-}
+/* (Legacy .main-slider-four__form overrides removed — the theme's
+   absolute-positioned rules they neutralized were deleted from gotur.css.) */
 
 /* ==========================================================================
    4. AMENITIES CARDS (Premium Design)
@@ -1299,51 +1293,68 @@ div[suppressHydrationWarning] {
 /* ==========================================================================
     9. MAIN SLIDER FOUR PROMO STYLES (TopbarOne-inspired)
     ========================================================================== */
+/* Promo bar under the hero. Rendered only when a promo is active in the
+   admin (no reserved empty space otherwise). Navy gradient + thin gold seam
+   tie it to the hero's cinematic scrim; the CTA matches the hero's
+   navy-on-gold buttons (readable, WCAG-friendly contrast). */
 .main-slider-four__promo-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 12px 20px;
-  background: var(--gotur-black, #1d231f);
+  background: linear-gradient(180deg, #14273a 0%, #0d1a2a 100%);
+  border-top: 1px solid rgba(246, 201, 69, 0.35);
   width: 100%;
-  border-radius: 0;
-  margin: 0;
-}
-
-.main-slider-four__action-form {
-  margin: 0;
 }
 
 .main-slider-four__promo-text {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  text-align: center;
+  gap: 8px 12px;
   color: #fff;
   font-size: 14px;
   font-weight: 500;
   font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
-  white-space: nowrap;
+}
+
+.main-slider-four__promo-icon {
+  flex-shrink: 0;
+  color: var(--gotur-base, #d4af37);
 }
 
 .main-slider-four__promo-btn {
   display: inline-flex;
   align-items: center;
-  padding: 6px 16px;
+  padding: 7px 18px;
   background: var(--gotur-base, #d4af37);
-  color: #fff !important;
+  color: #14273a !important;
   text-decoration: none;
-  border-radius: 20px;
+  border-radius: 999px;
   font-size: 13px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-weight: 700;
+  transition: background-color 0.25s ease, color 0.25s ease,
+    transform 0.25s ease, box-shadow 0.25s ease;
   white-space: nowrap;
 }
 
 .main-slider-four__promo-btn:hover {
-  background: var(--gotur-black, #1d231f);
+  background: #f4d03f;
   transform: translateY(-1px);
-  color: #fff !important;
+  box-shadow: 0 6px 14px rgba(212, 175, 55, 0.35);
+  color: #14273a !important;
   text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-slider-four__promo-btn {
+    transition: none;
+  }
+  .main-slider-four__promo-btn:hover {
+    transform: none;
+  }
 }
 
 /* ==========================================================================

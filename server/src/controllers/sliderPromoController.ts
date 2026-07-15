@@ -6,8 +6,24 @@ const GLOBAL_KEY = 'global' as const;
 type UnderPromoPayload = {
   text: any;
   linkText: any;
-  link: string;
+  /** Localized { en, de, it, es } object; legacy clients may send a string. */
+  link: any;
   linkDirection?: '_blank' | '_self';
+};
+
+/** Normalizes the link payload: a legacy plain string becomes the English
+ *  link; object values are trimmed. */
+const normalizeLink = (link: any): { en: string; de: string; it: string; es: string } => {
+  if (typeof link === 'string') {
+    return { en: link.trim(), de: '', it: '', es: '' };
+  }
+  const clean = (v: any) => (typeof v === 'string' ? v.trim() : '');
+  return {
+    en: clean(link?.en),
+    de: clean(link?.de),
+    it: clean(link?.it),
+    es: clean(link?.es),
+  };
 };
 
 export const getSliderPromoPublic = async (_req: Request, res: Response) => {
@@ -62,7 +78,9 @@ export const upsertSliderPromoAdmin = async (req: Request, res: Response) => {
       });
     }
 
-    if (!underPromo?.text?.en?.trim() || !underPromo?.linkText?.en?.trim() || !underPromo?.link) {
+    const link = normalizeLink(underPromo?.link);
+
+    if (!underPromo?.text?.en?.trim() || !underPromo?.linkText?.en?.trim() || !link.en) {
       return res.status(400).json({
         success: false,
         message: 'English Promo text, linkText, and link are required',
@@ -72,7 +90,7 @@ export const upsertSliderPromoAdmin = async (req: Request, res: Response) => {
     const payload = {
       text: underPromo.text,
       linkText: underPromo.linkText,
-      link: underPromo.link,
+      link,
       linkDirection: underPromo.linkDirection === '_blank' ? '_blank' : '_self',
     };
 
