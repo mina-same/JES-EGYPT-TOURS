@@ -10,6 +10,9 @@ interface AdminLanguageTabsProps {
   activeLanguage: AdminLanguage;
   onLanguageChange: (lang: AdminLanguage) => void;
   className?: string;
+  /** Optional per-language completeness indicator: green dot = translated,
+   *  gray dot = missing content for that language. Omit to hide the dots. */
+  completeness?: Partial<Record<AdminLanguage, boolean>>;
 }
 
 const LANGUAGES: { id: AdminLanguage; label: string; Icon: any }[] = [
@@ -23,6 +26,7 @@ const AdminLanguageTabs: React.FC<AdminLanguageTabsProps> = ({
   activeLanguage,
   onLanguageChange,
   className = "",
+  completeness,
 }) => {
   return (
     <div className={cn("flex items-center gap-3 p-2 bg-muted/30 rounded-lg border border-dashed", className)}>
@@ -47,6 +51,16 @@ const AdminLanguageTabs: React.FC<AdminLanguageTabsProps> = ({
             >
               <Icon className="w-4 h-3 rounded-[1px]" />
               <span className="uppercase">{id}</span>
+              {completeness && (
+                <span
+                  aria-hidden
+                  title={completeness[id] ? "Translated" : "Missing content"}
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    completeness[id] ? "bg-green-500" : "bg-gray-300"
+                  )}
+                />
+              )}
             </button>
           );
         })}

@@ -183,5 +183,13 @@
     "feature4": "Price Confirmed in Writing Before You Book",
     "cta": "Plan My Private Tour",
     "badge": "100% Private — No Group Tours"
+  },
+  "hero": {
+    "primaryCtaFallback": "Plan My Trip",
+    "secondaryCta": "Special Offers",
+    "trust1": "Licensed expert guides",
+    "trust2": "No hidden fees",
+    "trust3": "24/7 support",
+    "scroll": "Scroll"
   }
 }

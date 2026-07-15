@@ -43,6 +43,7 @@ export interface IBlog extends Document {
   title: ILocalizedString;
   slug: ILocalizedString;
   author: mongoose.Types.ObjectId | string;
+  editorialAuthor?: mongoose.Types.ObjectId | string;
   featuredImage: IImage;
   excerpt?: ILocalizedString;
   
@@ -127,6 +128,10 @@ const BlogSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Author is required'],
+    },
+    editorialAuthor: {
+      type: Schema.Types.ObjectId,
+      ref: 'EditorialAuthor',
     },
     featuredImage: {
       type: ImageSchema,

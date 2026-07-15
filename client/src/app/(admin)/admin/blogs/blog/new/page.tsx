@@ -66,6 +66,7 @@ const INITIAL_BLOG_POST = {
   title: { en: '', de: '', it: '', es: '' },
   slug: { en: '', de: '', it: '', es: '' },
   author: '',
+  editorialAuthor: '',
   featuredImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   excerpt: { en: '', de: '', it: '', es: '' },
   contentBlocks: [{ id: 'initial-block', type: 'html', content: { en: '', de: '', it: '', es: '' } }],
@@ -130,6 +131,7 @@ export default function NewBlogPage() {
 
   const { user } = useAuth();
   const [authors, setAuthors] = useState<AuthUser[]>([]);
+  const [editorialAuthors, setEditorialAuthors] = useState<any[]>([]);
   const emptyBlogPost = useMemo(() => createEmptyBlogPost(), []);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<any>(
@@ -609,9 +611,10 @@ export default function NewBlogPage() {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const [catRes, userRes, destRes, relatedPostsRes, relatedToursRes] = await Promise.all([
+        const [catRes, userRes, editorialAuthorRes, destRes, relatedPostsRes, relatedToursRes] = await Promise.all([
           blogCategoryAPI.getAll({ isActive: true }),
           userAPI.getAllUsers(),
+          blogAPI.getEditorialAuthors(),
           destinationAPI.getAll({ isActive: true }),
           blogAPI.getAll({ limit: 100, status: 'published' }),
           tourAPI.getAll({ limit: 100, isActive: true })
@@ -623,6 +626,13 @@ export default function NewBlogPage() {
         
         if (userRes.success && userRes.data?.users) {
           setAuthors(userRes.data.users);
+        }
+
+        if (editorialAuthorRes.success && editorialAuthorRes.data) {
+          setEditorialAuthors(editorialAuthorRes.data);
+          if (!formData.editorialAuthor && editorialAuthorRes.data[0]?._id) {
+            handleChange('editorialAuthor', editorialAuthorRes.data[0]._id);
+          }
         }
 
         if (destRes.success && destRes.data) {
@@ -1250,6 +1260,26 @@ export default function NewBlogPage() {
                       {getFieldError('author') && (
                         <p className="text-sm text-destructive mt-1">{getFieldError('author')}</p>
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="editorialAuthor">Editorial Author (public)</Label>
+                      <Select
+                        value={formData.editorialAuthor || ""}
+                        onValueChange={(value) => handleChange('editorialAuthor', value)}
+                      >
+                        <SelectTrigger id="editorialAuthor">
+                          <SelectValue placeholder="Select the public article author" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {editorialAuthors.map((author) => (
+                            <SelectItem key={author._id} value={author._id}>
+                              {author.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Controls the linked name and the author box shown to visitors.</p>
                     </div>
 
                     {formData.status === 'scheduled' && (

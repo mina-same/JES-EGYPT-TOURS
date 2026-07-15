@@ -63,6 +63,7 @@ const INITIAL_BLOG_EDIT: any = {
   title: { en: '', de: '', it: '', es: '' },
   slug: { en: '', de: '', it: '', es: '' },
   author: '',
+  editorialAuthor: '',
   featuredImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   excerpt: { en: '', de: '', it: '', es: '' },
   contentBlocks: [],
@@ -109,6 +110,7 @@ export default function EditBlogPage() {
   const [relatedTourOptions, setRelatedTourOptions] = useState<any[]>([]);
   const [fetchingOptions, setFetchingOptions] = useState(false);
   const [authors, setAuthors] = useState<AuthUser[]>([]);
+  const [editorialAuthors, setEditorialAuthors] = useState<any[]>([]);
   const [originalFormData, setOriginalFormData] = useState<any | null>(null);
   const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
   const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
@@ -337,6 +339,7 @@ export default function EditBlogPage() {
           title: normalizeLocalizedString(blog.title),
           slug: normalizeLocalizedString(blog.slug),
           author: blog.author?._id || blog.author || '',
+          editorialAuthor: blog.editorialAuthor?._id || blog.editorialAuthor || '',
           featuredImage: normalizeImage(blog.featuredImage),
           excerpt: normalizeLocalizedString(blog.excerpt),
           contentBlocks: (() => {
@@ -757,9 +760,10 @@ export default function EditBlogPage() {
     const fetchOptions = async () => {
       try {
         setFetchingOptions(true);
-        const [catRes, userRes, destRes, relatedPostsRes, relatedToursRes] = await Promise.all([
+        const [catRes, userRes, editorialAuthorRes, destRes, relatedPostsRes, relatedToursRes] = await Promise.all([
           blogCategoryAPI.getAll({ isActive: true }),
           userAPI.getAllUsers(),
+          blogAPI.getEditorialAuthors(),
           destinationAPI.getAll({ isActive: true }),
           blogAPI.getAll({ limit: 100, status: 'published' }),
           tourAPI.getAll({ limit: 100, isActive: true })
@@ -771,6 +775,10 @@ export default function EditBlogPage() {
 
         if (userRes.success && userRes.data?.users) {
           setAuthors(userRes.data.users);
+        }
+
+        if (editorialAuthorRes.success && editorialAuthorRes.data) {
+          setEditorialAuthors(editorialAuthorRes.data);
         }
 
         if (destRes.success && destRes.data) {
@@ -1457,6 +1465,26 @@ export default function EditBlogPage() {
                         {getFieldError('author') && (
                           <p className="text-sm text-destructive mt-1">{getFieldError('author')}</p>
                         )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="editorialAuthor">Editorial Author (public)</Label>
+                        <Select
+                          value={formData.editorialAuthor || ""}
+                          onValueChange={(value) => handleChange('editorialAuthor', value)}
+                        >
+                          <SelectTrigger id="editorialAuthor">
+                            <SelectValue placeholder="Select the public article author" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {editorialAuthors.map((author) => (
+                              <SelectItem key={author._id} value={author._id}>
+                                {author.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">Controls the linked name and the author box shown to visitors.</p>
                       </div>
 
                     {formData.status === 'scheduled' && (

@@ -13,6 +13,16 @@ import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
 import { SliderItem, SliderUnderPromo } from '@/types/slider';
+import type { ILocalizedString } from '@/types/tour';
+
+/** Promo form state: `link` is always the localized object (legacy plain
+ *  strings from older documents are normalized on load). */
+type PromoFormState = Omit<SliderUnderPromo, 'link'> & { link: ILocalizedString };
+
+const emptyLocalized = (): ILocalizedString => ({ en: '', de: '', it: '', es: '' });
+
+const toLocalizedLink = (link: SliderUnderPromo['link'] | undefined | null): ILocalizedString =>
+  typeof link === 'string' ? { en: link, de: '', it: '', es: '' } : { ...emptyLocalized(), ...(link || {}) };
 import { API_ENDPOINTS } from '@/config/api';
 import { sliderService } from '@/services/sliderService';
 import { getLocalizedValue } from '@/lib/localize';
@@ -92,10 +102,10 @@ export default function SliderContentPage() {
   const [promoLoading, setPromoLoading] = useState(true);
   const [promoSaving, setPromoSaving] = useState(false);
   const [promo, setPromo] = useState<SliderUnderPromo | null>(null);
-  const [promoForm, setPromoForm] = useState<SliderUnderPromo>({
+  const [promoForm, setPromoForm] = useState<PromoFormState>({
     text: { en: '', de: '', it: '', es: '' },
     linkText: { en: '', de: '', it: '', es: '' },
-    link: '',
+    link: emptyLocalized(),
     linkDirection: '_self',
   });
   const [activePromoLanguage, setActivePromoLanguage] = useState<AdminLanguage>('en');
@@ -120,7 +130,7 @@ export default function SliderContentPage() {
       setPromoForm({
         text: p?.text || { en: '', de: '', it: '', es: '' },
         linkText: p?.linkText || { en: '', de: '', it: '', es: '' },
-        link: p?.link || '',
+        link: toLocalizedLink(p?.link),
         linkDirection: p?.linkDirection || '_self',
       });
     } catch (err: any) {
@@ -139,11 +149,16 @@ export default function SliderContentPage() {
     const payload: SliderUnderPromo = {
       text: promoForm.text,
       linkText: promoForm.linkText,
-      link: promoForm.link.trim(),
+      link: {
+        en: promoForm.link.en?.trim() || '',
+        de: promoForm.link.de?.trim() || '',
+        it: promoForm.link.it?.trim() || '',
+        es: promoForm.link.es?.trim() || '',
+      },
       linkDirection: promoForm.linkDirection,
     };
 
-    if (!payload.text?.en?.trim() || !payload.linkText?.en?.trim() || !payload.link) {
+    if (!payload.text?.en?.trim() || !payload.linkText?.en?.trim() || !(payload.link as ILocalizedString).en) {
       toast({
         title: 'Validation error',
         description: 'Promo text, link text, and link are required.',
@@ -180,7 +195,7 @@ export default function SliderContentPage() {
       setPromoForm({
         text: { en: '', de: '', it: '', es: '' },
         linkText: { en: '', de: '', it: '', es: '' },
-        link: '',
+        link: emptyLocalized(),
         linkDirection: '_self',
       });
       toast({
@@ -496,15 +511,26 @@ export default function SliderContentPage() {
             </select>
           </label>
 
-          <label className='block text-xs text-gray-600 md:col-span-2'>
-            <div className='mb-1'>Link Destination URL</div>
-            <input
-              className='w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#63ab45]'
+          <div className='md:col-span-2'>
+            <LocalizedField
+              label='Link Destination URL'
               value={promoForm.link}
-              onChange={(e) => setPromoForm((p) => ({ ...p, link: e.target.value }))}
-              disabled={promoLoading || promoSaving}
-            />
-          </label>
+              globalLanguage={activePromoLanguage}
+              onChange={(lang, val) =>
+                setPromoForm((p) => ({ ...p, link: { ...p.link, [lang]: val } }))
+              }
+            >
+              {(lang, currentValue, handleLang) => (
+                <input
+                  className='w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#63ab45]'
+                  value={currentValue || ''}
+                  onChange={(e) => handleLang(e.target.value)}
+                  disabled={promoLoading || promoSaving}
+                  placeholder={`Destination URL for ${lang} (empty = use English link)`}
+                />
+              )}
+            </LocalizedField>
+          </div>
         </div>
 
         <div className='mt-4 flex flex-col gap-2 sm:flex-row sm:items-center'>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image, { StaticImageData } from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
 import testimonialsTwoData, { TestimonialItem } from "@/data/testimonialsTwoData";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
@@ -13,7 +12,7 @@ const TestimonialsTwo = () => {
   const { i18n } = useTranslation("common");
   const lang = (i18n.language?.split("-")[0] as SupportedLang) ?? "en";
 
-  const { tagline, title, highlighted, testimonials, elementImage } = testimonialsTwoData;
+  const { tagline, title, highlighted, testimonials } = testimonialsTwoData;
 
   if (!testimonials || testimonials.length === 0) return null;
 
@@ -80,6 +79,12 @@ const TestimonialsTwo = () => {
                       data-wow-delay='00ms'
                     >
                       <div className='testimonials-two-card__inner' style={{ paddingTop: 30 }}>
+                        {/* Quote mark sits in normal flow ABOVE the content
+                            (the theme's absolute top/left placement made it
+                            overlap the centered testimonial text). */}
+                        <div className='testimonials-two-card__quite' aria-hidden='true'>
+                          <i className='icon-straight-quotes'></i>
+                        </div>
                         <div className='testimonials-two-card__content'>
                           <div className='testimonials-two-card__author'>
                             <h4 className='testimonials-two-card__author__name'>{name}</h4>
@@ -95,9 +100,6 @@ const TestimonialsTwo = () => {
                             <i className='icon-star'></i>
                           </div>
                         </div>
-                        <div className='testimonials-two-card__quite'>
-                          <i className='icon-straight-quotes'></i>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -107,9 +109,10 @@ const TestimonialsTwo = () => {
           </Col>
         </Row>
       </Container>
-      <div className='testimonials-two__element'>
-        <Image src={elementImage as StaticImageData} alt='testimonial background element' />
-      </div>
+      {/* Decorative wrapper kept EMPTY on purpose: its ::after renders the
+          soft gold glow behind the heading. The old suitcase PNG that lived
+          here collided with the section title and was removed. */}
+      <div className='testimonials-two__element' aria-hidden='true'></div>
     </section>
   );
 };

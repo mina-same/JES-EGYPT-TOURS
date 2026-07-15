@@ -98,15 +98,15 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
 
   const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt);
-  const blogAuthorName =
-    blog.author && typeof blog.author === 'object'
-      ? String((blog.author as any).name || '').trim()
-      : '';
-  const author = blogAuthorName && blogAuthorName.toLowerCase() !== 'admin'
-    ? blogAuthorName
-    : EDITORIAL_AUTHOR.name;
-  const editorialAuthorHref = `/${locale}/authors/madonna-roshdey`;
-  const shouldLinkEditorialAuthor = author === EDITORIAL_AUTHOR.name;
+  const selectedAuthor = blog.editorialAuthor;
+  const author = selectedAuthor?.name || EDITORIAL_AUTHOR.name;
+  const editorialAuthorHref = `/${locale}/authors/${selectedAuthor?.slug || 'madonna-roshdey'}`;
+  const authorRole = selectedAuthor ? getLocalizedValue(selectedAuthor.role, locale) : EDITORIAL_AUTHOR.role;
+  const authorBio = selectedAuthor ? getLocalizedValue(selectedAuthor.bio, locale) : EDITORIAL_AUTHOR.bio;
+  const authorImage = selectedAuthor?.image?.url || EDITORIAL_AUTHOR.image;
+  const authorImageAlt = selectedAuthor
+    ? getLocalizedValue(selectedAuthor.image?.alt, locale) || selectedAuthor.name
+    : EDITORIAL_AUTHOR.alt;
   
   const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
@@ -391,8 +391,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     return (
       <section className="blog-author-box mt-5" aria-labelledby="blog-author-title">
         <Image
-          src={EDITORIAL_AUTHOR.image}
-          alt={EDITORIAL_AUTHOR.alt}
+          src={authorImage}
+          alt={authorImageAlt}
           width={84}
           height={84}
           className="blog-author-box__avatar"
@@ -401,11 +401,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           <h2 id="blog-author-title" className="blog-author-box__title">About the author</h2>
           <h3 className="blog-author-box__name">
             <Link href={editorialAuthorHref} className="blog-author-box__name-link">
-              {EDITORIAL_AUTHOR.name}
+              {author}
             </Link>
           </h3>
-          <p className="blog-author-box__role">{EDITORIAL_AUTHOR.role}</p>
-          <p className="blog-author-box__text">{EDITORIAL_AUTHOR.bio}</p>
+          <p className="blog-author-box__role">{authorRole}</p>
+          <p className="blog-author-box__text">{authorBio}</p>
         </div>
       </section>
     );
@@ -705,13 +705,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       <i className='icon-user' style={{ color: '#b79c5c' }}></i>
                       <span>
                         {t('by')}{" "}
-                        {shouldLinkEditorialAuthor ? (
-                          <Link href={editorialAuthorHref} className="blog-meta-bar__author-link">
-                            <strong>{author}</strong>
-                          </Link>
-                        ) : (
+                        <Link href={editorialAuthorHref} className="blog-meta-bar__author-link">
                           <strong>{author}</strong>
-                        )}
+                        </Link>
                       </span>
                     </div>
                     <div className="blog-meta-bar__divider" />

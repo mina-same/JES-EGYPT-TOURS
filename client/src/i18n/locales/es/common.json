@@ -182,5 +182,13 @@
     "feature4": "Precio confirmado por escrito antes de reservar",
     "cta": "Planificar mi tour privado",
     "badge": "Sin tours grupales — 100% Privado"
+  },
+  "hero": {
+    "primaryCtaFallback": "Planifica tu viaje",
+    "secondaryCta": "Ofertas especiales",
+    "trust1": "Guías expertos autorizados",
+    "trust2": "Sin costes ocultos",
+    "trust3": "Soporte 24/7",
+    "scroll": "Desplázate"
   }
 }
