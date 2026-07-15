@@ -469,7 +469,24 @@ export const toggleSliderContentActive = async (req: Request, res: Response) => 
       });
     }
 
-    const sliderItem = await SliderContent.findById(id);
+    // Flip ONLY isActive with a targeted update. Loading the doc and calling
+    // save() re-validates the WHOLE document, which fails for legacy items
+    // (e.g. an old plain-string button.link predating the localized schema)
+    // even though the status change itself is valid.
+    const current = await SliderContent.findById(id).select('isActive').lean();
+
+    if (!current) {
+      return res.status(404).json({
+        success: false,
+        message: 'Slider content not found',
+      });
+    }
+
+    const sliderItem = await SliderContent.findByIdAndUpdate(
+      id,
+      { $set: { isActive: !current.isActive } },
+      { new: true }
+    ).lean();
 
     if (!sliderItem) {
       return res.status(404).json({
@@ -477,9 +494,6 @@ export const toggleSliderContentActive = async (req: Request, res: Response) => 
         message: 'Slider content not found',
       });
     }
-
-    sliderItem.isActive = !sliderItem.isActive;
-    await sliderItem.save();
 
     return res.status(200).json({
       success: true,

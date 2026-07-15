@@ -410,21 +410,12 @@ export default function SliderContentPage() {
 
   return (
     <div className='tailor-made-admin'>
-      {/* Header */}
+      {/* Header (actions live next to the slider-items list below, so they
+          are not mistaken for promo actions) */}
       <div className='admin-page-header'>
         <div>
           <h1 className='admin-page-title'>Slider Content</h1>
           <p className='admin-page-subtitle'>Manage homepage slider content and banners</p>
-        </div>
-        <div className='header-actions'>
-          <button className='btn-refresh' onClick={fetchSliderItems} disabled={loading}>
-            <RefreshCw size={18} className={loading ? 'spinning' : ''} />
-            Refresh
-          </button>
-          <Link href='/admin/content-management/slider-content/new' className='btn-add-new'>
-            <Plus size={18} />
-            New Slider Item
-          </Link>
         </div>
       </div>
 
@@ -550,6 +541,26 @@ export default function SliderContentPage() {
           >
             Remove Promo
           </button>
+        </div>
+      </div>
+
+      {/* Slider items section header — the Refresh / New buttons belong to
+          THIS list (moved out of the page header so they are not confused
+          with the promo card above). */}
+      <div className='mb-3 mt-6 flex flex-wrap items-center justify-between gap-3'>
+        <div>
+          <div className='text-base font-semibold text-gray-900'>Slider Items</div>
+          <p className='text-xs text-gray-500'>The homepage hero slides.</p>
+        </div>
+        <div className='header-actions'>
+          <button className='btn-refresh' onClick={fetchSliderItems} disabled={loading}>
+            <RefreshCw size={18} className={loading ? 'spinning' : ''} />
+            Refresh
+          </button>
+          <Link href='/admin/content-management/slider-content/new' className='btn-add-new'>
+            <Plus size={18} />
+            New Slider Item
+          </Link>
         </div>
       </div>
 

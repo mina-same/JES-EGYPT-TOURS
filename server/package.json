@@ -17,7 +17,8 @@
     "seed:detailed": "ts-node src/seeds/detailedTourSeeder.ts",
     "check:cloudinary": "ts-node src/scripts/checkCloudinary.ts",
     "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "test": "jest",
+    "migrate:slider-links": "ts-node src/scripts/migrateSliderLegacyLinks.ts"
   },
   "keywords": [
     "express",
