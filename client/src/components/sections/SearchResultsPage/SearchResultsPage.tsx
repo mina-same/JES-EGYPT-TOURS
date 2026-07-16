@@ -253,7 +253,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             link: `/${locale}/${tourSlug}`,
             price: tour.priceStartingFrom || { USD: 0 },
             rating: 5,
-            reviews: tour.reviews?.length || 0,
+            reviews: tour.reviewsCount ?? tour.reviews?.length ?? 0,
             videoId: tour.videoLink || "",
             discount: "",
             meta: [

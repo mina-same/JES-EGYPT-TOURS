@@ -10,6 +10,7 @@ import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
 import { sliderService } from "@/services/sliderService";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
+import { getLocalizedStaticSlug } from "@/lib/url";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 type SlideVM = {
@@ -20,6 +21,7 @@ type SlideVM = {
   titleEnd: string;
   imageUrl: string;
   imageAlt?: string;
+  imageTitle?: string;
   buttonText?: string;
   buttonLink?: string;
   buttonTarget?: "_blank" | "_self";
@@ -59,6 +61,7 @@ const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
     getLocalizedValue(item.image?.alt, lang) ||
     getLocalizedValue(item.image?.title, lang) ||
     "slider image",
+  imageTitle: getLocalizedValue(item.image?.title, lang) || undefined,
   buttonText: item.button?.text ? getLocalizedValue(item.button.text, lang) : undefined,
   // The button link is localized per language (legacy items may hold a plain
   // string = the English link); getLocalizedValue resolves the active
@@ -246,12 +249,14 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
           <TinySlider ref={sliderRef} settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
             {slides.map((item, index) => {
               const primaryLabel = item.buttonText || t("hero.primaryCtaFallback");
-              const primaryHref = item.buttonLink || `/${locale}/tailor-made`;
+              const primaryHref =
+                item.buttonLink || `/${locale}/${getLocalizedStaticSlug("tailor-made", locale)}`;
               const primaryExternal = item.buttonTarget === "_blank";
               // Secondary (outline) CTA: admin-configured per slide, or the
               // site default (Special Offers) when not set.
               const secondaryLabel = item.secondaryText || t("hero.secondaryCta");
-              const secondaryHref = item.secondaryLink || `/${locale}/special-offers`;
+              const secondaryHref =
+                item.secondaryLink || `/${locale}/${getLocalizedStaticSlug("special-offers", locale)}`;
               const secondaryExternal = item.secondaryLink ? item.secondaryTarget === "_blank" : false;
               // Leading punctuation of titleEnd (e.g. ", your guide…") must
               // stay GLUED to the gold phrase — browsers may otherwise break
@@ -272,6 +277,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                         <Image
                           src={item.imageUrl}
                           alt={item.imageAlt || "slider image"}
+                          title={item.imageTitle}
                           fill
                           priority={index === 0}
                           sizes="100vw"

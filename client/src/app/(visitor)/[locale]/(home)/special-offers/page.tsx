@@ -5,6 +5,7 @@ import deStrings from "@/i18n/locales/de/specialOffers.json";
 import itStrings from "@/i18n/locales/it/specialOffers.json";
 import esStrings from "@/i18n/locales/es/specialOffers.json";
 import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
+import { getLocalizedStaticSlug } from "@/lib/url";
 
 const baseUrl = SEO_BASE_URL;
 
@@ -41,7 +42,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const lang = (["en", "de", "it", "es"].includes(locale) ? locale : "en") as keyof typeof STATIC_FAQS;
   const s = strings[lang] ?? enStrings;
-  const canonicalUrl = `${baseUrl}/${locale}/special-offers`;
+  // Per-locale slug (e.g. /de/sonderangebote) — must match what the locale
+  // actually serves (see next.config rewrites + lib/url/staticSlugs).
+  const canonicalUrl = `${baseUrl}/${lang}/${getLocalizedStaticSlug("special-offers", lang)}`;
 
   return {
     title: s.pageTitle,
@@ -55,7 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: canonicalUrl,
       images: [
         {
-          url: `${baseUrl}/assets/images/resources/offer-1-1.jpg`,
+          url: `${baseUrl}/images/resources/offer-1-1.jpg`,
           alt: s.header.title,
           width: 1200,
           height: 630,
@@ -66,7 +69,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       card: "summary_large_image",
       title: s.pageTitle,
       description: s.pageDescription,
-      images: [`${baseUrl}/assets/images/resources/offer-1-1.jpg`],
+      images: [`${baseUrl}/images/resources/offer-1-1.jpg`],
     },
   };
 }

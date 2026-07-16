@@ -182,7 +182,7 @@ const HeaderOneCloned: React.FC = () => {
               )}
             </div>
 
-            <Link href={`/${locale}/tailor-made`} className='gotur-btn main-header__btn'>
+            <Link href={localizeInternalUrl("/tailor-made", locale)} className='gotur-btn main-header__btn'>
 
               Tailor-Made <i className='icon-paper-plane'></i>
             </Link>

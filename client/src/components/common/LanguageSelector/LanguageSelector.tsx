@@ -10,6 +10,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
 import { useSlugs } from "@/contexts/SlugContext";
+import { localizeStaticPathSegment } from "@/lib/url";
 
 const FLAG_COMPONENTS: Record<string, any> = {
   en: GB,
@@ -49,7 +50,9 @@ function hasRealSlugMap(slugs: Record<string, string | undefined> | null): boole
 
 function isLikelyDynamicSlugPath(path: string): boolean {
   const normalized = path === "" ? "/" : path;
-  if (STATIC_PATHS.has(normalized)) return false;
+  // Canonicalize localized static slugs first ("/sonderangebote" →
+  // "/special-offers") so they are recognized as static pages.
+  if (STATIC_PATHS.has(localizeStaticPathSegment(normalized, "en"))) return false;
 
   const segments = normalized.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
   return segments.length === 1;
@@ -197,7 +200,8 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
           // If detected non-english and we are currently on default 'en'
           if (detectedLocale !== 'en' && pathLocale === 'en') {
-             const target = `/${detectedLocale}${normalizedPath === "/" ? "/" : normalizedPath}`;
+             const detectedPath = localizeStaticPathSegment(normalizedPath, detectedLocale);
+             const target = `/${detectedLocale}${detectedPath === "/" ? "/" : detectedPath}`;
              i18n.changeLanguage(detectedLocale);
              localStorage.setItem("i18nextLng", detectedLocale);
              document.cookie = `NEXT_LOCALE=${detectedLocale};path=/`;
@@ -247,8 +251,11 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           if (!option) return;
           if (option.isDisabled) return;
 
-          let targetPath = normalizedPath;
-          
+          // Static pages with per-locale slugs switch to the TARGET locale's
+          // slug ("/sonderangebote" → "/offerte-speciali"); other paths pass
+          // through unchanged.
+          let targetPath = localizeStaticPathSegment(normalizedPath, option.value);
+
           // If we have localized slugs, we need to replace the last segment of the path
           if (isDynamicSlugPage) {
             const newSlug = getStrictSlug(localizedSlugs?.[option.value]);
