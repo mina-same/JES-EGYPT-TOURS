@@ -37,6 +37,11 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
   } = useStore();
   const { wishlist } = useWishlist();
 
+  // Menu URLs are localized per language (legacy items may be plain strings)
+  // — resolve the active language's path before locale-prefixing it.
+  const itemHref = (item: any) =>
+    localizeInternalUrl(formatUrl(getLocalizedValue(item.url || item.link, i18n.language)), locale);
+
   const renderSubMenu = (subMenu: any[]) => (
     <ul className=''>
       {subMenu.map((item: any, index: number) => (
@@ -46,7 +51,7 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
             ? "dropdown"
             : ""}
         >
-          <Link href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}>
+          <Link href={itemHref(item)}>
             {getLocalizedValue(item.label || item.title, i18n.language)}
           </Link>
 
@@ -88,15 +93,16 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
                   (() => {
                     const hasChildren = (Array.isArray(item?.children) && item.children.length > 0) || (Array.isArray(item?.subMenu) && item.subMenu.length > 0);
                     const isPromotion = item?.displayVariant === "promotion";
+                    const href = itemHref(item);
                     return (
                   <li
                     className={`${hasChildren ? "dropdown" : ""} ${
-                      pathname === (item.url || item.link) ? "current" : ""
+                      pathname === href ? "current" : ""
                     }`}
                     key={item._id || item.id || `${item.label || item.title}`}
                   >
                     <Link
-                      href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}
+                      href={href}
                       className={isPromotion ? "main-menu__promotion-link" : undefined}
                     >
                       {isPromotion ? (

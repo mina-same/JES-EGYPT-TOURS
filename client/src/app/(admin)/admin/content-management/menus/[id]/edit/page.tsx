@@ -30,9 +30,22 @@ import { blogCategoryAPI } from '@/lib/api/blogAdmin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+/** Builds a per-language URL object from a localized slug
+ *  ({en:'x',de:'y'} → {en:'/x',de:'/y',...}); missing languages stay empty
+ *  (the site falls back to the English path). */
+const localizedSlugToUrl = (slug: any) => {
+  const toPath = (v: any) => (typeof v === 'string' && v.trim() ? `/${v.trim()}` : '');
+  return {
+    en: toPath(slug?.en ?? (typeof slug === 'string' ? slug : '')),
+    de: toPath(slug?.de),
+    it: toPath(slug?.it),
+    es: toPath(slug?.es),
+  };
+};
+
 const makeItem = (): MenuItem => ({
   label: { en: '', de: '', it: '', es: '' },
-  url: '',
+  url: { en: '', de: '', it: '', es: '' },
   isActive: true,
   order: 0,
   displayVariant: 'default',
@@ -64,6 +77,8 @@ export default function EditMenuPage() {
     return arr.map(it => ({
       ...it,
       label: mapToLocalized(it.label),
+      // URLs are localized too (legacy items hold a plain string = English).
+      url: mapToLocalized(it.url),
       children: Array.isArray(it.children) ? mapItemsToLocalized(it.children) : []
     }));
   };
@@ -88,11 +103,12 @@ export default function EditMenuPage() {
       const children: MenuItem[] = categories
         .map((c: any, index: number) => {
           const name = c?.name || { en: '' };
-          const slug = getLocalizedValue(c?.slug, 'en');
-          if (!getLocalizedValue(name, 'en') || !slug) return null;
+          if (!getLocalizedValue(name, 'en') || !getLocalizedValue(c?.slug, 'en')) return null;
           return {
             label: name,
-            url: `/blogs/category/${slug}`,
+            // Blog categories resolve at the top level (/{slug}) — the old
+            // "/blogs/category/{slug}" route does not exist (404).
+            url: localizedSlugToUrl(c?.slug),
             isActive: true,
             order: index,
             children: [],
@@ -226,16 +242,18 @@ export default function EditMenuPage() {
     setExpandedForPath(path, true);
   };
 
+  // label/url are localized OBJECTS — String() would give "[object Object]"
+  // and never match; resolve the English value before comparing.
   const isToursNode = (it: MenuItem) => {
-    const label = String(it.label || '').trim().toLowerCase();
-    const url = String(it.url || '').trim().toLowerCase();
-    return label === 'tours' || url === '/tours' || url === '/search';
+    const label = String(getLocalizedValue(it.label, 'en') || '').trim().toLowerCase();
+    const url = String(getLocalizedValue(it.url as any, 'en') || '').trim().toLowerCase();
+    return label === 'tours' || ['/tours', '/tours/all', '/search'].includes(url);
   };
 
   const isBlogsNode = (it: MenuItem) => {
-    const label = String(it.label || '').trim().toLowerCase();
-    const url = String(it.url || '').trim().toLowerCase();
-    return label === 'blogs' || url === '/blogs' || url === '/blog';
+    const label = String(getLocalizedValue(it.label, 'en') || '').trim().toLowerCase();
+    const url = String(getLocalizedValue(it.url as any, 'en') || '').trim().toLowerCase();
+    return label === 'blogs' || ['/blogs', '/blog', '/blogs/all'].includes(url);
   };
 
   const syncTourCategories = async (path: number[]) => {
@@ -249,11 +267,13 @@ export default function EditMenuPage() {
       const children: MenuItem[] = categories
         .map((c: any, index: number) => {
           const name = c?.name || { en: '' }; // ITourCategory.name is ILocalizedString
-          const slug = getLocalizedValue(c?.slug, 'en');
-          if (!getLocalizedValue(name, 'en') || !slug) return null;
+          if (!getLocalizedValue(name, 'en') || !getLocalizedValue(c?.slug, 'en')) return null;
           return {
             label: name,
-            url: `/${slug}`,
+            // Per-language paths from the category's localized slugs, so
+            // German/Italian/Spanish visitors land on THEIR slug (an
+            // English-only path 404s under the strict-slug system).
+            url: localizedSlugToUrl(c?.slug),
             isActive: true,
             order: index,
             children: [],
@@ -339,18 +359,21 @@ export default function EditMenuPage() {
                   {getLocalizedValue(it.label, activeLanguage) || 'Untitled item'}
                 </div>
 
-                {it.url ? (
-                  <a
-                    href={it.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hidden max-w-[360px] items-center gap-1 truncate rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground hover:bg-muted/80 md:flex"
-                    title={it.url}
-                  >
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                    {it.url}
-                  </a>
-                ) : null}
+                {(() => {
+                  const urlPreview = String(getLocalizedValue(it.url as any, activeLanguage) || getLocalizedValue(it.url as any, 'en') || '');
+                  return urlPreview ? (
+                    <a
+                      href={urlPreview}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hidden max-w-[360px] items-center gap-1 truncate rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground hover:bg-muted/80 md:flex"
+                      title={urlPreview}
+                    >
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                      {urlPreview}
+                    </a>
+                  ) : null;
+                })()}
               </div>
 
               <div className="flex items-center gap-2">
@@ -381,7 +404,7 @@ export default function EditMenuPage() {
 
             {open ? (
               <div className="grid gap-4 p-3 md:grid-cols-12">
-              <div className="md:col-span-5">
+              <div className="md:col-span-6">
                 <LocalizedInput
                   label="Label"
                   value={it.label}
@@ -389,20 +412,17 @@ export default function EditMenuPage() {
                   placeholder="Menu label"
                 />
               </div>
-              <div className="md:col-span-5">
-                <label className="flex items-center gap-2 text-sm font-medium">
-                  <LinkIcon className="h-4 w-4" />
-                  URL
-                </label>
-                <div className="mt-2">
-                  <Input value={it.url || ''} onChange={(e) => updateItem(path, { url: e.target.value })} placeholder="/search" />
-                </div>
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-sm font-medium">Order</label>
-                <div className="mt-2">
-                  <Input type="number" value={String(it.order ?? 0)} onChange={(e) => updateItem(path, { order: Number(e.target.value) })} />
-                </div>
+              <div className="md:col-span-6">
+                <LocalizedInput
+                  label="URL (per language)"
+                  value={it.url as any}
+                  onChange={(val) => updateItem(path, { url: val as any })}
+                  placeholder="/egypt-tour-packages"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Relative path per language (e.g. DE gets the German slug). Empty language = the
+                  English path is used.
+                </p>
               </div>
 
               {level === 0 ? (
@@ -459,10 +479,30 @@ export default function EditMenuPage() {
     });
   };
 
+  // Every item must at least have an English label — otherwise visitors get
+  // "Untitled" entries in the header.
+  const countUnlabeledItems = (arr: MenuItem[]): number =>
+    arr.reduce(
+      (acc, it) =>
+        acc +
+        (String(getLocalizedValue(it.label, 'en') || '').trim() ? 0 : 1) +
+        countUnlabeledItems(Array.isArray(it.children) ? it.children : []),
+      0
+    );
+
   const handleSave = async () => {
     try {
       if (!title.en) {
         toast({ title: 'Validation Error', description: 'English Title is required', variant: 'destructive' });
+        return;
+      }
+      const unlabeled = countUnlabeledItems(items);
+      if (unlabeled > 0) {
+        toast({
+          title: 'Validation Error',
+          description: `${unlabeled} item(s) have no English label. Fill or remove them before saving.`,
+          variant: 'destructive',
+        });
         return;
       }
       setSaving(true);
@@ -482,6 +522,12 @@ export default function EditMenuPage() {
 
   const handleDelete = async () => {
     if (!menu?._id) return;
+    // Deleting a menu removes the ENTIRE site navigation it powers — never
+    // allow a single misclick to do that.
+    const ok = window.confirm(
+      `Delete the whole "${menu.key}" menu and all its items? This cannot be undone.`
+    );
+    if (!ok) return;
     try {
       await menuService.adminDelete(menu._id);
       toast({ title: 'Deleted', description: 'Menu deleted', variant: 'success' });

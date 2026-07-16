@@ -10,10 +10,45 @@ import Menu from '../models/Menu';
  * properties (label, url, isActive, order, _id, ...) are preserved untouched.
  * A new array/objects are produced so req.body is not mutated.
  */
+const MENU_LOCALES = ['en', 'de', 'it', 'es'] as const;
+
+/** Trims a single path and guarantees internal paths start with "/"
+ *  (absolute http(s) URLs pass through untouched). */
+const cleanPath = (value: any): string => {
+  const s = typeof value === 'string' ? value.trim() : '';
+  if (!s) return '';
+  if (/^https?:\/\//i.test(s) || s.startsWith('/') || s.startsWith('#')) return s;
+  return `/${s}`;
+};
+
+/** Normalizes an item URL to the localized { en, de, it, es } shape.
+ *  Accepts legacy plain strings (become the English path, used as fallback
+ *  for the other languages by the client). Returns undefined when empty. */
+const normalizeMenuUrl = (url: any): Record<string, string> | undefined => {
+  if (typeof url === 'string') {
+    const en = cleanPath(url);
+    return en ? { en, de: '', it: '', es: '' } : undefined;
+  }
+  if (url && typeof url === 'object') {
+    const out: Record<string, string> = {};
+    let hasAny = false;
+    for (const l of MENU_LOCALES) {
+      out[l] = cleanPath(url[l]);
+      if (out[l]) hasAny = true;
+    }
+    return hasAny ? out : undefined;
+  }
+  return undefined;
+};
+
 const sanitizeMenuItems = (items: any[], level = 0): any[] => {
   if (!Array.isArray(items)) return [];
-  return items.map((item) => ({
+  return items.map((item, index) => ({
     ...item,
+    // Array position IS the order (the admin editor's arrows are the single
+    // source of truth) — keeps the public sort stable and predictable.
+    order: index,
+    url: normalizeMenuUrl(item?.url),
     displayVariant: level === 0 && item?.displayVariant === 'promotion' ? 'promotion' : 'default',
     children: sanitizeMenuItems(Array.isArray(item?.children) ? item.children : [], level + 1),
   }));

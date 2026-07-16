@@ -6,7 +6,9 @@ export type MenuDisplayVariant = 'default' | 'promotion';
 export interface MenuItem {
   _id?: string;
   label: ILocalizedString;
-  url?: string;
+  /** Per-language destination path; legacy items may hold a plain string
+   *  (used for every language). */
+  url?: ILocalizedString | string;
   isActive: boolean;
   order: number;
   displayVariant?: MenuDisplayVariant;
