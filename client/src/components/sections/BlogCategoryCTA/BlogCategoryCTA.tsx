@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { localizeInternalUrl } from '@/lib/url';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Clock, ArrowRight } from 'lucide-react';
@@ -157,7 +158,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
               {/* Buttons */}
               <div className="d-flex flex-wrap gap-3">
                 <Link
-                  href={`/${locale}/tailor-made`}
+                  href={localizeInternalUrl('/tailor-made', locale)}
                   className="d-flex align-items-center gap-2"
                   style={{
                     background: '#b79c5c',

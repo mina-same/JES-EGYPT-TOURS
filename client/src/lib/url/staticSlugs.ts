@@ -17,6 +17,12 @@ export const LOCALIZED_STATIC_SLUGS: Record<string, Record<SupportedLocale, stri
     it: "offerte-speciali",
     es: "ofertas-especiales",
   },
+  "tailor-made": {
+    en: "tailor-made",
+    de: "individualreise-aegypten",
+    it: "viaggio-su-misura",
+    es: "viaje-a-medida",
+  },
 };
 
 /** Any-locale slug → its canonical (English) key, or null if not a known

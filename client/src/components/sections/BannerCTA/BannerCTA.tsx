@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image, { StaticImageData } from 'next/image';
+import { localizeInternalUrl } from '@/lib/url';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Container } from 'react-bootstrap';
@@ -63,7 +64,7 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
   const { t } = useTranslation('common');
   const resolvedVariant: ResolvedVariant = variant ?? 'default';
 
-  const primaryHref = `/${locale}/tailor-made`;
+  const primaryHref = localizeInternalUrl('/tailor-made', locale);
   const secondaryHref = `/${locale}/tours`;
 
   const destinationContext = contextName || t('cta.defaults.destinationContext');

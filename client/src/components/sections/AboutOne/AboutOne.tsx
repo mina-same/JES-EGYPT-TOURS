@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image, { StaticImageData } from "next/image";
+import { localizeInternalUrl } from "@/lib/url";
 import { aboutOneData } from "@/data/aboutOne";
 import { Col, Container, Row } from "react-bootstrap";
 import Link from "next/link";
@@ -174,7 +175,7 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
               >
                 <div className='about-one__button-links'>
                   <Link
-                    href={`/${locale}/${button.link}`}
+                    href={localizeInternalUrl(button.link, locale)}
                     className='gotur-btn gotur-btn--primary'
                   >
                     {button.text}{" "}
@@ -185,7 +186,7 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
 
                   {secondaryButton && (
                     <Link
-                      href={`/${locale}/${secondaryButton.link}`}
+                      href={localizeInternalUrl(secondaryButton.link, locale)}
                       className='gotur-btn'
                     >
                       {secondaryButton.text}{" "}

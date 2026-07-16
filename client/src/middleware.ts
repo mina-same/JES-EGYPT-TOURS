@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getLocalizedStaticSlug } from '@/lib/url/staticSlugs';
 
 const locales = ['en', 'de', 'it', 'es'];
 const defaultLocale = 'en';
@@ -27,12 +28,19 @@ export function middleware(request: NextRequest) {
   const locale = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale;
 
   if (pathname === '/tailorMade') {
-    return NextResponse.redirect(new URL(`/${locale}/tailor-made`, request.url));
+    return NextResponse.redirect(
+      new URL(`/${locale}/${getLocalizedStaticSlug('tailor-made', locale)}`, request.url)
+    );
   }
 
   const oldTailorMadeLocale = locales.find((currentLocale) => pathname === `/${currentLocale}/tailorMade`);
   if (oldTailorMadeLocale) {
-    return NextResponse.redirect(new URL(`/${oldTailorMadeLocale}/tailor-made`, request.url));
+    return NextResponse.redirect(
+      new URL(
+        `/${oldTailorMadeLocale}/${getLocalizedStaticSlug('tailor-made', oldTailorMadeLocale)}`,
+        request.url
+      )
+    );
   }
 
   // 3. Check if the current path already has a locale prefix

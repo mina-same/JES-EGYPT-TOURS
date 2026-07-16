@@ -72,12 +72,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // 1b. Static pages with per-locale slugs (see lib/url/staticSlugs).
-  SUPPORTED_LOCALES.forEach((locale) => {
-    entries.push({
-      url: `${baseUrl}/${locale}/${getLocalizedStaticSlug('special-offers', locale)}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
+  ['special-offers', 'tailor-made'].forEach((canonicalSlug) => {
+    SUPPORTED_LOCALES.forEach((locale) => {
+      entries.push({
+        url: `${baseUrl}/${locale}/${getLocalizedStaticSlug(canonicalSlug, locale)}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.9,
+      });
     });
   });
 

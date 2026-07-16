@@ -27,6 +27,9 @@ const nextConfig: NextConfig = {
       { source: "/de/sonderangebote", destination: "/de/special-offers" },
       { source: "/it/offerte-speciali", destination: "/it/special-offers" },
       { source: "/es/ofertas-especiales", destination: "/es/special-offers" },
+      { source: "/de/individualreise-aegypten", destination: "/de/tailor-made" },
+      { source: "/it/viaggio-su-misura", destination: "/it/tailor-made" },
+      { source: "/es/viaje-a-medida", destination: "/es/tailor-made" },
     ];
   },
   async redirects() {
@@ -34,6 +37,9 @@ const nextConfig: NextConfig = {
       { source: "/de/special-offers", destination: "/de/sonderangebote", permanent: true },
       { source: "/it/special-offers", destination: "/it/offerte-speciali", permanent: true },
       { source: "/es/special-offers", destination: "/es/ofertas-especiales", permanent: true },
+      { source: "/de/tailor-made", destination: "/de/individualreise-aegypten", permanent: true },
+      { source: "/it/tailor-made", destination: "/it/viaggio-su-misura", permanent: true },
+      { source: "/es/tailor-made", destination: "/es/viaje-a-medida", permanent: true },
     ];
   },
   /* config options here */

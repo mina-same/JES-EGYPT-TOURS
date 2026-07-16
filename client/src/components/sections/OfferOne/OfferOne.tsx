@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { localizeInternalUrl } from "@/lib/url";
 import Link from "next/link";
 import { Col, Container, Row } from "react-bootstrap";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
@@ -88,7 +89,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
                 data-wow-delay="400ms"
               >
                 <Link
-                  href={`/${locale}/tailor-made`}
+                  href={localizeInternalUrl("/tailor-made", locale)}
                   className="gotur-btn gotur-btn--primary"
                 >
                   {t("tailorOffer.cta")}{" "}

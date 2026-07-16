@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: canonicalUrl,
       images: [
         {
-          url: `${baseUrl}/assets/images/resources/offer-1-1.jpg`,
+          url: `${baseUrl}/images/resources/offer-1-1.jpg`,
           alt: s.header.title,
           width: 1200,
           height: 630,
@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       card: "summary_large_image",
       title: s.pageTitle,
       description: s.pageDescription,
-      images: [`${baseUrl}/assets/images/resources/offer-1-1.jpg`],
+      images: [`${baseUrl}/images/resources/offer-1-1.jpg`],
     },
   };
 }

@@ -428,11 +428,11 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
       <ListingPromo
         title={{ en: t("promoTitle"), de: t("promoTitle"), it: t("promoTitle"), es: t("promoTitle") }}
         description={{ en: t("promoDescription"), de: t("promoDescription"), it: t("promoDescription"), es: t("promoDescription") }}
-        image1={{ url: "/assets/images/resources/offer-1-1.jpg", alt: { en: t("header.title") } }}
-        image2={{ url: "/assets/images/resources/offer-1-2.jpg", alt: { en: t("header.title") } }}
+        image1={{ url: "/images/resources/offer-1-1.jpg", alt: { en: t("header.title") } }}
+        image2={{ url: "/images/resources/offer-1-2.jpg", alt: { en: t("header.title") } }}
         images={[
-          { url: "/assets/images/resources/offer-1-1.jpg", alt: { en: t("header.title") } },
-          { url: "/assets/images/resources/offer-1-2.jpg", alt: { en: t("header.title") } },
+          { url: "/images/resources/offer-1-1.jpg", alt: { en: t("header.title") } },
+          { url: "/images/resources/offer-1-2.jpg", alt: { en: t("header.title") } },
         ]}
         subtitle={{ en: t("promoSubtitle"), de: t("promoSubtitle"), it: t("promoSubtitle"), es: t("promoSubtitle") }}
         button={{
