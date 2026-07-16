@@ -244,7 +244,7 @@ export default function EditTourPage() {
                   ? toLocalizedImage(tour.seo.metaImage) || { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
                   : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
               },
-              tourHighlights: toLocalizedMixed(tour.tourHighlights),
+              tourHighlights: toLocalizedHtml(tour.tourHighlights),
               inclusion: toLocalizedHtml(tour.inclusion),
               exclusion: toLocalizedHtml(tour.exclusion),
               pricingPlans: tour.pricingPlans || [],
@@ -252,7 +252,7 @@ export default function EditTourPage() {
                 title: toLocalized(n.title),
                 text: toLocalized(n.text),
               })),
-              whatToPack: toLocalizedMixed(tour.whatToPack),
+              whatToPack: toLocalizedHtml(tour.whatToPack),
               tourMapIframe: tour.tourMapIframe || '',
               mapSchema: tour.mapSchema || tour.seo?.mapSchema,
               whatYouWillLoveHtml: toLocalized(tour.whatYouWillLoveHtml),
@@ -457,11 +457,11 @@ export default function EditTourPage() {
       }
 
       // 3. Remove empty optional fields & Sanitize list fields
-      cleanData.tourHighlights = isMixedEmpty(cleanData.tourHighlights) ? [] : toLocalizedMixedArray(cleanData.tourHighlights);
-      // inclusion/exclusion are now HTML strings — save as-is, remove if empty
+      // tourHighlights/inclusion/exclusion/whatToPack are now HTML strings — save as-is, remove if empty
+      if (!cleanData.tourHighlights?.en?.trim()) delete cleanData.tourHighlights;
       if (!cleanData.inclusion?.en?.trim()) delete cleanData.inclusion;
       if (!cleanData.exclusion?.en?.trim()) delete cleanData.exclusion;
-      cleanData.whatToPack = isMixedEmpty(cleanData.whatToPack) ? [] : toLocalizedMixedArray(cleanData.whatToPack);
+      if (!cleanData.whatToPack?.en?.trim()) delete cleanData.whatToPack;
       cleanData.tags = isMixedEmpty(cleanData.tags) ? [] : toLocalizedMixedArray(cleanData.tags);
 
       const normalizedMapSchema = normalizeTourMapSchemaForSave(cleanData.mapSchema || cleanData.seo?.mapSchema);
@@ -489,8 +489,6 @@ export default function EditTourPage() {
       if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;
       if (!cleanData.relatedTours?.length) delete cleanData.relatedTours;
       
-      // Keep lists if they are required or important, only delete if really necessary
-      if (!(cleanData.tourHighlights as any)?.length) delete cleanData.tourHighlights;
       // Do NOT delete tags, inclusion, exclusion if they are required by schema
       
       if (!(cleanData.reviews as any)?.length) delete cleanData.reviews;

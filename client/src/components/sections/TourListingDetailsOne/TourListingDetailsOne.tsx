@@ -28,41 +28,10 @@ import { PricingPlans } from "./components/PricingPlans";
 import { TourCarousel } from "./components/TourCarousel";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
+import { normalizeAmenityItems } from "./normalizeAmenityItems";
 import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
-
-const normalizeAmenityItems = (value: unknown): string[] => {
-  const values = Array.isArray(value) ? value : [value];
-
-  return values.flatMap((item) => {
-    if (!item) return [];
-
-    const rawValue =
-      typeof item === "object" && item !== null && "en" in item
-        ? (item as { en?: unknown }).en
-        : item;
-    const raw = String(rawValue ?? "").trim();
-
-    if (!raw) return [];
-
-    const listItems = [...raw.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)]
-      .map((match) => match[1].trim())
-      .filter(Boolean);
-
-    if (listItems.length > 0) return listItems;
-
-    return raw
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<\/p\s*>/gi, "\n")
-      .replace(/<p\b[^>]*>/gi, "")
-      .replace(/<\/div\s*>/gi, "\n")
-      .replace(/<div\b[^>]*>/gi, "")
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean);
-  });
-};
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
@@ -241,6 +210,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const hasReviewVideos = (reviewVideos || []).length > 0;
   const includedAmenityItems = normalizeAmenityItems(amenities);
   const excludedAmenityItems = normalizeAmenityItems(amenitiesTwo);
+  const whatToPackItems = normalizeAmenityItems(tourData.whatToPack);
+  const highlightItems = normalizeAmenityItems(highlightList);
 
   const handleBookingSubmit = (data: any) => {
     // You could send bookingData to your API here
@@ -478,19 +449,19 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </h2>
                     </div>
                     <ul className="list-unstyled row gutter-y-20" style={{ paddingLeft: 0 }}>
-                      {highlightList.map((item, index) => (
+                      {highlightItems.map((item, index) => (
                         <li key={index} className="col-md-6 col-lg-4 mb-3">
                           <div className="d-flex align-items-start gap-3">
-                            <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ 
-                              width: '26px', 
-                              height: '26px', 
+                            <div className="d-flex align-items-center justify-content-center rounded-circle" style={{
+                              width: '26px',
+                              height: '26px',
                               backgroundColor: 'rgba(183, 156, 92, 0.1)',
                               flexShrink: 0,
                               marginTop: '2px'
                             }}>
                               <i className='icon-check-star' style={{ color: '#b79c5c', fontSize: '12px' }}></i>
                             </div>
-                            <span className="text-dark fw-medium" style={{ fontSize: '0.93rem' }}>{item}</span>
+                            <span className="text-dark fw-medium" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: item }} />
                           </div>
                         </li>
                       ))}
@@ -595,7 +566,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 </section>
                 
                 {/* What to Pack Section */}
-                {tourData.whatToPack && tourData.whatToPack.length > 0 && (
+                {whatToPackItems.length > 0 && (
                   <section id="what-to-pack" className="tour-section mt-4">
                     <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{ 
                       backgroundColor: 'rgba(183, 156, 92, 0.02)', 
@@ -609,11 +580,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         </h4>
                       </div>
                       <div className="row g-2">
-                        {tourData.whatToPack.map((item, index) => (
+                        {whatToPackItems.map((item, index) => (
                           <div key={index} className="col-md-6 col-lg-4 mb-2">
                             <div className="d-flex align-items-center gap-2">
                                <div style={{ width: '5px', height: '5px', backgroundColor: '#b79c5c', borderRadius: '50%' }}></div>
-                               <span className="text-dark" style={{ fontSize: '0.9rem' }}>{item}</span>
+                               <span className="text-dark" style={{ fontSize: '0.9rem' }} dangerouslySetInnerHTML={{ __html: item }} />
                             </div>
                           </div>
                         ))}

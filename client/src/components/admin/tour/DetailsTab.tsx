@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import LocalizedRichText from '../LocalizedRichText';
 import { Plus, X } from 'lucide-react';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
-import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import type { FormErrorItem } from '@/lib/parseApiError';
 import { cn } from '@/lib/utils';
@@ -38,16 +37,16 @@ export default function DetailsTab({
   return (
     <div className="space-y-6">
       {/* Highlights */}
-      <Card>
+      <Card className={cn(hasError('tourHighlights') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>
         <CardHeader>
-          <CardTitle>Tour Highlights</CardTitle>
-          <CardDescription>Key features and attractions (comma-separated per language)</CardDescription>
+          <CardTitle className={cn(hasError('tourHighlights') && "text-red-600")}>Tour Highlights</CardTitle>
+          <CardDescription>Key features and attractions — supports bold, links, and lists</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedTagsInput
-            value={formData.tourHighlights || { en: [], de: [], it: [], es: [] }}
+          <LocalizedRichText
+            value={formData.tourHighlights || { en: "", de: "", it: "", es: "" }}
             onChange={(val) => handleChange('tourHighlights', val)}
-            placeholder="Visit the Pyramids, Sphinx, Egyptian Museum..."
+            placeholder="e.g. Visit the Pyramids, Sphinx, Egyptian Museum…"
             activeLanguage={activeLanguage}
           />
         </CardContent>
@@ -87,16 +86,16 @@ export default function DetailsTab({
       </div>
 
       {/* What to Pack */}
-      <Card>
+      <Card className={cn(hasError('whatToPack') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>
         <CardHeader>
-          <CardTitle>What to Pack</CardTitle>
-          <CardDescription>Recommended items for travelers</CardDescription>
+          <CardTitle className={cn(hasError('whatToPack') && "text-red-600")}>What to Pack</CardTitle>
+          <CardDescription>Recommended items for travelers — supports bold, links, and lists</CardDescription>
         </CardHeader>
         <CardContent>
-          <LocalizedTagsInput
-            value={formData.whatToPack || { en: [], de: [], it: [], es: [] }}
+          <LocalizedRichText
+            value={formData.whatToPack || { en: "", de: "", it: "", es: "" }}
             onChange={(val) => handleChange('whatToPack', val)}
-            placeholder="Sunscreen, Hat, Comfortable shoes..."
+            placeholder="e.g. Sunscreen, hat, comfortable shoes…"
             activeLanguage={activeLanguage}
           />
         </CardContent>

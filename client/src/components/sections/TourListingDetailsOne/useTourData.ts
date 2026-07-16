@@ -7,7 +7,6 @@ import { getBlogById } from "@/lib/api/blog";
 import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
-import { getLocalizedList } from "@/lib/localize";
 import { getStrictLocalizedSlug } from "@/lib/url";
 
 function getYouTubeVideoId(url: string): string {
@@ -125,10 +124,16 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",
       topDestinations: "",
       sliderImages,
-      highlightList: getLocalizedList(tour.tourHighlights, currentLang, "tourHighlights"),
+      // New format: localized HTML string. Legacy format: array of localized items.
+      highlightList: Array.isArray(tour.tourHighlights)
+        ? safeArray(tour.tourHighlights).map(getLocalizedValue).filter(Boolean)
+        : getLocalizedValue(tour.tourHighlights),
       amenities: getLocalizedValue(tour.inclusion),
       amenitiesTwo: getLocalizedValue(tour.exclusion),
-      whatToPack: getLocalizedList(tour.whatToPack, currentLang, "whatToPack"),
+      // New format: localized HTML string. Legacy format: array of localized items.
+      whatToPack: Array.isArray(tour.whatToPack)
+        ? safeArray(tour.whatToPack).map(getLocalizedValue).filter(Boolean)
+        : getLocalizedValue(tour.whatToPack),
       notes: safeArray(tour.notes).map((n: any) => ({
         title: getLocalizedValue(n?.title),
         text: getLocalizedValue(n?.text),
