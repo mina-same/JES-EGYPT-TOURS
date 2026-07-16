@@ -105,7 +105,7 @@ export interface TourDetailsOneData {
   overviewTitle: string;
   topDestinations: string;
   sliderImages: (StaticImageData | string | ImageObject)[];
-  highlightList: string[];
+  highlightList: string[] | string;
   amenities: string;
   amenitiesTwo: string;
   relatedTours: Item[];
@@ -116,7 +116,7 @@ export interface TourDetailsOneData {
   itinerary?: Itinerary;
   pricingPlans?: PricingPlan[];
   whatYouWillLoveHtml?: string;
-  whatToPack?: string[];
+  whatToPack?: string[] | string;
   notes?: Note[];
   reviewVideos?: ReviewVideo[];
   subcategoryId?: string; // for fetching more tours by category

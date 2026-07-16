@@ -6,7 +6,9 @@ export type MenuDisplayVariant = 'default' | 'promotion';
 export interface IMenuItem {
   _id: Types.ObjectId;
   label: ILocalizedString;
-  url?: string;
+  /** Per-language destination path ({ en, de, it, es }); legacy documents
+   *  may still hold a plain string (used for every language). */
+  url?: ILocalizedString | string;
   isActive: boolean;
   order: number;
   displayVariant?: MenuDisplayVariant;
@@ -28,9 +30,11 @@ const MenuItemSchema = new Schema<IMenuItem>(
       type: LocalizedStringSchema,
       required: [true, 'Label is required'],
     },
+    // Mixed on purpose: accepts the localized { en, de, it, es } object as
+    // well as legacy plain strings, and stays optional (a parent item may
+    // have no link). Shape is normalized in the controller's sanitizer.
     url: {
-      type: String,
-      trim: true,
+      type: Schema.Types.Mixed,
     },
     isActive: {
       type: Boolean,

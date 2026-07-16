@@ -30,9 +30,22 @@ import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLangua
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import { getLocalizedValue } from '@/lib/localize';
 
+/** Builds a per-language URL object from a localized slug
+ *  ({en:'x',de:'y'} → {en:'/x',de:'/y',...}); missing languages stay empty
+ *  (the site falls back to the English path). */
+const localizedSlugToUrl = (slug: any) => {
+  const toPath = (v: any) => (typeof v === 'string' && v.trim() ? `/${v.trim()}` : '');
+  return {
+    en: toPath(slug?.en ?? (typeof slug === 'string' ? slug : '')),
+    de: toPath(slug?.de),
+    it: toPath(slug?.it),
+    es: toPath(slug?.es),
+  };
+};
+
 const makeItem = (): MenuItem => ({
   label: { en: '', de: '', it: '', es: '' },
-  url: '',
+  url: { en: '', de: '', it: '', es: '' },
   isActive: true,
   order: 0,
   displayVariant: 'default',
@@ -139,14 +152,14 @@ export default function NewMenuPage() {
 
   const isToursNode = (it: MenuItem) => {
     const label = getLocalizedValue(it.label, 'en').toLowerCase();
-    const url = String(it.url || '').trim().toLowerCase();
-    return label === 'tours' || url === '/tours' || url === '/search';
+    const url = String(getLocalizedValue(it.url as any, 'en') || '').trim().toLowerCase();
+    return label === 'tours' || ['/tours', '/tours/all', '/search'].includes(url);
   };
 
   const isBlogsNode = (it: MenuItem) => {
     const label = getLocalizedValue(it.label, 'en').toLowerCase();
-    const url = String(it.url || '').trim().toLowerCase();
-    return label === 'blogs' || url === '/blogs' || url === '/blog';
+    const url = String(getLocalizedValue(it.url as any, 'en') || '').trim().toLowerCase();
+    return label === 'blogs' || ['/blogs', '/blog', '/blogs/all'].includes(url);
   };
 
   const syncTourCategories = async (path: number[]) => {
@@ -156,10 +169,9 @@ export default function NewMenuPage() {
       const res = await tourCategoryAPI.getAll({ limit: 200, isActive: true, sort: 'name' } as any);
       const categories = Array.isArray((res as any)?.data) ? (res as any).data : [];
       const children: MenuItem[] = categories.map((c: any, index: number) => {
-        const slug = getLocalizedValue(c?.slug, 'en');
         return {
           label: c?.name || { en: '' },
-          url: `/${slug}`,
+          url: localizedSlugToUrl(c?.slug),
           isActive: true,
           order: index,
           children: [],
@@ -179,10 +191,9 @@ export default function NewMenuPage() {
       const res: any = await blogCategoryAPI.getAll({ limit: 200, isActive: true, sort: 'name' } as any);
       const categories = Array.isArray(res?.data) ? res.data : [];
       const children: MenuItem[] = categories.map((c: any, index: number) => {
-        const slug = getLocalizedValue(c?.slug, 'en');
         return {
           label: c?.name || { en: '' },
-          url: `/blogs/category/${slug}`,
+          url: localizedSlugToUrl(c?.slug),
           isActive: true,
           order: index,
           children: [],
@@ -255,15 +266,15 @@ export default function NewMenuPage() {
                   {getLocalizedValue(it.label, activeLanguage) || 'Untitled item'}
                 </div>
 
-                {it.url ? (
+                {(() => { const urlPreview = String(getLocalizedValue(it.url as any, 'en') || ''); return urlPreview ? (
                   <div
                     className="hidden max-w-[360px] items-center gap-1 truncate rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground md:flex"
-                    title={it.url}
+                    title={urlPreview}
                   >
                     <LinkIcon className="h-3.5 w-3.5" />
-                    {it.url}
+                    {urlPreview}
                   </div>
-                ) : null}
+                ) : null; })()}
               </div>
               <div className="flex items-center gap-2">
                 <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={() => moveItem(path, 'up')} title="Move up">
@@ -292,7 +303,7 @@ export default function NewMenuPage() {
             </div>
             {open ? (
               <div className="grid gap-4 p-3 md:grid-cols-12">
-                <div className="md:col-span-5">
+                <div className="md:col-span-6">
                   <LocalizedInput
                     label="Label"
                     value={it.label}
@@ -300,17 +311,17 @@ export default function NewMenuPage() {
                     placeholder="Menu label"
                   />
                 </div>
-                <div className="md:col-span-5">
-                  <label className="flex items-center gap-2 text-sm font-medium"><LinkIcon className="h-4 w-4" />URL</label>
-                  <div className="mt-2">
-                    <Input value={it.url || ''} onChange={(e) => updateItem(path, { url: e.target.value })} placeholder="/search" />
-                  </div>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium">Order</label>
-                  <div className="mt-2 text-sm">
-                    <Input type="number" value={String(it.order ?? 0)} onChange={(e) => updateItem(path, { order: Number(e.target.value) })} />
-                  </div>
+                <div className="md:col-span-6">
+                  <LocalizedInput
+                    label="URL (per language)"
+                    value={it.url as any}
+                    onChange={(val) => updateItem(path, { url: val as any })}
+                    placeholder="/egypt-tour-packages"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Relative path per language (e.g. DE gets the German slug). Empty language = the
+                    English path is used.
+                  </p>
                 </div>
                 {level === 0 ? (
                   <div className="md:col-span-12">

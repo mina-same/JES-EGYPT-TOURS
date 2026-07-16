@@ -50,6 +50,11 @@ const Drawer: React.FC = () => {
     setMobileDrawerStatus,
   } = useStore();
   const { menu } = useHeaderMenu('header-main');
+
+  // Menu URLs are localized per language (legacy items may be plain strings)
+  // — resolve the active language's path before locale-prefixing it.
+  const itemHref = (item: any) =>
+    localizeInternalUrl(formatUrl(getLocalizedValue(item.url || item.link, i18n.language)), locale);
   const [isItems, setIsItems] = useState<number | null>(null);
   const [isSubItems, setIsSubItems] = useState<number | null>(null);
   const [openNavItemId, setOpenNavItemId] = useState<number | null>(null);
@@ -143,7 +148,7 @@ const Drawer: React.FC = () => {
                 }`}
               >
                 <Link
-                  href={localizeInternalUrl(formatUrl(item.url || item.link), locale)}
+                  href={itemHref(item)}
                   className={`${isItems === idx ? "expanded" : ""} ${isPromotion ? "mobile-menu__promotion-link" : ""}`}
                 >
                   {isPromotion ? (
@@ -181,7 +186,7 @@ const Drawer: React.FC = () => {
                     >
                       <div className=' main-menu__list__wrapper'>
                         <Link
-                          href={localizeInternalUrl(formatUrl(subMenu.url || subMenu.link), locale)}
+                          href={itemHref(subMenu)}
                           className={`${isSubItems === sidx ? "expanded" : ""}`}
                         >
                           {getLocalizedValue(subMenu.label || subMenu.title, i18n.language)}{" "}
@@ -207,7 +212,7 @@ const Drawer: React.FC = () => {
                         >
                           {subChildren.map((subSubItem: any, ssidx: number) => (
                             <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
-                              <Link href={localizeInternalUrl(formatUrl(subSubItem.url || subSubItem.link), locale)}>
+                              <Link href={itemHref(subSubItem)}>
                                 {getLocalizedValue(subSubItem.label || subSubItem.title, i18n.language)}
                               </Link>
                             </li>

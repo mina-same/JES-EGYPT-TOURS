@@ -5,6 +5,7 @@ import { footerOneData } from "@/data/footerOneData";
 import { useTranslation } from "react-i18next";
 import type { TourDetailsOneData } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { normalizeAmenityItems } from "../normalizeAmenityItems";
 
 interface TourBrochureProps {
   tour: TourDetailsOneData;
@@ -24,6 +25,7 @@ interface TourBrochureProps {
 const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour, assets }, ref) => {
   const { t, i18n } = useTranslation("tours");
   const { formatPrice } = useCurrency();
+  const highlightItems = normalizeAmenityItems(tour.highlightList);
   const getImgUrl = (img: any) => {
     if (!img) return "";
     if (typeof img === "string") return img;
@@ -339,7 +341,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
         </div>
       )}
 
-      {tour.highlightList?.length > 0 && (
+      {highlightItems.length > 0 && (
         <div style={{ padding: "48px 60px", backgroundColor: "#F0EAE0" }}>
           <SectionHeader 
              label={t("tourDetails.highlightList")} 
@@ -353,7 +355,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
               marginTop: 24,
             }}
           >
-            {tour.highlightList.map((h, i) => (
+            {highlightItems.map((h, i) => (
               <div
                 key={i}
                 style={{
@@ -384,7 +386,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                 >
                   {i + 1}
                 </div>
-                {h}
+                <span dangerouslySetInnerHTML={{ __html: h }} />
               </div>
             ))}
           </div>

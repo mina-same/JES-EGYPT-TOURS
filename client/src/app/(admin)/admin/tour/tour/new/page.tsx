@@ -189,9 +189,7 @@ export default function NewTourPage() {
       }
 
       // Sanitize list fields
-      if (cleanData.tourHighlights) cleanData.tourHighlights = flattenLocalizedList(cleanData.tourHighlights);
-      // inclusion/exclusion are HTML strings — no array transformation needed
-      if (cleanData.whatToPack) cleanData.whatToPack = flattenLocalizedList(cleanData.whatToPack);
+      // tourHighlights/inclusion/exclusion/whatToPack are HTML strings — no array transformation needed
       if (cleanData.tags) cleanData.tags = flattenLocalizedList(cleanData.tags);
 
       const normalizedMapSchema = normalizeTourMapSchemaForSave(cleanData.mapSchema || cleanData.seo?.mapSchema);
@@ -216,10 +214,10 @@ export default function NewTourPage() {
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
       
       // Remove empty fields
-      if (isMixedEmpty(cleanData.tourHighlights)) delete cleanData.tourHighlights;
+      if (!cleanData.tourHighlights?.en?.trim()) delete cleanData.tourHighlights;
       if (!cleanData.inclusion?.en?.trim()) delete cleanData.inclusion;
       if (!cleanData.exclusion?.en?.trim()) delete cleanData.exclusion;
-      if (isMixedEmpty(cleanData.whatToPack)) delete cleanData.whatToPack;
+      if (!cleanData.whatToPack?.en?.trim()) delete cleanData.whatToPack;
       if (!cleanData.pricingPlans?.length) delete cleanData.pricingPlans;
       if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;
       if (!cleanData.relatedTours?.length) delete cleanData.relatedTours;

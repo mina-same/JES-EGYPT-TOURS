@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { menuService, type Menu } from '@/services/menuService';
+import { useServerHeaderMenu } from '@/contexts/HeaderMenuContext';
 
 const resolvedMenuCache = new Map<string, Menu>();
 const pendingMenuRequests = new Map<string, Promise<Menu>>();
@@ -33,17 +33,34 @@ const getCachedHeaderMenu = (key: string, cacheKey: string) => {
 };
 
 export const useHeaderMenu = (key: string = 'header-main') => {
-  const { i18n } = useTranslation();
-  const cacheKey = `${key}:${i18n.language || 'default'}`;
-  const cachedMenu = resolvedMenuCache.get(cacheKey) ?? null;
-  const [menu, setMenu] = useState<Menu | null>(cachedMenu);
-  const [loading, setLoading] = useState(!cachedMenu);
+  // The API returns RAW localized objects (labels/urls in all languages) and
+  // components resolve the active language themselves — so one fetch serves
+  // every language; no per-language cache entries or refetches needed.
+  const cacheKey = key;
+  // SERVER-provided menu (from the visitor layout): available synchronously,
+  // so the navigation is part of the server-rendered HTML (SEO) and no
+  // client fetch is needed at all.
+  const serverMenu = useServerHeaderMenu();
+  const initialMenu =
+    (serverMenu && serverMenu.key === key ? serverMenu : null) ??
+    resolvedMenuCache.get(cacheKey) ??
+    null;
+  const [menu, setMenu] = useState<Menu | null>(initialMenu);
+  const [loading, setLoading] = useState(!initialMenu);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     const run = async () => {
       try {
+        if (serverMenu && serverMenu.key === key) {
+          resolvedMenuCache.set(cacheKey, serverMenu);
+          setMenu(serverMenu);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+
         const existingMenu = resolvedMenuCache.get(cacheKey);
         if (existingMenu) {
           setMenu(existingMenu);
@@ -68,7 +85,7 @@ export const useHeaderMenu = (key: string = 'header-main') => {
     return () => {
       mounted = false;
     };
-  }, [cacheKey, key]);
+  }, [cacheKey, key, serverMenu]);
 
   return { menu, loading, error };
 };

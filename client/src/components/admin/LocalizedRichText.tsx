@@ -32,6 +32,7 @@ const LocalizedRichText: React.FC<LocalizedRichTextProps> = ({
     >
       {(lang, currentValue, handleLang) => (
         <RichTextEditor
+          key={lang}
           value={currentValue || ""}
           onChange={handleLang}
           placeholder={placeholder ? `${placeholder} (${lang.toUpperCase()})` : `Enter content in ${lang.toUpperCase()}`}

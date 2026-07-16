@@ -134,7 +134,7 @@ export interface ITour extends Document {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
-  tourHighlights?: ILocalizedMixed[];
+  tourHighlights?: ILocalizedMixed;
   inclusion?: ILocalizedMixed;
   exclusion?: ILocalizedMixed;
   pricingPlans: IPricingPlan[];
@@ -144,7 +144,7 @@ export interface ITour extends Document {
   cancellationPolicy?: ILocalizedString;
   tags?: ILocalizedMixed[];
   notes?: INote[];
-  whatToPack?: ILocalizedMixed[];
+  whatToPack?: ILocalizedMixed;
   tourMapIframe?: string;
   mapSchema?: IMapSchema;
   whatYouWillLoveHtml?: ILocalizedMixed;
@@ -570,8 +570,7 @@ const TourSchema = new Schema<ITour>(
       type: LocalizedStringSchema,
     },
     tourHighlights: {
-      type: [LocalizedMixedSchema],
-      default: [],
+      type: LocalizedMixedSchema,
     },
     inclusion: {
       type: LocalizedMixedSchema,
@@ -607,8 +606,7 @@ const TourSchema = new Schema<ITour>(
     },
     notes: [NoteSchema],
     whatToPack: {
-      type: [LocalizedMixedSchema],
-      default: []
+      type: LocalizedMixedSchema,
     },
     tourMapIframe: {
       type: String,
