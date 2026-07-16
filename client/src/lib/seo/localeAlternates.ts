@@ -3,6 +3,7 @@ import {
   DEFAULT_LOCALE,
   getSeoBaseUrl,
   getStrictLocalizedSlug,
+  localizeStaticPathSegment,
   normalizeLocale,
   SUPPORTED_LOCALES,
   type LocalizedSlugInput,
@@ -85,18 +86,24 @@ export function getStaticLocaleAlternates(
   const normalizedPath = normalizeStaticPath(path);
   const currentLocale = normalizeLocale(locale);
 
+  // Static pages may carry a per-locale slug (e.g. special-offers →
+  // /de/sonderangebote): every alternate must point to the slug that locale
+  // actually serves, not the English one.
+  const localizedPathFor = (supportedLocale: SupportedLocale) =>
+    normalizedPath ? localizeStaticPathSegment(normalizedPath, supportedLocale) : "";
+
   const languages = SUPPORTED_LOCALES.reduce<Record<string, string>>(
     (acc, supportedLocale) => {
-      acc[supportedLocale] = `${SEO_BASE_URL}/${supportedLocale}${normalizedPath}`;
+      acc[supportedLocale] = `${SEO_BASE_URL}/${supportedLocale}${localizedPathFor(supportedLocale)}`;
       return acc;
     },
     {}
   );
 
-  languages["x-default"] = `${SEO_BASE_URL}/${DEFAULT_LOCALE}${normalizedPath}`;
+  languages["x-default"] = `${SEO_BASE_URL}/${DEFAULT_LOCALE}${localizedPathFor(DEFAULT_LOCALE)}`;
 
   return {
-    canonical: `${SEO_BASE_URL}/${currentLocale}${normalizedPath}`,
+    canonical: `${SEO_BASE_URL}/${currentLocale}${localizedPathFor(currentLocale)}`,
     languages,
   };
 }

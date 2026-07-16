@@ -10,6 +10,7 @@ import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
 import { sliderService } from "@/services/sliderService";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
+import { getLocalizedStaticSlug } from "@/lib/url";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
 type SlideVM = {
@@ -251,7 +252,8 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
               // Secondary (outline) CTA: admin-configured per slide, or the
               // site default (Special Offers) when not set.
               const secondaryLabel = item.secondaryText || t("hero.secondaryCta");
-              const secondaryHref = item.secondaryLink || `/${locale}/special-offers`;
+              const secondaryHref =
+                item.secondaryLink || `/${locale}/${getLocalizedStaticSlug("special-offers", locale)}`;
               const secondaryExternal = item.secondaryLink ? item.secondaryTarget === "_blank" : false;
               // Leading punctuation of titleEnd (e.g. ", your guide…") must
               // stay GLUED to the gold phrase — browsers may otherwise break

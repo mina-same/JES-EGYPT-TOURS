@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { API_URL } from '@/config/api';
-import { getSeoBaseUrl, getStrictLocalizedSlug, SUPPORTED_LOCALES } from '@/lib/url';
+import { getLocalizedStaticSlug, getSeoBaseUrl, getStrictLocalizedSlug, SUPPORTED_LOCALES } from '@/lib/url';
 
 const baseUrl = getSeoBaseUrl();
 
@@ -68,6 +68,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly',
         priority: path === '' ? 1 : 0.8,
       });
+    });
+  });
+
+  // 1b. Static pages with per-locale slugs (see lib/url/staticSlugs).
+  SUPPORTED_LOCALES.forEach((locale) => {
+    entries.push({
+      url: `${baseUrl}/${locale}/${getLocalizedStaticSlug('special-offers', locale)}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
     });
   });
 

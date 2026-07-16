@@ -9,6 +9,7 @@ import { useInView } from "react-intersection-observer";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Clock } from "lucide-react";
+import { getLocalizedStaticSlug } from "@/lib/url";
 import { offerTwoData } from "@/data/offerTwoData";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 
@@ -41,7 +42,7 @@ const OfferTwo = () => {
 
   const params = useParams();
   const locale = (params?.locale as string) || "en";
-  const buttonLink = `/${locale}/special-offers`;
+  const buttonLink = `/${locale}/${getLocalizedStaticSlug("special-offers", locale)}`;
 
   // Using IntersectionObserver to trigger animations when the section comes into view
   const { ref, inView } = useInView({
