@@ -84,7 +84,12 @@ const mapApiSlideToVm = (item: ApiSliderItem, lang: string): SlideVM => ({
 const AUTOPLAY_MS = 6000;
 
 const baseSettings = {
-  loop: true,
+  // `rewind` (not `loop`): tiny-slider's loop mode CLONES slides in the DOM,
+  // duplicating every hero image + alt for SEO crawlers. Rewind jumps back to
+  // the first slide with no clones — and in gallery (fade) mode the two are
+  // visually identical, since there is no sliding direction anyway.
+  loop: false,
+  rewind: true,
   autoplay: true,
   mode: "gallery",
   animateOut: "tns-fadeOut",

@@ -22,6 +22,9 @@ export interface SliderUnderPromo {
    *  string (treated as the English link everywhere). */
   link: ILocalizedString | string;
   linkDirection: '_blank' | '_self';
+  /** false = disabled: kept in the admin, hidden from visitors. Absent
+   *  (legacy) counts as active. */
+  isActive?: boolean;
 }
 
 export type GlobalSliderPromo = SliderUnderPromo;

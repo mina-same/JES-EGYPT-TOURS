@@ -17,7 +17,10 @@ import type { ILocalizedString } from '@/types/tour';
 
 /** Promo form state: `link` is always the localized object (legacy plain
  *  strings from older documents are normalized on load). */
-type PromoFormState = Omit<SliderUnderPromo, 'link'> & { link: ILocalizedString };
+type PromoFormState = Omit<SliderUnderPromo, 'link' | 'isActive'> & {
+  link: ILocalizedString;
+  isActive: boolean;
+};
 
 const emptyLocalized = (): ILocalizedString => ({ en: '', de: '', it: '', es: '' });
 
@@ -107,6 +110,7 @@ export default function SliderContentPage() {
     linkText: { en: '', de: '', it: '', es: '' },
     link: emptyLocalized(),
     linkDirection: '_self',
+    isActive: true,
   });
   const [activePromoLanguage, setActivePromoLanguage] = useState<AdminLanguage>('en');
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,6 +136,8 @@ export default function SliderContentPage() {
         linkText: p?.linkText || { en: '', de: '', it: '', es: '' },
         link: toLocalizedLink(p?.link),
         linkDirection: p?.linkDirection || '_self',
+        // Legacy promos without the flag count as active.
+        isActive: p?.isActive !== false,
       });
     } catch (err: any) {
       toast({
@@ -145,17 +151,21 @@ export default function SliderContentPage() {
     }
   };
 
-  const savePromo = async () => {
+  // `overrides` lets the Active/Inactive toggle persist IMMEDIATELY (one
+  // click) instead of waiting for a separate "Save Promo" press.
+  const savePromo = async (overrides?: Partial<PromoFormState>) => {
+    const form = { ...promoForm, ...overrides };
     const payload: SliderUnderPromo = {
-      text: promoForm.text,
-      linkText: promoForm.linkText,
+      text: form.text,
+      linkText: form.linkText,
       link: {
-        en: promoForm.link.en?.trim() || '',
-        de: promoForm.link.de?.trim() || '',
-        it: promoForm.link.it?.trim() || '',
-        es: promoForm.link.es?.trim() || '',
+        en: form.link.en?.trim() || '',
+        de: form.link.de?.trim() || '',
+        it: form.link.it?.trim() || '',
+        es: form.link.es?.trim() || '',
       },
-      linkDirection: promoForm.linkDirection,
+      linkDirection: form.linkDirection,
+      isActive: form.isActive,
     };
 
     if (!payload.text?.en?.trim() || !payload.linkText?.en?.trim() || !(payload.link as ILocalizedString).en) {
@@ -197,6 +207,7 @@ export default function SliderContentPage() {
         linkText: { en: '', de: '', it: '', es: '' },
         link: emptyLocalized(),
         linkDirection: '_self',
+        isActive: true,
       });
       toast({
         title: 'Cleared',
@@ -433,15 +444,23 @@ export default function SliderContentPage() {
             <div className='text-xs text-gray-500'>Shown under the homepage slider only when set.</div>
           </div>
           <div className='flex items-center gap-2'>
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                promo?.text && promo?.link && promo?.linkText
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {promo?.text && promo?.link && promo?.linkText ? 'Active' : 'Not set'}
-            </span>
+            {(() => {
+              const isSet = Boolean(promo?.text && promo?.link && promo?.linkText);
+              const isDisabled = isSet && promo?.isActive === false;
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                    !isSet
+                      ? 'bg-gray-100 text-gray-600'
+                      : isDisabled
+                        ? 'bg-amber-50 text-amber-700'
+                        : 'bg-green-50 text-green-700'
+                  }`}
+                >
+                  {!isSet ? 'Not set' : isDisabled ? 'Disabled' : 'Active'}
+                </span>
+              );
+            })()}
           </div>
         </div>
 
@@ -525,10 +544,37 @@ export default function SliderContentPage() {
         </div>
 
         <div className='mt-4 flex flex-col gap-2 sm:flex-row sm:items-center'>
+          {/* Disable WITHOUT deleting: saves IMMEDIATELY on click — the promo
+              stays stored and editable, but visitors stop seeing it. */}
+          <button
+            type='button'
+            className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              promoForm.isActive
+                ? 'border-green-200 bg-green-50 text-green-700'
+                : 'border-red-200 bg-red-50 text-red-700'
+            }`}
+            onClick={() => {
+              const next = !promoForm.isActive;
+              setPromoForm((p) => ({ ...p, isActive: next }));
+              savePromo({ isActive: next });
+            }}
+            disabled={promoLoading || promoSaving}
+            title='Disable without deleting — visitors stop seeing the promo, your content stays saved'
+          >
+            {promoForm.isActive ? (
+              <>
+                <CheckCircle size={16} /> Active
+              </>
+            ) : (
+              <>
+                <XCircle size={16} /> Inactive
+              </>
+            )}
+          </button>
           <button
             className='btn-add-new'
             type='button'
-            onClick={savePromo}
+            onClick={() => savePromo()}
             disabled={promoLoading || promoSaving}
           >
             {promoSaving ? 'Saving...' : 'Save Promo'}

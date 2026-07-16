@@ -9,6 +9,8 @@ type UnderPromoPayload = {
   /** Localized { en, de, it, es } object; legacy clients may send a string. */
   link: any;
   linkDirection?: '_blank' | '_self';
+  /** false = disabled (kept in the admin, hidden from visitors). */
+  isActive?: boolean;
 };
 
 /** Normalizes the link payload: a legacy plain string becomes the English
@@ -29,10 +31,13 @@ const normalizeLink = (link: any): { en: string; de: string; it: string; es: str
 export const getSliderPromoPublic = async (_req: Request, res: Response) => {
   try {
     const doc = await SliderPromoConfig.findOne({ key: GLOBAL_KEY }).lean();
+    const promo = doc?.underPromo ?? null;
 
     return res.status(200).json({
       success: true,
-      data: doc?.underPromo ?? null,
+      // A disabled promo stays stored for the admin but is invisible to
+      // visitors (legacy documents without the flag count as active).
+      data: promo && promo.isActive === false ? null : promo,
     });
   } catch (error) {
     return res.status(500).json({
@@ -92,6 +97,8 @@ export const upsertSliderPromoAdmin = async (req: Request, res: Response) => {
       linkText: underPromo.linkText,
       link,
       linkDirection: underPromo.linkDirection === '_blank' ? '_blank' : '_self',
+      // Default active; only an explicit false disables it.
+      isActive: underPromo.isActive !== false,
     };
 
     const updated = await SliderPromoConfig.findOneAndUpdate(
