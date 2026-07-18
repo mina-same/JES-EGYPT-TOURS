@@ -9,7 +9,28 @@ import Link from "next/link";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Telescope } from "lucide-react";
+// Eye of Horus (no icon library ships one) — same stroke style as the site's lucide icons
+const EyeOfHorusIcon = () => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    width={40}
+    height={40}
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    strokeWidth={1.35}
+    strokeLinecap='round'
+    strokeLinejoin='round'
+    aria-hidden='true'
+  >
+    <path d='M3.5 6.3C8 3.6 16 3.6 21 6.6' />
+    <path d='M3 10.8C7.5 7.4 15.5 7.4 21 10.8C15.5 14.2 7.5 14.2 3 10.8Z' />
+    <circle cx='12' cy='10.8' r='2.4' />
+    <path d='M21 10.8L23.2 11.6' />
+    <path d='M9 14L9 18.8C9 20.2 7.6 20.6 6.9 19.8' />
+    <path d='M16.5 13.8C17.9 16 18 18.6 16.2 19.9C14.8 20.8 13.4 19.6 14 18.4C14.5 17.4 15.9 17.6 16 18.6' />
+  </svg>
+);
 
 export interface Button {
   link: string;
@@ -114,7 +135,7 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
                   <Col xs={12}>
                     <div className='about-one__feature-vestion'>
                       <div className='about-one__feature_icon'>
-                        <Telescope size={40} strokeWidth={1.8} aria-hidden='true' />
+                        <EyeOfHorusIcon />
                       </div>
                       <div className='about-one__feature-content'>
                         <MissionHeadingTag className='about-one__feature-title'>
