@@ -182,11 +182,13 @@ export const getAllTours = async (
     const sort = parseSort(req.query.sort);
     const fields = parseFields(req.query.fields);
 
-    // Build query
+    // Build query. NOTE: a single populate call — a second object-form
+    // populate on the same path REPLACES the first one's select and ships
+    // the full ~23KB subcategory document with every tour in the list.
     let query = Tour.find(filter)
-      .populate('subcategory', 'name slug category')
       .populate({
         path: 'subcategory',
+        select: 'name slug category',
         populate: {
           path: 'category',
           select: 'name slug',

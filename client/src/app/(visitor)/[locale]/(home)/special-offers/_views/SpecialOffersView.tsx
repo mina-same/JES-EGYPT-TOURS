@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { Loader2, Tag, ShieldCheck, BadgePercent, Clock3, ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -17,54 +17,63 @@ import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { getStrictLocalizedSlug, getLocalizedStaticSlug, type SupportedLocale } from "@/lib/url";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "@/hooks/use-toast";
+import { SPECIAL_OFFERS_FAQS } from "../specialOffersFaqs";
 
 const GOLD = "#b79c5c";
 const DARK = "#1d231f";
 
-const FAQS = [
-  {
-    question: { en: "What are special offer tours?", de: "Was sind Sonderangebots-Touren?", it: "Cosa sono i tour in offerta speciale?", es: "¿Qué son los tours en oferta especial?" },
-    answer: {
-      en: "Special offer tours are handpicked experiences with exclusive pricing or added value. They include seasonal discounts, early-bird deals, and bonus inclusions — all curated by our Egypt experts.",
-      de: "Sonderangebots-Touren sind handverlesene Erlebnisse mit exklusiven Preisen oder Mehrwert. Sie umfassen Saisonrabatte, Frühbucher-Angebote und Bonus-Leistungen — alle kuratiert von unseren Ägypten-Experten.",
-      it: "I tour in offerta speciale sono esperienze selezionate con prezzi esclusivi o valore aggiunto. Includono sconti stagionali, offerte early bird e inclusioni bonus — tutti curati dai nostri esperti d'Egitto.",
-      es: "Los tours en oferta especial son experiencias seleccionadas con precios exclusivos o valor añadido. Incluyen descuentos de temporada, ofertas anticipadas e inclusiones adicionales — todos curados por nuestros expertos en Egipto.",
-    },
-  },
-  {
-    question: { en: "How long do special offers last?", de: "Wie lange gelten Sonderangebote?", it: "Quanto durano le offerte speciali?", es: "¿Cuánto duran las ofertas especiales?" },
-    answer: {
-      en: "Availability varies by tour and season. We recommend booking early — special offer tours are limited and sell out fast. Once gone, the discounted price is no longer available.",
-      de: "Die Verfügbarkeit variiert je nach Tour und Saison. Wir empfehlen frühzeitiges Buchen — Sonderangebots-Touren sind begrenzt und schnell ausgebucht. Danach gilt der Rabattpreis nicht mehr.",
-      it: "La disponibilità varia per tour e stagione. Ti consigliamo di prenotare in anticipo — i tour in offerta speciale sono limitati e si esauriscono rapidamente. Una volta terminati, il prezzo scontato non è più disponibile.",
-      es: "La disponibilidad varía según el tour y la temporada. Recomendamos reservar con antelación — los tours en oferta especial son limitados y se agotan rápidamente. Una vez agotados, el precio con descuento ya no está disponible.",
-    },
-  },
-  {
-    question: { en: "Can I customize a special offer tour?", de: "Kann ich eine Sonderangebots-Tour anpassen?", it: "Posso personalizzare un tour in offerta speciale?", es: "¿Puedo personalizar un tour en oferta especial?" },
-    answer: {
-      en: "Yes. Many special offer tours can be tailored to your schedule or group. Use our Tailor-Made form for a personalized quote — we'll do our best to honour the special offer pricing.",
-      de: "Ja. Viele Sonderangebots-Touren können an Ihren Zeitplan oder Ihre Gruppe angepasst werden. Nutzen Sie unser maßgeschneidertes Formular für ein persönliches Angebot — wir bemühen uns, den Sonderangebotspreis zu berücksichtigen.",
-      it: "Sì. Molti tour in offerta speciale possono essere personalizzati in base al tuo programma o gruppo. Usa il nostro modulo su misura per un preventivo personalizzato — faremo del nostro meglio per rispettare il prezzo dell'offerta speciale.",
-      es: "Sí. Muchos tours en oferta especial pueden adaptarse a tu horario o grupo. Usa nuestro formulario a medida para obtener un presupuesto personalizado — haremos lo posible por respetar el precio de la oferta especial.",
-    },
-  },
-  {
-    question: { en: "Is a deposit required to reserve a special offer?", de: "Wird eine Anzahlung zur Reservierung benötigt?", it: "È richiesto un deposito per prenotare un'offerta speciale?", es: "¿Se requiere un depósito para reservar una oferta especial?" },
-    answer: {
-      en: "A small deposit secures your spot at the special offer price. Full payment details are provided during booking. Cancellation policies vary by tour — check the tour page for specifics.",
-      de: "Eine kleine Anzahlung sichert Ihren Platz zum Sonderangebotspreis. Vollständige Zahlungsdetails werden beim Buchen mitgeteilt. Stornierungsrichtlinien variieren je nach Tour — prüfen Sie die Tourseite für Details.",
-      it: "Un piccolo deposito garantisce il tuo posto al prezzo dell'offerta speciale. I dettagli di pagamento completi vengono forniti durante la prenotazione. Le politiche di cancellazione variano per tour — controlla la pagina del tour per i dettagli.",
-      es: "Un pequeño depósito asegura tu plaza al precio de la oferta especial. Los detalles completos de pago se proporcionan durante la reserva. Las políticas de cancelación varían según el tour — consulta la página del tour para más detalles.",
-    },
-  },
-];
+// Fields the card actually needs — keeps the list payload ~95% smaller than
+// full tour documents (the API supports comma-separated projection).
+const CARD_FIELDS =
+  "slug,heading,name,images,gallery,priceStartingFrom,reviewsCount,videoLink,specialOfferDiscount,duration,minAge,tourLocation";
 
-export default function SpecialOffersView({ locale }: { locale: string }) {
+// The API localizes documents per the X-Locale header: on non-EN locales
+// `tour.slug` arrives as an already-localized plain STRING. Accept it as-is;
+// only object slugs need the strict per-locale lookup.
+function mapTour(tour: any, locale: string) {
+  const tourSlug =
+    typeof tour.slug === "string"
+      ? tour.slug.trim().replace(/^\/+|\/+$/g, "") || null
+      : getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
+  if (!tourSlug) return null;
+  const galleryImages = [
+    ...(tour.images || []).map((img: any) => img.url),
+    ...(tour.gallery || []).map((img: any) => img.url),
+  ].filter(Boolean);
+  const uniqueImages = Array.from(new Set(galleryImages)) as string[];
+  return {
+    id: tour._id,
+    slug: tourSlug,
+    image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+    imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
+    allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+    title: getLocalizedValue(tour.heading || tour.name, locale),
+    link: `/${locale}/${tourSlug}`,
+    price: tour.priceStartingFrom || { USD: 0 },
+    rating: 5,
+    reviews: tour.reviewsCount || tour.reviews?.length || 0,
+    videoId: tour.videoLink || "",
+    discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : undefined,
+    meta: [
+      { id: 1, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },
+      { id: 2, title: `${tour.minAge || "12"} +`, icon: "icon-user" },
+      { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
+    ],
+  };
+}
+
+interface SpecialOffersViewProps {
+  locale: string;
+  /** Page-1 offers fetched server-side so the grid is part of the SSR HTML. */
+  initialTours?: any[];
+  initialTotal?: number;
+  initialTotalPages?: number;
+}
+
+export default function SpecialOffersView({ locale, initialTours, initialTotal, initialTotalPages }: SpecialOffersViewProps) {
   const { t, i18n } = useTranslation("specialOffers");
   const { toggleWishlist, isInWishlist } = useWishlist();
 
@@ -72,12 +81,14 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
     if (i18n.resolvedLanguage !== locale) i18n.changeLanguage(locale);
   }, [locale, i18n]);
 
-  const [tours, setTours] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [tours, setTours] = useState<any[]>(() =>
+    (initialTours || []).map((tour) => mapTour(tour, locale)).filter(Boolean)
+  );
+  const [total, setTotal] = useState(initialTotal ?? 0);
+  const [loading, setLoading] = useState(!initialTours);
   const [pageLoading, setPageLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialTotalPages ?? 1);
   const [sort, setSort] = useState("-createdAt");
   const [isOpen, setOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
@@ -88,43 +99,14 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
     return d > max ? d : max;
   }, 0);
 
-  const mapTour = (tour: any) => {
-    const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
-    if (!tourSlug) return null;
-    const galleryImages = [
-      ...(tour.images || []).map((img: any) => img.url),
-      ...(tour.gallery || []).map((img: any) => img.url),
-    ].filter(Boolean);
-    const uniqueImages = Array.from(new Set(galleryImages)) as string[];
-    return {
-      id: tour._id,
-      slug: tourSlug,
-      image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
-      imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-      allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
-      title: getLocalizedValue(tour.heading || tour.name, locale),
-      link: `/${locale}/${tourSlug}`,
-      price: tour.priceStartingFrom || { USD: 0 },
-      rating: 5,
-      reviews: tour.reviewsCount || tour.reviews?.length || 0,
-      videoId: tour.videoLink || "",
-      discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : undefined,
-      meta: [
-        { id: 1, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },
-        { id: 2, title: `${tour.minAge || "12"} +`, icon: "icon-user" },
-        { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
-      ],
-    };
-  };
-
   const fetchTours = async (page: number, sortVal: string, initial = false) => {
     if (initial) setLoading(true); else setPageLoading(true);
     try {
-      const res = await tourAPI.getAll({ isSpecialOffer: true, page, limit: toursPerPage, sort: sortVal });
+      const res = await tourAPI.getAll({ isSpecialOffer: true, page, limit: toursPerPage, sort: sortVal, fields: CARD_FIELDS });
       if (res.success && res.data) {
         setTotalPages(res.totalPages || 1);
         setTotal(res.total || res.count || 0);
-        setTours(res.data.map(mapTour).filter(Boolean));
+        setTours(res.data.map((tour: any) => mapTour(tour, locale)).filter(Boolean));
       }
     } catch {
       toast({ title: "Error", description: "Failed to load tours.", variant: "destructive" });
@@ -134,7 +116,14 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
     }
   };
 
+  // Server-provided page 1 is already in state — skip the mount fetch and
+  // only hit the API for pagination/sort interactions.
+  const skipFirstFetch = useRef(Boolean(initialTours));
   useEffect(() => {
+    if (skipFirstFetch.current) {
+      skipFirstFetch.current = false;
+      return;
+    }
     fetchTours(currentPage, sort, currentPage === 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, sort]);
@@ -437,14 +426,14 @@ export default function SpecialOffersView({ locale }: { locale: string }) {
         subtitle={{ en: t("promoSubtitle"), de: t("promoSubtitle"), it: t("promoSubtitle"), es: t("promoSubtitle") }}
         button={{
           label: { en: t("promoButton"), de: t("promoButton"), it: t("promoButton"), es: t("promoButton") },
-          href: `/${locale}/contact`,
+          href: `/${locale}/${getLocalizedStaticSlug("contact", locale)}`,
         }}
         locale={locale}
       />
 
       {/* ── FAQ — same design as /faq page ───────────────────────────── */}
       <ListingFaqs
-        faqs={FAQS}
+        faqs={SPECIAL_OFFERS_FAQS}
         title={t("faqTitle")}
         locale={locale}
       />

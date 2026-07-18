@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Row, Col, Container, Accordion } from 'react-bootstrap';
 import { HelpCircle, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedStaticSlug } from '@/lib/url';
 import { getLocalizedValue } from '@/lib/localize';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -56,7 +57,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
                     <span className='faq-page__sidebar__title'>
                       {t('anyQuestions', { defaultValue: 'Any Questions?' })}
                     </span>
-                    <Link href={`/${locale}/contact`} className="gotur-btn">
+                    <Link href={`/${locale}/${getLocalizedStaticSlug("contact", locale)}`} className="gotur-btn">
                       {t('contactUs', { defaultValue: 'Contact Us' })}
                       <span className="icon">
                         <i className="icon-right-arrow"></i>

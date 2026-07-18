@@ -9,6 +9,17 @@ export const createContactSubmission = async (
   res: Response
 ): Promise<void> => {
   try {
+    // Honeypot: the visible form ships a hidden "website" field humans never
+    // fill. A non-empty value means a bot — answer with a fake success and
+    // store nothing (silent drop keeps bots from adapting).
+    if (typeof req.body?.website === 'string' && req.body.website.trim()) {
+      res.status(201).json({
+        success: true,
+        message: 'Your message has been sent successfully. We will contact you soon.',
+      });
+      return;
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({
@@ -42,10 +53,11 @@ export const createContactSubmission = async (
 
     void emitDashboardStatsUpdate();
 
+    // No `data` echo: the public caller only needs success + message, and
+    // reflecting the stored document (ids, timestamps) serves nobody.
     res.status(201).json({
       success: true,
       message: 'Your message has been sent successfully. We will contact you soon.',
-      data: submission,
     });
   } catch (error) {
     console.error('Error creating contact submission:', error);

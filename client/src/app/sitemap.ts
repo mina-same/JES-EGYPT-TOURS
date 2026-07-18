@@ -25,10 +25,15 @@ function addLocalizedUrls(
   });
 }
 
-// Fetch all tour slugs
+// Fetch all tour slugs. Without a header the API's i18n middleware collapses
+// localized slug objects to plain EN strings, which made every non-EN tour
+// URL vanish from the sitemap — `X-Locale: bypass` returns the RAW
+// { en, de, it, es } objects so addLocalizedUrls can emit all locales.
 async function getTourSlugs() {
   try {
-    const res = await fetch(`${API_URL}/tours?limit=1000&fields=slug`);
+    const res = await fetch(`${API_URL}/tours?limit=1000&fields=slug`, {
+      headers: { 'X-Locale': 'bypass' },
+    });
     const data = await res.json();
     return data.success ? data.data.map((t: any) => t.slug) : [];
   } catch (error) {
@@ -55,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tourSlugs = await getTourSlugs();
   const blogSlugs = await getBlogSlugs();
 
-  const staticPages = ['', '/about', '/contact', '/faq', '/tours', '/blogs'];
+  const staticPages = ['', '/about', '/faq', '/tours', '/blogs'];
   
   const entries: MetadataRoute.Sitemap = [];
 
@@ -72,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // 1b. Static pages with per-locale slugs (see lib/url/staticSlugs).
-  ['special-offers', 'tailor-made'].forEach((canonicalSlug) => {
+  ['special-offers', 'tailor-made', 'contact'].forEach((canonicalSlug) => {
     SUPPORTED_LOCALES.forEach((locale) => {
       entries.push({
         url: `${baseUrl}/${locale}/${getLocalizedStaticSlug(canonicalSlug, locale)}`,

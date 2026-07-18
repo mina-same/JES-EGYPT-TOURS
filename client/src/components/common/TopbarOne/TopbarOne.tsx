@@ -8,6 +8,7 @@ import Link from "next/link";
 import LanguageSelector from "../LanguageSelector/LanguageSelector";
 import CurrencySwitcher from "../CurrencySwitcher/CurrencySwitcher";
 import { useTranslation } from "react-i18next";
+import { getLocalizedStaticSlug } from "@/lib/url";
 import { usePathname } from "next/navigation";
 
 interface ContactInfoItem {
@@ -49,7 +50,7 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
   useEffect(() => {
     setMounted(true);
   }, []);
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const pathname = usePathname();
   const locales = ["en", "de", "it"];
   const prefix = (() => {
@@ -108,7 +109,7 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
                 <>
                   <Link href={`${prefix}/faq`}>{t("links.faq")}</Link>
                   <Link href={`${prefix}/about`}>{t("links.about")}</Link>
-                  <Link href={`${prefix}/contact`}>{t("links.contact")}</Link>
+                  <Link href={`${prefix}/${getLocalizedStaticSlug("contact", i18n.language)}`}>{t("links.contact")}</Link>
                 </>
               )}
             </div>

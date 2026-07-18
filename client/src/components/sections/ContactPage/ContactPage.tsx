@@ -60,6 +60,14 @@ const ContactPage: React.FC = () => {
       data[key] = value.toString();
     });
 
+    // Honeypot: invisible to humans — bots that fill it get a silent no-op.
+    if (data.website) {
+      setStatus({ type: "success", message: t('form.success.sentMessage') });
+      form.reset();
+      setIsSubmitting(false);
+      return;
+    }
+
     // Basic client-side validation
     if (!data.name?.trim()) {
       setStatus({ type: "error", message: t('form.errors.nameRequired') });
@@ -94,7 +102,10 @@ const ContactPage: React.FC = () => {
       setSubmittedOnce(false);
       return;
     }
-    const emailRegex = /^\\S+@\\S+\\.\\S+$/;
+    // NOTE: a regex LITERAL must use single backslashes — the previous
+    // double-escaped version (/^\\S+@\\S+\\.\\S+$/) matched literal
+    // backslashes, so every real email failed and the form never submitted.
+    const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(data.email.trim())) {
       setStatus({ type: "error", message: t('form.errors.invalidEmail') });
       toast({
@@ -167,17 +178,15 @@ const ContactPage: React.FC = () => {
       <div className='container'>
         <div className='row gutter-y-30'>
           {/* Google Map Section */}
-          <div
-            className='col-lg-6 wow fadeInLeft'
-            data-wow-duration='1500ms'
-            data-wow-delay='300ms'
-          >
+          <div className='col-lg-6'>
             <div className='contact-page__map'>
               <div className='google-map'>
                 <iframe
-                  title='template google map'
+                  title={t('top.mapTitle')}
                   src={googleMapUrl}
                   className='map'
+                  loading='lazy'
+                  referrerPolicy='no-referrer-when-downgrade'
                   allowFullScreen
                 ></iframe>
               </div>
@@ -185,21 +194,29 @@ const ContactPage: React.FC = () => {
           </div>
 
           {/* Contact Form Section */}
-          <div
-            className='col-lg-6 wow fadeInRight'
-            data-wow-duration='1500ms'
-            data-wow-delay='300ms'
-          >
+          <div className='col-lg-6'>
             <div className='contact-page__contact'>
               <h2 className='contact-page__title'>{t('form.title')}</h2>
               <p className='contact-page__text'>
                 {t('form.text')}
               </p>
+              {/* noValidate: let the localized JS validation speak instead of
+                  the browser's native (unlocalized) required-field bubbles */}
               <form
                 className='comments-form__form form-one'
                 onSubmit={handleSubmit}
+                noValidate
               >
                 <div className='form-one__group'>
+                  {/* Honeypot — hidden from humans, tempting for bots */}
+                  <input
+                    type='text'
+                    name='website'
+                    tabIndex={-1}
+                    autoComplete='off'
+                    aria-hidden='true'
+                    style={{ position: 'absolute', left: '-9999px', height: 0, width: 0, opacity: 0 }}
+                  />
                   {status.type === "success" && (
                     <div className='form-one__control form-one__control--full'>
                       <div className='alert alert-success'>

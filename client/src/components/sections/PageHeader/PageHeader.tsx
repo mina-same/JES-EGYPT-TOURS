@@ -19,7 +19,7 @@ interface PageHeaderProps {
   imageTitle?: string;
 }
 const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt, imageTitle }) => {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const backgroundImage = bgImage || bg.src;
 
   return (
@@ -38,7 +38,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
       <div className="container relative z-10">
         <div className="page-header__content" style={{ textAlign: 'center' }}>
           <ul className="gotur-breadcrumb list-unstyled mb-3">
-            <li><Link href="/">{t('home')}</Link></li>
+            {/* locale-prefixed: bare "/" 307s to /en and leaks non-EN visitors out of their language */}
+            <li><Link href={`/${i18n.language || 'en'}`}>{t('home')}</Link></li>
             {Array.isArray(breadcrumbs) && breadcrumbs.length > 0 ? (
               breadcrumbs.map((item, idx) => (
                 <li key={`${item.label}-${idx}`}>
