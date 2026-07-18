@@ -9,6 +9,7 @@ import Link from "next/link";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { Handshake } from "lucide-react";
 
 export interface Button {
   link: string;
@@ -113,7 +114,7 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
                   <Col xs={12}>
                     <div className='about-one__feature-vestion'>
                       <div className='about-one__feature_icon'>
-                        <i className='icon-misstion' aria-hidden='true'></i>
+                        <Handshake size={40} strokeWidth={1.8} aria-hidden='true' />
                       </div>
                       <div className='about-one__feature-content'>
                         <MissionHeadingTag className='about-one__feature-title'>
