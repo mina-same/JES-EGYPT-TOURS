@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Blog from '../models/Blog';
+import Blog, { completeOgFromMeta } from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 
@@ -471,7 +471,10 @@ export const updateBlog = async (
       typeof body._editVersion === 'number' ? body._editVersion : undefined;
     delete body._editVersion; // never persist this control field to the document
 
-    const existingBlog = await Blog.findById(req.params.id, 'editVersion').lean();
+    const existingBlog = await Blog.findById(
+      req.params.id,
+      'editVersion ogTitle ogDescription metaTitle metaDescription'
+    ).lean();
     if (!existingBlog) {
       res.status(404).json({ success: false, error: 'Blog post not found' });
       return;
@@ -505,6 +508,17 @@ export const updateBlog = async (
     }
 
     stripEmptyLocalizedSlugs(body.slug);
+
+    // Complete OG from meta, language by language (EN←EN, DE←DE, …).
+    // findByIdAndUpdate skips the model's pre-save hook, so the same
+    // completion the hook does on create runs here for admin edits.
+    {
+      const ex: any = existingBlog;
+      const mergedOgTitle = completeOgFromMeta(body.ogTitle ?? ex.ogTitle, body.metaTitle ?? ex.metaTitle);
+      if (mergedOgTitle) body.ogTitle = mergedOgTitle;
+      const mergedOgDescription = completeOgFromMeta(body.ogDescription ?? ex.ogDescription, body.metaDescription ?? ex.metaDescription);
+      if (mergedOgDescription) body.ogDescription = mergedOgDescription;
+    }
 
     const blog = await Blog.findByIdAndUpdate(
       req.params.id,

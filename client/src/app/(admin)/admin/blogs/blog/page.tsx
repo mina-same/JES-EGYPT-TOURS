@@ -17,6 +17,7 @@ import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
+import LanguageBadges from '@/components/admin/LanguageBadges';
 
 interface BlogPost {
   _id: string;
@@ -268,6 +269,7 @@ export default function BlogsPage() {
           <div className="ml-4">
             <div className="flex items-start gap-2">
               <div className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{getLocalizedValue(blog.title)}</div>
+              <LanguageBadges entity={blog} className="mt-0.5 flex-shrink-0" />
               {blog.isFeatured && (
                 <span
                   className="mt-0.5 inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500"

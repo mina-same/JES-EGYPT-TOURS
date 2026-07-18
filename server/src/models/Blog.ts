@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
-import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
+import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 
 // Content Block Types
@@ -367,6 +367,9 @@ BlogSchema.index({ title: 'text', excerpt: 'text' });
 BlogSchema.index({ createdAt: -1 });
 BlogSchema.index({ viewCount: -1 });
 
+// Re-exported so existing imports from '../models/Blog' keep working.
+export { completeOgFromMeta } from './shared/LocalizedSchema';
+
 // Pre-save middleware to auto-populate SEO fields and calculate metrics
 BlogSchema.pre<IBlog>('save', function (next) {
   // Update lastModified
@@ -392,13 +395,9 @@ BlogSchema.pre<IBlog>('save', function (next) {
     this.featuredImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
   }
   
-  // Auto-populate OG fields from meta fields if not provided
-  if (!this.ogTitle || (!this.ogTitle.en && !this.ogTitle.de && !this.ogTitle.it)) {
-    this.ogTitle = this.metaTitle;
-  }
-  if (!this.ogDescription || (!this.ogDescription.en && !this.ogDescription.de && !this.ogDescription.it)) {
-    this.ogDescription = this.metaDescription;
-  }
+  // Auto-populate OG fields from meta fields, language by language
+  this.ogTitle = completeOgFromMeta(this.ogTitle, this.metaTitle) as any;
+  this.ogDescription = completeOgFromMeta(this.ogDescription, this.metaDescription) as any;
   if (!this.ogImage) {
     this.ogImage = this.metaImage?.url || this.featuredImage?.url || '';
   }

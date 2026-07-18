@@ -17,6 +17,7 @@ import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import { getLocalizedValue } from '@/lib/localize';
+import LanguageBadges from '@/components/admin/LanguageBadges';
 
 const getImageUrl = (image: any) => {
   if (!image) return '';
@@ -189,7 +190,10 @@ export default function BlogCategoriesPage() {
 
           )}
           <div className="category-details">
-            <div className="category-name">{getLocalizedValue(category.name)}</div>
+            <div className="category-name">
+              {getLocalizedValue(category.name)}
+              <LanguageBadges entity={category} className="ms-2" />
+            </div>
           </div>
         </div>
       ),

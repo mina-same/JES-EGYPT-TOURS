@@ -21,6 +21,29 @@ export interface ILocalizedMixed {
 }
 
 /**
+ * Per-language OG completion: each language's OG falls back to the SAME
+ * language's meta value (never English-to-all). Only empty languages are
+ * filled — hand-written OG text is always preserved. Returns the original
+ * value untouched when the merge would produce an invalid subdoc (no `en`,
+ * which LocalizedStringSchema requires).
+ */
+export const completeOgFromMeta = (
+  og: ILocalizedString | undefined | null,
+  meta: ILocalizedString | undefined | null
+): ILocalizedString | undefined => {
+  const pick = (lang: 'en' | 'de' | 'it' | 'es'): string => {
+    const own = og?.[lang];
+    if (typeof own === 'string' && own.trim()) return own;
+    const fromMeta = meta?.[lang];
+    if (typeof fromMeta === 'string' && fromMeta.trim()) return fromMeta;
+    return '';
+  };
+  const merged = { en: pick('en'), de: pick('de'), it: pick('it'), es: pick('es') };
+  if (!merged.en) return og || undefined;
+  return merged;
+};
+
+/**
  * Reusable Mongoose schema for localized strings
  */
 export const LocalizedStringSchema = new Schema(

@@ -18,6 +18,7 @@ import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import { PaginationControls } from '@/components/admin/PaginationControls';
+import LanguageBadges from '@/components/admin/LanguageBadges';
 
 export default function TourCategoriesPage() {
   const router = useRouter();
@@ -184,7 +185,10 @@ export default function TourCategoriesPage() {
             );
           })()}
           <div className="category-details">
-            <div className="category-name">{category.name?.en || 'No Name'}</div>
+            <div className="category-name">
+              {category.name?.en || 'No Name'}
+              <LanguageBadges entity={category} className="ms-2" />
+            </div>
           </div>
         </div>
       ),

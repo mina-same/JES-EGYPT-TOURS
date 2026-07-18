@@ -824,7 +824,7 @@ export default function NewBlogPage() {
 
                     <div className="space-y-2">
                       <LocalizedTextArea
-                        label="Excerpt"
+                        label="Intro"
                         value={formData.excerpt}
                         onChange={(val) => handleChange('excerpt', val)}
                         placeholder="Brief description of the blog post..."
@@ -862,29 +862,10 @@ export default function NewBlogPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Key Takeaways & Summary</CardTitle>
+                    <CardTitle>Summary & Key Takeaways</CardTitle>
                     <CardDescription>Provide a quick overview and a final summary of the article</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                      <LocalizedField
-                        label="Key Takeaways"
-                        value={formData.keyTakeaways}
-                        onChange={(lang, val) => handleChange('keyTakeaways', { ...(formData.keyTakeaways || {}), [lang]: val })}
-                        globalLanguage={activeLanguage}
-                      >
-                        {(lang, value, onChange) => (
-                          <TagInput
-                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
-                            onChange={onChange}
-                            placeholder={`Add a key takeaway in ${lang.toUpperCase()} and press Enter...`}
-                            maxTags={10}
-                          />
-                        )}
-                      </LocalizedField>
-                      <p className="text-sm text-muted-foreground italic">Add main points that readers should remember.</p>
-                    </div>
-
                     <div className="space-y-2">
                       <LocalizedField
                         label="Final Summary"
@@ -902,6 +883,25 @@ export default function NewBlogPage() {
                         )}
                       </LocalizedField>
                       <p className="text-sm text-muted-foreground italic">Add final summary points for the article.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <LocalizedField
+                        label="Key Takeaways"
+                        value={formData.keyTakeaways}
+                        onChange={(lang, val) => handleChange('keyTakeaways', { ...(formData.keyTakeaways || {}), [lang]: val })}
+                        globalLanguage={activeLanguage}
+                      >
+                        {(lang, value, onChange) => (
+                          <TagInput
+                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
+                            onChange={onChange}
+                            placeholder={`Add a key takeaway in ${lang.toUpperCase()} and press Enter...`}
+                            maxTags={10}
+                          />
+                        )}
+                      </LocalizedField>
+                      <p className="text-sm text-muted-foreground italic">Add main points that readers should remember.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1154,6 +1154,29 @@ export default function NewBlogPage() {
                         rows={3}
                         activeLanguage={activeLanguage}
                       />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <LocalizedInput
+                          label="OG Title (social sharing)"
+                          value={formData.ogTitle}
+                          onChange={(val) => handleChange('ogTitle', val)}
+                          placeholder="Empty = inherits Meta Title"
+                          activeLanguage={activeLanguage}
+                        />
+                        <p className="text-sm text-muted-foreground italic">Shown when shared on Facebook/WhatsApp. Each language inherits its own Meta Title when left empty.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <LocalizedTextArea
+                          label="OG Description (social sharing)"
+                          value={formData.ogDescription}
+                          onChange={(val) => handleChange('ogDescription', val)}
+                          placeholder="Empty = inherits Meta Description"
+                          rows={3}
+                          activeLanguage={activeLanguage}
+                        />
+                      </div>
                     </div>
 
 

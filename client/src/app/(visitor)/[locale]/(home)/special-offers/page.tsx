@@ -6,6 +6,7 @@ import itStrings from "@/i18n/locales/it/specialOffers.json";
 import esStrings from "@/i18n/locales/es/specialOffers.json";
 import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
 import { getLocalizedStaticSlug } from "@/lib/url";
+import { ogSiteDefaults } from "@/lib/ogDefaults";
 
 const baseUrl = SEO_BASE_URL;
 
@@ -52,6 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     keywords: s.seoKeywords,
     alternates: getStaticLocaleAlternates(locale, "special-offers"),
     openGraph: {
+      ...ogSiteDefaults(lang),
       title: s.pageTitle,
       description: s.pageDescription,
       type: "website",

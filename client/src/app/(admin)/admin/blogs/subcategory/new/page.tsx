@@ -50,6 +50,8 @@ interface BlogSubCategoryFormData {
     metaTitle: ILocalizedString;
     metaDescription: ILocalizedString;
     metaKeywords: ILocalizedMixed;
+    ogTitle?: ILocalizedString;
+    ogDescription?: ILocalizedString;
     metaImage?: {
       url: string;
       fileName: string;
@@ -93,6 +95,8 @@ const INITIAL_BLOG_SUBCAT: BlogSubCategoryFormData = {
     metaTitle: { en: '', de: '', it: '', es: '' },
     metaDescription: { en: '', de: '', it: '', es: '' },
     metaKeywords: { en: [], de: [], it: [], es: [] },
+    ogTitle: { en: '', de: '', it: '', es: '' },
+    ogDescription: { en: '', de: '', it: '', es: '' },
     metaImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   },
   heroTitle: { en: '', de: '', it: '', es: '' },
@@ -246,6 +250,8 @@ export default function NewBlogSubCategoryPage() {
               metaTitle: mapToLocalized(data.metaTitle),
               metaDescription: mapToLocalized(data.metaDescription),
               metaKeywords: mapToLocalizedMixed(data.metaKeywords || data.seo?.metaKeywords),
+              ogTitle: mapToLocalized(data.ogTitle),
+              ogDescription: mapToLocalized(data.ogDescription),
               metaImage: {
                 url: data.metaImage?.url || '',
                 fileName: data.metaImage?.fileName || '',
@@ -563,6 +569,8 @@ export default function NewBlogSubCategoryPage() {
         metaTitle: cleanData.seo?.metaTitle,
         metaDescription: cleanData.seo?.metaDescription,
         metaKeywords: cleanData.seo?.metaKeywords,
+        ogTitle: cleanData.seo?.ogTitle,
+        ogDescription: cleanData.seo?.ogDescription,
         metaImage: cleanImage(cleanData.seo?.metaImage),
       };
       
@@ -1152,6 +1160,29 @@ export default function NewBlogSubCategoryPage() {
               placeholder="SEO Description..."
               activeLanguage={activeLanguage}
             />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <LocalizedInput
+                  label="OG Title (social sharing)"
+                  value={formData.seo?.ogTitle || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('seo.ogTitle', val)}
+                  placeholder="Empty = inherits Meta Title"
+                  activeLanguage={activeLanguage}
+                />
+                <p className="text-sm text-muted-foreground italic">Shown when shared on Facebook/WhatsApp. Each language inherits its own Meta Title when left empty.</p>
+              </div>
+              <div className="space-y-2">
+                <LocalizedTextArea
+                  label="OG Description (social sharing)"
+                  value={formData.seo?.ogDescription || { en: '', de: '', it: '', es: '' }}
+                  onChange={(val) => handleChange('seo.ogDescription', val)}
+                  placeholder="Empty = inherits Meta Description"
+                  rows={3}
+                  activeLanguage={activeLanguage}
+                />
+              </div>
             </div>
 
             <Separator />
