@@ -2121,6 +2121,21 @@ button[data-action="stop"] {
   color: var(--gotur-white, #fff);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Section taglines (eyebrows), SITE-WIDE: keep the template's
+   handwritten style exactly as designed, but in the deeper brand
+   gold for readability and without the washed-out translucent
+   pill background.
+   ───────────────────────────────────────────────────────────── */
+.sec-title__tagline {
+  color: #b79c5c;
+  padding: 0;
+  font-weight: 500; /* the weight approved in the Caveat preview */
+}
+.sec-title__tagline::after {
+  display: none;
+}
+
 /* Small trust line under the WhatsApp number */
 .about-one__button__call__note {
   display: block;
