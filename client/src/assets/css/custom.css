@@ -2079,6 +2079,66 @@ button[data-action="stop"] {
   white-space: nowrap;
 }
 
+/* Pyramids & Sphinx line-art as a subtle watermark: the drawing no longer
+   fights the "Our Approach" text it sits behind (it kept colliding at
+   1200-1920px). Size is now set via correct width/height in AboutOne.tsx. */
+.about-one__element-two img {
+  opacity: 0.15;
+}
+
+/* Same soft gold glow, minus the blur(150px): a pre-faded radial gradient
+   looks the same but costs the GPU nothing (the blurred 390px square
+   rasterized a ~6.6MP layer kept alive by the floating animation). */
+.about-one__element-two::after {
+  top: -150px;
+  left: -150px;
+  width: 690px;
+  height: 690px;
+  background: radial-gradient(circle closest-side, rgba(212, 175, 55, 0.5), rgba(212, 175, 55, 0));
+  filter: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   About section CTAs: navy text on gold for readable contrast
+   (same palette as the header CTA), and the secondary button
+   becomes an outline ghost so "Explore Our Tours" reads as THE
+   primary action. Scoped to .about-one__button-links only —
+   .gotur-btn everywhere else on the site is untouched.
+   ───────────────────────────────────────────────────────────── */
+.about-one__button-links .gotur-btn,
+.about-one__button-links .gotur-btn:hover {
+  color: #19374a;
+}
+.about-one__button-links .gotur-btn--primary .icon {
+  color: #19374a;
+}
+.about-one__button-links .gotur-btn:not(.gotur-btn--primary) {
+  background-color: transparent;
+  border: 1px solid var(--gotur-base, #d4af37);
+}
+.about-one__button-links .gotur-btn:not(.gotur-btn--primary) .icon {
+  background-color: var(--gotur-base, #d4af37);
+  color: var(--gotur-white, #fff);
+}
+
+/* Small trust line under the WhatsApp number */
+.about-one__button__call__note {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--gotur-text, #595959);
+  opacity: 0.85;
+}
+
+/* Respect the OS motion preference for the section's three infinite animations */
+@media (prefers-reduced-motion: reduce) {
+  .about-one__thumb__item-popup,
+  .about-one__element-one,
+  .about-one__element-two {
+    animation: none;
+  }
+}
+
 /* =========================================================
    Destination Carousel Two — image height & ADVENTURE-style labels
    ========================================================= */

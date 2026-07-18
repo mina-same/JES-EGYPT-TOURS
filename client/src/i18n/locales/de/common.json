@@ -131,6 +131,22 @@
     }
   },
   "bookNow": "Jetzt buchen",
+  "about": {
+    "tagline": "Über JES Egypt Tours",
+    "title": "Private Ägypten-Reisen,",
+    "titleHighlight": "Ganz nach Ihren Wünschen",
+    "description": "Wir sind ein Reiseveranstalter mit Sitz in Kairo. Wir organisieren private Tagesausflüge und individuelle Mehrtagesreisen zu den Pyramiden von Gizeh, nach Kairo, Luxor, Assuan, auf Nilkreuzfahrten und nach Abu Simbel. Keine Sammelbusse, kein gehetzter Zeitplan. Nur Sie, ein sachkundiger örtlicher Reiseleiter und die Orte, die Sie wirklich sehen möchten.",
+    "feature1": "Private Touren, keine Sammelbusse",
+    "feature2": "Transparente Preise, keine versteckten Kosten",
+    "approachTitle": "Unser Ansatz",
+    "approachText": "Wir haben JES bewusst als Gegenentwurf zu dem aufgebaut, was Reisende am meisten stört: feste Preise vor der Buchung, keine Überraschungen vor Ort und Reiseleiter, die für Sie da sind, nicht für eine Provision.",
+    "exploreCta": "Unsere Touren entdecken",
+    "customTripCta": "Individuelle Reise planen",
+    "callText": "Anrufen oder WhatsApp",
+    "replyTime": "Antwortet in der Regel innerhalb von Minuten",
+    "mainImageAlt": "Private Ägypten-Reisen – Pyramiden von Gizeh",
+    "smallImageAlt": "Privater Reiseleiter in Ägypten – Tempeltour"
+  },
   "whyChooseUs": {
     "tagline": "Warum uns wählen?",
     "title": "Warum mit JES Egypt Tours reisen?",

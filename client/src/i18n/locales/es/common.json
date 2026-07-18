@@ -131,6 +131,22 @@
     }
   },
   "bookNow": "Reservar ahora",
+  "about": {
+    "tagline": "Sobre JES Egypt Tours",
+    "title": "Tours Privados por Egipto,",
+    "titleHighlight": "Diseñados a Su Medida",
+    "description": "Somos un operador turístico con sede en El Cairo. Organizamos tours privados de un día y viajes personalizados de varios días por las Pirámides de Guiza, El Cairo, Luxor, Asuán, cruceros por el Nilo y Abu Simbel. Sin autobuses compartidos, sin itinerarios apresurados. Solo ustedes, un guía local con amplios conocimientos y los lugares que realmente quieren visitar.",
+    "feature1": "Tours privados, sin autobuses de grupo",
+    "feature2": "Precios transparentes, sin costes ocultos",
+    "approachTitle": "Nuestro Enfoque",
+    "approachText": "Creamos JES como la respuesta a lo que más frustra a los viajeros: precios fijos antes de reservar, sin sorpresas el día del tour y guías que trabajan para ustedes, no por una comisión.",
+    "exploreCta": "Descubran Nuestros Tours",
+    "customTripCta": "Planifiquen un Viaje a Medida",
+    "callText": "Llamen o Escriban por WhatsApp",
+    "replyTime": "Solemos responder en pocos minutos",
+    "mainImageAlt": "Tours privados por Egipto – Pirámides de Guiza",
+    "smallImageAlt": "Guía privado en Egipto – tour por el templo"
+  },
   "whyChooseUs": {
     "tagline": "¿Por qué elegirnos?",
     "title": "¿Por qué elegir JES Egypt Tours?",
