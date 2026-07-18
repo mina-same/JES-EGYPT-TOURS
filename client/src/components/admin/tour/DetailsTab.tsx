@@ -9,6 +9,7 @@ import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import type { FormErrorItem } from '@/lib/parseApiError';
 import { cn } from '@/lib/utils';
+import { mixedToHtml } from '@/lib/localizedHtml';
 
 interface DetailsTabProps {
   formData: any;
@@ -44,7 +45,7 @@ export default function DetailsTab({
         </CardHeader>
         <CardContent>
           <LocalizedRichText
-            value={formData.tourHighlights || { en: "", de: "", it: "", es: "" }}
+            value={mixedToHtml(formData.tourHighlights)}
             onChange={(val) => handleChange('tourHighlights', val)}
             placeholder="e.g. Visit the Pyramids, Sphinx, Egyptian Museum…"
             activeLanguage={activeLanguage}
@@ -61,7 +62,7 @@ export default function DetailsTab({
           </CardHeader>
           <CardContent>
             <LocalizedRichText
-              value={formData.inclusion || { en: "", de: "", it: "", es: "" }}
+              value={mixedToHtml(formData.inclusion)}
               onChange={(val) => handleChange('inclusion', val)}
               placeholder="e.g. Hotel pickup, private guide, entrance fees…"
               activeLanguage={activeLanguage}
@@ -76,7 +77,7 @@ export default function DetailsTab({
           </CardHeader>
           <CardContent>
             <LocalizedRichText
-              value={formData.exclusion || { en: "", de: "", it: "", es: "" }}
+              value={mixedToHtml(formData.exclusion)}
               onChange={(val) => handleChange('exclusion', val)}
               placeholder="e.g. Tips, personal expenses, international flights…"
               activeLanguage={activeLanguage}
@@ -93,7 +94,7 @@ export default function DetailsTab({
         </CardHeader>
         <CardContent>
           <LocalizedRichText
-            value={formData.whatToPack || { en: "", de: "", it: "", es: "" }}
+            value={mixedToHtml(formData.whatToPack)}
             onChange={(val) => handleChange('whatToPack', val)}
             placeholder="e.g. Sunscreen, hat, comfortable shoes…"
             activeLanguage={activeLanguage}

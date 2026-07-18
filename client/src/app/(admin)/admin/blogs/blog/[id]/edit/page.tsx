@@ -27,6 +27,8 @@ import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import ContentBlockEditor, { ContentBlock as EditorContentBlock } from '@/components/admin/ContentBlockEditor';
 import TagInput from '@/components/admin/TagInput';
+import LocalizedRichText from '@/components/admin/LocalizedRichText';
+
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +41,9 @@ import { useFormDraft } from '@/hooks/useFormDraft';
 import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
+
+import { mixedToHtml, htmlAllEmpty } from '@/lib/localizedHtml';
+
 
 // Tab definitions
 const TABS = [
@@ -88,7 +93,7 @@ const INITIAL_BLOG_EDIT: any = {
   subCategory: '',
   destination: '',
   summary: { en: '', de: '', it: '', es: '' },
-  keyTakeaways: { en: [], de: [], it: [], es: [] },
+  keyTakeaways: { en: '', de: '', it: '', es: '' },
   faqs: [],
 };
 
@@ -404,8 +409,8 @@ export default function EditBlogPage() {
           category: blog.category?._id || blog.category || '',
           subCategory: blog.subCategory?._id || blog.subCategory || '',
           destination: blog.destination?._id || blog.destination || '',
-          summary: normalizeLocalizedMixed(blog.summary),
-          keyTakeaways: normalizeLocalizedMixed(blog.keyTakeaways),
+          summary: mixedToHtml(blog.summary),
+          keyTakeaways: mixedToHtml(blog.keyTakeaways),
           faqs: (blog.faqs || []).map((faq: any) => ({
             question: normalizeLocalizedString(faq.question),
             answer: normalizeLocalizedString(faq.answer),
@@ -567,9 +572,11 @@ export default function EditBlogPage() {
       };
 
       cleanData.tags = processLocalizedMixed(cleanData.tags);
-      cleanData.keyTakeaways = processLocalizedMixed(cleanData.keyTakeaways);
       cleanData.metaKeywords = processLocalizedMixed(cleanData.metaKeywords);
-      cleanData.summary = processLocalizedMixed(cleanData.summary);
+      // summary/keyTakeaways are localized HTML strings now — saved as-is,
+      // dropped only when EVERY language is visually empty.
+      if (htmlAllEmpty(cleanData.summary)) delete cleanData.summary;
+      if (htmlAllEmpty(cleanData.keyTakeaways)) delete cleanData.keyTakeaways;
 
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       cleanData.relatedPosts = Array.from(
@@ -612,7 +619,7 @@ export default function EditBlogPage() {
         }
       });
 
-      const optionalMixedFields = ['metaKeywords', 'tags', 'keyTakeaways', 'summary'];
+      const optionalMixedFields = ['metaKeywords', 'tags'];
       optionalMixedFields.forEach(field => {
         if (isLocalizedMixedEmpty((cleanData as any)[field])) {
           delete (cleanData as any)[field];
@@ -1056,40 +1063,24 @@ export default function EditBlogPage() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <LocalizedField
+                      <LocalizedRichText
                         label="Final Summary"
-                        value={formData.summary}
-                        onChange={(lang, val) => handleChange('summary', { ...(formData.summary || {}), [lang]: val })}
-                        globalLanguage={activeLanguage}
-                      >
-                        {(lang, value, onChange) => (
-                          <TagInput
-                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
-                            onChange={onChange}
-                            placeholder={`Add a summary bullet point in ${lang.toUpperCase()} and press Enter...`}
-                            maxTags={20}
-                          />
-                        )}
-                      </LocalizedField>
-                      <p className="text-sm text-muted-foreground italic">Add final summary points for the article.</p>
+                        value={mixedToHtml(formData.summary)}
+                        onChange={(val) => handleChange('summary', val)}
+                        placeholder="e.g. the article's key points as a list…"
+                        activeLanguage={activeLanguage}
+                      />
+                      <p className="text-sm text-muted-foreground italic">Supports bold, internal links, and lists — list items render as the summary bullets.</p>
                     </div>
 
                     <div className="space-y-2">
-                      <LocalizedField
+                      <LocalizedRichText
                         label="Key Takeaways"
-                        value={formData.keyTakeaways}
-                        onChange={(lang, val) => handleChange('keyTakeaways', { ...(formData.keyTakeaways || {}), [lang]: val })}
-                        globalLanguage={activeLanguage}
-                      >
-                        {(lang, value, onChange) => (
-                          <TagInput
-                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
-                            onChange={onChange}
-                            placeholder={`Add a key takeaway in ${lang.toUpperCase()} and press Enter...`}
-                            maxTags={10}
-                          />
-                        )}
-                      </LocalizedField>
+                        value={mixedToHtml(formData.keyTakeaways)}
+                        onChange={(val) => handleChange('keyTakeaways', val)}
+                        placeholder="e.g. what the reader should remember…"
+                        activeLanguage={activeLanguage}
+                      />
                       <p className="text-sm text-muted-foreground italic">Add main points that readers should remember.</p>
                     </div>
                   </CardContent>

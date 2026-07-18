@@ -340,11 +340,15 @@ const BlogSchema: Schema = new Schema(
       ref: 'Destination',
       default: null,
     },
+    // Plain Mixed (not LocalizedMixedSchema): these fields may exist in ONE
+    // language only, and the shared subschema requires `en`. Values are
+    // localized objects whose per-language value is an HTML string (new
+    // rich-text editor) or a legacy array of bullet strings.
     summary: {
-      type: LocalizedMixedSchema,
+      type: Schema.Types.Mixed,
     },
     keyTakeaways: {
-      type: LocalizedMixedSchema,
+      type: Schema.Types.Mixed,
     },
     faqs: [FAQSchema],
   },

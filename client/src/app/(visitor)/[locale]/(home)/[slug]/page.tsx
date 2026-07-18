@@ -677,7 +677,7 @@ export default async function SlugPage({ params }: PageProps) {
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(blogBreadcrumbJsonLd) }}
           />
-          <BlogDetailView slug={slug} locale={locale} />
+          <BlogDetailView slug={slug} locale={locale} initialBlog={blogData} />
         </>
       );
     }

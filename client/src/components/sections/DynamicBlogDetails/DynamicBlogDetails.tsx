@@ -18,6 +18,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
 import BannerCTA from "@/components/sections/BannerCTA/BannerCTA";
+import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
 
 
 interface DynamicBlogDetailsProps {
@@ -265,15 +266,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const TopSummary = () => {
-    const summaryData = getLocalizedValue(blog.summary, locale);
-    let items: string[] = [];
-
-    if (summaryData && (typeof summaryData === 'string' || Array.isArray(summaryData))) {
-      items = Array.isArray(summaryData) ? summaryData : summaryData.split('\n').map((s: string) => s.trim()).filter(Boolean);
-    }
+    // New format: localized HTML (list items become the bullets).
+    // Legacy format: array of bullet strings. Both normalize to items.
+    const items = normalizeAmenityItems(getLocalizedValue(blog.summary, locale));
 
     if (items.length === 0) return null;
-
 
     return (
       <div className="blog-details__summary-list" style={{ backgroundColor: '#fff', borderRadius: '4px', height: '100%', padding: '0' }}>
@@ -285,7 +282,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           {items.map((item: string, idx: number) => (
             <li key={idx} className="d-flex align-items-start gap-3 mb-3" style={{ fontSize: '0.95rem', color: '#444', lineHeight: '1.6' }}>
               <div style={{ width: '6px', height: '6px', backgroundColor: '#1b4168', marginTop: '8px', flexShrink: 0 }}></div>
-              <span>{item}</span>
+              <span dangerouslySetInnerHTML={{ __html: item }} />
             </li>
           ))}
         </ul>
@@ -293,9 +290,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     );
   };
   const KeyTakeawaysSection = () => {
-    const takeaways = getLocalizedValue(blog.keyTakeaways, locale);
-    if (!takeaways || (Array.isArray(takeaways) && takeaways.length === 0)) return null;
-    const items = Array.isArray(takeaways) ? takeaways : (typeof takeaways === 'string' ? [takeaways] : []);
+    const items = normalizeAmenityItems(getLocalizedValue(blog.keyTakeaways, locale));
+    if (items.length === 0) return null;
 
     return (
       <div className="blog-details__key-takeaways mt-5 mb-5 p-4" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #b79c5c' }}>
@@ -307,7 +303,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           {items.map((item: string, idx: number) => (
             <li key={idx} className="mb-3 d-flex align-items-start gap-3" style={{ fontSize: '1rem', color: '#444', lineHeight: '1.6' }}>
               <div style={{ width: '6px', height: '6px', backgroundColor: '#b79c5c', borderRadius: '50%', marginTop: '10px', flexShrink: 0 }}></div>
-              <span>{item}</span>
+              <span dangerouslySetInnerHTML={{ __html: item }} />
             </li>
           ))}
         </ul>

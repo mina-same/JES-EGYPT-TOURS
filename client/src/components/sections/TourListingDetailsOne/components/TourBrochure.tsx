@@ -5,7 +5,7 @@ import { footerOneData } from "@/data/footerOneData";
 import { useTranslation } from "react-i18next";
 import type { TourDetailsOneData } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { normalizeAmenityItems } from "../normalizeAmenityItems";
+import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
 
 interface TourBrochureProps {
   tour: TourDetailsOneData;
