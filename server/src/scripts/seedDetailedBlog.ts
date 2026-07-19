@@ -192,7 +192,6 @@ const seedDetailedBlog = async () => {
       ],
       
       // Analytics
-      viewCount: 1250,
       shareCount: 85,
       averageTimeOnPage: 320,
       

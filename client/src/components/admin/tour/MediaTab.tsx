@@ -10,6 +10,7 @@ import type { FormErrorItem } from '@/lib/parseApiError';
 
 import { type AdminLanguage } from '../AdminLanguageTabs';
 import LocalizedInput from '../LocalizedInput';
+import ImageLanguagesPicker from '../ImageLanguagesPicker';
 
 interface MediaTabProps {
   formData: any;
@@ -173,11 +174,16 @@ export default function MediaTab({
                     placeholder="Alt text"
                     activeLanguage={activeLanguage}
                   />
+                  <ImageLanguagesPicker
+                    value={image.languages}
+                    onChange={(next) => updateImage(index, 'languages', next)}
+                    restrictionWarning="Listing cards across the site (homepage, search, category lists) always use the first Main image — even for the languages excluded here. This restriction only affects the tour page itself."
+                  />
                 </div>
               </div>
             ))}
           </div>
-          
+
           <Button type="button" onClick={addImage} variant="outline" className="w-full">
             <Plus className="h-4 w-4 mr-2" />
             Add Main Image
@@ -287,11 +293,15 @@ export default function MediaTab({
                     placeholder="Alt text"
                     activeLanguage={activeLanguage}
                   />
+                  <ImageLanguagesPicker
+                    value={image.languages}
+                    onChange={(next) => updateGalleryImage(index, 'languages', next)}
+                  />
                 </div>
               </div>
             ))}
           </div>
-          
+
           <Button type="button" onClick={addGalleryImage} variant="outline" className="w-full">
             <Plus className="h-4 w-4 mr-2" />
             Add Gallery Image

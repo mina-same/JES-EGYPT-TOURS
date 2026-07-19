@@ -39,7 +39,6 @@ export default function BlogDetailView({ slug, locale, initialBlog }: BlogDetail
   const [error, setError] = useState<string | null>(null);
 
   // Server already provided the blog — skip the duplicate mount fetch
-  // (it also double-counted views: once for metadata, once here).
   const skipFirstFetch = useRef(Boolean(initialBlog));
   useEffect(() => {
     if (skipFirstFetch.current) {

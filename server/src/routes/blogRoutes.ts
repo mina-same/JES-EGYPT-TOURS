@@ -10,7 +10,6 @@ import {
   updateBlog,
   deleteBlog,
   addComment,
-  getPopularBlogs,
   publishBlog,
   unpublishBlog,
   toggleComments,
@@ -25,7 +24,6 @@ const router = express.Router();
 // Public routes
 router.get('/authors', getEditorialAuthors);
 router.get('/authors/:slug', getEditorialAuthorBySlug);
-router.get('/posts/popular', getPopularBlogs); // Must be before /:slug
 router.get('/posts/featured', getFeaturedBlogs);
 router.get('/posts', getAllBlogs);
 router.get('/posts/slug/:slug', getBlogBySlug);

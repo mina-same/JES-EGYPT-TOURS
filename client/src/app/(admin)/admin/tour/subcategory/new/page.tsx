@@ -207,12 +207,13 @@ export default function NewSubcategoryPage() {
             name: typeof data.name === 'object' ? data.name : { en: data.name || '', de: '', it: '', es: '' },
             slug: typeof data.slug === 'object' ? data.slug : { en: data.slug || '', de: '', it: '', es: '' },
             description: typeof data.description === 'object' ? data.description : { en: data.description || '', de: '', it: '', es: '' },
-            images: Array.isArray(data.images) 
+            images: Array.isArray(data.images)
               ? data.images.map((img: any) => ({
                   url: img?.url || '',
                   fileName: img?.fileName || '',
                   title: typeof img?.title === 'object' ? img.title : { en: img?.title || '', de: '', it: '', es: '' },
                   alt: typeof img?.alt === 'object' ? img.alt : { en: img?.alt || '', de: '', it: '', es: '' },
+                  languages: Array.isArray(img?.languages) && img.languages.length ? img.languages : undefined,
                 }))
               : [],
             gallery: Array.isArray(data.gallery)
@@ -221,6 +222,7 @@ export default function NewSubcategoryPage() {
                   fileName: img?.fileName || '',
                   title: typeof img?.title === 'object' ? img.title : { en: img?.title || '', de: '', it: '', es: '' },
                   alt: typeof img?.alt === 'object' ? img.alt : { en: img?.alt || '', de: '', it: '', es: '' },
+                  languages: Array.isArray(img?.languages) && img.languages.length ? img.languages : undefined,
                 }))
               : [],
             seo: {
@@ -543,14 +545,19 @@ export default function NewSubcategoryPage() {
       };
 
       const cleanImage = (img: any) => {
-        const cleaned: any = { 
-          url: img.url, 
-          fileName: img.fileName || img.url?.split('/').pop() || 'image' 
+        const cleaned: any = {
+          url: img.url,
+          fileName: img.fileName || img.url?.split('/').pop() || 'image'
         };
         const title = cleanLocalized(img.title);
         const alt = cleanLocalized(img.alt);
         if (title) cleaned.title = title;
         if (alt) cleaned.alt = alt;
+        // Per-language visibility: keep only a genuine restriction (1-3 valid locales).
+        const langs = Array.isArray(img.languages)
+          ? ['en', 'de', 'it', 'es'].filter((l) => img.languages.includes(l))
+          : [];
+        if (langs.length > 0 && langs.length < 4) cleaned.languages = langs;
         return cleaned;
       };
 
@@ -931,6 +938,7 @@ export default function NewSubcategoryPage() {
                       activeLanguage={activeLanguage}
                       title="Header Gallery"
                       description="Upload one or more images for the header slider"
+                      showLanguagesPicker
                     />
 
                     <LocalizedInput
@@ -1262,6 +1270,8 @@ export default function NewSubcategoryPage() {
                       activeLanguage={activeLanguage}
                       title="Subcategory Image"
                       description="Upload a representative thumbnail for this subcategory"
+                      showLanguagesPicker
+                      languagesPickerWarning="Subcategory cards and sliders elsewhere on the site still use the first image — even for the languages excluded here. This restriction only affects the subcategory page itself."
                     />
                   </CardContent>
                 </Card>
@@ -1308,6 +1318,7 @@ export default function NewSubcategoryPage() {
                       activeLanguage={activeLanguage}
                       title="Media Gallery"
                       description="Upload images for the subcategory gallery section"
+                      showLanguagesPicker
                     />
                   </CardContent>
                 </Card>

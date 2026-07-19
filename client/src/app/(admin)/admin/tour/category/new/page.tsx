@@ -204,6 +204,7 @@ export default function NewCategoryPage() {
                 fileName: img.fileName || '',
                 title: ensureLocalized(img.title),
                 alt: ensureLocalized(img.alt),
+                languages: Array.isArray(img.languages) && img.languages.length ? img.languages : undefined,
               }))
             : [],
           gallery: Array.isArray(data.gallery)
@@ -212,6 +213,7 @@ export default function NewCategoryPage() {
                 fileName: img.fileName || '',
                 title: ensureLocalized(img.title),
                 alt: ensureLocalized(img.alt),
+                languages: Array.isArray(img.languages) && img.languages.length ? img.languages : undefined,
               }))
             : [],
           seo: data.seo
@@ -597,14 +599,19 @@ export default function NewCategoryPage() {
       };
 
       const cleanImage = (img: any) => {
-        const cleaned: any = { 
-          url: img.url, 
-          fileName: img.fileName || img.url?.split('/').pop() || 'image' 
+        const cleaned: any = {
+          url: img.url,
+          fileName: img.fileName || img.url?.split('/').pop() || 'image'
         };
         const title = cleanLocalized(img.title);
         const alt = cleanLocalized(img.alt);
         if (title) cleaned.title = title;
         if (alt) cleaned.alt = alt;
+        // Per-language visibility: keep only a genuine restriction (1-3 valid locales).
+        const langs = Array.isArray(img.languages)
+          ? ['en', 'de', 'it', 'es'].filter((l) => img.languages.includes(l))
+          : [];
+        if (langs.length > 0 && langs.length < 4) cleaned.languages = langs;
         return cleaned;
       };
 
@@ -1015,6 +1022,7 @@ export default function NewCategoryPage() {
               activeLanguage={activeLanguage}
               title="Header Gallery"
               description="Upload one or more images for the header slider"
+              showLanguagesPicker
             />
 
             <div className="space-y-2">
@@ -1286,6 +1294,8 @@ export default function NewCategoryPage() {
                       activeLanguage={activeLanguage}
                       title="Category Image"
                       description="Upload a representative thumbnail for this category"
+                      showLanguagesPicker
+                      languagesPickerWarning="Category cards and sliders elsewhere on the site still use the first image — even for the languages excluded here. This restriction only affects the category page itself."
                     />
                   </CardContent>
                 </Card>
@@ -1332,6 +1342,7 @@ export default function NewCategoryPage() {
                       activeLanguage={activeLanguage}
                       title="Media Gallery"
                       description="Upload images for the category gallery section"
+                      showLanguagesPicker
                     />
                   </CardContent>
                 </Card>

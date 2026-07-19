@@ -18,7 +18,8 @@
     "check:cloudinary": "ts-node src/scripts/checkCloudinary.ts",
     "lint": "eslint . --ext .ts",
     "test": "jest",
-    "migrate:slider-links": "ts-node src/scripts/migrateSliderLegacyLinks.ts"
+    "migrate:slider-links": "ts-node src/scripts/migrateSliderLegacyLinks.ts",
+    "migrate:remove-blog-views": "ts-node src/scripts/removeBlogViews.ts"
   },
   "keywords": [
     "express",

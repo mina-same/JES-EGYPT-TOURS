@@ -69,7 +69,6 @@ export interface BlogPost {
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
-  viewCount: number;
   readingTime?: number;
   comments: Comment[];
   commentsEnabled: boolean;
@@ -326,20 +325,6 @@ export async function getBlogById(id: string): Promise<BlogPost> {
   }
   
   const json: SingleBlogResponse = await res.json();
-  return json.data;
-}
-
-// Fetch popular blogs
-export async function getPopularBlogs(): Promise<BlogPost[]> {
-  const res = await fetch(`${API_URL}/blog/posts/popular`, {
-    next: { revalidate: 300 }, // Revalidate every 5 minutes
-  });
-  
-  if (!res.ok) {
-    throw new Error('Failed to fetch popular blogs');
-  }
-  
-  const json = await res.json();
   return json.data;
 }
 

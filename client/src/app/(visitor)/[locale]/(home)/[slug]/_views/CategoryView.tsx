@@ -383,6 +383,12 @@ export default function CategoryView({
     );
   }
 
+  // Per-image language visibility: absent/empty languages = all locales.
+  const imgAllows = (img: any) =>
+    !Array.isArray(img?.languages) || img.languages.length === 0 || img.languages.includes(locale);
+  const visibleImages = (category.images || []).filter(imgAllows);
+  const visibleGallery = (category.gallery || []).filter(imgAllows);
+
   return (
     <Layout>
       {category?.slug && <SlugManager slugs={category.slug} />}
@@ -420,11 +426,11 @@ export default function CategoryView({
       <PageHeader
         title={getLocalizedValue(category.name, locale)}
         subTitle={getLocalizedValue(category.description, locale)}
-        bgImage={category.images?.[0]?.url || undefined}
-        alt={getLocalizedValue(category.images?.[0]?.alt, locale)}
+        bgImage={visibleImages[0]?.url || undefined}
+        alt={getLocalizedValue(visibleImages[0]?.alt, locale)}
         imageTitle={
-          getLocalizedValue(category.images?.[0]?.title, locale) ||
-          getLocalizedValue(category.images?.[0]?.alt, locale) ||
+          getLocalizedValue(visibleImages[0]?.title, locale) ||
+          getLocalizedValue(visibleImages[0]?.alt, locale) ||
           getLocalizedValue(category.name, locale)
         }
         breadcrumbs={[
@@ -434,7 +440,7 @@ export default function CategoryView({
 
       {(() => {
         const sh = category?.sectionHeader;
-        const images = Array.isArray(sh?.images) && sh.images.length ? sh.images : (sh?.image?.url ? [sh.image] : []);
+        const images = (Array.isArray(sh?.images) && sh.images.length ? sh.images : (sh?.image?.url ? [sh.image] : [])).filter(imgAllows);
         const hasData = sh && sh.isEnabled !== false && (!!sh?.title || !!sh?.description || images.length > 0 || (!!sh?.button?.label && !!sh?.button?.href));
         if (!hasData) return null;
         return (
@@ -595,11 +601,11 @@ export default function CategoryView({
         image1={category.bottomSection?.image1}
         image2={category.bottomSection?.image2}
         images={[
-          ...(category.images || []),
-          ...(category.gallery || [])
+          ...visibleImages,
+          ...visibleGallery
         ]}
         subtitle={category.name}
-        locale={locale} 
+        locale={locale}
       />
 
         {/* FAQ Section */}
@@ -611,11 +617,11 @@ export default function CategoryView({
       />
 
       {/* Gallery Section */}
-      <ListingGallery 
-        images={category.gallery && category.gallery.length > 0 ? category.gallery : category.images} 
+      <ListingGallery
+        images={visibleGallery.length > 0 ? visibleGallery : visibleImages}
         sectionTitle={category.gallerySectionTitle}
-        title={getLocalizedValue(category.name, locale) + " Gallery"} 
-        locale={locale} 
+        title={getLocalizedValue(category.name, locale) + " Gallery"}
+        locale={locale}
       />
 
       {/* Reviews Section */}

@@ -19,7 +19,6 @@ export const getAllBlogs = async (
       tags,
       isFeatured,
       search,
-      sort,
       subCategory
     } = req.query;
 
@@ -55,16 +54,13 @@ export const getAllBlogs = async (
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const sortParam = String(sort || '').toLowerCase();
-    const sortExpr = sortParam === 'popular' ? '-viewCount -publishedAt' : '-publishedAt';
-
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .select('-comments') // Exclude comments from list view
-      .sort(sortExpr)
+      .sort('-publishedAt')
       .skip(skip)
       .limit(Number(limit));
 
@@ -246,10 +242,6 @@ export const getBlogBySlug = async (
       return;
     }
 
-    // Increment view count
-    blog.viewCount += 1;
-    await blog.save();
-
     res.status(200).json({
       success: true,
       data: blog,
@@ -291,10 +283,6 @@ export const getBlogByIdPublic = async (
       });
       return;
     }
-
-    // Increment view count
-    blog.viewCount += 1;
-    await blog.save();
 
     res.status(200).json({
       success: true,
@@ -737,35 +725,6 @@ export const addComment = async (
     res.status(500).json({
       success: false,
       error: 'Failed to add comment',
-    });
-  }
-};
-
-/**
- * @desc    Get popular/trending blogs
- * @route   GET /api/blog/posts/popular
- * @access  Public
- */
-export const getPopularBlogs = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const blogs = await Blog.find({ status: 'published' })
-      .select('title slug featuredImage excerpt viewCount publishedAt tags isFeatured')
-      .sort({ viewCount: -1 })
-      .limit(5);
-
-    res.status(200).json({
-      success: true,
-      count: blogs.length,
-      data: blogs,
-    });
-  } catch (error: any) {
-    console.error('Error fetching popular blogs:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch popular blogs',
     });
   }
 };

@@ -39,7 +39,6 @@ interface BlogPost {
   status: 'draft' | 'published' | 'scheduled';
   isFeatured: boolean;
   publishedAt?: string;
-  viewCount: number;
   readingTime?: number;
   tags: ILocalizedMixed;
   destination?: {
@@ -362,17 +361,6 @@ export default function BlogsPage() {
           <div className="dark:text-gray-300">{formatDate(blog.publishedAt || blog.createdAt)}</div>
           <div className="text-xs text-gray-400 dark:text-gray-500">Updated: {formatDate(blog.updatedAt)}</div>
         </>
-      ),
-    },
-    {
-      header: 'Views',
-      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-      cellClassName: 'px-6 py-4 text-sm text-gray-500',
-      render: (blog) => (
-        <div className="flex items-center dark:text-gray-300">
-          <Eye size={14} className="mr-1 text-gray-400 dark:text-gray-500" />
-          {blog.viewCount}
-        </div>
       ),
     },
     {

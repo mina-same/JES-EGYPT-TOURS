@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { BlogPost, formatBlogDate, getPopularBlogs } from "@/lib/api/blog";
+import { BlogPost, formatBlogDate } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
 import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
@@ -48,7 +48,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     message: ''
   });
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [popularBlogs, setPopularBlogs] = useState<any[]>([]);
   const [relatedTours, setRelatedTours] = useState<any[]>([]);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [isVideoOpen, setVideoOpen] = useState(false);
@@ -72,19 +71,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fetch popular blogs and related tours
+  // Fetch related tours
   useEffect(() => {
     let isMounted = true;
 
     const fetchSideData = async () => {
-      try {
-        // Popular blogs
-        const popular = await getPopularBlogs();
-        if (isMounted) setPopularBlogs(popular.slice(0, 3));
-      } catch (e) {
-        console.error('Failed to load popular blogs:', e);
-      }
-
       try {
         // Related tours — use plain fetch (no auth token) for public endpoint
         const toursRes = await fetch(`${API_URL}/tours?limit=3&isActive=true&isFeatured=true`);
@@ -480,15 +471,13 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const RelatedPosts = () => {
-    // Use manually set related posts first, fall back to popular blogs
     const manualRelated = Array.isArray(blog.relatedPosts) ? blog.relatedPosts : [];
     const uniqueManualRelated = manualRelated.filter((post: any, index: number, posts: any[]) => {
       const postKey = post?._id || post?.id || getLocalizedValue(post?.slug, locale);
       if (!postKey) return false;
       return posts.findIndex((item: any) => (item?._id || item?.id || getLocalizedValue(item?.slug, locale)) === postKey) === index;
     });
-    const hasManualRelated = uniqueManualRelated.length > 0;
-    const posts = (hasManualRelated ? uniqueManualRelated : popularBlogs.slice(0, 3))
+    const posts = uniqueManualRelated
       .filter((post: any) => getStrictLocalizedSlug(post?.slug, locale as SupportedLocale));
     if (posts.length === 0) return null;
 
@@ -505,7 +494,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
 
       return (
-        <Col md={4} key={post._id || post.id || postLink || idx} className={hasManualRelated ? 'related-posts-scroll__item' : undefined}>
+        <Col md={4} key={post._id || post.id || postLink || idx} className='related-posts-scroll__item'>
           <div
             className='blog-card-two wow fadeInUp'
             data-wow-duration='1500ms'
@@ -570,15 +559,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         <h2 className="post-article-section-title">
           {t('postArticleArticlesTitle', { defaultValue: 'Keep Exploring Egypt' })}
         </h2>
-        {hasManualRelated ? (
-          <div className="related-posts-scroll">
-            {postCards}
-          </div>
-        ) : (
-          <Row className="gutter-y-30">
-            {postCards}
-          </Row>
-        )}
+        <div className="related-posts-scroll">
+          {postCards}
+        </div>
       </div>
     );
   };

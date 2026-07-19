@@ -20,4 +20,6 @@ export interface IImage {
   fileName: string;
   title?: ILocalizedString;
   alt?: ILocalizedString;
+  /** Locales this image renders for; absent/empty = all languages. */
+  languages?: ('en' | 'de' | 'it' | 'es')[];
 }

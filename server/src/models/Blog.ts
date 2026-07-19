@@ -87,7 +87,6 @@ export interface IBlog extends Document {
   editVersion: number;
 
   // Analytics
-  viewCount: number;
   shareCount: number;
   averageTimeOnPage?: number;
   
@@ -302,11 +301,6 @@ const BlogSchema: Schema = new Schema(
     },
 
     // === ANALYTICS ===
-    viewCount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     shareCount: {
       type: Number,
       default: 0,
@@ -404,7 +398,6 @@ BlogSchema.index({ tags: 1 });
 BlogSchema.index({ status: 1, isFeatured: 1, publishedAt: -1 });
 BlogSchema.index({ title: 'text', excerpt: 'text' });
 BlogSchema.index({ createdAt: -1 });
-BlogSchema.index({ viewCount: -1 });
 
 // Re-exported so existing imports from '../models/Blog' keep working.
 export { completeOgFromMeta } from './shared/LocalizedSchema';
@@ -500,12 +493,6 @@ BlogSchema.pre<IBlog>('save', function (next) {
   
   next();
 });
-
-// Method to increment view count
-BlogSchema.methods.incrementViewCount = function() {
-  this.viewCount += 1;
-  return this.save();
-};
 
 // Method to increment share count
 BlogSchema.methods.incrementShareCount = function() {

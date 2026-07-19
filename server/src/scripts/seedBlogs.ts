@@ -150,7 +150,6 @@ const seedBlogs = async () => {
       publishedAt: new Date('2024-03-01'),
       focusKeyword: { en: 'great pyramids giza' },
       commentsEnabled: true,
-      viewCount: 3450,
       readingTime: 6
     });
 
@@ -203,7 +202,6 @@ const seedBlogs = async () => {
       publishedAt: new Date('2024-03-10'),
       focusKeyword: { en: 'luxury nile cruise' },
       commentsEnabled: true,
-      viewCount: 4200,
       readingTime: 8
     });
 
@@ -256,7 +254,6 @@ const seedBlogs = async () => {
       publishedAt: new Date('2024-03-05'),
       focusKeyword: { en: 'hidden gems luxor' },
       commentsEnabled: true,
-      viewCount: 1850,
       readingTime: 4
     });
 
@@ -309,7 +306,6 @@ const seedBlogs = async () => {
       publishedAt: new Date('2024-03-08'),
       focusKeyword: { en: 'egyptian food' },
       commentsEnabled: true,
-      viewCount: 2200,
       readingTime: 5
     });
 

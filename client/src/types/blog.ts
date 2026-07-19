@@ -106,7 +106,6 @@ export interface IBlogPost {
   breadcrumbs?: IBreadcrumb[];
   relatedPosts?: IBlogPost[] | string[];
   relatedTours?: any[] | string[];
-  viewCount: number;
   shareCount?: number;
   readingTime?: number;
   averageTimeOnPage?: number;
