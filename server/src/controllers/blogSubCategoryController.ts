@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { completeOgFromMeta } from '../models/shared/LocalizedSchema';
 import BlogSubCategory from '../models/BlogSubCategory';
 import { FilterQuery } from 'mongoose';
 import { IBlogSubCategory } from '../models/BlogSubCategory';
@@ -381,7 +382,9 @@ export const updateSubcategory = async (
     const submittedEditVersion = Number(rawEditVersion);
     delete req.body._editVersion;
 
-    const currentSubcategory = await BlogSubCategory.findById(req.params.id).select('editVersion');
+    const currentSubcategory = await BlogSubCategory.findById(req.params.id).select(
+      'editVersion ogTitle ogDescription metaTitle metaDescription'
+    );
 
     if (!currentSubcategory) {
       res.status(404).json({
@@ -421,6 +424,22 @@ export const updateSubcategory = async (
 
     if (req.body.image === undefined) {
       delete body.image;
+    }
+
+    // Complete OG from meta, language by language (EN←EN, DE←DE, …).
+    // findByIdAndUpdate skips the model's pre-save hook, so the same
+    // completion the hook does on create runs here for admin edits.
+    {
+      const mergedOgTitle = completeOgFromMeta(
+        (body as any).ogTitle ?? currentSubcategory.ogTitle,
+        (body as any).metaTitle ?? currentSubcategory.metaTitle
+      );
+      if (mergedOgTitle) (body as any).ogTitle = mergedOgTitle;
+      const mergedOgDescription = completeOgFromMeta(
+        (body as any).ogDescription ?? currentSubcategory.ogDescription,
+        (body as any).metaDescription ?? currentSubcategory.metaDescription
+      );
+      if (mergedOgDescription) (body as any).ogDescription = mergedOgDescription;
     }
 
     const subcategory = await BlogSubCategory.findByIdAndUpdate(

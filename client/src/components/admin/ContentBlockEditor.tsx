@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { 
   DndContext, 
   closestCenter, 
@@ -53,6 +53,8 @@ export interface ContentBlock {
   aspectRatio?: '16:9' | '4:3' | '3:2' | '3:4' | 'auto';
   fit?: 'cover' | 'contain';
   focus?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'center-top' | 'center-bottom';
+  /** Non-text blocks only: locales the block renders for; absent/empty = all. */
+  languages?: AdminLanguage[];
 }
 
 interface ContentBlockEditorProps {
@@ -69,6 +71,127 @@ const BLOCK_TYPES = [
   { type: 'image',     label: 'Image',   icon: LucideImage,  description: 'Single image with display style control' },
 ] as const;
 
+const BLOCK_LOCALES: AdminLanguage[] = ['en', 'de', 'it', 'es'];
+const TEXT_BLOCK_TYPES: string[] = ['html', 'blockquote'];
+
+// Same markup-stripping emptiness test FaqManager uses.
+function hasLocaleValue(value: unknown): boolean {
+  if (typeof value !== 'string') return Boolean(value);
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\u00a0/g, ' ')
+    .trim().length > 0;
+}
+
+// Mirrors the visitor page's rule exactly: a text block belongs to the
+// languages it carries; an image/gallery block belongs to block.languages
+// (absent/empty = every language).
+function blockBelongsToLang(block: ContentBlock, lang: AdminLanguage): boolean {
+  if (TEXT_BLOCK_TYPES.includes(block.type)) {
+    return hasLocaleValue((block.content as any)?.[lang]) || hasLocaleValue((block.title as any)?.[lang]);
+  }
+  return !Array.isArray(block.languages) || block.languages.length === 0 || block.languages.includes(lang);
+}
+
+function isEmptyTextBlock(block: ContentBlock): boolean {
+  return TEXT_BLOCK_TYPES.includes(block.type)
+    && !BLOCK_LOCALES.some(lang => blockBelongsToLang(block, lang));
+}
+
+function filterChipClass(active: boolean): string {
+  return cn(
+    'text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border transition-colors',
+    active
+      ? 'bg-[#b79c5c] border-[#b79c5c] text-white'
+      : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 hover:border-[#b79c5c]'
+  );
+}
+
+// Header badge: which languages this block effectively belongs to.
+function BlockLangBadge({ block }: { block: ContentBlock }) {
+  if (TEXT_BLOCK_TYPES.includes(block.type)) {
+    const langs = BLOCK_LOCALES.filter(lang => blockBelongsToLang(block, lang));
+    if (langs.length === 0) {
+      return (
+        <span className="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-500 px-1.5 py-0.5 rounded uppercase font-bold">
+          Empty
+        </span>
+      );
+    }
+    return (
+      <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded uppercase font-bold whitespace-nowrap">
+        {langs.map(lang => lang.toUpperCase()).join(' · ')}
+      </span>
+    );
+  }
+  const restricted = Array.isArray(block.languages)
+    && block.languages.length > 0
+    && block.languages.length < BLOCK_LOCALES.length;
+  if (!restricted) {
+    return (
+      <span className="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-500 px-1.5 py-0.5 rounded uppercase font-bold">
+        All
+      </span>
+    );
+  }
+  return (
+    <span className="text-[10px] bg-[#b79c5c]/15 text-[#8a7440] dark:text-[#cbb27a] px-1.5 py-0.5 rounded uppercase font-bold whitespace-nowrap">
+      {block.languages!.map(lang => lang.toUpperCase()).join(' · ')}
+    </span>
+  );
+}
+
+// Per-language visibility for image/gallery blocks. All four selected is the
+// default and is stored as NO field at all — `languages` exists only when
+// the block is genuinely restricted.
+function BlockLanguagesPicker({
+  block,
+  index,
+  onUpdate,
+}: {
+  block: ContentBlock;
+  index: number;
+  onUpdate: (index: number, fieldOrPatch: string | Record<string, any>, value?: any) => void;
+}) {
+  const selected = Array.isArray(block.languages) && block.languages.length > 0
+    ? block.languages
+    : BLOCK_LOCALES;
+
+  const toggle = (lang: AdminLanguage) => {
+    const next = selected.includes(lang)
+      ? selected.filter(l => l !== lang)
+      : [...selected, lang];
+    if (next.length === 0) return; // at least one language must keep the block
+    onUpdate(
+      index,
+      'languages',
+      next.length === BLOCK_LOCALES.length ? undefined : BLOCK_LOCALES.filter(l => next.includes(l))
+    );
+  };
+
+  return (
+    <div className="space-y-1">
+      <Label>Visible in languages</Label>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {BLOCK_LOCALES.map(lang => (
+          <button
+            key={lang}
+            type="button"
+            onClick={() => toggle(lang)}
+            className={filterChipClass(selected.includes(lang))}
+          >
+            {lang.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Default: all languages. Untick a language to keep this block off that language&apos;s article.
+      </p>
+    </div>
+  );
+}
+
 // Sortable Block Item
 function SortableBlockItem({
   block,
@@ -83,7 +206,8 @@ function SortableBlockItem({
   activeLanguage,
   isFirst,
   isLast,
-  textBlockNumber
+  textBlockNumber,
+  isFiltered = false
 }: {
   block: ContentBlock;
   index: number;
@@ -98,6 +222,7 @@ function SortableBlockItem({
   isFirst: boolean;
   isLast: boolean;
   textBlockNumber?: number;
+  isFiltered?: boolean;
 }) {
   const {
     attributes,
@@ -135,20 +260,26 @@ function SortableBlockItem({
       {/* Block Header */}
       <div className="flex items-center justify-between p-3 border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 rounded-t-lg">
         <div className="flex items-center gap-3">
-          <div
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors"
-          >
-            <GripVertical className="w-4 h-4 text-gray-500 dark:text-slate-400" />
-          </div>
+          {/* Reordering a filtered subset would drop blocks between hidden
+              neighbours — dragging and Up/Down live in the All view only. */}
+          {!isFiltered && (
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors"
+            >
+              <GripVertical className="w-4 h-4 text-gray-500 dark:text-slate-400" />
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Icon className="w-4 h-4 text-gray-600 dark:text-slate-300" />
             <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{blockLabel}</span>
+            <BlockLangBadge block={block} />
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1">
+          {!isFiltered && (
           <div className="flex items-center gap-0.5 border-x px-1 dark:border-slate-800">
             <Button
               type="button"
@@ -173,6 +304,7 @@ function SortableBlockItem({
               <ChevronDown className="w-4 h-4" />
             </Button>
           </div>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -370,6 +502,7 @@ function BlockContent({
             maxImages={6}
             activeLanguage={activeLanguage}
           />
+          <BlockLanguagesPicker block={block} index={index} onUpdate={onUpdate} />
         </div>
       );
 
@@ -447,6 +580,8 @@ function BlockContent({
               Controls how this image is cropped and displayed in the article.
             </p>
           </div>
+
+          <BlockLanguagesPicker block={block} index={index} onUpdate={onUpdate} />
         </div>
       );
     }
@@ -512,6 +647,39 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
   const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [langFilter, setLangFilter] = useState<'all' | AdminLanguage>('all');
+  const isFiltered = langFilter !== 'all';
+  // While filtering, opened blocks show the FILTER language's inputs, not the
+  // global admin tab's — the per-field flag tabs still allow overriding.
+  const effectiveLanguage = isFiltered ? langFilter : activeLanguage;
+
+  // View-only filter: rows are hidden, never re-indexed — every handler keeps
+  // operating on the REAL index in the full array, so data and order are untouched.
+  const isBlockVisible = useCallback(
+    (block: ContentBlock) => {
+      if (langFilter === 'all') return true;
+      // A text block with no content anywhere has no language yet — keep it
+      // visible so a freshly added block never vanishes behind an active filter.
+      if (isEmptyTextBlock(block)) return true;
+      return blockBelongsToLang(block, langFilter);
+    },
+    [langFilter]
+  );
+
+  const langCounts = useMemo(() => {
+    const counts: Record<AdminLanguage, number> = { en: 0, de: 0, it: 0, es: 0 };
+    for (const block of blocks) {
+      for (const lang of BLOCK_LOCALES) {
+        if (blockBelongsToLang(block, lang)) counts[lang] += 1;
+      }
+    }
+    return counts;
+  }, [blocks]);
+
+  const visibleCount = useMemo(
+    () => blocks.reduce((n, block) => (isBlockVisible(block) ? n + 1 : n), 0),
+    [blocks, isBlockVisible]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -644,6 +812,29 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
         </Button>
       </div>
 
+      {blocks.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button type="button" onClick={() => setLangFilter('all')} className={filterChipClass(!isFiltered)}>
+            All ({blocks.length})
+          </button>
+          {BLOCK_LOCALES.map(lang => (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => setLangFilter(lang)}
+              className={filterChipClass(langFilter === lang)}
+            >
+              {lang.toUpperCase()} ({langCounts[lang]})
+            </button>
+          ))}
+          {isFiltered && (
+            <span className="text-xs text-gray-400">
+              Showing {langFilter.toUpperCase()} blocks — switch to All to reorder.
+            </span>
+          )}
+        </div>
+      )}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -652,11 +843,19 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
       >
         <SortableContext items={blocks.map((b, i) => b.id || `sort-${i}`)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
+            {isFiltered && visibleCount === 0 && (
+              <p className="text-sm text-gray-500 text-center py-6 m-0">
+                No blocks have {langFilter.toUpperCase()} content yet.
+              </p>
+            )}
             <AnimatePresence>
               {blocks.map((block, index) => {
+                // Numbering stays computed from the FULL list so "Text Block N"
+                // keeps its real, stable number while filtering hides rows.
                 const textBlockNumber = block.type === 'html'
                   ? blocks.slice(0, index + 1).filter((item) => item.type === 'html').length
                   : undefined;
+                if (!isBlockVisible(block)) return null;
 
                 return (
                 <motion.div
@@ -679,8 +878,9 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
                     onImageUpload={onImageUpload}
                     isCollapsed={collapsedBlocks.has(block.id)}
                     onToggleCollapse={toggleCollapse}
-                    activeLanguage={activeLanguage}
+                    activeLanguage={effectiveLanguage}
                     textBlockNumber={textBlockNumber}
+                    isFiltered={isFiltered}
                   />
                 </motion.div>
                 );

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
+import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { IImage } from './shared/ImageSchema';
 
@@ -248,13 +248,9 @@ BlogSubCategorySchema.pre<IBlogSubCategory>('save', function (next) {
     this.metaTitle = this.name;
   }
   
-  // Auto-populate OG fields from meta fields if not provided
-  if (!this.ogTitle || (!this.ogTitle.en && !this.ogTitle.de && !this.ogTitle.it)) {
-    this.ogTitle = this.metaTitle;
-  }
-  if (!this.ogDescription || (!this.ogDescription.en && !this.ogDescription.de && !this.ogDescription.it)) {
-    this.ogDescription = this.metaDescription;
-  }
+  // Complete OG from meta, language by language (EN←EN, DE←DE, …)
+  this.ogTitle = completeOgFromMeta(this.ogTitle, this.metaTitle) as any;
+  this.ogDescription = completeOgFromMeta(this.ogDescription, this.metaDescription) as any;
   if (!this.ogImage) {
     this.ogImage = (this.metaImage as any)?.url || (typeof this.image === 'string' ? this.image : (this.image as any)?.url);
   }

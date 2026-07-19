@@ -28,7 +28,7 @@ import { PricingPlans } from "./components/PricingPlans";
 import { TourCarousel } from "./components/TourCarousel";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
-import { normalizeAmenityItems } from "./normalizeAmenityItems";
+import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
 import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";

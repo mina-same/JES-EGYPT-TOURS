@@ -8,19 +8,22 @@ import { Plus, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
  import { type AdminLanguage } from './AdminLanguageTabs';
 import LocalizedField from './LocalizedField';
+import ImageLanguagesPicker from './ImageLanguagesPicker';
 
 export interface ImageData {
   url: string;
   title?: string | any;
   alt?: string | any;
   fileName?: string;
+  /** Locales this image renders for; absent/empty = all languages. */
+  languages?: AdminLanguage[];
 }
 
 interface ImageUploadProps {
   images: ImageData[];
   onAdd: () => void;
   onRemove: (index: number) => void;
-  onUpdate: (index: number, field: keyof ImageData, value: string, lang?: AdminLanguage) => void;
+  onUpdate: (index: number, field: keyof ImageData, value: any, lang?: AdminLanguage) => void;
   onUpload: (file: File, index: number) => Promise<{ url: string, fileName: string } | null>;
   title?: string;
   description?: string;
@@ -28,6 +31,10 @@ interface ImageUploadProps {
   maxImages?: number;
   activeLanguage?: AdminLanguage;
   addButtonLabel?: string;
+  /** Show the per-image "Visible in languages" picker (galleries only). */
+  showLanguagesPicker?: boolean;
+  /** Warning icon + tooltip shown on the picker while an image is restricted. */
+  languagesPickerWarning?: string;
 }
 
 
@@ -43,6 +50,8 @@ export default function ImageUpload({
   maxImages,
   activeLanguage,
   addButtonLabel = "Add Another Image",
+  showLanguagesPicker = false,
+  languagesPickerWarning,
 }: ImageUploadProps) {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -290,6 +299,15 @@ export default function ImageUpload({
                 </>
               )}
             </div>
+
+            {showLanguagesPicker && (
+              <ImageLanguagesPicker
+                className="mt-3"
+                value={image.languages}
+                onChange={(next) => onUpdate(index, 'languages', next)}
+                restrictionWarning={languagesPickerWarning}
+              />
+            )}
           </div>
         ))}
       </div>

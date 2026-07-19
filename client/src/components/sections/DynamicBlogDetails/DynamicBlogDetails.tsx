@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { BlogPost, formatBlogDate, getPopularBlogs } from "@/lib/api/blog";
+import { BlogPost, formatBlogDate } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
 import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
@@ -18,6 +18,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
 import BannerCTA from "@/components/sections/BannerCTA/BannerCTA";
+import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
 
 
 interface DynamicBlogDetailsProps {
@@ -47,12 +48,16 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     message: ''
   });
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [popularBlogs, setPopularBlogs] = useState<any[]>([]);
   const [relatedTours, setRelatedTours] = useState<any[]>([]);
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [isVideoOpen, setVideoOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
   const [activeFaqKey, setActiveFaqKey] = useState<string | null>("0");
+  const [shareUrl, setShareUrl] = useState('');
+
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,19 +71,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fetch popular blogs and related tours
+  // Fetch related tours
   useEffect(() => {
     let isMounted = true;
 
     const fetchSideData = async () => {
-      try {
-        // Popular blogs
-        const popular = await getPopularBlogs();
-        if (isMounted) setPopularBlogs(popular.slice(0, 3));
-      } catch (e) {
-        console.error('Failed to load popular blogs:', e);
-      }
-
       try {
         // Related tours — use plain fetch (no auth token) for public endpoint
         const toursRes = await fetch(`${API_URL}/tours?limit=3&isActive=true&isFeatured=true`);
@@ -128,6 +125,26 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       alert("Failed to submit comment. Please try again.");
     }
   };
+
+  // Per-language block visibility: text blocks (html/blockquote) belong to
+  // the languages they carry. When the current language has its own text
+  // blocks, show exactly those; otherwise fall back to the legacy behavior
+  // (all text blocks, getLocalizedValue resolves). Non-text blocks (image/
+  // imageRow/video) follow their optional `languages` list in BOTH branches —
+  // absent/empty means every language, so existing data is unaffected.
+  const TEXT_BLOCK_TYPES = ['html', 'blockquote'];
+  const hasOwnText = (v: any) => typeof v?.[locale] === 'string' && v[locale].trim().length > 0;
+  const langAllows = (b: any) =>
+    !Array.isArray(b?.languages) || b.languages.length === 0 || b.languages.includes(locale);
+  const allContentBlocks: any[] = blog.contentBlocks || [];
+  const localeHasOwnBlocks = allContentBlocks.some(
+    (b) => TEXT_BLOCK_TYPES.includes(b?.type) && hasOwnText(b?.content)
+  );
+  const visibleContentBlocks = localeHasOwnBlocks
+    ? allContentBlocks.filter((b) =>
+        TEXT_BLOCK_TYPES.includes(b?.type) ? hasOwnText(b?.content) || hasOwnText(b?.title) : langAllows(b)
+      )
+    : allContentBlocks.filter((b) => TEXT_BLOCK_TYPES.includes(b?.type) || langAllows(b));
 
   const renderContentBlock = (block: any, index: number) => {
     const content = getLocalizedValue(block.content, locale);
@@ -265,15 +282,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const TopSummary = () => {
-    const summaryData = getLocalizedValue(blog.summary, locale);
-    let items: string[] = [];
-
-    if (summaryData && (typeof summaryData === 'string' || Array.isArray(summaryData))) {
-      items = Array.isArray(summaryData) ? summaryData : summaryData.split('\n').map((s: string) => s.trim()).filter(Boolean);
-    }
+    // New format: localized HTML (list items become the bullets).
+    // Legacy format: array of bullet strings. Both normalize to items.
+    const items = normalizeAmenityItems(getLocalizedValue(blog.summary, locale));
 
     if (items.length === 0) return null;
-
 
     return (
       <div className="blog-details__summary-list" style={{ backgroundColor: '#fff', borderRadius: '4px', height: '100%', padding: '0' }}>
@@ -285,7 +298,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           {items.map((item: string, idx: number) => (
             <li key={idx} className="d-flex align-items-start gap-3 mb-3" style={{ fontSize: '0.95rem', color: '#444', lineHeight: '1.6' }}>
               <div style={{ width: '6px', height: '6px', backgroundColor: '#1b4168', marginTop: '8px', flexShrink: 0 }}></div>
-              <span>{item}</span>
+              <span dangerouslySetInnerHTML={{ __html: item }} />
             </li>
           ))}
         </ul>
@@ -293,9 +306,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     );
   };
   const KeyTakeawaysSection = () => {
-    const takeaways = getLocalizedValue(blog.keyTakeaways, locale);
-    if (!takeaways || (Array.isArray(takeaways) && takeaways.length === 0)) return null;
-    const items = Array.isArray(takeaways) ? takeaways : (typeof takeaways === 'string' ? [takeaways] : []);
+    const items = normalizeAmenityItems(getLocalizedValue(blog.keyTakeaways, locale));
+    if (items.length === 0) return null;
 
     return (
       <div className="blog-details__key-takeaways mt-5 mb-5 p-4" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #b79c5c' }}>
@@ -307,7 +319,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           {items.map((item: string, idx: number) => (
             <li key={idx} className="mb-3 d-flex align-items-start gap-3" style={{ fontSize: '1rem', color: '#444', lineHeight: '1.6' }}>
               <div style={{ width: '6px', height: '6px', backgroundColor: '#b79c5c', borderRadius: '50%', marginTop: '10px', flexShrink: 0 }}></div>
-              <span>{item}</span>
+              <span dangerouslySetInnerHTML={{ __html: item }} />
             </li>
           ))}
         </ul>
@@ -412,7 +424,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const SocialShareFloating = () => {
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareTitle = title || '';
 
     return (
@@ -460,15 +471,13 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const RelatedPosts = () => {
-    // Use manually set related posts first, fall back to popular blogs
     const manualRelated = Array.isArray(blog.relatedPosts) ? blog.relatedPosts : [];
     const uniqueManualRelated = manualRelated.filter((post: any, index: number, posts: any[]) => {
       const postKey = post?._id || post?.id || getLocalizedValue(post?.slug, locale);
       if (!postKey) return false;
       return posts.findIndex((item: any) => (item?._id || item?.id || getLocalizedValue(item?.slug, locale)) === postKey) === index;
     });
-    const hasManualRelated = uniqueManualRelated.length > 0;
-    const posts = (hasManualRelated ? uniqueManualRelated : popularBlogs.slice(0, 3))
+    const posts = uniqueManualRelated
       .filter((post: any) => getStrictLocalizedSlug(post?.slug, locale as SupportedLocale));
     if (posts.length === 0) return null;
 
@@ -485,7 +494,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
 
       return (
-        <Col md={4} key={post._id || post.id || postLink || idx} className={hasManualRelated ? 'related-posts-scroll__item' : undefined}>
+        <Col md={4} key={post._id || post.id || postLink || idx} className='related-posts-scroll__item'>
           <div
             className='blog-card-two wow fadeInUp'
             data-wow-duration='1500ms'
@@ -550,15 +559,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         <h2 className="post-article-section-title">
           {t('postArticleArticlesTitle', { defaultValue: 'Keep Exploring Egypt' })}
         </h2>
-        {hasManualRelated ? (
-          <div className="related-posts-scroll">
-            {postCards}
-          </div>
-        ) : (
-          <Row className="gutter-y-30">
-            {postCards}
-          </Row>
-        )}
+        <div className="related-posts-scroll">
+          {postCards}
+        </div>
       </div>
     );
   };
@@ -750,9 +753,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       </div>
                     </div>
 
-                    {/* Render Content Blocks */}
+                    {/* Render Content Blocks — strictly the current language's
+                        own blocks when it has any (each language's body is
+                        authored independently; e.g. a Spanish-only section
+                        must not leak into the English page). Articles whose
+                        text blocks lack this language entirely keep the
+                        legacy fallback rendering. */}
                     <div className='blog-details-card__content__inner'>
-                      {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
+                      {visibleContentBlocks.map((block, index) => renderContentBlock(block, index))}
                       <KeyTakeawaysSection />
                       <BlogFAQs />
                       <VideoModal 

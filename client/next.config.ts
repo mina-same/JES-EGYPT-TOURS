@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
       { source: "/de/individualreise-aegypten", destination: "/de/tailor-made" },
       { source: "/it/viaggio-su-misura", destination: "/it/tailor-made" },
       { source: "/es/viaje-a-medida", destination: "/es/tailor-made" },
+      { source: "/de/kontakt", destination: "/de/contact" },
+      { source: "/it/contatti", destination: "/it/contact" },
+      { source: "/es/contacto", destination: "/es/contact" },
     ];
   },
   async redirects() {
@@ -40,6 +43,9 @@ const nextConfig: NextConfig = {
       { source: "/de/tailor-made", destination: "/de/individualreise-aegypten", permanent: true },
       { source: "/it/tailor-made", destination: "/it/viaggio-su-misura", permanent: true },
       { source: "/es/tailor-made", destination: "/es/viaje-a-medida", permanent: true },
+      { source: "/de/contact", destination: "/de/kontakt", permanent: true },
+      { source: "/it/contact", destination: "/it/contatti", permanent: true },
+      { source: "/es/contact", destination: "/es/contacto", permanent: true },
     ];
   },
   /* config options here */

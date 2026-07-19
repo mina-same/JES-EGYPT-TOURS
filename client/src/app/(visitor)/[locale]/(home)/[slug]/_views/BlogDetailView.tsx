@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -23,14 +23,28 @@ import esBlogs from "@/i18n/locales/es/blogs.json";
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
-export default function BlogDetailView({ slug, locale }: { slug: string; locale: string }) {
+interface BlogDetailViewProps {
+  slug: string;
+  locale: string;
+  /** Blog fetched server-side (the page resolver already has it) so the
+   *  article body is part of the SSR HTML instead of a client-side spinner. */
+  initialBlog?: any;
+}
+
+export default function BlogDetailView({ slug, locale, initialBlog }: BlogDetailViewProps) {
   const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
 
-  const [loading, setLoading] = useState(true);
-  const [blog, setBlog] = useState<any>(null);
+  const [loading, setLoading] = useState(!initialBlog);
+  const [blog, setBlog] = useState<any>(initialBlog ?? null);
   const [error, setError] = useState<string | null>(null);
 
+  // Server already provided the blog — skip the duplicate mount fetch
+  const skipFirstFetch = useRef(Boolean(initialBlog));
   useEffect(() => {
+    if (skipFirstFetch.current) {
+      skipFirstFetch.current = false;
+      return;
+    }
     const fetchData = async () => {
       setLoading(true);
       try {

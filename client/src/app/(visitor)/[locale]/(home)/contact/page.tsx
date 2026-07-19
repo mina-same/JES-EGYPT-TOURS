@@ -8,20 +8,41 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { getServerTranslation } from "@/lib/i18n-server";
 import { Metadata } from "next";
-import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
+import { getLocalizedStaticSlug } from "@/lib/url";
+import { ogSiteDefaults } from "@/lib/ogDefaults";
 import './contact.css';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const { t } = await getServerTranslation(locale, 'contact');
-  
+  const canonicalUrl = `${SEO_BASE_URL}/${locale}/${getLocalizedStaticSlug("contact", locale)}`;
+
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    icons: {
-      icon: "/favicon-32x32.png",
-    },
     alternates: getStaticLocaleAlternates(locale, "contact"),
+    openGraph: {
+      ...ogSiteDefaults(locale),
+      title: t('metaTitle'),
+      description: t('metaDescription'),
+      type: "website",
+      url: canonicalUrl,
+      images: [
+        {
+          url: `${SEO_BASE_URL}/images/resources/contact-og.jpg`,
+          alt: t('pageTitle'),
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t('metaTitle'),
+      description: t('metaDescription'),
+      images: [`${SEO_BASE_URL}/images/resources/contact-og.jpg`],
+    },
   };
 }
 

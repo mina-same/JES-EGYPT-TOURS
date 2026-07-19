@@ -10,6 +10,8 @@ export interface IImage {
   fileName: string;
   title?: ILocalizedString;
   alt?: ILocalizedString;
+  /** Locales this image renders for; absent/empty = all languages. */
+  languages?: string[];
 }
 
 /**
@@ -34,6 +36,9 @@ export const ImageSchema = new Schema<IImage>(
     alt: {
       type: LocalizedStringSchema,
     },
+    // Locales this image renders for; absent/empty = all languages.
+    // default: undefined stops mongoose from stamping [] on every image.
+    languages: { type: [{ type: String, enum: ['en', 'de', 'it', 'es'] }], default: undefined },
   },
   { _id: false }
 );

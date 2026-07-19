@@ -1,4 +1,4 @@
-import { Plus_Jakarta_Sans, Just_Another_Hand } from "next/font/google";
+import { Plus_Jakarta_Sans, Caveat } from "next/font/google";
 import Script from "next/script";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
@@ -38,11 +38,11 @@ const jakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const justAnotherHand = Just_Another_Hand({
-  variable: "--font-just-another-hand",
-  subsets: ["latin"],
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin", "latin-ext"],
   display: "swap",
-  weight: "400",
+  weight: ["400", "500", "600", "700"],
 });
 
 export default async function RootLayout({
@@ -57,7 +57,7 @@ export default async function RootLayout({
     <html lang={locale || "en"} suppressHydrationWarning>
       <head></head>
       <body
-        className={`${jakartaSans.variable} ${justAnotherHand.variable}`}
+        className={`${jakartaSans.variable} ${caveat.variable}`}
         suppressHydrationWarning
       >
         <Script

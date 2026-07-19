@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Blog from '../models/Blog';
+import Blog, { completeOgFromMeta } from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 
@@ -19,7 +19,6 @@ export const getAllBlogs = async (
       tags,
       isFeatured,
       search,
-      sort,
       subCategory
     } = req.query;
 
@@ -55,16 +54,13 @@ export const getAllBlogs = async (
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const sortParam = String(sort || '').toLowerCase();
-    const sortExpr = sortParam === 'popular' ? '-viewCount -publishedAt' : '-publishedAt';
-
     const blogs = await Blog.find(query)
       .populate('author', 'name email')
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .select('-comments') // Exclude comments from list view
-      .sort(sortExpr)
+      .sort('-publishedAt')
       .skip(skip)
       .limit(Number(limit));
 
@@ -246,10 +242,6 @@ export const getBlogBySlug = async (
       return;
     }
 
-    // Increment view count
-    blog.viewCount += 1;
-    await blog.save();
-
     res.status(200).json({
       success: true,
       data: blog,
@@ -291,10 +283,6 @@ export const getBlogByIdPublic = async (
       });
       return;
     }
-
-    // Increment view count
-    blog.viewCount += 1;
-    await blog.save();
 
     res.status(200).json({
       success: true,
@@ -471,7 +459,10 @@ export const updateBlog = async (
       typeof body._editVersion === 'number' ? body._editVersion : undefined;
     delete body._editVersion; // never persist this control field to the document
 
-    const existingBlog = await Blog.findById(req.params.id, 'editVersion').lean();
+    const existingBlog = await Blog.findById(
+      req.params.id,
+      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status'
+    ).lean();
     if (!existingBlog) {
       res.status(404).json({ success: false, error: 'Blog post not found' });
       return;
@@ -505,6 +496,35 @@ export const updateBlog = async (
     }
 
     stripEmptyLocalizedSlugs(body.slug);
+
+    // Complete OG from meta, language by language (EN←EN, DE←DE, …).
+    // findByIdAndUpdate skips the model's pre-save hook, so the same
+    // completion the hook does on create runs here for admin edits.
+    {
+      const ex: any = existingBlog;
+      const mergedOgTitle = completeOgFromMeta(body.ogTitle ?? ex.ogTitle, body.metaTitle ?? ex.metaTitle);
+      if (mergedOgTitle) body.ogTitle = mergedOgTitle;
+      const mergedOgDescription = completeOgFromMeta(body.ogDescription ?? ex.ogDescription, body.metaDescription ?? ex.metaDescription);
+      if (mergedOgDescription) body.ogDescription = mergedOgDescription;
+    }
+
+    // Publish guard: drafts may be imageless (JSON-imported articles), but a
+    // post must never go live without a featured image. Checked explicitly
+    // because findByIdAndUpdate won't run the model's conditional `required`
+    // for fields the update doesn't touch.
+    {
+      const ex: any = existingBlog;
+      const targetStatus = body.status ?? ex.status;
+      const effectiveImageUrl =
+        body.featuredImage !== undefined ? body.featuredImage?.url : ex.featuredImage?.url;
+      if ((targetStatus === 'published' || targetStatus === 'scheduled') && !effectiveImageUrl) {
+        res.status(400).json({
+          success: false,
+          error: 'Featured image is required before publishing',
+        });
+        return;
+      }
+    }
 
     const blog = await Blog.findByIdAndUpdate(
       req.params.id,
@@ -705,35 +725,6 @@ export const addComment = async (
     res.status(500).json({
       success: false,
       error: 'Failed to add comment',
-    });
-  }
-};
-
-/**
- * @desc    Get popular/trending blogs
- * @route   GET /api/blog/posts/popular
- * @access  Public
- */
-export const getPopularBlogs = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const blogs = await Blog.find({ status: 'published' })
-      .select('title slug featuredImage excerpt viewCount publishedAt tags isFeatured')
-      .sort({ viewCount: -1 })
-      .limit(5);
-
-    res.status(200).json({
-      success: true,
-      count: blogs.length,
-      data: blogs,
-    });
-  } catch (error: any) {
-    console.error('Error fetching popular blogs:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch popular blogs',
     });
   }
 };

@@ -77,7 +77,7 @@ const FIELD_LABELS: Record<string, string> = {
   title: 'Title',
   slug: 'URL Slug',
   description: 'Description',
-  excerpt: 'Excerpt',
+  excerpt: 'Intro',
   author: 'Author',
   category: 'Category',
   status: 'Status',

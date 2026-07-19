@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
-import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema } from './shared/LocalizedSchema';
+import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 
 // Content Block Types
@@ -22,6 +22,7 @@ interface IContentBlock {
   thumbnail?: string;
   alt?: ILocalizedString;
   caption?: ILocalizedString;
+  languages?: string[];
 }
 
 interface IComment {
@@ -86,7 +87,6 @@ export interface IBlog extends Document {
   editVersion: number;
 
   // Analytics
-  viewCount: number;
   shareCount: number;
   averageTimeOnPage?: number;
   
@@ -113,6 +113,20 @@ export interface IBlog extends Document {
   incrementShareCount(): Promise<this>;
 }
 
+// Localized text for content blocks where EVERY language is optional —
+// per-language article bodies are independent (own keyword maps), so a
+// block may exist in one language only. LocalizedStringSchema (en required)
+// would reject such blocks.
+const BlockLocalizedStringSchema = new Schema(
+  {
+    en: { type: String, trim: true },
+    de: { type: String, trim: true },
+    it: { type: String, trim: true },
+    es: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
 const BlogSchema: Schema = new Schema(
   {
     // === BASIC INFO ===
@@ -135,21 +149,37 @@ const BlogSchema: Schema = new Schema(
     },
     featuredImage: {
       type: ImageSchema,
-      required: [true, 'Featured image is required'],
+      // Drafts may exist without an image (e.g. JSON-imported articles whose
+      // image is added by hand during review). Publishing without one is
+      // blocked BOTH here (create/save paths) and by an explicit guard in
+      // updateBlog (findByIdAndUpdate skips conditional validators for
+      // fields absent from the update).
+      required: [
+        function (this: any) {
+          return this.status === 'published' || this.status === 'scheduled';
+        },
+        'Featured image is required before publishing',
+      ],
     },
     excerpt: {
       type: LocalizedStringSchema,
     },
     
     // === RICH CONTENT ===
+    // NOTE: block title/content use the ALL-OPTIONAL localized schema below
+    // (not LocalizedStringSchema, whose `en` is required). Each language's
+    // article body is authored independently against its own keyword map, so
+    // a block may intentionally exist in ONE language only (e.g. a
+    // Spanish-exclusive section). The visitor page renders each language's
+    // own blocks strictly.
     contentBlocks: [{
       type: {
         type: String,
         enum: ['html', 'imageRow', 'blockquote', 'video', 'image'],
         required: true,
       },
-      title: LocalizedStringSchema,
-      content: LocalizedStringSchema,
+      title: BlockLocalizedStringSchema,
+      content: BlockLocalizedStringSchema,
       images: [{
         url: { type: String, required: true },
         alt: { type: LocalizedStringSchema, required: true },
@@ -166,6 +196,10 @@ const BlogSchema: Schema = new Schema(
       aspectRatio: { type: String, enum: ['16:9', '4:3', '3:2', '3:4', 'auto'] },
       fit: { type: String, enum: ['cover', 'contain'] },
       focus: { type: String, enum: ['center', 'top', 'bottom', 'left', 'right', 'center-top', 'center-bottom'] },
+      // Locales a non-text block (image/imageRow/video) renders for; absent/empty
+      // = all languages. Text blocks derive visibility from their own content.
+      // default: undefined stops mongoose from stamping [] on every block.
+      languages: { type: [{ type: String, enum: ['en', 'de', 'it', 'es'] }], default: undefined },
     }],
 
     // === SEO META TAGS ===
@@ -267,11 +301,6 @@ const BlogSchema: Schema = new Schema(
     },
 
     // === ANALYTICS ===
-    viewCount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     shareCount: {
       type: Number,
       default: 0,
@@ -340,11 +369,15 @@ const BlogSchema: Schema = new Schema(
       ref: 'Destination',
       default: null,
     },
+    // Plain Mixed (not LocalizedMixedSchema): these fields may exist in ONE
+    // language only, and the shared subschema requires `en`. Values are
+    // localized objects whose per-language value is an HTML string (new
+    // rich-text editor) or a legacy array of bullet strings.
     summary: {
-      type: LocalizedMixedSchema,
+      type: Schema.Types.Mixed,
     },
     keyTakeaways: {
-      type: LocalizedMixedSchema,
+      type: Schema.Types.Mixed,
     },
     faqs: [FAQSchema],
   },
@@ -365,7 +398,9 @@ BlogSchema.index({ tags: 1 });
 BlogSchema.index({ status: 1, isFeatured: 1, publishedAt: -1 });
 BlogSchema.index({ title: 'text', excerpt: 'text' });
 BlogSchema.index({ createdAt: -1 });
-BlogSchema.index({ viewCount: -1 });
+
+// Re-exported so existing imports from '../models/Blog' keep working.
+export { completeOgFromMeta } from './shared/LocalizedSchema';
 
 // Pre-save middleware to auto-populate SEO fields and calculate metrics
 BlogSchema.pre<IBlog>('save', function (next) {
@@ -392,13 +427,9 @@ BlogSchema.pre<IBlog>('save', function (next) {
     this.featuredImage.fileName = urlParts[urlParts.length - 1] || 'image.jpg';
   }
   
-  // Auto-populate OG fields from meta fields if not provided
-  if (!this.ogTitle || (!this.ogTitle.en && !this.ogTitle.de && !this.ogTitle.it)) {
-    this.ogTitle = this.metaTitle;
-  }
-  if (!this.ogDescription || (!this.ogDescription.en && !this.ogDescription.de && !this.ogDescription.it)) {
-    this.ogDescription = this.metaDescription;
-  }
+  // Auto-populate OG fields from meta fields, language by language
+  this.ogTitle = completeOgFromMeta(this.ogTitle, this.metaTitle) as any;
+  this.ogDescription = completeOgFromMeta(this.ogDescription, this.metaDescription) as any;
   if (!this.ogImage) {
     this.ogImage = this.metaImage?.url || this.featuredImage?.url || '';
   }
@@ -462,12 +493,6 @@ BlogSchema.pre<IBlog>('save', function (next) {
   
   next();
 });
-
-// Method to increment view count
-BlogSchema.methods.incrementViewCount = function() {
-  this.viewCount += 1;
-  return this.save();
-};
 
 // Method to increment share count
 BlogSchema.methods.incrementShareCount = function() {

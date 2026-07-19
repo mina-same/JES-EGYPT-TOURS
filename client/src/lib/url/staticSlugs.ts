@@ -23,6 +23,12 @@ export const LOCALIZED_STATIC_SLUGS: Record<string, Record<SupportedLocale, stri
     it: "viaggio-su-misura",
     es: "viaje-a-medida",
   },
+  contact: {
+    en: "contact",
+    de: "kontakt",
+    it: "contatti",
+    es: "contacto",
+  },
 };
 
 /** Any-locale slug → its canonical (English) key, or null if not a known

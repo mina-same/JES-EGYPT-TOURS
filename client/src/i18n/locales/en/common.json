@@ -132,6 +132,22 @@
     }
   },
   "bookNow": "Book Now",
+  "about": {
+    "tagline": "About JES Egypt Tours",
+    "title": "Private Egypt Tours,",
+    "titleHighlight": "Planned Around You",
+    "description": "We're a Cairo-based tour operator. We run private day tours and custom multi-day trips covering the Giza Pyramids, Cairo, Luxor, Aswan, Nile cruises, and Abu Simbel. No shared buses, no rushed schedules. Just you, a knowledgeable local guide, and the places you actually want to see.",
+    "feature1": "Private Tours, No Shared Group Buses",
+    "feature2": "Transparent Pricing, No Hidden Fees",
+    "approachTitle": "Our Approach",
+    "approachText": "We built JES around the opposite of what frustrates travelers: fixed prices before you book, no surprises on the day, and guides who are there for you — not for a commission.",
+    "exploreCta": "Explore Our Tours",
+    "customTripCta": "Plan a Custom Trip",
+    "callText": "Call or WhatsApp",
+    "replyTime": "Typically replies within minutes",
+    "mainImageAlt": "Private Egypt Tours - Giza Pyramids",
+    "smallImageAlt": "Egypt private guide - temple tour"
+  },
   "whyChooseUs": {
     "tagline": "Why Choose Us?",
     "title": "Why Travel with JES Egypt Tours?",

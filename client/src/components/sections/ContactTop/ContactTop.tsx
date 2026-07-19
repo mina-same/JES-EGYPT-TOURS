@@ -29,7 +29,7 @@ const ContactTop: React.FC = () => {
       icon: "icon-call-3",
       title: t('top.phoneTitle'),
       text: t('top.phoneText'),
-      link: "tel:+208-666-0112",
+      link: "tel:+201007437271",
     },
   ];
 
@@ -38,12 +38,7 @@ const ContactTop: React.FC = () => {
       <div className='container'>
         <div className='row gutter-y-30'>
           {contactItems.map((item: ContactItem, index) => (
-            <div
-              key={index}
-              className='col-lg-4 col-md-6 wow fadeInUp'
-              data-wow-duration='1500ms'
-              data-wow-delay={`${300 + 200 * index}ms`}
-            >
+            <div key={index} className='col-lg-4 col-md-6'>
               <div className='contact-top__item'>
                 <div className='contact-top__item__icon'>
                   <i className={item.icon}></i>

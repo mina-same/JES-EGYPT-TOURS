@@ -130,7 +130,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     tourStyle: toStr((effectiveParams as any).tourStyle) || "",
     blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
     sort: toStr((effectiveParams as any).sort) || "-createdAt",
-    blogSort: toStr((effectiveParams as any).blogSort) || "newest",
   });
 
   const [appliedFilters, setAppliedFilters] = useState(draftFilters);
@@ -144,7 +143,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       tourStyle: toStr((effectiveParams as any).tourStyle) || "",
       blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
       sort: toStr((effectiveParams as any).sort) || "-createdAt",
-      blogSort: toStr((effectiveParams as any).blogSort) || "newest",
     };
     setDraftFilters(next);
     setAppliedFilters(next);
@@ -167,7 +165,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     if (patch.q !== undefined || patch.minPrice !== undefined || patch.maxPrice !== undefined || patch.tourType !== undefined || patch.tourStyle !== undefined || patch.sort !== undefined) {
       next.page = "1";
     }
-    if (patch.q !== undefined || patch.blogSubCategory !== undefined || patch.blogSort !== undefined) {
+    if (patch.q !== undefined || patch.blogSubCategory !== undefined) {
       next.blogPage = "1";
     }
 
@@ -188,7 +186,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       tourStyle: "",
       blogSubCategory: "",
       sort: "-createdAt",
-      blogSort: "newest",
     };
     setDraftFilters(empty);
     setAppliedFilters(empty);
@@ -300,10 +297,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           search: q || undefined,
           subCategory: appliedFilters.blogSubCategory || undefined 
         };
-        if (appliedFilters.blogSort === "popular") {
-          opts.sort = 'popular';
-        }
-
         const res = await getAllBlogs(opts);
         setBlogs(res.data);
         setBlogsPagination(res.pagination);
@@ -318,7 +311,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     };
 
     void fetchBlogs();
-  }, [q, blogPage, appliedFilters.blogSort, appliedFilters.blogSubCategory]);
+  }, [q, blogPage, appliedFilters.blogSubCategory]);
 
   return (
     <section className="section-space">
@@ -458,17 +451,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                       </select>
                     </div>
 
-                    <div className="mb-3">
-                      <label className="form-label font-weight-bold small">{t('sortBlogsBy')}</label>
-                      <select
-                        className="form-select form-select-sm"
-                        value={draftFilters.blogSort}
-                        onChange={(e) => setDraftFilters(p => ({ ...p, blogSort: e.target.value }))}
-                      >
-                        <option value="newest">{t('newestFirst')}</option>
-                        <option value="popular">{t('mostPopular')}</option>
-                      </select>
-                    </div>
                   </div>
                 </div>
 

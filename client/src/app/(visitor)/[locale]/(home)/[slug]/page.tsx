@@ -21,6 +21,7 @@ import BlogCategoryView from "./_views/BlogCategoryView";
 import BlogSubcategoryView from "./_views/BlogSubcategoryView";
 import BlogDetailView from "./_views/BlogDetailView";
 import DestinationView from "./_views/DestinationView";
+import { ogSiteDefaults } from "@/lib/ogDefaults";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
@@ -121,6 +122,13 @@ function urlsMatch(firstUrl: string | undefined, secondUrl: string | undefined):
 function getLocalizedImageText(image: any, locale: string): string {
   if (!image || typeof image === 'string') return "";
   return getLocalizedValue(image.alt, locale) || getLocalizedValue(image.title, locale) || "";
+}
+
+// OG must resolve per language: this locale's OG text, else this locale's
+// meta — never another language's OG value.
+function ownLocaleValue(value: any, locale: string): string {
+  const v = value?.[locale];
+  return typeof v === "string" && v.trim() ? v : "";
 }
 
 function getBlogSeoImage(
@@ -262,6 +270,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       alternates,
       openGraph: {
+        ...ogSiteDefaults(locale),
         title: seoTitle || "JES Egypt Tours",
         description,
         type: "website",
@@ -292,6 +301,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       alternates,
       openGraph: {
+        ...ogSiteDefaults(locale),
         title: seoTitle || "JES Egypt Tours",
         description,
         type: "website",
@@ -315,6 +325,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const description = stripHtml(seoDescription || "");
     const keywords = getLocalizedValue(cAny.metaKeywords, locale);
     const image = getSeoImage(cAny.metaImage, cAny.ogImage || cAny.image, locale, seoTitle || getLocalizedValue(cAny.name, locale));
+    const ogTitle = ownLocaleValue(cAny.ogTitle, locale) || seoTitle || "JES Egypt Tours";
+    const ogDescription = stripHtml(ownLocaleValue(cAny.ogDescription, locale)) || description;
 
     const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: category.slug, baseUrl });
     return {
@@ -323,15 +335,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       alternates,
       openGraph: {
-        title: seoTitle || "JES Egypt Tours",
-        description,
+        ...ogSiteDefaults(locale),
+        title: ogTitle,
+        description: ogDescription,
         type: "website",
         images: image ? [image] : undefined,
       },
       twitter: {
         card: "summary_large_image",
-        title: seoTitle || "JES Egypt Tours",
-        description,
+        title: ogTitle,
+        description: ogDescription,
         images: image ? [image] : undefined,
       },
       other: withImageSource(image),
@@ -346,6 +359,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const description = stripHtml(seoDescription || "");
     const keywords = getLocalizedValue(sAny.metaKeywords, locale);
     const image = getSeoImage(sAny.metaImage, sAny.ogImage || sAny.image, locale, seoTitle || getLocalizedValue(sAny.name, locale));
+    const ogTitle = ownLocaleValue(sAny.ogTitle, locale) || seoTitle || "JES Egypt Tours";
+    const ogDescription = stripHtml(ownLocaleValue(sAny.ogDescription, locale)) || description;
 
     const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: subcategory.slug, baseUrl });
     return {
@@ -354,15 +369,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       alternates,
       openGraph: {
-        title: seoTitle || "JES Egypt Tours",
-        description,
+        ...ogSiteDefaults(locale),
+        title: ogTitle,
+        description: ogDescription,
         type: "website",
         images: image ? [image] : undefined,
       },
       twitter: {
         card: "summary_large_image",
-        title: seoTitle || "JES Egypt Tours",
-        description,
+        title: ogTitle,
+        description: ogDescription,
         images: image ? [image] : undefined,
       },
       other: withImageSource(image),
@@ -377,8 +393,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const blogTitle = getLocalizedValue(bAny.title, locale);
     const pageTitle = seoTitle || blogTitle || "JES Egypt Tours";
     const description = stripHtml(seoDescription || getLocalizedValue(bAny.excerpt, locale) || "");
-    const ogTitle = getLocalizedValue(bAny.ogTitle, locale) || pageTitle;
-    const ogDescription = stripHtml(getLocalizedValue(bAny.ogDescription, locale) || description);
+    const ogTitle = ownLocaleValue(bAny.ogTitle, locale) || pageTitle;
+    const ogDescription = stripHtml(ownLocaleValue(bAny.ogDescription, locale)) || description;
     const keywords = getLocalizedValue(bAny.metaKeywords, locale);
     const image = getBlogSeoImage(bAny.metaImage, bAny.ogImage, bAny.featuredImage, locale, blogTitle || pageTitle);
     const publicAuthorName = bAny.editorialAuthor?.name || getPublicAuthorName(bAny.author?.name);
@@ -393,6 +409,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
       alternates,
       openGraph: {
+        ...ogSiteDefaults(locale),
         title: ogTitle,
         description: ogDescription,
         images: image ? [image] : undefined,
@@ -422,6 +439,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       alternates,
       openGraph: {
+        ...ogSiteDefaults(locale),
         title: seoTitle || getLocalizedValue(destination.name, locale),
         description,
         type: "website",
@@ -451,6 +469,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       alternates,
       openGraph: {
+        ...ogSiteDefaults(locale),
         title: seoTitle || "JES Egypt Tours",
         description,
         images: image ? [image] : [],
@@ -658,7 +677,7 @@ export default async function SlugPage({ params }: PageProps) {
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(blogBreadcrumbJsonLd) }}
           />
-          <BlogDetailView slug={slug} locale={locale} />
+          <BlogDetailView slug={slug} locale={locale} initialBlog={blogData} />
         </>
       );
     }

@@ -17,6 +17,7 @@ import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
 import { PaginationControls } from '@/components/admin/PaginationControls';
+import LanguageBadges from '@/components/admin/LanguageBadges';
 
 export default function TourSubcategoriesPage() {
   const router = useRouter();
@@ -217,6 +218,7 @@ export default function TourSubcategoriesPage() {
           <div className="subcategory-details">
             <div className="subcategory-name">
               {typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name}
+              <LanguageBadges entity={subcategory} className="ms-2" />
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { getLocalizedValue } from '@/lib/localize';
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { aboutOneData } from "@/data/aboutOne";
+import { useTranslation } from "react-i18next";
 
 interface ListingPromoProps {
   title?: any;
@@ -29,21 +30,18 @@ interface ListingPromoProps {
   extraclass?: string;
 }
 
-const ListingPromo: React.FC<ListingPromoProps> = ({ 
-  title, 
-  description, 
-  subtitle,
-  button,
+const ListingPromo: React.FC<ListingPromoProps> = ({
+  title,
+  description,
   image1,
   image2,
   images = [],
-  mission,
-  features,
   locale,
   extraclass = ""
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const descriptionRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation("common");
 
   const handleToggle = () => {
     const wasExpanded = isExpanded;
@@ -64,14 +62,8 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
   
   if (!title && !description) return null;
 
-  const promoTitle = getLocalizedValue(title, locale) || aboutOneData.title;
-  const promoSubtitle = getLocalizedValue(subtitle, locale) || aboutOneData.subtitle;
+  const promoTitle = getLocalizedValue(title, locale) || t("about.title");
   const promoDesc = getLocalizedValue(description, locale);
-  
-  // Mission and features fallbacks
-  const displayFeatures = features || aboutOneData.features;
-  const displayMission = mission || aboutOneData.mission;
-  const displayButton = button || aboutOneData.button;
 
   // Images logic
   const getImageUrl = (item: any) => {

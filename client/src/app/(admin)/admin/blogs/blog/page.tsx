@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, FileText, Clock, 
-  Calendar, CheckCircle, XCircle, Tag, MapPin, Star
+  Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
 import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -17,6 +17,7 @@ import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
+import LanguageBadges from '@/components/admin/LanguageBadges';
 
 interface BlogPost {
   _id: string;
@@ -38,7 +39,6 @@ interface BlogPost {
   status: 'draft' | 'published' | 'scheduled';
   isFeatured: boolean;
   publishedAt?: string;
-  viewCount: number;
   readingTime?: number;
   tags: ILocalizedMixed;
   destination?: {
@@ -268,6 +268,7 @@ export default function BlogsPage() {
           <div className="ml-4">
             <div className="flex items-start gap-2">
               <div className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{getLocalizedValue(blog.title)}</div>
+              <LanguageBadges entity={blog} className="mt-0.5 flex-shrink-0" />
               {blog.isFeatured && (
                 <span
                   className="mt-0.5 inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500"
@@ -363,17 +364,6 @@ export default function BlogsPage() {
       ),
     },
     {
-      header: 'Views',
-      headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-      cellClassName: 'px-6 py-4 text-sm text-gray-500',
-      render: (blog) => (
-        <div className="flex items-center dark:text-gray-300">
-          <Eye size={14} className="mr-1 text-gray-400 dark:text-gray-500" />
-          {blog.viewCount}
-        </div>
-      ),
-    },
-    {
       header: 'Actions',
       headerClassName: 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
       cellClassName: 'px-6 py-4',
@@ -446,8 +436,16 @@ export default function BlogsPage() {
             <RefreshCw size={18} className={loading ? 'spinning' : ''} />
             Refresh
           </button>
-          <Link 
-            href="/admin/blogs/blog/new" 
+          <Link
+            href="/admin/blogs/blog/import"
+            className="btn-refresh"
+            title="Import articles from a JSON file (multi-agent output)"
+          >
+            <Upload size={18} />
+            Import JSON
+          </Link>
+          <Link
+            href="/admin/blogs/blog/new"
             className="btn-add-new"
           >
             <Plus size={18} />

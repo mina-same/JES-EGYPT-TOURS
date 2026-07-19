@@ -74,39 +74,17 @@ const ScrollTop = () => {
   }
 
   return (
-     <ScrollToTop
-     smooth
-     // className="scroll-top"
-     // id="scroll-top"
-     style={{ background: `conic-gradient(var(--gotur-primary) ${percentage}%, var(--gotur-white) ${percentage}%)`}}
-     component={
-       
+    // Arrow only — a gold circle with a number read like a "% off" promo
+    // badge on a tours site. The conic ring still fills as you scroll.
+    <ScrollToTop
+      smooth
+      style={{ background: `conic-gradient(var(--gotur-primary) ${percentage}%, var(--gotur-white) ${percentage}%)` }}
+      component={
         <span id="scroll-top-value" className="scroll-top-value">
-       {percentage === 100 ? (
-          <i className="fas fa-arrow-up"></i> // Show the up arrow icon at 100%
-        ) : (
-          `${Math.round(percentage)}%`
-         )}
-       </span>
-    
-     
-     }
-   />
-//     <div
-//       id="scroll-top"
-//       className="scroll-top active"
-//       style={{
-//         background: `conic-gradient(var(--gotur-primary) ${percentage}%, var(--gotur-white) ${percentage}%)`
-//       }}
-//     >
-//       <span id="scroll-top-value" className="scroll-top-value">
-//       {percentage === 100 ? (
-//           <i className="fas fa-arrow-up"></i> // Show the up arrow icon at 100%
-//         ) : (
-//           `${Math.round(percentage)}%`
-//         )}
-//       </span>
-//     </div>
+          <i className="fas fa-arrow-up" aria-hidden="true"></i>
+        </span>
+      }
+    />
   );
 };
 

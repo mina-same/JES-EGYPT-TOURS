@@ -24,9 +24,7 @@ import { cn } from '@/lib/utils';
 import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
-import LocalizedField from '@/components/admin/LocalizedField';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
-import TagInput from '@/components/admin/TagInput';
 import LocalizedRichText from '@/components/admin/LocalizedRichText';
 import ContentBlockEditor from '@/components/admin/ContentBlockEditor';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
@@ -42,6 +40,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
+import { mixedToHtml, htmlAllEmpty } from '@/lib/localizedHtml';
 
 // Tab definitions
 const TABS = [
@@ -91,7 +90,7 @@ const INITIAL_BLOG_POST = {
   subCategory: '',
   destination: '',
   summary: { en: '', de: '', it: '', es: '' },
-  keyTakeaways: { en: [], de: [], it: [], es: [] },
+  keyTakeaways: { en: '', de: '', it: '', es: '' },
   faqs: [],
 };
 
@@ -370,6 +369,18 @@ export default function NewBlogPage() {
           delete cleanedBlock._id;
         }
 
+        // Language visibility applies to non-text blocks only; all four
+        // selected = the default = field absent.
+        const langs = Array.isArray(cleanedBlock.languages)
+          ? ['en', 'de', 'it', 'es'].filter((l) => cleanedBlock.languages.includes(l))
+          : null;
+        if (!langs || langs.length === 0 || langs.length === 4
+            || cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') {
+          delete cleanedBlock.languages;
+        } else {
+          cleanedBlock.languages = langs;
+        }
+
         if (cleanedBlock.type === 'html') {
           // Keep content and title for html blocks
           cleanedBlock.content = ensureEnglish(cleanedBlock.content);
@@ -421,9 +432,11 @@ export default function NewBlogPage() {
       };
 
       cleanData.tags = processLocalizedMixed(cleanData.tags);
-      cleanData.keyTakeaways = processLocalizedMixed(cleanData.keyTakeaways);
       cleanData.metaKeywords = processLocalizedMixed(cleanData.metaKeywords);
-      cleanData.summary = processLocalizedMixed(cleanData.summary);
+      // summary/keyTakeaways are localized HTML strings now — saved as-is,
+      // dropped only when EVERY language is visually empty.
+      if (htmlAllEmpty(cleanData.summary)) delete cleanData.summary;
+      if (htmlAllEmpty(cleanData.keyTakeaways)) delete cleanData.keyTakeaways;
 
       if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       cleanData.relatedPosts = Array.from(
@@ -459,7 +472,7 @@ export default function NewBlogPage() {
         }
       });
 
-      const optionalMixedFields = ['metaKeywords', 'tags', 'keyTakeaways', 'summary'];
+      const optionalMixedFields = ['metaKeywords', 'tags'];
       optionalMixedFields.forEach(field => {
         if (isLocalizedMixedEmpty((cleanData as any)[field])) {
           delete (cleanData as any)[field];
@@ -824,7 +837,7 @@ export default function NewBlogPage() {
 
                     <div className="space-y-2">
                       <LocalizedTextArea
-                        label="Excerpt"
+                        label="Intro"
                         value={formData.excerpt}
                         onChange={(val) => handleChange('excerpt', val)}
                         placeholder="Brief description of the blog post..."
@@ -862,46 +875,30 @@ export default function NewBlogPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Key Takeaways & Summary</CardTitle>
+                    <CardTitle>Summary & Key Takeaways</CardTitle>
                     <CardDescription>Provide a quick overview and a final summary of the article</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <LocalizedField
-                        label="Key Takeaways"
-                        value={formData.keyTakeaways}
-                        onChange={(lang, val) => handleChange('keyTakeaways', { ...(formData.keyTakeaways || {}), [lang]: val })}
-                        globalLanguage={activeLanguage}
-                      >
-                        {(lang, value, onChange) => (
-                          <TagInput
-                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
-                            onChange={onChange}
-                            placeholder={`Add a key takeaway in ${lang.toUpperCase()} and press Enter...`}
-                            maxTags={10}
-                          />
-                        )}
-                      </LocalizedField>
-                      <p className="text-sm text-muted-foreground italic">Add main points that readers should remember.</p>
+                      <LocalizedRichText
+                        label="Final Summary"
+                        value={mixedToHtml(formData.summary)}
+                        onChange={(val) => handleChange('summary', val)}
+                        placeholder="e.g. the article's key points as a list…"
+                        activeLanguage={activeLanguage}
+                      />
+                      <p className="text-sm text-muted-foreground italic">Supports bold, internal links, and lists — list items render as the summary bullets.</p>
                     </div>
 
                     <div className="space-y-2">
-                      <LocalizedField
-                        label="Final Summary"
-                        value={formData.summary}
-                        onChange={(lang, val) => handleChange('summary', { ...(formData.summary || {}), [lang]: val })}
-                        globalLanguage={activeLanguage}
-                      >
-                        {(lang, value, onChange) => (
-                          <TagInput
-                            tags={Array.isArray(value) ? value : (typeof value === 'string' ? value.split('\n').filter(Boolean) : [])}
-                            onChange={onChange}
-                            placeholder={`Add a summary bullet point in ${lang.toUpperCase()} and press Enter...`}
-                            maxTags={20}
-                          />
-                        )}
-                      </LocalizedField>
-                      <p className="text-sm text-muted-foreground italic">Add final summary points for the article.</p>
+                      <LocalizedRichText
+                        label="Key Takeaways"
+                        value={mixedToHtml(formData.keyTakeaways)}
+                        onChange={(val) => handleChange('keyTakeaways', val)}
+                        placeholder="e.g. what the reader should remember…"
+                        activeLanguage={activeLanguage}
+                      />
+                      <p className="text-sm text-muted-foreground italic">Add main points that readers should remember.</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1154,6 +1151,29 @@ export default function NewBlogPage() {
                         rows={3}
                         activeLanguage={activeLanguage}
                       />
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <LocalizedInput
+                          label="OG Title (social sharing)"
+                          value={formData.ogTitle}
+                          onChange={(val) => handleChange('ogTitle', val)}
+                          placeholder="Empty = inherits Meta Title"
+                          activeLanguage={activeLanguage}
+                        />
+                        <p className="text-sm text-muted-foreground italic">Shown when shared on Facebook/WhatsApp. Each language inherits its own Meta Title when left empty.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <LocalizedTextArea
+                          label="OG Description (social sharing)"
+                          value={formData.ogDescription}
+                          onChange={(val) => handleChange('ogDescription', val)}
+                          placeholder="Empty = inherits Meta Description"
+                          rows={3}
+                          activeLanguage={activeLanguage}
+                        />
+                      </div>
                     </div>
 
 

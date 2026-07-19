@@ -82,17 +82,24 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
   const mapRawTourData = (tour: any, fetchedReviews: any[] = [], fetchedRelatedTours: any[] = []): TourDetailsOneData => {
     const tourId = tour._id;
+    // Per-image language visibility: absent/empty languages = all locales.
+    // Must run BEFORE mapping — the map drops every field except url/alt/title.
+    const imgAllows = (img: any) =>
+      !Array.isArray(img?.languages) || img.languages.length === 0 || img.languages.includes(currentLang);
+
     const sliderImages = safeArray<any>(tour.images)
-      .map((img: any) => ({ 
-        url: img?.url, 
+      .filter(imgAllows)
+      .map((img: any) => ({
+        url: img?.url,
         alt: getLocalizedValue(img?.alt),
-        title: getLocalizedValue(img?.title) 
+        title: getLocalizedValue(img?.title)
       }))
       .filter((img: any) => !!img.url);
 
     const galleryImages = safeArray<any>(tour.gallery)
-      .map((img: any) => ({ 
-        url: img?.url, 
+      .filter(imgAllows)
+      .map((img: any) => ({
+        url: img?.url,
         alt: getLocalizedValue(img?.alt),
         title: getLocalizedValue(img?.title)
       }))
@@ -165,8 +172,8 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           activities: safeArray(d?.activities).map((a: any) => ({
             heading: getLocalizedValue(a?.heading),
             description: getLocalizedValue(a?.description),
-            image: a?.image?.url ? { 
-              url: a.image.url, 
+            image: a?.image?.url && imgAllows(a.image) ? {
+              url: a.image.url,
               alt: getLocalizedValue(a.image.alt),
               title: getLocalizedValue(a.image.title)
             } : undefined,

@@ -366,6 +366,12 @@ export default function SubcategoryView({
   // Build the category link (flat — just the category's slug)
   const categoryLocalizedSlug = getStrictLocalizedSlug(subcategory.category?.slug, locale as SupportedLocale);
 
+  // Per-image language visibility: absent/empty languages = all locales.
+  const imgAllows = (img: any) =>
+    !Array.isArray(img?.languages) || img.languages.length === 0 || img.languages.includes(locale);
+  const visibleImages = (subcategory.images || []).filter(imgAllows);
+  const visibleGallery = (subcategory.gallery || []).filter(imgAllows);
+
   return (
     <Layout>
       {subcategory?.slug && <SlugManager slugs={subcategory.slug} />}
@@ -402,11 +408,11 @@ export default function SubcategoryView({
       <PageHeader
         title={getLocalizedValue(subcategory.name, locale)}
         subTitle={getLocalizedValue(subcategory.description, locale)}
-        bgImage={subcategory.images?.[0]?.url || undefined}
-        alt={getLocalizedValue(subcategory.images?.[0]?.alt, locale)}
+        bgImage={visibleImages[0]?.url || undefined}
+        alt={getLocalizedValue(visibleImages[0]?.alt, locale)}
         imageTitle={
-          getLocalizedValue(subcategory.images?.[0]?.title, locale) ||
-          getLocalizedValue(subcategory.images?.[0]?.alt, locale) ||
+          getLocalizedValue(visibleImages[0]?.title, locale) ||
+          getLocalizedValue(visibleImages[0]?.alt, locale) ||
           getLocalizedValue(subcategory.name, locale)
         }
         breadcrumbs={[
@@ -420,7 +426,7 @@ export default function SubcategoryView({
 
       {(() => {
         const sh = subcategory?.sectionHeader;
-        const images = Array.isArray(sh?.images) && sh.images.length ? sh.images : (sh?.image?.url ? [sh.image] : []);
+        const images = (Array.isArray(sh?.images) && sh.images.length ? sh.images : (sh?.image?.url ? [sh.image] : [])).filter(imgAllows);
         const hasData = sh && sh.isEnabled !== false && (!!sh?.title || !!sh?.description || images.length > 0 || (!!sh?.button?.label && !!sh?.button?.href));
         if (!hasData) return null;
         return (
@@ -580,8 +586,8 @@ export default function SubcategoryView({
         image1={subcategory.bottomSection?.image1}
         image2={subcategory.bottomSection?.image2}
         images={[
-          ...(subcategory.images || []),
-          ...(subcategory.gallery || [])
+          ...visibleImages,
+          ...visibleGallery
         ]}
         subtitle={subcategory.name}
         locale={locale}
@@ -597,7 +603,7 @@ export default function SubcategoryView({
 
       {/* Gallery Section */}
       <ListingGallery
-        images={subcategory.gallery && subcategory.gallery.length > 0 ? subcategory.gallery : subcategory.images}
+        images={visibleGallery.length > 0 ? visibleGallery : visibleImages}
         sectionTitle={subcategory.gallerySectionTitle}
         title={getLocalizedValue(subcategory.name, locale) + " Gallery"}
         locale={locale}

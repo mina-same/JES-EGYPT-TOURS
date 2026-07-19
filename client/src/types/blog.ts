@@ -76,6 +76,8 @@ export interface IContentBlock {
   aspectRatio?: '16:9' | '4:3' | '3:2' | '3:4' | 'auto';
   fit?: 'cover' | 'contain';
   focus?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'center-top' | 'center-bottom';
+  /** Non-text blocks only: locales the block renders for; absent/empty = all. */
+  languages?: ('en' | 'de' | 'it' | 'es')[];
 }
 
 // ==================== BLOG POST ====================
@@ -104,7 +106,6 @@ export interface IBlogPost {
   breadcrumbs?: IBreadcrumb[];
   relatedPosts?: IBlogPost[] | string[];
   relatedTours?: any[] | string[];
-  viewCount: number;
   shareCount?: number;
   readingTime?: number;
   averageTimeOnPage?: number;

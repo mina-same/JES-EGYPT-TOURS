@@ -18,6 +18,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 
 import { PaginationControls } from '@/components/admin/PaginationControls';
+import LanguageBadges from '@/components/admin/LanguageBadges';
 
 export default function ToursPage() {
   const { toast } = useToast();
@@ -218,6 +219,7 @@ export default function ToursPage() {
           <div className="tour-details">
             <div className="tour-name">
               {(typeof tour.heading === 'object' ? (tour.heading as any).en : tour.heading) || (typeof tour.name === 'object' ? (tour.name as any).en : tour.name) || 'Untitled Tour'}
+              <LanguageBadges entity={tour} className="ms-2" />
             </div>
             <div className="tour-meta">
               {tour.tourLocation && (

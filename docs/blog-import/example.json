@@ -1,0 +1,148 @@
+[
+  {
+    "title": {
+      "en": "Example: Visiting the Temples of Abu Simbel",
+      "de": "Beispiel: Besuch der Tempel von Abu Simbel",
+      "it": "Esempio: visita ai templi di Abu Simbel",
+      "es": "Ejemplo: visita a los templos de Abu Simbel"
+    },
+    "slug": {
+      "en": "example-visiting-abu-simbel",
+      "de": "beispiel-abu-simbel-besuch",
+      "it": "esempio-visita-abu-simbel",
+      "es": "ejemplo-visita-abu-simbel"
+    },
+    "excerpt": {
+      "en": "Everything first-time visitors need to know about Abu Simbel.",
+      "de": "Alles, was Erstbesucher über Abu Simbel wissen müssen.",
+      "it": "Tutto ciò che i visitatori devono sapere su Abu Simbel.",
+      "es": "Todo lo que los visitantes deben saber sobre Abu Simbel."
+    },
+    "contentBlocks": {
+      "en": [
+        {
+          "key": "why-visit",
+          "type": "html",
+          "title": "Why Abu Simbel is worth the trip",
+          "content": "<p>The two rock temples of Ramesses II sit on the western bank of Lake Nasser. Combine the visit with a <a href=\"/en/tours\">private day tour</a> for the best experience.</p><ul><li>Built in the 13th century BC</li><li>Relocated in 1968 to escape the rising lake</li></ul>"
+        },
+        {
+          "key": "quote-early",
+          "type": "blockquote",
+          "content": "Arrive before 9 AM — the morning light inside the great temple is unforgettable."
+        }
+      ],
+      "de": [
+        {
+          "key": "why-visit",
+          "type": "html",
+          "title": "Warum sich die Reise nach Abu Simbel lohnt",
+          "content": "<p>Die beiden Felsentempel von Ramses II. liegen am Westufer des Nassersees. Kombinieren Sie den Besuch mit einer <a href=\"/de/touren\">privaten Tagestour</a>.</p><ul><li>Erbaut im 13. Jahrhundert v. Chr.</li><li>1968 versetzt, um dem steigenden See zu entgehen</li></ul>"
+        },
+        {
+          "key": "quote-early",
+          "type": "blockquote",
+          "content": "Kommen Sie vor 9 Uhr — das Morgenlicht im großen Tempel ist unvergesslich."
+        }
+      ],
+      "it": [
+        {
+          "key": "why-visit",
+          "type": "html",
+          "title": "Perché Abu Simbel vale il viaggio",
+          "content": "<p>I due templi rupestri di Ramses II si trovano sulla riva occidentale del lago Nasser.</p><ul><li>Costruiti nel XIII secolo a.C.</li><li>Spostati nel 1968</li></ul>"
+        }
+      ],
+      "es": [
+        {
+          "key": "why-visit",
+          "type": "html",
+          "title": "Por qué Abu Simbel merece el viaje",
+          "content": "<p>Los dos templos excavados en la roca de Ramsés II se encuentran en la orilla occidental del lago Nasser.</p><ul><li>Construidos en el siglo XIII a.C.</li><li>Reubicados en 1968</li></ul>"
+        },
+        {
+          "key": "es-seccion-exclusiva",
+          "type": "html",
+          "title": "Sección exclusiva para el mercado hispano",
+          "content": "<p>Esta sección existe SOLO en español — cada idioma se redacta según su propio mapa de palabras clave. El bloque se fusiona únicamente con bloques que compartan su misma \"key\" en otros idiomas.</p>"
+        },
+        {
+          "key": "quote-early",
+          "type": "blockquote",
+          "content": "Llegue antes de las 9 — la luz de la mañana en el gran templo es inolvidable."
+        }
+      ]
+    },
+    "metaTitle": {
+      "en": "Abu Simbel Temples: Complete Visitor Guide",
+      "de": "Abu-Simbel-Tempel: Kompletter Besucherführer",
+      "it": "Templi di Abu Simbel: guida completa",
+      "es": "Templos de Abu Simbel: guía completa"
+    },
+    "metaDescription": {
+      "en": "Plan your Abu Simbel visit: tickets, timings, how to get there and what to see inside the temples of Ramesses II.",
+      "de": "Planen Sie Ihren Abu-Simbel-Besuch: Tickets, Zeiten, Anreise und was es in den Tempeln zu sehen gibt.",
+      "it": "Pianifica la tua visita ad Abu Simbel: biglietti, orari e cosa vedere.",
+      "es": "Planifique su visita a Abu Simbel: entradas, horarios y qué ver."
+    },
+    "metaKeywords": {
+      "en": ["Abu Simbel", "Ramesses II", "Egypt temples"],
+      "de": ["Abu Simbel", "Ramses II"],
+      "it": ["Abu Simbel"],
+      "es": ["Abu Simbel"]
+    },
+    "focusKeyword": {
+      "en": "Abu Simbel temples",
+      "de": "Abu-Simbel-Tempel",
+      "it": "templi di Abu Simbel",
+      "es": "templos de Abu Simbel"
+    },
+    "summary": {
+      "en": "<ul><li>Abu Simbel is a 3-hour drive or 45-minute flight from Aswan.</li><li>The Sun Festival happens twice a year, in February and October.</li><li>Book a <a href=\"/en/tours\">private tour</a> to control your timing.</li></ul>",
+      "de": "<ul><li>Abu Simbel liegt 3 Fahrstunden oder 45 Flugminuten von Assuan.</li><li>Das Sonnenfest findet zweimal jährlich statt.</li></ul>",
+      "it": "<ul><li>Abu Simbel dista 3 ore di auto da Assuan.</li><li>La Festa del Sole si tiene due volte l'anno.</li></ul>",
+      "es": "<ul><li>Abu Simbel está a 3 horas en coche de Asuán.</li><li>El Festival del Sol se celebra dos veces al año.</li></ul>"
+    },
+    "keyTakeaways": {
+      "en": "<ul><li>Start early: convoys leave Aswan around 4-5 AM.</li><li>The site needs 2-3 hours including both temples.</li></ul>",
+      "de": "<ul><li>Früh starten: Konvois verlassen Assuan gegen 4-5 Uhr.</li><li>Planen Sie 2-3 Stunden vor Ort ein.</li></ul>",
+      "it": "<ul><li>Partite presto: i convogli lasciano Assuan alle 4-5.</li></ul>",
+      "es": "<ul><li>Salga temprano: los convoyes salen de Asuán a las 4-5.</li></ul>"
+    },
+    "faqs": {
+      "en": [
+        {
+          "key": "one-day-trip",
+          "question": "Can you visit Abu Simbel in one day from Aswan?",
+          "answer": "Yes — most visitors go as a day trip by road or air and are back in Aswan by mid-afternoon."
+        }
+      ],
+      "de": [
+        {
+          "key": "one-day-trip",
+          "question": "Kann man Abu Simbel an einem Tag ab Assuan besuchen?",
+          "answer": "Ja — die meisten Besucher machen einen Tagesausflug und sind am Nachmittag zurück."
+        },
+        {
+          "key": "de-fuehrungen",
+          "question": "Gibt es deutschsprachige Führungen?",
+          "answer": "Ja, private deutschsprachige Ägyptologen können gebucht werden."
+        }
+      ],
+      "it": [
+        {
+          "key": "one-day-trip",
+          "question": "Si può visitare Abu Simbel in un giorno da Assuan?",
+          "answer": "Sì — la maggior parte dei visitatori fa una gita di un giorno."
+        }
+      ],
+      "es": [
+        {
+          "key": "one-day-trip",
+          "question": "¿Se puede visitar Abu Simbel en un día desde Asuán?",
+          "answer": "Sí — la mayoría lo visita en una excursión de un día."
+        }
+      ]
+    }
+  }
+]
