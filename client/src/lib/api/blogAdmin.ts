@@ -96,6 +96,8 @@ export interface ContentBlock {
   aspectRatio?: '16:9' | '4:3' | '3:2' | '3:4' | 'auto';
   fit?: 'cover' | 'contain';
   focus?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'center-top' | 'center-bottom';
+  /** Non-text blocks only: locales the block renders for; absent/empty = all. */
+  languages?: ('en' | 'de' | 'it' | 'es')[];
 }
 
 // ==================== BLOG CATEGORY API ====================

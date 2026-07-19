@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, FileText, Clock, 
-  Calendar, CheckCircle, XCircle, Tag, MapPin, Star
+  Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
 import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -448,8 +448,16 @@ export default function BlogsPage() {
             <RefreshCw size={18} className={loading ? 'spinning' : ''} />
             Refresh
           </button>
-          <Link 
-            href="/admin/blogs/blog/new" 
+          <Link
+            href="/admin/blogs/blog/import"
+            className="btn-refresh"
+            title="Import articles from a JSON file (multi-agent output)"
+          >
+            <Upload size={18} />
+            Import JSON
+          </Link>
+          <Link
+            href="/admin/blogs/blog/new"
             className="btn-add-new"
           >
             <Plus size={18} />

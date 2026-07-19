@@ -76,6 +76,21 @@ function getCompleteFaqLocales(faq: IFAQ): AdminLanguage[] {
   return FAQ_LOCALES.filter(lang => hasCompleteLocale(faq, lang));
 }
 
+// Filter membership is looser than the green badge on purpose: a half-written
+// FAQ (question only) must still show up under its language's filter.
+function hasAnyLocaleContent(faq: IFAQ, lang: AdminLanguage): boolean {
+  return hasLocaleValue(faq.question?.[lang]) || hasLocaleValue(faq.answer?.[lang]);
+}
+
+function filterChipClass(active: boolean): string {
+  return cn(
+    'text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border transition-colors',
+    active
+      ? 'bg-[#b79c5c] border-[#b79c5c] text-white'
+      : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 hover:border-[#b79c5c]'
+  );
+}
+
 function getFaqHeaderTitle(faq: IFAQ, activeLang: AdminLanguage): string {
   if (hasLocaleValue(faq.question?.[activeLang])) {
     return String(faq.question?.[activeLang]);
@@ -127,6 +142,39 @@ export default function FaqManager({
   const faqIds = useMemo<string[]>(() => faqs.map((_, i) => getFaqId(faqs[i], i)), [faqs]);
 
   const [collapsedFaqs, setCollapsedFaqs] = useState<Record<string, boolean>>({});
+  const [langFilter, setLangFilter] = useState<'all' | AdminLanguage>('all');
+  const isFiltered = langFilter !== 'all';
+  // While filtering, opened rows must show the FILTER language's inputs,
+  // not the global admin tab's — the per-field tabs still allow overriding.
+  const effectiveLanguage = isFiltered ? langFilter : activeLanguage;
+
+  // View-only filter: rows are hidden, never re-indexed — every handler keeps
+  // operating on the REAL index in the full array, so data and order are untouched.
+  const isFaqVisible = useCallback(
+    (faq: IFAQ) => {
+      if (langFilter === 'all') return true;
+      // A fully-empty draft has no language yet — keep it visible so a freshly
+      // added FAQ never vanishes behind an active filter.
+      if (!FAQ_LOCALES.some(lang => hasAnyLocaleContent(faq, lang))) return true;
+      return hasAnyLocaleContent(faq, langFilter);
+    },
+    [langFilter]
+  );
+
+  const langCounts = useMemo(() => {
+    const counts: Record<AdminLanguage, number> = { en: 0, de: 0, it: 0, es: 0 };
+    for (const faq of faqs) {
+      for (const lang of FAQ_LOCALES) {
+        if (hasAnyLocaleContent(faq, lang)) counts[lang] += 1;
+      }
+    }
+    return counts;
+  }, [faqs]);
+
+  const visibleCount = useMemo(
+    () => faqs.reduce((n, faq) => (isFaqVisible(faq) ? n + 1 : n), 0),
+    [faqs, isFaqVisible]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -247,6 +295,28 @@ export default function FaqManager({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {faqs.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button type="button" onClick={() => setLangFilter('all')} className={filterChipClass(!isFiltered)}>
+              All ({faqs.length})
+            </button>
+            {FAQ_LOCALES.map(lang => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setLangFilter(lang)}
+                className={filterChipClass(langFilter === lang)}
+              >
+                {lang.toUpperCase()} ({langCounts[lang]})
+              </button>
+            ))}
+            {isFiltered && (
+              <span className="text-xs text-gray-400">
+                Showing {langFilter.toUpperCase()} questions — switch to All to reorder.
+              </span>
+            )}
+          </div>
+        )}
         {faqs.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 dark:bg-slate-900 border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-xl">
             <div className="bg-white dark:bg-slate-800 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
@@ -266,10 +336,16 @@ export default function FaqManager({
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={faqIds} strategy={verticalListSortingStrategy}>
               <div className="space-y-3">
+                {isFiltered && visibleCount === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-6 m-0">
+                    No questions have {langFilter.toUpperCase()} content yet.
+                  </p>
+                )}
                 {faqs.map((faq, index) => {
+                  if (!isFaqVisible(faq)) return null;
                   const faqId = getFaqId(faq, index);
                   const isCollapsed = collapsedFaqs[faqId] ?? true;
-                  const headerTitle = getFaqHeaderTitle(faq, activeLanguage);
+                  const headerTitle = getFaqHeaderTitle(faq, effectiveLanguage);
                   const completeLocales = getCompleteFaqLocales(faq);
                   const hasCompleteContent = completeLocales.length > 0;
 
@@ -283,14 +359,18 @@ export default function FaqManager({
                         <>
                           <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-slate-800 p-3 bg-gray-50/50 dark:bg-slate-900/50">
                             <div className="flex items-center gap-2 min-w-0">
-                              <div
-                                ref={setActivatorNodeRef}
-                                {...attributes}
-                                {...listeners}
-                                className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-800"
-                              >
-                                <GripVertical className="h-4 w-4 text-gray-400" />
-                              </div>
+                              {/* Reordering a filtered subset would drop items between
+                                  hidden neighbours — drag only in the full list. */}
+                              {!isFiltered && (
+                                <div
+                                  ref={setActivatorNodeRef}
+                                  {...attributes}
+                                  {...listeners}
+                                  className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-800"
+                                >
+                                  <GripVertical className="h-4 w-4 text-gray-400" />
+                                </div>
+                              )}
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className="text-xs font-bold text-[#b79c5c] shrink-0 uppercase tracking-wider">
@@ -376,7 +456,7 @@ export default function FaqManager({
                               <LocalizedField
                                 label="Question"
                                 value={faq.question}
-                                globalLanguage={activeLanguage}
+                                globalLanguage={effectiveLanguage}
                                 onChange={(lang, val) => updateFaq(index, 'question', val, lang)}
                               >
                                 {(lang, currentValue, handleLang) => (
@@ -392,7 +472,7 @@ export default function FaqManager({
                               <LocalizedField
                                 label="Answer"
                                 value={faq.answer}
-                                globalLanguage={activeLanguage}
+                                globalLanguage={effectiveLanguage}
                                 onChange={(lang, val) => updateFaq(index, 'answer', val, lang)}
                               >
                                 {(lang, currentValue, handleLang) => (

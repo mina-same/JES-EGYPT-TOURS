@@ -473,7 +473,7 @@ export const updateBlog = async (
 
     const existingBlog = await Blog.findById(
       req.params.id,
-      'editVersion ogTitle ogDescription metaTitle metaDescription'
+      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status'
     ).lean();
     if (!existingBlog) {
       res.status(404).json({ success: false, error: 'Blog post not found' });
@@ -518,6 +518,24 @@ export const updateBlog = async (
       if (mergedOgTitle) body.ogTitle = mergedOgTitle;
       const mergedOgDescription = completeOgFromMeta(body.ogDescription ?? ex.ogDescription, body.metaDescription ?? ex.metaDescription);
       if (mergedOgDescription) body.ogDescription = mergedOgDescription;
+    }
+
+    // Publish guard: drafts may be imageless (JSON-imported articles), but a
+    // post must never go live without a featured image. Checked explicitly
+    // because findByIdAndUpdate won't run the model's conditional `required`
+    // for fields the update doesn't touch.
+    {
+      const ex: any = existingBlog;
+      const targetStatus = body.status ?? ex.status;
+      const effectiveImageUrl =
+        body.featuredImage !== undefined ? body.featuredImage?.url : ex.featuredImage?.url;
+      if ((targetStatus === 'published' || targetStatus === 'scheduled') && !effectiveImageUrl) {
+        res.status(400).json({
+          success: false,
+          error: 'Featured image is required before publishing',
+        });
+        return;
+      }
     }
 
     const blog = await Blog.findByIdAndUpdate(

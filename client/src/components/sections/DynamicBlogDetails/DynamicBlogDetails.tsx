@@ -54,6 +54,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const [isVideoOpen, setVideoOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
   const [activeFaqKey, setActiveFaqKey] = useState<string | null>("0");
+  const [shareUrl, setShareUrl] = useState('');
+
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,6 +134,26 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       alert("Failed to submit comment. Please try again.");
     }
   };
+
+  // Per-language block visibility: text blocks (html/blockquote) belong to
+  // the languages they carry. When the current language has its own text
+  // blocks, show exactly those; otherwise fall back to the legacy behavior
+  // (all text blocks, getLocalizedValue resolves). Non-text blocks (image/
+  // imageRow/video) follow their optional `languages` list in BOTH branches —
+  // absent/empty means every language, so existing data is unaffected.
+  const TEXT_BLOCK_TYPES = ['html', 'blockquote'];
+  const hasOwnText = (v: any) => typeof v?.[locale] === 'string' && v[locale].trim().length > 0;
+  const langAllows = (b: any) =>
+    !Array.isArray(b?.languages) || b.languages.length === 0 || b.languages.includes(locale);
+  const allContentBlocks: any[] = blog.contentBlocks || [];
+  const localeHasOwnBlocks = allContentBlocks.some(
+    (b) => TEXT_BLOCK_TYPES.includes(b?.type) && hasOwnText(b?.content)
+  );
+  const visibleContentBlocks = localeHasOwnBlocks
+    ? allContentBlocks.filter((b) =>
+        TEXT_BLOCK_TYPES.includes(b?.type) ? hasOwnText(b?.content) || hasOwnText(b?.title) : langAllows(b)
+      )
+    : allContentBlocks.filter((b) => TEXT_BLOCK_TYPES.includes(b?.type) || langAllows(b));
 
   const renderContentBlock = (block: any, index: number) => {
     const content = getLocalizedValue(block.content, locale);
@@ -408,7 +433,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const SocialShareFloating = () => {
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
     const shareTitle = title || '';
 
     return (
@@ -746,9 +770,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       </div>
                     </div>
 
-                    {/* Render Content Blocks */}
+                    {/* Render Content Blocks — strictly the current language's
+                        own blocks when it has any (each language's body is
+                        authored independently; e.g. a Spanish-only section
+                        must not leak into the English page). Articles whose
+                        text blocks lack this language entirely keep the
+                        legacy fallback rendering. */}
                     <div className='blog-details-card__content__inner'>
-                      {blog.contentBlocks.map((block, index) => renderContentBlock(block, index))}
+                      {visibleContentBlocks.map((block, index) => renderContentBlock(block, index))}
                       <KeyTakeawaysSection />
                       <BlogFAQs />
                       <VideoModal 

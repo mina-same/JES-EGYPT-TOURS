@@ -22,6 +22,7 @@ interface IContentBlock {
   thumbnail?: string;
   alt?: ILocalizedString;
   caption?: ILocalizedString;
+  languages?: string[];
 }
 
 interface IComment {
@@ -113,6 +114,20 @@ export interface IBlog extends Document {
   incrementShareCount(): Promise<this>;
 }
 
+// Localized text for content blocks where EVERY language is optional —
+// per-language article bodies are independent (own keyword maps), so a
+// block may exist in one language only. LocalizedStringSchema (en required)
+// would reject such blocks.
+const BlockLocalizedStringSchema = new Schema(
+  {
+    en: { type: String, trim: true },
+    de: { type: String, trim: true },
+    it: { type: String, trim: true },
+    es: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
 const BlogSchema: Schema = new Schema(
   {
     // === BASIC INFO ===
@@ -135,21 +150,37 @@ const BlogSchema: Schema = new Schema(
     },
     featuredImage: {
       type: ImageSchema,
-      required: [true, 'Featured image is required'],
+      // Drafts may exist without an image (e.g. JSON-imported articles whose
+      // image is added by hand during review). Publishing without one is
+      // blocked BOTH here (create/save paths) and by an explicit guard in
+      // updateBlog (findByIdAndUpdate skips conditional validators for
+      // fields absent from the update).
+      required: [
+        function (this: any) {
+          return this.status === 'published' || this.status === 'scheduled';
+        },
+        'Featured image is required before publishing',
+      ],
     },
     excerpt: {
       type: LocalizedStringSchema,
     },
     
     // === RICH CONTENT ===
+    // NOTE: block title/content use the ALL-OPTIONAL localized schema below
+    // (not LocalizedStringSchema, whose `en` is required). Each language's
+    // article body is authored independently against its own keyword map, so
+    // a block may intentionally exist in ONE language only (e.g. a
+    // Spanish-exclusive section). The visitor page renders each language's
+    // own blocks strictly.
     contentBlocks: [{
       type: {
         type: String,
         enum: ['html', 'imageRow', 'blockquote', 'video', 'image'],
         required: true,
       },
-      title: LocalizedStringSchema,
-      content: LocalizedStringSchema,
+      title: BlockLocalizedStringSchema,
+      content: BlockLocalizedStringSchema,
       images: [{
         url: { type: String, required: true },
         alt: { type: LocalizedStringSchema, required: true },
@@ -166,6 +197,10 @@ const BlogSchema: Schema = new Schema(
       aspectRatio: { type: String, enum: ['16:9', '4:3', '3:2', '3:4', 'auto'] },
       fit: { type: String, enum: ['cover', 'contain'] },
       focus: { type: String, enum: ['center', 'top', 'bottom', 'left', 'right', 'center-top', 'center-bottom'] },
+      // Locales a non-text block (image/imageRow/video) renders for; absent/empty
+      // = all languages. Text blocks derive visibility from their own content.
+      // default: undefined stops mongoose from stamping [] on every block.
+      languages: { type: [{ type: String, enum: ['en', 'de', 'it', 'es'] }], default: undefined },
     }],
 
     // === SEO META TAGS ===

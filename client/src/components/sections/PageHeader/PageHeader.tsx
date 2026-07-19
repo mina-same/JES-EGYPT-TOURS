@@ -3,8 +3,10 @@ import React from 'react';
 import bg from '@/assets/images/backgrounds/page-header-bg-1-1.jpg'
 import Link from 'next/link';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 
 import { useTranslation } from 'react-i18next';
+import { normalizeLocale } from '@/lib/url';
 
 type BreadcrumbItem = {
   label: string;
@@ -19,7 +21,9 @@ interface PageHeaderProps {
   imageTitle?: string;
 }
 const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt, imageTitle }) => {
-  const { t, i18n } = useTranslation('common');
+  const { t } = useTranslation('common');
+  const params = useParams();
+  const locale = normalizeLocale(params?.locale);
   const backgroundImage = bgImage || bg.src;
 
   return (
@@ -39,7 +43,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
         <div className="page-header__content" style={{ textAlign: 'center' }}>
           <ul className="gotur-breadcrumb list-unstyled mb-3">
             {/* locale-prefixed: bare "/" 307s to /en and leaks non-EN visitors out of their language */}
-            <li><Link href={`/${i18n.language || 'en'}`}>{t('home')}</Link></li>
+            <li><Link href={`/${locale}`}>{t('home')}</Link></li>
             {Array.isArray(breadcrumbs) && breadcrumbs.length > 0 ? (
               breadcrumbs.map((item, idx) => (
                 <li key={`${item.label}-${idx}`}>

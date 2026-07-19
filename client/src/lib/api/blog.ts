@@ -97,6 +97,8 @@ export interface ContentBlock {
   alt?: string;
   caption?: string;
   title?: ILocalizedString;
+  /** Non-text blocks only: locales the block renders for; absent/empty = all. */
+  languages?: string[];
 }
 
 export interface Comment {

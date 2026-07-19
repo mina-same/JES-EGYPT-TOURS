@@ -369,6 +369,18 @@ export default function NewBlogPage() {
           delete cleanedBlock._id;
         }
 
+        // Language visibility applies to non-text blocks only; all four
+        // selected = the default = field absent.
+        const langs = Array.isArray(cleanedBlock.languages)
+          ? ['en', 'de', 'it', 'es'].filter((l) => cleanedBlock.languages.includes(l))
+          : null;
+        if (!langs || langs.length === 0 || langs.length === 4
+            || cleanedBlock.type === 'html' || cleanedBlock.type === 'blockquote') {
+          delete cleanedBlock.languages;
+        } else {
+          cleanedBlock.languages = langs;
+        }
+
         if (cleanedBlock.type === 'html') {
           // Keep content and title for html blocks
           cleanedBlock.content = ensureEnglish(cleanedBlock.content);

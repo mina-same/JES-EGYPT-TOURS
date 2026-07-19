@@ -23,6 +23,9 @@ export type CompletenessReport = Record<ContentLang, LangCompleteness>;
 // `faqs` is excluded on purpose: each language may legitimately have its own
 // FAQ set (8 questions in EN, 4 in DE…), so an untranslated FAQ is not a gap —
 // the FAQ editor shows its own per-question language chips instead.
+// `contentBlocks` is excluded for the same reason: each language's article
+// body is authored independently against its own keyword map, so a section
+// existing in one language only is intentional, not missing work.
 const DEFAULT_SKIP_KEYS = new Set([
   '_id', 'id', '__v', 'createdAt', 'updatedAt', 'editVersion',
   'subcategory', 'subCategory', 'category', 'subcategories',
@@ -30,7 +33,7 @@ const DEFAULT_SKIP_KEYS = new Set([
   'relatedTours', 'relatedBlogs', 'relatedPosts', 'blogReferences',
   'destination', 'destinations', 'featuredBlogs', 'featuredDestinations',
   'reviews', 'comments', 'viewCount', 'reviewsCount',
-  'faqs',
+  'faqs', 'contentBlocks',
 ]);
 
 const SEO_KEYS = new Set(['seo', 'metaTitle', 'metaDescription', 'metaKeywords', 'mapSchema']);
