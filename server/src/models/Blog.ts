@@ -109,7 +109,6 @@ export interface IBlog extends Document {
   updatedAt: Date;
   
   // Methods
-  incrementViewCount(): Promise<this>;
   incrementShareCount(): Promise<this>;
 }
 

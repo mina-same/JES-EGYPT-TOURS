@@ -382,16 +382,13 @@ export default function NewBlogPage() {
         }
 
         if (cleanedBlock.type === 'html') {
-          // Keep content and title for html blocks
-          cleanedBlock.content = ensureEnglish(cleanedBlock.content);
+          // Content/title are per-language independent by design (a block may
+          // be ES-only) — do NOT force English via ensureEnglish here.
           if (isLocalizedStringEmpty(cleanedBlock.title)) {
             delete cleanedBlock.title;
-          } else {
-            ensureEnglish(cleanedBlock.title);
           }
         } else if (cleanedBlock.type === 'blockquote') {
-          // blockquote only uses content
-          cleanedBlock.content = ensureEnglish(cleanedBlock.content);
+          // blockquote only uses content; same per-language freedom applies.
           delete cleanedBlock.title;
         } else {
           // Others don't use top-level content/title

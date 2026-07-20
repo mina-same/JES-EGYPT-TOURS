@@ -238,17 +238,6 @@ export const tourAPI = {
   },
 
   /**
-   * Get popular tours
-   */
-  getPopular: async (limit?: number) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
-      `${API_BASE}/popular`,
-      { params: { limit } }
-    );
-    return response.data;
-  },
-
-  /**
    * Get tours by subcategory
    */
   getBySubcategory: async (subcategoryId: string, params?: QueryParams) => {

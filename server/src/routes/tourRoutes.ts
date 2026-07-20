@@ -21,7 +21,6 @@ import {
 import {
   getAllTours,
   getFeaturedTours,
-  getPopularTours,
   getToursBySubcategory,
   getTourById,
   getTourBySlug,
@@ -162,16 +161,8 @@ router.get('/stats', protect, permit(PERMISSIONS.TOUR_READ), getTourStats);
 router.get('/featured', getFeaturedTours);
 
 /**
- * @route   GET /api/tours/popular
- * @desc    Get popular tours (by view count)
- * @access  Public
- * @query   ?limit=10
- */
-router.get('/popular', getPopularTours);
-
-/**
  * @route   GET /api/tours/slug/:slug
- * @desc    Get single tour by slug (increments view count)
+ * @desc    Get single tour by slug
  * @access  Public
  */
 router.get('/slug/:slug', getTourBySlug);

@@ -20,7 +20,6 @@
     "sortOptions": {
       "newest": "Newest",
       "oldest": "Oldest",
-      "mostViewed": "Most Viewed",
       "nameAsc": "Name A-Z",
       "locationAsc": "Location A-Z",
       "priceAsc": "Price (Low to High)",

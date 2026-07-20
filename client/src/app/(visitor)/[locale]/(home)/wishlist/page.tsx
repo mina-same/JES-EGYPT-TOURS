@@ -108,9 +108,9 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
             rec = recRes.data;
           }
         } else {
-          const popular = await tourAPI.getPopular?.(12);
-          if (popular?.success && popular.data) {
-            rec = popular.data;
+          const latest = await tourAPI.getAll({ limit: 12, isActive: true, sort: '-createdAt' });
+          if (latest?.success && latest.data) {
+            rec = latest.data;
           }
         }
         // Filter out already wishlisted tours
