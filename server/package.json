@@ -19,7 +19,7 @@
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "migrate:slider-links": "ts-node src/scripts/migrateSliderLegacyLinks.ts",
-    "migrate:remove-blog-views": "ts-node src/scripts/removeBlogViews.ts"
+    "migrate:remove-views": "ts-node src/scripts/removeContentViews.ts"
   },
   "keywords": [
     "express",

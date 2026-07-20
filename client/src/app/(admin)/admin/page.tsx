@@ -60,14 +60,6 @@ interface TailorMadeRequest {
   createdAt: string;
 }
 
-interface TourLite {
-  _id: string;
-  heading?: any; // Can be string or localized object
-  name?: string;
-  viewCount?: number;
-  isActive?: boolean;
-}
-
 const toISODateKey = (d: Date) => {
   // YYYY-MM-DD (local time)
   const y = d.getFullYear();
@@ -109,7 +101,6 @@ const AdminDashboard: React.FC = () => {
   const [bookingsTrend, setBookingsTrend] = useState<number[]>([]);
   const [leadsTrend, setLeadsTrend] = useState<number[]>([]);
   const [trendLabels, setTrendLabels] = useState<string[]>([]);
-  const [topTours, setTopTours] = useState<TourLite[]>([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
   const [specialOffersCount, setSpecialOffersCount] = useState<number | string>("—");
 
@@ -169,7 +160,7 @@ const AdminDashboard: React.FC = () => {
 
       // Fetch latest records; we then compute last-14-day buckets client-side.
       // (Avoids needing a backend aggregation endpoint.)
-      const [bookingsRes, contactsRes, tailorRes, toursRes, specialOffersRes] = await Promise.all([
+      const [bookingsRes, contactsRes, tailorRes, specialOffersRes] = await Promise.all([
         getAllBookings({ page: 1, limit: 250 }),
         fetch(`${API_ENDPOINTS.CONTACT.BASE}?page=1&limit=250`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -177,7 +168,6 @@ const AdminDashboard: React.FC = () => {
         fetch(`${API_ENDPOINTS.TAILOR_MADE.BASE}?page=1&limit=250`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        tourAPI.getAll({ page: 1, limit: 30, sort: "-viewCount", fields: "heading,name,viewCount,isActive" }),
         tourAPI.getAll({ page: 1, limit: 1, isSpecialOffer: true, fields: "heading" }),
       ]);
 
@@ -224,17 +214,12 @@ const AdminDashboard: React.FC = () => {
 
       setLeadsTrend(windowDays.map((d) => leadsByDay[d.key] || 0));
 
-      // Top tours
-      const tours = (toursRes as any)?.data;
-      setTopTours(Array.isArray(tours) ? (tours as TourLite[]).slice(0, 8) : []);
-
       // Special offers count
       setSpecialOffersCount((specialOffersRes as any)?.total ?? 0);
     } catch {
       setBookingsTrend([]);
       setLeadsTrend([]);
       setTrendLabels([]);
-      setTopTours([]);
     } finally {
       setLoadingAnalytics(false);
     }
@@ -561,39 +546,6 @@ const AdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Top tours</CardTitle>
-            <Badge variant="secondary">By views</Badge>
-          </CardHeader>
-          <CardContent>
-            {loadingAnalytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
-            ) : topTours.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No tour analytics yet.</div>
-            ) : (
-              <div className="space-y-3">
-                {topTours.map((t) => (
-                  <div key={t._id} className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium truncate">
-                        {(t.heading && typeof t.heading === 'object') ? (t.heading.en || t.heading.it || t.heading.de) : (t.heading || t.name || "Untitled")}
-                      </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
-                        {(t.isActive === false) ? "Inactive" : "Active"}
-                      </div>
-                    </div>
-                    <div className="shrink-0 text-sm font-semibold">{t.viewCount ?? 0}</div>
-                  </div>
-                ))}
-                <Button variant="outline" className="w-full" onClick={() => router.push("/admin/tour/tour")}
-                >
-                  Manage tours
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

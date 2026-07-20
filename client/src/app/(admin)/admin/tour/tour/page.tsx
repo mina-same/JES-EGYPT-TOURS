@@ -228,12 +228,6 @@ export default function ToursPage() {
                   {typeof tour.tourLocation === 'object' ? (tour.tourLocation as any).en : tour.tourLocation}
                 </div>
               )}
-              {tour.viewCount !== undefined && (
-                <div className="tour-meta-item">
-                  <Eye size={12} />
-                  {tour.viewCount} views
-                </div>
-              )}
             </div>
           </div>
         </div>

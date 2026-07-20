@@ -555,7 +555,6 @@ export default function SubcategoryView({
                   <select value={sort} onChange={(e) => handleSortChange(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e5e5", background: "#fff", minWidth: 220 }}>
                     <option value="-createdAt">{t('listing.sortOptions.newest')}</option>
                     <option value="createdAt">{t('listing.sortOptions.oldest')}</option>
-                    <option value="-viewCount">{t('listing.sortOptions.mostViewed')}</option>
                     <option value="heading">{t('listing.sortOptions.nameAsc')}</option>
                     <option value="tourLocation">{t('listing.sortOptions.locationAsc')}</option>
                     <option value="priceStartingFrom">{t('listing.sortOptions.priceAsc')}</option>

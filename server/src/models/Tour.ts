@@ -159,7 +159,6 @@ export interface ITour extends Document {
   isFeatured: boolean;
   isSpecialOffer: boolean;
   specialOfferDiscount: number;
-  viewCount: number;
   editVersion: number;
   createdAt: Date;
   updatedAt: Date;
@@ -645,11 +644,6 @@ const TourSchema = new Schema<ITour>(
       min: [0, 'Discount cannot be negative'],
       max: [100, 'Discount cannot exceed 100'],
     },
-    viewCount: {
-      type: Number,
-      default: 0,
-      min: [0, 'View count cannot be negative'],
-    },
     editVersion: {
       type: Number,
       default: 0,
@@ -675,7 +669,6 @@ TourSchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
 TourSchema.index({ isActive: 1 });
 TourSchema.index({ isFeatured: 1 });
 TourSchema.index({ isSpecialOffer: 1 });
-TourSchema.index({ viewCount: -1 });
 TourSchema.index({ createdAt: -1 });
 TourSchema.index({ heading: 'text', 'Description.text': 'text' });
 
@@ -763,12 +756,6 @@ TourSchema.pre<ITour>('save', function (next) {
 
   next();
 });
-
-// Method to increment view count
-TourSchema.methods.incrementViewCount = async function () {
-  this.viewCount += 1;
-  return this.save();
-};
 
 // ==================== EXPORT ====================
 

@@ -121,7 +121,6 @@ export interface ITour {
   isActive: boolean;
   seo?: ISEO;
   idExternal?: string;
-  viewCount?: number;
   reviewsCount?: number;
   createdAt: Date | string;
   updatedAt: Date | string;

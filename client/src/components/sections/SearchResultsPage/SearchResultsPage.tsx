@@ -367,7 +367,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                         onChange={(e) => setDraftFilters(p => ({ ...p, sort: e.target.value }))}
                       >
                         <option value="-createdAt">{t('newest')}</option>
-                        <option value="-viewCount">{t('popularity')}</option>
                         <option value="priceStartingFrom">{t('priceLowToHigh')}</option>
                         <option value="-priceStartingFrom">{t('priceHighToLow')}</option>
                       </select>

@@ -119,7 +119,7 @@ const parsePagination = (queryParams: QueryParams) => {
  * Parse sort parameter
  */
 const parseSort = (sortParam?: string): string => {
-  const validSortFields = ['heading', 'createdAt', 'updatedAt', 'viewCount', 'tourLocation', 'priceStartingFrom'];
+  const validSortFields = ['heading', 'createdAt', 'updatedAt', 'tourLocation', 'priceStartingFrom'];
   
   if (!sortParam) return '-createdAt';
 
@@ -248,7 +248,7 @@ export const getFeaturedTours = async (
 
     const tours = await Tour.find({ isActive: true, isFeatured: true })
       .populate('subcategory', 'name slug')
-      .sort('-viewCount -createdAt')
+      .sort('-createdAt')
       .limit(limit)
       // `reviews.url` only (not full reviews) so we can derive a video link
       // without shipping the heavy reviews array to the client.
@@ -285,40 +285,6 @@ export const getFeaturedTours = async (
     res.status(500).json({
       success: false,
       error: 'Failed to fetch featured tours',
-      message: error.message,
-    });
-  }
-};
-
-/**
- * @desc    Get popular tours (by view count)
- * @route   GET /api/tours/popular
- * @access  Public
- */
-export const getPopularTours = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const limit = parseInt(req.query.limit as string || '10', 10);
-
-    const tours = await Tour.find({ isActive: true })
-      .populate('subcategory', 'name slug')
-      .sort('-viewCount')
-      .limit(limit)
-      .select('heading slug images Description tourLocation viewCount pricingPlans')
-      .lean();
-
-    res.status(200).json({
-      success: true,
-      count: tours.length,
-      data: localize(tours, req.locale),
-    });
-  } catch (error: any) {
-    console.error('Error fetching popular tours:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch popular tours',
       message: error.message,
     });
   }
@@ -473,9 +439,6 @@ export const getTourBySlug = async (
       });
       return;
     }
-
-    // Increment view count asynchronously (don't wait for it)
-    Tour.findByIdAndUpdate(tour._id, { $inc: { viewCount: 1 } }).exec();
 
     res.status(200).json({
       success: true,
@@ -956,8 +919,6 @@ export const getTourStats = async (
                 featuredTours: {
                   $sum: { $cond: ['$isFeatured', 1, 0] },
                 },
-                totalViews: { $sum: '$viewCount' },
-                avgViews: { $avg: '$viewCount' },
               },
             },
           ],

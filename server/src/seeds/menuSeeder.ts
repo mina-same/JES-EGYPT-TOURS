@@ -16,7 +16,6 @@ export const seedMenus = async (): Promise<void> => {
         order: 1,
         children: [
           { label: { en: 'All Tours', de: 'Alle Touren', it: 'Tutti i Tour' }, url: '/search', isActive: true, order: 0, children: [] },
-          { label: { en: 'Popular Tours', de: 'Beliebte Touren', it: 'Tour Popolari' }, url: '/tours/popular', isActive: true, order: 1, children: [] },
         ],
       },
       {
