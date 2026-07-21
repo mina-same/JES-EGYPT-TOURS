@@ -149,7 +149,7 @@ export default function DestinationsListPage() {
       header: 'Actions',
       render: (dest) => (
         <div className="action-buttons">
-          <Link href={`/admin/destinations/new?edit=${dest._id}`}>
+          <Link href={`/admin/destinations/new?id=${dest._id}`}>
             <button className="btn-icon btn-edit" title="Edit">
               <Edit2 size={16} />
             </button>

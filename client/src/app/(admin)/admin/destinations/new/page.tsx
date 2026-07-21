@@ -70,7 +70,9 @@ const INITIAL_FORM = {
 export default function DestinationFormPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editId = searchParams?.get('edit');
+  // Uses ?id= to match every other admin taxonomy edit link (categories,
+  // subcategories). ?edit= is still read as a fallback for any old bookmarks.
+  const editId = searchParams?.get('id') || searchParams?.get('edit');
   const isEditing = !!editId;
 
   const { toast } = useToast();

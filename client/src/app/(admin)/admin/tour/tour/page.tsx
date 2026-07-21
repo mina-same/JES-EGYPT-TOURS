@@ -203,6 +203,8 @@ export default function ToursPage() {
   const columns: Array<AdminTableColumn<ITour>> = [
     {
       header: 'Tour',
+      headerClassName: 'tour-column',
+      cellClassName: 'tour-column',
       render: (tour) => (
         <div className="tour-info">
           {tour.images && tour.images.length > 0 ? (
@@ -235,6 +237,8 @@ export default function ToursPage() {
     },
     {
       header: 'Subcategory',
+      headerClassName: 'subcategory-column',
+      cellClassName: 'subcategory-column',
       render: (tour) => (
         <span className="subcategory-badge">
           <Tag size={14} />
@@ -244,6 +248,8 @@ export default function ToursPage() {
     },
     {
       header: 'Duration',
+      headerClassName: 'duration-column',
+      cellClassName: 'duration-column',
       render: (tour) => (
         <div className="tour-meta-item">
           <Clock size={14} />
@@ -253,6 +259,8 @@ export default function ToursPage() {
     },
     {
       header: 'Price',
+      headerClassName: 'price-column',
+      cellClassName: 'price-column',
       render: (tour) => (
         <div className="price-display">
           {tour.priceStartingFrom ? (
@@ -268,6 +276,8 @@ export default function ToursPage() {
     },
     {
       header: 'Status',
+      headerClassName: 'status-column',
+      cellClassName: 'status-column',
       render: (tour) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <span className={`status-badge ${tour.isActive ? 'status-active' : 'status-inactive'}`}>
@@ -292,6 +302,8 @@ export default function ToursPage() {
     },
     {
       header: 'Actions',
+      headerClassName: 'actions-column',
+      cellClassName: 'actions-column',
       render: (tour) => (
         <div className="action-buttons">
           {canEdit('tour') && (

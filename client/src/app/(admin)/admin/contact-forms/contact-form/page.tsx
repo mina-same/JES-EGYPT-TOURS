@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Eye, Loader2, Mail, MessageSquare, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 import { useContactForm } from '@/contexts/ContactFormContext';
@@ -80,6 +81,22 @@ const ContactFormPage: React.FC = () => {
   useEffect(() => {
     fetchSubmissions();
   }, [statusFilter]);
+
+  // Open a specific record when arriving from a notification deep-link
+  // (/admin/contact-forms/contact-form?id=<id>). Fires once, after load.
+  const searchParams = useSearchParams();
+  const deepLinkHandled = React.useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current) return;
+    const id = searchParams.get('id');
+    if (!id || submissions.length === 0) return;
+    const match = submissions.find((s) => s._id === id);
+    if (match) {
+      handleViewDetails(match);
+      deepLinkHandled.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissions, searchParams]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {

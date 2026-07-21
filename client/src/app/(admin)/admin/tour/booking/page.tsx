@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
   Search, Filter, Eye, Trash2, 
   Calendar, Users, Mail, Phone,
@@ -51,6 +52,22 @@ const BookingPage: React.FC = () => {
     fetchBookings();
     fetchStats();
   }, [statusFilter, page, searchTerm]);
+
+  // Open a specific record when arriving from a notification deep-link
+  // (/admin/tour/booking?id=<id>). Fires once, after the list has loaded.
+  const searchParams = useSearchParams();
+  const deepLinkHandled = React.useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current) return;
+    const id = searchParams.get('id');
+    if (!id || bookings.length === 0) return;
+    const match = bookings.find((b) => b._id === id);
+    if (match) {
+      handleViewDetails(match);
+      deepLinkHandled.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookings, searchParams]);
 
   const fetchBookings = async () => {
     setLoading(true);

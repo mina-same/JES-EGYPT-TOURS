@@ -6,6 +6,7 @@ import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { userAPI, User } from '@/lib/api/auth';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
@@ -131,10 +132,6 @@ const UsersPage: React.FC = () => {
     router.push('/admin/users/new');
   };
 
-  const handleEdit = (user: User) => {
-    router.push(`/admin/users/${user.id}/edit`);
-  };
-
   const stats = {
     total: users.length,
     active: users.filter(u => u.isActive).length,
@@ -205,13 +202,13 @@ const UsersPage: React.FC = () => {
       cellClassName: 'px-6 py-4',
       render: (user) => (
         <div className="flex items-center gap-2">
-          <button
+          <Link
+            href={`/admin/users/${user.id}/edit`}
             className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
-            onClick={() => handleEdit(user)}
             title="Edit"
           >
             <Edit2 size={16} />
-          </button>
+          </Link>
           <button
             className={`p-2 text-gray-400 rounded-md transition-colors disabled:opacity-50 ${
               user.isActive

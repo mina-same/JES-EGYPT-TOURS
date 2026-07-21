@@ -1319,7 +1319,7 @@ export default function NewBlogPage() {
 
         {/* Submit Button */}
         <div className="flex justify-end gap-4 pt-6 border-t">
-          <Link href="/admin/blogs">
+          <Link href="/admin/blogs/blog">
             <Button type="button" variant="outline">
               Cancel
             </Button>

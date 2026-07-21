@@ -8,9 +8,16 @@ import { WishlistProvider } from "@/contexts/WishlistContext";
 import { SlugProvider } from "@/contexts/SlugContext";
 import SEOProvider from "@/components/common/SEO/SEOProvider";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 const locales = ["en", "de", "it", "es"];
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.jesegypttours.com";
+
+// The site is intentionally kept OUT of search indexes during development.
+// It stays noindex unless NEXT_PUBLIC_SITE_INDEXABLE is explicitly 'true' at
+// launch — the default (unset) is always noindex, so nothing is exposed now.
+// Mirrors the same flag in src/app/robots.ts.
+const siteIndexable = process.env.NEXT_PUBLIC_SITE_INDEXABLE === "true";
 
 export async function generateMetadata({
   params,
@@ -18,6 +25,9 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (!locales.includes(locale)) {
+    notFound();
+  }
 
   return {
     metadataBase: new URL(baseUrl),
@@ -25,10 +35,9 @@ export async function generateMetadata({
       icon: "/favicon-logo.png",
       apple: "/favicon-logo.png",
     },
-    robots: {
-      index: false,
-      follow: false,
-    },
+    robots: siteIndexable
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
   };
 }
 
@@ -53,6 +62,12 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+  // Reject bogus locales (e.g. an unmatched /admin/* path leaking in as
+  // locale="admin"). Without this, [locale] accepts any string and renders
+  // duplicate visitor pages under garbage locales.
+  if (!locales.includes(locale)) {
+    notFound();
+  }
   return (
     <html lang={locale || "en"} suppressHydrationWarning>
       <head></head>

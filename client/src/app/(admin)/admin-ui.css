@@ -117,6 +117,8 @@
 }
 
 .admin-scope .tour-admin {
+  width: 100%;
+  min-width: 0;
   max-width: 1800px;
 }
 
@@ -335,6 +337,14 @@
   overflow: hidden;
 }
 
+/* Keep wide data tables inside the content area instead of allowing them to
+   increase the width of the sidebar layout. */
+.admin-scope .tours-table-container {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
 .dark .admin-scope .requests-table-container,
 .dark .admin-scope .table-container,
 .dark .admin-scope .tours-table-container,
@@ -353,6 +363,35 @@
 .admin-scope .slider-table {
   width: 100%;
   border-collapse: collapse;
+}
+
+.admin-scope .tours-table {
+  min-width: 1120px;
+  table-layout: fixed;
+}
+
+.admin-scope .tours-table .tour-column {
+  width: 42%;
+}
+
+.admin-scope .tours-table .subcategory-column {
+  width: 15%;
+}
+
+.admin-scope .tours-table .duration-column {
+  width: 10%;
+}
+
+.admin-scope .tours-table .price-column {
+  width: 8%;
+}
+
+.admin-scope .tours-table .status-column {
+  width: 10%;
+}
+
+.admin-scope .tours-table .actions-column {
+  width: 15%;
 }
 
 .admin-scope .requests-table thead,
@@ -559,16 +598,18 @@
 
 .admin-scope .subcategory-badge {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
   color: #1f2937;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
   max-width: 280px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .dark .admin-scope .subcategory-badge {
@@ -580,6 +621,12 @@
 .admin-scope .subcategory-badge svg {
   width: 14px;
   height: 14px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.admin-scope .tours-table .duration-column .tour-meta-item {
+  white-space: nowrap;
 }
 
 .admin-scope .category-info,
@@ -803,6 +850,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .admin-scope .btn-icon,

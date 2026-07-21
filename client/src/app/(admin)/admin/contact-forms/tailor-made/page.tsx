@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
   Search, Filter, Eye, Trash2, 
   Calendar, Users, MapPin, MessageSquare,
@@ -62,6 +63,22 @@ const TailorMadePage: React.FC = () => {
   useEffect(() => {
     fetchRequests();
   }, [statusFilter]);
+
+  // Open a specific record when arriving from a notification deep-link
+  // (/admin/contact-forms/tailor-made?id=<id>). Fires once, after load.
+  const searchParams = useSearchParams();
+  const deepLinkHandled = React.useRef(false);
+  useEffect(() => {
+    if (deepLinkHandled.current) return;
+    const id = searchParams.get('id');
+    if (!id || requests.length === 0) return;
+    const match = requests.find((r) => r._id === id);
+    if (match) {
+      handleViewDetails(match);
+      deepLinkHandled.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requests, searchParams]);
 
   const fetchRequests = async () => {
     setLoading(true);
