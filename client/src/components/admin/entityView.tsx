@@ -24,8 +24,11 @@ export function hasText(v: unknown): boolean {
 }
 export function localeHasField(field: any, locale: string): boolean {
   if (field == null) return false;
-  if (typeof field === 'string') return hasText(field);
-  if (Array.isArray(field)) return field.some((x) => hasText(x));
+  // A plain string / bare array is legacy, un-localized content — treat it as
+  // EN-only, exactly like rawLocale/strictText, so the matrix matches what the
+  // per-locale preview actually renders (was: counted as present for ALL locales).
+  if (typeof field === 'string') return locale === 'en' && hasText(field);
+  if (Array.isArray(field)) return locale === 'en' && field.some((x) => hasText(x));
   if (typeof field === 'object') return hasText(field[locale]);
   return false;
 }

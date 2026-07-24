@@ -32,20 +32,24 @@ export default function TourSubcategoryViewPage() {
   const [toursTotal, setToursTotal] = useState(0);
   const [toursPage, setToursPage] = useState(1);
   const [toursLoading, setToursLoading] = useState(true);
+  const [toursError, setToursError] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     let active = true;
     setToursLoading(true);
+    setToursError(false);
     tourAPI.getAll({ subcategory: id, limit: TOURS_PAGE_SIZE, page: toursPage })
       .then((res: any) => {
         if (!active) return;
         if (res?.success && Array.isArray(res.data)) {
           setTours(res.data);
           setToursTotal(res.total ?? res.data.length);
+        } else {
+          setToursError(true);
         }
       })
-      .catch(() => {})
+      .catch(() => { if (active) setToursError(true); })
       .finally(() => { if (active) setToursLoading(false); });
     return () => { active = false; };
   }, [id, toursPage]);
@@ -141,7 +145,9 @@ export default function TourSubcategoryViewPage() {
       </Section>
 
       <Section title="Tours in this sub-category" icon={<FileText size={14} />}>
-        {toursLoading && tours.length === 0 ? (
+        {toursError ? (
+          <p className="text-sm text-red-600 dark:text-red-400 m-0">Could not load tours for this sub-category. Try refreshing the page.</p>
+        ) : toursLoading && tours.length === 0 ? (
           <p className="text-sm text-gray-500 m-0">Loading tours…</p>
         ) : tours.length === 0 ? (
           <p className="text-sm text-gray-500 m-0">No tours are assigned to this sub-category yet.</p>
@@ -256,7 +262,7 @@ export default function TourSubcategoryViewPage() {
         seo={seo}
         readiness={readiness}
         socialImageUrl={socialImageUrl}
-        readyLabels={{ ready: 'SEO ready', notReady: 'SEO incomplete' }}
+        readyLabels={{ ready: 'Ready to go live', notReady: 'Not ready to go live' }}
       />
 
       <Section title="SEO" icon={<Search size={14} />}>

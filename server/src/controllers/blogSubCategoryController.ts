@@ -243,6 +243,7 @@ export const getSubcategoryBySlug = async (
     const { category } = req.query;
 
     const filter: FilterQuery<IBlogSubCategory> = {
+      isActive: { $ne: false },
       $or: [
         { 'slug.en': slug },
         { 'slug.de': slug },

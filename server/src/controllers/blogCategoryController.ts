@@ -181,7 +181,8 @@ export const getCategoryBySlug = async (
 ): Promise<void> => {
   try {
     const { slug } = req.params;
-    const category = await BlogCategory.findOne({ 
+    const category = await BlogCategory.findOne({
+      isActive: { $ne: false },
       $or: [
         { 'slug.en': slug },
         { 'slug.de': slug },

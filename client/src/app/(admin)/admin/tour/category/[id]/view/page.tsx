@@ -133,7 +133,7 @@ export default function TourCategoryViewPage() {
         seo={seo}
         readiness={readiness}
         socialImageUrl={socialImageUrl}
-        readyLabels={{ ready: 'SEO ready', notReady: 'SEO incomplete' }}
+        readyLabels={{ ready: 'Ready to go live', notReady: 'Not ready to go live' }}
       />
 
       <Section title="SEO" icon={<Search size={14} />}>

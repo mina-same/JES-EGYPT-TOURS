@@ -29,20 +29,24 @@ export default function BlogSubcategoryViewPage() {
   const [articlesTotal, setArticlesTotal] = useState(0);
   const [articlesPage, setArticlesPage] = useState(1);
   const [articlesLoading, setArticlesLoading] = useState(true);
+  const [articlesError, setArticlesError] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     let active = true;
     setArticlesLoading(true);
+    setArticlesError(false);
     blogAPI.getAllAdmin({ subCategory: id, limit: ARTICLES_PAGE_SIZE, page: articlesPage })
       .then((res: any) => {
         if (!active) return;
         if (res?.success && Array.isArray(res.data)) {
           setArticles(res.data);
           setArticlesTotal(res.pagination?.total ?? res.data.length);
+        } else {
+          setArticlesError(true);
         }
       })
-      .catch(() => {})
+      .catch(() => { if (active) setArticlesError(true); })
       .finally(() => { if (active) setArticlesLoading(false); });
     return () => { active = false; };
   }, [id, articlesPage]);
@@ -122,7 +126,9 @@ export default function BlogSubcategoryViewPage() {
       </Section>
 
       <Section title="Articles in this sub-category" icon={<FileText size={14} />}>
-        {articlesLoading && articles.length === 0 ? (
+        {articlesError ? (
+          <p className="text-sm text-red-600 dark:text-red-400 m-0">Could not load articles for this sub-category. Try refreshing the page.</p>
+        ) : articlesLoading && articles.length === 0 ? (
           <p className="text-sm text-gray-500 m-0">Loading articles…</p>
         ) : articles.length === 0 ? (
           <p className="text-sm text-gray-500 m-0">No articles are assigned to this sub-category yet.</p>
@@ -253,7 +259,7 @@ export default function BlogSubcategoryViewPage() {
         showOg
         showIndexing
         socialImageUrl={socialImageUrl}
-        readyLabels={{ ready: 'SEO ready', notReady: 'SEO incomplete' }}
+        readyLabels={{ ready: 'Ready to go live', notReady: 'Not ready to go live' }}
       />
 
       <Section title="SEO & Open Graph" icon={<Search size={14} />}>

@@ -99,6 +99,7 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
   try {
     const { slug } = req.params;
     const destination = await Destination.findOne({
+      isActive: { $ne: false },
       $or: [
         { 'slug.en': slug },
         { 'slug.de': slug },

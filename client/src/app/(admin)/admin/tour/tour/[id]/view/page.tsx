@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText, Star, MapPin } from 'lucide-react';
+import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText, Star, MapPin, Calendar } from 'lucide-react';
 import { tourAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
@@ -35,6 +35,7 @@ export default function TourViewPage() {
 
   const title = getLocalizedValue(entity.heading) || entity.name || '(untitled)';
   const isActive = entity.isActive !== false;
+  const scheduled = !isActive && !!entity.scheduledAt;
   const seo = entity.seo ?? {};
   const socialImageUrl = getImageUrl(seo.metaImage);
   const days: any[] = Array.isArray(entity.itinerary?.days) ? entity.itinerary.days : [];
@@ -83,7 +84,11 @@ export default function TourViewPage() {
         <div>
           <h1 className="admin-page-title flex items-center gap-3 flex-wrap">
             <span>{title}</span>
-            <ActiveBadge active={isActive} />
+            {scheduled ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"><Calendar size={12} /> Scheduled</span>
+            ) : (
+              <ActiveBadge active={isActive} />
+            )}
             {entity.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800"><Star size={10} /> Featured</span>}
             {entity.isSpecialOffer && <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-800">Special offer</span>}
           </h1>
@@ -95,13 +100,14 @@ export default function TourViewPage() {
         </div>
       </div>
 
-      <LiveUrlPreview slug={entity.slug} live={isActive} warning={<>This tour is <b>inactive</b> — its live URLs return 404 until it is activated.</>} />
+      <LiveUrlPreview slug={entity.slug} live={isActive} warning={scheduled ? <>This tour is <b>scheduled</b> — its live URLs return 404 until it goes live{entity.scheduledAt ? ` (${new Date(entity.scheduledAt).toLocaleString()})` : ''}.</> : <>This tour is <b>inactive</b> — its live URLs return 404 until it is activated.</>} />
 
       <TranslationMatrix rows={matrixRows} />
 
       <Section title="At a glance" icon={<Info size={14} />}>
         <div className="detail-grid">
-          <Field label="Active">{isActive ? 'Yes' : 'No'}</Field>
+          <Field label="Status">{isActive ? 'Active' : scheduled ? 'Scheduled' : 'Inactive'}</Field>
+          {scheduled && <Field label="Scheduled for">{new Date(entity.scheduledAt).toLocaleString()}</Field>}
           <Field label="Duration">{getLocalizedValue(entity.duration) || '—'}</Field>
           <Field label="Location">{getLocalizedValue(entity.tourLocation) || '—'}</Field>
           <Field label="Price from">{money(entity.priceStartingFrom)}</Field>
@@ -207,7 +213,7 @@ export default function TourViewPage() {
         seo={seo}
         readiness={readiness}
         socialImageUrl={socialImageUrl}
-        readyLabels={{ ready: 'SEO ready', notReady: 'SEO incomplete' }}
+        readyLabels={{ ready: 'Ready to go live', notReady: 'Not ready to go live' }}
       />
 
       <Section title="SEO" icon={<Search size={14} />}>

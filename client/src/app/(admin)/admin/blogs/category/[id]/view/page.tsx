@@ -145,7 +145,7 @@ export default function BlogCategoryViewPage() {
         showOg
         showIndexing
         socialImageUrl={socialImageUrl}
-        readyLabels={{ ready: 'SEO ready', notReady: 'SEO incomplete' }}
+        readyLabels={{ ready: 'Ready to go live', notReady: 'Not ready to go live' }}
       />
 
       <Section title="SEO & Open Graph" icon={<Search size={14} />}>

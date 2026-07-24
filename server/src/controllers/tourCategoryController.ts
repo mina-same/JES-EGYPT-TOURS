@@ -176,6 +176,7 @@ export const getCategoryBySlug = async (
 ): Promise<void> => {
   try {
     const category = await TourCategory.findOne({
+      isActive: { $ne: false },
       $or: [
         { 'slug.en': req.params.slug },
         { 'slug.de': req.params.slug },

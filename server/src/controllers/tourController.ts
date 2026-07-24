@@ -422,6 +422,7 @@ export const getTourBySlug = async (
 ): Promise<void> => {
   try {
     const tour = await Tour.findOne({
+      isActive: { $ne: false },
       $or: [
         { 'slug.en': req.params.slug },
         { 'slug.de': req.params.slug },
