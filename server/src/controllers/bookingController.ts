@@ -4,6 +4,7 @@ import Booking from '../models/Booking';
 import Tour from '../models/Tour';
 import Notification from '../models/Notification';
 import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
+import { createSearchRegex } from '../utils/search';
 
 /**
  * @desc    Create a new tour booking
@@ -93,11 +94,12 @@ export const getAllBookings = async (
     if (tour) {
       query.tour = tour;
     }
-    if (search) {
+    const searchRegex = createSearchRegex(search);
+    if (searchRegex) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
+        { name: searchRegex },
+        { email: searchRegex },
+        { phone: searchRegex },
       ];
     }
 

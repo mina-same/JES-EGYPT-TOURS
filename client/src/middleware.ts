@@ -18,10 +18,15 @@ export function middleware(request: NextRequest) {
     return;
   }
 
-  // 2. EXCLUDE root Admin routes from any locale handling
-  // We want /admin to remain exactly as is at the root level.
+  // 2. EXCLUDE root Admin routes from any locale handling.
+  // We want /admin to remain exactly as is at the root level, but it must
+  // NEVER be indexed — even after the public site opens for indexing. The
+  // admin layout is a Client Component and can't export metadata, so we set
+  // the noindex signal here at the edge instead.
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    return;
+    const res = NextResponse.next();
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    return res;
   }
 
   const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;

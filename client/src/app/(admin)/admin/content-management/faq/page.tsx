@@ -378,7 +378,13 @@ const AdminFAQManagement: React.FC = () => {
         </div>
         <div className='filter-group'>
           <Tag size={18} />
-          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value='all'>All Categories</option>
             {categories.map((category) => (
               <option key={category} value={category}>
@@ -389,7 +395,13 @@ const AdminFAQManagement: React.FC = () => {
         </div>
         <div className='filter-group'>
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value='all'>All Status</option>
             <option value='active'>Active</option>
             <option value='inactive'>Inactive</option>
@@ -397,7 +409,13 @@ const AdminFAQManagement: React.FC = () => {
         </div>
         <div className='filter-group'>
           <Home size={18} />
-          <select value={homeFilter} onChange={(e) => setHomeFilter(e.target.value)}>
+          <select
+            value={homeFilter}
+            onChange={(e) => {
+              setHomeFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value='all'>All Visibility</option>
             <option value='yes'>On Home</option>
             <option value='no'>Not on Home</option>

@@ -12,9 +12,27 @@ interface FaqMetadataOptions {
  * Generate SEO-optimized metadata for FAQ pages
  */
 export async function generateFaqMetadata(options: FaqMetadataOptions = {}): Promise<Metadata> {
-  const { category, totalFaqs = 0, baseUrl = 'https://jesegypttours.com', locale = 'en' } = options;
+  const { category, totalFaqs = 0, baseUrl = 'https://www.jesegypttours.com', locale = 'en' } = options;
   const { t } = await getServerTranslation(locale, 'faq');
-  
+
+  // Honor the site-wide dev noindex switch — the FAQ page must NOT be the one
+  // page that opens itself to indexing while the rest of the site is blocked.
+  // Default (unset) = noindex. Mirrors layout.tsx and robots.ts.
+  const siteIndexable = process.env.NEXT_PUBLIC_SITE_INDEXABLE === 'true';
+  const robotsMeta = siteIndexable
+    ? {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large' as const,
+          'max-snippet': -1,
+        },
+      }
+    : { index: false, follow: false };
+
   if (category) {
     // Category-specific FAQ page metadata
     const categoryTitle = `${category} FAQ | Egypt Travel Questions | JES Egypt Tours`;
@@ -50,17 +68,7 @@ export async function generateFaqMetadata(options: FaqMetadataOptions = {}): Pro
       alternates: {
         canonical: categoryUrl
       },
-      robots: {
-        index: true,
-        follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          'max-video-preview': -1,
-          'max-image-preview': 'large' as const,
-          'max-snippet': -1
-        }
-      }
+      robots: robotsMeta
     };
   }
   
@@ -98,17 +106,7 @@ export async function generateFaqMetadata(options: FaqMetadataOptions = {}): Pro
     alternates: {
       canonical: `${baseUrl}${urlPath}`
     },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large' as const,
-        'max-snippet': -1
-      }
-    }
+    robots: robotsMeta
   };
 }
 

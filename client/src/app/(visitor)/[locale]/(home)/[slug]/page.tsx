@@ -54,7 +54,7 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://jesegypttours.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.jesegypttours.com";
 const EDITORIAL_AUTHOR_NAME = "Madonna Roshdey";
 const EDITORIAL_AUTHOR_SLUG = "madonna-roshdey";
 

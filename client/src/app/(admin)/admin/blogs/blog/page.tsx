@@ -1,15 +1,15 @@
  'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
-  Search, Filter, RefreshCw, FileText, Clock, 
+  Loader2, Plus, Edit2, Trash2, Eye,
+  Search, Filter, RefreshCw, FileText, Clock,
   Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
-import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
+import { blogAPI, destinationAPI, blogCategoryAPI, blogSubcategoryAPI } from '@/lib/api/blogAdmin';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -49,8 +49,9 @@ interface BlogPost {
   updatedAt: string;
 }
 
-export default function BlogsPage() {
+function BlogsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -63,13 +64,16 @@ export default function BlogsPage() {
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [destinationFilter, setDestinationFilter] = useState<string>('all');
   const [destinations, setDestinations] = useState<any[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || 'all');
+  const [subCategoryFilter, setSubCategoryFilter] = useState<string>(searchParams.get('subCategory') || 'all');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [featuredFilter, setFeaturedFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [toggling, setToggling] = useState<string | null>(null);
 
   // Fetch blogs
   const fetchBlogs = async () => {
@@ -80,7 +84,7 @@ export default function BlogsPage() {
       const params: any = {
         page,
         limit: 100,
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
       };
       
       if (statusFilter !== 'all') {
@@ -97,6 +101,14 @@ export default function BlogsPage() {
 
       if (destinationFilter !== 'all') {
         params.destination = destinationFilter;
+      }
+
+      if (categoryFilter !== 'all') {
+        params.category = categoryFilter;
+      }
+
+      if (subCategoryFilter !== 'all') {
+        params.subCategory = subCategoryFilter;
       }
 
       const response = await blogAPI.getAllAdmin(params);
@@ -173,46 +185,6 @@ export default function BlogsPage() {
     }
   };
 
-  // Toggle blog status (publish/unpublish)
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
-    const blog = blogs.find(b => b._id === id);
-    const newStatus = currentStatus === 'published' ? 'unpublished' : 'published';
-    
-    try {
-      setToggling(id);
-      let response;
-      
-      if (currentStatus === 'published') {
-        response = await blogAPI.unpublish(id);
-      } else {
-        response = await blogAPI.publish(id);
-      }
-      
-      if (response.success) {
-        toast({
-          title: `Blog post ${newStatus}`,
-          description: `"${getLocalizedValue(blog?.title)}" has been ${newStatus} successfully.`,
-        });
-        await fetchBlogs();
-      } else {
-        setError(response.error || 'Failed to toggle blog status');
-        toast({
-          title: "Status update failed",
-          description: response.error || 'Failed to toggle blog status',
-          variant: "destructive",
-        });
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-      toast({
-        title: "Error",
-        description: err.message || 'An error occurred while updating blog status',
-        variant: "destructive",
-      });
-    } finally {
-      setToggling(null);
-    }
-  };
 
   // Delete blog post date
   const formatDate = (dateString: string) => {
@@ -377,14 +349,14 @@ export default function BlogsPage() {
               <Edit2 size={16} />
             </button>
           </Link>
-          <button
-            onClick={() => handleToggleStatus(blog._id, blog.status)}
-            disabled={toggling === blog._id}
-            className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors disabled:opacity-50"
-            title={blog.status === 'published' ? 'Unpublish' : 'Publish'}
-          >
-            {blog.status === 'published' ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
+          <Link href={`/admin/blogs/blog/${blog._id}/view`}>
+            <button
+              className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
+              title="View"
+            >
+              <Eye size={16} />
+            </button>
+          </Link>
           <button
             onClick={() => handleDelete(blog._id)}
             disabled={deleting === blog._id}
@@ -411,13 +383,36 @@ export default function BlogsPage() {
 
   useEffect(() => {
     fetchBlogs();
-  }, [page, searchTerm, statusFilter, tagFilter, featuredFilter, destinationFilter]);
+  }, [page, searchTerm, statusFilter, tagFilter, featuredFilter, destinationFilter, categoryFilter, subCategoryFilter]);
 
   useEffect(() => {
     destinationAPI.getAll({ isActive: true }).then(res => {
       if (res.success && res.data) setDestinations(res.data);
     });
   }, []);
+
+  useEffect(() => {
+    blogCategoryAPI.getAll().then(res => {
+      if (res.success && res.data) setCategories(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    const loader = categoryFilter !== 'all'
+      ? blogSubcategoryAPI.getByCategory(categoryFilter)
+      : blogSubcategoryAPI.getAll();
+    loader.then(res => {
+      if (res.success && res.data) setSubcategories(res.data);
+    });
+  }, [categoryFilter]);
+
+  const syncBridgeUrl = (nextCategory: string, nextSubCategory: string) => {
+    const sp = new URLSearchParams();
+    if (nextCategory !== 'all') sp.set('category', nextCategory);
+    if (nextSubCategory !== 'all') sp.set('subCategory', nextSubCategory);
+    const qs = sp.toString();
+    router.replace(qs ? `/admin/blogs/blog?${qs}` : '/admin/blogs/blog', { scroll: false });
+  };
 
   return (
     <div className="tailor-made-admin">
@@ -471,8 +466,48 @@ export default function BlogsPage() {
             type="text"
             placeholder="Search by title, content, or author..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
+        </div>
+        <div className="filter-group">
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setCategoryFilter(v);
+              setSubCategoryFilter('all');
+              setPage(1);
+              syncBridgeUrl(v, 'all');
+            }}
+          >
+            <option value="all">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {getLocalizedValue(cat.name) || 'Untitled'}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
+          <select
+            value={subCategoryFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSubCategoryFilter(v);
+              setPage(1);
+              syncBridgeUrl(categoryFilter, v);
+            }}
+          >
+            <option value="all">All Sub-categories</option>
+            {subcategories.map((sub) => (
+              <option key={sub._id} value={sub._id}>
+                {getLocalizedValue(sub.name) || 'Untitled'}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="filter-group">
           <select
@@ -603,5 +638,13 @@ export default function BlogsPage() {
         confirmDisabled={deleteBusy}
       />
     </div>
+  );
+}
+
+export default function BlogsPage() {
+  return (
+    <Suspense fallback={<div className="tailor-made-admin" />}>
+      <BlogsPageContent />
+    </Suspense>
   );
 }

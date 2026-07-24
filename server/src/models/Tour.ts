@@ -156,6 +156,8 @@ export interface ITour extends Document {
   reviewsCount?: number;
   seo?: ISEO;
   isActive: boolean;
+  scheduledAt?: Date;
+  publishedAt?: Date;
   isFeatured: boolean;
   isSpecialOffer: boolean;
   specialOfferDiscount: number;
@@ -630,6 +632,16 @@ const TourSchema = new Schema<ITour>(
       type: Boolean,
       default: true,
     },
+    scheduledAt: {
+      type: Date,
+      validate: {
+        validator: (value?: Date) => !value || value.getTime() > Date.now(),
+        message: 'Scheduled date must be in the future',
+      },
+    },
+    publishedAt: {
+      type: Date,
+    },
     isFeatured: {
       type: Boolean,
       default: false,
@@ -667,6 +679,7 @@ TourSchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
 // Note: idExternal already indexed via unique: true
 // Note: subcategory already indexed via index: true in field definition
 TourSchema.index({ isActive: 1 });
+TourSchema.index({ isActive: 1, scheduledAt: 1 });
 TourSchema.index({ isFeatured: 1 });
 TourSchema.index({ isSpecialOffer: 1 });
 TourSchema.index({ createdAt: -1 });

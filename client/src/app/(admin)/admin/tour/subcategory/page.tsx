@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { tourSubcategoryAPI, tourCategoryAPI } from '@/lib/api/tour';
 import { ITourSubcategory, ITourCategory } from '@/types/tour';
-import { 
-  Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
-  Search, Filter, RefreshCw, Layers, CheckCircle, 
+import { ScanEye,
+  Loader2, Plus, Edit2, Trash2,
+  Search, Filter, RefreshCw, Layers, CheckCircle,
   XCircle, FolderTree, Tag
 } from 'lucide-react';
 import Image from 'next/image';
@@ -36,7 +36,6 @@ export default function TourSubcategoriesPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [toggling, setToggling] = useState<string | null>(null);
 
   // Fetch categories for filter
   const fetchCategories = async () => {
@@ -59,7 +58,7 @@ export default function TourSubcategoriesPage() {
       const params: any = {
         page,
         limit: 10,
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
         category: categoryFilter !== 'all' ? categoryFilter : undefined,
       };
       
@@ -84,6 +83,10 @@ export default function TourSubcategoriesPage() {
 
   useEffect(() => {
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
@@ -139,26 +142,6 @@ export default function TourSubcategoriesPage() {
     }
   };
 
-  // Toggle status
-  const handleToggleStatus = async (id: string) => {
-    try {
-      setToggling(id);
-      const response = await tourSubcategoryAPI.toggleStatus(id);
-      
-      if (response.success && response.data) {
-        setSubcategories(subcategories.map(s => 
-          s._id === id ? { ...s, isActive: response.data.isActive } : s
-        ));
-      } else {
-        setError(response.error || 'Failed to update status');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setToggling(null);
-    }
-  };
-
   // Get category name
   const getCategoryName = (category: any) => {
     // Handle both populated object and ID string
@@ -183,7 +166,7 @@ export default function TourSubcategoriesPage() {
 
   // Filter subcategories by search
   const filteredSubcategories = subcategories.filter(subcategory => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.trim().toLowerCase();
     const name = subcategory.name;
     const slug = subcategory.slug;
     
@@ -202,11 +185,19 @@ export default function TourSubcategoriesPage() {
   const columns: Array<AdminTableColumn<ITourSubcategory>> = [
     {
       header: 'Subcategory',
+      headerClassName: 'subcategory-main-column',
+      cellClassName: 'subcategory-main-column',
       render: (subcategory) => (
         <div className="subcategory-info">
           {(() => {
             const displayImage = subcategory.images?.[0] || (subcategory as any).image;
-            if (!displayImage?.url) return null;
+            if (!displayImage?.url) {
+              return (
+                <div className="subcategory-image subcategory-image-placeholder" aria-hidden="true">
+                  <Tag size={18} />
+                </div>
+              );
+            }
             return (
               <img
                 src={displayImage.url}
@@ -217,8 +208,13 @@ export default function TourSubcategoriesPage() {
           })()}
           <div className="subcategory-details">
             <div className="subcategory-name">
-              {typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name}
-              <LanguageBadges entity={subcategory} className="ms-2" />
+              <span
+                className="subcategory-name-text"
+                title={typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name}
+              >
+                {typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name}
+              </span>
+              <LanguageBadges entity={subcategory} className="subcategory-language-badges" />
             </div>
           </div>
         </div>
@@ -226,22 +222,19 @@ export default function TourSubcategoriesPage() {
     },
     {
       header: 'Category',
+      headerClassName: 'subcategory-category-column',
+      cellClassName: 'subcategory-category-column',
       render: (subcategory) => (
-        <span className="category-badge">
+        <span className="category-badge" title={getCategoryName(subcategory.category)}>
           <FolderTree size={14} />
-          {getCategoryName(subcategory.category)}
+          <span className="category-badge-text">{getCategoryName(subcategory.category)}</span>
         </span>
       ),
     },
     {
-      header: 'Slug',
-      render: (subcategory) => {
-        const slug = typeof subcategory.slug === 'object' ? subcategory.slug.en : subcategory.slug;
-        return <div className="subcategory-slug">/{slug}</div>;
-      },
-    },
-    {
       header: 'Status',
+      headerClassName: 'subcategory-status-column',
+      cellClassName: 'subcategory-status-column',
       render: (subcategory) => (
         <span className={`status-badge ${subcategory.isActive ? 'status-active' : 'status-inactive'}`}>
           {subcategory.isActive ? (
@@ -258,6 +251,8 @@ export default function TourSubcategoriesPage() {
     },
     {
       header: 'Tours',
+      headerClassName: 'subcategory-tours-column',
+      cellClassName: 'subcategory-tours-column',
       render: (subcategory) => (
         <div className="tours-count">
           <Layers size={14} />
@@ -267,21 +262,18 @@ export default function TourSubcategoriesPage() {
     },
     {
       header: 'Actions',
+      headerClassName: 'subcategory-actions-column',
+      cellClassName: 'subcategory-actions-column',
       render: (subcategory) => (
         <div className="action-buttons">
+          <Link href={`/admin/tour/subcategory/${subcategory._id}/view`}>
+            <button className="btn-icon btn-view" title="View"><ScanEye size={16} /></button>
+          </Link>
           <Link href={`/admin/tour/subcategory/new?id=${subcategory._id}`}>
             <button className="btn-icon btn-edit" title="Edit">
               <Edit2 size={16} />
             </button>
           </Link>
-          <button
-            className="btn-icon btn-toggle"
-            onClick={() => handleToggleStatus(subcategory._id)}
-            disabled={toggling === subcategory._id}
-            title={subcategory.isActive ? 'Deactivate' : 'Activate'}
-          >
-            {subcategory.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
           <button
             className="btn-icon btn-delete"
             onClick={() => handleDelete(subcategory._id)}
@@ -331,12 +323,21 @@ export default function TourSubcategoriesPage() {
             type="text"
             placeholder="Search by name or slug..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">
           <FolderTree size={18} />
-          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Categories</option>
             {categories.map((category) => (
               <option key={category._id} value={category._id}>
@@ -347,7 +348,13 @@ export default function TourSubcategoriesPage() {
         </div>
         <div className="filter-group">
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -396,6 +403,7 @@ export default function TourSubcategoriesPage() {
               </Link>
             </div>
           }
+          wrapperClassName="subcategories-table-scroll"
           tableClassName="subcategories-table"
         />
 

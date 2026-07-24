@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogSubcategoryAPI } from '@/lib/api/blogAdmin';
 import { BlogSubCategory, BlogCategory } from '@/lib/api/blog';
-import { 
+import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, FolderOpen, CheckCircle, 
   XCircle, Layers, ArrowRight
@@ -55,7 +55,7 @@ export default function BlogSubCategoriesPage() {
       const params: any = {
         page,
         limit: 10,
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
       };
       
       if (statusFilter !== 'all') {
@@ -151,7 +151,7 @@ export default function BlogSubCategoriesPage() {
   };
 
   const filteredSubcategories = subcategories.filter(subcategory => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.trim().toLowerCase();
     return (
       (subcategory.name?.en || '').toLowerCase().includes(searchLower) ||
       (subcategory.name?.de || '').toLowerCase().includes(searchLower) ||
@@ -232,6 +232,9 @@ export default function BlogSubCategoriesPage() {
       header: 'Actions',
       render: (subcategory) => (
         <div className="action-buttons">
+          <Link href={`/admin/blogs/subcategory/${subcategory._id}/view`}>
+            <button className="btn-icon btn-view" title="View"><ScanEye size={16} /></button>
+          </Link>
           <Link href={`/admin/blogs/subcategory/new?id=${subcategory._id}`}>
             <button className="btn-icon btn-edit" title="Edit">
               <Edit2 size={16} />
@@ -293,12 +296,21 @@ export default function BlogSubCategoriesPage() {
             type="text"
             placeholder="Search by name or slug..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>

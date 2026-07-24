@@ -337,7 +337,6 @@ const AdminDashboard: React.FC = () => {
           label="Special offers"
           value={specialOffersCount}
           tone="rose"
-          onClick={() => router.push("/admin/special-offers")}
         />
         <DashboardKpiCard
           icon={Users}
@@ -528,7 +527,7 @@ const AdminDashboard: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   className="h-8 px-2"
-                  onClick={() => router.push("/admin/contact-forms")}
+                  onClick={() => router.push("/admin/contact-forms/contact-form")}
                 >
                   Details
                   <ChevronRight size={14} />

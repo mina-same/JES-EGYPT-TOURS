@@ -13,7 +13,6 @@ import {
   Scissors,
   Phone,
   Sparkles,
-  Tag,
   ChevronRight,
   ChevronsUpDown,
   LogOut,
@@ -134,19 +133,9 @@ const menuItems = [
         icon: Target,
         url: '/admin/tour/tour',
       },
-      {
-        id: 'tour-booking',
-        title: 'Bookings',
-        icon: Calendar,
-        url: '/admin/tour/booking',
-        badgeKey: 'booking',
-      },
-      {
-        id: 'special-offers',
-        title: 'Special Offers',
-        icon: Tag,
-        url: '/admin/special-offers',
-      },
+      // NOTE: "Special Offers" removed — there is no /admin/special-offers
+      // route (it is a visitor-only page driven by discounted tours), so the
+      // link 404'd. Re-add here if a dedicated admin manager is ever built.
     ],
   },
   {
@@ -154,6 +143,13 @@ const menuItems = [
     title: 'Contact Forms',
     icon: Mail,
     items: [
+      {
+        id: 'tour-booking',
+        title: 'Bookings',
+        icon: Calendar,
+        url: '/admin/tour/booking',
+        badgeKey: 'booking',
+      },
       {
         id: 'tailor-made',
         title: 'Tailor-Made',
@@ -276,7 +272,10 @@ export function AppSidebar() {
                     <Collapsible
                       key={item.id}
                       asChild
-                      defaultOpen={item.items?.some((subItem) => pathname === subItem.url)}
+                      defaultOpen={
+                        item.id === 'contact-forms' ||
+                        item.items?.some((subItem) => pathname === subItem.url)
+                      }
                       className="group/collapsible"
                     >
                       <SidebarMenuItem>

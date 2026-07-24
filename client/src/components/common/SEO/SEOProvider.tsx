@@ -5,7 +5,7 @@ interface SEOProviderProps {
 }
 
 const SEOProvider: React.FC<SEOProviderProps> = ({ locale }) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://jesegypttours.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.jesegypttours.com';
   
   const organizationSchema = {
     '@context': 'https://schema.org',

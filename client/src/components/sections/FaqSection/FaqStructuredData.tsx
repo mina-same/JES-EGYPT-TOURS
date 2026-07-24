@@ -28,7 +28,7 @@ interface BreadcrumbItem {
   "item"?: string;
 }
 
-const BASE_URL = 'https://jesegypttours.com';
+const BASE_URL = 'https://www.jesegypttours.com';
 
 export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({ 
   faqs, 
@@ -124,7 +124,7 @@ export const HowToStructuredData: React.FC<HowToStructuredDataProps> = ({
     "@type": "HowTo",
     "name": question,
     "text": answer.replace(/<[^>]*>/g, ''),
-    "image": "https://jesegypttours.com/images/how-to-egypt-travel.jpg",
+    "image": "https://www.jesegypttours.com/images/how-to-egypt-travel.jpg",
     "totalTime": "PT10M",
     "supply": [],
     "tool": [],
@@ -133,7 +133,7 @@ export const HowToStructuredData: React.FC<HowToStructuredDataProps> = ({
         "@type": "HowToStep",
         "name": "Follow this guide",
         "text": answer.replace(/<[^>]*>/g, ''),
-        "image": "https://jesegypttours.com/images/egypt-travel-step.jpg"
+        "image": "https://www.jesegypttours.com/images/egypt-travel-step.jpg"
       }
     ]
   };

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import TourCategory from '../models/TourCategory';
 import { FilterQuery } from 'mongoose';
 import { ITourCategory } from '../models/TourCategory';
+import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 
 // ==================== INTERFACES ====================
 
@@ -26,12 +27,9 @@ const buildQueryFilter = (queryParams: QueryParams): FilterQuery<ITourCategory> 
     filter.isActive = queryParams.isActive === 'true';
   }
 
-  // Search by name or description
-  if (queryParams.search) {
-    filter.$or = [
-      { name: { $regex: queryParams.search, $options: 'i' } },
-      { description: { $regex: queryParams.search, $options: 'i' } },
-    ];
+  const searchRegex = createSearchRegex(queryParams.search);
+  if (searchRegex) {
+    filter.$or = localizedSearchFilters(['name', 'slug', 'description'], searchRegex);
   }
 
   return filter;
@@ -178,6 +176,7 @@ export const getCategoryBySlug = async (
 ): Promise<void> => {
   try {
     const category = await TourCategory.findOne({
+      isActive: { $ne: false },
       $or: [
         { 'slug.en': req.params.slug },
         { 'slug.de': req.params.slug },

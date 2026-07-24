@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Faq, { IFaq } from '../models/Faq';
+import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 
 // Get all FAQs with optional filtering
 export const getAllFaqs = async (req: Request, res: Response) => {
@@ -21,13 +22,11 @@ export const getAllFaqs = async (req: Request, res: Response) => {
     if (isActive !== undefined) filter.isActive = isActive === 'true';
     if (displayOnHome !== undefined) filter.displayOnHome = displayOnHome === 'true';
 
-    if (search) {
+    const searchRegex = createSearchRegex(search);
+    if (searchRegex) {
       filter.$or = [
-        { "question.en": { $regex: search, $options: 'i' } },
-        { "question.de": { $regex: search, $options: 'i' } },
-        { "question.it": { $regex: search, $options: 'i' } },
-        { "answer.en": { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } }
+        ...localizedSearchFilters(['question', 'answer'], searchRegex),
+        { category: searchRegex },
       ];
     }
 

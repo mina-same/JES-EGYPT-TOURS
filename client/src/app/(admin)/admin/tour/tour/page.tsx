@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { tourAPI, tourSubcategoryAPI } from '@/lib/api/tour';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { tourAPI, tourSubcategoryAPI, tourCategoryAPI } from '@/lib/api/tour';
 import { ITour, ITourSubcategory } from '@/types/tour';
-import { 
+import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, MapPin, Clock, 
-  Star, CheckCircle, XCircle, Tag, MessageSquare
+  Star, CheckCircle, XCircle, Tag, MessageSquare, Calendar
 } from 'lucide-react';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
@@ -20,7 +21,9 @@ import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import LanguageBadges from '@/components/admin/LanguageBadges';
 
-export default function ToursPage() {
+function ToursPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { canEdit, canDelete, canCreate } = usePermissions();
   const [tours, setTours] = useState<ITour[]>([]);
@@ -33,7 +36,9 @@ export default function ToursPage() {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || 'all');
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string>(searchParams.get('subcategory') || 'all');
+  const [categories, setCategories] = useState<any[]>([]);
   const [featuredFilter, setFeaturedFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
@@ -51,11 +56,16 @@ export default function ToursPage() {
       const params: any = {
         page,
         limit,
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
       };
       
       if (statusFilter !== 'all') {
-        params.isActive = statusFilter === 'active';
+        if (statusFilter === 'scheduled') {
+          params.scheduled = true;
+        } else {
+          params.isActive = statusFilter === 'active';
+          if (statusFilter === 'inactive') params.scheduled = false;
+        }
       }
       
       if (featuredFilter !== 'all') {
@@ -64,6 +74,10 @@ export default function ToursPage() {
       
       if (subcategoryFilter !== 'all') {
         params.subcategory = subcategoryFilter;
+      }
+
+      if (categoryFilter !== 'all') {
+        params.category = categoryFilter;
       }
 
       const response = await tourAPI.getAll(params);
@@ -79,18 +93,6 @@ export default function ToursPage() {
     } finally {
       setLoading(false);
       setInitialLoad(false);
-    }
-  };
-
-  // Fetch subcategories for filter
-  const fetchSubcategories = async () => {
-    try {
-      const response = await tourSubcategoryAPI.getAll({ isActive: true });
-      if (response.success && response.data) {
-        setSubcategories(response.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch subcategories:', err);
     }
   };
 
@@ -196,13 +198,16 @@ export default function ToursPage() {
   const stats = {
     total: tours.length,
     active: tours.filter(t => t.isActive).length,
-    inactive: tours.filter(t => !t.isActive).length,
+    inactive: tours.filter(t => !t.isActive && !t.scheduledAt).length,
+    scheduled: tours.filter(t => !t.isActive && !!t.scheduledAt).length,
     featured: tours.filter(t => t.isFeatured).length,
   };
 
   const columns: Array<AdminTableColumn<ITour>> = [
     {
       header: 'Tour',
+      headerClassName: 'tour-column',
+      cellClassName: 'tour-column',
       render: (tour) => (
         <div className="tour-info">
           {tour.images && tour.images.length > 0 ? (
@@ -235,6 +240,8 @@ export default function ToursPage() {
     },
     {
       header: 'Subcategory',
+      headerClassName: 'subcategory-column',
+      cellClassName: 'subcategory-column',
       render: (tour) => (
         <span className="subcategory-badge">
           <Tag size={14} />
@@ -244,6 +251,8 @@ export default function ToursPage() {
     },
     {
       header: 'Duration',
+      headerClassName: 'duration-column',
+      cellClassName: 'duration-column',
       render: (tour) => (
         <div className="tour-meta-item">
           <Clock size={14} />
@@ -253,6 +262,8 @@ export default function ToursPage() {
     },
     {
       header: 'Price',
+      headerClassName: 'price-column',
+      cellClassName: 'price-column',
       render: (tour) => (
         <div className="price-display">
           {tour.priceStartingFrom ? (
@@ -268,19 +279,32 @@ export default function ToursPage() {
     },
     {
       header: 'Status',
-      render: (tour) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span className={`status-badge ${tour.isActive ? 'status-active' : 'status-inactive'}`}>
-            {tour.isActive ? (
+      headerClassName: 'status-column',
+      cellClassName: 'status-column',
+      render: (tour) => {
+        const isScheduled = !tour.isActive && !!tour.scheduledAt;
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span className={`status-badge ${tour.isActive ? 'status-active' : 'status-inactive'}`}>
+              {tour.isActive ? (
               <>
                 <CheckCircle size={14} /> Active
               </>
+              ) : isScheduled ? (
+                <>
+                  <Calendar size={14} /> Scheduled
+                </>
             ) : (
               <>
                 <XCircle size={14} /> Inactive
               </>
             )}
           </span>
+          {isScheduled && (
+            <span className="text-xs text-muted-foreground">
+              {new Date(tour.scheduledAt as Date | string).toLocaleString()}
+            </span>
+          )}
           {tour.isFeatured && (
             <span className="featured-badge">
               <Star size={14} />
@@ -288,12 +312,18 @@ export default function ToursPage() {
             </span>
           )}
         </div>
-      ),
+        );
+      },
     },
     {
       header: 'Actions',
+      headerClassName: 'actions-column',
+      cellClassName: 'actions-column',
       render: (tour) => (
         <div className="action-buttons">
+          <Link href={`/admin/tour/tour/${tour._id}/view`}>
+            <button className="btn-icon btn-view" title="View"><ScanEye size={16} /></button>
+          </Link>
           {canEdit('tour') && (
             <Link href={`/admin/tour/tour/${tour._id}/edit`}>
               <button className="btn-icon btn-edit" title="Edit">
@@ -341,17 +371,32 @@ export default function ToursPage() {
     },
   ];
 
-  const subcategoriesFetchedRef = useRef(false);
-
   useEffect(() => {
     fetchTours();
-  }, [page, searchTerm, statusFilter, subcategoryFilter, featuredFilter]);
+  }, [page, searchTerm, statusFilter, categoryFilter, subcategoryFilter, featuredFilter]);
 
   useEffect(() => {
-    if (subcategoriesFetchedRef.current) return;
-    subcategoriesFetchedRef.current = true;
-    fetchSubcategories();
+    tourCategoryAPI.getAll().then((res) => {
+      if (res.success && res.data) setCategories(res.data);
+    }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const loader = categoryFilter !== 'all'
+      ? tourSubcategoryAPI.getByCategory(categoryFilter, { isActive: true })
+      : tourSubcategoryAPI.getAll({ isActive: true });
+    loader.then((res) => {
+      if (res.success && res.data) setSubcategories(res.data);
+    }).catch(() => {});
+  }, [categoryFilter]);
+
+  const syncBridgeUrl = (nextCategory: string, nextSubcategory: string) => {
+    const sp = new URLSearchParams();
+    if (nextCategory !== 'all') sp.set('category', nextCategory);
+    if (nextSubcategory !== 'all') sp.set('subcategory', nextSubcategory);
+    const qs = sp.toString();
+    router.replace(qs ? `/admin/tour/tour?${qs}` : '/admin/tour/tour', { scroll: false });
+  };
 
   if (initialLoad) {
     return <AdminPageSkeleton showStats showFilters tableRows={12} />;
@@ -384,6 +429,7 @@ export default function ToursPage() {
         <StatCard icon={MapPin} value={stats.total} label="Total Tours" iconVariant="total" />
         <StatCard icon={CheckCircle} value={stats.active} label="Active" iconVariant="active" />
         <StatCard icon={XCircle} value={stats.inactive} label="Inactive" iconVariant="inactive" />
+        <StatCard icon={Calendar} value={stats.scheduled} label="Scheduled" iconVariant="confirmed" />
         <StatCard icon={Star} value={stats.featured} label="Featured Tours" iconVariant="featured" />
       </div>
 
@@ -395,12 +441,43 @@ export default function ToursPage() {
             type="text"
             placeholder="Search by name, location, or description..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">
           <Tag size={18} />
-          <select value={subcategoryFilter} onChange={(e) => setSubcategoryFilter(e.target.value)}>
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setCategoryFilter(v);
+              setSubcategoryFilter('all');
+              setPage(1);
+              syncBridgeUrl(v, 'all');
+            }}
+          >
+            <option value="all">All Categories</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {typeof category.name === 'object' ? (category.name as any).en : category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
+          <Tag size={18} />
+          <select
+            value={subcategoryFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSubcategoryFilter(v);
+              setPage(1);
+              syncBridgeUrl(categoryFilter, v);
+            }}
+          >
             <option value="all">All Subcategories</option>
             {subcategories.map((subcategory) => (
               <option key={subcategory._id} value={subcategory._id}>
@@ -411,15 +488,28 @@ export default function ToursPage() {
         </div>
         <div className="filter-group">
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
+            <option value="scheduled">Scheduled</option>
           </select>
         </div>
         <div className="filter-group">
           <Star size={18} />
-          <select value={featuredFilter} onChange={(e) => setFeaturedFilter(e.target.value)}>
+          <select
+            value={featuredFilter}
+            onChange={(e) => {
+              setFeaturedFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Tours</option>
             <option value="featured">Featured</option>
             <option value="regular">Regular</option>
@@ -497,5 +587,13 @@ export default function ToursPage() {
         confirmDisabled={deleteBusy}
       />
     </div>
+  );
+}
+
+export default function ToursPage() {
+  return (
+    <Suspense fallback={<AdminPageSkeleton showStats showFilters tableRows={12} />}>
+      <ToursPageContent />
+    </Suspense>
   );
 }

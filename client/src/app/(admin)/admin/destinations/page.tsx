@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { destinationAPI } from '@/lib/api/blogAdmin';
-import { 
+import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Search, Filter, 
   RefreshCw, MapPin, CheckCircle, XCircle, Eye, EyeOff
 } from 'lucide-react';
@@ -33,7 +33,7 @@ export default function DestinationsListPage() {
     setLoading(true);
     try {
       const params: any = {
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
         limit: 100
       };
       if (statusFilter !== 'all') {
@@ -149,7 +149,10 @@ export default function DestinationsListPage() {
       header: 'Actions',
       render: (dest) => (
         <div className="action-buttons">
-          <Link href={`/admin/destinations/new?edit=${dest._id}`}>
+          <Link href={`/admin/destinations/${dest._id}/view`}>
+            <button className="btn-icon btn-view" title="View"><ScanEye size={16} /></button>
+          </Link>
+          <Link href={`/admin/destinations/new?id=${dest._id}`}>
             <button className="btn-icon btn-edit" title="Edit">
               <Edit2 size={16} />
             </button>

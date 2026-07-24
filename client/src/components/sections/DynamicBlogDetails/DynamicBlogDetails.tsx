@@ -152,7 +152,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     switch (block.type) {
       case 'html': {
         const cleanHtml = typeof content === 'string'
-          ? content.replace(/&nbsp;/g, ' ').replace(/ /g, ' ')
+          ? content
+              .replace(/&nbsp;/g, ' ')
+              .replace(/ /g, ' ')
+              .replace(/<span[^>]*class="ql-ui"[^>]*>\s*<\/span>/gi, '')
+              .replace(/\s+data-list="[^"]*"/gi, '')
           : content;
         return (
           <div key={index} className='blog-details-card__text wow fadeInUp' data-wow-delay='300ms' data-wow-duration='1500ms'>
@@ -1156,27 +1160,29 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           margin: 0.8rem 0 1.8rem;
         }
 
+        /* Hanging indent via an absolutely-positioned marker — NOT flex on the
+           <li>. Flex would turn every inline run (text, <strong>, <a>) into a
+           separate flex item that wraps on its own narrow column, shattering
+           any line that mixes bold/links with plain text. */
         .blog-details-card__text ul > li {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
+          position: relative;
+          padding-left: 17px;
           font-size: 1.08rem;
           line-height: 1.75;
           color: #2d3436;
           margin-bottom: 0.65rem;
-          padding-left: 0;
           overflow-wrap: break-word;
         }
 
         .blog-details-card__text ul > li::before {
           content: "";
-          display: block;
-          flex-shrink: 0;
+          position: absolute;
+          left: 0;
+          top: 0.54em;
           width: 7px;
           height: 7px;
           background: #c7a24a;
           border-radius: 50%;
-          margin-top: 0.54em;
         }
 
         /* ── Ordered lists ───────────────────────────── */
@@ -1188,22 +1194,21 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         }
 
         .blog-details-card__text ol > li {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
+          position: relative;
+          padding-left: calc(1.6em + 10px);
           font-size: 1.08rem;
           line-height: 1.75;
           color: #2d3436;
           margin-bottom: 0.65rem;
-          padding-left: 0;
           counter-increment: article-list;
           overflow-wrap: break-word;
         }
 
         .blog-details-card__text ol > li::before {
           content: counter(article-list) ".";
-          display: block;
-          flex-shrink: 0;
+          position: absolute;
+          left: 0;
+          top: 0;
           min-width: 1.6em;
           font-weight: 700;
           font-size: 0.95em;
@@ -1222,7 +1227,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           height: 5px;
           background: transparent;
           border: 1.5px solid #c7a24a;
-          margin-top: 0.58em;
+          top: 0.58em;
         }
 
         .blog-details-page .blog-details-card__content__inner .blog-details-card__text h2.blog-details-card__title {

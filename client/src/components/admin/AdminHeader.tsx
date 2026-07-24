@@ -20,11 +20,18 @@ import {
 const getAdminTitle = (pathname: string) => {
   if (pathname === "/admin") return "Dashboard";
   if (pathname.startsWith("/admin/users")) return "Users";
+  if (/^\/admin\/blogs\/blog\/[^/]+\/view$/.test(pathname)) return "View Post";
+  if (/^\/admin\/blogs\/category\/[^/]+\/view$/.test(pathname)) return "View Blog Category";
+  if (/^\/admin\/blogs\/subcategory\/[^/]+\/view$/.test(pathname)) return "View Blog Subcategory";
   if (pathname.startsWith("/admin/blogs")) return "Blogs";
   if (pathname.startsWith("/admin/tour/booking")) return "Bookings";
+  if (/^\/admin\/tour\/tour\/[^/]+\/view$/.test(pathname)) return "View Tour";
   if (pathname.startsWith("/admin/tour/tour")) return "Tours";
+  if (/^\/admin\/tour\/category\/[^/]+\/view$/.test(pathname)) return "View Tour Category";
   if (pathname.startsWith("/admin/tour/category")) return "Tour Categories";
+  if (/^\/admin\/tour\/subcategory\/[^/]+\/view$/.test(pathname)) return "View Tour Subcategory";
   if (pathname.startsWith("/admin/tour/subcategory")) return "Tour Subcategories";
+  if (/^\/admin\/destinations\/[^/]+\/view$/.test(pathname)) return "View Destination";
   if (pathname.startsWith("/admin/contact-forms/tailor-made")) return "Tailor-Made Requests";
   if (pathname.startsWith("/admin/contact-forms/contact-form")) return "Contact Forms";
   if (pathname.startsWith("/admin/content-management/slider-content")) return "Slider Content";

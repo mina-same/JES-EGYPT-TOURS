@@ -6,11 +6,23 @@ import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGr
 import { getAllBlogs } from "@/lib/api/blog";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import type { Metadata } from "next";
+import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 
-export const metadata = {
-  title: "All Blog Posts || JES Egypt Tours",
-  description: "Explore all our travel articles.",
-};
+// Self-referential canonical (+ hreflang) so /blogs/all is not treated as a
+// duplicate of /blogs by the parent blogs/layout.tsx alternates.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    title: "All Blog Posts || JES Egypt Tours",
+    description: "Explore all our travel articles.",
+    alternates: getStaticLocaleAlternates(locale, "blogs/all"),
+  };
+}
 
 export default async function AllBlogsPage({
   searchParams,

@@ -9,6 +9,11 @@ import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import LocalizedRichText from '@/components/admin/LocalizedRichText';
+import {
+  getLocalTimezoneLabel,
+  parseDatetimeLocal,
+  toDatetimeLocalValue,
+} from '@/lib/datetimeLocal';
 
 interface SEOTabProps {
   formData: any;
@@ -25,6 +30,24 @@ export default function SEOTab({
   handleImageUpload,
   activeLanguage,
 }: SEOTabProps) {
+  const isScheduled =
+    formData.scheduledAt !== undefined && formData.scheduledAt !== null;
+  const publishingStatus = isScheduled
+    ? 'scheduled'
+    : formData.isActive
+      ? 'active'
+      : 'inactive';
+
+  const handlePublishingStatusChange = (status: string) => {
+    if (status === 'scheduled') {
+      handleChange('isActive', false);
+      if (!isScheduled) handleChange('scheduledAt', '');
+      return;
+    }
+
+    handleChange('isActive', status === 'active');
+    handleChange('scheduledAt', null);
+  };
 
   return (
     <div className="space-y-6">
@@ -35,17 +58,49 @@ export default function SEOTab({
           <CardDescription>Control tour visibility on the website</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="space-y-3 p-4 border rounded-lg">
             <div className="space-y-0.5">
-              <Label className="text-base">Active Status</Label>
+              <Label htmlFor="tourPublishingStatus" className="text-base">
+                Publishing Status
+              </Label>
               <p className="text-sm text-muted-foreground">
-                Enable to make this tour visible to the public
+                Publish now, keep the tour hidden, or activate it automatically later.
               </p>
             </div>
-            <Switch
-              checked={formData.isActive}
-              onCheckedChange={(checked) => handleChange('isActive', checked)}
-            />
+            <select
+              id="tourPublishingStatus"
+              value={publishingStatus}
+              onChange={(event) => handlePublishingStatusChange(event.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="active">Active — visible now</option>
+              <option value="inactive">Inactive — hidden</option>
+              <option value="scheduled">Scheduled — activate later</option>
+            </select>
+
+            {publishingStatus === 'scheduled' && (
+              <div className="space-y-2">
+                <Label htmlFor="tourScheduledAt">Scheduled Date</Label>
+                <Input
+                  id="tourScheduledAt"
+                  type="datetime-local"
+                  required
+                  min={toDatetimeLocalValue(new Date())}
+                  value={toDatetimeLocalValue(formData.scheduledAt)}
+                  onChange={(event) =>
+                    handleChange(
+                      'scheduledAt',
+                      event.target.value
+                        ? parseDatetimeLocal(event.target.value)
+                        : ''
+                    )
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Timezone: {getLocalTimezoneLabel()}. The tour stays hidden until this time.
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="space-y-0.5">

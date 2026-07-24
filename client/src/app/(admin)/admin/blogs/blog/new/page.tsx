@@ -41,6 +41,11 @@ import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 import { mixedToHtml, htmlAllEmpty } from '@/lib/localizedHtml';
+import {
+  getLocalTimezoneLabel,
+  parseDatetimeLocal,
+  toDatetimeLocalValue,
+} from '@/lib/datetimeLocal';
 
 // Tab definitions
 const TABS = [
@@ -1305,9 +1310,14 @@ export default function NewBlogPage() {
                         <Input
                           id="scheduledAt"
                           type="datetime-local"
-                          value={formData.scheduledAt ? new Date(formData.scheduledAt).toISOString().slice(0, 16) : ''}
-                          onChange={(e) => handleChange('scheduledAt', e.target.value ? new Date(e.target.value) : undefined)}
+                          required
+                          min={toDatetimeLocalValue(new Date())}
+                          value={toDatetimeLocalValue(formData.scheduledAt)}
+                          onChange={(e) => handleChange('scheduledAt', parseDatetimeLocal(e.target.value))}
                         />
+                        <p className="text-xs text-muted-foreground">
+                          Timezone: {getLocalTimezoneLabel()}. The post stays hidden until this time.
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -1319,7 +1329,7 @@ export default function NewBlogPage() {
 
         {/* Submit Button */}
         <div className="flex justify-end gap-4 pt-6 border-t">
-          <Link href="/admin/blogs">
+          <Link href="/admin/blogs/blog">
             <Button type="button" variant="outline">
               Cancel
             </Button>
