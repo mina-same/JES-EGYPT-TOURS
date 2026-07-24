@@ -289,6 +289,18 @@ const BlogSchema: Schema = new Schema(
     },
     scheduledAt: {
       type: Date,
+      required: [
+        function (this: any) {
+          return this.status === 'scheduled';
+        },
+        'A scheduled date is required',
+      ],
+      validate: {
+        validator: function (this: any, value?: Date) {
+          return this.status !== 'scheduled' || (!!value && value.getTime() > Date.now());
+        },
+        message: 'Scheduled date must be in the future',
+      },
     },
     lastModified: {
       type: Date,
@@ -391,6 +403,7 @@ BlogSchema.index({ 'slug.de': 1 }, { sparse: true, unique: true });
 BlogSchema.index({ 'slug.it': 1 }, { sparse: true, unique: true });
 BlogSchema.index({ 'slug.es': 1 }, { sparse: true, unique: true });
 BlogSchema.index({ status: 1, publishedAt: -1 });
+BlogSchema.index({ status: 1, scheduledAt: 1 });
 BlogSchema.index({ isFeatured: 1, status: 1 });
 BlogSchema.index({ author: 1, status: 1 });
 BlogSchema.index({ tags: 1 });
@@ -488,6 +501,12 @@ BlogSchema.pre<IBlog>('save', function (next) {
   // Set publishedAt when status changes to published
   if (this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date();
+  }
+
+  if (this.status === 'scheduled') {
+    this.publishedAt = undefined;
+  } else {
+    this.scheduledAt = undefined;
   }
   
   next();

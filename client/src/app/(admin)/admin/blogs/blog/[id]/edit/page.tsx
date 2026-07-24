@@ -43,6 +43,11 @@ import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 import { mixedToHtml, htmlAllEmpty } from '@/lib/localizedHtml';
+import {
+  getLocalTimezoneLabel,
+  parseDatetimeLocal,
+  toDatetimeLocalValue,
+} from '@/lib/datetimeLocal';
 
 
 // Tab definitions
@@ -1532,9 +1537,14 @@ export default function EditBlogPage() {
                         <Input
                           id="scheduledAt"
                           type="datetime-local"
-                          value={formData.scheduledAt ? new Date(formData.scheduledAt).toISOString().slice(0, 16) : ''}
-                          onChange={(e) => handleChange('scheduledAt', e.target.value ? new Date(e.target.value) : undefined)}
+                          required
+                          min={toDatetimeLocalValue(new Date())}
+                          value={toDatetimeLocalValue(formData.scheduledAt)}
+                          onChange={(e) => handleChange('scheduledAt', parseDatetimeLocal(e.target.value))}
                         />
+                        <p className="text-xs text-muted-foreground">
+                          Timezone: {getLocalTimezoneLabel()}. The post stays hidden until this time.
+                        </p>
                       </div>
                     )}
                   </CardContent>

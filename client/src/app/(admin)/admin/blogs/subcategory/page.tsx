@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogSubcategoryAPI } from '@/lib/api/blogAdmin';
 import { BlogSubCategory, BlogCategory } from '@/lib/api/blog';
-import { 
+import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, FolderOpen, CheckCircle, 
   XCircle, Layers, ArrowRight
@@ -232,6 +232,9 @@ export default function BlogSubCategoriesPage() {
       header: 'Actions',
       render: (subcategory) => (
         <div className="action-buttons">
+          <Link href={`/admin/blogs/subcategory/${subcategory._id}/view`}>
+            <button className="btn-icon btn-view" title="View"><ScanEye size={16} /></button>
+          </Link>
           <Link href={`/admin/blogs/subcategory/new?id=${subcategory._id}`}>
             <button className="btn-icon btn-edit" title="Edit">
               <Edit2 size={16} />

@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { tourAPI, tourSubcategoryAPI } from '@/lib/api/tour';
 import { ITour, ITourSubcategory } from '@/types/tour';
-import { 
+import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, MapPin, Clock, 
-  Star, CheckCircle, XCircle, Tag, MessageSquare
+  Star, CheckCircle, XCircle, Tag, MessageSquare, Calendar
 } from 'lucide-react';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
@@ -55,7 +55,12 @@ export default function ToursPage() {
       };
       
       if (statusFilter !== 'all') {
-        params.isActive = statusFilter === 'active';
+        if (statusFilter === 'scheduled') {
+          params.scheduled = true;
+        } else {
+          params.isActive = statusFilter === 'active';
+          if (statusFilter === 'inactive') params.scheduled = false;
+        }
       }
       
       if (featuredFilter !== 'all') {
@@ -196,7 +201,8 @@ export default function ToursPage() {
   const stats = {
     total: tours.length,
     active: tours.filter(t => t.isActive).length,
-    inactive: tours.filter(t => !t.isActive).length,
+    inactive: tours.filter(t => !t.isActive && !t.scheduledAt).length,
+    scheduled: tours.filter(t => !t.isActive && !!t.scheduledAt).length,
     featured: tours.filter(t => t.isFeatured).length,
   };
 
@@ -278,19 +284,30 @@ export default function ToursPage() {
       header: 'Status',
       headerClassName: 'status-column',
       cellClassName: 'status-column',
-      render: (tour) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span className={`status-badge ${tour.isActive ? 'status-active' : 'status-inactive'}`}>
-            {tour.isActive ? (
+      render: (tour) => {
+        const isScheduled = !tour.isActive && !!tour.scheduledAt;
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span className={`status-badge ${tour.isActive ? 'status-active' : 'status-inactive'}`}>
+              {tour.isActive ? (
               <>
                 <CheckCircle size={14} /> Active
               </>
+              ) : isScheduled ? (
+                <>
+                  <Calendar size={14} /> Scheduled
+                </>
             ) : (
               <>
                 <XCircle size={14} /> Inactive
               </>
             )}
           </span>
+          {isScheduled && (
+            <span className="text-xs text-muted-foreground">
+              {new Date(tour.scheduledAt as Date | string).toLocaleString()}
+            </span>
+          )}
           {tour.isFeatured && (
             <span className="featured-badge">
               <Star size={14} />
@@ -298,7 +315,8 @@ export default function ToursPage() {
             </span>
           )}
         </div>
-      ),
+        );
+      },
     },
     {
       header: 'Actions',
@@ -306,6 +324,9 @@ export default function ToursPage() {
       cellClassName: 'actions-column',
       render: (tour) => (
         <div className="action-buttons">
+          <Link href={`/admin/tour/tour/${tour._id}/view`}>
+            <button className="btn-icon btn-view" title="View"><ScanEye size={16} /></button>
+          </Link>
           {canEdit('tour') && (
             <Link href={`/admin/tour/tour/${tour._id}/edit`}>
               <button className="btn-icon btn-edit" title="Edit">
@@ -396,6 +417,7 @@ export default function ToursPage() {
         <StatCard icon={MapPin} value={stats.total} label="Total Tours" iconVariant="total" />
         <StatCard icon={CheckCircle} value={stats.active} label="Active" iconVariant="active" />
         <StatCard icon={XCircle} value={stats.inactive} label="Inactive" iconVariant="inactive" />
+        <StatCard icon={Calendar} value={stats.scheduled} label="Scheduled" iconVariant="confirmed" />
         <StatCard icon={Star} value={stats.featured} label="Featured Tours" iconVariant="featured" />
       </div>
 
@@ -427,6 +449,7 @@ export default function ToursPage() {
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
+            <option value="scheduled">Scheduled</option>
           </select>
         </div>
         <div className="filter-group">

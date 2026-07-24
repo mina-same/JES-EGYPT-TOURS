@@ -24,6 +24,7 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   tourStyle: { en: '', de: '', it: '', es: '' },
   isFeatured: false,
   isActive: true,
+  scheduledAt: null,
   isSpecialOffer: false,
   specialOfferDiscount: 0,
   seo: {

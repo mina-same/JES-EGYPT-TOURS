@@ -233,6 +233,8 @@ export default function EditTourPage() {
               cancellationPolicy: toLocalized(tour.cancellationPolicy),
               isFeatured: tour.isFeatured || false,
               isActive: tour.isActive !== undefined ? tour.isActive : true,
+              scheduledAt: tour.scheduledAt || null,
+              publishedAt: tour.publishedAt,
               isSpecialOffer: tour.isSpecialOffer || false,
               specialOfferDiscount: tour.specialOfferDiscount ?? 0,
               reviewsCount: tour.reviewsCount || 0,

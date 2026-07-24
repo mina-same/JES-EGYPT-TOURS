@@ -119,6 +119,8 @@ export interface ITour {
   tourStyle?: ILocalizedString;
   isFeatured: boolean;
   isActive: boolean;
+  scheduledAt?: Date | string | null;
+  publishedAt?: Date | string;
   seo?: ISEO;
   idExternal?: string;
   reviewsCount?: number;
@@ -264,6 +266,8 @@ export interface TourFormData {
   tourStyle?: ILocalizedString;
   isFeatured: boolean;
   isActive: boolean;
+  scheduledAt?: Date | string | null;
+  publishedAt?: Date | string;
   isSpecialOffer?: boolean;
   specialOfferDiscount?: number;
   seo?: ISEO;

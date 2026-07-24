@@ -4,6 +4,10 @@ import { FilterQuery } from 'mongoose';
 import { ITour } from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { localize } from '../utils/localize';
+import {
+  parseFutureSchedule,
+  PublishingValidationError,
+} from '../utils/publishing';
 
 // ==================== INTERFACES ====================
 
@@ -11,6 +15,7 @@ interface QueryParams {
   subcategory?: string;
   category?: string;
   isActive?: string;
+  scheduled?: string;
   isFeatured?: string;
   isSpecialOffer?: string;
   search?: string;
@@ -48,6 +53,13 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
   // Filter by active status
   if (queryParams.isActive !== undefined) {
     filter.isActive = queryParams.isActive === 'true';
+  }
+
+  if (queryParams.scheduled === 'true') {
+    filter.isActive = false;
+    filter.scheduledAt = { $exists: true, $ne: null };
+  } else if (queryParams.scheduled === 'false') {
+    filter.scheduledAt = { $exists: false };
   }
 
   // Filter by featured status
@@ -547,7 +559,26 @@ export const createTour = async (
   res: Response
 ): Promise<void> => {
   try {
-    const tour = await Tour.create(req.body);
+    const body = { ...req.body };
+
+    if (
+      Object.prototype.hasOwnProperty.call(body, 'scheduledAt') &&
+      body.scheduledAt !== null &&
+      body.scheduledAt !== undefined
+    ) {
+      body.scheduledAt = parseFutureSchedule(body.scheduledAt);
+      body.isActive = false;
+      delete body.publishedAt;
+    } else {
+      delete body.scheduledAt;
+      if (body.isActive !== false) {
+        body.publishedAt = new Date();
+      } else {
+        delete body.publishedAt;
+      }
+    }
+
+    const tour = await Tour.create(body);
 
     // Populate subcategory details
     await tour.populate('subcategory', 'name slug');
@@ -561,6 +592,14 @@ export const createTour = async (
     });
   } catch (error: any) {
     console.error('Error creating tour:', error);
+
+    if (error instanceof PublishingValidationError) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+      return;
+    }
 
     // Handle invalid ObjectId/CastError
     if (error.name === 'CastError') {
@@ -627,12 +666,17 @@ export const updateTour = async (
   res: Response
 ): Promise<void> => {
   try {
+    const body = { ...req.body };
+
     // Stale-save conflict guard — reject saves from stale drafts or old tabs
     const submittedVersion: number | undefined =
-      typeof req.body._editVersion === 'number' ? req.body._editVersion : undefined;
-    delete req.body._editVersion;
+      typeof body._editVersion === 'number' ? body._editVersion : undefined;
+    delete body._editVersion;
 
-    const existingTour = await Tour.findById(req.params.id, 'editVersion').lean();
+    const existingTour = await Tour.findById(
+      req.params.id,
+      'editVersion isActive scheduledAt publishedAt'
+    ).lean();
     if (!existingTour) {
       res.status(404).json({ success: false, error: 'Tour not found' });
       return;
@@ -648,17 +692,17 @@ export const updateTour = async (
       return;
     }
 
-    req.body.editVersion = currentVersion + 1;
+    body.editVersion = currentVersion + 1;
 
     // Filter out empty gallery items (items with empty fileName)
-    if (req.body.gallery && Array.isArray(req.body.gallery)) {
-      req.body.gallery = req.body.gallery.filter((item: any) => 
+    if (body.gallery && Array.isArray(body.gallery)) {
+      body.gallery = body.gallery.filter((item: any) =>
         item && item.fileName && item.fileName.trim() !== ''
       );
     }
 
     // Sanitize pricingPlans: remove empty date objects from seasons
-    if (req.body.pricingPlans && Array.isArray(req.body.pricingPlans)) {
+    if (body.pricingPlans && Array.isArray(body.pricingPlans)) {
       const isEmptyDateObj = (val: any): boolean => {
         if (val === null || val === undefined) return false;
         if (val instanceof Date) return false;
@@ -666,7 +710,7 @@ export const updateTour = async (
         return Object.keys(val).length === 0;
       };
 
-      req.body.pricingPlans = req.body.pricingPlans.map((plan: any) => {
+      body.pricingPlans = body.pricingPlans.map((plan: any) => {
         if (!plan.seasons || !Array.isArray(plan.seasons)) return plan;
         return {
           ...plan,
@@ -684,9 +728,35 @@ export const updateTour = async (
       });
     }
 
+    const fieldsToUnset: Record<string, 1> = {};
+    const hasScheduledAt = Object.prototype.hasOwnProperty.call(body, 'scheduledAt');
+
+    if (
+      hasScheduledAt &&
+      body.scheduledAt !== null &&
+      body.scheduledAt !== undefined
+    ) {
+      body.scheduledAt = parseFutureSchedule(body.scheduledAt);
+      body.isActive = false;
+      fieldsToUnset.publishedAt = 1;
+      delete body.publishedAt;
+    } else if (hasScheduledAt || body.isActive !== undefined) {
+      fieldsToUnset.scheduledAt = 1;
+      delete body.scheduledAt;
+
+      if (body.isActive === true && !(existingTour as any).isActive) {
+        body.publishedAt = new Date();
+      }
+    }
+
+    const update: any = { $set: body };
+    if (Object.keys(fieldsToUnset).length > 0) {
+      update.$unset = fieldsToUnset;
+    }
+
     const tour = await Tour.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      update,
       {
         new: true,
         runValidators: true,
@@ -710,6 +780,14 @@ export const updateTour = async (
     });
   } catch (error: any) {
     console.error('Error updating tour:', error);
+
+    if (error instanceof PublishingValidationError) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+      return;
+    }
 
     // Handle invalid ObjectId/CastError
     if (error.name === 'CastError') {
@@ -836,6 +914,11 @@ export const toggleTourStatus = async (
     }
 
     tour.isActive = !tour.isActive;
+    tour.scheduledAt = undefined;
+    if (tour.isActive) {
+      tour.publishedAt = new Date();
+    }
+    tour.editVersion = (tour.editVersion ?? 0) + 1;
     await tour.save();
 
     void emitDashboardStatsUpdate();

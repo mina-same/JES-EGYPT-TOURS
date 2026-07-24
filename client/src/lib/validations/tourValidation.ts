@@ -4,6 +4,23 @@ import { FormErrorItem } from '@/lib/parseApiError';
 export function validateTourForm(formData: TourFormData): FormErrorItem[] {
   const errors: FormErrorItem[] = [];
 
+  const hasSchedule =
+    formData.scheduledAt !== undefined && formData.scheduledAt !== null;
+  if (hasSchedule) {
+    const scheduledAt = new Date(formData.scheduledAt as Date | string);
+    if (
+      !formData.scheduledAt ||
+      Number.isNaN(scheduledAt.getTime()) ||
+      scheduledAt.getTime() <= Date.now()
+    ) {
+      errors.push({
+        field: 'Scheduled Date',
+        message: 'Choose a valid future date and time',
+        path: 'scheduledAt',
+      });
+    }
+  }
+
   // Internal Name
   if (!formData.name?.trim()) {
     errors.push({ field: 'System Name', message: 'Internal name is required', path: 'name' });

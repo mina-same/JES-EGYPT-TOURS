@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import Blog, { completeOgFromMeta } from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
+import {
+  parseFutureSchedule,
+  PublishingValidationError,
+} from '../utils/publishing';
 
 /**
  * @desc    Get all published blogs with pagination
@@ -395,6 +399,18 @@ export const createBlog = async (
     
     stripEmptyLocalizedSlugs(body.slug);
 
+    if (body.status === 'scheduled') {
+      body.scheduledAt = parseFutureSchedule(body.scheduledAt);
+      delete body.publishedAt;
+    } else {
+      delete body.scheduledAt;
+      if (body.status === 'published') {
+        body.publishedAt = new Date();
+      } else {
+        delete body.publishedAt;
+      }
+    }
+
     const blog = await Blog.create(body);
     await blog.populate('author', 'name email');
     await blog.populate('editorialAuthor');
@@ -406,6 +422,14 @@ export const createBlog = async (
     });
   } catch (error: any) {
     console.error('Error creating blog:', error);
+
+    if (error instanceof PublishingValidationError) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+      return;
+    }
     
     if (error.code === 11000) {
       const conflictField = error.keyValue
@@ -461,7 +485,7 @@ export const updateBlog = async (
 
     const existingBlog = await Blog.findById(
       req.params.id,
-      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status'
+      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status scheduledAt publishedAt'
     ).lean();
     if (!existingBlog) {
       res.status(404).json({ success: false, error: 'Blog post not found' });
@@ -526,9 +550,31 @@ export const updateBlog = async (
       }
     }
 
+    const ex: any = existingBlog;
+    const targetStatus = body.status ?? ex.status;
+    const fieldsToUnset: Record<string, 1> = {};
+
+    if (targetStatus === 'scheduled') {
+      body.scheduledAt = parseFutureSchedule(body.scheduledAt ?? ex.scheduledAt);
+      fieldsToUnset.publishedAt = 1;
+      delete body.publishedAt;
+    } else {
+      fieldsToUnset.scheduledAt = 1;
+      delete body.scheduledAt;
+
+      if (targetStatus === 'published' && ex.status !== 'published') {
+        body.publishedAt = new Date();
+      }
+    }
+
+    const update: any = { $set: body };
+    if (Object.keys(fieldsToUnset).length > 0) {
+      update.$unset = fieldsToUnset;
+    }
+
     const blog = await Blog.findByIdAndUpdate(
       req.params.id,
-      body,
+      update,
       {
         new: true,
         runValidators: true,
@@ -553,6 +599,14 @@ export const updateBlog = async (
       data: blog,
     });
   } catch (error: any) {
+    if (error instanceof PublishingValidationError) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+      return;
+    }
+
     const body: any = req.body || {};
     const contentBlocks = Array.isArray(body.contentBlocks) ? body.contentBlocks : [];
     const contentBlocksSummary = contentBlocks.map((b: any) => {
@@ -790,6 +844,8 @@ export const publishBlog = async (
 
     blog.status = 'published';
     blog.publishedAt = new Date();
+    blog.scheduledAt = undefined;
+    blog.editVersion = (blog.editVersion ?? 0) + 1;
     await blog.save();
 
     res.status(200).json({
@@ -827,6 +883,8 @@ export const unpublishBlog = async (
     }
 
     blog.status = 'draft';
+    blog.scheduledAt = undefined;
+    blog.editVersion = (blog.editVersion ?? 0) + 1;
     await blog.save();
 
     res.status(200).json({

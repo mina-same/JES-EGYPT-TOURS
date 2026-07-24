@@ -9,6 +9,7 @@ export interface QueryParams {
   limit?: number;
   search?: string;
   isActive?: boolean;
+  scheduled?: boolean;
   isFeatured?: boolean;
   isSpecialOffer?: boolean;
   sort?: string;

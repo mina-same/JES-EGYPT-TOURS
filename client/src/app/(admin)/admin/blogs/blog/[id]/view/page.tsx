@@ -4,67 +4,21 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Edit2, Eye, EyeOff, Globe, FileText, Loader2, Copy, Check,
-  Star, Info, Search, Tag, MapPin, Layers, Clock, AlertTriangle, X,
+  ArrowLeft, Edit2, Eye, EyeOff, FileText, Loader2,
+  Star, Info, Search, Tag, MapPin, Clock, AlertTriangle, X,
 } from 'lucide-react';
 import { blogAPI } from '@/lib/api/blogAdmin';
 import { getLocalizedValue } from '@/lib/localize';
-import { getStrictLocalizedSlug, getSeoBaseUrl, SUPPORTED_LOCALES, type SupportedLocale } from '@/lib/url';
+import { getStrictLocalizedSlug, SUPPORTED_LOCALES, type SupportedLocale } from '@/lib/url';
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
 import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
-
-const LOCALE_LABELS: Record<SupportedLocale, string> = {
-  en: 'English', de: 'Deutsch', it: 'Italiano', es: 'Español',
-};
-
-// ── Localized-presence helpers (used by the translation matrix + previews) ──
-function hasText(v: unknown): boolean {
-  if (typeof v === 'string') {
-    return v.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\u00a0/g, ' ').trim().length > 0;
-  }
-  if (Array.isArray(v)) return v.some(hasText);
-  return false;
-}
-function localeHasField(field: any, locale: string): boolean {
-  if (field == null) return false;
-  if (typeof field === 'string') return hasText(field);
-  if (Array.isArray(field)) return field.some((x) => hasText(x));
-  if (typeof field === 'object') return hasText(field[locale]);
-  return false;
-}
-function faqHasLocale(faqs: any[], locale: string): boolean {
-  return (faqs || []).some((f) => localeHasField(f?.question, locale) && localeHasField(f?.answer, locale));
-}
-function blocksHaveLocale(blocks: any[], locale: string): boolean {
-  return (blocks || []).some((b) => localeHasField(b?.content, locale) || localeHasField(b?.title, locale));
-}
-
-// STRICT per-locale read — NO cross-locale fallback (getLocalizedValue would
-// leak EN/first-available). The content preview must show exactly the selected
-// language, matching the strict completeness matrix. A plain string / array is
-// treated as EN-only (mirrors the strict-slug model).
-function rawLocale(field: any, locale: string): any {
-  if (field == null) return undefined;
-  if (typeof field === 'string' || Array.isArray(field)) return locale === 'en' ? field : undefined;
-  if (typeof field === 'object') return field[locale];
-  return undefined;
-}
-function strictText(field: any, locale: string): string {
-  const v = rawLocale(field, locale);
-  return typeof v === 'string' ? v : '';
-}
-
-// Per-language LIVE URL builder — mirrors the sitemap's strict/omit logic.
-function buildBlogLiveUrls(slug: unknown) {
-  const baseUrl = getSeoBaseUrl();
-  return SUPPORTED_LOCALES.flatMap((locale) => {
-    const s = getStrictLocalizedSlug(slug, locale);
-    if (!s) return [];
-    return [{ locale, label: LOCALE_LABELS[locale], url: `${baseUrl}/${locale}/${s}` }];
-  });
-}
+import {
+  Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
+  hasText, localeHasField, faqHasLocale, blocksHaveLocale, rawLocale, strictText, getImageUrl,
+  type MatrixRow, type ReadinessItem,
+} from '@/components/admin/entityView';
 
 function statusBadgeClass(status?: string) {
   switch (status) {
@@ -72,49 +26,6 @@ function statusBadgeClass(status?: string) {
     case 'scheduled': return 'bg-blue-100 text-blue-800';
     default: return 'bg-gray-100 text-gray-800';
   }
-}
-
-function getImageUrl(img: unknown): string | null {
-  if (!img) return null;
-  if (typeof img === 'string') return img || null;
-  return (img as any).url || null;
-}
-
-// ── Small presentational helpers ─────────────────────────────────────────
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="detail-section">
-      <h3>{icon} {title}</h3>
-      {children}
-    </div>
-  );
-}
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="detail-item">
-      <label>{label}</label>
-      <p>{children ?? '—'}</p>
-    </div>
-  );
-}
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        navigator.clipboard?.writeText(text).then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1400);
-        });
-      }}
-      title="Copy URL"
-      className="shrink-0 inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs text-gray-500 hover:text-[#b79c5c] hover:border-[#b79c5c] transition-colors"
-    >
-      {copied ? <Check size={13} /> : <Copy size={13} />}
-      {copied ? 'Copied' : 'Copy'}
-    </button>
-  );
 }
 
 export default function BlogViewPage() {
@@ -181,11 +92,9 @@ export default function BlogViewPage() {
 
   const title = getLocalizedValue(blog.title) || '(untitled)';
   const isPublished = blog.status === 'published';
-  const liveUrls = buildBlogLiveUrls(blog.slug);
   const featuredUrl = getImageUrl(blog.featuredImage);
   const hasFeaturedImage = !!featuredUrl;
 
-  // #5 — content stats
   const blockCount = Array.isArray(blog.contentBlocks) ? blog.contentBlocks.length : 0;
   const faqCount = Array.isArray(blog.faqs) ? blog.faqs.length : 0;
   const imageCount =
@@ -195,8 +104,7 @@ export default function BlogViewPage() {
       return n;
     }, 0);
 
-  // #2 — translation completeness matrix
-  const matrixRows: { label: string; has: (loc: string) => boolean }[] = [
+  const matrixRows: MatrixRow[] = [
     { label: 'Title', has: (l) => localeHasField(blog.title, l) },
     { label: 'Excerpt', has: (l) => localeHasField(blog.excerpt, l) },
     { label: 'Summary', has: (l) => localeHasField(blog.summary, l) },
@@ -208,6 +116,16 @@ export default function BlogViewPage() {
   const excerptText = strictText(blog.excerpt, previewLocale);
   const summaryItems = normalizeAmenityItems(rawLocale(blog.summary, previewLocale));
   const takeawayItems = normalizeAmenityItems(rawLocale(blog.keyTakeaways, previewLocale));
+
+  const ogImageUrl = blog.ogImage || getImageUrl(blog.metaImage);
+  const readiness: ReadinessItem[] = [
+    { label: 'Featured image', ok: hasFeaturedImage, required: true },
+    { label: 'Title (EN)', ok: hasText(strictText(blog.title, 'en')), required: true },
+    { label: 'Slug (EN)', ok: !!getStrictLocalizedSlug(blog.slug, 'en'), required: true },
+    { label: 'Meta title (EN)', ok: hasText(strictText(blog.metaTitle, 'en')), required: false },
+    { label: 'Meta description (EN)', ok: hasText(strictText(blog.metaDescription, 'en')), required: false },
+    { label: 'OG image', ok: !!ogImageUrl, required: false },
+  ];
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -258,62 +176,15 @@ export default function BlogViewPage() {
         </div>
       </div>
 
-      {/* ── URL Preview ── */}
-      <Section title="URL Preview" icon={<Globe size={14} />}>
-        {!isPublished && (
-          <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 p-3 text-sm text-amber-700 dark:text-amber-300 mb-3">
-            <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-            <span>This article is <b>{blog.status}</b> — these live URLs return 404 until it is published{blog.status === 'scheduled' ? ` (goes live at ${blog.scheduledAt ? new Date(blog.scheduledAt).toLocaleString() : 'the scheduled time'})` : ''}.</span>
-          </div>
-        )}
-        {liveUrls.length === 0 ? (
-          <p className="text-sm text-gray-500 m-0">No slugs set yet — add a slug in the editor.</p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {liveUrls.map(({ locale, label, url }) => (
-              <div key={locale} className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold uppercase text-gray-400 w-16 shrink-0">{label}</span>
-                <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#b79c5c] hover:underline break-all flex-1 min-w-0">
-                  {url}
-                </a>
-                <CopyButton text={url} />
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
+      <LiveUrlPreview
+        slug={blog.slug}
+        live={isPublished}
+        warning={<>This article is <b>{blog.status}</b> — these live URLs return 404 until it is published{blog.status === 'scheduled' ? ` (goes live at ${blog.scheduledAt ? new Date(blog.scheduledAt).toLocaleString() : 'the scheduled time'})` : ''}.</>}
+      />
 
-      {/* ── Translation completeness (#2) ── */}
-      <Section title="Translation completeness" icon={<Layers size={14} />}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="text-left font-medium text-gray-400 text-xs uppercase py-2 pr-4">Field</th>
-                {SUPPORTED_LOCALES.map((l) => (
-                  <th key={l} className="text-center font-bold text-xs uppercase py-2 px-3 text-gray-500">{l}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {matrixRows.map((row) => (
-                <tr key={row.label} className="border-t border-gray-100 dark:border-slate-800">
-                  <td className="py-2 pr-4 text-gray-700 dark:text-gray-300">{row.label}</td>
-                  {SUPPORTED_LOCALES.map((l) => (
-                    <td key={l} className="text-center py-2 px-3">
-                      {row.has(l)
-                        ? <Check size={15} className="inline text-emerald-600" />
-                        : <span className="text-gray-300 dark:text-slate-600">—</span>}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
+      <TranslationMatrix rows={matrixRows} />
 
-      {/* ── Content stats (#5) ── */}
+      {/* ── At a glance ── */}
       <Section title="At a glance" icon={<Info size={14} />}>
         <div className="detail-grid">
           <Field label="Reading time">{blog.readingTime ? `${blog.readingTime} min` : '—'}</Field>
@@ -441,7 +312,17 @@ export default function BlogViewPage() {
         </div>
       </Section>
 
-      {/* ── SEO & Open Graph ── */}
+      <SeoHealthPanel
+        seo={blog}
+        readiness={readiness}
+        showOg
+        showFocusKeyword
+        showIndexing
+        socialImageUrl={ogImageUrl}
+        focusKeywordDensity={blog.focusKeywordDensity}
+      />
+
+      {/* ── SEO & Open Graph (raw values) ── */}
       <Section title="SEO & Open Graph" icon={<Search size={14} />}>
         <div className="detail-grid">
           <Field label="Meta title (EN)">{getLocalizedValue(blog.metaTitle) || '—'}</Field>
@@ -485,7 +366,7 @@ export default function BlogViewPage() {
         </div>
       </Section>
 
-      {/* ── Visibility confirmation (warns before changing what the URLs above resolve to) ── */}
+      {/* ── Visibility confirmation ── */}
       {confirmAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !busy && setConfirmAction(null)}>
           <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 shadow-2xl border dark:border-slate-800" onClick={(e) => e.stopPropagation()}>

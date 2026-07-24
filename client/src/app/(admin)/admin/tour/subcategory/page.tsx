@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { tourSubcategoryAPI, tourCategoryAPI } from '@/lib/api/tour';
 import { ITourSubcategory, ITourCategory } from '@/types/tour';
-import { 
+import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
   Search, Filter, RefreshCw, Layers, CheckCircle, 
   XCircle, FolderTree, Tag
@@ -269,6 +269,9 @@ export default function TourSubcategoriesPage() {
       header: 'Actions',
       render: (subcategory) => (
         <div className="action-buttons">
+          <Link href={`/admin/tour/subcategory/${subcategory._id}/view`}>
+            <button className="btn-icon btn-view" title="View"><ScanEye size={16} /></button>
+          </Link>
           <Link href={`/admin/tour/subcategory/new?id=${subcategory._id}`}>
             <button className="btn-icon btn-edit" title="Edit">
               <Edit2 size={16} />
