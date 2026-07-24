@@ -81,8 +81,8 @@ const BookingPage: React.FC = () => {
         params.status = statusFilter;
       }
       
-      if (searchTerm) {
-        params.search = searchTerm;
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim();
       }
 
       const response = await getAllBookings(params);
@@ -412,7 +412,10 @@ const BookingPage: React.FC = () => {
             type="text"
             placeholder="Search by name, email, or phone..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">

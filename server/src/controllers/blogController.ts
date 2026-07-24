@@ -2,10 +2,34 @@ import { Request, Response } from 'express';
 import Blog, { completeOgFromMeta } from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
+import User from '../models/User';
+import EditorialAuthor from '../models/EditorialAuthor';
 import {
   parseFutureSchedule,
   PublishingValidationError,
 } from '../utils/publishing';
+import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+
+const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
+  const searchRegex = createSearchRegex(search);
+  if (!searchRegex) return null;
+
+  const [authorIds, editorialAuthorIds] = await Promise.all([
+    User.find({
+      $or: [{ name: searchRegex }, { email: searchRegex }],
+    }).distinct('_id'),
+    EditorialAuthor.find({ name: searchRegex }).distinct('_id'),
+  ]);
+
+  return [
+    ...localizedSearchFilters(
+      ['title', 'slug', 'excerpt', 'contentBlocks.title', 'contentBlocks.content'],
+      searchRegex
+    ),
+    { author: { $in: authorIds } },
+    { editorialAuthor: { $in: editorialAuthorIds } },
+  ];
+};
 
 /**
  * @desc    Get all published blogs with pagination
@@ -47,13 +71,9 @@ export const getAllBlogs = async (
       query.tags = { $in: tagArray };
     }
 
-    // Search in title and excerpt (English)
-    if (search) {
-      const escapedSearch = (search as string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      query.$or = [
-        { 'title.en': { $regex: escapedSearch, $options: 'i' } },
-        { 'excerpt.en': { $regex: escapedSearch, $options: 'i' } },
-      ];
+    const searchFilters = await buildBlogSearchFilters(search);
+    if (searchFilters) {
+      query.$or = searchFilters;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -103,6 +123,8 @@ export const getAllBlogsAdmin = async (
       search,
       status,
       destination,
+      category,
+      subCategory,
     } = req.query;
 
     const query: any = {};
@@ -116,6 +138,14 @@ export const getAllBlogsAdmin = async (
       query.destination = destination;
     }
 
+    // Filter by category / sub-category (valid ObjectId only).
+    if (typeof category === 'string' && /^[0-9a-fA-F]{24}$/.test(category)) {
+      query.category = category;
+    }
+    if (typeof subCategory === 'string' && /^[0-9a-fA-F]{24}$/.test(subCategory)) {
+      query.subCategory = subCategory;
+    }
+
     if (isFeatured === 'true') {
       query.isFeatured = true;
     } else if (isFeatured === 'false') {
@@ -127,12 +157,9 @@ export const getAllBlogsAdmin = async (
       query.tags = { $in: tagArray };
     }
 
-    if (search) {
-      const escapedSearch = (search as string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      query.$or = [
-        { 'title.en': { $regex: escapedSearch, $options: 'i' } },
-        { 'excerpt.en': { $regex: escapedSearch, $options: 'i' } },
-      ];
+    const searchFilters = await buildBlogSearchFilters(search);
+    if (searchFilters) {
+      query.$or = searchFilters;
     }
 
     const skip = (Number(page) - 1) * Number(limit);

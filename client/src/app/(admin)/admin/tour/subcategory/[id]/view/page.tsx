@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText, Star } from 'lucide-react';
-import { tourSubcategoryAPI } from '@/lib/api/tour';
+import { ArrowLeft, Edit2, Eye, EyeOff, ArrowRight, ChevronLeft, ChevronRight, AlertTriangle, X, Loader2, Info, Search, Tag, Clock, FileText, Star } from 'lucide-react';
+import { tourSubcategoryAPI, tourAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import { useToast } from '@/hooks/use-toast';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
@@ -18,17 +19,61 @@ import {
 
 const EDIT_PATH = '/admin/tour/subcategory/new?id=';
 const LIST_PATH = '/admin/tour/subcategory';
+const TOURS_PAGE_SIZE = 8;
 
 export default function TourSubcategoryViewPage() {
   const { id } = useParams<{ id: string }>();
-  const { entity, loading, error } = useEntity(tourSubcategoryAPI.getById, id, 'Tour subcategory not found');
+  const { entity, loading, error, reload } = useEntity(tourSubcategoryAPI.getById, id, 'Tour subcategory not found');
+  const { toast } = useToast();
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
+  const [confirmToggle, setConfirmToggle] = useState(false);
+  const [toggleBusy, setToggleBusy] = useState(false);
+  const [tours, setTours] = useState<any[]>([]);
+  const [toursTotal, setToursTotal] = useState(0);
+  const [toursPage, setToursPage] = useState(1);
+  const [toursLoading, setToursLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setToursLoading(true);
+    tourAPI.getAll({ subcategory: id, limit: TOURS_PAGE_SIZE, page: toursPage })
+      .then((res: any) => {
+        if (!active) return;
+        if (res?.success && Array.isArray(res.data)) {
+          setTours(res.data);
+          setToursTotal(res.total ?? res.data.length);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setToursLoading(false); });
+    return () => { active = false; };
+  }, [id, toursPage]);
 
   if (loading) return <AdminPageSkeleton />;
   if (error || !entity) return <EntityViewError error={error} backHref={LIST_PATH} />;
 
   const title = getLocalizedValue(entity.name) || '(untitled)';
   const isActive = entity.isActive !== false;
+
+  const runToggle = async () => {
+    setToggleBusy(true);
+    try {
+      const res = await tourSubcategoryAPI.toggleStatus(id);
+      if (res?.success) {
+        toast({ title: isActive ? 'Deactivated' : 'Activated', description: `This subcategory is now ${isActive ? 'inactive' : 'active'}.`, variant: 'success' } as any);
+        setConfirmToggle(false);
+        await reload();
+      } else {
+        toast({ title: 'Action failed', description: (res as any)?.error || 'Could not change status.', variant: 'destructive' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Action failed', description: e?.response?.data?.error || e?.message || 'Could not change status.', variant: 'destructive' });
+    } finally {
+      setToggleBusy(false);
+    }
+  };
+
   const seo = entity.seo ?? {};
   const socialImageUrl = getImageUrl(seo.metaImage);
   const sh = entity.sectionHeader || {};
@@ -72,6 +117,9 @@ export default function TourSubcategoryViewPage() {
           <p className="admin-page-subtitle flex items-center gap-2"><span>Tour subcategory{parentName ? ` · under ${parentName}` : ''} · read-only</span><LanguageBadges entity={entity} /></p>
         </div>
         <div className="header-actions">
+          <button type="button" onClick={() => setConfirmToggle(true)} className="btn-refresh inline-flex items-center gap-1">
+            {isActive ? <><EyeOff size={16} /> Deactivate</> : <><Eye size={16} /> Activate</>}
+          </button>
           <Link href={`${EDIT_PATH}${id}`} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"><Edit2 size={16} /> Edit</Link>
           <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1"><ArrowLeft size={16} /> Back</Link>
         </div>
@@ -85,11 +133,84 @@ export default function TourSubcategoryViewPage() {
         <div className="detail-grid">
           <Field label="Active">{isActive ? 'Yes' : 'No'}</Field>
           <Field label="Parent category">{parentName || '—'}</Field>
-          <Field label="Tours">{entity.toursCount ?? '—'}</Field>
+          <Field label="Tours">{toursLoading ? '…' : toursTotal}</Field>
           <Field label="FAQs">{faqs.length}</Field>
           <Field label="Curated reviews">{reviews.length}</Field>
           <Field label="Edit version">{entity.editVersion ?? '—'}</Field>
         </div>
+      </Section>
+
+      <Section title="Tours in this sub-category" icon={<FileText size={14} />}>
+        {toursLoading && tours.length === 0 ? (
+          <p className="text-sm text-gray-500 m-0">Loading tours…</p>
+        ) : tours.length === 0 ? (
+          <p className="text-sm text-gray-500 m-0">No tours are assigned to this sub-category yet.</p>
+        ) : (
+          <>
+            <div className={`overflow-x-auto${toursLoading ? ' opacity-50 transition-opacity' : ''}`}>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left font-medium text-gray-400 text-xs uppercase py-2 pr-4">Tour</th>
+                    <th className="text-left font-medium text-gray-400 text-xs uppercase py-2 px-3">Status</th>
+                    <th className="text-left font-medium text-gray-400 text-xs uppercase py-2 px-3">Updated</th>
+                    <th className="text-right font-medium text-gray-400 text-xs uppercase py-2 pl-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tours.map((t) => {
+                    const scheduled = !t.isActive && !!t.scheduledAt;
+                    return (
+                      <tr key={t._id} className="border-t border-gray-100 dark:border-slate-800">
+                        <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">{getLocalizedValue(t.heading) || getLocalizedValue(t.name) || '(untitled)'}</td>
+                        <td className="py-2 px-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${t.isActive ? 'bg-green-100 text-green-800' : scheduled ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700'}`}>{t.isActive ? 'Active' : scheduled ? 'Scheduled' : 'Inactive'}</span>
+                        </td>
+                        <td className="py-2 px-3 text-gray-500 dark:text-gray-400">{t.updatedAt ? new Date(t.updatedAt).toLocaleDateString() : '—'}</td>
+                        <td className="py-2 pl-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <Link href={`/admin/tour/tour/${t._id}/view`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="View"><Eye size={15} /></Link>
+                            <Link href={`/admin/tour/tour/${t._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between gap-2 flex-wrap mt-3">
+              <Link href={`/admin/tour/tour?subcategory=${id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[#b79c5c] hover:underline">
+                Manage all {toursTotal} tour{toursTotal === 1 ? '' : 's'} <ArrowRight size={15} />
+              </Link>
+              {toursTotal > TOURS_PAGE_SIZE && (
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-400">
+                    {(toursPage - 1) * TOURS_PAGE_SIZE + 1}–{Math.min((toursPage - 1) * TOURS_PAGE_SIZE + tours.length, toursTotal)} of {toursTotal}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setToursPage((p) => Math.max(1, p - 1))}
+                      disabled={toursPage <= 1 || toursLoading}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs text-gray-600 dark:text-gray-300 hover:border-[#b79c5c] hover:text-[#b79c5c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft size={14} /> Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setToursPage((p) => (p * TOURS_PAGE_SIZE < toursTotal ? p + 1 : p))}
+                      disabled={toursPage * TOURS_PAGE_SIZE >= toursTotal || toursLoading}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs text-gray-600 dark:text-gray-300 hover:border-[#b79c5c] hover:text-[#b79c5c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </Section>
 
       <GalleryGroups galleries={galleries} locale={previewLocale} />
@@ -161,6 +282,34 @@ export default function TourSubcategoryViewPage() {
           <Field label="Last updated">{entity.updatedAt ? new Date(entity.updatedAt).toLocaleString() : '—'}</Field>
         </div>
       </Section>
+
+      {confirmToggle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !toggleBusy && setConfirmToggle(false)}>
+          <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 shadow-2xl border dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b dark:border-slate-800 p-4">
+              <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <AlertTriangle size={18} className="text-amber-500" />
+                {isActive ? 'Deactivate this subcategory?' : 'Activate this subcategory?'}
+              </h3>
+              <button type="button" onClick={() => !toggleBusy && setConfirmToggle(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+            </div>
+            <div className="p-4 text-sm text-gray-600 dark:text-gray-300">
+              {isActive ? (
+                <p className="m-0">This hides the subcategory from the live site — its language URLs will return <b>404</b> until it is activated again.</p>
+              ) : (
+                <p className="m-0">This makes the subcategory <b>publicly visible</b> — its language URLs will start resolving for visitors.</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 border-t dark:border-slate-800 p-4">
+              <button type="button" onClick={() => setConfirmToggle(false)} disabled={toggleBusy} className="btn-refresh">Cancel</button>
+              <button type="button" onClick={runToggle} disabled={toggleBusy} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] disabled:opacity-50">
+                {toggleBusy ? <Loader2 size={16} className="animate-spin" /> : (isActive ? <EyeOff size={16} /> : <Eye size={16} />)}
+                {isActive ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

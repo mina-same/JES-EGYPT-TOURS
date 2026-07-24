@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import ContactSubmission from '../models/ContactSubmission';
 import Notification from '../models/Notification';
 import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
+import { createSearchRegex } from '../utils/search';
 
 export const createContactSubmission = async (
   req: Request,
@@ -92,12 +93,12 @@ export const getAllContactSubmissions = async (
       query.status = status;
     }
 
-    if (search && typeof search === 'string' && search.trim()) {
-      const s = search.trim();
+    const searchRegex = createSearchRegex(search);
+    if (searchRegex) {
       query.$or = [
-        { name: { $regex: s, $options: 'i' } },
-        { email: { $regex: s, $options: 'i' } },
-        { message: { $regex: s, $options: 'i' } },
+        { name: searchRegex },
+        { email: searchRegex },
+        { message: searchRegex },
       ];
     }
 

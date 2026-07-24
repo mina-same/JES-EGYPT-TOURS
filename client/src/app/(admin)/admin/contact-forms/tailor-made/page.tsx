@@ -14,6 +14,7 @@ import BulkActionsBar from '@/components/admin/BulkActionsBar';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
+import { PaginationControls } from '@/components/admin/PaginationControls';
 
 interface TailorMadeRequest {
   _id: string;
@@ -59,10 +60,14 @@ const TailorMadePage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     fetchRequests();
-  }, [statusFilter]);
+  }, [statusFilter, searchTerm, page, limit]);
 
   // Open a specific record when arriving from a notification deep-link
   // (/admin/contact-forms/tailor-made?id=<id>). Fires once, after load.
@@ -90,9 +95,13 @@ const TailorMadePage: React.FC = () => {
         return;
       }
 
-      const url = statusFilter === 'all' 
-        ? API_ENDPOINTS.TAILOR_MADE.BASE
-        : `${API_ENDPOINTS.TAILOR_MADE.BASE}?status=${statusFilter}`;
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (searchTerm.trim()) params.set('search', searchTerm.trim());
+      const url = `${API_ENDPOINTS.TAILOR_MADE.BASE}?${params.toString()}`;
       
       const response = await fetch(url, {
         headers: {
@@ -104,6 +113,8 @@ const TailorMadePage: React.FC = () => {
         const data = await response.json();
         console.log('Fetched requests:', data);
         setRequests(data.data || []);
+        setTotalPages(data.pagination?.pages || 1);
+        setTotalItems(data.pagination?.total || 0);
       } else {
         console.error('Failed to fetch requests:', response.status, await response.text());
       }
@@ -233,12 +244,6 @@ const TailorMadePage: React.FC = () => {
     }
   };
 
-  const filteredRequests = requests.filter(request => 
-    request.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    request.country.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const stats = {
     total: requests.length,
     pending: requests.filter(r => r.status === 'pending').length,
@@ -359,12 +364,21 @@ const TailorMadePage: React.FC = () => {
             type="text"
             placeholder="Search by name, email, or country..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="contacted">Contacted</option>
@@ -385,7 +399,7 @@ const TailorMadePage: React.FC = () => {
       {/* Requests Table */}
       <div className="requests-table-container">
         <AdminTable<TailorMadeRequest>
-          data={filteredRequests}
+          data={requests}
           columns={columns}
           getRowKey={(row) => row._id}
           enableSelection
@@ -406,6 +420,18 @@ const TailorMadePage: React.FC = () => {
             </div>
           }
           tableClassName="requests-table"
+        />
+
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={limit}
+          onPageChange={setPage}
+          onItemsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
         />
       </div>
 

@@ -55,7 +55,7 @@ export default function BlogCategoriesPage() {
       const params: any = {
         page,
         limit: 10,
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
       };
       
       if (statusFilter !== 'all') {
@@ -152,7 +152,7 @@ export default function BlogCategoriesPage() {
 
   // Filter categories by search (client-side backup filtering if server search fails or for instant feedback)
   const filteredCategories = categories.filter(category => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.trim().toLowerCase();
     return (
       (category.name?.en || '').toLowerCase().includes(searchLower) ||
       (category.name?.de || '').toLowerCase().includes(searchLower) ||
@@ -299,12 +299,21 @@ export default function BlogCategoriesPage() {
             type="text"
             placeholder="Search by name or slug..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>

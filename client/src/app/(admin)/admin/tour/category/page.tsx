@@ -47,7 +47,7 @@ export default function TourCategoriesPage() {
       const params: any = {
         page,
         limit: 10,
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
       };
 
       if (statusFilter !== 'all') {
@@ -73,6 +73,10 @@ export default function TourCategoriesPage() {
   useEffect(() => {
     fetchCategories();
   }, [page, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Delete category
   const handleDelete = async (id: string) => {
@@ -145,7 +149,7 @@ export default function TourCategoriesPage() {
 
   // Filter categories by search
   const filteredCategories = categories.filter(category => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = searchTerm.trim().toLowerCase();
     return (
       (category.name?.en || '').toLowerCase().includes(searchLower) ||
       (category.name?.de || '').toLowerCase().includes(searchLower) ||
@@ -171,11 +175,19 @@ export default function TourCategoriesPage() {
   const columns: Array<AdminTableColumn<ITourCategory>> = [
     {
       header: 'Category',
+      headerClassName: 'category-main-column',
+      cellClassName: 'category-main-column',
       render: (category) => (
         <div className="category-info">
           {(() => {
             const displayImage = category.images?.[0] || (category as any).image;
-            if (!displayImage?.url) return null;
+            if (!displayImage?.url) {
+              return (
+                <div className="category-image category-image-placeholder" aria-hidden="true">
+                  <Layers size={18} />
+                </div>
+              );
+            }
             return (
               <img
                 src={displayImage.url}
@@ -186,8 +198,10 @@ export default function TourCategoriesPage() {
           })()}
           <div className="category-details">
             <div className="category-name">
-              {category.name?.en || 'No Name'}
-              <LanguageBadges entity={category} className="ms-2" />
+              <span className="category-name-text" title={category.name?.en || 'No Name'}>
+                {category.name?.en || 'No Name'}
+              </span>
+              <LanguageBadges entity={category} className="category-language-badges" />
             </div>
           </div>
         </div>
@@ -195,13 +209,17 @@ export default function TourCategoriesPage() {
     },
     {
       header: 'Slug',
+      headerClassName: 'category-slug-column',
+      cellClassName: 'category-slug-column',
       render: (category) => {
         const slug = typeof category.slug === 'object' ? category.slug.en : category.slug;
-        return <div className="category-slug">/{slug}</div>;
+        return <div className="category-slug" title={`/${slug}`}>/{slug}</div>;
       },
     },
     {
       header: 'Status',
+      headerClassName: 'category-status-column',
+      cellClassName: 'category-status-column',
       render: (category) => (
         <span className={`status-badge ${category.isActive ? 'status-active' : 'status-inactive'}`}>
           {category.isActive ? (
@@ -218,6 +236,8 @@ export default function TourCategoriesPage() {
     },
     {
       header: 'Subcategories',
+      headerClassName: 'category-count-column',
+      cellClassName: 'category-count-column',
       render: (category) => (
         <div className="subcategories-count">
           <FolderTree size={14} />
@@ -227,6 +247,8 @@ export default function TourCategoriesPage() {
     },
     {
       header: 'Actions',
+      headerClassName: 'category-actions-column',
+      cellClassName: 'category-actions-column',
       render: (category) => (
         <div className="action-buttons">
           <Link href={`/admin/tour/category/${category._id}/view`}>
@@ -299,12 +321,21 @@ export default function TourCategoriesPage() {
             type="text"
             placeholder="Search by name or slug..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -353,6 +384,7 @@ export default function TourCategoriesPage() {
               </Link>
             </div>
           }
+          wrapperClassName="categories-table-scroll"
           tableClassName="categories-table"
         />
 

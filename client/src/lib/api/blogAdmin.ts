@@ -9,6 +9,7 @@ export interface QueryParams {
   limit?: number;
   search?: string;
   status?: 'draft' | 'published' | 'scheduled';
+  category?: string;
   subCategory?: string;
   author?: string;
   sort?: string;

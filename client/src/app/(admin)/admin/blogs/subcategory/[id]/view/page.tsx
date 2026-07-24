@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText } from 'lucide-react';
-import { blogSubcategoryAPI } from '@/lib/api/blogAdmin';
+import { ArrowLeft, Edit2, Eye, ArrowRight, ChevronLeft, ChevronRight, Info, Search, Tag, Clock, FileText } from 'lucide-react';
+import { blogSubcategoryAPI, blogAPI } from '@/lib/api/blogAdmin';
 import { getLocalizedValue } from '@/lib/localize';
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
@@ -19,11 +19,33 @@ import {
 
 const EDIT_PATH = '/admin/blogs/subcategory/new?id=';
 const LIST_PATH = '/admin/blogs/subcategory';
+const ARTICLES_PAGE_SIZE = 8;
 
 export default function BlogSubcategoryViewPage() {
   const { id } = useParams<{ id: string }>();
   const { entity, loading, error } = useEntity(blogSubcategoryAPI.getById, id, 'Blog subcategory not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
+  const [articles, setArticles] = useState<any[]>([]);
+  const [articlesTotal, setArticlesTotal] = useState(0);
+  const [articlesPage, setArticlesPage] = useState(1);
+  const [articlesLoading, setArticlesLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setArticlesLoading(true);
+    blogAPI.getAllAdmin({ subCategory: id, limit: ARTICLES_PAGE_SIZE, page: articlesPage })
+      .then((res: any) => {
+        if (!active) return;
+        if (res?.success && Array.isArray(res.data)) {
+          setArticles(res.data);
+          setArticlesTotal(res.pagination?.total ?? res.data.length);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setArticlesLoading(false); });
+    return () => { active = false; };
+  }, [id, articlesPage]);
 
   if (loading) return <AdminPageSkeleton />;
   if (error || !entity) return <EntityViewError error={error} backHref={LIST_PATH} />;
@@ -91,11 +113,82 @@ export default function BlogSubcategoryViewPage() {
         <div className="detail-grid">
           <Field label="Active">{isActive ? 'Yes' : 'No'}</Field>
           <Field label="Parent category">{parentName || '—'}</Field>
+          <Field label="Articles">{articlesLoading ? '…' : articlesTotal}</Field>
           <Field label="Icon">{entity.icon || '—'}</Field>
           <Field label="Features">{features.length}</Field>
           <Field label="FAQs">{faqs.length}</Field>
           <Field label="Edit version">{entity.editVersion ?? '—'}</Field>
         </div>
+      </Section>
+
+      <Section title="Articles in this sub-category" icon={<FileText size={14} />}>
+        {articlesLoading && articles.length === 0 ? (
+          <p className="text-sm text-gray-500 m-0">Loading articles…</p>
+        ) : articles.length === 0 ? (
+          <p className="text-sm text-gray-500 m-0">No articles are assigned to this sub-category yet.</p>
+        ) : (
+          <>
+            <div className={`overflow-x-auto${articlesLoading ? ' opacity-50 transition-opacity' : ''}`}>
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left font-medium text-gray-400 text-xs uppercase py-2 pr-4">Article</th>
+                    <th className="text-left font-medium text-gray-400 text-xs uppercase py-2 px-3">Status</th>
+                    <th className="text-left font-medium text-gray-400 text-xs uppercase py-2 px-3">Updated</th>
+                    <th className="text-right font-medium text-gray-400 text-xs uppercase py-2 pl-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {articles.map((a) => (
+                    <tr key={a._id} className="border-t border-gray-100 dark:border-slate-800">
+                      <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">{getLocalizedValue(a.title) || '(untitled)'}</td>
+                      <td className="py-2 px-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${a.status === 'published' ? 'bg-green-100 text-green-800' : a.status === 'scheduled' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700'}`}>{a.status}</span>
+                      </td>
+                      <td className="py-2 px-3 text-gray-500 dark:text-gray-400">{a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : '—'}</td>
+                      <td className="py-2 pl-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link href={`/admin/blogs/blog/${a._id}/view`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="View"><Eye size={15} /></Link>
+                          <Link href={`/admin/blogs/blog/${a._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between gap-2 flex-wrap mt-3">
+              <Link href={`/admin/blogs/blog?subCategory=${id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[#b79c5c] hover:underline">
+                Manage all {articlesTotal} article{articlesTotal === 1 ? '' : 's'} <ArrowRight size={15} />
+              </Link>
+              {articlesTotal > ARTICLES_PAGE_SIZE && (
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-400">
+                    {(articlesPage - 1) * ARTICLES_PAGE_SIZE + 1}–{Math.min((articlesPage - 1) * ARTICLES_PAGE_SIZE + articles.length, articlesTotal)} of {articlesTotal}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setArticlesPage((p) => Math.max(1, p - 1))}
+                      disabled={articlesPage <= 1 || articlesLoading}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs text-gray-600 dark:text-gray-300 hover:border-[#b79c5c] hover:text-[#b79c5c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft size={14} /> Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setArticlesPage((p) => (p * ARTICLES_PAGE_SIZE < articlesTotal ? p + 1 : p))}
+                      disabled={articlesPage * ARTICLES_PAGE_SIZE >= articlesTotal || articlesLoading}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 dark:border-slate-700 px-2 py-1 text-xs text-gray-600 dark:text-gray-300 hover:border-[#b79c5c] hover:text-[#b79c5c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next <ChevronRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </Section>
 
       {images.length > 0 && (

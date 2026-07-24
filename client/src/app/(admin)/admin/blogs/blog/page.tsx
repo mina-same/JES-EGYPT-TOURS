@@ -1,7 +1,7 @@
  'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -9,7 +9,7 @@ import {
   Search, Filter, RefreshCw, FileText, Clock,
   Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
-import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
+import { blogAPI, destinationAPI, blogCategoryAPI, blogSubcategoryAPI } from '@/lib/api/blogAdmin';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -49,8 +49,9 @@ interface BlogPost {
   updatedAt: string;
 }
 
-export default function BlogsPage() {
+function BlogsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -63,6 +64,10 @@ export default function BlogsPage() {
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [destinationFilter, setDestinationFilter] = useState<string>('all');
   const [destinations, setDestinations] = useState<any[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || 'all');
+  const [subCategoryFilter, setSubCategoryFilter] = useState<string>(searchParams.get('subCategory') || 'all');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [featuredFilter, setFeaturedFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
@@ -79,7 +84,7 @@ export default function BlogsPage() {
       const params: any = {
         page,
         limit: 100,
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
       };
       
       if (statusFilter !== 'all') {
@@ -96,6 +101,14 @@ export default function BlogsPage() {
 
       if (destinationFilter !== 'all') {
         params.destination = destinationFilter;
+      }
+
+      if (categoryFilter !== 'all') {
+        params.category = categoryFilter;
+      }
+
+      if (subCategoryFilter !== 'all') {
+        params.subCategory = subCategoryFilter;
       }
 
       const response = await blogAPI.getAllAdmin(params);
@@ -370,13 +383,36 @@ export default function BlogsPage() {
 
   useEffect(() => {
     fetchBlogs();
-  }, [page, searchTerm, statusFilter, tagFilter, featuredFilter, destinationFilter]);
+  }, [page, searchTerm, statusFilter, tagFilter, featuredFilter, destinationFilter, categoryFilter, subCategoryFilter]);
 
   useEffect(() => {
     destinationAPI.getAll({ isActive: true }).then(res => {
       if (res.success && res.data) setDestinations(res.data);
     });
   }, []);
+
+  useEffect(() => {
+    blogCategoryAPI.getAll().then(res => {
+      if (res.success && res.data) setCategories(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    const loader = categoryFilter !== 'all'
+      ? blogSubcategoryAPI.getByCategory(categoryFilter)
+      : blogSubcategoryAPI.getAll();
+    loader.then(res => {
+      if (res.success && res.data) setSubcategories(res.data);
+    });
+  }, [categoryFilter]);
+
+  const syncBridgeUrl = (nextCategory: string, nextSubCategory: string) => {
+    const sp = new URLSearchParams();
+    if (nextCategory !== 'all') sp.set('category', nextCategory);
+    if (nextSubCategory !== 'all') sp.set('subCategory', nextSubCategory);
+    const qs = sp.toString();
+    router.replace(qs ? `/admin/blogs/blog?${qs}` : '/admin/blogs/blog', { scroll: false });
+  };
 
   return (
     <div className="tailor-made-admin">
@@ -430,8 +466,48 @@ export default function BlogsPage() {
             type="text"
             placeholder="Search by title, content, or author..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
+        </div>
+        <div className="filter-group">
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setCategoryFilter(v);
+              setSubCategoryFilter('all');
+              setPage(1);
+              syncBridgeUrl(v, 'all');
+            }}
+          >
+            <option value="all">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {getLocalizedValue(cat.name) || 'Untitled'}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
+          <select
+            value={subCategoryFilter}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSubCategoryFilter(v);
+              setPage(1);
+              syncBridgeUrl(categoryFilter, v);
+            }}
+          >
+            <option value="all">All Sub-categories</option>
+            {subcategories.map((sub) => (
+              <option key={sub._id} value={sub._id}>
+                {getLocalizedValue(sub.name) || 'Untitled'}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="filter-group">
           <select
@@ -562,5 +638,13 @@ export default function BlogsPage() {
         confirmDisabled={deleteBusy}
       />
     </div>
+  );
+}
+
+export default function BlogsPage() {
+  return (
+    <Suspense fallback={<div className="tailor-made-admin" />}>
+      <BlogsPageContent />
+    </Suspense>
   );
 }

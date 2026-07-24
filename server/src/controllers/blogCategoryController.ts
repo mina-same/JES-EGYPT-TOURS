@@ -3,6 +3,7 @@ import { completeOgFromMeta } from '../models/shared/LocalizedSchema';
 import BlogCategory, { IBlogCategory } from '../models/BlogCategory';
 import { FilterQuery } from 'mongoose';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
+import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 
 // ==================== INTERFACES ====================
 
@@ -27,12 +28,9 @@ const buildQueryFilter = (queryParams: QueryParams): FilterQuery<IBlogCategory> 
     filter.isActive = queryParams.isActive === 'true';
   }
 
-  // Search by name or description (target English by default for admin search)
-  if (queryParams.search) {
-    filter.$or = [
-      { 'name.en': { $regex: queryParams.search, $options: 'i' } },
-      { 'description.en': { $regex: queryParams.search, $options: 'i' } },
-    ];
+  const searchRegex = createSearchRegex(queryParams.search);
+  if (searchRegex) {
+    filter.$or = localizedSearchFilters(['name', 'slug', 'description'], searchRegex);
   }
 
   return filter;

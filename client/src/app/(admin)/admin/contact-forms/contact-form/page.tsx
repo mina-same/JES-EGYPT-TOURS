@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Eye, Loader2, Mail, MessageSquare, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
@@ -42,6 +42,8 @@ const ContactFormPage: React.FC = () => {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -52,10 +54,13 @@ const ContactFormPage: React.FC = () => {
         return;
       }
 
-      const url =
-        statusFilter === 'all'
-          ? API_ENDPOINTS.CONTACT.BASE
-          : `${API_ENDPOINTS.CONTACT.BASE}?status=${statusFilter}`;
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (searchTerm.trim()) params.set('search', searchTerm.trim());
+      const url = `${API_ENDPOINTS.CONTACT.BASE}?${params.toString()}`;
 
       const response = await fetch(url, {
         headers: {
@@ -70,6 +75,8 @@ const ContactFormPage: React.FC = () => {
 
       const json = await response.json().catch(() => null);
       setSubmissions(json?.data || []);
+      setTotalPages(json?.pagination?.pages || 1);
+      setTotalItems(json?.pagination?.total || 0);
     } catch {
       setSubmissions([]);
     } finally {
@@ -80,7 +87,7 @@ const ContactFormPage: React.FC = () => {
 
   useEffect(() => {
     fetchSubmissions();
-  }, [statusFilter]);
+  }, [statusFilter, searchTerm, page, limit]);
 
   // Open a specific record when arriving from a notification deep-link
   // (/admin/contact-forms/contact-form?id=<id>). Fires once, after load.
@@ -104,32 +111,14 @@ const ContactFormPage: React.FC = () => {
       fetchSubmissions();
     }, 30000);
     return () => clearInterval(interval);
-  }, [statusFilter]);
+  }, [statusFilter, searchTerm, page, limit]);
 
   // Refresh when window regains focus
   useEffect(() => {
     const handleFocus = () => fetchSubmissions();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [statusFilter]);
-
-  const filteredSubmissions = useMemo(() => {
-    const s = searchTerm.trim().toLowerCase();
-    if (!s) return submissions;
-    return submissions.filter((item) => {
-      return (
-        item.name.toLowerCase().includes(s) ||
-        item.email.toLowerCase().includes(s) ||
-        item.message.toLowerCase().includes(s)
-      );
-    });
-  }, [submissions, searchTerm]);
-
-  const paginatedSubmissions = useMemo(() => {
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    return filteredSubmissions.slice(start, end);
-  }, [filteredSubmissions, page, limit]);
+  }, [statusFilter, searchTerm, page, limit]);
 
   const handleViewDetails = (submission: ContactSubmission) => {
     setSelected(submission);
@@ -338,11 +327,20 @@ const ContactFormPage: React.FC = () => {
             type='text'
             placeholder='Search by name, email, or message...'
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className='filter-group'>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as any);
+              setPage(1);
+            }}
+          >
             <option value='all'>All Status</option>
             <option value='new'>New</option>
             <option value='replied'>Replied</option>
@@ -360,7 +358,7 @@ const ContactFormPage: React.FC = () => {
 
       <div className='requests-table-container'>
         <AdminTable<ContactSubmission>
-          data={paginatedSubmissions}
+          data={submissions}
           columns={columns}
           getRowKey={(row) => row._id}
           enableSelection
@@ -386,8 +384,8 @@ const ContactFormPage: React.FC = () => {
         {/* Pagination */}
         <PaginationControls
           currentPage={page}
-          totalPages={Math.ceil(filteredSubmissions.length / limit)}
-          totalItems={filteredSubmissions.length}
+          totalPages={totalPages}
+          totalItems={totalItems}
           itemsPerPage={limit}
           onPageChange={setPage}
           onItemsPerPageChange={(newLimit) => {

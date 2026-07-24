@@ -32,11 +32,21 @@ const buildQueryFilter = (queryParams: QueryParams): FilterQuery<ITourSubcategor
     filter.isActive = queryParams.isActive === 'true';
   }
 
-  // Search by name or description
-  if (queryParams.search) {
+  // Search localized names and slugs used by the admin list.
+  const search = queryParams.search?.trim();
+  if (search) {
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchRegex = { $regex: escapedSearch, $options: 'i' };
+
     filter.$or = [
-      { name: { $regex: queryParams.search, $options: 'i' } },
-      { description: { $regex: queryParams.search, $options: 'i' } },
+      { 'name.en': searchRegex },
+      { 'name.de': searchRegex },
+      { 'name.it': searchRegex },
+      { 'name.es': searchRegex },
+      { 'slug.en': searchRegex },
+      { 'slug.de': searchRegex },
+      { 'slug.it': searchRegex },
+      { 'slug.es': searchRegex },
     ];
   }
 

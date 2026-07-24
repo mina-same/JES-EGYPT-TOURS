@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import TailorMadeRequest from '../models/TailorMadeRequest';
 import Notification from '../models/Notification';
 import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
+import { createSearchRegex } from '../utils/search';
 
 /**
  * @desc    Create a new tailor-made travel request
@@ -69,12 +70,20 @@ export const getAllTailorMadeRequests = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status, page = 1, limit = 10, search } = req.query;
 
     // Build query
     const query: any = {};
     if (status) {
       query.status = status;
+    }
+    const searchRegex = createSearchRegex(search);
+    if (searchRegex) {
+      query.$or = [
+        { fullName: searchRegex },
+        { email: searchRegex },
+        { country: searchRegex },
+      ];
     }
 
     // Calculate pagination

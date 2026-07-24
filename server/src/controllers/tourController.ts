@@ -8,6 +8,7 @@ import {
   parseFutureSchedule,
   PublishingValidationError,
 } from '../utils/publishing';
+import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 
 // ==================== INTERFACES ====================
 
@@ -73,18 +74,12 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
   }
 
   // Search by heading or description in all languages
-  if (queryParams.search) {
-    const escapedSearch = queryParams.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const searchRegex = { $regex: escapedSearch, $options: 'i' };
-    filter.$or = [
-      { 'heading.en': searchRegex },
-      { 'heading.de': searchRegex },
-      { 'heading.it': searchRegex },
-      { 'Description.text.en': searchRegex },
-      { 'Description.text.de': searchRegex },
-      { 'Description.text.it': searchRegex },
-      { tourLocation: searchRegex },
-    ];
+  const searchRegex = createSearchRegex(queryParams.search);
+  if (searchRegex) {
+    filter.$or = localizedSearchFilters(
+      ['heading', 'Description.text', 'tourLocation'],
+      searchRegex
+    );
   }
 
   // Filter by tour type

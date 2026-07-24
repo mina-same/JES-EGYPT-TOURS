@@ -33,7 +33,7 @@ export default function DestinationsListPage() {
     setLoading(true);
     try {
       const params: any = {
-        search: searchTerm || undefined,
+        search: searchTerm.trim() || undefined,
         limit: 100
       };
       if (statusFilter !== 'all') {

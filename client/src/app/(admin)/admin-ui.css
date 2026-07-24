@@ -345,6 +345,25 @@
   overflow-x: auto;
 }
 
+.admin-scope .subcategories-table-container {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.admin-scope .categories-table-container {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.admin-scope .categories-table-scroll,
+.admin-scope .subcategories-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
 .dark .admin-scope .requests-table-container,
 .dark .admin-scope .table-container,
 .dark .admin-scope .tours-table-container,
@@ -368,6 +387,120 @@
 .admin-scope .tours-table {
   min-width: 1120px;
   table-layout: fixed;
+}
+
+.admin-scope .tour-subcategory-admin {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-scope .tour-category-admin {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-scope .tour-category-admin .categories-table {
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.admin-scope .tour-category-admin .categories-table .category-main-column {
+  width: 45%;
+}
+
+.admin-scope .tour-category-admin .categories-table .category-slug-column {
+  width: 20%;
+}
+
+.admin-scope .tour-category-admin .categories-table .category-status-column {
+  width: 12%;
+}
+
+.admin-scope .tour-category-admin .categories-table .category-count-column {
+  width: 8%;
+  text-align: center;
+}
+
+.admin-scope .tour-category-admin .categories-table .category-actions-column {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 150px;
+  background: #fff;
+  box-shadow: -8px 0 12px -12px rgba(15, 23, 42, 0.4);
+}
+
+.admin-scope .tour-category-admin .categories-table thead .category-actions-column {
+  z-index: 3;
+  background: #f8fafc;
+}
+
+.admin-scope .tour-category-admin .categories-table tbody tr:hover .category-actions-column {
+  background: #f0f7ff;
+}
+
+.dark .admin-scope .tour-category-admin .categories-table .category-actions-column {
+  background: #1f2937;
+}
+
+.dark .admin-scope .tour-category-admin .categories-table thead .category-actions-column {
+  background: #0f172a;
+}
+
+.dark .admin-scope .tour-category-admin .categories-table tbody tr:hover .category-actions-column {
+  background: #1e293b;
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table {
+  min-width: 1040px;
+  table-layout: fixed;
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table .subcategory-main-column {
+  width: 44%;
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table .subcategory-category-column {
+  width: 28%;
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table .subcategory-status-column {
+  width: 12%;
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table .subcategory-tours-column {
+  width: 6%;
+  text-align: center;
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table .subcategory-actions-column {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 150px;
+  background: #fff;
+  box-shadow: -8px 0 12px -12px rgba(15, 23, 42, 0.4);
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table thead .subcategory-actions-column {
+  z-index: 3;
+  background: #f8fafc;
+}
+
+.admin-scope .tour-subcategory-admin .subcategories-table tbody tr:hover .subcategory-actions-column {
+  background: #f0f7ff;
+}
+
+.dark .admin-scope .tour-subcategory-admin .subcategories-table .subcategory-actions-column {
+  background: #1f2937;
+}
+
+.dark .admin-scope .tour-subcategory-admin .subcategories-table thead .subcategory-actions-column {
+  background: #0f172a;
+}
+
+.dark .admin-scope .tour-subcategory-admin .subcategories-table tbody tr:hover .subcategory-actions-column {
+  background: #1e293b;
 }
 
 .admin-scope .tours-table .tour-column {
@@ -514,6 +647,20 @@
   object-fit: cover;
   background: #f3f4f6;
   flex-shrink: 0;
+}
+
+.admin-scope .subcategory-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.admin-scope .category-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
 }
 
 .admin-scope .tour-thumbnail {
@@ -713,6 +860,52 @@
   white-space: nowrap;
 }
 
+.admin-scope .tour-subcategory-admin .subcategory-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-scope .tour-category-admin .category-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-scope .tour-category-admin .category-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-scope .tour-category-admin .category-language-badges {
+  flex-shrink: 0;
+  margin-inline-start: 0;
+}
+
+.admin-scope .tour-category-admin .category-slug {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-scope .tour-subcategory-admin .subcategory-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-scope .tour-subcategory-admin .subcategory-language-badges {
+  flex-shrink: 0;
+  margin-inline-start: 0;
+}
+
+.admin-scope .tour-subcategory-admin .subcategory-slug {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .dark .admin-scope .category-name,
 .dark .admin-scope .subcategory-name {
   color: #f9fafb;
@@ -723,6 +916,7 @@
   font-size: 12px;
   color: #6b7280;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  white-space: nowrap;
 }
 
 .dark .admin-scope .category-slug,
@@ -753,6 +947,20 @@
 .admin-scope .category-badge svg {
   width: 14px;
   height: 14px;
+}
+
+/* Category names can be long SEO titles — keep the pill on one line with an
+   ellipsis (full text on hover via title) instead of wrapping into a tall cell. */
+.admin-scope .category-badge {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.admin-scope .category-badge .category-badge-text {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-scope .subcategories-count,
@@ -851,6 +1059,56 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* In the auto-layout subcategory tables the actions column can be starved of
+   width, which made the 4 icon buttons wrap into a tall vertical stack (and
+   the whole row grew to ~200px). Keep them on a single row. */
+.admin-scope .subcategories-table .action-buttons {
+  flex-wrap: nowrap;
+}
+
+.admin-scope .tour-category-admin .categories-table .action-buttons {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .admin-scope .tour-category-admin .admin-page-header,
+  .admin-scope .tour-subcategory-admin .admin-page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-scope .tour-category-admin .header-actions,
+  .admin-scope .tour-subcategory-admin .header-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-scope .tour-category-admin,
+  .admin-scope .tour-subcategory-admin {
+    padding: 16px;
+  }
+
+  .admin-scope .tour-category-admin .filters-bar,
+  .admin-scope .tour-subcategory-admin .filters-bar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-scope .tour-category-admin .search-box,
+  .admin-scope .tour-category-admin .filter-group,
+  .admin-scope .tour-subcategory-admin .search-box,
+  .admin-scope .tour-subcategory-admin .filter-group {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .admin-scope .tour-category-admin .filter-group select,
+  .admin-scope .tour-subcategory-admin .filter-group select {
+    width: 100%;
+  }
 }
 
 .admin-scope .btn-icon,

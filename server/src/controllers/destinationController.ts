@@ -4,6 +4,7 @@ import Blog from '../models/Blog';
 import { FilterQuery } from 'mongoose';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
+import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 
 interface QueryParams {
   isActive?: string;
@@ -16,12 +17,9 @@ interface QueryParams {
 const buildFilter = (query: QueryParams): FilterQuery<IDestination> => {
   const filter: FilterQuery<IDestination> = {};
   if (query.isActive !== undefined) filter.isActive = query.isActive === 'true';
-  if (query.search) {
-    filter.$or = [
-      { 'name.en': { $regex: query.search, $options: 'i' } },
-      { 'description.en': { $regex: query.search, $options: 'i' } },
-      { 'region.en': { $regex: query.search, $options: 'i' } },
-    ];
+  const searchRegex = createSearchRegex(query.search);
+  if (searchRegex) {
+    filter.$or = localizedSearchFilters(['name', 'slug', 'description', 'region'], searchRegex);
   }
   return filter;
 };
