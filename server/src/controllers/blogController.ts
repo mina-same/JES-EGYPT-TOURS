@@ -744,6 +744,7 @@ export const getBlogById = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
+      .populate('destination', 'name slug')
       .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
 
     if (!blog) {

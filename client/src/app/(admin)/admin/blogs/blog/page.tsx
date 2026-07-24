@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
-  Search, Filter, RefreshCw, FileText, Clock, 
+  Loader2, Plus, Edit2, Trash2, Eye,
+  Search, Filter, RefreshCw, FileText, Clock,
   Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
 import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
@@ -69,7 +69,6 @@ export default function BlogsPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [toggling, setToggling] = useState<string | null>(null);
 
   // Fetch blogs
   const fetchBlogs = async () => {
@@ -173,46 +172,6 @@ export default function BlogsPage() {
     }
   };
 
-  // Toggle blog status (publish/unpublish)
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
-    const blog = blogs.find(b => b._id === id);
-    const newStatus = currentStatus === 'published' ? 'unpublished' : 'published';
-    
-    try {
-      setToggling(id);
-      let response;
-      
-      if (currentStatus === 'published') {
-        response = await blogAPI.unpublish(id);
-      } else {
-        response = await blogAPI.publish(id);
-      }
-      
-      if (response.success) {
-        toast({
-          title: `Blog post ${newStatus}`,
-          description: `"${getLocalizedValue(blog?.title)}" has been ${newStatus} successfully.`,
-        });
-        await fetchBlogs();
-      } else {
-        setError(response.error || 'Failed to toggle blog status');
-        toast({
-          title: "Status update failed",
-          description: response.error || 'Failed to toggle blog status',
-          variant: "destructive",
-        });
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-      toast({
-        title: "Error",
-        description: err.message || 'An error occurred while updating blog status',
-        variant: "destructive",
-      });
-    } finally {
-      setToggling(null);
-    }
-  };
 
   // Delete blog post date
   const formatDate = (dateString: string) => {
@@ -377,14 +336,14 @@ export default function BlogsPage() {
               <Edit2 size={16} />
             </button>
           </Link>
-          <button
-            onClick={() => handleToggleStatus(blog._id, blog.status)}
-            disabled={toggling === blog._id}
-            className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors disabled:opacity-50"
-            title={blog.status === 'published' ? 'Unpublish' : 'Publish'}
-          >
-            {blog.status === 'published' ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
+          <Link href={`/admin/blogs/blog/${blog._id}/view`}>
+            <button
+              className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
+              title="View"
+            >
+              <Eye size={16} />
+            </button>
+          </Link>
           <button
             onClick={() => handleDelete(blog._id)}
             disabled={deleting === blog._id}

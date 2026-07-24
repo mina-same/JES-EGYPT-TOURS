@@ -20,6 +20,7 @@ import {
 const getAdminTitle = (pathname: string) => {
   if (pathname === "/admin") return "Dashboard";
   if (pathname.startsWith("/admin/users")) return "Users";
+  if (/^\/admin\/blogs\/blog\/[^/]+\/view$/.test(pathname)) return "View Post";
   if (pathname.startsWith("/admin/blogs")) return "Blogs";
   if (pathname.startsWith("/admin/tour/booking")) return "Bookings";
   if (pathname.startsWith("/admin/tour/tour")) return "Tours";

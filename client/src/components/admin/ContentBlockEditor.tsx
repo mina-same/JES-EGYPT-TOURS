@@ -67,8 +67,8 @@ interface ContentBlockEditorProps {
 const BLOCK_TYPES = [
   { type: 'html',      label: 'Text',    icon: Type,         description: 'Rich text content' },
   { type: 'blockquote',label: 'Quote',   icon: Quote,        description: 'Styled quote block' },
-  { type: 'imageRow',  label: 'Gallery', icon: Images,       description: 'Single image or multiple images gallery' },
-  { type: 'image',     label: 'Image',   icon: LucideImage,  description: 'Single image with display style control' },
+  { type: 'imageRow',  label: 'Gallery', icon: Images,       description: 'Two or more photos in a row/grid — fixed 16:9/4:3 tiles' },
+  { type: 'image',     label: 'Image',   icon: LucideImage,  description: 'One photo with full control over shape & cropping (use this for tall images)' },
 ] as const;
 
 const BLOCK_LOCALES: AdminLanguage[] = ['en', 'de', 'it', 'es'];
@@ -571,13 +571,13 @@ function BlockContent({
                 if (style) onUpdate(index, style);
               }}
             >
-              <option value="travel">Normal travel photo — 16:9, fills frame</option>
-              <option value="closeup">Sphinx / people / close-up — 4:3, top-focused</option>
-              <option value="portrait">Portrait / vertical people photo</option>
-              <option value="infographic">Map / infographic / text image — natural height, no crop</option>
+              <option value="infographic">Full image — no crop, shows the whole picture (tall photos, maps, screenshots)</option>
+              <option value="travel">Wide banner (16:9) — crops to landscape</option>
+              <option value="closeup">Standard (4:3) — crops, keeps the top</option>
+              <option value="portrait">Portrait (3:4) — crops to a tall frame</option>
             </select>
             <p className="text-xs text-muted-foreground">
-              Controls how this image is cropped and displayed in the article.
+              Pick &quot;Full image&quot; to show a tall image completely, without cropping.
             </p>
           </div>
 
@@ -717,9 +717,13 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
       url:         type === 'image' ? '' : undefined,
       alt:         type === 'image' ? { en: '', de: '', it: '', es: '' } : undefined,
       caption:     type === 'image' ? { en: '', de: '', it: '', es: '' } : undefined,
-      aspectRatio: type === 'image' ? '16:9'   : undefined,
-      fit:         type === 'image' ? 'cover'  : undefined,
-      focus:       type === 'image' ? 'center' : undefined,
+      // Default a new single image to "Full image (no crop)" so a tall photo
+      // is never cropped by surprise — cropping (16:9/4:3/3:4) is an opt-in
+      // choice via the Image Display Style select. Maps to the 'infographic'
+      // preset in IMAGE_STYLE_PRESETS.
+      aspectRatio: type === 'image' ? 'auto'    : undefined,
+      fit:         type === 'image' ? 'contain' : undefined,
+      focus:       type === 'image' ? 'center'  : undefined,
     };
 
     onChange([...blocks, newBlock]);
