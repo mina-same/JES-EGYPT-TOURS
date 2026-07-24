@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -9,13 +9,14 @@ import {
 } from 'lucide-react';
 import { blogAPI } from '@/lib/api/blogAdmin';
 import { getLocalizedValue } from '@/lib/localize';
-import { getStrictLocalizedSlug, SUPPORTED_LOCALES, type SupportedLocale } from '@/lib/url';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
 import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
+  useEntity, EntityViewError, LocalePreviewTabs, FaqPreview,
   hasText, localeHasField, faqHasLocale, blocksHaveLocale, rawLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
@@ -32,28 +33,10 @@ export default function BlogViewPage() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
 
-  const [blog, setBlog] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { entity: blog, loading, error, reload } = useEntity(blogAPI.getById, id, 'Blog post not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
   const [confirmAction, setConfirmAction] = useState<'publish' | 'unpublish' | null>(null);
   const [busy, setBusy] = useState(false);
-
-  const fetchBlog = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await blogAPI.getById(id);
-      if (res?.success && res.data) setBlog(res.data);
-      else setError(res?.error || 'Blog post not found');
-    } catch (e: any) {
-      setError(e?.response?.data?.error || e?.message || 'Failed to load the blog post');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => { fetchBlog(); }, [fetchBlog]);
 
   const runVisibilityChange = async () => {
     if (!confirmAction || !blog) return;
@@ -64,7 +47,7 @@ export default function BlogViewPage() {
       if (res?.success) {
         toast({ title: action === 'publish' ? 'Published' : 'Unpublished', description: `Status is now ${action === 'publish' ? 'published' : 'draft'}.`, variant: 'success' } as any);
         setConfirmAction(null);
-        await fetchBlog();
+        await reload();
       } else {
         toast({ title: 'Action failed', description: res?.error || 'Could not change visibility.', variant: 'destructive' });
       }
@@ -77,18 +60,7 @@ export default function BlogViewPage() {
 
   if (loading) return <AdminPageSkeleton />;
 
-  if (error || !blog) {
-    return (
-      <div className="p-6">
-        <Link href="/admin/blogs/blog" className="btn-refresh inline-flex items-center gap-1 mb-4">
-          <ArrowLeft size={16} /> Back to Blogs
-        </Link>
-        <div className="rounded-md border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 p-4 text-red-700 dark:text-red-300">
-          {error || 'Blog post not found'}
-        </div>
-      </div>
-    );
-  }
+  if (error || !blog) return <EntityViewError error={error} backHref="/admin/blogs/blog" backLabel="Back to Blogs" />;
 
   const title = getLocalizedValue(blog.title) || '(untitled)';
   const isPublished = blog.status === 'published';
@@ -210,22 +182,7 @@ export default function BlogViewPage() {
 
       {/* ── Content preview (per language) ── */}
       <Section title="Content preview" icon={<FileText size={14} />}>
-        <div className="flex items-center gap-1.5 flex-wrap mb-4">
-          {SUPPORTED_LOCALES.map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => setPreviewLocale(l)}
-              className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border transition-colors ${
-                previewLocale === l
-                  ? 'bg-[#b79c5c] border-[#b79c5c] text-white'
-                  : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 hover:border-[#b79c5c]'
-              }`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+        <LocalePreviewTabs value={previewLocale} onChange={setPreviewLocale} />
 
         <div className="space-y-5">
           {excerptText && (
@@ -291,24 +248,7 @@ export default function BlogViewPage() {
             </div>
           )}
 
-          {faqCount > 0 && (
-            <div className="space-y-2">
-              <label className="text-[11px] uppercase font-bold text-gray-400">FAQs</label>
-              {blog.faqs.map((f: any, i: number) => {
-                const q = strictText(f.question, previewLocale);
-                const a = strictText(f.answer, previewLocale);
-                if (!q && !a) return (
-                  <p key={i} className="text-xs text-gray-400 m-0">FAQ {i + 1} — no {previewLocale.toUpperCase()} content</p>
-                );
-                return (
-                  <div key={i} className="rounded-lg border border-gray-100 dark:border-slate-800 p-3">
-                    <div className="font-semibold text-gray-900 dark:text-white">{q || `(no ${previewLocale.toUpperCase()} question)`}</div>
-                    {a && <div className="html-content text-[15px] text-gray-600 dark:text-gray-300 mt-1" dangerouslySetInnerHTML={{ __html: a }} />}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <FaqPreview faqs={blog.faqs} locale={previewLocale} />
         </div>
       </Section>
 

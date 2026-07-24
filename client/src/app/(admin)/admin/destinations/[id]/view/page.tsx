@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText } from 'lucide-react';
@@ -9,9 +9,10 @@ import { getLocalizedValue } from '@/lib/localize';
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
-import { getStrictLocalizedSlug, SUPPORTED_LOCALES, type SupportedLocale } from '@/lib/url';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
+  useEntity, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview,
   hasText, localeHasField, faqHasLocale, rawLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
@@ -21,36 +22,11 @@ const LIST_PATH = '/admin/destinations';
 
 export default function DestinationViewPage() {
   const { id } = useParams<{ id: string }>();
-  const [entity, setEntity] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { entity, loading, error } = useEntity(destinationAPI.getById, id, 'Destination not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
 
-  const fetchEntity = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await destinationAPI.getById(id);
-      if (res?.success && res.data) setEntity(res.data);
-      else setError(res?.error || 'Destination not found');
-    } catch (e: any) {
-      setError(e?.response?.data?.error || e?.message || 'Failed to load the destination');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => { fetchEntity(); }, [fetchEntity]);
-
   if (loading) return <AdminPageSkeleton />;
-  if (error || !entity) {
-    return (
-      <div className="p-6">
-        <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1 mb-4"><ArrowLeft size={16} /> Back</Link>
-        <div className="rounded-md border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 p-4 text-red-700 dark:text-red-300">{error || 'Not found'}</div>
-      </div>
-    );
-  }
+  if (error || !entity) return <EntityViewError error={error} backHref={LIST_PATH} />;
 
   const title = getLocalizedValue(entity.name) || '(untitled)';
   const isActive = entity.isActive !== false;
@@ -91,7 +67,7 @@ export default function DestinationViewPage() {
         <div>
           <h1 className="admin-page-title flex items-center gap-3 flex-wrap">
             <span>{title}</span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{isActive ? 'Active' : 'Inactive'}</span>
+            <ActiveBadge active={isActive} />
           </h1>
           <p className="admin-page-subtitle flex items-center gap-2"><span>Destination · read-only</span><LanguageBadges entity={entity} /></p>
         </div>
@@ -124,47 +100,32 @@ export default function DestinationViewPage() {
       )}
 
       <Section title="Content preview" icon={<FileText size={14} />}>
-        <div className="flex items-center gap-1.5 flex-wrap mb-4">
-          {SUPPORTED_LOCALES.map((l) => (
-            <button key={l} type="button" onClick={() => setPreviewLocale(l)}
-              className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border transition-colors ${previewLocale === l ? 'bg-[#b79c5c] border-[#b79c5c] text-white' : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 hover:border-[#b79c5c]'}`}>
-              {l}
-            </button>
-          ))}
-        </div>
+        <LocalePreviewTabs value={previewLocale} onChange={setPreviewLocale} />
         <div className="space-y-5">
           {strictText(entity.subheader, previewLocale) && (
             <div><label className="text-[11px] uppercase font-bold text-gray-400">Subheader</label><p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{strictText(entity.subheader, previewLocale)}</p></div>
           )}
-          {descHtml && (
-            <div><label className="text-[11px] uppercase font-bold text-gray-400">Description</label>
-              <div className="html-content text-[15px] text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: descHtml }} />
-            </div>
+          {strictText(entity.heroTitle, previewLocale) && (
+            <div><label className="text-[11px] uppercase font-bold text-gray-400">Hero title</label><p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{strictText(entity.heroTitle, previewLocale)}</p></div>
           )}
           {heroDescItems.length > 0 && (
             <div><label className="text-[11px] uppercase font-bold text-gray-400">Hero description</label>
               <ul className="list-disc pl-5 text-[15px] text-gray-700 dark:text-gray-200 space-y-1 m-0">{heroDescItems.map((it, i) => <li key={i} dangerouslySetInnerHTML={{ __html: it }} />)}</ul>
             </div>
           )}
+          {descHtml && (
+            <div><label className="text-[11px] uppercase font-bold text-gray-400">Description</label>
+              <div className="html-content text-[15px] text-gray-700 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: descHtml }} />
+            </div>
+          )}
           {glanceRows.length > 0 && (
-            <div className="detail-grid">
-              {glanceRows.map((r) => <Field key={r.label} label={r.label}>{r.value}</Field>)}
+            <div><label className="text-[11px] uppercase font-bold text-gray-400">At a glance</label>
+              <div className="detail-grid mt-2">
+                {glanceRows.map((r) => <Field key={r.label} label={r.label}>{r.value}</Field>)}
+              </div>
             </div>
           )}
-          {faqs.length > 0 && (
-            <div className="space-y-2"><label className="text-[11px] uppercase font-bold text-gray-400">FAQs</label>
-              {faqs.map((f, i) => {
-                const q = strictText(f.question, previewLocale); const a = strictText(f.answer, previewLocale);
-                if (!q && !a) return <p key={i} className="text-xs text-gray-400 m-0">FAQ {i + 1} — no {previewLocale.toUpperCase()} content</p>;
-                return (
-                  <div key={i} className="rounded-lg border border-gray-100 dark:border-slate-800 p-3">
-                    <div className="font-semibold text-gray-900 dark:text-white">{q || `(no ${previewLocale.toUpperCase()} question)`}</div>
-                    {a && <div className="html-content text-[15px] text-gray-600 dark:text-gray-300 mt-1" dangerouslySetInnerHTML={{ __html: a }} />}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <FaqPreview faqs={faqs} locale={previewLocale} />
         </div>
       </Section>
 

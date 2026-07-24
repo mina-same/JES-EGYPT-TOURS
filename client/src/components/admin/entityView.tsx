@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Globe, Layers, Search, Check, AlertTriangle, Copy } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { Globe, Layers, Search, Check, AlertTriangle, Copy, ArrowLeft, FileText } from 'lucide-react';
 import { getStrictLocalizedSlug, getSeoBaseUrl, SUPPORTED_LOCALES, type SupportedLocale } from '@/lib/url';
+import { getLocalizedValue } from '@/lib/localize';
 
 // Shared primitives for read-only admin ENTITY VIEW pages (blogs, tours,
 // destinations, categories, subcategories). Extracted from the blog view page
@@ -114,6 +116,115 @@ export function CopyButton({ text }: { text: string }) {
       {copied ? <Check size={13} /> : <Copy size={13} />}
       {copied ? 'Copied' : 'Copy'}
     </button>
+  );
+}
+
+// ── Shared fetch hook for read-only entity view pages ──
+export function useEntity(fetcher: (id: string) => Promise<any>, id: string, notFoundMsg: string) {
+  const [entity, setEntity] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetcher(id);
+      if (res?.success && res.data) setEntity(res.data);
+      else setError(res?.error || notFoundMsg);
+    } catch (e: any) {
+      setError(e?.response?.data?.error || e?.message || notFoundMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetcher, id, notFoundMsg]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  return { entity, loading, error, reload };
+}
+
+// ── Error / not-found shell (Back link + red box) ──
+export function EntityViewError({ error, backHref, backLabel = 'Back' }: { error: string | null; backHref: string; backLabel?: string }) {
+  return (
+    <div className="p-6">
+      <Link href={backHref} className="btn-refresh inline-flex items-center gap-1 mb-4"><ArrowLeft size={16} /> {backLabel}</Link>
+      <div className="rounded-md border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 p-4 text-red-700 dark:text-red-300">{error || 'Not found'}</div>
+    </div>
+  );
+}
+
+// ── Active / Inactive header badge ──
+export function ActiveBadge({ active }: { active: boolean }) {
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>
+      {active ? 'Active' : 'Inactive'}
+    </span>
+  );
+}
+
+// ── Language toggle chips for a per-locale content preview ──
+export function LocalePreviewTabs({ value, onChange }: { value: SupportedLocale; onChange: (l: SupportedLocale) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap mb-4">
+      {SUPPORTED_LOCALES.map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => onChange(l)}
+          className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border transition-colors ${
+            value === l
+              ? 'bg-[#b79c5c] border-[#b79c5c] text-white'
+              : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 hover:border-[#b79c5c]'
+          }`}
+        >
+          {l}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── FAQ preview list (strict per-locale) ──
+export function FaqPreview({ faqs, locale }: { faqs: any[]; locale: SupportedLocale }) {
+  if (!Array.isArray(faqs) || faqs.length === 0) return null;
+  return (
+    <div className="space-y-2">
+      <label className="text-[11px] uppercase font-bold text-gray-400">FAQs</label>
+      {faqs.map((f, i) => {
+        const q = strictText(f.question, locale);
+        const a = strictText(f.answer, locale);
+        if (!q && !a) return <p key={i} className="text-xs text-gray-400 m-0">FAQ {i + 1} — no {locale.toUpperCase()} content</p>;
+        return (
+          <div key={i} className="rounded-lg border border-gray-100 dark:border-slate-800 p-3">
+            <div className="font-semibold text-gray-900 dark:text-white">{q || `(no ${locale.toUpperCase()} question)`}</div>
+            {a && <div className="html-content text-[15px] text-gray-600 dark:text-gray-300 mt-1" dangerouslySetInnerHTML={{ __html: a }} />}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Grouped image galleries (thumbnails) ──
+export function GalleryGroups({ galleries, locale, title = 'Images & galleries' }: { galleries: { label: string; items: any[] }[]; locale: SupportedLocale; title?: string }) {
+  if (!galleries.length) return null;
+  return (
+    <Section title={title} icon={<FileText size={14} />}>
+      <div className="space-y-4">
+        {galleries.map((g) => (
+          <div key={g.label}>
+            <div className="text-[11px] uppercase font-bold text-gray-400 mb-1">{g.label} ({g.items.length})</div>
+            <div className="flex flex-wrap gap-2">
+              {g.items.map((im: any, i: number) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={im.url} alt={getLocalizedValue(im.alt, locale) || g.label} className="h-24 w-auto rounded-md border border-gray-200 dark:border-slate-700" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 

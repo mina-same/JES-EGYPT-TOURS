@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText, Star, MapPin } from 'lucide-react';
@@ -8,9 +8,10 @@ import { tourAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
-import { getStrictLocalizedSlug, SUPPORTED_LOCALES, type SupportedLocale } from '@/lib/url';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
+  useEntity, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview, GalleryGroups,
   hasText, localeHasField, faqHasLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
@@ -26,36 +27,11 @@ function money(prices: any): string {
 
 export default function TourViewPage() {
   const { id } = useParams<{ id: string }>();
-  const [entity, setEntity] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { entity, loading, error } = useEntity(tourAPI.getById, id, 'Tour not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
 
-  const fetchEntity = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await tourAPI.getById(id);
-      if (res?.success && res.data) setEntity(res.data);
-      else setError(res?.error || 'Tour not found');
-    } catch (e: any) {
-      setError(e?.response?.data?.error || e?.message || 'Failed to load the tour');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => { fetchEntity(); }, [fetchEntity]);
-
   if (loading) return <AdminPageSkeleton />;
-  if (error || !entity) {
-    return (
-      <div className="p-6">
-        <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1 mb-4"><ArrowLeft size={16} /> Back</Link>
-        <div className="rounded-md border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 p-4 text-red-700 dark:text-red-300">{error || 'Not found'}</div>
-      </div>
-    );
-  }
+  if (error || !entity) return <EntityViewError error={error} backHref={LIST_PATH} />;
 
   const title = getLocalizedValue(entity.heading) || entity.name || '(untitled)';
   const isActive = entity.isActive !== false;
@@ -107,7 +83,7 @@ export default function TourViewPage() {
         <div>
           <h1 className="admin-page-title flex items-center gap-3 flex-wrap">
             <span>{title}</span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}`}>{isActive ? 'Active' : 'Inactive'}</span>
+            <ActiveBadge active={isActive} />
             {entity.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800"><Star size={10} /> Featured</span>}
             {entity.isSpecialOffer && <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-800">Special offer</span>}
           </h1>
@@ -136,33 +112,10 @@ export default function TourViewPage() {
         </div>
       </Section>
 
-      {galleries.length > 0 && (
-        <Section title="Images & gallery" icon={<FileText size={14} />}>
-          <div className="space-y-4">
-            {galleries.map((g) => (
-              <div key={g.label}>
-                <div className="text-[11px] uppercase font-bold text-gray-400 mb-1">{g.label} ({g.items.length})</div>
-                <div className="flex flex-wrap gap-2">
-                  {g.items.map((im: any, i: number) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img key={i} src={im.url} alt={getLocalizedValue(im.alt, previewLocale) || g.label} className="h-24 w-auto rounded-md border border-gray-200 dark:border-slate-700" />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
+      <GalleryGroups galleries={galleries} locale={previewLocale} />
 
       <Section title="Content preview" icon={<FileText size={14} />}>
-        <div className="flex items-center gap-1.5 flex-wrap mb-4">
-          {SUPPORTED_LOCALES.map((l) => (
-            <button key={l} type="button" onClick={() => setPreviewLocale(l)}
-              className={`text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border transition-colors ${previewLocale === l ? 'bg-[#b79c5c] border-[#b79c5c] text-white' : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 hover:border-[#b79c5c]'}`}>
-              {l}
-            </button>
-          ))}
-        </div>
+        <LocalePreviewTabs value={previewLocale} onChange={setPreviewLocale} />
         <div className="space-y-5">
           {strictText(entity.headingDescription, previewLocale) && (
             <div><label className="text-[11px] uppercase font-bold text-gray-400">Heading description</label><p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{strictText(entity.headingDescription, previewLocale)}</p></div>
@@ -235,23 +188,10 @@ export default function TourViewPage() {
             </div>
           )}
 
-          {faqs.length > 0 && (
-            <div className="space-y-2"><label className="text-[11px] uppercase font-bold text-gray-400">FAQs</label>
-              {faqs.map((f, i) => {
-                const q = strictText(f.question, previewLocale); const a = strictText(f.answer, previewLocale);
-                if (!q && !a) return <p key={i} className="text-xs text-gray-400 m-0">FAQ {i + 1} — no {previewLocale.toUpperCase()} content</p>;
-                return (
-                  <div key={i} className="rounded-lg border border-gray-100 dark:border-slate-800 p-3">
-                    <div className="font-semibold text-gray-900 dark:text-white">{q || `(no ${previewLocale.toUpperCase()} question)`}</div>
-                    {a && <div className="html-content text-[15px] text-gray-600 dark:text-gray-300 mt-1" dangerouslySetInnerHTML={{ __html: a }} />}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <FaqPreview faqs={faqs} locale={previewLocale} />
 
           {reviews.length > 0 && (
-            <div className="space-y-2"><label className="text-[11px] uppercase font-bold text-gray-400">Video reviews</label>
+            <div className="space-y-2"><label className="text-[11px] uppercase font-bold text-gray-400">Reviews</label>
               {reviews.map((r, i) => (
                 <div key={i} className="rounded-lg border border-gray-100 dark:border-slate-800 p-3 text-[15px]">
                   <div className="font-semibold text-gray-900 dark:text-white">{getLocalizedValue(r.title) || `Review ${i + 1}`}</div>
@@ -267,7 +207,7 @@ export default function TourViewPage() {
         seo={seo}
         readiness={readiness}
         socialImageUrl={socialImageUrl}
-        readyLabels={{ ready: 'SEO complete', notReady: 'SEO incomplete' }}
+        readyLabels={{ ready: 'SEO ready', notReady: 'SEO incomplete' }}
       />
 
       <Section title="SEO" icon={<Search size={14} />}>
@@ -286,7 +226,6 @@ export default function TourViewPage() {
           <Field label="Related tours">{Array.isArray(entity.relatedTours) && entity.relatedTours.length ? `${entity.relatedTours.length} linked` : '—'}</Field>
           <Field label="Blog references">{Array.isArray(entity.blogReferences) && entity.blogReferences.length ? `${entity.blogReferences.length} linked` : '—'}</Field>
           <Field label="Tags (EN)">{Array.isArray(entity.tags) && entity.tags.length ? entity.tags.map((t: any) => getLocalizedValue(t)).filter(Boolean).join(', ') || '—' : '—'}</Field>
-          <Field label="Video link">{entity.videoLink || '—'}</Field>
         </div>
       </Section>
 
