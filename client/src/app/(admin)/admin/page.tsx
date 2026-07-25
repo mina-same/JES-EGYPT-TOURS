@@ -168,7 +168,7 @@ const AdminDashboard: React.FC = () => {
         fetch(`${API_ENDPOINTS.TAILOR_MADE.BASE}?page=1&limit=250`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        tourAPI.getAll({ page: 1, limit: 1, isSpecialOffer: true, fields: "heading" }),
+        tourAPI.getAll({ page: 1, limit: 1, isSpecialOffer: true, fields: "heading", includeInactive: true }),
       ]);
 
       // Bookings trend

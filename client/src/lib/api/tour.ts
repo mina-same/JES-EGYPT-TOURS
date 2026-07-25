@@ -9,6 +9,11 @@ export interface QueryParams {
   limit?: number;
   search?: string;
   isActive?: boolean;
+  /**
+   * ADMIN ONLY — include deactivated/scheduled tours. Public/visitor calls must
+   * omit it: the API returns active tours only unless this is true.
+   */
+  includeInactive?: boolean;
   scheduled?: boolean;
   isFeatured?: boolean;
   isSpecialOffer?: boolean;

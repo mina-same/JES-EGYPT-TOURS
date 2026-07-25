@@ -4,14 +4,13 @@ import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Edit2, Eye, EyeOff, FileText, Loader2,
-  Star, Info, Search, Tag, MapPin, Clock, AlertTriangle, X,
+  ArrowLeft, Edit2, FileText,
+  Star, Info, Search, Tag, MapPin, Clock,
 } from 'lucide-react';
 import { blogAPI } from '@/lib/api/blogAdmin';
 import { getLocalizedValue } from '@/lib/localize';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
-import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
 import {
@@ -31,32 +30,9 @@ function statusBadgeClass(status?: string) {
 
 export default function BlogViewPage() {
   const { id } = useParams<{ id: string }>();
-  const { toast } = useToast();
 
-  const { entity: blog, loading, error, reload } = useEntity(blogAPI.getById, id, 'Blog post not found');
+  const { entity: blog, loading, error } = useEntity(blogAPI.getById, id, 'Blog post not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
-  const [confirmAction, setConfirmAction] = useState<'publish' | 'unpublish' | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const runVisibilityChange = async () => {
-    if (!confirmAction || !blog) return;
-    const action = confirmAction;
-    setBusy(true);
-    try {
-      const res = action === 'publish' ? await blogAPI.publish(id) : await blogAPI.unpublish(id);
-      if (res?.success) {
-        toast({ title: action === 'publish' ? 'Published' : 'Unpublished', description: `Status is now ${action === 'publish' ? 'published' : 'draft'}.`, variant: 'success' } as any);
-        setConfirmAction(null);
-        await reload();
-      } else {
-        toast({ title: 'Action failed', description: res?.error || 'Could not change visibility.', variant: 'destructive' });
-      }
-    } catch (e: any) {
-      toast({ title: 'Action failed', description: e?.response?.data?.error || e?.message || 'Could not change visibility.', variant: 'destructive' });
-    } finally {
-      setBusy(false);
-    }
-  };
 
   if (loading) return <AdminPageSkeleton />;
 
@@ -121,21 +97,6 @@ export default function BlogViewPage() {
           </p>
         </div>
         <div className="header-actions">
-          {isPublished ? (
-            <button type="button" onClick={() => setConfirmAction('unpublish')} className="btn-refresh inline-flex items-center gap-1">
-              <EyeOff size={16} /> Unpublish
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setConfirmAction('publish')}
-              disabled={!hasFeaturedImage}
-              title={hasFeaturedImage ? 'Publish this article' : 'Add a featured image before publishing'}
-              className="btn-refresh inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Eye size={16} /> Publish
-            </button>
-          )}
           <Link
             href={`/admin/blogs/blog/${id}/edit`}
             className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"
@@ -306,39 +267,6 @@ export default function BlogViewPage() {
         </div>
       </Section>
 
-      {/* ── Visibility confirmation ── */}
-      {confirmAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !busy && setConfirmAction(null)}>
-          <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 shadow-2xl border dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b dark:border-slate-800 p-4">
-              <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <AlertTriangle size={18} className="text-amber-500" />
-                {confirmAction === 'publish' ? 'Publish this article?' : 'Unpublish this article?'}
-              </h3>
-              <button type="button" onClick={() => !busy && setConfirmAction(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-            </div>
-            <div className="p-4 text-sm text-gray-600 dark:text-gray-300">
-              {confirmAction === 'publish' ? (
-                <p className="m-0">This makes the article <b>publicly visible</b> on the live site — the language URLs listed above will start resolving for visitors.</p>
-              ) : (
-                <p className="m-0">This reverts the article to <b>Draft</b> and hides it from the public site — the language URLs above will return <b>404</b> until it is published again.</p>
-              )}
-            </div>
-            <div className="flex justify-end gap-2 border-t dark:border-slate-800 p-4">
-              <button type="button" onClick={() => setConfirmAction(null)} disabled={busy} className="btn-refresh">Cancel</button>
-              <button
-                type="button"
-                onClick={runVisibilityChange}
-                disabled={busy}
-                className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] disabled:opacity-50"
-              >
-                {busy ? <Loader2 size={16} className="animate-spin" /> : (confirmAction === 'publish' ? <Eye size={16} /> : <EyeOff size={16} />)}
-                {confirmAction === 'publish' ? 'Publish' : 'Unpublish'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
