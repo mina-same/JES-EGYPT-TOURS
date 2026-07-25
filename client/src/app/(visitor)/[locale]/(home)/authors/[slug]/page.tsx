@@ -10,6 +10,9 @@ import HeaderOneCloned from '@/components/layout/HeaderOneCloned/HeaderOneCloned
 import Layout from '@/components/layout/Layout/Layout';
 import PageHeader from '@/components/sections/PageHeader/PageHeader';
 import FooterOne from '@/components/layout/FooterOne/FooterOne';
+import DynamicBlogGrid from '@/components/sections/DynamicBlogGrid/DynamicBlogGrid';
+import type { BlogPost } from '@/lib/api/blog';
+import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 
 export default async function EditorialAuthorPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
@@ -17,6 +20,10 @@ export default async function EditorialAuthorPage({ params }: { params: Promise<
   if (!response.ok) notFound();
   const payload = await response.json();
   const author = payload.data;
+  const articles: BlogPost[] = Array.isArray(author.articles) ? author.articles : [];
+  const visibleArticles = articles
+    .filter((article) => getStrictLocalizedSlug(article.slug, locale as SupportedLocale))
+    .slice(0, 4);
   const role = getLocalizedValue(author.role, locale);
   const bio = getLocalizedValue(author.bio, locale);
   const imageAlt = getLocalizedValue(author.image?.alt, locale) || author.name;
@@ -44,6 +51,21 @@ export default async function EditorialAuthorPage({ params }: { params: Promise<
           </Row>
         </Container>
       </section>
+      {visibleArticles.length > 0 && (
+        <section className="section-space">
+          <Container>
+            <div className="section-title text-center mb-5">
+              <span className="section-title__tagline">Related content</span>
+              <h2 className="section-title__title">Articles by {author.name}</h2>
+            </div>
+            <DynamicBlogGrid
+              blogs={visibleArticles}
+              basePath={`/${locale}/authors/${slug}`}
+              variant="featured"
+            />
+          </Container>
+        </section>
+      )}
       <FooterOne />
     </Layout>
   );

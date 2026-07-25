@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
       { source: "/de/kontakt", destination: "/de/contact" },
       { source: "/it/contatti", destination: "/it/contact" },
       { source: "/es/contacto", destination: "/es/contact" },
+      { source: "/de/ueber-uns", destination: "/de/about" },
+      { source: "/it/chi-siamo", destination: "/it/about" },
+      { source: "/es/sobre-nosotros", destination: "/es/about" },
     ];
   },
   async redirects() {
@@ -46,6 +49,9 @@ const nextConfig: NextConfig = {
       { source: "/de/contact", destination: "/de/kontakt", permanent: true },
       { source: "/it/contact", destination: "/it/contatti", permanent: true },
       { source: "/es/contact", destination: "/es/contacto", permanent: true },
+      { source: "/de/about", destination: "/de/ueber-uns", permanent: true },
+      { source: "/it/about", destination: "/it/chi-siamo", permanent: true },
+      { source: "/es/about", destination: "/es/sobre-nosotros", permanent: true },
     ];
   },
   /* config options here */
