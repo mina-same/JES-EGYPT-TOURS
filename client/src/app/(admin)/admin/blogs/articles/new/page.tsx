@@ -607,7 +607,7 @@ export default function NewBlogPage() {
           ...createEmptyBlogPost(),
           author: user?.id || '',
         });
-        router.push('/admin/blogs/blog');
+        router.push('/admin/blogs/articles');
       } else {
         const parsed = parseApiError(response);
         setFormErrors(parsed);
@@ -700,7 +700,7 @@ export default function NewBlogPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create New Blog Post</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Create New Article</h1>
             <p className="text-gray-500 mt-1">Write and publish a new blog article</p>
           </div>
         </div>
@@ -1329,7 +1329,7 @@ export default function NewBlogPage() {
 
         {/* Submit Button */}
         <div className="flex justify-end gap-4 pt-6 border-t">
-          <Link href="/admin/blogs/blog">
+          <Link href="/admin/blogs/articles">
             <Button type="button" variant="outline">
               Cancel
             </Button>

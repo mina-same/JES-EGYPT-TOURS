@@ -108,7 +108,7 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
               {mounted && (
                 <>
                   <Link href={`${prefix}/faq`}>{t("links.faq")}</Link>
-                  <Link href={`${prefix}/about`}>{t("links.about")}</Link>
+                  <Link href={`${prefix}/${getLocalizedStaticSlug("about", i18n.language)}`}>{t("links.about")}</Link>
                   <Link href={`${prefix}/${getLocalizedStaticSlug("contact", i18n.language)}`}>{t("links.contact")}</Link>
                 </>
               )}

@@ -60,7 +60,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tourSlugs = await getTourSlugs();
   const blogSlugs = await getBlogSlugs();
 
-  const staticPages = ['', '/about', '/faq', '/tours', '/blogs'];
+  // NOTE: pages with a per-locale slug are NOT listed here — they go through
+  // the localized block below so the sitemap emits the final (non-redirecting)
+  // URL for every language.
+  const staticPages = ['', '/faq', '/tours', '/blogs'];
   
   const entries: MetadataRoute.Sitemap = [];
 
@@ -77,7 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // 1b. Static pages with per-locale slugs (see lib/url/staticSlugs).
-  ['special-offers', 'tailor-made', 'contact'].forEach((canonicalSlug) => {
+  ['special-offers', 'tailor-made', 'contact', 'about'].forEach((canonicalSlug) => {
     SUPPORTED_LOCALES.forEach((locale) => {
       entries.push({
         url: `${baseUrl}/${locale}/${getLocalizedStaticSlug(canonicalSlug, locale)}`,

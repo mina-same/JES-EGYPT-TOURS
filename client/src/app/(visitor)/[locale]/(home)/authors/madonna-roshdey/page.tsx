@@ -6,6 +6,10 @@ import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned
 import Layout from "@/components/layout/Layout/Layout";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
+import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
+import { API_URL } from "@/config/api";
+import type { BlogPost } from "@/lib/api/blog";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import styles from "./AuthorPage.module.css";
 
 export const metadata = {
@@ -45,12 +49,39 @@ const EDITORIAL_FOCUS = [
   },
 ];
 
+async function getMadonnaArticles(): Promise<BlogPost[]> {
+  try {
+    const response = await fetch(`${API_URL}/blog/authors/madonna-roshdey`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error(
+        `Failed to load Madonna Roshdey articles: ${response.status} ${response.statusText}`
+      );
+      return [];
+    }
+
+    const payload = await response.json();
+    return Array.isArray(payload?.data?.articles) ? payload.data.articles : [];
+  } catch (error) {
+    console.error("Failed to load Madonna Roshdey articles:", error);
+    return [];
+  }
+}
+
 export default async function MadonnaRoshdeyAuthorPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const articles = await getMadonnaArticles();
+  const visibleArticles = articles
+    .filter((article) =>
+      getStrictLocalizedSlug(article.slug, locale as SupportedLocale)
+    )
+    .slice(0, 4);
 
   return (
     <Layout>
@@ -229,6 +260,15 @@ export default async function MadonnaRoshdeyAuthorPage({
             <span className="section-title__tagline">Related content</span>
             <h2 className="section-title__title">Egypt travel articles</h2>
           </div>
+          {visibleArticles.length > 0 && (
+            <div className="mb-5">
+              <DynamicBlogGrid
+                blogs={visibleArticles}
+                basePath={`/${locale}/authors/madonna-roshdey`}
+                variant="featured"
+              />
+            </div>
+          )}
           <Row>
             <Col lg={8} className="mx-auto text-center">
               <p className={styles.authorArticlesNote}>

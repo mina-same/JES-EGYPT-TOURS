@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { blogSubcategoryAPI } from '@/lib/api/blogAdmin';
 import { BlogSubCategory, BlogCategory } from '@/lib/api/blog';
 import { ScanEye, 
-  Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
+  Loader2, Plus, Edit2, Trash2,
   Search, Filter, RefreshCw, FolderOpen, CheckCircle, 
   XCircle, Layers, ArrowRight
 } from 'lucide-react';
@@ -44,7 +44,6 @@ export default function BlogSubCategoriesPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [toggling, setToggling] = useState<string | null>(null);
 
   // Fetch subcategories
   const fetchSubcategories = async () => {
@@ -127,26 +126,6 @@ export default function BlogSubCategoriesPage() {
     } finally {
       setDeleting(null);
       setDeleteBusy(false);
-    }
-  };
-
-  // Toggle status
-  const handleToggleStatus = async (id: string) => {
-    try {
-      setToggling(id);
-      const response: any = await blogSubcategoryAPI.toggleStatus(id);
-      
-      if (response.success && response.data) {
-        setSubcategories(subcategories.map((c: BlogSubCategory) => 
-          c._id === id ? { ...c, isActive: response.data.isActive } : c
-        ));
-      } else {
-        setError(response.error || 'Failed to update status');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setToggling(null);
     }
   };
 
@@ -240,14 +219,6 @@ export default function BlogSubCategoriesPage() {
               <Edit2 size={16} />
             </button>
           </Link>
-          <button
-            className="btn-icon btn-toggle"
-            onClick={() => handleToggleStatus(subcategory._id)}
-            disabled={toggling === subcategory._id}
-            title={subcategory.isActive ? 'Deactivate' : 'Activate'}
-          >
-            {subcategory.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
           <button
             className="btn-icon btn-delete"
             onClick={() => handleDelete(subcategory._id)}

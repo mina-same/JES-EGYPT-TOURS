@@ -104,9 +104,9 @@ const menuItems = [
       },
       {
         id: 'blog-blog',
-        title: 'Blogs',
+        title: 'Articles',
         icon: Target,
-        url: '/admin/blogs/blog',
+        url: '/admin/blogs/articles',
       },
     ],
   },

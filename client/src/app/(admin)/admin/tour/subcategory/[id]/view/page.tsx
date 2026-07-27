@@ -3,12 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Eye, EyeOff, ArrowRight, ChevronLeft, ChevronRight, AlertTriangle, X, Loader2, Info, Search, Tag, Clock, FileText, Star } from 'lucide-react';
+import { ArrowLeft, Edit2, Eye, ArrowRight, ChevronLeft, ChevronRight, Info, Search, Tag, Clock, FileText, Star } from 'lucide-react';
 import { tourSubcategoryAPI, tourAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
-import { useToast } from '@/hooks/use-toast';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
@@ -23,11 +22,8 @@ const TOURS_PAGE_SIZE = 8;
 
 export default function TourSubcategoryViewPage() {
   const { id } = useParams<{ id: string }>();
-  const { entity, loading, error, reload } = useEntity(tourSubcategoryAPI.getById, id, 'Tour subcategory not found');
-  const { toast } = useToast();
+  const { entity, loading, error } = useEntity(tourSubcategoryAPI.getById, id, 'Tour subcategory not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
-  const [confirmToggle, setConfirmToggle] = useState(false);
-  const [toggleBusy, setToggleBusy] = useState(false);
   const [tours, setTours] = useState<any[]>([]);
   const [toursTotal, setToursTotal] = useState(0);
   const [toursPage, setToursPage] = useState(1);
@@ -39,7 +35,7 @@ export default function TourSubcategoryViewPage() {
     let active = true;
     setToursLoading(true);
     setToursError(false);
-    tourAPI.getAll({ subcategory: id, limit: TOURS_PAGE_SIZE, page: toursPage })
+    tourAPI.getAll({ subcategory: id, limit: TOURS_PAGE_SIZE, page: toursPage, includeInactive: true })
       .then((res: any) => {
         if (!active) return;
         if (res?.success && Array.isArray(res.data)) {
@@ -59,24 +55,6 @@ export default function TourSubcategoryViewPage() {
 
   const title = getLocalizedValue(entity.name) || '(untitled)';
   const isActive = entity.isActive !== false;
-
-  const runToggle = async () => {
-    setToggleBusy(true);
-    try {
-      const res = await tourSubcategoryAPI.toggleStatus(id);
-      if (res?.success) {
-        toast({ title: isActive ? 'Deactivated' : 'Activated', description: `This subcategory is now ${isActive ? 'inactive' : 'active'}.`, variant: 'success' } as any);
-        setConfirmToggle(false);
-        await reload();
-      } else {
-        toast({ title: 'Action failed', description: (res as any)?.error || 'Could not change status.', variant: 'destructive' });
-      }
-    } catch (e: any) {
-      toast({ title: 'Action failed', description: e?.response?.data?.error || e?.message || 'Could not change status.', variant: 'destructive' });
-    } finally {
-      setToggleBusy(false);
-    }
-  };
 
   const seo = entity.seo ?? {};
   const socialImageUrl = getImageUrl(seo.metaImage);
@@ -121,9 +99,6 @@ export default function TourSubcategoryViewPage() {
           <p className="admin-page-subtitle flex items-center gap-2"><span>Tour subcategory{parentName ? ` · under ${parentName}` : ''} · read-only</span><LanguageBadges entity={entity} /></p>
         </div>
         <div className="header-actions">
-          <button type="button" onClick={() => setConfirmToggle(true)} className="btn-refresh inline-flex items-center gap-1">
-            {isActive ? <><EyeOff size={16} /> Deactivate</> : <><Eye size={16} /> Activate</>}
-          </button>
           <Link href={`${EDIT_PATH}${id}`} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"><Edit2 size={16} /> Edit</Link>
           <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1"><ArrowLeft size={16} /> Back</Link>
         </div>
@@ -289,33 +264,6 @@ export default function TourSubcategoryViewPage() {
         </div>
       </Section>
 
-      {confirmToggle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !toggleBusy && setConfirmToggle(false)}>
-          <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 shadow-2xl border dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b dark:border-slate-800 p-4">
-              <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <AlertTriangle size={18} className="text-amber-500" />
-                {isActive ? 'Deactivate this subcategory?' : 'Activate this subcategory?'}
-              </h3>
-              <button type="button" onClick={() => !toggleBusy && setConfirmToggle(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-            </div>
-            <div className="p-4 text-sm text-gray-600 dark:text-gray-300">
-              {isActive ? (
-                <p className="m-0">This hides the subcategory from the live site — its language URLs will return <b>404</b> until it is activated again.</p>
-              ) : (
-                <p className="m-0">This makes the subcategory <b>publicly visible</b> — its language URLs will start resolving for visitors.</p>
-              )}
-            </div>
-            <div className="flex justify-end gap-2 border-t dark:border-slate-800 p-4">
-              <button type="button" onClick={() => setConfirmToggle(false)} disabled={toggleBusy} className="btn-refresh">Cancel</button>
-              <button type="button" onClick={runToggle} disabled={toggleBusy} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] disabled:opacity-50">
-                {toggleBusy ? <Loader2 size={16} className="animate-spin" /> : (isActive ? <EyeOff size={16} /> : <Eye size={16} />)}
-                {isActive ? 'Deactivate' : 'Activate'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

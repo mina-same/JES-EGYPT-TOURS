@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { tourCategoryAPI } from '@/lib/api/tour';
 import { ITourCategory } from '@/types/tour';
 import { ScanEye,
-  Loader2, Plus, Edit2, Trash2, Eye, EyeOff,
+  Loader2, Plus, Edit2, Trash2,
   Search, Filter, RefreshCw, Layers, CheckCircle,
   XCircle, FolderTree
 } from 'lucide-react';
@@ -36,7 +36,6 @@ export default function TourCategoriesPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [toggling, setToggling] = useState<string | null>(null);
 
   // Fetch categories
   const fetchCategories = async () => {
@@ -124,26 +123,6 @@ export default function TourCategoriesPage() {
     } finally {
       setDeleting(null);
       setDeleteBusy(false);
-    }
-  };
-
-  // Toggle status
-  const handleToggleStatus = async (id: string) => {
-    try {
-      setToggling(id);
-      const response = await tourCategoryAPI.toggleStatus(id);
-
-      if (response.success && response.data) {
-        setCategories(categories.map((c: ITourCategory) =>
-          c._id === id ? { ...c, isActive: response.data.isActive } : c
-        ));
-      } else {
-        setError(response.error || 'Failed to update status');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setToggling(null);
     }
   };
 
@@ -259,14 +238,6 @@ export default function TourCategoriesPage() {
               <Edit2 size={16} />
             </button>
           </Link>
-          <button
-            className="btn-icon btn-toggle"
-            onClick={() => handleToggleStatus(category._id)}
-            disabled={toggling === category._id}
-            title={category.isActive ? 'Deactivate' : 'Activate'}
-          >
-            {category.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
           <button
             className="btn-icon btn-delete"
             onClick={() => handleDelete(category._id)}

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { tourAPI, tourSubcategoryAPI, tourCategoryAPI } from '@/lib/api/tour';
 import { ITour, ITourSubcategory } from '@/types/tour';
 import { ScanEye, 
-  Loader2, Plus, Edit2, Trash2, Eye, EyeOff, 
+  Loader2, Plus, Edit2, Trash2,
   Search, Filter, RefreshCw, MapPin, Clock, 
   Star, CheckCircle, XCircle, Tag, MessageSquare, Calendar
 } from 'lucide-react';
@@ -56,6 +56,9 @@ function ToursPageContent() {
       const params: any = {
         page,
         limit,
+        // Admin list must show deactivated/scheduled tours too (the API is
+        // active-only by default so public callers can never leak them).
+        includeInactive: true,
         search: searchTerm.trim() || undefined,
       };
       
@@ -142,24 +145,6 @@ function ToursPageContent() {
     } finally {
       setDeleting(null);
       setDeleteBusy(false);
-    }
-  };
-
-  // Toggle tour status
-  const handleToggleStatus = async (id: string) => {
-    try {
-      setToggling(id);
-      const response = await tourAPI.toggleStatus(id);
-      
-      if (response.success) {
-        await fetchTours();
-      } else {
-        setError(response.error || 'Failed to toggle tour status');
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setToggling(null);
     }
   };
 
@@ -333,14 +318,6 @@ function ToursPageContent() {
           )}
           {canEdit('tour') && (
             <>
-              <button
-                className="btn-icon btn-toggle"
-                onClick={() => handleToggleStatus(tour._id)}
-                disabled={toggling === tour._id}
-                title={tour.isActive ? 'Deactivate' : 'Activate'}
-              >
-                {tour.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
               <button
                 className={`btn-icon btn-featured ${tour.isFeatured ? 'is-featured' : ''}`}
                 onClick={() => handleToggleFeatured(tour._id)}

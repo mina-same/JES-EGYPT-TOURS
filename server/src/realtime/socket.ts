@@ -30,9 +30,6 @@ export interface AdminDashboardStats {
 
 let io: SocketIOServer | null = null;
 
-const recentNotifications: AdminNotificationPayload[] = [];
-const RECENT_NOTIFICATIONS_MAX = 30;
-
 const buildDashboardStats = async (): Promise<AdminDashboardStats> => {
   const [
     usersTotal,
@@ -131,8 +128,6 @@ export const initRealtime = (server: http.Server): SocketIOServer => {
       .catch(() => {
         // ignore
       });
-
-    socket.emit('dashboard:activity:seed', recentNotifications);
   });
 
   return io;
@@ -141,13 +136,7 @@ export const initRealtime = (server: http.Server): SocketIOServer => {
 export const emitAdminNotification = (payload: AdminNotificationPayload) => {
   if (!io) return;
 
-  recentNotifications.unshift(payload);
-  if (recentNotifications.length > RECENT_NOTIFICATIONS_MAX) {
-    recentNotifications.length = RECENT_NOTIFICATIONS_MAX;
-  }
-
   io.to('admins').emit('notification:new', payload);
-  io.to('admins').emit('dashboard:activity:new', payload);
 };
 
 export const emitDashboardStatsUpdate = async () => {

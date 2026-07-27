@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { destinationAPI } from '@/lib/api/blogAdmin';
 import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Search, Filter, 
-  RefreshCw, MapPin, CheckCircle, XCircle, Eye, EyeOff
+  RefreshCw, MapPin, CheckCircle, XCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +23,6 @@ export default function DestinationsListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
@@ -81,21 +80,6 @@ export default function DestinationsListPage() {
       toast({ title: 'Error', description: 'Failed to delete destination(s)', variant: 'destructive' });
     } finally {
       setDeleteBusy(false);
-    }
-  };
-
-  const handleToggle = async (id: string) => {
-    setTogglingId(id);
-    try {
-      const res = await destinationAPI.toggleStatus(id);
-      if (res.success) {
-        setDestinations(prev => prev.map(d => d._id === id ? { ...d, isActive: !d.isActive } : d));
-        toast({ title: 'Updated', description: 'Status changed.' });
-      }
-    } catch {
-      toast({ title: 'Error', description: 'Failed to toggle status', variant: 'destructive' });
-    } finally {
-      setTogglingId(null);
     }
   };
 
@@ -157,20 +141,6 @@ export default function DestinationsListPage() {
               <Edit2 size={16} />
             </button>
           </Link>
-          <button
-            className="btn-icon btn-toggle"
-            onClick={() => handleToggle(dest._id)}
-            disabled={togglingId === dest._id}
-            title={dest.isActive ? 'Deactivate' : 'Activate'}
-          >
-            {togglingId === dest._id ? (
-              <Loader2 size={16} className="animate-spin text-gray-400" />
-            ) : dest.isActive ? (
-              <EyeOff size={16} />
-            ) : (
-              <Eye size={16} />
-            )}
-          </button>
           <button
             className="btn-icon btn-delete"
             onClick={() => handleDelete(dest._id)}

@@ -748,7 +748,7 @@ export default function EditBlogPage() {
         clearDraft();
         setOriginalFormData(cloneFormData(formData));
         if (!stayOnPage) {
-          router.push('/admin/blogs/blog');
+          router.push('/admin/blogs/articles');
         }
       } else {
         const parsed = parseApiError(response);
@@ -865,7 +865,7 @@ export default function EditBlogPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit Blog Post</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Edit Article</h1>
             <p className="text-gray-500 mt-1">Update blog article content and settings</p>
           </div>
         </div>
@@ -1556,7 +1556,7 @@ export default function EditBlogPage() {
 
         {/* Submit Button */}
         <div className="flex justify-end gap-4 pt-6 border-t">
-          <Link href="/admin/blogs/blog">
+          <Link href="/admin/blogs/articles">
             <Button type="button" variant="outline">
               Cancel
             </Button>

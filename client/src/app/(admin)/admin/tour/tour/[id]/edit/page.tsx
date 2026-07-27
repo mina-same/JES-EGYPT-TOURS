@@ -328,7 +328,7 @@ export default function EditTourPage() {
     const searchTours = async () => {
       setIsSearchingTours(true);
       try {
-        const response = await tourAPI.getAll({ search: tourSearchQuery.trim() || undefined, limit: 5 });
+        const response = await tourAPI.getAll({ search: tourSearchQuery.trim() || undefined, limit: 5, includeInactive: true });
         if (response.success && response.data) {
           setTourSearchResults(response.data.filter((t: any) => t._id !== tourId));
         }

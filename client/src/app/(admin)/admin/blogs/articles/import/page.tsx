@@ -109,8 +109,8 @@ export default function ImportBlogsPage() {
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <Link href="/admin/blogs/blog" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft size={16} /> Blogs
+          <Link href="/admin/blogs/articles" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft size={16} /> Articles
           </Link>
           <h1 className="text-2xl font-bold">Import Articles from JSON</h1>
         </div>
@@ -204,7 +204,7 @@ export default function ImportBlogsPage() {
                     <p className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 m-0">
                       <CheckCircle2 size={14} /> Created as draft
                       {result.id && (
-                        <Link href={`/admin/blogs/blog/${result.id}/edit`} className="inline-flex items-center gap-1 underline ml-1">
+                        <Link href={`/admin/blogs/articles/${result.id}/edit`} className="inline-flex items-center gap-1 underline ml-1">
                           open <ExternalLink size={12} />
                         </Link>
                       )}
@@ -226,7 +226,7 @@ export default function ImportBlogsPage() {
                 )}
               </Button>
               {finished && (
-                <Link href="/admin/blogs/blog" className="text-sm underline">
+                <Link href="/admin/blogs/articles" className="text-sm underline">
                   Go to blog list to review the drafts
                 </Link>
               )}

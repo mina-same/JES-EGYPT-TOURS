@@ -16,6 +16,12 @@ interface QueryParams {
   subcategory?: string;
   category?: string;
   isActive?: string;
+  /**
+   * Admin-only opt-in: include deactivated / scheduled tours in the result.
+   * Public callers MUST NOT send it — without it the list is active-only, so a
+   * caller that forgets to filter can never leak unpublished tours.
+   */
+  includeInactive?: string;
   scheduled?: string;
   isFeatured?: string;
   isSpecialOffer?: string;
@@ -51,16 +57,29 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
     filter.subcategory = { $in: subcategoryIds };
   }
 
-  // Filter by active status
-  if (queryParams.isActive !== undefined) {
-    filter.isActive = queryParams.isActive === 'true';
-  }
+  // ── Visibility (secure by default) ──
+  // Public callers always get ACTIVE tours only. Deactivated and scheduled
+  // tours (scheduled ⇒ isActive === false) stay hidden even if the caller
+  // forgot to pass a filter — this also keeps them out of the sitemap.
+  // The admin panel opts in explicitly with includeInactive=true.
+  const includeInactive = queryParams.includeInactive === 'true';
 
-  if (queryParams.scheduled === 'true') {
-    filter.isActive = false;
-    filter.scheduledAt = { $exists: true, $ne: null };
-  } else if (queryParams.scheduled === 'false') {
-    filter.scheduledAt = { $exists: false };
+  if (!includeInactive) {
+    filter.isActive = { $ne: false };
+  } else {
+    if (queryParams.isActive !== undefined) {
+      filter.isActive = queryParams.isActive === 'true';
+    }
+
+    // `scheduled` only makes sense for the admin view: a scheduled tour is
+    // inactive until its publish time, so honouring it publicly would expose
+    // exactly the content we are hiding above.
+    if (queryParams.scheduled === 'true') {
+      filter.isActive = false;
+      filter.scheduledAt = { $exists: true, $ne: null };
+    } else if (queryParams.scheduled === 'false') {
+      filter.scheduledAt = { $exists: false };
+    }
   }
 
   // Filter by featured status
@@ -308,12 +327,18 @@ export const getToursBySubcategory = async (
 ): Promise<void> => {
   try {
     const { subcategoryId } = req.params;
-    const { isActive, page = '1', limit = '10' } = req.query;
+    const { isActive, includeInactive, page = '1', limit = '10' } = req.query;
 
     const filter: FilterQuery<ITour> = { subcategory: subcategoryId };
-    
-    if (isActive !== undefined) {
-      filter.isActive = isActive === 'true';
+
+    // Same secure-by-default visibility rule as the main list (see
+    // buildQueryFilter): active-only unless the admin opts in explicitly.
+    if (includeInactive === 'true') {
+      if (isActive !== undefined) {
+        filter.isActive = isActive === 'true';
+      }
+    } else {
+      filter.isActive = { $ne: false };
     }
 
     const pageNum = parseInt(page as string, 10);

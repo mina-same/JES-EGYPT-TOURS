@@ -29,6 +29,12 @@ export const LOCALIZED_STATIC_SLUGS: Record<string, Record<SupportedLocale, stri
     it: "contatti",
     es: "contacto",
   },
+  about: {
+    en: "about",
+    de: "ueber-uns",
+    it: "chi-siamo",
+    es: "sobre-nosotros",
+  },
 };
 
 /** Any-locale slug → its canonical (English) key, or null if not a known
