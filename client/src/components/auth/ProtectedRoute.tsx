@@ -33,9 +33,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (path === '/admin') return 'dashboard';
     
     // Blog pages
-    if (path.includes('/admin/blogs/blog')) {
+    if (path.includes('/admin/blogs/articles')) {
       if (path.includes('/new')) return 'blog-create';
-      if (path.includes('/edit') || path.match(/\/admin\/blogs\/blog\/[^/]+$/)) return 'blog-edit';
+      if (path.includes('/edit') || path.match(/\/admin\/blogs\/articles\/[^/]+$/)) return 'blog-edit';
       return 'list';
     }
     

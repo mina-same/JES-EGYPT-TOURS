@@ -36,7 +36,7 @@ export default function BlogViewPage() {
 
   if (loading) return <AdminPageSkeleton />;
 
-  if (error || !blog) return <EntityViewError error={error} backHref="/admin/blogs/blog" backLabel="Back to Blogs" />;
+  if (error || !blog) return <EntityViewError error={error} backHref="/admin/blogs/articles" backLabel="Back to Articles" />;
 
   const title = getLocalizedValue(blog.title) || '(untitled)';
   const isPublished = blog.status === 'published';
@@ -98,12 +98,12 @@ export default function BlogViewPage() {
         </div>
         <div className="header-actions">
           <Link
-            href={`/admin/blogs/blog/${id}/edit`}
+            href={`/admin/blogs/articles/${id}/edit`}
             className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"
           >
             <Edit2 size={16} /> Edit
           </Link>
-          <Link href="/admin/blogs/blog" className="btn-refresh inline-flex items-center gap-1">
+          <Link href="/admin/blogs/articles" className="btn-refresh inline-flex items-center gap-1">
             <ArrowLeft size={16} /> Back
           </Link>
         </div>

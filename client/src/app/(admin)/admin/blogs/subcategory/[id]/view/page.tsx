@@ -154,8 +154,8 @@ export default function BlogSubcategoryViewPage() {
                       <td className="py-2 px-3 text-gray-500 dark:text-gray-400">{a.updatedAt ? new Date(a.updatedAt).toLocaleDateString() : '—'}</td>
                       <td className="py-2 pl-3">
                         <div className="flex items-center justify-end gap-1">
-                          <Link href={`/admin/blogs/blog/${a._id}/view`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="View"><Eye size={15} /></Link>
-                          <Link href={`/admin/blogs/blog/${a._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
+                          <Link href={`/admin/blogs/articles/${a._id}/view`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="View"><Eye size={15} /></Link>
+                          <Link href={`/admin/blogs/articles/${a._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
                         </div>
                       </td>
                     </tr>
@@ -164,7 +164,7 @@ export default function BlogSubcategoryViewPage() {
               </table>
             </div>
             <div className="flex items-center justify-between gap-2 flex-wrap mt-3">
-              <Link href={`/admin/blogs/blog?subCategory=${id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[#b79c5c] hover:underline">
+              <Link href={`/admin/blogs/articles?subCategory=${id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[#b79c5c] hover:underline">
                 Manage all {articlesTotal} article{articlesTotal === 1 ? '' : 's'} <ArrowRight size={15} />
               </Link>
               {articlesTotal > ARTICLES_PAGE_SIZE && (

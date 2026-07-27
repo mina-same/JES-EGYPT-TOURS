@@ -341,7 +341,7 @@ function BlogsPageContent() {
       cellClassName: 'px-6 py-4',
       render: (blog) => (
         <div className="flex items-center gap-2">
-          <Link href={`/admin/blogs/blog/${blog._id}/edit`}>
+          <Link href={`/admin/blogs/articles/${blog._id}/edit`}>
             <button
               className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
               title="Edit"
@@ -349,7 +349,7 @@ function BlogsPageContent() {
               <Edit2 size={16} />
             </button>
           </Link>
-          <Link href={`/admin/blogs/blog/${blog._id}/view`}>
+          <Link href={`/admin/blogs/articles/${blog._id}/view`}>
             <button
               className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
               title="View"
@@ -411,7 +411,7 @@ function BlogsPageContent() {
     if (nextCategory !== 'all') sp.set('category', nextCategory);
     if (nextSubCategory !== 'all') sp.set('subCategory', nextSubCategory);
     const qs = sp.toString();
-    router.replace(qs ? `/admin/blogs/blog?${qs}` : '/admin/blogs/blog', { scroll: false });
+    router.replace(qs ? `/admin/blogs/articles?${qs}` : '/admin/blogs/articles', { scroll: false });
   };
 
   return (
@@ -419,8 +419,8 @@ function BlogsPageContent() {
       {/* Header */}
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Blog Posts</h1>
-          <p className="admin-page-subtitle">Manage your blog content and articles</p>
+          <h1 className="admin-page-title">Articles</h1>
+          <p className="admin-page-subtitle">Write and manage your articles</p>
         </div>
         <div className="header-actions">
           <button 
@@ -432,7 +432,7 @@ function BlogsPageContent() {
             Refresh
           </button>
           <Link
-            href="/admin/blogs/blog/import"
+            href="/admin/blogs/articles/import"
             className="btn-refresh"
             title="Import articles from a JSON file (multi-agent output)"
           >
@@ -440,11 +440,11 @@ function BlogsPageContent() {
             Import JSON
           </Link>
           <Link
-            href="/admin/blogs/blog/new"
+            href="/admin/blogs/articles/new"
             className="btn-add-new"
           >
             <Plus size={18} />
-            New Post
+            New Article
           </Link>
         </div>
       </div>

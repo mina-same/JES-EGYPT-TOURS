@@ -20,9 +20,10 @@ import {
 const getAdminTitle = (pathname: string) => {
   if (pathname === "/admin") return "Dashboard";
   if (pathname.startsWith("/admin/users")) return "Users";
-  if (/^\/admin\/blogs\/blog\/[^/]+\/view$/.test(pathname)) return "View Post";
+  if (/^\/admin\/blogs\/articles\/[^/]+\/view$/.test(pathname)) return "View Article";
   if (/^\/admin\/blogs\/category\/[^/]+\/view$/.test(pathname)) return "View Blog Category";
   if (/^\/admin\/blogs\/subcategory\/[^/]+\/view$/.test(pathname)) return "View Blog Subcategory";
+  if (pathname.startsWith("/admin/blogs/articles")) return "Articles";
   if (pathname.startsWith("/admin/blogs")) return "Blogs";
   if (pathname.startsWith("/admin/tour/booking")) return "Bookings";
   if (/^\/admin\/tour\/tour\/[^/]+\/view$/.test(pathname)) return "View Tour";

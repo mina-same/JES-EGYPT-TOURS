@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Activity,
   Calendar,
   ChevronRight,
   Mail,
@@ -22,15 +21,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DashboardKpiCard from "@/components/admin/DashboardKpiCard";
 import MiniBarChart from "@/components/admin/MiniBarChart";
-
-type AdminNotificationType = 'booking' | 'tailorMade' | 'contact';
-
-interface AdminNotificationPayload {
-  type: AdminNotificationType;
-  title: string;
-  entityId: string;
-  createdAt: string;
-}
 
 interface AdminDashboardStats {
   usersTotal: number;
@@ -83,17 +73,8 @@ const buildLastNDays = (n: number) => {
   return days;
 };
 
-const formatWhen = (iso: string) => {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
-};
-
 const AdminDashboard: React.FC = () => {
   const [dashboardStats, setDashboardStats] = useState<AdminDashboardStats | null>(null);
-  const [activityFeed, setActivityFeed] = useState<AdminNotificationPayload[]>([]);
   const [pendingBookings, setPendingBookings] = useState<IBooking[]>([]);
   const [newContacts, setNewContacts] = useState<ContactSubmission[]>([]);
   const [pendingTailorMade, setPendingTailorMade] = useState<TailorMadeRequest[]>([]);
@@ -233,26 +214,19 @@ const AdminDashboard: React.FC = () => {
       setDashboardStats(stats);
     };
 
-    const onSeed = (items: AdminNotificationPayload[]) => {
-      setActivityFeed(Array.isArray(items) ? items : []);
-    };
-
-    const onActivityNew = (payload: AdminNotificationPayload) => {
-      setActivityFeed((prev) => [payload, ...prev].slice(0, 30));
+    const onNotificationNew = () => {
       void fetchQueues();
     };
 
     socket.on('dashboard:stats', onStats);
-    socket.on('dashboard:activity:seed', onSeed);
-    socket.on('dashboard:activity:new', onActivityNew);
+    socket.on('notification:new', onNotificationNew);
 
     void fetchQueues();
     void fetchAnalytics();
 
     return () => {
       socket.off('dashboard:stats', onStats);
-      socket.off('dashboard:activity:seed', onSeed);
-      socket.off('dashboard:activity:new', onActivityNew);
+      socket.off('notification:new', onNotificationNew);
     };
   }, []);
 
@@ -347,13 +321,12 @@ const AdminDashboard: React.FC = () => {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Action required</CardTitle>
-            <div className="text-xs text-muted-foreground">Last update: {updatedAt}</div>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-3">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Action required</CardTitle>
+          <div className="text-xs text-muted-foreground">Last update: {updatedAt}</div>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-medium">Bookings</div>
@@ -449,40 +422,8 @@ const AdminDashboard: React.FC = () => {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Live activity</CardTitle>
-            <Activity className="text-muted-foreground" size={16} />
-          </CardHeader>
-          <CardContent>
-            {activityFeed.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No recent activity.</div>
-            ) : (
-              <div className="space-y-3">
-                {activityFeed.slice(0, 12).map((item, index) => (
-                  <div
-                    key={`${item.type}:${item.entityId}:${item.createdAt}:${index}`}
-                    className="flex items-start gap-3"
-                  >
-                    <div className="mt-0.5 h-2 w-2 rounded-full bg-primary/70" />
-                    <div className="min-w-0">
-                      <div className="text-sm font-medium line-clamp-2">
-                        {typeof item.title === 'object' ? (item.title as any).en : item.title}
-                      </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
-                        {formatWhen(item.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2">
