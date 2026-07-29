@@ -32,6 +32,7 @@ import enStrings from "@/i18n/locales/en/travelTrade.json";
 import TravelTradeCtaButton from "./TravelTradeCtaButton";
 import TravelTradeFaq from "./TravelTradeFaq";
 import TravelTradeInquiryForm from "./TravelTradeInquiryForm";
+import { TRAVEL_TRADE_SERVICES_ID } from "./types";
 import styles from "../TravelTradePage.module.css";
 
 type TravelTradeDictionary = typeof enStrings;
@@ -98,7 +99,7 @@ export default function TravelTradeContent({
                   className={styles.primaryButton}
                 />
                 <TravelTradeCtaButton
-                  intent="client-request"
+                  targetId={TRAVEL_TRADE_SERVICES_ID}
                   label={copy.hero.secondaryCta}
                   className={styles.secondaryButton}
                 />
@@ -163,6 +164,7 @@ export default function TravelTradeContent({
       </section>
 
       <section
+        id={TRAVEL_TRADE_SERVICES_ID}
         className={`${styles.section} ${styles.servicesSection}`}
         aria-labelledby="trade-services-title"
       >

@@ -46,5 +46,11 @@
     "secondary": "Chat on WhatsApp",
     "whatsappMessage": "Hello JES Egypt Tours, I saw your special offers but none matched my dates. Could you prepare a custom offer for me?",
     "reassurance": "Free quote · Reply within 24 hours · No obligation"
+  },
+  "card": {
+    "was": "Was",
+    "perPerson": "per person",
+    "save": "Save {{amount}}",
+    "viewOffer": "View Offer"
   }
 }

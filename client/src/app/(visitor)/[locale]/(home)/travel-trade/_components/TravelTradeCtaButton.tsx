@@ -8,7 +8,8 @@ import {
 } from "./types";
 
 interface TravelTradeCtaButtonProps {
-  intent: TravelTradeIntent;
+  intent?: TravelTradeIntent;
+  targetId?: string;
   label: string;
   className: string;
   showArrow?: boolean;
@@ -16,27 +17,37 @@ interface TravelTradeCtaButtonProps {
 
 export default function TravelTradeCtaButton({
   intent,
+  targetId,
   label,
   className,
   showArrow = true,
 }: TravelTradeCtaButtonProps) {
   const handleClick = () => {
-    window.dispatchEvent(
-      new CustomEvent(TRAVEL_TRADE_INTENT_EVENT, {
-        detail: { intent },
-      })
-    );
+    if (intent) {
+      window.dispatchEvent(
+        new CustomEvent(TRAVEL_TRADE_INTENT_EVENT, {
+          detail: { intent },
+        })
+      );
+    }
 
-    document.getElementById(TRAVEL_TRADE_INQUIRY_ID)?.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "auto"
-        : "smooth",
-      block: "start",
-    });
+    document
+      .getElementById(targetId ?? TRAVEL_TRADE_INQUIRY_ID)
+      ?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
   };
 
   return (
-    <button type="button" className={className} onClick={handleClick}>
+    <button
+      type="button"
+      className={className}
+      onClick={handleClick}
+      aria-controls={targetId ?? TRAVEL_TRADE_INQUIRY_ID}
+    >
       <span>{label}</span>
       {showArrow ? <ArrowRight size={18} aria-hidden="true" /> : null}
     </button>

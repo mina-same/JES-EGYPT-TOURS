@@ -1,4 +1,5 @@
 export const TRAVEL_TRADE_INQUIRY_ID = "travel-trade-inquiry";
+export const TRAVEL_TRADE_SERVICES_ID = "travel-trade-services";
 export const TRAVEL_TRADE_INTENT_EVENT = "travel-trade:set-intent";
 
 export type TravelTradeIntent =

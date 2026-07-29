@@ -39,6 +39,12 @@ interface ContactSubmission {
   updatedAt: string;
 }
 
+const STATUS_LABELS: Record<ContactSubmission['status'], string> = {
+  new: 'New Submission',
+  replied: 'Replied',
+  archived: 'Archived',
+};
+
 const ContactFormPage: React.FC = () => {
   const { refreshCount } = useContactForm();
   const { toast } = useToast();
@@ -65,9 +71,30 @@ const ContactFormPage: React.FC = () => {
     value
       ? value
           .split('-')
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .map((part) =>
+            part.toLowerCase() === 'b2b'
+              ? 'B2B'
+              : part.charAt(0).toUpperCase() + part.slice(1)
+          )
           .join(' ')
       : '—';
+
+  const formatReceivedAt = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Date unavailable';
+
+    const datePart = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(date);
+    const timePart = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+
+    return `${datePart} • ${timePart}`;
+  };
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -261,6 +288,12 @@ const ContactFormPage: React.FC = () => {
     archived: submissions.filter(s => s.status === 'archived').length,
   };
 
+  const hasUnsavedChanges = Boolean(
+    selected &&
+      (newStatus !== selected.status ||
+        adminNotes !== (selected.adminNotes || ''))
+  );
+
   const columns: Array<AdminTableColumn<ContactSubmission>> = [
     {
       header: 'Customer',
@@ -436,18 +469,37 @@ const ContactFormPage: React.FC = () => {
 
       {showModal && selected && (
         <div className='modal-overlay' onClick={() => setShowModal(false)}>
-          <div className='modal-content max-w-2xl' onClick={(e) => e.stopPropagation()}>
+          <div
+            className='modal-content max-w-2xl contact-submission-modal'
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='submission-details-title'
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className='modal-header'>
               <div className="flex items-center gap-3">
                 <div className="bg-[#b79c5c]/10 p-2 rounded-lg">
                   <MessageSquare className="text-[#b79c5c]" size={20} />
                 </div>
                 <div>
-                  <h2>Submission Details</h2>
-                  <p className="text-xs text-gray-500 font-normal">Received on {new Date(selected.createdAt).toLocaleString()}</p>
+                  <div className='submission-title-row'>
+                    <h2 id='submission-details-title'>Submission Details</h2>
+                    <span
+                      className={`status-badge contact-status-badge ${getStatusColor(selected.status)}`}
+                    >
+                      {STATUS_LABELS[selected.status]}
+                    </span>
+                  </div>
+                  <p className='submission-received-at'>
+                    Received {formatReceivedAt(selected.createdAt)}
+                  </p>
                 </div>
               </div>
-              <button className='modal-close' onClick={() => setShowModal(false)}>
+              <button
+                className='modal-close'
+                onClick={() => setShowModal(false)}
+                aria-label='Close submission details'
+              >
                 <XCircle size={22} />
               </button>
             </div>
@@ -561,10 +613,13 @@ const ContactFormPage: React.FC = () => {
                 <h3><CheckCircle size={14} /> Admin Actions</h3>
                 <div className='admin-management-grid'>
                   <div className='admin-field'>
-                    <label>Update Status</label>
+                    <label htmlFor='submission-status'>Update Status</label>
                     <select
+                      id='submission-status'
                       value={newStatus}
-                      onChange={(e) => setNewStatus(e.target.value as any)}
+                      onChange={(e) =>
+                        setNewStatus(e.target.value as ContactSubmission['status'])
+                      }
                       className='status-select'
                     >
                       <option value='new'>New Submission</option>
@@ -573,8 +628,9 @@ const ContactFormPage: React.FC = () => {
                     </select>
                   </div>
                   <div className='admin-field'>
-                    <label>Admin Internal Notes</label>
+                    <label htmlFor='submission-admin-notes'>Admin Internal Notes</label>
                     <textarea
+                      id='submission-admin-notes'
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
                       placeholder='Add internal notes regarding this submission...'
@@ -590,7 +646,12 @@ const ContactFormPage: React.FC = () => {
               <button className='btn-secondary' onClick={() => setShowModal(false)}>
                 Close
               </button>
-              <button className='btn-primary' onClick={handleUpdateSubmission} disabled={updating}>
+              <button
+                className='btn-primary'
+                onClick={handleUpdateSubmission}
+                disabled={updating || !hasUnsavedChanges}
+                title={!hasUnsavedChanges ? 'No changes to save' : undefined}
+              >
                 {updating ? (
                   <>
                     <Loader2 size={18} className='spinner' />

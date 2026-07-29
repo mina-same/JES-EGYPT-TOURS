@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import OfferPriceFooter, { type OfferLabels } from "./OfferPriceFooter";
 
 interface Metadata {
   id: number;
@@ -22,6 +23,8 @@ interface TourCardProps {
     title: string;
     link: string;
     price: number | any;
+    /** Pre-discount price, when the data provides one (offer variant only). */
+    originalPrice?: number | any;
     rating: number;
     reviews: number;
     videoId: string;
@@ -31,6 +34,13 @@ interface TourCardProps {
   toggleWishlist: (id: string) => void;
   isInWishlist: (id: string) => boolean;
   openVideoReviews: (slug: string) => void;
+  /**
+   * "special-offer" swaps the default "Start from / Book Now" row for the offer
+   * pricing row. Every other caller keeps the original footer untouched.
+   */
+  variant?: "default" | "special-offer";
+  /** Localized labels for the offer footer — required by that variant. */
+  offerLabels?: OfferLabels;
 }
 
 const TourCard: React.FC<TourCardProps> = ({
@@ -38,6 +48,8 @@ const TourCard: React.FC<TourCardProps> = ({
   toggleWishlist,
   isInWishlist,
   openVideoReviews,
+  variant = "default",
+  offerLabels,
 }) => {
   const { formatPrice } = useCurrency();
   return (
@@ -171,22 +183,31 @@ const TourCard: React.FC<TourCardProps> = ({
               <Link href={item.link}>{item.title}</Link>
             </h3>
 
-            <div className="listing-card-four__content__btn">
-              <div className="listing-card-four__price">
-                <span className="listing-card-four__price__sub">
-                  Start from
-                </span>
-                <span className="listing-card-four__price__number">
-                  {formatPrice(item.price)}
-                </span>
+            {variant === "special-offer" && offerLabels ? (
+              <OfferPriceFooter
+                href={item.link}
+                price={item.price}
+                originalPrice={item.originalPrice}
+                labels={offerLabels}
+              />
+            ) : (
+              <div className="listing-card-four__content__btn">
+                <div className="listing-card-four__price">
+                  <span className="listing-card-four__price__sub">
+                    Start from
+                  </span>
+                  <span className="listing-card-four__price__number">
+                    {formatPrice(item.price)}
+                  </span>
+                </div>
+                <Link href={item.link} className="listing-card-four__btn gotur-btn">
+                  Book Now{" "}
+                  <span className="icon">
+                    <i className="icon-right"></i>{" "}
+                  </span>
+                </Link>
               </div>
-              <Link href={item.link} className="listing-card-four__btn gotur-btn">
-                Book Now{" "}
-                <span className="icon">
-                  <i className="icon-right"></i>{" "}
-                </span>
-              </Link>
-            </div>
+            )}
           </div>
         </div>
       </div>

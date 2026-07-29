@@ -46,5 +46,11 @@
     "secondary": "Escríbenos por WhatsApp",
     "whatsappMessage": "Hola JES Egypt Tours, he visto sus ofertas especiales pero ninguna coincide con mis fechas. ¿Podrían preparar una oferta personalizada para mí?",
     "reassurance": "Presupuesto gratuito · Respuesta en 24 horas · Sin compromiso"
+  },
+  "card": {
+    "was": "Antes",
+    "perPerson": "por persona",
+    "save": "Ahorra {{amount}}",
+    "viewOffer": "Ver oferta"
   }
 }

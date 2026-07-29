@@ -1,0 +1,142 @@
+/*
+ * Special-offer pricing row for the tour card footer. Replaces the default
+ * "Start from / Book Now" row (variant="special-offer" only) — the divider above
+ * it belongs to .listing-card-four__title and is untouched.
+ *
+ * Cards sit in a 3-column grid (~390px wide), so the row is built to wrap
+ * gracefully: the CTA drops to its own line whenever the price group and pill
+ * fill the width.
+ */
+
+.footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  /* the title's 18px bottom margin already spaces this from the divider */
+  padding-bottom: 4px;
+}
+
+.priceGroup {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+}
+
+/* ── Original price ──────────────────────────────────────────────── */
+.was {
+  /* full row so the discounted price always starts a fresh line */
+  flex: 1 1 100%;
+  font-size: 14px;
+  font-weight: 400;
+  color: #6c716c;
+  line-height: 1.2;
+}
+
+.wasAmount {
+  text-decoration: line-through;
+}
+
+/* ── Discounted price ────────────────────────────────────────────── */
+.price {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: #18211c;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6c716c;
+}
+
+/* ── Saving pill ─────────────────────────────────────────────────── */
+.savePill {
+  display: inline-flex;
+  align-items: center;
+  /* dark gold on warm cream keeps 14px text above WCAG AA */
+  background: rgba(215, 179, 61, 0.12);
+  color: #8a6d1f;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── CTA ─────────────────────────────────────────────────────────── */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  /* pushes the button to the right edge, and keeps it right-aligned when the
+     row wraps it onto its own line */
+  margin-left: auto;
+  min-height: 48px;
+  padding: 6px 6px 6px 22px;
+  border-radius: 999px;
+  background: #18211c;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.cta:hover,
+.cta:focus-visible {
+  background: #24322a;
+  color: #ffffff;
+}
+
+.cta:focus-visible {
+  outline: 3px solid #8a6d1f;
+  outline-offset: 2px;
+}
+
+.ctaIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #d7b33d;
+  color: #18211c;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.cta:hover .ctaIcon {
+  transform: translateX(2px);
+}
+
+/* ── Narrow cards / mobile: CTA spans the row ────────────────────── */
+@media (max-width: 575px) {
+  .cta {
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+
+  .price {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta,
+  .ctaIcon {
+    transition: none;
+  }
+
+  .cta:hover .ctaIcon {
+    transform: none;
+  }
+}

@@ -60,6 +60,14 @@ function mapTour(tour: any, locale: string) {
     title: getLocalizedValue(tour.heading || tour.name, locale),
     link: `/${locale}/${tourSlug}`,
     price: tour.priceStartingFrom || { USD: 0 },
+    /*
+     * The Tour model has no pre-discount price today — only `specialOfferDiscount`,
+     * a percentage used for the image badge and never applied to any amount. So
+     * this stays undefined and the card renders the price without a "Was …" or a
+     * saving pill, rather than inventing one. Add the field server-side and the
+     * offer footer picks it up with no further change here.
+     */
+    originalPrice: tour.originalPrice,
     rating: 5,
     reviews: tour.reviewsCount || tour.reviews?.length || 0,
     videoId: tour.videoLink || "",
@@ -176,6 +184,15 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
   // Real max discount when we know it, so the headline never overstates the
   // saving; the copy fallback only applies before/without live discount data.
   const headlinePercent = bannerDiscount || FALLBACK_HEADLINE_PERCENT;
+
+  // Localized labels for the offer card footer — kept here so the shared
+  // TourCard stays free of any page-specific translation namespace.
+  const offerLabels = {
+    was: t("card.was"),
+    perPerson: t("card.perPerson"),
+    viewOffer: t("card.viewOffer"),
+    save: (amount: string) => t("card.save", { amount }),
+  };
 
   return (
     <Layout>
@@ -314,6 +331,8 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
                       toggleWishlist={toggleWishlist}
                       isInWishlist={isInWishlist}
                       openVideoReviews={openVideoReviews}
+                      variant="special-offer"
+                      offerLabels={offerLabels}
                     />
                   </Col>
                 ))}
