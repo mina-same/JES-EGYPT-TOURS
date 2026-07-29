@@ -63,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // NOTE: pages with a per-locale slug are NOT listed here — they go through
   // the localized block below so the sitemap emits the final (non-redirecting)
   // URL for every language.
-  const staticPages = ['', '/faq', '/tours', '/blogs'];
+  const staticPages = ['', '/faq', '/tours', '/blogs', '/travel-trade', '/privacy-policy'];
   
   const entries: MetadataRoute.Sitemap = [];
 
@@ -74,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: `${baseUrl}/${locale}${path}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
-        priority: path === '' ? 1 : 0.8,
+        priority: path === '' ? 1 : path === '/travel-trade' ? 0.9 : path === '/privacy-policy' ? 0.4 : 0.8,
       });
     });
   });

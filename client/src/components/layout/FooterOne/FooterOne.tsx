@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { footerOneData } from "@/data/footerOneData";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import MailchimpSubscribe from "react-mailchimp-subscribe";
+import { useTranslation } from "react-i18next";
 
 const url = "//xxxx.us13.list-manage.com/subscribe/post?u=zefzefzef&id=fnfgn";
 
@@ -42,6 +43,7 @@ interface FooterDataType {
   usefulLinks: {
     title: string;
     href: string;
+    translationKey?: string;
   }[];
   newsletter: {
     text: string;
@@ -52,6 +54,7 @@ const FooterOne: React.FC = () => {
   const data: FooterDataType = footerOneData;
   const pathname = usePathname();
   const locale = getLocaleFromPath(pathname);
+  const { t } = useTranslation("common");
 
   return (
     <footer className='main-footer'>
@@ -166,7 +169,9 @@ const FooterOne: React.FC = () => {
                 <ul className='list-unstyled footer-widget__links'>
                   {data.usefulLinks.map((item, idx) => (
                     <li key={idx}>
-                      <Link href={localizeInternalUrl(item.href, locale)}>{item.title}</Link>
+                      <Link href={localizeInternalUrl(item.href, locale)}>
+                        {item.translationKey ? t(item.translationKey) : item.title}
+                      </Link>
                     </li>
                   ))}
                 </ul>

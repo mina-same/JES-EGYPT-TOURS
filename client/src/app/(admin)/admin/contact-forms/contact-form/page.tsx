@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Eye, Loader2, Mail, MessageSquare, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
+import { Building2, Eye, Globe2, Loader2, Mail, MapPin, MessageSquare, Phone, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 import { useContactForm } from '@/contexts/ContactFormContext';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -17,6 +17,22 @@ interface ContactSubmission {
   name: string;
   email: string;
   message: string;
+  source?: 'contact' | 'travel-trade';
+  inquiryType?: 'b2b-rates' | 'client-request' | 'general-partnership';
+  phone?: string;
+  companyName?: string;
+  companyWebsite?: string;
+  country?: string;
+  businessType?: string;
+  primaryMarket?: string;
+  annualTravelers?: string;
+  travelDates?: string;
+  travelers?: number;
+  destinations?: string;
+  serviceLanguage?: string;
+  serviceLevel?: string;
+  consentGiven?: boolean;
+  locale?: string;
   status: 'new' | 'replied' | 'archived';
   adminNotes?: string;
   createdAt: string;
@@ -44,6 +60,14 @@ const ContactFormPage: React.FC = () => {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+
+  const formatValue = (value?: string) =>
+    value
+      ? value
+          .split('-')
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ')
+      : '—';
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -246,6 +270,9 @@ const ContactFormPage: React.FC = () => {
           <div className='customer-details'>
             <Mail size={14} /> {item.email}
           </div>
+          {item.source === 'travel-trade' && (
+            <span className='status-badge status-in-progress'>Travel Trade</span>
+          )}
         </div>
       ),
     },
@@ -440,8 +467,90 @@ const ContactFormPage: React.FC = () => {
                        {selected.email}
                     </p>
                   </div>
+                  {selected.source === 'travel-trade' && (
+                    <>
+                      <div className='detail-item'>
+                        <label>Company</label>
+                        <p className="flex items-center gap-2">
+                          <Building2 size={14} className="text-[#b79c5c]" />
+                          {selected.companyName || '—'}
+                        </p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Phone / WhatsApp</label>
+                        <p className="flex items-center gap-2">
+                          <Phone size={14} className="text-[#b79c5c]" />
+                          {selected.phone || '—'}
+                        </p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Company Website</label>
+                        <p className="flex items-center gap-2">
+                          <Globe2 size={14} className="text-[#b79c5c]" />
+                          {selected.companyWebsite || '—'}
+                        </p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Country</label>
+                        <p className="flex items-center gap-2">
+                          <MapPin size={14} className="text-[#b79c5c]" />
+                          {selected.country || '—'}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {selected.source === 'travel-trade' && (
+                <>
+                  <div className='detail-section'>
+                    <h3><Building2 size={14} /> Travel Trade Details</h3>
+                    <div className='detail-grid'>
+                      <div className='detail-item'>
+                        <label>Inquiry Type</label>
+                        <p>{formatValue(selected.inquiryType)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Business Type</label>
+                        <p>{formatValue(selected.businessType)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Primary Market</label>
+                        <p>{selected.primaryMarket || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Expected Travelers / Year</label>
+                        <p>{formatValue(selected.annualTravelers)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Expected Travel Dates</label>
+                        <p>{selected.travelDates || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Travelers</label>
+                        <p>{selected.travelers ?? '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Destinations</label>
+                        <p>{selected.destinations || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Service Language</label>
+                        <p>{selected.serviceLanguage || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Service Level</label>
+                        <p>{formatValue(selected.serviceLevel)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Submitted Locale</label>
+                        <p>{selected.locale?.toUpperCase() || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className='detail-section'>
                 <h3><MessageSquare size={14} /> Message Content</h3>

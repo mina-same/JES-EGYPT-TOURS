@@ -81,6 +81,81 @@ export const createContactSubmission = async (
   }
 };
 
+export const createTravelTradeSubmission = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Silent honeypot drop. The real company website field is
+    // `companyWebsite`; only bots should fill the hidden `website` field.
+    if (typeof req.body?.website === 'string' && req.body.website.trim()) {
+      res.status(201).json({
+        success: true,
+        message: 'Your partnership request has been received.',
+      });
+      return;
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        error: errors.array()[0].msg,
+      });
+      return;
+    }
+
+    const submission = await ContactSubmission.create({
+      source: 'travel-trade',
+      inquiryType: req.body.inquiryType,
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      companyName: req.body.companyName,
+      companyWebsite: req.body.companyWebsite,
+      country: req.body.country,
+      businessType: req.body.businessType,
+      primaryMarket: req.body.primaryMarket,
+      annualTravelers: req.body.annualTravelers,
+      travelDates: req.body.travelDates,
+      travelers: req.body.travelers,
+      destinations: req.body.destinations,
+      serviceLanguage: req.body.serviceLanguage,
+      serviceLevel: req.body.serviceLevel,
+      message: req.body.message,
+      consentGiven: true,
+      locale: req.body.locale,
+    });
+
+    emitAdminNotification({
+      type: 'contact',
+      title: `Travel trade inquiry from ${submission.name}`,
+      entityId: submission._id.toString(),
+      createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
+    });
+
+    await Notification.create({
+      type: 'contact',
+      title: 'New Travel Trade Inquiry',
+      message: `Travel trade inquiry from ${submission.name} (${submission.companyName})`,
+      entityId: submission._id,
+    });
+
+    void emitDashboardStatsUpdate();
+
+    res.status(201).json({
+      success: true,
+      message: 'Your partnership request has been received.',
+    });
+  } catch (error) {
+    console.error('Error creating travel trade submission:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit the partnership request. Please try again later.',
+    });
+  }
+};
+
 export const getAllContactSubmissions = async (
   req: Request,
   res: Response
@@ -99,6 +174,9 @@ export const getAllContactSubmissions = async (
         { name: searchRegex },
         { email: searchRegex },
         { message: searchRegex },
+        { companyName: searchRegex },
+        { country: searchRegex },
+        { destinations: searchRegex },
       ];
     }
 

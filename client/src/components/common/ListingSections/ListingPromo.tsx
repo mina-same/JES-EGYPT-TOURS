@@ -110,7 +110,7 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
                   className='sec-title__title bw-split-in-left'
                   style={{ maxWidth: "555px" }}
                 >
-                  <TextAnimation text={promoTitle} animationType='left' />
+                  <TextAnimation text={promoTitle} animationType='left' semantic />
                 </h2>
               </div>
 

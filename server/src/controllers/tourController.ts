@@ -146,23 +146,38 @@ const parsePagination = (queryParams: QueryParams) => {
  */
 const parseSort = (sortParam?: string): string => {
   const validSortFields = ['heading', 'createdAt', 'updatedAt', 'tourLocation', 'priceStartingFrom'];
-  
+  // Localized fields are {en,de,it,es} objects: sorting on the bare field makes
+  // Mongo compare the whole sub-document (i.e. always by EN). Callers may pass
+  // a locale suffix ("heading.de") so each language sorts by its OWN text.
+  const localizedSortFields = ['heading', 'tourLocation'];
+  const supportedLocales = ['en', 'de', 'it', 'es'];
+
   if (!sortParam) return '-createdAt';
 
   // Handle descending sort (e.g., '-createdAt')
   const isDescending = sortParam.startsWith('-');
-  const field = isDescending ? sortParam.substring(1) : sortParam;
+  const raw = isDescending ? sortParam.substring(1) : sortParam;
+  const [field, locale] = raw.split('.');
 
   if (!validSortFields.includes(field)) {
     return '-createdAt';
   }
 
-  // If sorting by price, use the USD field
-  if (field === 'priceStartingFrom') {
-    return isDescending ? '-priceStartingFrom.USD' : 'priceStartingFrom.USD';
+  // A suffix is only allowed on localized fields, and only a real locale.
+  if (locale && !(localizedSortFields.includes(field) && supportedLocales.includes(locale))) {
+    return '-createdAt';
   }
 
-  return sortParam;
+  let target = raw;
+  if (field === 'priceStartingFrom') {
+    // Price is {USD,EUR,GBP} — sort on the always-present USD amount.
+    target = 'priceStartingFrom.USD';
+  } else if (localizedSortFields.includes(field) && !locale) {
+    // Keep the previous effective behaviour explicit instead of implicit.
+    target = `${field}.en`;
+  }
+
+  return isDescending ? `-${target}` : target;
 };
 
 /**

@@ -7,19 +7,14 @@
     "subtitle": "Ofertas exclusivas en los mejores tours de Egipto — seleccionadas para ti."
   },
   "banner": {
-    "tagline": "Ofertas por Tiempo Limitado",
-    "heading": "Tours de Egipto Seleccionados",
-    "upTo": "Hasta un",
-    "off": "de Descuento",
-    "description": "Curados por nuestros expertos en Egipto. Cada tour en esta página tiene un precio más bajo — sin códigos, sin letra pequeña.",
-    "badge": "en tours seleccionados",
+    "eyebrow": "Ofertas Seleccionadas de Tours en Egipto",
+    "heading": "Ahorra hasta un <gold>{{percent}}%</gold> en tours privados seleccionados",
+    "description": "Descubre precios reducidos en excursiones de un día y experiencias privadas seleccionadas en Egipto. Los descuentos ya están aplicados — no se necesita código promocional.",
+    "cta": "Ver ofertas actuales",
     "trust": {
-      "discountLabel": "Hasta {{percent}}% de Descuento",
-      "discountSub": "Descuentos verificados",
-      "guidesLabel": "Guías Expertos",
-      "guidesSub": "Con licencia y locales",
-      "timeLabel": "Tiempo Limitado",
-      "timeSub": "Reserva antes de que se acaben"
+      "private": "Tours privados",
+      "guides": "Guías locales autorizados",
+      "inclusions": "Inclusiones claras"
     }
   },
   "controls": {
@@ -42,5 +37,14 @@
   "promoTitle": "¿Por Qué Reservar un Tour en Oferta Especial?",
   "promoDescription": "<p>Nuestros tours en oferta especial son cuidadosamente seleccionados para darte el mejor valor sin comprometer la calidad. Cada oferta combina guías locales expertos, hoteles seleccionados y destinos icónicos de Egipto — a un precio que hace posible el viaje de tus sueños.</p><p>Desde las Pirámides de Giza hasta los templos de Luxor y las orillas del Mar Rojo, cada tour en oferta especial está elaborado con el mismo cuidado que nuestras experiencias a precio completo.</p>",
   "promoSubtitle": "JES Egypt Tours",
-  "promoButton": "Contáctanos"
+  "promoButton": "Contáctanos",
+  "cta": {
+    "eyebrow": "¿Aún lo estás pensando?",
+    "title": "¿No encontraste la oferta adecuada?",
+    "text": "Cuéntanos tus fechas, el tamaño del grupo y tus destinos preferidos. Nuestro equipo en El Cairo preparará un itinerario privado por Egipto según tu presupuesto.",
+    "primary": "Solicitar una oferta personalizada",
+    "secondary": "Escríbenos por WhatsApp",
+    "whatsappMessage": "Hola JES Egypt Tours, he visto sus ofertas especiales pero ninguna coincide con mis fechas. ¿Podrían preparar una oferta personalizada para mí?",
+    "reassurance": "Presupuesto gratuito · Respuesta en 24 horas · Sin compromiso"
+  }
 }

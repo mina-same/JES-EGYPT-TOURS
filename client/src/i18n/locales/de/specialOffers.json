@@ -7,19 +7,14 @@
     "subtitle": "Exklusive Angebote für Ägyptens beste Touren — handverlesen für Sie."
   },
   "banner": {
-    "tagline": "Zeitlich begrenzte Angebote",
-    "heading": "Handverlesene Ägypten-Touren",
-    "upTo": "Bis zu",
-    "off": "Rabatt",
-    "description": "Von unseren Ägypten-Experten kuratiert. Jede Tour auf dieser Seite ist günstiger — keine Codes, kein Kleingedrucktes.",
-    "badge": "auf ausgewählte Touren",
+    "eyebrow": "Ausgewählte Ägypten-Tour-Angebote",
+    "heading": "Sparen Sie bis zu <gold>{{percent}} %</gold> bei ausgewählten Privattouren",
+    "description": "Entdecken Sie reduzierte Preise für ausgewählte Tagesausflüge und private Erlebnisse in Ägypten. Die Rabatte sind bereits enthalten — kein Aktionscode erforderlich.",
+    "cta": "Aktuelle Angebote ansehen",
     "trust": {
-      "discountLabel": "Bis zu {{percent}}% Rabatt",
-      "discountSub": "Verifizierte Rabatte",
-      "guidesLabel": "Experten-Guides",
-      "guidesSub": "Lizenziert & ortskundig",
-      "timeLabel": "Zeitlich begrenzt",
-      "timeSub": "Schnell buchen"
+      "private": "Privattouren",
+      "guides": "Lizenzierte lokale Guides",
+      "inclusions": "Klare Leistungen"
     }
   },
   "controls": {
@@ -42,5 +37,14 @@
   "promoTitle": "Warum ein Sonderangebot buchen?",
   "promoDescription": "<p>Unsere Sonderangebots-Touren sind sorgfältig ausgewählt, um Ihnen das beste Preis-Leistungs-Verhältnis ohne Qualitätseinbußen zu bieten. Jedes Angebot kombiniert erfahrene lokale Guides, handverlesene Hotels und ikonische ägyptische Ziele — zu einem Preis, der Ihre Traumreise möglich macht.</p><p>Von den Pyramiden von Gizeh bis zu den Tempeln von Luxor und den Ufern des Roten Meeres wird jede Sonderangebots-Tour mit der gleichen Sorgfalt gestaltet wie unsere regulären Erlebnisse.</p>",
   "promoSubtitle": "JES Egypt Tours",
-  "promoButton": "Kontakt aufnehmen"
+  "promoButton": "Kontakt aufnehmen",
+  "cta": {
+    "eyebrow": "Noch unentschlossen?",
+    "title": "Kein passendes Angebot gefunden?",
+    "text": "Teilen Sie uns Ihre Reisedaten, Gruppengröße und Wunschziele mit. Unser Team in Kairo erstellt Ihnen eine private Ägypten-Reiseroute passend zu Ihrem Budget.",
+    "primary": "Individuelles Angebot anfragen",
+    "secondary": "Per WhatsApp schreiben",
+    "whatsappMessage": "Hallo JES Egypt Tours, ich habe Ihre Sonderangebote gesehen, aber keines passte zu meinen Reisedaten. Könnten Sie mir ein individuelles Angebot erstellen?",
+    "reassurance": "Kostenloses Angebot · Antwort innerhalb von 24 Stunden · Unverbindlich"
+  }
 }

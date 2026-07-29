@@ -27,6 +27,8 @@ const STATIC_PATHS = new Set([
   "/login",
   "/special-offers",
   "/tailor-made",
+  "/travel-trade",
+  "/privacy-policy",
   "/search",
   "/wishlist",
   "/tours",
