@@ -117,7 +117,7 @@ export default function TravelTradeContent({
             <div className={styles.heroVisual}>
               <div className={styles.heroImage}>
                 <Image
-                  src="/images/why%20choose%20us/licensed-local-egyptologist-guide-temple-tour.webp"
+                  src="/images/travel-trade/happy-travelers-jumping-at-giza-pyramids-egypt.webp"
                   alt={copy.hero.imageAlt}
                   fill
                   priority

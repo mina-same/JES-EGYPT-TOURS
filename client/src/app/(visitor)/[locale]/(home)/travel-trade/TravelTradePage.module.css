@@ -1408,7 +1408,8 @@
   }
 
   .heroImage {
-    min-height: 430px;
+    min-height: 0;
+    aspect-ratio: 1;
   }
 
   .operationsCard {

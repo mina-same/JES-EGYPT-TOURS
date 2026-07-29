@@ -24,9 +24,6 @@ import { CARD_FIELDS } from "../cardFields";
 import OffersCta from "./OffersCta";
 import SpecialOffersBanner from "./SpecialOffersBanner";
 
-/** Anchor target for the banner CTA. */
-const OFFERS_LIST_ID = "special-offers-list";
-
 /** Shown in the banner headline when no live offer carries a discount yet. */
 const FALLBACK_HEADLINE_PERCENT = 30;
 
@@ -193,11 +190,10 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
       />
 
       {/* ── Compact deals banner (replaces the old full-bleed dark block) ── */}
-      <SpecialOffersBanner percent={headlinePercent} listId={OFFERS_LIST_ID} />
+      <SpecialOffersBanner percent={headlinePercent} />
 
       {/* ── Tours Grid ───────────────────────────────────────────────── */}
-      {/* scroll-margin matches the project's sticky-header offset (custom.css) */}
-      <section id={OFFERS_LIST_ID} style={{ padding: "44px 0 40px", scrollMarginTop: 120 }}>
+      <section style={{ padding: "36px 0 40px" }}>
         <Container>
           {/* Controls bar */}
           <div style={{

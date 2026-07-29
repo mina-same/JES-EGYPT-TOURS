@@ -1,5 +1,7 @@
 /*
- * Compact "selected deals" banner between the page hero and the offers list.
+ * Short intro message between the page hero and the offers list. Single content
+ * column — the former right-hand CTA column was dropped because the offers grid
+ * begins immediately below, so its button barely scrolled the page.
  *
  * Colours are intentionally literal instead of --gotur-black / --gotur-base:
  * assets/css/gotur-dark.css redefines --gotur-black to #ffffff on :root, which
@@ -9,30 +11,24 @@
 
 .section {
   /* hero → banner */
-  padding: 40px 0 0;
+  padding: 36px 0 0;
 }
 
 .card {
   background: #fbfaf7;
   /* softer than a solid gold line so the border reads as a hairline */
-  border: 1px solid rgba(215, 179, 61, 0.38);
+  border: 1px solid rgba(215, 179, 61, 0.35);
   border-radius: 20px;
-  box-shadow: 0 10px 28px rgba(24, 33, 28, 0.04);
+  box-shadow: 0 10px 28px rgba(24, 33, 28, 0.035);
   /* mobile padding — grows at wider breakpoints */
   padding: 28px 20px;
 }
 
 /*
- * One column while stacked; two columns from 992px where the CTA sits beside
- * the copy. `minmax(0, 1fr) auto` is what keeps the heading on one line: the
- * copy takes every pixel the button does not need (a percentage max-width on
- * the text column used to squeeze "Tours" onto its own row).
+ * One left-aligned column at every breakpoint. The cap keeps the measure
+ * comfortable on ultra-wide screens while still being wide enough to hold the
+ * heading on a single line (the old two-column grid squeezed it).
  */
-.inner {
-  display: grid;
-  gap: 20px;
-}
-
 .content {
   /* lets long words shrink instead of forcing horizontal overflow */
   min-width: 0;
@@ -43,9 +39,11 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  /* rhythm uses the tight end of the spec ranges: eyebrow→heading 16px,
-     heading→description 14px, description→trust 20px */
-  margin: 0 0 16px;
+  /* One rhythm scale, tight end of each range:
+     eyebrow→heading 18px · heading→description 12px · description→trust 18px.
+     Nothing sits below the trust list, so the card's own padding is the only
+     space under it. */
+  margin: 0 0 18px;
   color: #8a6d1f;
   font-size: 13px;
   font-weight: 600;
@@ -60,11 +58,11 @@
 
 /* ── Heading ─────────────────────────────────────────────────────── */
 .heading {
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
   color: #18211c;
   font-weight: 800;
-  line-height: 1.12;
+  line-height: 1.08;
   letter-spacing: -0.5px;
   /* mobile ≈28–32px */
   font-size: clamp(28px, 7vw, 32px);
@@ -81,16 +79,26 @@
   margin: 0;
   color: #626762;
   font-size: 15.5px;
-  line-height: 1.65;
-  max-width: 760px;
+  line-height: 1.55;
+  max-width: 880px;
+  /*
+   * Progressive enhancement (normal wrapping is the fallback): when the copy
+   * does need two lines, this breaks it at the sentence boundary instead of
+   * stranding "no" at the end of a line away from "promo code required."
+   * No nowrap span — that would risk overflow in the longer DE/IT/ES copy.
+   */
+  text-wrap: balance;
 }
 
 /* ── Trust points ────────────────────────────────────────────────── */
+/* wrap keeps them on one row wherever there is space and folds naturally
+   on narrow screens — no explicit nowrap, which could overflow in the
+   longer German/Italian wordings */
 .trust {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 24px;
-  margin: 20px 0 0;
+  gap: 10px 28px;
+  margin: 18px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -109,63 +117,14 @@
   flex-shrink: 0;
 }
 
-/* ── CTA ─────────────────────────────────────────────────────────── */
-.ctaWrap {
-  display: flex;
-}
-
-.cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 51px;
-  padding: 14px 28px;
-  border-radius: 12px;
-  background: #18211c;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  text-decoration: none;
-  border: 1px solid #18211c;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-  white-space: nowrap;
-}
-
-.cta:hover,
-.cta:focus-visible {
-  background: #24322a;
-  border-color: #24322a;
-  color: #ffffff;
-}
-
-.cta:focus-visible {
-  outline: 3px solid #d7b33d;
-  outline-offset: 2px;
-}
-
-.ctaIcon {
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-}
-
-.cta:hover .ctaIcon {
-  transform: translateY(2px);
-}
-
-/* ── ≥576px: button no longer needs to span the full row ─────────── */
+/* ── ≥576px ──────────────────────────────────────────────────────── */
 @media (min-width: 576px) {
   .card {
     padding: 30px 24px;
   }
-
-  .cta {
-    width: auto;
-  }
 }
 
-/* ── ≥768px (tablet portrait): still stacked, left aligned ───────── */
+/* ── ≥768px (tablet portrait) ─────────────────────────────────────── */
 @media (min-width: 768px) {
   .card {
     padding: 32px 30px;
@@ -181,20 +140,16 @@
   }
 }
 
-/* ── ≥992px (tablet landscape + desktop): copy left, CTA right ──── */
+/* ── ≥992px (tablet landscape + desktop) ─────────────────────────── */
 @media (min-width: 992px) {
   .card {
-    padding: 34px 44px;
+    /* 6px less at the bottom: nothing follows the trust row, and the last
+       line's descender space already reads as extra room there */
+    padding: 34px 40px 28px;
   }
 
-  .inner {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 44px;
-  }
-
-  .ctaWrap {
-    justify-content: flex-end;
+  .content {
+    max-width: 1180px;
   }
 
   .heading {
@@ -204,23 +159,14 @@
 
   .description {
     font-size: 17.5px;
+    /* the EN copy measures ~1061px at this size — the smallest cap that lets
+       it sit on ONE line instead of breaking after "no" (was 880px) */
+    max-width: 1100px;
   }
 }
 
 @media (min-width: 1200px) {
   .card {
-    padding: 34px 48px;
-  }
-}
-
-/* ── Motion preferences ──────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .cta,
-  .ctaIcon {
-    transition: none;
-  }
-
-  .cta:hover .ctaIcon {
-    transform: none;
+    padding: 34px 60px 28px;
   }
 }
