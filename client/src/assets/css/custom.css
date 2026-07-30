@@ -520,6 +520,44 @@ html, body {
   box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   "Save to wishlist" under the booking button. Deliberately the
+   quiet sibling of .booking-submit-btn — same width and radius so
+   the pair reads as one block, but outlined and in normal case so
+   it never competes with Book. Saved state fills the outline.
+   ───────────────────────────────────────────────────────────── */
+.booking-save-btn {
+  width: 100%;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--gotur-base, #d4af37);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--gotur-black, #1d231f);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.booking-save-btn:hover {
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.booking-save-btn[aria-pressed='true'] {
+  background: rgba(212, 175, 55, 0.16);
+  color: #8a6d1b;
+}
+
+.booking-save-btn:focus-visible {
+  outline: 2px solid var(--gotur-base, #d4af37);
+  outline-offset: 2px;
+}
+
 html,
 body {
   overflow-x: hidden;

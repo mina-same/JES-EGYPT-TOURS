@@ -7,8 +7,9 @@ import PhoneInput from "react-phone-number-input";
 import { getCountries } from "react-phone-number-input";
 import en from "react-phone-number-input/locale/en";
 import { createBooking } from "@/lib/api/booking";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 interface BookingFormProps {
   tourId: string;
@@ -17,6 +18,11 @@ interface BookingFormProps {
 
 export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) => {
   const { t } = useTranslation('tours');
+  // The wishlist labels live in `common`, alongside the ones the tour cards use,
+  // so the same wording appears wherever a tour can be saved.
+  const { t: tCommon } = useTranslation('common');
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const saved = isInWishlist(tourId);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [startDate, setStartDate] = useState<Date | null>();
   const [endDate, setEndDate] = useState<Date | null>();
@@ -313,6 +319,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
               t("tourDetails.bookingForm.submitBtn")
             )}
           </button>
+
+          {/* A soft exit for visitors who are interested but not ready to book:
+              saving keeps the tour without making them leave the page. Outside
+              the submit path, so `type="button"` — it must never post the form. */}
+          {tourId && (
+            <button
+              type="button"
+              className="booking-save-btn"
+              onClick={() => toggleWishlist(tourId)}
+              aria-pressed={saved}
+            >
+              <Heart size={16} fill={saved ? "currentColor" : "none"} />
+              {saved ? tCommon("tourCard.savedTour") : tCommon("tourCard.saveTour")}
+            </button>
+          )}
         </form>
       </div>
     </div>

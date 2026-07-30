@@ -7,6 +7,8 @@
   "reviewCount_one": "({{count}} reseña)",
   "reviewCount_other": "({{count}} reseñas)",
   "tourCard": {
+    "saveTour": "Añadir a favoritos",
+    "savedTour": "En favoritos",
     "startFrom": "Desde",
     "viewTour": "Ver tour",
     "viewPhotos": "Ver fotos del tour",

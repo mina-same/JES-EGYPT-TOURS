@@ -7,6 +7,8 @@
   "reviewCount_one": "({{count}} Bewertung)",
   "reviewCount_other": "({{count}} Bewertungen)",
   "tourCard": {
+    "saveTour": "Zur Merkliste hinzufügen",
+    "savedTour": "In der Merkliste",
     "startFrom": "Ab",
     "viewTour": "Tour ansehen",
     "viewPhotos": "Tourfotos ansehen",
