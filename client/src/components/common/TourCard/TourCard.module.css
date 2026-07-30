@@ -13,6 +13,26 @@
   overflow: hidden;
 }
 
+/*
+ * Discount badge: warm gold with near-black text. The theme's white-on-orange
+ * measured 2.31:1 — unreadable; this pairing reaches 10.5:1 while staying on
+ * brand. Doubled selector so it outranks the theme rule whatever the CSS order.
+ */
+.discountBadge.discountBadge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f7c948;
+  color: #18211c;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(24, 33, 28, 0.16);
+}
+
 .media.media {
   border-radius: 0;
 }

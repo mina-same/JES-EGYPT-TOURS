@@ -164,7 +164,9 @@ const TourCard: React.FC<TourCardProps> = ({
 
           {showBadges && item.discount && (
             <div className="listing-card-four__btn-group">
-              <div className="listing-card-four__discount">-{item.discount}% off</div>
+              <div className={`listing-card-four__discount ${styles.discountBadge}`}>
+                {item.discount}% OFF
+              </div>
             </div>
           )}
 
