@@ -182,6 +182,13 @@
     "readLess": "Show Less"
   },
   "destinations": {
+    "carousel": {
+      "sectionTitle": "Explore Egypt's destinations",
+      "navigationLabel": "Destination carousel navigation",
+      "previous": "Previous destination",
+      "next": "Next destination",
+      "viewDestination": "Explore {{destination}}"
+    },
     "aswan": { "title": "Aswan", "subtitle": "Nile Felucca Sailing Tour" },
     "dahab": { "title": "Dahab", "subtitle": "Red Sea Mountains Tour" },
     "giza": { "title": "Giza", "subtitle": "Pyramids & Sphinx Sunset Panorama" },

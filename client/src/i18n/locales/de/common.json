@@ -181,6 +181,13 @@
     "readLess": "Weniger anzeigen"
   },
   "destinations": {
+    "carousel": {
+      "sectionTitle": "Ägyptens Reiseziele entdecken",
+      "navigationLabel": "Navigation des Reiseziel-Karussells",
+      "previous": "Vorheriges Reiseziel",
+      "next": "Nächstes Reiseziel",
+      "viewDestination": "{{destination}} entdecken"
+    },
     "aswan": { "title": "Assuan", "subtitle": "Nil-Feluke Segel-Tour" },
     "dahab": { "title": "Dahab", "subtitle": "Rotes Meer & Bergtour" },
     "giza": { "title": "Gizeh", "subtitle": "Pyramiden & Sphinx Panorama" },

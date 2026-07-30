@@ -2,92 +2,115 @@
 
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import dynamic from "next/dynamic";
+import type { TinySliderInfo, TinySliderInstance, TinySliderSettings } from "tiny-slider";
 
 const TinySlider = dynamic(() => import("tiny-slider-react"), {
   ssr: false,
 });
 
+type TinySliderEventCallback = (info: TinySliderInfo) => void;
+
+export interface TinySliderHandle {
+  readonly slider: TinySliderInstance | null;
+}
+
 interface TinySliderWrapperProps {
-  settings: any;
+  settings: TinySliderSettings | Record<string, unknown>;
   children: React.ReactNode;
   className?: string;
   placeholderClassName?: string;
   placeholderStyle?: React.CSSProperties;
-  [key: string]: any; // Allow any other props
+  style?: React.CSSProperties;
+  onClick?: (...args: unknown[]) => void;
+  onInit?: (initialized: boolean) => void;
+  onIndexChanged?: TinySliderEventCallback;
+  onTransitionStart?: TinySliderEventCallback;
+  onTransitionEnd?: TinySliderEventCallback;
+  onTouchStart?: TinySliderEventCallback;
+  onTouchMove?: TinySliderEventCallback;
+  onTouchEnd?: TinySliderEventCallback;
 }
+
+type SafeTinySliderInstance = TinySliderInstance & {
+  __safeDestroyPatched?: boolean;
+};
+
+const isDestroyRaceError = (error: unknown) => {
+  if (error instanceof DOMException && error.name === "NoModificationAllowedError") {
+    return true;
+  }
+
+  return (
+    error instanceof Error &&
+    /outerHTML|element has no parent node|NoModificationAllowedError/i.test(error.message)
+  );
+};
 
 /**
  * A safe wrapper around TinySlider that prevents NoModificationAllowedError
  * by ensuring proper mounting/unmounting lifecycle in Next.js
  */
-export const TinySliderWrapper = forwardRef<any, TinySliderWrapperProps>(
+export const TinySliderWrapper = forwardRef<TinySliderHandle, TinySliderWrapperProps>(
   ({ settings, children, className, placeholderClassName, placeholderStyle, ...otherProps }, ref) => {
     const [isMounted, setIsMounted] = useState(false);
-    const internalRef = useRef<any>(null);
+    const internalRef = useRef<TinySliderHandle | null>(null);
 
     // Expose the internal ref to parent components
-    useImperativeHandle(ref, () => internalRef.current);
+    useImperativeHandle(
+      ref,
+      () => ({
+        get slider() {
+          return internalRef.current?.slider ?? null;
+        },
+      }),
+      []
+    );
 
     useEffect(() => {
       // Only mount after client-side hydration is complete
       setIsMounted(true);
-
-      return () => {
-        // Safely cleanup the slider
-        try {
-          if (internalRef.current && internalRef.current.slider) {
-            const sliderInstance = internalRef.current.slider;
-            
-            // Check if the slider container still has a parent before destroying
-            if (sliderInstance.container && sliderInstance.container.parentNode) {
-              sliderInstance.destroy();
-            }
-          }
-        } catch (error) {
-          // Silently catch any cleanup errors
-          console.debug("TinySlider cleanup handled:", error);
-        }
-      };
     }, []);
 
     useEffect(() => {
       if (!isMounted) return;
 
       let cancelled = false;
+      let frameId: number | undefined;
+      let attempts = 0;
 
       const patchDestroy = () => {
         if (cancelled) return;
 
-        const sliderInstance = internalRef.current?.slider;
+        const sliderInstance = internalRef.current?.slider as SafeTinySliderInstance | null;
         if (!sliderInstance) {
-          requestAnimationFrame(patchDestroy);
+          if (attempts < 120) {
+            attempts += 1;
+            frameId = window.requestAnimationFrame(patchDestroy);
+          }
           return;
         }
 
         if (sliderInstance.__safeDestroyPatched) return;
 
-        const originalDestroy =
-          typeof sliderInstance.destroy === "function"
-            ? sliderInstance.destroy.bind(sliderInstance)
-            : null;
+        const originalDestroy = sliderInstance.destroy.bind(sliderInstance);
 
-        if (originalDestroy) {
-          sliderInstance.destroy = (...args: any[]) => {
-            try {
-              if (sliderInstance.container && !sliderInstance.container.parentNode) {
-                return;
-              }
-            } catch {
+        sliderInstance.destroy = () => {
+          try {
+            const container = sliderInstance.getInfo().container;
+            if (container && !container.parentNode) {
               return;
             }
+          } catch (error) {
+            if (isDestroyRaceError(error)) return;
+            throw error;
+          }
 
-            try {
-              return originalDestroy(...args);
-            } catch {
-              return;
-            }
-          };
-        }
+          try {
+            originalDestroy();
+          } catch (error) {
+            if (!isDestroyRaceError(error)) throw error;
+          }
+        };
 
         sliderInstance.__safeDestroyPatched = true;
       };
@@ -96,6 +119,9 @@ export const TinySliderWrapper = forwardRef<any, TinySliderWrapperProps>(
 
       return () => {
         cancelled = true;
+        if (frameId !== undefined) {
+          window.cancelAnimationFrame(frameId);
+        }
       };
     }, [isMounted]);
 
@@ -112,9 +138,9 @@ export const TinySliderWrapper = forwardRef<any, TinySliderWrapperProps>(
     }
 
     return (
-      <TinySlider 
-        ref={internalRef} 
-        settings={settings} 
+      <TinySlider
+        ref={internalRef}
+        settings={settings}
         className={className}
         {...otherProps}
       >

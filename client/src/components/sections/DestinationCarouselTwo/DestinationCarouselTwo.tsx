@@ -1,80 +1,155 @@
 "use client";
 
+import { useCallback, useRef, type KeyboardEvent } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import type { TinySliderSettings } from "tiny-slider";
 import "@/lib/i18n";
 import destinationCarouselTwoData from "@/data/destinationCarouselTwoData";
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
+import { normalizeLocale } from "@/lib/url";
 
-interface DestinationItem {
-  id: number;
-  image: string;
-  titleKey: string;
-  subtitleKey: string;
-}
+const sliderSettings: TinySliderSettings = {
+  items: 1,
+  gutter: 0,
+  loop: false,
+  rewind: true,
+  nav: false,
+  autoplay: false,
+  controls: false,
+  mouseDrag: true,
+  speed: 600,
+  preventActionWhenRunning: true,
+  preventScrollOnTouch: "auto",
+};
 
 const DestinationCarouselTwo = () => {
   const { t } = useTranslation("common");
+  const params = useParams<{ locale?: string }>();
+  const locale = normalizeLocale(params?.locale);
+  const sectionRef = useRef<HTMLElement>(null);
+  const sliderRef = useRef<TinySliderHandle>(null);
+
+  const syncAccessibility = useCallback(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    section
+      .querySelectorAll<HTMLElement>(".tns-item .destination-carousel__link")
+      .forEach((link) => {
+        link.tabIndex = link.closest(".tns-slide-active") ? 0 : -1;
+      });
+  }, []);
+
+  const scheduleAccessibilitySync = useCallback(() => {
+    window.requestAnimationFrame(syncAccessibility);
+  }, [syncAccessibility]);
+
+  const moveCarousel = useCallback((direction: "prev" | "next") => {
+    sliderRef.current?.slider?.goTo(direction);
+  }, []);
+
+  const handleControlKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>, direction: "prev" | "next") => {
+      let requestedDirection: "prev" | "next" | null = null;
+      if (event.key === "ArrowLeft") requestedDirection = "prev";
+      if (event.key === "ArrowRight") requestedDirection = "next";
+      if (event.key === "Enter" || event.key === " ") requestedDirection = direction;
+
+      if (!requestedDirection) return;
+
+      event.preventDefault();
+      moveCarousel(requestedDirection);
+    },
+    [moveCarousel]
+  );
 
   return (
-    <div className="destination-carousel destination-carousel--two section-space">
+    <section
+      ref={sectionRef}
+      className="destination-carousel destination-carousel--two section-space"
+      aria-labelledby="destination-carousel-title"
+    >
+      <h2 id="destination-carousel-title" className="sr-only">
+        {t("destinations.carousel.sectionTitle")}
+      </h2>
       <div className="gotur-owl__carousel--basic-nav owl-carousel">
-        <TinySlider
-          settings={{
-            items: 1,
-            gutter: 30,
-            loop: true,
-            nav: false,
-            autoplay: false,
-            controls: true,
-            mouseDrag: true,
-            controlsContainer: ".gotur-owl__carousel--basic-nav .owl-nav",
-          }}
-          className="destination-carousel__inner owl-carousel owl-theme"
-        >
-          {destinationCarouselTwoData.map((item: DestinationItem) => (
-            <div className="item" key={item.id}>
-              <div className="destination-carousel__item">
-                <Image
-                  src={item.image}
-                  alt={t(item.titleKey)}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  priority={item.id === 1}
-                />
-                <div className="destination-carousel__dim" />
-                <div className="destination-carousel__text-group">
-                  <span className="destination-carousel__big-text">
-                    {t(item.titleKey)}
-                  </span>
-                  <p className="destination-carousel__small-text">
-                    {t(item.subtitleKey)}
-                  </p>
+        <div id="destination-carousel-slides">
+          <TinySlider
+            ref={sliderRef}
+            settings={sliderSettings}
+            onInit={scheduleAccessibilitySync}
+            onIndexChanged={scheduleAccessibilitySync}
+            onTransitionEnd={scheduleAccessibilitySync}
+            className="destination-carousel__inner owl-carousel owl-theme"
+            placeholderClassName="destination-carousel__inner destination-carousel__inner--placeholder"
+          >
+            {destinationCarouselTwoData.map((item) => (
+              <div className="item" key={item.id}>
+                <div className="destination-carousel__item">
+                  <Link
+                    href={item.hrefByLocale[locale]}
+                    className="destination-carousel__link"
+                    draggable={false}
+                    aria-label={t("destinations.carousel.viewDestination", {
+                      destination: t(item.titleKey),
+                    })}
+                  >
+                    <Image
+                      src={item.image}
+                      alt=""
+                      fill
+                      sizes="100vw"
+                      className="destination-carousel__image"
+                      draggable={false}
+                    />
+                    <span className="destination-carousel__dim" aria-hidden="true" />
+                    <span className="destination-carousel__text-group" aria-hidden="true">
+                      <span className="destination-carousel__big-text">
+                        {t(item.titleKey)}
+                      </span>
+                      <span className="destination-carousel__small-text">
+                        {t(item.subtitleKey)}
+                      </span>
+                    </span>
+                  </Link>
                 </div>
               </div>
-            </div>
-          ))}
-        </TinySlider>
-        <div className="owl-nav">
-          <button
-            type="button"
-            role="presentation"
-            className="owl-prev"
-            aria-label="carousel button"
-          >
-            <span className="icon-arrow-left"></span>
-          </button>
-          <button
-            type="button"
-            role="presentation"
-            className="owl-next"
-            aria-label="carousel button"
-          >
-            <span className="icon-arrow-right"></span>
-          </button>
+            ))}
+          </TinySlider>
         </div>
+        <nav
+          className="owl-nav"
+          aria-label={t("destinations.carousel.navigationLabel")}
+        >
+          <button
+            type="button"
+            className="owl-prev"
+            aria-label={t("destinations.carousel.previous")}
+            aria-controls="destination-carousel-slides"
+            onClick={() => moveCarousel("prev")}
+            onKeyDown={(event) => handleControlKeyDown(event, "prev")}
+          >
+            <span className="icon-arrow-left" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="owl-next"
+            aria-label={t("destinations.carousel.next")}
+            aria-controls="destination-carousel-slides"
+            onClick={() => moveCarousel("next")}
+            onKeyDown={(event) => handleControlKeyDown(event, "next")}
+          >
+            <span className="icon-arrow-right" aria-hidden="true" />
+          </button>
+        </nav>
       </div>
-    </div>
+    </section>
   );
 };
 

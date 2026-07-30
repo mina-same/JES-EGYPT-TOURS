@@ -181,6 +181,13 @@
     "readLess": "Mostrar menos"
   },
   "destinations": {
+    "carousel": {
+      "sectionTitle": "Descubre los destinos de Egipto",
+      "navigationLabel": "Navegación del carrusel de destinos",
+      "previous": "Destino anterior",
+      "next": "Destino siguiente",
+      "viewDestination": "Descubre {{destination}}"
+    },
     "aswan": { "title": "Asuán", "subtitle": "Tour en Feluca por el Nilo" },
     "dahab": { "title": "Dahab", "subtitle": "Tour Mar Rojo & Montañas" },
     "giza": { "title": "Guiza", "subtitle": "Panorama Pirámides & Esfinge" },

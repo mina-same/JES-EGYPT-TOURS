@@ -11663,7 +11663,7 @@ a + .listing-card-four__btns__hover {
 .destination-carousel--two .destination-carousel__item {
   border-radius: 0px !important;
 }
-.destination-carousel--two .destination-carousel__item span {
+.destination-carousel--two .destination-carousel__item > span {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -11678,17 +11678,17 @@ a + .listing-card-four__btns__hover {
   transition: transform 1500ms ease, opacity 1500ms ease;
 }
 @media (max-width: 1199px) {
-  .destination-carousel--two .destination-carousel__item span {
+  .destination-carousel--two .destination-carousel__item > span {
     font-size: 100px;
   }
 }
 @media (max-width: 991px) {
-  .destination-carousel--two .destination-carousel__item span {
+  .destination-carousel--two .destination-carousel__item > span {
     font-size: 80px;
   }
 }
 @media (max-width: 767px) {
-  .destination-carousel--two .destination-carousel__item span {
+  .destination-carousel--two .destination-carousel__item > span {
     font-size: 50px;
   }
 }
@@ -11700,8 +11700,8 @@ a + .listing-card-four__btns__hover {
 .destination-carousel--two .destination-carousel__item {
   position: relative;
 }
-.destination-carousel--two .active .destination-carousel__item span,
-.destination-carousel--two .tns-slide-active .destination-carousel__item span {
+.destination-carousel--two .active .destination-carousel__item > span,
+.destination-carousel--two .tns-slide-active .destination-carousel__item > span {
   opacity: 0.6;
   transform: translate(-50%, -50%);
   transition-delay: 1000ms;
