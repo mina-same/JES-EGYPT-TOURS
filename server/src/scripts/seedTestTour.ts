@@ -49,7 +49,6 @@ const seedTestTour = async () => {
       tourType: { en: 'Private' },
       tourLocation: { en: 'Cairo' },
       tourStyle: { en: 'Luxury' },
-      minAge: 12,
       priceStartingFrom: { USD: 500, EUR: 450, GBP: 400 },
       pricingPlans: [{
         planName: 'AFFORDABLE',

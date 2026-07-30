@@ -10,6 +10,7 @@ import {
   SEO_BASE_URL,
 } from "@/lib/seo/localeAlternates";
 import {
+  getLocalizedStaticPath,
   normalizeLocale,
   type SupportedLocale,
 } from "@/lib/url";
@@ -36,7 +37,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const lang = normalizeLocale(locale);
   const copy = strings[lang];
-  const canonicalUrl = `${SEO_BASE_URL}/${lang}/travel-trade`;
+  const canonicalUrl = `${SEO_BASE_URL}${getLocalizedStaticPath("travel-trade", lang)}`;
   const socialImage = `${SEO_BASE_URL}/images/resources/contact-og.jpg`;
 
   return {
@@ -73,7 +74,7 @@ export default async function TravelTradePage({
   const { locale } = await params;
   const lang = normalizeLocale(locale);
   const copy = strings[lang];
-  const pageUrl = `${SEO_BASE_URL}/${lang}/travel-trade`;
+  const pageUrl = `${SEO_BASE_URL}${getLocalizedStaticPath("travel-trade", lang)}`;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",

@@ -7,6 +7,7 @@ import { tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
 import { Loader2, ChevronRight, MapPin } from "lucide-react";
 import { use } from "react";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
@@ -94,7 +95,7 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
           <Row className="gutter-y-40">
             {categories.map((category) => {
               const catSlug = getStrictLocalizedSlug(category.slug, locale as SupportedLocale) || "";
-              const catName = getLocalizedValue(category.name, locale);
+              const catName = getDisplayName(category, locale);
               return (
               <Col lg={4} md={6} key={category._id} className="wow fadeInUp" data-wow-delay="100ms">
                 <div className="category-card-premium">
@@ -130,7 +131,7 @@ export default function TourCategoriesPage({ params }: { params: Promise<{ local
                     <ul className="category-card-premium__list">
                       {category.subcategories.slice(0, 5).map((sub) => {
                         const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale) || "";
-                        const subName = getLocalizedValue(sub.name, locale);
+                        const subName = getDisplayName(sub, locale);
                         return (
                         <li key={sub._id}>
                           {subSlug ? (

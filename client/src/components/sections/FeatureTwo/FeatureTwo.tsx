@@ -20,6 +20,8 @@ interface FeaturePackageItem {
   reviews: number;
   videoId: string;
   discount: string;
+  /** Short summary shown under the title (HTML is stripped by the card). */
+  description?: string;
   meta: Metadata[];
 }
 

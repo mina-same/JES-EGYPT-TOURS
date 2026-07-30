@@ -1,0 +1,109 @@
+/*
+ * Structural layer on top of the theme's .listing-card-four classes.
+ *
+ * Only the pieces that changed live here — badges, wishlist/media buttons,
+ * rating, title, price and CTA still use the theme styles untouched.
+ * Selectors are doubled (.card.card) to outrank the theme's single-class rules
+ * regardless of stylesheet order, without resorting to !important.
+ */
+
+/* Image runs edge to edge; the card clips it instead of framing it. */
+.card.card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.media.media {
+  border-radius: 0;
+}
+
+/* The padding the card no longer provides. */
+.body.body {
+  padding: 16px 20px 20px;
+}
+
+/*
+ * The theme puts the divider under the title. With a description and meta rows
+ * between the title and the price it belongs above the price row instead.
+ */
+.title.title {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 10px;
+}
+
+.description {
+  margin: 0 0 14px;
+  color: var(--gotur-text, #595959);
+  font-size: 15px;
+  line-height: 1.6;
+  /* two lines, then an ellipsis */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Meta rows (moved out of the image, no longer a gold pill) ────── */
+.metaList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 18px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--gotur-text, #595959);
+}
+
+.metaItem a,
+.metaItem > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.metaItem a:hover {
+  color: var(--gotur-base, #d4af37);
+}
+
+/*
+ * Sub-category names can be long ("Cairo Day Tours – Private City Tours & Day
+ * Trips from Cairo"), so the label truncates instead of wrapping the row; the
+ * full text stays available through the element's title attribute.
+ */
+.metaItem > a > span:last-child,
+.metaItem > span > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The itinerary chain ("Cairo / Luxor / Abu Simbel") gets its own full row. */
+.metaWide {
+  flex: 1 1 100%;
+}
+
+.metaIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 15px;
+  color: var(--gotur-base, #d4af37);
+}
+
+/* ── Divider + price row ──────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--gotur-border-color, #e5e5e5);
+  padding-top: 16px;
+}

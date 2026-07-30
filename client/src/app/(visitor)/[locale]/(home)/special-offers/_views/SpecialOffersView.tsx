@@ -16,6 +16,7 @@ import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, getLocalizedStaticSlug, type SupportedLocale } from "@/lib/url";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "@/hooks/use-toast";
@@ -72,10 +73,13 @@ function mapTour(tour: any, locale: string) {
     reviews: tour.reviewsCount || tour.reviews?.length || 0,
     videoId: tour.videoLink || "",
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : undefined,
+    description: getLocalizedValue(tour.Description?.text, locale) || "",
     meta: [
-      { id: 1, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },
-      { id: 2, title: `${tour.minAge || "12"} +`, icon: "icon-user" },
-      { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
+      { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
+      { id: 2, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },
+      ...(getDisplayName(tour.subcategory, locale)
+                  ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]
+                  : []),
     ],
   };
 }

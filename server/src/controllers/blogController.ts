@@ -263,7 +263,7 @@ export const getBlogBySlug = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
+      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {
       res.status(404).json({
@@ -305,7 +305,7 @@ export const getBlogByIdPublic = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
+      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {
       res.status(404).json({
@@ -826,7 +826,7 @@ export const getBlogById = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('destination', 'name slug')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
+      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {
       res.status(404).json({

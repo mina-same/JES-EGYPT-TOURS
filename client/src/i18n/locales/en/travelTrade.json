@@ -203,6 +203,79 @@
       "Red Sea extensions"
     ]
   },
+  "journeyHub": {
+    "eyebrow": "EXPLORE THE POSSIBILITIES",
+    "title": "Start With the Right Building Blocks for Your Egypt Program",
+    "intro": "Every partner request begins differently. Use these travel styles and regional pages to shape the first outline, then our local team can adapt the timing, pace and services around your clients.",
+    "groups": [
+      {
+        "title": "Private Journeys and Multi-Day Programs",
+        "text": "Start here when you need a complete Egypt journey rather than a single service. These programs can be refined for couples, families, private departures or larger groups.",
+        "links": [
+          {
+            "key": "privateTours",
+            "label": "Private Egypt Tours"
+          },
+          {
+            "key": "tourPackages",
+            "label": "Egypt Tour Packages"
+          },
+          {
+            "key": "customItineraries",
+            "label": "Custom Egypt Itineraries"
+          },
+          {
+            "key": "groupTours",
+            "label": "Group Tours"
+          }
+        ]
+      },
+      {
+        "title": "Cairo, Giza and Upper Egypt",
+        "text": "Build city stays and sightseeing days around the places your travelers care about most, with private transport and licensed guiding coordinated between each stop.",
+        "links": [
+          {
+            "key": "cairoTours",
+            "label": "Cairo Day Tours"
+          },
+          {
+            "key": "gizaTours",
+            "label": "Giza Pyramids Tours"
+          },
+          {
+            "key": "luxorTours",
+            "label": "Luxor Tours"
+          },
+          {
+            "key": "aswanTours",
+            "label": "Aswan Tours"
+          }
+        ]
+      },
+      {
+        "title": "Nile, Coast and Arrival Logistics",
+        "text": "Add the parts that turn a route into a seamless trip: a Nile sailing, a Mediterranean or Red Sea extension, and coordinated arrivals from the moment clients land.",
+        "links": [
+          {
+            "key": "nileCruises",
+            "label": "Nile Cruises"
+          },
+          {
+            "key": "alexandriaTours",
+            "label": "Alexandria Tours"
+          },
+          {
+            "key": "redSeaTours",
+            "label": "Red Sea Tours"
+          },
+          {
+            "key": "airportTransfers",
+            "label": "Airport Transfers"
+          }
+        ]
+      }
+    ]
+  },
   "internalLinks": {
     "ariaLabel": "Related JES Egypt Tours pages",
     "tours": "Browse Egypt Tours",

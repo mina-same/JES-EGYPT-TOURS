@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  ArrowUpRight,
   BadgeCheck,
   BriefcaseBusiness,
   Building2,
@@ -12,6 +13,7 @@ import {
   Handshake,
   Headphones,
   Hotel,
+  Landmark,
   Languages,
   LifeBuoy,
   MapPin,
@@ -20,6 +22,7 @@ import {
   PlaneTakeoff,
   Route,
   ShieldCheck,
+  ShipWheel,
   UserRoundSearch,
   Users,
   UsersRound,
@@ -62,12 +65,85 @@ const benefitIcons: LucideIcon[] = [
   LifeBuoy,
 ];
 
-const relatedLinks = [
-  { key: "tours" as const, href: "/tours" },
-  { key: "tailorMade" as const, href: "/tailor-made" },
-  { key: "about" as const, href: "/about" },
-  { key: "contact" as const, href: "/contact" },
-];
+const hubIcons: LucideIcon[] = [Compass, Landmark, ShipWheel];
+
+const hubLinkPaths: Record<
+  string,
+  Record<SupportedLocale, string>
+> = {
+  privateTours: {
+    en: "/en/luxury-egypt-tours",
+    de: "/de/luxusreisen-aegypten",
+    it: "/it/tour-lusso-egitto",
+    es: "/es/viajes-lujo-egipto",
+  },
+  tourPackages: {
+    en: "/en/egypt-tour-packages",
+    de: "/de/aegypten-rundreise",
+    it: "/it/viaggi-egitto",
+    es: "/es/viajes-a-egipto",
+  },
+  customItineraries: {
+    en: "/en/tailor-made",
+    de: "/de/individualreise-aegypten",
+    it: "/it/viaggio-su-misura",
+    es: "/es/viaje-a-medida",
+  },
+  groupTours: {
+    en: "/en/egypt-classic-tours",
+    de: "/de/aegypten-klassische-rundreisen",
+    it: "/it/tour-egitto-classico",
+    es: "/es/viaje-clasico-egipto",
+  },
+  cairoTours: {
+    en: "/en/cairo-day-tours",
+    de: "/de/kairo-tagestouren",
+    it: "/it/tour-al-cairo",
+    es: "/es/tours-el-cairo",
+  },
+  gizaTours: {
+    en: "/en/giza",
+    de: "/de/gizeh",
+    it: "/it/giza",
+    es: "/es/guiza",
+  },
+  luxorTours: {
+    en: "/en/luxor",
+    de: "/de/luxor",
+    it: "/it/luxor",
+    es: "/es/luxor",
+  },
+  aswanTours: {
+    en: "/en/aswan-tours",
+    de: "/de/aswan-touren",
+    it: "/it/tour-di-aswan",
+    es: "/es/tours-en-asuan",
+  },
+  nileCruises: {
+    en: "/en/egypt-nile-cruises",
+    de: "/de/nilkreuzfahrt-aegypten",
+    it: "/it/crociera-sul-nilo-egitto",
+    es: "/es/crucero-por-el-nilo-egipto",
+  },
+  alexandriaTours: {
+    en: "/en/alexandria",
+    de: "/de/alexandria",
+    it: "/it/alessandria",
+    es: "/es/alejandria",
+  },
+  redSeaTours: {
+    en: "/en/hurghada",
+    de: "/de/hurghada",
+    it: "/it/hurghada",
+    es: "/es/hurghada",
+  },
+  airportTransfers: {
+    en: "/en/contact?service=airport-transfers",
+    de: "/de/kontakt?service=airport-transfers",
+    it: "/it/contatti?service=airport-transfers",
+    es: "/es/contacto?service=airport-transfers",
+  },
+};
 
 export default function TravelTradeContent({
   dictionary: copy,
@@ -316,16 +392,52 @@ export default function TravelTradeContent({
               </li>
             ))}
           </ul>
-          <nav className={styles.relatedLinks} aria-label={copy.internalLinks.ariaLabel}>
-            {relatedLinks.map((item) => (
-              <Link
-                key={item.key}
-                href={localizeInternalUrl(item.href, locale)}
-              >
-                {copy.internalLinks[item.key]}
-              </Link>
-            ))}
-          </nav>
+        </div>
+      </section>
+
+      <section
+        className={`${styles.section} ${styles.hubSection}`}
+        aria-labelledby="dmc-journey-hub-title"
+      >
+        <div className="container">
+          <div className={`${styles.sectionHeading} ${styles.hubHeading}`}>
+            <span className={styles.darkEyebrow}>{copy.journeyHub.eyebrow}</span>
+            <h2 id="dmc-journey-hub-title">{copy.journeyHub.title}</h2>
+            <p>{copy.journeyHub.intro}</p>
+          </div>
+
+          <div className={styles.hubGrid}>
+            {copy.journeyHub.groups.map((group, index) => {
+              const Icon = hubIcons[index] ?? Compass;
+
+              return (
+                <article className={styles.hubCard} key={group.title}>
+                  <span className={styles.hubIcon}>
+                    <Icon size={25} aria-hidden="true" />
+                  </span>
+                  <h3>{group.title}</h3>
+                  <p>{group.text}</p>
+                  <nav aria-label={group.title}>
+                    <ul className={styles.hubLinks}>
+                      {group.links.map((link) => (
+                        <li key={link.key}>
+                          <Link
+                            href={
+                              hubLinkPaths[link.key]?.[locale] ??
+                              localizeInternalUrl("/", locale)
+                            }
+                          >
+                            <span>{link.label}</span>
+                            <ArrowUpRight size={16} aria-hidden="true" />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </section>
 

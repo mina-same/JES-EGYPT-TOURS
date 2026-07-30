@@ -46,6 +46,7 @@ const TABS = [
 const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
   category: '',
   name: { en: '', de: '', it: '', es: '' },
+  shortName: { en: '', de: '', it: '', es: '' },
   slug: { en: '', de: '', it: '', es: '' },
   description: { en: '', de: '', it: '', es: '' },
   images: [],
@@ -205,6 +206,7 @@ export default function NewSubcategoryPage() {
           const loadedFormData: TourSubcategoryFormData = {
             category: categoryValue,
             name: typeof data.name === 'object' ? data.name : { en: data.name || '', de: '', it: '', es: '' },
+            shortName: typeof data.shortName === 'object' ? data.shortName : { en: data.shortName || '', de: '', it: '', es: '' },
             slug: typeof data.slug === 'object' ? data.slug : { en: data.slug || '', de: '', it: '', es: '' },
             description: typeof data.description === 'object' ? data.description : { en: data.description || '', de: '', it: '', es: '' },
             images: Array.isArray(data.images)
@@ -564,6 +566,7 @@ export default function NewSubcategoryPage() {
       const payload: any = {
         category: formData.category,
         name: formData.name,
+        shortName: formData.shortName,
         slug: formData.slug,
         isActive: formData.isActive,
       };
@@ -839,6 +842,13 @@ export default function NewSubcategoryPage() {
                 placeholder="Desert Safari"
                 activeLanguage={activeLanguage}
                 error={!!getFieldError('name.en')}
+              />
+              <LocalizedInput
+                label="Short Name (cards, menus, filters)"
+                value={formData.shortName}
+                onChange={(val, lang) => handleChange('shortName', val, lang)}
+                placeholder="Desert Safari — leave empty to shorten the name automatically"
+                activeLanguage={activeLanguage}
               />
               <LocalizedInput
                 label="URL Slug *"

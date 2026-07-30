@@ -7,6 +7,7 @@ import { getBlogById } from "@/lib/api/blog";
 import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug } from "@/lib/url";
 
 function getYouTubeVideoId(url: string): string {
@@ -52,15 +53,19 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     const allImages = rawImages.map(img => img?.url).filter(Boolean);
     if (allImages.length === 0) allImages.push(fallback);
 
-    // Build metadata for the card (Duration, Location, etc.)
+    // Build metadata for the card (Location first — it gets its own row).
     const meta = [];
-    const dur = getLocalizedValue(t?.duration);
-    if (dur) {
-      meta.push({ id: 1, title: dur, icon: "icon-clock" });
-    }
     const loc = getLocalizedValue(t?.tourLocation);
     if (loc) {
-      meta.push({ id: 2, title: loc, icon: "icon-location" });
+      meta.push({ id: 1, title: loc, icon: "icon-location" });
+    }
+    const dur = getLocalizedValue(t?.duration);
+    if (dur) {
+      meta.push({ id: 2, title: dur, icon: "icon-clock" });
+    }
+    const subName = getDisplayName(t?.subcategory);
+    if (subName) {
+      meta.push({ id: 3, title: subName, icon: "icon-flag" });
     }
 
     return {
@@ -76,6 +81,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       reviews: t.reviewsCount || t.reviews?.length || 0,
       videoId: t.videoLink || "",
       discount: t.discount || "",
+      description: getLocalizedValue(t?.Description?.text) || "",
       meta: meta,
     };
   };

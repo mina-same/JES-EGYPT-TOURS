@@ -37,6 +37,8 @@ export interface ISectionHeader {
 
 export interface ITourCategory extends Document {
   name: ILocalizedString;
+  /** Short label for compact UI; falls back to `name` when empty. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed; // Rich text for page header
   images: IImage[];
@@ -143,6 +145,14 @@ const TourCategorySchema = new Schema<ITourCategory>(
     name: {
       type: LocalizedStringSchema,
       required: [true, 'Category name is required'],
+    },
+    /**
+     * Optional short label for compact UI (cards, chips, filters, breadcrumbs).
+     * `name` stays the long, keyword-rich page H1; leaving this empty falls back
+     * to `name` shortened at its first separator, so nothing breaks unfilled.
+     */
+    shortName: {
+      type: LocalizedStringSchema,
     },
     slug: {
       type: LocalizedStringSchema,

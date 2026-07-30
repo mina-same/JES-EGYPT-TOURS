@@ -5,7 +5,12 @@ import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import PhotoSwipe from "photoswipe";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { stripHtml } from "@/lib/seo/tourJsonLd";
 import OfferPriceFooter, { type OfferLabels } from "./OfferPriceFooter";
+import styles from "./TourCard.module.css";
+
+/** Meta icons that carry the itinerary/destination chain — given a full row. */
+const LOCATION_ICONS = ["icon-location", "icon-pin", "icon-pin1", "icon-maps-and-flags"];
 
 export interface TourCardMeta {
   id: number;
@@ -22,6 +27,8 @@ export interface TourCardItem {
   allImages?: string[];
   images?: string[];
   title: string;
+  /** Short summary under the title — HTML is stripped and clamped to 2 lines. */
+  description?: string;
   /** Tour detail URL. Empty string renders the title/CTA as plain text. */
   link: string;
   price: number | any;
@@ -132,13 +139,18 @@ const TourCard: React.FC<TourCardProps> = ({
   const wishlisted = isInWishlist ? isInWishlist(item.id) : false;
   const canPlayVideo = Boolean(onPlayVideo && item.videoId);
   const canOpenReviews = Boolean(openVideoReviews && item.slug);
+  // Callers may hand over rich text straight from the tour document.
+  const summary = stripHtml(item.description).trim();
 
   return (
     <div className="item">
-      <div className="listing-card-four wow fadeInUp" data-wow-duration="1500ms">
-        <div className="listing-card-four__image">
+      <div
+        className={`listing-card-four ${styles.card} wow fadeInUp`}
+        data-wow-duration="1500ms"
+      >
+        <div className={`listing-card-four__image ${styles.media}`}>
           <div
-            className={`relative w-full${imageZoom ? " overflow-hidden rounded-3" : ""}`}
+            className={`relative w-full${imageZoom ? " overflow-hidden" : ""}`}
             style={{ height: `${imageHeight}px` }}
           >
             <Image
@@ -216,40 +228,9 @@ const TourCard: React.FC<TourCardProps> = ({
             )}
           </div>
 
-          <ul className="listing-card-four__meta list-unstyled">
-            {item.meta.map((meta) => {
-              const isLocation = meta.icon === "icon-location";
-              const fullText = String(meta.title || "");
-              const shortText =
-                linkMeta && isLocation
-                  ? fullText.split(/[, ]+/).filter(Boolean)[0] || fullText
-                  : fullText;
-              const inner = (
-                <>
-                  <span className="listing-card-four__meta__icon">
-                    <i className={meta.icon}></i>
-                  </span>
-                  <span className={linkMeta && isLocation ? "meta-text" : undefined}>
-                    {shortText}
-                  </span>
-                </>
-              );
-              return (
-                <li key={meta.id}>
-                  {linkMeta && item.link ? (
-                    <Link href={item.link} title={isLocation ? fullText : undefined}>
-                      {inner}
-                    </Link>
-                  ) : (
-                    <span>{inner}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
         </div>
 
-        <div className="listing-card-four__content">
+        <div className={`listing-card-four__content ${styles.body}`}>
           <div className="listing-card-four__rating">
             <span>
               ({item.reviews} {labels?.review ?? "Review"})
@@ -259,10 +240,45 @@ const TourCard: React.FC<TourCardProps> = ({
             ))}
           </div>
 
-          <h3 className="listing-card-four__title">
+          <h3 className={`listing-card-four__title ${styles.title}`}>
             {item.link ? <Link href={item.link}>{item.title}</Link> : <span>{item.title}</span>}
           </h3>
 
+          {summary && <p className={styles.description}>{summary}</p>}
+
+          {item.meta.length > 0 && (
+            <ul className={styles.metaList}>
+              {item.meta.map((meta) => {
+                // The itinerary chain gets its own row; the rest share one.
+                const isLocation = LOCATION_ICONS.includes(meta.icon);
+                const text = String(meta.title || "");
+                const inner = (
+                  <>
+                    <span className={styles.metaIcon}>
+                      <i className={meta.icon}></i>
+                    </span>
+                    <span>{text}</span>
+                  </>
+                );
+                return (
+                  <li
+                    key={meta.id}
+                    className={`${styles.metaItem}${isLocation ? ` ${styles.metaWide}` : ""}`}
+                  >
+                    {linkMeta && item.link ? (
+                      <Link href={item.link} title={text}>
+                        {inner}
+                      </Link>
+                    ) : (
+                      <span>{inner}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <div className={styles.footer}>
           {variant === "special-offer" && offerLabels ? (
             <OfferPriceFooter
               href={item.link}
@@ -282,7 +298,7 @@ const TourCard: React.FC<TourCardProps> = ({
               </div>
               {item.link && (
                 <Link href={item.link} className="listing-card-four__btn gotur-btn">
-                  {labels?.cta ?? "Book Now"}{" "}
+                  {labels?.cta ?? "View Tour"}{" "}
                   <span className="icon">
                     <i className="icon-right"></i>{" "}
                   </span>
@@ -290,6 +306,7 @@ const TourCard: React.FC<TourCardProps> = ({
               )}
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

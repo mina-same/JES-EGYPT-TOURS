@@ -1,5 +1,9 @@
 import { isSupportedLocale, normalizeLocale } from "./locales";
-import { localizeStaticPathSegment } from "./staticSlugs";
+import {
+  getCanonicalStaticSlug,
+  getLocalizedStaticPath,
+  localizeStaticPathSegment,
+} from "./staticSlugs";
 
 const EXTERNAL_OR_PROTOCOL_RELATIVE_URL = /^(https?:)?\/\//i;
 const PRESERVED_URL_PREFIX = /^(mailto:|tel:|#)/i;
@@ -28,10 +32,25 @@ export function localizeInternalUrl(
     // Already locale-prefixed: still translate a known static slug so e.g.
     // "/de/special-offers" becomes "/de/sonderangebote".
     const rest = normalizedPath.slice(1 + firstSegment.length) || "/";
+    const restFirstSegment = rest.slice(1).split(/[/?#]/)[0];
+    const canonicalStaticSlug = getCanonicalStaticSlug(restFirstSegment);
+    const suffix = rest.slice(1 + restFirstSegment.length);
+
+    if (canonicalStaticSlug && !suffix.startsWith("/")) {
+      return `${getLocalizedStaticPath(canonicalStaticSlug, firstSegment)}${suffix}`;
+    }
+
     return `/${firstSegment}${localizeStaticPathSegment(rest, firstSegment)}`;
   }
 
   // Known static slugs get their per-locale form ("/special-offers" →
   // "/de/sonderangebote"); everything else passes through untouched.
+  const canonicalStaticSlug = getCanonicalStaticSlug(firstSegment);
+  const suffix = normalizedPath.slice(1 + firstSegment.length);
+
+  if (canonicalStaticSlug && !suffix.startsWith("/")) {
+    return `${getLocalizedStaticPath(canonicalStaticSlug, currentLocale)}${suffix}`;
+  }
+
   return `/${currentLocale}${localizeStaticPathSegment(normalizedPath, currentLocale)}`;
 }

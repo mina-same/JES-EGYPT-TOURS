@@ -614,7 +614,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         discount: "",
         meta: [
           { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
-          { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
           { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },
         ],
       };

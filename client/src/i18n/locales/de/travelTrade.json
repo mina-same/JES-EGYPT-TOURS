@@ -203,6 +203,79 @@
       "Verlängerungen am Roten Meer"
     ]
   },
+  "journeyHub": {
+    "eyebrow": "MÖGLICHKEITEN ENTDECKEN",
+    "title": "Die passenden Bausteine für Ihr Ägypten-Programm",
+    "intro": "Jede Partneranfrage beginnt anders. Nutzen Sie diese Reisearten und Regionsseiten für einen ersten Entwurf. Unser Team vor Ort stimmt anschließend Zeiten, Reisetempo und Leistungen auf Ihre Kunden ab.",
+    "groups": [
+      {
+        "title": "Privatreisen und mehrtägige Programme",
+        "text": "Hier finden Sie den richtigen Einstieg für eine vollständige Ägypten-Reise statt einer einzelnen Leistung. Die Programme lassen sich für Paare, Familien, private Abreisen oder größere Gruppen anpassen.",
+        "links": [
+          {
+            "key": "privateTours",
+            "label": "Private Ägypten-Reisen"
+          },
+          {
+            "key": "tourPackages",
+            "label": "Ägypten-Rundreisen"
+          },
+          {
+            "key": "customItineraries",
+            "label": "Individuelle Ägypten-Reisen"
+          },
+          {
+            "key": "groupTours",
+            "label": "Gruppenreisen"
+          }
+        ]
+      },
+      {
+        "title": "Kairo, Gizeh und Oberägypten",
+        "text": "Gestalten Sie Aufenthalte und Besichtigungstage rund um die Orte, die Ihren Gästen besonders wichtig sind. Private Fahrzeuge und lizenzierte Reiseleiter werden zwischen allen Stationen koordiniert.",
+        "links": [
+          {
+            "key": "cairoTours",
+            "label": "Kairo-Tagestouren"
+          },
+          {
+            "key": "gizaTours",
+            "label": "Touren zu den Pyramiden von Gizeh"
+          },
+          {
+            "key": "luxorTours",
+            "label": "Luxor-Touren"
+          },
+          {
+            "key": "aswanTours",
+            "label": "Assuan-Touren"
+          }
+        ]
+      },
+      {
+        "title": "Nil, Küste und Ankunftslogistik",
+        "text": "Ergänzen Sie die Elemente, die aus einer Route eine reibungslose Reise machen: eine Fahrt auf dem Nil, eine Verlängerung am Mittelmeer oder Roten Meer und koordinierte Ankünfte ab der Landung.",
+        "links": [
+          {
+            "key": "nileCruises",
+            "label": "Nilkreuzfahrten"
+          },
+          {
+            "key": "alexandriaTours",
+            "label": "Alexandria-Touren"
+          },
+          {
+            "key": "redSeaTours",
+            "label": "Touren am Roten Meer"
+          },
+          {
+            "key": "airportTransfers",
+            "label": "Flughafentransfers"
+          }
+        ]
+      }
+    ]
+  },
   "internalLinks": {
     "ariaLabel": "Verwandte Seiten von JES Egypt Tours",
     "tours": "Ägypten-Touren ansehen",

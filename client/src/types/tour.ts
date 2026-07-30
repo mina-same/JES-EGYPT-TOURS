@@ -157,6 +157,8 @@ export interface TourCategoryFormData {
 export interface TourSubcategoryFormData {
   category: string;
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed;
   images: IImage[];

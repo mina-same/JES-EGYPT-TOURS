@@ -10,7 +10,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
 import { useSlugs } from "@/contexts/SlugContext";
-import { localizeStaticPathSegment } from "@/lib/url";
+import {
+  getCanonicalStaticSlug,
+  localizeInternalUrl,
+  localizeStaticPathSegment,
+} from "@/lib/url";
 
 const FLAG_COMPONENTS: Record<string, any> = {
   en: GB,
@@ -52,6 +56,10 @@ function hasRealSlugMap(slugs: Record<string, string | undefined> | null): boole
 
 function isLikelyDynamicSlugPath(path: string): boolean {
   const normalized = path === "" ? "/" : path;
+  const firstSegment = normalized.replace(/^\/+/, "").split(/[/?#]/)[0];
+  const canonicalStaticSlug = getCanonicalStaticSlug(firstSegment);
+  if (canonicalStaticSlug && STATIC_PATHS.has(`/${canonicalStaticSlug}`)) return false;
+
   // Canonicalize localized static slugs first ("/sonderangebote" →
   // "/special-offers") so they are recognized as static pages.
   if (STATIC_PATHS.has(localizeStaticPathSegment(normalized, "en"))) return false;
@@ -202,8 +210,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
           // If detected non-english and we are currently on default 'en'
           if (detectedLocale !== 'en' && pathLocale === 'en') {
-             const detectedPath = localizeStaticPathSegment(normalizedPath, detectedLocale);
-             const target = `/${detectedLocale}${detectedPath === "/" ? "/" : detectedPath}`;
+             const target = localizeInternalUrl(normalizedPath, detectedLocale);
              i18n.changeLanguage(detectedLocale);
              localStorage.setItem("i18nextLng", detectedLocale);
              document.cookie = `NEXT_LOCALE=${detectedLocale};path=/`;
@@ -284,7 +291,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             document.cookie = `NEXT_LOCALE=${option.value};path=/`;
           } catch {}
 
-          const target = `/${option.value}${targetPath === "/" ? "/" : targetPath}`;
+          const target = isDynamicSlugPage
+            ? `/${option.value}${targetPath === "/" ? "/" : targetPath}`
+            : localizeInternalUrl(normalizedPath, option.value);
           router.push(target);
         }}
         options={options}

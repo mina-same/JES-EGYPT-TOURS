@@ -35,7 +35,19 @@ export const LOCALIZED_STATIC_SLUGS: Record<string, Record<SupportedLocale, stri
     it: "chi-siamo",
     es: "sobre-nosotros",
   },
+  "travel-trade": {
+    en: "egypt-dmc",
+    de: "aegypten-dmc",
+    it: "egitto-dmc",
+    es: "egipto-dmc",
+  },
 };
+
+/**
+ * Static pages whose English canonical URL intentionally omits the default
+ * locale prefix. Other English static pages continue to use `/en/...`.
+ */
+const UNPREFIXED_ENGLISH_STATIC_PAGES = new Set(["travel-trade"]);
 
 /** Any-locale slug → its canonical (English) key, or null if not a known
  *  static slug ("sonderangebote" → "special-offers"). */
@@ -54,6 +66,23 @@ export function getLocalizedStaticSlug(canonical: string, locale: string | null 
     ? (locale as SupportedLocale)
     : DEFAULT_LOCALE;
   return map[l] || map[DEFAULT_LOCALE] || canonical;
+}
+
+/** Canonical key + locale → the public, canonical pathname for that page. */
+export function getLocalizedStaticPath(
+  canonical: string,
+  locale: string | null | undefined
+): string {
+  const l = (SUPPORTED_LOCALES as readonly string[]).includes(locale || "")
+    ? (locale as SupportedLocale)
+    : DEFAULT_LOCALE;
+  const slug = getLocalizedStaticSlug(canonical, l);
+
+  if (l === DEFAULT_LOCALE && UNPREFIXED_ENGLISH_STATIC_PAGES.has(canonical)) {
+    return `/${slug}`;
+  }
+
+  return `/${l}/${slug}`;
 }
 
 /** Translates the FIRST segment of a locale-less path when it is a known

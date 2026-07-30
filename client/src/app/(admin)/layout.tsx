@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Script from 'next/script';
 import { AppSidebar } from '@/components/admin/app-sidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -37,10 +37,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
     // Force English in the admin panel regardless of the user's selected language
     import('@/lib/i18n').then((module) => {
       const i18n = module.default;
@@ -206,42 +203,40 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             `,
           }}
         />
-        {!mounted ? null : (
-          <ErrorBoundary>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange
-            >
-              <AuthProvider>
-                <NotificationProvider>
-                  <div className="admin-scope">
-                    <TailorMadeProvider>
-                      <ContactFormProvider>
-                        <BookingProvider>
-                          <ProtectedRoute>
-                            <AdminRealtimeListener />
-                            <SidebarProvider>
-                              <AppSidebar />
-                              <SidebarInset>
-                                <AdminHeader />
-                                <main className="flex flex-1 flex-col gap-4 bg-muted/30 p-4 md:p-6">
-                                  <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
-                                </main>
-                              </SidebarInset>
-                            </SidebarProvider>
-                          </ProtectedRoute>
-                        </BookingProvider>
-                      </ContactFormProvider>
-                    </TailorMadeProvider>
-                  </div>
-                  <Toaster />
-                </NotificationProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </ErrorBoundary>
-        )}
+        <ErrorBoundary>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <AuthProvider>
+              <NotificationProvider>
+                <div className="admin-scope">
+                  <TailorMadeProvider>
+                    <ContactFormProvider>
+                      <BookingProvider>
+                        <ProtectedRoute>
+                          <AdminRealtimeListener />
+                          <SidebarProvider>
+                            <AppSidebar />
+                            <SidebarInset>
+                              <AdminHeader />
+                              <main className="flex flex-1 flex-col gap-4 bg-muted/30 p-4 md:p-6">
+                                <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+                              </main>
+                            </SidebarInset>
+                          </SidebarProvider>
+                        </ProtectedRoute>
+                      </BookingProvider>
+                    </ContactFormProvider>
+                  </TailorMadeProvider>
+                </div>
+                <Toaster />
+              </NotificationProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

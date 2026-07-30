@@ -8,4 +8,4 @@
  * a comma-separated field projection).
  */
 export const CARD_FIELDS =
-  "slug,heading,name,images,gallery,priceStartingFrom,reviewsCount,videoLink,specialOfferDiscount,duration,minAge,tourLocation";
+  "slug,heading,name,images,gallery,priceStartingFrom,reviewsCount,videoLink,specialOfferDiscount,duration,tourLocation,subcategory,Description";

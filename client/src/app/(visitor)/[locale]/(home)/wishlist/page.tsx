@@ -14,6 +14,7 @@ import { Col, Container, Row } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import TourCard from "@/components/common/TourCard/TourCard";
+import { shortenLabel } from "@/lib/displayName";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 
@@ -29,8 +30,9 @@ type WishlistTour = {
   gallery?: Array<{ url: string }>;
   reviews?: Array<any>;
   duration?: string;
-  minAge?: number;
   tourLocation?: string;
+  tourType?: string;
+  Description?: { text?: any };
   category?: string | { _id?: string } | any;
   subcategory?:
     | string
@@ -141,7 +143,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                   title: `${t.duration || "3 Days"}`,
                   icon: "icon-clock",
                 },
-                { id: 2, title: `${t.minAge || "12"} +`, icon: "icon-user" },
                 {
                   id: 3,
                   title: t.tourLocation || "Location",
@@ -208,6 +209,17 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 const title = tour.heading || tour.name || "Untitled Tour";
                 const price = tour.priceStartingFrom || { USD: 0 };
                 const reviews = tour.reviews?.length || 0;
+                // The API localizes documents for this page, so name/shortName
+                // usually arrive as plain strings already.
+                const sub = tour.subcategory as any;
+                const subcategoryName = sub
+                  ? shortenLabel(
+                      typeof sub.shortName === "string"
+                        ? sub.shortName
+                        : sub.shortName?.[locale] || sub.shortName?.en ||
+                          (typeof sub.name === "string" ? sub.name : sub.name?.[locale] || sub.name?.en || "")
+                    )
+                  : "";
                 // Keep the wishlisted item visible, but only link to its detail
                 // page when a real slug exists for the current locale.
                 const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
@@ -222,10 +234,13 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                         price,
                         rating: 5,
                         reviews,
+                        description: tour.Description?.text || "",
                         meta: [
-                          { id: 1, title: tour.duration || t('flexible'), icon: "icon-clock" },
-                          { id: 2, title: (tour.minAge ?? 12) + " +", icon: "icon-user" },
-                          { id: 3, title: tour.tourLocation || t('location'), icon: "icon-location" },
+                          { id: 1, title: tour.tourLocation || t('location'), icon: "icon-location" },
+                          { id: 2, title: tour.duration || t('flexible'), icon: "icon-clock" },
+                          // The API localizes documents for this page, so the name
+                          // normally arrives as a plain string already.
+                          ...(subcategoryName ? [{ id: 4, title: subcategoryName, icon: "icon-flag" }] : []),
                         ],
                       }}
                       onRemove={toggleWishlist}

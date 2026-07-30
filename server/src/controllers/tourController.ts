@@ -288,13 +288,15 @@ export const getFeaturedTours = async (
     const limit = parseInt(req.query.limit as string || '6', 10);
 
     const tours = await Tour.find({ isActive: true, isFeatured: true })
-      .populate('subcategory', 'name slug')
+      .populate('subcategory', 'name shortName slug')
       .sort('-createdAt')
       .limit(limit)
       // `reviews.url` only (not full reviews) so we can derive a video link
       // without shipping the heavy reviews array to the client.
       .select(
-        'heading slug images Description tourLocation tourType pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer reviews.url'
+        // `subcategory` must be selected for the populate above to resolve — the
+        // card shows its name as the tour's category label.
+        'heading slug images Description tourLocation subcategory pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer reviews.url'
       )
       .lean();
 
@@ -362,7 +364,7 @@ export const getToursBySubcategory = async (
 
     const [tours, total] = await Promise.all([
       Tour.find(filter)
-        .populate('subcategory', 'name slug')
+        .populate('subcategory', 'name shortName slug')
         .sort('-createdAt')
         .skip(skip)
         .limit(limitNum)
@@ -410,7 +412,7 @@ export const getTourById = async (
 ): Promise<void> => {
   try {
     const tour = await Tour.findById(req.params.id)
-      .populate('subcategory', 'name slug description category')
+      .populate('subcategory', 'name shortName slug description category')
       .populate({
         path: 'subcategory',
         populate: {
@@ -513,7 +515,7 @@ export const getTourByExternalId = async (
 ): Promise<void> => {
   try {
     const tour = await Tour.findOne({ idExternal: req.params.idExternal })
-      .populate('subcategory', 'name slug')
+      .populate('subcategory', 'name shortName slug')
       .lean();
 
     if (!tour) {
@@ -617,7 +619,7 @@ export const createTour = async (
     const tour = await Tour.create(body);
 
     // Populate subcategory details
-    await tour.populate('subcategory', 'name slug');
+    await tour.populate('subcategory', 'name shortName slug');
 
     void emitDashboardStatsUpdate();
 
@@ -797,7 +799,7 @@ export const updateTour = async (
         new: true,
         runValidators: true,
       }
-    ).populate('subcategory', 'name slug');
+    ).populate('subcategory', 'name shortName slug');
 
     if (!tour) {
       res.status(404).json({

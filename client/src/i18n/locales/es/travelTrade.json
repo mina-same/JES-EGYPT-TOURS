@@ -203,6 +203,79 @@
       "Extensiones al mar Rojo"
     ]
   },
+  "journeyHub": {
+    "eyebrow": "EXPLORAR LAS POSIBILIDADES",
+    "title": "Los puntos de partida adecuados para su programa en Egipto",
+    "intro": "Cada solicitud de un colaborador comienza de forma distinta. Estas propuestas y páginas regionales ayudan a preparar un primer esquema; después, nuestro equipo local adapta los horarios, el ritmo y los servicios a sus clientes.",
+    "groups": [
+      {
+        "title": "Viajes privados y programas de varios días",
+        "text": "Empiecen aquí cuando necesiten un viaje completo por Egipto y no un servicio aislado. Cada programa puede adaptarse a parejas, familias, salidas privadas o grupos más numerosos.",
+        "links": [
+          {
+            "key": "privateTours",
+            "label": "Tours privados por Egipto"
+          },
+          {
+            "key": "tourPackages",
+            "label": "Paquetes de viaje por Egipto"
+          },
+          {
+            "key": "customItineraries",
+            "label": "Itinerarios a medida por Egipto"
+          },
+          {
+            "key": "groupTours",
+            "label": "Tours para grupos"
+          }
+        ]
+      },
+      {
+        "title": "El Cairo, Guiza y el Alto Egipto",
+        "text": "Diseñen estancias y jornadas de visitas en torno a los lugares que más interesan a sus viajeros, con transporte privado y guías acreditados coordinados entre cada etapa.",
+        "links": [
+          {
+            "key": "cairoTours",
+            "label": "Tours de un día por El Cairo"
+          },
+          {
+            "key": "gizaTours",
+            "label": "Tours por las Pirámides de Guiza"
+          },
+          {
+            "key": "luxorTours",
+            "label": "Tours por Luxor"
+          },
+          {
+            "key": "aswanTours",
+            "label": "Tours por Asuán"
+          }
+        ]
+      },
+      {
+        "title": "Nilo, costa y logística de llegada",
+        "text": "Añadan los elementos que convierten una ruta en un viaje fluido: una navegación por el Nilo, una extensión por el Mediterráneo o el mar Rojo y llegadas coordinadas desde el momento del aterrizaje.",
+        "links": [
+          {
+            "key": "nileCruises",
+            "label": "Cruceros por el Nilo"
+          },
+          {
+            "key": "alexandriaTours",
+            "label": "Tours por Alejandría"
+          },
+          {
+            "key": "redSeaTours",
+            "label": "Tours por el mar Rojo"
+          },
+          {
+            "key": "airportTransfers",
+            "label": "Traslados al aeropuerto"
+          }
+        ]
+      }
+    ]
+  },
   "internalLinks": {
     "ariaLabel": "Páginas relacionadas de JES Egypt Tours",
     "tours": "Ver tours por Egipto",

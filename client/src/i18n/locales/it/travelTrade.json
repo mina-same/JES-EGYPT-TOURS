@@ -203,6 +203,79 @@
       "Estensioni sul Mar Rosso"
     ]
   },
+  "journeyHub": {
+    "eyebrow": "ESPLORA LE POSSIBILITÀ",
+    "title": "I punti di partenza giusti per il vostro programma in Egitto",
+    "intro": "Ogni richiesta di un partner nasce in modo diverso. Queste proposte e pagine regionali aiutano a definire una prima idea; il nostro team locale adatterà poi tempi, ritmo e servizi alle esigenze dei vostri clienti.",
+    "groups": [
+      {
+        "title": "Viaggi privati e programmi di più giorni",
+        "text": "Iniziate da qui quando serve un viaggio completo in Egitto, non un singolo servizio. Ogni programma può essere adattato a coppie, famiglie, partenze private o gruppi più numerosi.",
+        "links": [
+          {
+            "key": "privateTours",
+            "label": "Tour privati in Egitto"
+          },
+          {
+            "key": "tourPackages",
+            "label": "Pacchetti viaggio in Egitto"
+          },
+          {
+            "key": "customItineraries",
+            "label": "Itinerari su misura in Egitto"
+          },
+          {
+            "key": "groupTours",
+            "label": "Tour di gruppo"
+          }
+        ]
+      },
+      {
+        "title": "Cairo, Giza e Alto Egitto",
+        "text": "Create soggiorni e giornate di visita intorno ai luoghi più importanti per i vostri viaggiatori, con trasporti privati e guide autorizzate coordinati tra una tappa e l'altra.",
+        "links": [
+          {
+            "key": "cairoTours",
+            "label": "Tour giornalieri al Cairo"
+          },
+          {
+            "key": "gizaTours",
+            "label": "Tour delle Piramidi di Giza"
+          },
+          {
+            "key": "luxorTours",
+            "label": "Tour di Luxor"
+          },
+          {
+            "key": "aswanTours",
+            "label": "Tour di Assuan"
+          }
+        ]
+      },
+      {
+        "title": "Nilo, costa e logistica di arrivo",
+        "text": "Aggiungete gli elementi che rendono il viaggio davvero fluido: una navigazione sul Nilo, un'estensione sul Mediterraneo o sul Mar Rosso e arrivi coordinati fin dal momento dell'atterraggio.",
+        "links": [
+          {
+            "key": "nileCruises",
+            "label": "Crociere sul Nilo"
+          },
+          {
+            "key": "alexandriaTours",
+            "label": "Tour di Alessandria"
+          },
+          {
+            "key": "redSeaTours",
+            "label": "Tour del Mar Rosso"
+          },
+          {
+            "key": "airportTransfers",
+            "label": "Trasferimenti aeroportuali"
+          }
+        ]
+      }
+    ]
+  },
   "internalLinks": {
     "ariaLabel": "Pagine correlate di JES Egypt Tours",
     "tours": "Scopri i tour in Egitto",

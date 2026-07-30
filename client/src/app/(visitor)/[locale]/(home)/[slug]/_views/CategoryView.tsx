@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
@@ -73,7 +74,7 @@ const FiltersContent = ({
             <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.subcategory')}</label>
             <select className='form-select rounded-3' style={{ padding: '10px' }} value={draftFilters.subcategoryId} onChange={(e) => setDraftFilters((p: any) => ({ ...p, subcategoryId: e.target.value }))}>
               <option value="">{t('filters.all')}</option>
-              {subcategories.map((s: any) => (<option key={s._id} value={s._id}>{s.name[locale] || s.name.en}</option>))}
+              {subcategories.map((s: any) => (<option key={s._id} value={s._id}>{getDisplayName(s, locale)}</option>))}
             </select>
           </div>
         )}
@@ -280,10 +281,13 @@ export default function CategoryView({
               reviews: tour.reviewsCount || tour.reviews?.length || 0,
               videoId: tour.videoLink || "",
               discount: "",
+              description: getLocalizedValue(tour.Description?.text, locale) || "",
               meta: [
-                { id: 1, title: `${getLocalizedValue(tour.duration, locale) || t('fallback.days')}`, icon: "icon-clock" },
-                { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
-                { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || t('fallback.location'), icon: "icon-location" },
+                { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || t('fallback.location'), icon: "icon-location" },
+                { id: 2, title: `${getLocalizedValue(tour.duration, locale) || t('fallback.days')}`, icon: "icon-clock" },
+                ...(getDisplayName(tour.subcategory, locale)
+                  ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]
+                  : []),
               ],
             };
           }).filter(Boolean);
@@ -473,7 +477,7 @@ export default function CategoryView({
                   const isActive = appliedFilters.subcategoryId === sub._id;
                   const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale);
                   if (!isActive && !subSlug) return null;
-                  const subName = getLocalizedValue(sub.name, locale);
+                  const subName = getDisplayName(sub, locale);
                   return (
                     <div key={sub._id} className="subcategory-slide">
                       <Link

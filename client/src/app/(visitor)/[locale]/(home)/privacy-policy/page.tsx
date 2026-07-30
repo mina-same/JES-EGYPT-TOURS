@@ -11,7 +11,7 @@ import {
   getStaticLocaleAlternates,
   SEO_BASE_URL,
 } from "@/lib/seo/localeAlternates";
-import { normalizeLocale, type SupportedLocale } from "@/lib/url";
+import { localizeInternalUrl, normalizeLocale, type SupportedLocale } from "@/lib/url";
 import deStrings from "@/i18n/locales/de/privacyPolicy.json";
 import enStrings from "@/i18n/locales/en/privacyPolicy.json";
 import esStrings from "@/i18n/locales/es/privacyPolicy.json";
@@ -96,7 +96,7 @@ export default async function PrivacyPolicyPage({
                 .
               </p>
             </section>
-            <Link href={`/${lang}/travel-trade`} className={styles.back}>
+            <Link href={localizeInternalUrl("/travel-trade", lang)} className={styles.back}>
               ← {copy.backLabel}
             </Link>
           </article>
