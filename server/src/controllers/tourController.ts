@@ -997,6 +997,7 @@ export const toggleTourFeatured = async (
     }
 
     tour.isFeatured = !tour.isFeatured;
+    tour.editVersion = (tour.editVersion ?? 0) + 1;
     await tour.save();
 
     void emitDashboardStatsUpdate();

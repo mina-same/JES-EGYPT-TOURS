@@ -949,6 +949,7 @@ export const toggleComments = async (
     }
 
     blog.commentsEnabled = !blog.commentsEnabled;
+    blog.editVersion = (blog.editVersion ?? 0) + 1;
     await blog.save();
 
     res.status(200).json({

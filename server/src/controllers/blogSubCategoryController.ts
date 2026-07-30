@@ -589,6 +589,7 @@ export const toggleSubcategoryStatus = async (
     }
 
     subcategory.isActive = !subcategory.isActive;
+    subcategory.editVersion = (subcategory.editVersion ?? 0) + 1;
     await subcategory.save();
 
     res.status(200).json({

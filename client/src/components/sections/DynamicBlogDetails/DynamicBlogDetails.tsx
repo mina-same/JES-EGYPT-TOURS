@@ -612,6 +612,12 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         reviews: tour.reviewsCount || tour.reviews?.length || 0,
         videoId: tour.videoLink || "",
         discount: "",
+        // Same source as every other listing: the editor's card teaser, with
+        // the overview text as the fallback.
+        description:
+          getLocalizedValue(tour.cardDescription, locale) ||
+          getLocalizedValue(tour.Description?.text, locale) ||
+          "",
         meta: [
           { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
           { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },

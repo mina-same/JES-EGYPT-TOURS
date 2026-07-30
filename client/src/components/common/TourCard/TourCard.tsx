@@ -42,11 +42,6 @@ export interface TourCardItem {
   meta: TourCardMeta[];
 }
 
-export interface TourCardLabels {
-  startFrom?: string;
-  cta?: string;
-}
-
 interface TourCardProps {
   item: TourCardItem;
   /** Omit to render the heart as a static icon (carousels don't wire it). */
@@ -54,7 +49,6 @@ interface TourCardProps {
   isInWishlist?: (id: string) => boolean;
   /** Replaces the heart with a remove control (wishlist grid). */
   onRemove?: (id: string) => void;
-  removeLabel?: string;
   /** Opens curated video reviews, looked up by slug (listing pages). */
   openVideoReviews?: (slug: string) => void;
   /** Opens a YouTube video by id (carousels). Pass per item to hide it when absent. */
@@ -70,8 +64,6 @@ interface TourCardProps {
   linkMeta?: boolean;
   /** Image badges — currently just the discount badge, and only when the tour has one. */
   showBadges?: boolean;
-  /** Localised labels; English defaults keep existing call sites unchanged. */
-  labels?: TourCardLabels;
 }
 
 /** Reads an image's real dimensions so the lightbox shows its true ratio. */
@@ -112,7 +104,6 @@ const TourCard: React.FC<TourCardProps> = ({
   toggleWishlist,
   isInWishlist,
   onRemove,
-  removeLabel = "Remove from wishlist",
   openVideoReviews,
   onPlayVideo,
   variant = "default",
@@ -121,7 +112,6 @@ const TourCard: React.FC<TourCardProps> = ({
   imageZoom = false,
   linkMeta = true,
   showBadges = true,
-  labels,
 }) => {
   const { formatPrice } = useCurrency();
   // Owned by the card so every listing gets the same localised, pluralised
@@ -177,7 +167,7 @@ const TourCard: React.FC<TourCardProps> = ({
             {onRemove ? (
               <Link
                 href="#"
-                aria-label={removeLabel}
+                aria-label={t("tourCard.removeFromWishlist")}
                 onClick={(e) => {
                   e.preventDefault();
                   onRemove(item.id);
@@ -192,7 +182,9 @@ const TourCard: React.FC<TourCardProps> = ({
                   e.preventDefault();
                   toggleWishlist?.(item.id);
                 }}
-                aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                aria-label={t(
+                  wishlisted ? "tourCard.removeFromWishlist" : "tourCard.addToWishlist"
+                )}
                 className={wishlisted ? "is-active" : undefined}
               >
                 <i className={wishlisted ? "fas fa-heart" : "far fa-heart"}></i>
@@ -205,7 +197,7 @@ const TourCard: React.FC<TourCardProps> = ({
                   <Link
                     href="#"
                     className="listing-card-four__popup card__popup"
-                    aria-label="View tour photos"
+                    aria-label={t("tourCard.viewPhotos")}
                     onClick={(e) => {
                       e.preventDefault();
                       openTourImages(galleryImages);
@@ -219,7 +211,7 @@ const TourCard: React.FC<TourCardProps> = ({
                   <Link
                     className="video-popup"
                     href="#"
-                    aria-label="Play tour video"
+                    aria-label={t("tourCard.playVideo")}
                     onClick={(e) => {
                       e.preventDefault();
                       if (canPlayVideo) onPlayVideo!(item.videoId as string);
@@ -293,7 +285,7 @@ const TourCard: React.FC<TourCardProps> = ({
             <div className="listing-card-four__content__btn">
               <div className="listing-card-four__price">
                 <span className="listing-card-four__price__sub">
-                  {labels?.startFrom ?? "Start from"}
+                  {t("tourCard.startFrom")}
                 </span>
                 <span className="listing-card-four__price__number">
                   {formatPrice(item.price)}
@@ -301,7 +293,7 @@ const TourCard: React.FC<TourCardProps> = ({
               </div>
               {item.link && (
                 <Link href={item.link} className="listing-card-four__btn gotur-btn">
-                  {labels?.cta ?? "View Tour"}{" "}
+                  {t("tourCard.viewTour")}{" "}
                   <span className="icon">
                     <i className="icon-right"></i>{" "}
                   </span>

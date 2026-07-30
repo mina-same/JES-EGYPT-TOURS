@@ -258,13 +258,8 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                         ],
                       }}
                       onRemove={toggleWishlist}
-                      removeLabel={t('remove', 'Remove from wishlist')}
                       showBadges={false}
                       linkMeta={false}
-                      labels={{
-                        startFrom: t('startFrom'),
-                        cta: t('viewTour'),
-                      }}
                     />
                   </Col>
                 );

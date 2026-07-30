@@ -6,6 +6,14 @@
   "articlesCount": "{{count}} articoli",
   "reviewCount_one": "({{count}} recensione)",
   "reviewCount_other": "({{count}} recensioni)",
+  "tourCard": {
+    "startFrom": "A partire da",
+    "viewTour": "Vedi tour",
+    "viewPhotos": "Vedi le foto del tour",
+    "playVideo": "Riproduci il video del tour",
+    "addToWishlist": "Aggiungi ai preferiti",
+    "removeFromWishlist": "Rimuovi dai preferiti"
+  },
   "updatedRecently": "Aggiornato di recente",
   "links": {
     "faq": "FAQ",

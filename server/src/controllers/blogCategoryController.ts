@@ -508,6 +508,7 @@ export const toggleCategoryStatus = async (
     }
 
     category.isActive = !category.isActive;
+    category.editVersion = (category.editVersion ?? 0) + 1;
     await category.save();
 
     res.status(200).json({
