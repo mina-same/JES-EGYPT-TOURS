@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText, Star } from 'lucide-react';
+import { ArrowLeft, Info, Search, Tag, Clock, FileText, Star } from 'lucide-react';
 import { tourCategoryAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
@@ -11,7 +11,7 @@ import LanguageBadges from '@/components/admin/LanguageBadges';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
-  useEntity, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview, GalleryGroups,
+  useEntity, EditEntityButton, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview, GalleryGroups,
   hasText, localeHasField, faqHasLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
@@ -71,7 +71,7 @@ export default function TourCategoryViewPage() {
           <p className="admin-page-subtitle flex items-center gap-2"><span>Tour category · read-only</span><LanguageBadges entity={entity} /></p>
         </div>
         <div className="header-actions">
-          <Link href={`${EDIT_PATH}${id}`} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"><Edit2 size={16} /> Edit</Link>
+          <EditEntityButton href={`${EDIT_PATH}${id}`} resource="tour" />
           <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1"><ArrowLeft size={16} /> Back</Link>
         </div>
       </div>

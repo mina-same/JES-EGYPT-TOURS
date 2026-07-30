@@ -10,9 +10,13 @@ import Image from 'next/image';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import { useToast } from '@/hooks/use-toast';
 import ReviewAvatar from '@/components/common/ReviewAvatar';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function TourReviewsPage() {
   const params = useParams();
+  // Mirrors what reviewRoutes.ts enforces: review:update for approve/reject and
+  // for adding (which ends in a status write), review:delete for removal.
+  const { canEdit, canDelete } = usePermissions();
   // Helper for initials
   const getInitials = (name: string) => {
     return name
@@ -192,13 +196,17 @@ export default function TourReviewsPage() {
             <h1 className="text-2xl font-bold">Reviews for {tourName}</h1>
             <p className="text-gray-500 text-sm">Manage customer feedback</p>
         </div>
-        <button 
+        {/* Adding a review finishes by setting its status, which the server
+            guards with review:update — so gate the whole flow on that. */}
+        {canEdit('review') && (
+        <button
           onClick={() => setIsAddModalOpen(true)}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={18} />
           Add Review
         </button>
+        )}
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -258,7 +266,7 @@ export default function TourReviewsPage() {
                                 {review.status}
                             </span>
                             <div className="flex gap-2 mt-2">
-                                {review.status !== 'approved' && (
+                                {canEdit('review') && review.status !== 'approved' && (
                                     <button 
                                         onClick={() => updateStatus(review._id, 'approved')}
                                         className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors"
@@ -267,7 +275,7 @@ export default function TourReviewsPage() {
                                         <Check size={16} />
                                     </button>
                                 )}
-                                {review.status !== 'rejected' && (
+                                {canEdit('review') && review.status !== 'rejected' && (
                                     <button 
                                         onClick={() => updateStatus(review._id, 'rejected')}
                                         className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors"
@@ -276,13 +284,15 @@ export default function TourReviewsPage() {
                                         <X size={16} />
                                     </button>
                                 )}
-                                <button 
-                                    onClick={() => deleteReivew(review._id)}
-                                    className="p-1.5 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 transition-colors"
-                                    title="Delete"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                                {canDelete('review') && (
+                                    <button
+                                        onClick={() => deleteReivew(review._id)}
+                                        className="p-1.5 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 transition-colors"
+                                        title="Delete"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
