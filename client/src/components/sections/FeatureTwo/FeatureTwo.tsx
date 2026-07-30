@@ -6,10 +6,8 @@ import Image, { StaticImageData } from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { featurePackageData } from "@/data/featureTwoData";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
-import PhotoSwipe from "photoswipe";
-import Link from "next/link";
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import TourCard from "@/components/common/TourCard/TourCard";
 
 interface FeaturePackageItem {
   id: number | string;
@@ -25,39 +23,8 @@ interface FeaturePackageItem {
   meta: Metadata[];
 }
 
-// Reads an image's real dimensions in the browser (used only when the gallery
-// is opened). Falls back to a sane default if the image fails to load.
-const measureImage = (src: string) =>
-  new Promise<{ src: string; width: number; height: number }>((resolve) => {
-    const img = new window.Image();
-    img.onload = () =>
-      resolve({
-        src,
-        width: img.naturalWidth || 1600,
-        height: img.naturalHeight || 1067,
-      });
-    img.onerror = () => resolve({ src, width: 1600, height: 1067 });
-    img.src = src;
-  });
-
-// Opens a PhotoSwipe lightbox containing only this tour's own images.
-// Built programmatically on click: no gallery DOM is rendered and no image is
-// downloaded until the button is pressed, keeping the page light. Dimensions
-// are measured on the client at open time so every photo shows at its true
-// aspect ratio (no distortion) without storing sizes server-side.
-const openTourImages = async (images: string[]) => {
-  if (!images.length) return;
-  const dataSource = await Promise.all(images.map(measureImage));
-  const pswp = new PhotoSwipe({
-    dataSource,
-    showHideAnimationType: "fade",
-    // On close PhotoSwipe re-focuses the clicked button. That button lives
-    // inside the slider's overflow viewport, so the browser scrolls it into
-    // view and shifts the whole carousel (broken card layout). Disable it.
-    returnFocus: false,
-  });
-  pswp.init();
-};
+/* The card markup, gallery lightbox and pricing row now live in TourCard so a
+   design change applies to every tour card on the site at once. */
 interface Metadata {
   id: number;
   title: string;
@@ -98,7 +65,6 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   subtitle,
   showShape = true,
 }) => {
-  const { formatPrice } = useCurrency();
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
 
@@ -203,134 +169,29 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                   }}
                 >
                   {displayData.items.map((item: FeaturePackageItem) => (
-                    <div className='item' key={item.id}>
-                      <div
-                        className='listing-card-four wow fadeInUp'
-                        data-wow-duration='1500ms'
-                      >
-                        <div className='listing-card-four__image'>
-                          <div className="relative w-full overflow-hidden rounded-3" style={{ height: '220px' }}>
-                            {typeof item.image === 'string' ? (
-                              <Image
-                                src={item.image}
-                                alt={item.title}
-                                title={item.title}
-                                fill
-                                className="object-cover transition-transform duration-500 hover:scale-110"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                              />
-                            ) : (
-                              <Image 
-                                src={item.image} 
-                                alt={item.title}
-                                title={item.title}
-                                fill
-                                className="object-cover transition-transform duration-500 hover:scale-110"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                              />
-                            )}
-                          </div>
-                          <div className='listing-card-four__btn-group'>
-                            {item.discount && (
-                              <div className='listing-card-four__discount'>
-                                -{item.discount}% off
-                              </div>
-                            )}
-                            <div className='listing-card-four__featured'>
-                              Featured
-                            </div>
-                          </div>
-                          <div className='listing-card-four__btns'>
-                            <Link href='#'>
-                              <i className='far fa-heart'></i>
-                            </Link>
-                            <div className='listing-card-four__btns__hover'>
-                              <Link
-                                className='listing-card-four__popup card__popup'
-                                href='#'
-                                aria-label='View tour photos'
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  const single =
-                                    typeof item.image === 'string'
-                                      ? item.image
-                                      : item.image?.src;
-                                  const imgs =
-                                    item.images && item.images.length > 0
-                                      ? item.images
-                                      : single
-                                        ? [single]
-                                        : [];
-                                  openTourImages(imgs);
-                                }}
-                              >
-                                <span className='icon-image'></span>
-                              </Link>
-
-                              {item.videoId ? (
-                                <Link
-                                  className='video-popup'
-                                  href={`https://www.youtube.com/watch?v=${item.videoId}`}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    if (!item.videoId) return;
-                                    setVideoId(item.videoId);
-                                    setOpen(true);
-                                  }}
-                                >
-                                  <span className='icon-video'></span>
-                                </Link>
-                              ) : null}
-                            </div>
-                          </div>
-                          <ul className='listing-card-four__meta list-unstyled'>
-                            {item.meta.map((meta: Metadata) => (
-                              <li key={meta.id}>
-                                <span>
-                                  {" "}
-                                  <span className='listing-card-four__meta__icon'>
-                                    {" "}
-                                    <i className={meta.icon}></i>{" "}
-                                  </span>
-                                  {meta.title}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className='listing-card-four__content'>
-                          <div className='listing-card-four__rating'>
-                            <span>({item.reviews} Review)</span>
-                            {[...Array(item.rating)].map((_, i) => (
-                              <i key={i} className='icon-star'></i>
-                            ))}
-                          </div>
-                          <h3 className='listing-card-four__title'>
-                            <Link href={item.link}>{item.title}</Link>
-                          </h3>
-
-                          <div className='listing-card-four__content__btn'>
-                            <div className='listing-card-four__price'>
-                              <span className='listing-card-four__price__sub'>
-                                Start from
-                              </span>
-                              <span className='listing-card-four__price__number'>
-                                {formatPrice(typeof item.price === 'string' ? parseFloat(item.price) : item.price)}
-                              </span>
-                            </div>
-                            <Link
-                              href={item.link}
-                              className='listing-card-four__btn gotur-btn'
-                            >
-                              Book Now{" "}
-                              <span className='icon'>
-                                <i className='icon-right'></i>{" "}
-                              </span>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <TourCard
+                      key={item.id}
+                      item={{
+                        ...item,
+                        id: String(item.id),
+                        price:
+                          typeof item.price === "string"
+                            ? parseFloat(item.price)
+                            : item.price,
+                      }}
+                      imageHeight={220}
+                      imageZoom
+                      linkMeta={false}
+                      // Per item: the button only appears when a video exists.
+                      onPlayVideo={
+                        item.videoId
+                          ? (videoId) => {
+                              setVideoId(videoId);
+                              setOpen(true);
+                            }
+                          : undefined
+                      }
+                    />
                   ))}
                 </TinySlider>
             </div>

@@ -9,12 +9,11 @@ import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI } from "@/lib/api/tour";
-import { Loader2, Trash2, Heart } from "lucide-react";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import { Loader2, Heart } from "lucide-react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import Image from "next/image";
 import Link from "next/link";
+import TourCard from "@/components/common/TourCard/TourCard";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 
@@ -50,7 +49,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
   }, [locale, i18n]);
 
   const { wishlist, toggleWishlist } = useWishlist();
-  const { formatPrice } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [tours, setTours] = useState<WishlistTour[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -215,102 +213,31 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
                 return (
                   <Col lg={4} md={6} key={tour._id}>
-                    <div className="item">
-                      <div
-                        className="listing-card-four wow fadeInUp"
-                        data-wow-duration="1500ms"
-                      >
-                        <div className="listing-card-four__image">
-                          <div
-                            className="relative w-full"
-                            style={{ height: "257px" }}
-                          >
-                            <Image
-                              src={image}
-                              alt={title}
-                              fill
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="listing-card-four__btns">
-                            <button
-                              type="button"
-                              className="wishlist-btn"
-                              aria-label="Remove from wishlist"
-                              onClick={() => toggleWishlist(tour._id)}
-                              style={{
-                                background: "#fff",
-                                border: "none",
-                                padding: 10,
-                                borderRadius: "50%",
-                                cursor: "pointer",
-                              }}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                        <ul className="listing-card-four__meta list-unstyled">
-                          <li>
-                            <span className="listing-card-four__meta__icon">
-                              <i className="icon-clock"></i>
-                            </span>
-                            {tour.duration || t('flexible')}
-                          </li>
-                          <li>
-                            <span className="listing-card-four__meta__icon">
-                              <i className="icon-user"></i>
-                            </span>
-                            {(tour.minAge ?? 12) + " +"}
-                          </li>
-                          <li>
-                            <span className="listing-card-four__meta__icon">
-                              <i className="icon-location"></i>
-                            </span>
-                            {tour.tourLocation || t('location')}
-                          </li>
-                        </ul>
-                        <div className="listing-card-four__content">
-                          <div className="listing-card-four__rating">
-                            <span>({reviews} {t('review')})</span>
-                            {[...Array(5)].map((_, i) => (
-                              <i key={i} className="icon-star"></i>
-                            ))}
-                          </div>
-                          <h3 className="listing-card-four__title">
-                            {tourSlug ? (
-                              <Link href={`/${locale}/${tourSlug}`}>
-                                {title}
-                              </Link>
-                            ) : (
-                              <span>{title}</span>
-                            )}
-                          </h3>
-                          <div className="listing-card-four__content__btn">
-                            <div className="listing-card-four__price">
-                              <span className="listing-card-four__price__sub">
-                                {t('startFrom')}
-                              </span>
-                              <span className="listing-card-four__price__number">
-                                {formatPrice(price)}
-                              </span>
-                            </div>
-                            {tourSlug && (
-                              <Link
-                                href={`/${locale}/${tourSlug}`}
-                                className="listing-card-four__btn gotur-btn"
-                              >
-                                {t("viewTour")}{" "}
-                                <span className="icon">
-                                  <i className="icon-right"></i>
-                                </span>
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <TourCard
+                      item={{
+                        id: tour._id,
+                        image,
+                        title,
+                        link: tourSlug ? `/${locale}/${tourSlug}` : "",
+                        price,
+                        rating: 5,
+                        reviews,
+                        meta: [
+                          { id: 1, title: tour.duration || t('flexible'), icon: "icon-clock" },
+                          { id: 2, title: (tour.minAge ?? 12) + " +", icon: "icon-user" },
+                          { id: 3, title: tour.tourLocation || t('location'), icon: "icon-location" },
+                        ],
+                      }}
+                      onRemove={toggleWishlist}
+                      removeLabel={t('remove', 'Remove from wishlist')}
+                      showBadges={false}
+                      linkMeta={false}
+                      labels={{
+                        startFrom: t('startFrom'),
+                        cta: t('viewTour'),
+                        review: t('review'),
+                      }}
+                    />
                   </Col>
                 );
               })}
