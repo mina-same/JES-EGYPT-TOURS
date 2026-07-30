@@ -125,6 +125,12 @@ export interface ITour extends Document {
   idExternal?: string;
   heading: ILocalizedString;
   headingDescription?: ILocalizedMixed;
+  /**
+   * Short teaser shown on the tour CARD only (two clamped lines). Kept separate
+   * from `Description.text` so the listing copy can be written to sell the
+   * click, independently of the long intro on the tour page.
+   */
+  cardDescription?: ILocalizedString;
   slug: ILocalizedString;
   Description: IDescription;
   images: IImage[];
@@ -532,6 +538,10 @@ const TourSchema = new Schema<ITour>(
     },
     headingDescription: {
       type: LocalizedMixedSchema,
+    },
+    // Plain text (no rich text): it renders as two clamped lines on the card.
+    cardDescription: {
+      type: LocalizedStringSchema,
     },
     slug: {
       type: LocalizedStringSchema,

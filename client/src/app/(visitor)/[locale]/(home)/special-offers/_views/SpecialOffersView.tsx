@@ -73,7 +73,11 @@ function mapTour(tour: any, locale: string) {
     reviews: tour.reviewsCount || tour.reviews?.length || 0,
     videoId: tour.videoLink || "",
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : undefined,
-    description: getLocalizedValue(tour.Description?.text, locale) || "",
+    description:
+              // Editor-written card teaser wins; the long intro is the fallback.
+              getLocalizedValue(tour.cardDescription, locale) ||
+              getLocalizedValue(tour.Description?.text, locale) ||
+              "",
     meta: [
       { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
       { id: 2, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },

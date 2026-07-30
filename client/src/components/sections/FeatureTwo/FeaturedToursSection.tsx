@@ -77,7 +77,10 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
     reviews: tour.reviewsCount ?? tour.reviews?.length ?? 0,
     videoId,
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : "",
-    description: getLocalizedValue(tour.Description?.text, locale) || "",
+    description:
+      getLocalizedValue(tour.cardDescription, locale) ||
+      getLocalizedValue(tour.Description?.text, locale) ||
+      "",
     meta: [
       { id: 1, title: location, icon: "icon-pin1" },
       { id: 2, title: duration, icon: "icon-clock" },

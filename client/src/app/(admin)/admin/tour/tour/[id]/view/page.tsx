@@ -126,6 +126,9 @@ export default function TourViewPage() {
           {strictText(entity.headingDescription, previewLocale) && (
             <div><label className="text-[11px] uppercase font-bold text-gray-400">Heading description</label><p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{strictText(entity.headingDescription, previewLocale)}</p></div>
           )}
+          {strictText(entity.cardDescription, previewLocale) && (
+            <div><label className="text-[11px] uppercase font-bold text-gray-400">Card description</label><p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{strictText(entity.cardDescription, previewLocale)}</p></div>
+          )}
           {htmlBlocks.map((b) => (
             <div key={b.label}>
               <label className="text-[11px] uppercase font-bold text-gray-400">{b.label}</label>

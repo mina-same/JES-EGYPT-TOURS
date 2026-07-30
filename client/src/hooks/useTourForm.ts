@@ -17,6 +17,7 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   idExternal: '',
   heading: { en: '', de: '', it: '', es: '' },
   headingDescription: { en: '', de: '', it: '', es: '' },
+  cardDescription: { en: '', de: '', it: '', es: '' },
   tourLocation: { en: '', de: '', it: '', es: '' },
   tourAvailability: { en: '', de: '', it: '', es: '' },
   pickupAndDropOff: { en: '', de: '', it: '', es: '' },

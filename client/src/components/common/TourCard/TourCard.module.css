@@ -57,9 +57,9 @@
   color: var(--gotur-text, #595959);
   font-size: 15px;
   line-height: 1.6;
-  /* two lines, then an ellipsis */
+  /* three lines, then an ellipsis */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

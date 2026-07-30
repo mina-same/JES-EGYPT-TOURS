@@ -81,6 +81,18 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             />
           </div>
 
+          <div>
+            <LocalizedInput
+              label="Card Description (tour listings)"
+              value={formData.cardDescription || { en: '', de: '', it: '', es: '' }}
+              onChange={(val, lang) => handleChange('cardDescription', val, lang)}
+              placeholder="One short line that makes people click"
+              activeLanguage={activeLanguage}
+              maxLength={220}
+              helperText="Shown on the tour card as three lines — aim for 130–150 characters. Leave empty to fall back to the overview text."
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="idExternal">External ID</Label>

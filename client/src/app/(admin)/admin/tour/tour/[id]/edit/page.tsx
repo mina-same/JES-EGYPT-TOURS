@@ -222,6 +222,7 @@ export default function EditTourPage() {
               idExternal: tour.idExternal || '',
               heading: toLocalized(tour.heading),
               headingDescription: toLocalized(tour.headingDescription),
+              cardDescription: toLocalized(tour.cardDescription),
               meetingPoint: toLocalized(tour.meetingPoint),
               tags: toLocalizedMixed(tour.tags),
               tourLocation: toLocalized(tour.tourLocation),

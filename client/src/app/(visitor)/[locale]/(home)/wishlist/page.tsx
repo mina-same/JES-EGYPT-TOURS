@@ -32,6 +32,7 @@ type WishlistTour = {
   duration?: string;
   tourLocation?: string;
   tourType?: string;
+  cardDescription?: any;
   Description?: { text?: any };
   category?: string | { _id?: string } | any;
   subcategory?:
@@ -234,7 +235,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                         price,
                         rating: 5,
                         reviews,
-                        description: tour.Description?.text || "",
+                        description: tour.cardDescription || tour.Description?.text || "",
                         meta: [
                           { id: 1, title: tour.tourLocation || t('location'), icon: "icon-location" },
                           { id: 2, title: tour.duration || t('flexible'), icon: "icon-clock" },

@@ -288,7 +288,11 @@ export default function SubcategoryView({
               reviews: tour.reviewsCount || tour.reviews?.length || 0,
               videoId: tour.videoLink || "",
               discount: "",
-              description: getLocalizedValue(tour.Description?.text, locale) || "",
+              description:
+              // Editor-written card teaser wins; the long intro is the fallback.
+              getLocalizedValue(tour.cardDescription, locale) ||
+              getLocalizedValue(tour.Description?.text, locale) ||
+              "",
               meta: [
                 { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || t('fallback.location'), icon: "icon-location" },
                 { id: 2, title: `${getLocalizedValue(tour.duration, locale) || t('fallback.days')}`, icon: "icon-clock" },

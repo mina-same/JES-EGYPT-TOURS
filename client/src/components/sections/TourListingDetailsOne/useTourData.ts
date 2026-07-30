@@ -81,7 +81,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       reviews: t.reviewsCount || t.reviews?.length || 0,
       videoId: t.videoLink || "",
       discount: t.discount || "",
-      description: getLocalizedValue(t?.Description?.text) || "",
+      description: getLocalizedValue(t?.cardDescription) || getLocalizedValue(t?.Description?.text) || "",
       meta: meta,
     };
   };

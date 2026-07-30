@@ -296,7 +296,7 @@ export const getFeaturedTours = async (
       .select(
         // `subcategory` must be selected for the populate above to resolve — the
         // card shows its name as the tour's category label.
-        'heading slug images Description tourLocation subcategory pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer reviews.url'
+        'heading slug images cardDescription Description tourLocation subcategory pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer reviews.url'
       )
       .lean();
 
@@ -568,7 +568,7 @@ export const getRelatedTours = async (
       _id: { $ne: req.params.id },
       isActive: true,
     })
-      .select('heading slug images Description tourLocation pricingPlans')
+      .select('heading slug images cardDescription Description tourLocation pricingPlans')
       .limit(limit)
       .lean();
 

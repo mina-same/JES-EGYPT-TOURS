@@ -107,6 +107,8 @@ export interface ITour {
   subcategory: string | ITourSubcategory; // Can be populated or just ID
   heading: ILocalizedString;
   headingDescription?: ILocalizedMixed;
+  /** Short teaser for the tour card (two clamped lines). */
+  cardDescription?: ILocalizedString;
   images: IImage[];
   gallery?: IImage[];
   price?: number;
@@ -261,6 +263,8 @@ export interface TourFormData {
   idExternal?: string;
   heading?: ILocalizedString;
   headingDescription?: ILocalizedMixed;
+  /** Short teaser for the tour card (two clamped lines). */
+  cardDescription?: ILocalizedString;
   tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
