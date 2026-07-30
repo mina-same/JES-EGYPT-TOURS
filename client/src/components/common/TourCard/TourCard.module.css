@@ -43,6 +43,14 @@
 }
 
 /*
+ * The theme adds 24px above the rating on top of the body padding, which left
+ * a wide gap under the image. The body padding alone sets the spacing here.
+ */
+.rating.rating {
+  margin-top: 0;
+}
+
+/*
  * The theme puts the divider under the title. With a description and meta rows
  * between the title and the price it belongs above the price row instead.
  */

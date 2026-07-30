@@ -233,7 +233,7 @@ const TourCard: React.FC<TourCardProps> = ({
         </div>
 
         <div className={`listing-card-four__content ${styles.body}`}>
-          <div className="listing-card-four__rating">
+          <div className={`listing-card-four__rating ${styles.rating}`}>
             <span>
               ({item.reviews} {labels?.review ?? "Review"})
             </span>
