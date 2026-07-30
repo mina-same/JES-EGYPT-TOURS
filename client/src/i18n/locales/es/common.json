@@ -4,6 +4,8 @@
   "partnerAlt": "Socio de confianza {{count}}",
   "partnerTitle": "JES Egypt Tours Socio {{count}}",
   "articlesCount": "{{count}} artículos",
+  "reviewCount_one": "({{count}} reseña)",
+  "reviewCount_other": "({{count}} reseñas)",
   "updatedRecently": "Actualizado recientemente",
   "links": {
     "faq": "Preguntas frecuentes",

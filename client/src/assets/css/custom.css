@@ -2337,6 +2337,12 @@ button[data-action="stop"] {
   }
 }
 
+/* React-owned lifecycle boundary for the imperative tiny-slider DOM. */
+.tiny-slider-host {
+  width: 100%;
+  min-width: 0;
+}
+
 /* ─────────────────────────────────────────────────────────────
    Promotional navigation item (admin displayVariant: "promotion")
    Applied only to top-level menu links by the header renderers.
@@ -2899,8 +2905,8 @@ button[data-action="stop"] {
 }
 
 /* Slide indicator — glass pill with gold "worm" dots (shown only when the
-   hero has 2+ slides). One button per slide; tiny-slider (navContainer)
-   wires the clicks and toggles `tns-nav-active`. The active dot stretches
+   hero has 2+ slides). React owns each button and the active state.
+   The active dot stretches
    into a gold capsule whose fill visualizes the auto-rotation interval
    (keep the animation duration in sync with AUTOPLAY_MS in
    MainSliderFour.tsx). */

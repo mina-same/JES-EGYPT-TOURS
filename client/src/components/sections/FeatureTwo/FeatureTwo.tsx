@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import Image, { StaticImageData } from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { featurePackageData } from "@/data/featureTwoData";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
 import TourCard from "@/components/common/TourCard/TourCard";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 interface FeaturePackageItem {
   id: number | string;
@@ -69,6 +73,10 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [videoId, setVideoId] = useState("");
+  const sliderRef = useRef<TinySliderHandle>(null);
+  // Without these the card's heart renders but does nothing, and never fills
+  // in for tours that are already saved.
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   // Use custom tours if provided, otherwise use default data
   const displayData = tours ? { items: tours } : featurePackageData;
@@ -136,10 +144,20 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
               </div>
               <div className='col-lg-4'>
                 <div className='feature-package__bottom__nav owl-nav'>
-                  <button type="button" role="presentation" className='owl-prev' aria-label='carousel previous'>
+                  <button
+                    type="button"
+                    className='owl-prev'
+                    aria-label='carousel previous'
+                    onClick={() => sliderRef.current?.slider?.goTo("prev")}
+                  >
                     <span className='icon-arrow-left'></span>
                   </button>
-                  <button type="button" role="presentation" className='owl-next' aria-label='carousel next'>
+                  <button
+                    type="button"
+                    className='owl-next'
+                    aria-label='carousel next'
+                    onClick={() => sliderRef.current?.slider?.goTo("next")}
+                  >
                     <span className='icon-arrow-right'></span>
                   </button>
                 </div>
@@ -152,6 +170,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
           <div className='feature-package__inner'>
             <div className='feature-package__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'>
                 <TinySlider
+                  ref={sliderRef}
                   settings={{
                     items: 1,
                     gutter: 30,
@@ -161,14 +180,15 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                     // false for rewind to take effect.
                     loop: false,
                     rewind: rewind,
-                    smartSpeed: 700,
+                    speed: 700,
                     nav: false,
-                    dots: true,
-                    controls: true,
+                    controls: false,
                     mouseDrag: true,
-                    controlsContainer: ".owl-nav",
                     responsive: getResponsiveSettings(),
                   }}
+                  rebuildKey={displayData.items
+                    .map((item) => `${item.id}:${item.title}:${item.link}:${item.price}`)
+                    .join("|")}
                 >
                   {displayData.items.map((item: FeaturePackageItem) => (
                     <TourCard
@@ -184,6 +204,8 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                       imageHeight={220}
                       imageZoom
                       linkMeta={false}
+                      toggleWishlist={toggleWishlist}
+                      isInWishlist={isInWishlist}
                       // Per item: the button only appears when a video exists.
                       onPlayVideo={
                         item.videoId

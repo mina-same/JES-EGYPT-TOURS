@@ -83,6 +83,7 @@ const DestinationCarouselTwo = () => {
           <TinySlider
             ref={sliderRef}
             settings={sliderSettings}
+            rebuildKey={locale}
             onInit={scheduleAccessibilitySync}
             onIndexChanged={scheduleAccessibilitySync}
             onTransitionEnd={scheduleAccessibilitySync}

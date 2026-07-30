@@ -48,6 +48,12 @@
  */
 .rating.rating {
   margin-top: 0;
+  /* Centres the 14px count against the 18px stars instead of sharing a baseline. */
+  display: flex;
+  align-items: center;
+  /* The theme capitalises the row, which would render "reviews" as "Reviews"
+     and fight the translations. Each locale decides its own casing. */
+  text-transform: none;
 }
 
 /*

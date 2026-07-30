@@ -25,7 +25,10 @@ import { motion } from 'framer-motion';
 import { Container, Row, Col } from 'react-bootstrap';
 import Image from 'next/image';
 import Link from 'next/link';
-import { TinySliderWrapper as TinySlider } from '@/components/common/TinySliderWrapper';
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from '@/components/common/TinySliderWrapper';
 import LucideIcon from '@/components/common/LucideIcon';
 
 import enBlogs from '@/i18n/locales/en/blogs.json';
@@ -49,7 +52,7 @@ const getImageTitle = (img: any, locale: string, fallback?: string): string => {
 };
 
 // Render icon: emoji character → as text, otherwise try gotur icon class
-const SubcatIcon: React.FC<{ icon?: string; hover?: boolean }> = ({ icon, hover }) => {
+const SubcatIcon: React.FC<{ icon?: string; hover?: boolean }> = ({ icon }) => {
   if (!icon) {
     // fallback compass SVG
     return (
@@ -73,6 +76,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get('page')) || 1;
   const allBlogsRef = useRef<HTMLElement>(null);
+  const destinationSliderRef = useRef<TinySliderHandle>(null);
   const t = (key: string) => translations[locale]?.[key] || translations['en']?.[key] || key;
 
   const [loading, setLoading] = useState(true);
@@ -363,22 +367,26 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
             {/* Slider */}
             <div className="position-relative">
               <TinySlider
+                ref={destinationSliderRef}
                 settings={{
                   items: 1,
                   gutter: 24,
-                  loop: true,
+                  loop: false,
+                  rewind: true,
                   autoplay: true,
                   autoplayTimeout: 3500,
                   nav: false,
-                  controls: true,
+                  controls: false,
                   mouseDrag: true,
-                  controlsContainer: '.dest-slider-nav',
                   responsive: {
                     576: { items: 2 },
                     992: { items: 3 },
                   },
                 }}
                 className="destination-slider-inner"
+                rebuildKey={`${locale}:${category.featuredDestinations
+                  .map((destination: any) => destination._id ?? "")
+                  .join("|")}`}
               >
                 {category.featuredDestinations.map((dest: any, idx: number) => {
                   const destImg = getImageUrl(dest.coverImage);
@@ -433,6 +441,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                 <button
                   type="button"
                   aria-label="Previous destination"
+                  onClick={() => destinationSliderRef.current?.slider?.goTo("prev")}
                   style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#fff', border: '1px solid #e5e5e5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#b79c5c'; (e.currentTarget as HTMLElement).style.borderColor = '#b79c5c'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#fff'; (e.currentTarget as HTMLElement).style.borderColor = '#e5e5e5'; }}
@@ -442,6 +451,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                 <button
                   type="button"
                   aria-label="Next destination"
+                  onClick={() => destinationSliderRef.current?.slider?.goTo("next")}
                   style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#b79c5c', border: '1px solid #b79c5c', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#9a8248'; (e.currentTarget as HTMLElement).style.borderColor = '#9a8248'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#b79c5c'; (e.currentTarget as HTMLElement).style.borderColor = '#b79c5c'; }}

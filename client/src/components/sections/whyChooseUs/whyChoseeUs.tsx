@@ -4,7 +4,10 @@ import Image from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { useRef } from "react";
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
 import { useTranslation } from "react-i18next";
 
 const CARD_IMAGES = [
@@ -17,8 +20,8 @@ const CARD_IMAGES = [
 ];
 
 const WhyChooseUs = () => {
-  const sliderRef = useRef<any>(null);
-  const { t } = useTranslation("common");
+  const sliderRef = useRef<TinySliderHandle>(null);
+  const { t, i18n } = useTranslation("common");
 
   const cards = [
     { title: t("whyChooseUs.card1Title"), desc: t("whyChooseUs.card1Desc") },
@@ -33,9 +36,8 @@ const WhyChooseUs = () => {
     items: 1,
     gutter: 30,
     loop: true,
-    smartSpeed: 700,
-    controls: true,
-    controlsContainer: ".destinations-two__bottom__nav",
+    speed: 700,
+    controls: false,
     nav: false,
     autoplay: false,
     responsive: {
@@ -67,13 +69,17 @@ const WhyChooseUs = () => {
             <Col lg={4}>
               <div className='destinations-two__bottom__nav'>
                 <button
+                  type="button"
                   className='destinations-two__carousel__nav--left'
+                  aria-label={t("destinations.carousel.previous")}
                   onClick={() => sliderRef.current?.slider?.goTo("prev")}
                 >
                   <span className='icon-arrow-left'></span>
                 </button>
                 <button
+                  type="button"
                   className='destinations-two__carousel__nav--right'
+                  aria-label={t("destinations.carousel.next")}
                   onClick={() => sliderRef.current?.slider?.goTo("next")}
                 >
                   <span className='icon-arrow-right'></span>
@@ -86,6 +92,7 @@ const WhyChooseUs = () => {
           ref={sliderRef}
           className='destinations-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'
           settings={carouselOptions}
+          rebuildKey={i18n.language}
         >
           {cards.map((card, index) => (
             <div key={index}>

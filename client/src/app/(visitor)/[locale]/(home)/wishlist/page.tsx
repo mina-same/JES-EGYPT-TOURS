@@ -51,7 +51,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
     }
   }, [locale, i18n]);
 
-  const { wishlist, toggleWishlist } = useWishlist();
+  const { wishlist, toggleWishlist, removeFromWishlist } = useWishlist();
   const [loading, setLoading] = useState(false);
   const [tours, setTours] = useState<WishlistTour[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -70,15 +70,28 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
       try {
         setLoading(true);
         setError(null);
+        // Each id is resolved on its own: one deleted tour used to reject the
+        // whole Promise.all and blank the entire page. A 404 means the tour is
+        // gone for good, so the saved id is dropped too — that keeps the header
+        // count in step with what the page can actually show. Any other failure
+        // (offline, 5xx) is transient and must never discard a saved id.
+        const goneIds: string[] = [];
         const results = await Promise.all(
           ids.map(async (id) => {
-            const res = await tourAPI.getById(id);
-            return res.success ? res.data : null;
+            try {
+              const res = await tourAPI.getById(id);
+              return res.success ? res.data : null;
+            } catch (err: unknown) {
+              const status = (err as { response?: { status?: number } })?.response?.status;
+              if (status === 404) goneIds.push(id);
+              return null;
+            }
           })
         );
         if (!active) return;
         const filtered = results.filter(Boolean) as WishlistTour[];
         setTours(filtered);
+        goneIds.forEach(removeFromWishlist);
 
         // Determine most common category among wishlist tours
         const categoryCounts: Record<string, number> = {};
@@ -251,7 +264,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                       labels={{
                         startFrom: t('startFrom'),
                         cta: t('viewTour'),
-                        review: t('review'),
                       }}
                     />
                   </Col>

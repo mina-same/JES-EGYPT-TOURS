@@ -1,14 +1,29 @@
 "use client";
 
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
-import dynamic from "next/dynamic";
-import type { TinySliderInfo, TinySliderInstance, TinySliderSettings } from "tiny-slider";
-
-const TinySlider = dynamic(() => import("tiny-slider-react"), {
-  ssr: false,
-});
+import React, {
+  Children,
+  forwardRef,
+  isValidElement,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from "react";
+import type {
+  TinySliderInfo,
+  TinySliderInstance,
+  TinySliderSettings,
+} from "tiny-slider";
 
 type TinySliderEventCallback = (info: TinySliderInfo) => void;
+
+type TinySliderClickCallback = (
+  slide: Element | null,
+  info: TinySliderInfo | null,
+  event: React.MouseEvent<HTMLDivElement>
+) => void;
 
 export interface TinySliderHandle {
   readonly slider: TinySliderInstance | null;
@@ -21,7 +36,12 @@ interface TinySliderWrapperProps {
   placeholderClassName?: string;
   placeholderStyle?: React.CSSProperties;
   style?: React.CSSProperties;
-  onClick?: (...args: unknown[]) => void;
+  /**
+   * Changes to text, links or other slide content can require a fresh
+   * imperative instance even when the React child keys stay the same.
+   */
+  rebuildKey?: React.Key;
+  onClick?: TinySliderClickCallback;
   onInit?: (initialized: boolean) => void;
   onIndexChanged?: TinySliderEventCallback;
   onTransitionStart?: TinySliderEventCallback;
@@ -31,124 +51,283 @@ interface TinySliderWrapperProps {
   onTouchEnd?: TinySliderEventCallback;
 }
 
-type SafeTinySliderInstance = TinySliderInstance & {
-  __safeDestroyPatched?: boolean;
+type SliderCallbacks = Pick<
+  TinySliderWrapperProps,
+  | "onClick"
+  | "onInit"
+  | "onIndexChanged"
+  | "onTransitionStart"
+  | "onTransitionEnd"
+  | "onTouchStart"
+  | "onTouchMove"
+  | "onTouchEnd"
+>;
+
+interface SliderRuntimeProps
+  extends Omit<
+    TinySliderWrapperProps,
+    "placeholderClassName" | "placeholderStyle" | "rebuildKey"
+  > {
+  callbacksRef: MutableRefObject<SliderCallbacks>;
+  instanceRef: MutableRefObject<TinySliderInstance | null>;
+}
+
+type TinySliderModule = typeof import("tiny-slider");
+
+let tinySliderModulePromise: Promise<TinySliderModule> | null = null;
+
+const loadTinySlider = () => {
+  tinySliderModulePromise ??= import("tiny-slider");
+  return tinySliderModulePromise;
 };
 
-const isDestroyRaceError = (error: unknown) => {
-  if (error instanceof DOMException && error.name === "NoModificationAllowedError") {
-    return true;
+const getChildrenSignature = (children: React.ReactNode) =>
+  Children.toArray(children)
+    .map((child, index) =>
+      isValidElement(child)
+        ? String(child.key ?? index)
+        : `${typeof child}:${String(child)}`
+    )
+    .join("|");
+
+const getSettingsSignature = (
+  settings: TinySliderWrapperProps["settings"]
+) => {
+  try {
+    return JSON.stringify(settings, (_key, value) => {
+      if (typeof value === "function") return "[function]";
+      if (typeof Element !== "undefined" && value instanceof Element) {
+        return `[Element:${value.tagName}:${value.id}:${value.className}]`;
+      }
+      return value;
+    });
+  } catch {
+    return Object.keys(settings).sort().join("|");
+  }
+};
+
+const createSliderSettings = (
+  settings: TinySliderWrapperProps["settings"],
+  container: HTMLElement
+): TinySliderSettings => {
+  const normalized = { ...settings } as Record<string, unknown>;
+
+  // React owns everything outside the host. Passing any of these elements to
+  // tiny-slider would let destroy() replace React-owned DOM via outerHTML.
+  const externalDomOptions = [
+    "controlsContainer",
+    "navContainer",
+    "prevButton",
+    "nextButton",
+    "autoplayButton",
+  ] as const;
+  const unsafeOption = externalDomOptions.find(
+    (option) => normalized[option] !== undefined && normalized[option] !== false
+  );
+
+  if (unsafeOption) {
+    throw new Error(
+      `TinySliderWrapper does not accept "${unsafeOption}". Render controls in React and call slider.goTo() instead.`
+    );
   }
 
+  externalDomOptions.forEach((option) => delete normalized[option]);
+  delete normalized.container;
+  delete normalized.onInit;
+
+  return {
+    ...(normalized as TinySliderSettings),
+    container,
+  };
+};
+
+const SliderRuntime = ({
+  settings,
+  children,
+  className,
+  style,
+  callbacksRef,
+  instanceRef,
+}: SliderRuntimeProps) => {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const settingsRef = useRef(settings);
+
+  useLayoutEffect(() => {
+    let cancelled = false;
+    let instance: TinySliderInstance | null = null;
+
+    void loadTinySlider().then(({ tns }) => {
+      if (cancelled || !hostRef.current || !containerRef.current) return;
+
+      instance = tns(
+        createSliderSettings(settingsRef.current, containerRef.current)
+      );
+      instanceRef.current = instance;
+
+      instance.events.on("indexChanged", (info) => {
+        callbacksRef.current.onIndexChanged?.(info);
+      });
+      instance.events.on("transitionStart", (info) => {
+        draggingRef.current = true;
+        callbacksRef.current.onTransitionStart?.(info);
+      });
+      instance.events.on("transitionEnd", (info) => {
+        draggingRef.current = false;
+        callbacksRef.current.onTransitionEnd?.(info);
+      });
+      instance.events.on("touchStart", (info) => {
+        callbacksRef.current.onTouchStart?.(info);
+      });
+      instance.events.on("touchMove", (info) => {
+        callbacksRef.current.onTouchMove?.(info);
+      });
+      instance.events.on("touchEnd", (info) => {
+        callbacksRef.current.onTouchEnd?.(info);
+      });
+
+      callbacksRef.current.onInit?.(true);
+    });
+
+    return () => {
+      cancelled = true;
+      draggingRef.current = false;
+
+      if (instanceRef.current === instance) {
+        instanceRef.current = null;
+      }
+
+      // The keyed runtime owns this instance. It is destroyed exactly once
+      // while its stable React-owned host still exists.
+      instance?.destroy();
+    };
+  }, [callbacksRef, instanceRef]);
+
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const callback = callbacksRef.current.onClick;
+    if (!callback || draggingRef.current) return;
+
+    const instance = instanceRef.current;
+    if (!instance) {
+      callback(null, null, event);
+      return;
+    }
+
+    const info = instance.getInfo();
+    callback(info.slideItems[info.index] ?? null, info, event);
+  };
+
   return (
-    error instanceof Error &&
-    /outerHTML|element has no parent node|NoModificationAllowedError/i.test(error.message)
+    <div
+      ref={hostRef}
+      className="tiny-slider-host"
+      data-tiny-slider-host=""
+      onClick={handleClick}
+    >
+      <div ref={containerRef} className={className} style={style}>
+        {children}
+      </div>
+    </div>
   );
 };
 
 /**
- * A safe wrapper around TinySlider that prevents NoModificationAllowedError
- * by ensuring proper mounting/unmounting lifecycle in Next.js
+ * React/Next.js lifecycle adapter for tiny-slider.
+ *
+ * The React-owned host is stable while tiny-slider owns only its descendants.
+ * A keyed runtime creates one instance and destroys that same instance once;
+ * it never calls rebuild() and never patches or suppresses destroy errors.
  */
-export const TinySliderWrapper = forwardRef<TinySliderHandle, TinySliderWrapperProps>(
-  ({ settings, children, className, placeholderClassName, placeholderStyle, ...otherProps }, ref) => {
+export const TinySliderWrapper = forwardRef<
+  TinySliderHandle,
+  TinySliderWrapperProps
+>(
+  (
+    {
+      settings,
+      children,
+      className,
+      placeholderClassName,
+      placeholderStyle,
+      style,
+      rebuildKey,
+      onClick,
+      onInit,
+      onIndexChanged,
+      onTransitionStart,
+      onTransitionEnd,
+      onTouchStart,
+      onTouchMove,
+      onTouchEnd,
+    },
+    ref
+  ) => {
     const [isMounted, setIsMounted] = useState(false);
-    const internalRef = useRef<TinySliderHandle | null>(null);
+    const instanceRef = useRef<TinySliderInstance | null>(null);
+    const callbacksRef = useRef<SliderCallbacks>({});
 
-    // Expose the internal ref to parent components
+    callbacksRef.current = {
+      onClick,
+      onInit,
+      onIndexChanged,
+      onTransitionStart,
+      onTransitionEnd,
+      onTouchStart,
+      onTouchMove,
+      onTouchEnd,
+    };
+
     useImperativeHandle(
       ref,
       () => ({
         get slider() {
-          return internalRef.current?.slider ?? null;
+          return instanceRef.current;
         },
       }),
       []
     );
 
     useEffect(() => {
-      // Only mount after client-side hydration is complete
       setIsMounted(true);
     }, []);
 
-    useEffect(() => {
-      if (!isMounted) return;
+    const lifecycleKey = [
+      getSettingsSignature(settings),
+      getChildrenSignature(children),
+      String(rebuildKey ?? ""),
+      className ?? "",
+      JSON.stringify(style ?? {}),
+    ].join("::");
 
-      let cancelled = false;
-      let frameId: number | undefined;
-      let attempts = 0;
-
-      const patchDestroy = () => {
-        if (cancelled) return;
-
-        const sliderInstance = internalRef.current?.slider as SafeTinySliderInstance | null;
-        if (!sliderInstance) {
-          if (attempts < 120) {
-            attempts += 1;
-            frameId = window.requestAnimationFrame(patchDestroy);
-          }
-          return;
-        }
-
-        if (sliderInstance.__safeDestroyPatched) return;
-
-        const originalDestroy = sliderInstance.destroy.bind(sliderInstance);
-
-        sliderInstance.destroy = () => {
-          try {
-            const container = sliderInstance.getInfo().container;
-            if (container && !container.parentNode) {
-              return;
-            }
-          } catch (error) {
-            if (isDestroyRaceError(error)) return;
-            throw error;
-          }
-
-          try {
-            originalDestroy();
-          } catch (error) {
-            if (!isDestroyRaceError(error)) throw error;
-          }
-        };
-
-        sliderInstance.__safeDestroyPatched = true;
-      };
-
-      patchDestroy();
-
-      return () => {
-        cancelled = true;
-        if (frameId !== undefined) {
-          window.cancelAnimationFrame(frameId);
-        }
-      };
-    }, [isMounted]);
-
-    // Don't render anything until client-side hydration is complete
     if (!isMounted) {
       return (
-        <div
-          className={placeholderClassName || className || "tiny-slider-placeholder"}
-          style={placeholderStyle}
-        >
-          {children}
+        <div className="tiny-slider-host" data-tiny-slider-host="">
+          <div
+            className={
+              placeholderClassName || className || "tiny-slider-placeholder"
+            }
+            style={placeholderStyle}
+          >
+            {children}
+          </div>
         </div>
       );
     }
 
     return (
-      <TinySlider
-        ref={internalRef}
+      <SliderRuntime
+        key={lifecycleKey}
         settings={settings}
         className={className}
-        {...otherProps}
+        style={style}
+        callbacksRef={callbacksRef}
+        instanceRef={instanceRef}
       >
         {children}
-      </TinySlider>
+      </SliderRuntime>
     );
   }
 );
 
 TinySliderWrapper.displayName = "TinySliderWrapper";
-

@@ -4,6 +4,7 @@ import React from "react";
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import PhotoSwipe from "photoswipe";
+import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { stripHtml } from "@/lib/seo/tourJsonLd";
 import OfferPriceFooter, { type OfferLabels } from "./OfferPriceFooter";
@@ -44,7 +45,6 @@ export interface TourCardItem {
 export interface TourCardLabels {
   startFrom?: string;
   cta?: string;
-  review?: string;
 }
 
 interface TourCardProps {
@@ -124,6 +124,9 @@ const TourCard: React.FC<TourCardProps> = ({
   labels,
 }) => {
   const { formatPrice } = useCurrency();
+  // Owned by the card so every listing gets the same localised, pluralised
+  // wording — call sites no longer pass a review label.
+  const { t } = useTranslation("common");
 
   const galleryImages =
     item.allImages && item.allImages.length
@@ -234,9 +237,7 @@ const TourCard: React.FC<TourCardProps> = ({
 
         <div className={`listing-card-four__content ${styles.body}`}>
           <div className={`listing-card-four__rating ${styles.rating}`}>
-            <span>
-              ({item.reviews} {labels?.review ?? "Review"})
-            </span>
+            <span>{t("reviewCount", { count: item.reviews })}</span>
             {[...Array(item.rating)].map((_, i) => (
               <i key={i} className="icon-star"></i>
             ))}

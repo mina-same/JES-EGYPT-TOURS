@@ -1,12 +1,15 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
 import { aboutTestimonialsData } from "@/data/aboutTestimonialsData";
 import ReviewAvatar from "@/components/common/ReviewAvatar";
 
@@ -27,13 +30,10 @@ interface ListingReviewsProps {
 
 const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, sectionTitle, locale }) => {
   const { t } = useTranslation('common');
-  const [mounted, setMounted] = useState(false);
+  const sliderRef = useRef<TinySliderHandle>(null);
+  const visibleReviews = reviews?.filter((review) => review.status !== 'rejected') ?? [];
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!reviews || reviews.length === 0) return null;
+  if (visibleReviews.length === 0) return null;
 
   const displayTitle = getLocalizedValue(sectionTitle, locale) || title || t('travelersExperiences');
   const sectionTagline = t('reviewsTagline', { defaultValue: 'Testimonials' });
@@ -44,15 +44,15 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
   const sliderSettings = {
     items: 1,
     gutter: 30,
-    smartSpeed: 700,
-    loop: reviews.filter(r => r.status !== 'rejected').length > 1,
+    speed: 700,
+    loop: false,
+    rewind: visibleReviews.length > 1,
     nav: false,
-    autoplay: true,
+    autoplay: visibleReviews.length > 1,
     autoplayTimeout: 5000,
     autoplayButtonOutput: false,
     mouseDrag: true,
-    controls: true,
-    controlsContainer: ".gotur-owl__carousel--basic-nav .owl-nav",
+    controls: false,
   };
 
   return (
@@ -83,14 +83,18 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                 </h2>
               </div>
 
-              {!mounted ? (
-                <div className="flex items-center justify-center p-5 min-h-[300px]">
-                  <div className="w-8 h-8 rounded-full border-4 border-[#b79c5c] border-t-transparent animate-spin"></div>
-                </div>
-              ) : (
-                <div className="gotur-owl__carousel--basic-nav owl-carousel about-testimonials__carousel gotur-owl__carousel owl-theme position-relative">
-                  <TinySlider settings={sliderSettings} className="about-testimonials__carousel">
-                    {reviews.filter(r => r.status !== 'rejected').map((review, index) => (
+              <div className="gotur-owl__carousel--basic-nav owl-carousel about-testimonials__carousel gotur-owl__carousel owl-theme position-relative">
+                  <TinySlider
+                    ref={sliderRef}
+                    settings={sliderSettings}
+                    className="about-testimonials__carousel"
+                    rebuildKey={`${locale}:${visibleReviews
+                      .map((review) =>
+                        `${getLocalizedValue(review.name, locale)}:${review.rating}:${getLocalizedValue(review.comment, locale)}`
+                      )
+                      .join("|")}`}
+                  >
+                    {visibleReviews.map((review, index) => (
                       <div className="about-testimonials__item" key={index}>
                         <div className="about-testimonials__star">
                           {[...Array(5)].map((_, i) => (
@@ -125,16 +129,27 @@ const ListingReviews: React.FC<ListingReviewsProps> = ({ reviews, title, section
                     ))}
                   </TinySlider>
 
-                  <div className="owl-nav">
-                    <button type="button" className="owl-prev" aria-label="Previous">
-                      <span className="icon-arrow-left"></span>
-                    </button>
-                    <button type="button" className="owl-next" aria-label="Next">
-                      <span className="icon-arrow-right"></span>
-                    </button>
-                  </div>
+                  {visibleReviews.length > 1 && (
+                    <div className="owl-nav">
+                      <button
+                        type="button"
+                        className="owl-prev"
+                        aria-label="Previous"
+                        onClick={() => sliderRef.current?.slider?.goTo("prev")}
+                      >
+                        <span className="icon-arrow-left"></span>
+                      </button>
+                      <button
+                        type="button"
+                        className="owl-next"
+                        aria-label="Next"
+                        onClick={() => sliderRef.current?.slider?.goTo("next")}
+                      >
+                        <span className="icon-arrow-right"></span>
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
             </div>
           </Col>
         </Row>
