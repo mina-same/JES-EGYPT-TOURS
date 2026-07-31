@@ -14,6 +14,7 @@ import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2, Plu
 import ReviewAvatar from "@/components/common/ReviewAvatar";
 import { API_URL } from "@/config/api";
 import TourCard from "@/components/common/TourCard/TourCard";
+import { visibleBlocksFor } from "@/lib/blogBlocks";
 import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
@@ -126,25 +127,24 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     }
   };
 
-  // Per-language block visibility: text blocks (html/blockquote) belong to
-  // the languages they carry. When the current language has its own text
-  // blocks, show exactly those; otherwise fall back to the legacy behavior
-  // (all text blocks, getLocalizedValue resolves). Non-text blocks (image/
-  // imageRow/video) follow their optional `languages` list in BOTH branches —
-  // absent/empty means every language, so existing data is unaffected.
-  const TEXT_BLOCK_TYPES = ['html', 'blockquote'];
-  const hasOwnText = (v: any) => typeof v?.[locale] === 'string' && v[locale].trim().length > 0;
-  const langAllows = (b: any) =>
-    !Array.isArray(b?.languages) || b.languages.length === 0 || b.languages.includes(locale);
+  /*
+   * Per-language block visibility — one rule, no fallback to another language.
+   *
+   * A block renders in this locale when BOTH hold:
+   *   1. its `languages` list allows the locale (absent/empty = every language),
+   *   2. and, for text blocks, it actually has text in THIS locale.
+   *
+   * That is what makes a language-specific block possible: a sixth block written
+   * only in German shows only to German readers, and an editor who deliberately
+   * leaves a block empty in a language keeps it off that language's article.
+   *
+   * The old code had a second branch: if a locale had no text blocks of its own
+   * it rendered ALL of them and let getLocalizedValue fall back to English. That
+   * republished hidden blocks in the wrong language, so it is gone — a locale
+   * with nothing of its own now has no article at all (the page 404s).
+   */
   const allContentBlocks: any[] = blog.contentBlocks || [];
-  const localeHasOwnBlocks = allContentBlocks.some(
-    (b) => TEXT_BLOCK_TYPES.includes(b?.type) && hasOwnText(b?.content)
-  );
-  const visibleContentBlocks = localeHasOwnBlocks
-    ? allContentBlocks.filter((b) =>
-        TEXT_BLOCK_TYPES.includes(b?.type) ? hasOwnText(b?.content) || hasOwnText(b?.title) : langAllows(b)
-      )
-    : allContentBlocks.filter((b) => TEXT_BLOCK_TYPES.includes(b?.type) || langAllows(b));
+  const visibleContentBlocks = visibleBlocksFor(allContentBlocks, locale);
 
   const renderContentBlock = (block: any, index: number) => {
     const content = getLocalizedValue(block.content, locale);

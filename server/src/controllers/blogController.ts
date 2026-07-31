@@ -9,6 +9,8 @@ import {
   PublishingValidationError,
 } from '../utils/publishing';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { localizePreservingSlugs } from '../utils/localize';
+import { narrowBlocksToLocale } from '../utils/blogBlocks';
 
 const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
   const searchRegex = createSearchRegex(search);
@@ -219,14 +221,21 @@ export const getFeaturedBlogs = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .select('-comments')
+      // The homepage draws cards — title, excerpt, image, slug. It never reads
+      // contentBlocks, and shipping full article bodies in four languages made
+      // this the single heaviest request on the site (598 KB).
+      .select('-comments -contentBlocks')
       .sort({ publishedAt: -1 })
       .limit(Number(limit));
 
+    // Localized, EXCEPT `slug` — the homepage builds per-locale article URLs
+    // from the raw { en, de, it, es } object.
+    const payload = localizePreservingSlugs(blogs, req.locale);
+
     res.status(200).json({
       success: true,
-      count: blogs.length,
-      data: blogs,
+      count: payload.length,
+      data: payload,
     });
   } catch (error: any) {
     console.error('Error fetching featured blogs:', error);
@@ -273,9 +282,16 @@ export const getBlogBySlug = async (
       return;
     }
 
+    // Localize the article, then narrow its blocks to the requested language.
+    // `slug` and `faqs` stay raw (PRESERVE_RAW) because the client resolves those
+    // per locale itself. `contentBlocks` is preserved by that same rule and then
+    // handled here, where the block-visibility rule lives.
+    const localized = localizePreservingSlugs(blog, req.locale);
+    localized.contentBlocks = narrowBlocksToLocale(localized.contentBlocks, req.locale);
+
     res.status(200).json({
       success: true,
-      data: blog,
+      data: localized,
     });
   } catch (error: any) {
     console.error('Error fetching blog:', error);

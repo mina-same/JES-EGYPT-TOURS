@@ -195,12 +195,14 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                     height={450}
                     style={{ width: "100%", height: "260px", objectFit: "cover" }}
                   />
-                  <div className='blog-card-two__date'>
-                    <span className='blog-card-two__date__day'>{post.day}</span>
-                    <span className='blog-card-two__date__month'>
-                      {post.month}
-                    </span>
-                  </div>
+                  {post.day && post.month && (
+                    <div className='blog-card-two__date'>
+                      <span className='blog-card-two__date__day'>{post.day}</span>
+                      <span className='blog-card-two__date__month'>
+                        {post.month}
+                      </span>
+                    </div>
+                  )}
                   <Link href={post.link} className='blog-card-two__image__link'>
                     <span className='sr-only'>{post.title}</span>
                   </Link>

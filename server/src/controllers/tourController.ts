@@ -3,7 +3,7 @@ import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
 import { ITour } from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
-import { localize } from '../utils/localize';
+import { localize, localizePreservingSlugs } from '../utils/localize';
 import {
   parseFutureSchedule,
   PublishingValidationError,
@@ -312,16 +312,17 @@ export const getFeaturedTours = async (
       return videoUrl ? { ...rest, videoUrl } : rest;
     });
 
-    // Return RAW (non-localized) documents — same as getFeaturedBlogs. The
-    // homepage localizes on the client (getLocalizedValue / getStrictLocalizedSlug),
-    // which needs the localized `slug` as an OBJECT { en, de, it, es } to build
-    // correct per-locale URLs. Server-side localize() would flatten slug to a
-    // single string, which the strict-slug filter treats as English-only,
-    // hiding all tours on the de/it/es pages.
+    // Localized, EXCEPT `slug`. The homepage builds per-locale URLs with
+    // getStrictLocalizedSlug(tour.slug, locale), which needs slug as an OBJECT
+    // { en, de, it, es } — a flattened slug reads as English-only and hides
+    // every tour on the de/it/es pages. Returning the rest raw (as this did)
+    // shipped all four languages of every field to every visitor.
+    const payload = localizePreservingSlugs(data, req.locale);
+
     res.status(200).json({
       success: true,
-      count: data.length,
-      data,
+      count: payload.length,
+      data: payload,
     });
   } catch (error: any) {
     console.error('Error fetching featured tours:', error);
@@ -492,7 +493,9 @@ export const getTourBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: ensureTourMapSchema(tour),
+      // Localized, but every `slug` stays raw so the language switcher and the
+      // hreflang alternates can still resolve this tour in the other locales.
+      data: localizePreservingSlugs(ensureTourMapSchema(tour), req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour by slug:', error);

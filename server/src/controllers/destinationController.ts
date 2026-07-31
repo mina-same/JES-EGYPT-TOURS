@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import Destination, { IDestination } from '../models/Destination';
 import Blog from '../models/Blog';
@@ -115,7 +116,9 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
       res.status(404).json({ success: false, error: 'Destination not found' });
       return;
     }
-    res.status(200).json({ success: true, data: destination });
+    // Localized, keeping every `slug` raw for per-locale URLs and narrowing
+    // `faqs` to the rows this language can render.
+    res.status(200).json({ success: true, data: localizePreservingSlugs(destination, req.locale) });
   } catch (error: any) {
     res.status(500).json({ success: false, error: 'Failed to fetch destination', message: error.message });
   }

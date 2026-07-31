@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import { completeOgFromMeta } from '../models/shared/LocalizedSchema';
 import BlogCategory, { IBlogCategory } from '../models/BlogCategory';
@@ -211,7 +212,13 @@ export const getCategoryBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: normalizeDocumentImage(category, category.name),
+      // normalizeDocumentImage first — it needs `name` as the raw localized
+      // object to build the image alt. Then localize, keeping every `slug` raw
+      // and narrowing `faqs` to the rows this language can actually render.
+      data: localizePreservingSlugs(
+        normalizeDocumentImage(category, category.name),
+        req.locale
+      ),
     });
   } catch (error: any) {
     console.error('Error fetching blog category by slug:', error);

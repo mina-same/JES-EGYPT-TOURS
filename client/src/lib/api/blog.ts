@@ -156,9 +156,15 @@ export async function getCategories(): Promise<BlogCategory[]> {
 }
 
 // Fetch category by slug
-export async function getCategoryBySlug(slug: string): Promise<BlogCategory> {
+/**
+ * `locale` reaches the API as the X-Locale header. Without it the server falls
+ * back to Accept-Language — absent on server-side renders, present in a browser —
+ * so the same page could render in two different languages.
+ */
+export async function getCategoryBySlug(slug: string, locale?: string): Promise<BlogCategory> {
   const res = await fetch(`${API_URL}/blog/categories/slug/${slug}`, {
     cache: 'no-store',
+    ...(locale ? { headers: { 'X-Locale': locale } } : {}),
   });
   
   if (!res.ok) {
@@ -170,10 +176,20 @@ export async function getCategoryBySlug(slug: string): Promise<BlogCategory> {
 }
 
 // Fetch subcategories by category ID
-export async function getSubCategoriesByCategory(categoryId: string): Promise<BlogSubCategory[]> {
-  const res = await fetch(`${API_URL}/blog/subcategories/category/${categoryId}`, {
-    next: { revalidate: 3600 },
-  });
+/**
+ * `locale` reaches the API as the X-Locale header AND as a query parameter.
+ * The header is what the API reads; the query parameter is there so this cached
+ * fetch gets a separate cache entry per language, otherwise one locale's response
+ * could be replayed to another. The API ignores the extra parameter.
+ */
+export async function getSubCategoriesByCategory(categoryId: string, locale?: string): Promise<BlogSubCategory[]> {
+  const res = await fetch(
+    `${API_URL}/blog/subcategories/category/${categoryId}${locale ? `?locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 3600 },
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch subcategories by category');
@@ -198,9 +214,15 @@ export async function getAllSubCategories(): Promise<BlogSubCategory[]> {
 }
 
 // Fetch subcategory by slug
-export async function getSubCategoryBySlug(slug: string): Promise<BlogSubCategory> {
+/**
+ * `locale` reaches the API as the X-Locale header. Without it the server falls
+ * back to Accept-Language — absent on server-side renders, present in a browser —
+ * so the same page could render in two different languages.
+ */
+export async function getSubCategoryBySlug(slug: string, locale?: string): Promise<BlogSubCategory> {
   const res = await fetch(`${API_URL}/blog/subcategories/slug/${slug}`, {
     cache: 'no-store',
+    ...(locale ? { headers: { 'X-Locale': locale } } : {}),
   });
   
   if (!res.ok) {
@@ -275,10 +297,20 @@ export async function getFeaturedBlogs(limit: number = 6): Promise<BlogResponse>
 }
 
 // Fetch blogs by category
-export async function getBlogsByCategory(categorySlug: string, page: number = 1, limit: number = 9): Promise<BlogResponse> {
-  const res = await fetch(`${API_URL}/blog/categories/${categorySlug}/posts?page=${page}&limit=${limit}`, {
-    next: { revalidate: 60 },
-  });
+/**
+ * `locale` reaches the API as the X-Locale header AND as a query parameter.
+ * The header is what the API reads; the query parameter is there so this cached
+ * fetch gets a separate cache entry per language, otherwise one locale's response
+ * could be replayed to another. The API ignores the extra parameter.
+ */
+export async function getBlogsByCategory(categorySlug: string, page: number = 1, limit: number = 9, locale?: string): Promise<BlogResponse> {
+  const res = await fetch(
+    `${API_URL}/blog/categories/${categorySlug}/posts?page=${page}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 60 },
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch blogs by category');
@@ -288,10 +320,20 @@ export async function getBlogsByCategory(categorySlug: string, page: number = 1,
 }
 
 // Fetch blogs by subcategory
-export async function getBlogsBySubCategory(subCategorySlug: string, page: number = 1, limit: number = 9): Promise<BlogResponse> {
-  const res = await fetch(`${API_URL}/blog/subcategories/${subCategorySlug}/posts?page=${page}&limit=${limit}`, {
-    next: { revalidate: 60 },
-  });
+/**
+ * `locale` reaches the API as the X-Locale header AND as a query parameter.
+ * The header is what the API reads; the query parameter is there so this cached
+ * fetch gets a separate cache entry per language, otherwise one locale's response
+ * could be replayed to another. The API ignores the extra parameter.
+ */
+export async function getBlogsBySubCategory(subCategorySlug: string, page: number = 1, limit: number = 9, locale?: string): Promise<BlogResponse> {
+  const res = await fetch(
+    `${API_URL}/blog/subcategories/${subCategorySlug}/posts?page=${page}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 60 },
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch blogs by subcategory');
@@ -301,9 +343,15 @@ export async function getBlogsBySubCategory(subCategorySlug: string, page: numbe
 }
 
 // Fetch single blog by slug
-export async function getBlogBySlug(slug: string): Promise<BlogPost> {
+/**
+ * `locale` is required in practice: the API narrows an article's content blocks
+ * to the requested language, and without the header it defaults to English —
+ * which then looks like "this article has nothing in German" and 404s the page.
+ */
+export async function getBlogBySlug(slug: string, locale?: string): Promise<BlogPost> {
   const res = await fetch(`${API_URL}/blog/posts/slug/${slug}`, {
     cache: 'no-store',
+    headers: locale ? { 'X-Locale': locale } : undefined,
   });
   
   if (!res.ok) {
@@ -328,9 +376,24 @@ export async function getBlogById(id: string): Promise<BlogPost> {
   return json.data;
 }
 
-// Helper function to format date
-export function formatBlogDate(dateString: string): { day: string; month: string } {
-  const date = new Date(dateString);
+// Helper function to format date. API data is runtime input, so validate it
+// even though published/created dates are normally typed as strings.
+export function formatBlogDate(dateValue: unknown): { day: string; month: string } {
+  if (
+    typeof dateValue !== 'string' &&
+    typeof dateValue !== 'number' &&
+    !(dateValue instanceof Date)
+  ) {
+    return { day: '', month: '' };
+  }
+
+  const date = dateValue instanceof Date
+    ? new Date(dateValue.getTime())
+    : new Date(dateValue);
+  if (Number.isNaN(date.getTime())) {
+    return { day: '', month: '' };
+  }
+
   return {
     day: date.getDate().toString(),
     month: date.toLocaleDateString('en-US', { month: 'short' }),

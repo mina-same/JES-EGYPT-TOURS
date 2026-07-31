@@ -89,12 +89,12 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
     const fetchData = async () => {
       setLoading(true);
       try {
-        const cat = await getCategoryBySlug(slug);
+        const cat = await getCategoryBySlug(slug, locale);
         const baseSlug = typeof cat.slug === 'object' ? cat.slug.en : cat.slug;
 
         const [subs, blogs] = await Promise.all([
-          getSubCategoriesByCategory(cat._id),
-          getBlogsByCategory(baseSlug || slug, page, 9),
+          getSubCategoriesByCategory(cat._id, locale),
+          getBlogsByCategory(baseSlug || slug, page, 9, locale),
         ]);
 
         setCategory(cat);
