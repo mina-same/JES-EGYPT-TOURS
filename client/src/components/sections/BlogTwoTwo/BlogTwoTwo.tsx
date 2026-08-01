@@ -90,7 +90,10 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
       .filter((post) => getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale))
       .map((post) => {
       const slug = getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale) || "";
-      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+      const { day, month, iso, label: dateLabel } = formatBlogDate(
+        post.publishedAt || post.createdAt,
+        currentLocale
+      );
       const image =
         typeof post.featuredImage === "string"
           ? post.featuredImage
@@ -114,9 +117,14 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
         imageAlt,
         day,
         month,
+        iso,
+        dateLabel,
         author: authorName,
         authorLink,
         category,
+        // A tag belongs on the tag listing, not back on the article the card
+        // already links to four other ways.
+        categoryLink: `/${currentLocale}/blogs?tag=${encodeURIComponent(category)}`,
         link: `/${currentLocale}/${slug}`,
       };
 
@@ -145,7 +153,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                     <button
                       type='button'
                       className='blog-two__nav__btn'
-                      aria-label='Previous articles'
+                      aria-label={t('previousArticles')}
                       onClick={() => swiper?.slidePrev()}
                     >
                       <ChevronLeft size={20} aria-hidden='true' />
@@ -153,7 +161,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                     <button
                       type='button'
                       className='blog-two__nav__btn'
-                      aria-label='Next articles'
+                      aria-label={t('nextArticles')}
                       onClick={() => swiper?.slideNext()}
                     >
                       <ChevronRight size={20} aria-hidden='true' />
@@ -197,19 +205,33 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                     className="img-fluid"
                     width={600}
                     height={450}
+                    sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
                     style={{ width: "100%", height: "260px", objectFit: "cover" }}
                   />
                   {post.day && post.month && (
-                    <div className='blog-card-two__date'>
+                    // <time> so the badge is a real publication date to crawlers
+                    // and assistive tech; the visible chip has no year, so the
+                    // full date rides along as the accessible name.
+                    <time
+                      className='blog-card-two__date'
+                      dateTime={post.iso}
+                      aria-label={post.dateLabel}
+                      title={post.dateLabel}
+                    >
                       <span className='blog-card-two__date__day'>{post.day}</span>
                       <span className='blog-card-two__date__month'>
                         {post.month}
                       </span>
-                    </div>
+                    </time>
                   )}
-                  <Link href={post.link} className='blog-card-two__image__link'>
-                    <span className='sr-only'>{post.title}</span>
-                  </Link>
+                  {/* Still clickable with a mouse, but skipped by keyboard and
+                      screen readers — the title link below is the same target. */}
+                  <Link
+                    href={post.link}
+                    className='blog-card-two__image__link'
+                    aria-hidden='true'
+                    tabIndex={-1}
+                  />
                 </div>
                 <div className='blog-card-two__content'>
                   <ul className='list-unstyled blog-card-two__meta'>
@@ -221,21 +243,31 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                         {t('by')} {post.author}
                       </Link>
                     </li>
-                    <li>
-                      <Link href={post.link}>
-                        <span className='blog-card-two__meta__icon'>
-                          <i className='icon-price-tag'></i>
-                        </span>{" "}
-                        {post.category}
-                      </Link>
-                    </li>
+                    {/* No article currently carries tags, and rendering this
+                        unconditionally left a bare icon that was also a link
+                        with no accessible name. */}
+                    {post.category && (
+                      <li>
+                        <Link href={post.categoryLink}>
+                          <span className='blog-card-two__meta__icon'>
+                            <i className='icon-price-tag'></i>
+                          </span>{" "}
+                          {post.category}
+                        </Link>
+                      </li>
+                    )}
                   </ul>
                   <h3 className='blog-card-two__title'>
                     <Link href={post.link}>{post.title}</Link>
                   </h3>
+                  {/* Visible call to action, but the title link already exposes
+                      this destination — keeping it out of the tab order stops
+                      each card costing four stops to pass. */}
                   <Link
                     href={post.link}
                     className='blog-card-two__content__btn'
+                    aria-hidden='true'
+                    tabIndex={-1}
                   >
                     {t('readMore')} <i className='icon-arrow-right'></i>
                   </Link>

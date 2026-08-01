@@ -24,7 +24,7 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
       .filter((post) => getStrictLocalizedSlug(post.slug, locale as SupportedLocale))
       .slice(0, 3)
       .map((post) => {
-      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, locale);
       const image = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
       const imageTitle = typeof post.featuredImage === 'object' ? getLocalizedValue(post.featuredImage?.title, locale) : '';
       const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';

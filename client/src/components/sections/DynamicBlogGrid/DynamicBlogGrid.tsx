@@ -31,7 +31,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
     return (
       <Row className='gutter-y-20'>
         {renderableBlogs.map((post, index) => {
-          const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+          const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, currentLocale);
           const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
           const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
             ? getLocalizedValue(post.featuredImage.alt, currentLocale)
@@ -87,7 +87,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
       <Container>
         <Row className='gutter-y-30'>
           {renderableBlogs.map((post, index) => {
-            const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+            const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, currentLocale);
             const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
             const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
               ? getLocalizedValue(post.featuredImage.alt, currentLocale)

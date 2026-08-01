@@ -110,7 +110,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
 
 
-  const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt);
+  const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt, locale);
   const selectedAuthor = blog.editorialAuthor;
   const author = selectedAuthor?.name || EDITORIAL_AUTHOR.name;
   const editorialAuthorHref = `/${locale}/authors/${selectedAuthor?.slug || 'madonna-roshdey'}`;
@@ -509,7 +509,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     if (posts.length === 0) return null;
 
     const postCards = posts.map((post: any, idx: number) => {
-      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, locale);
       const postTitle = getLocalizedValue(post.title, locale);
       const postSlug = getStrictLocalizedSlug(post.slug, locale as SupportedLocale);
       if (!postSlug) return null;

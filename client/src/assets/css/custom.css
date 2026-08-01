@@ -2804,6 +2804,31 @@ button[data-action="stop"] {
 .blog-two__carousel .swiper-slide {
   height: auto;
 }
+/* The slide above stretches to the row height, but the card inside kept its
+   own natural height, so a two-line title left its grey panel ending short of
+   its neighbours'. Make the card fill the slide and push the CTA to the floor
+   so the panels line up whatever the title length. */
+.blog-two__carousel .blog-card-two--one {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.blog-two__carousel .blog-card-two--one .blog-card-two__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.blog-two__carousel .blog-card-two--one .blog-card-two__content__btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+/* The theme capitalises every word, which turns "Valley of the Kings" into
+   "Valley Of The Kings" and is plainly wrong in German, where only nouns take
+   a capital. Titles arrive correctly cased from the CMS — leave them alone. */
+.blog-card-two__title,
+.blog-card-two--one .blog-card-two__title {
+  text-transform: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .blog-two__nav__btn {
     transition: none;

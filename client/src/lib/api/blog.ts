@@ -393,26 +393,76 @@ export async function getBlogById(id: string): Promise<BlogPost> {
   return json.data;
 }
 
+/**
+ * Short month names per locale, spelled out instead of read from `Intl`.
+ * `toLocaleDateString` resolves through whichever ICU build is present, and
+ * Node's and the browser's can disagree on an abbreviation — which on a date
+ * rendered during SSR shows up as a hydration mismatch. A fixed table renders
+ * the same string on both sides, every time.
+ */
+const SHORT_MONTHS: Record<string, readonly string[]> = {
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  de: ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.'],
+  it: ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'],
+  es: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+};
+
+const FULL_MONTHS: Record<string, readonly string[]> = {
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+  it: ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'],
+  es: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+};
+
+/**
+ * How each language writes a full date. This one is read aloud (it is the
+ * badge's accessible name), so "30 de junio de 2026" beats "30 junio 2026".
+ */
+const DATE_LABEL: Record<string, (day: string, month: string, year: number) => string> = {
+  en: (d, m, y) => `${d} ${m} ${y}`,
+  de: (d, m, y) => `${d}. ${m} ${y}`,
+  it: (d, m, y) => `${d} ${m} ${y}`,
+  es: (d, m, y) => `${d} de ${m} de ${y}`,
+};
+
+export interface BlogDateParts {
+  day: string;
+  month: string;
+  /** ISO date for <time dateTime="…"> so the badge is machine-readable. */
+  iso: string;
+  /** Full date including the year — the badge itself only shows day + month. */
+  label: string;
+}
+
+const EMPTY_DATE: BlogDateParts = { day: '', month: '', iso: '', label: '' };
+
 // Helper function to format date. API data is runtime input, so validate it
 // even though published/created dates are normally typed as strings.
-export function formatBlogDate(dateValue: unknown): { day: string; month: string } {
+export function formatBlogDate(dateValue: unknown, locale = 'en'): BlogDateParts {
   if (
     typeof dateValue !== 'string' &&
     typeof dateValue !== 'number' &&
     !(dateValue instanceof Date)
   ) {
-    return { day: '', month: '' };
+    return EMPTY_DATE;
   }
 
   const date = dateValue instanceof Date
     ? new Date(dateValue.getTime())
     : new Date(dateValue);
   if (Number.isNaN(date.getTime())) {
-    return { day: '', month: '' };
+    return EMPTY_DATE;
   }
 
+  const monthIndex = date.getMonth();
+  const day = date.getDate().toString();
+  const short = SHORT_MONTHS[locale] || SHORT_MONTHS.en;
+  const full = FULL_MONTHS[locale] || FULL_MONTHS.en;
+
   return {
-    day: date.getDate().toString(),
-    month: date.toLocaleDateString('en-US', { month: 'short' }),
+    day,
+    month: short[monthIndex],
+    iso: date.toISOString().slice(0, 10),
+    label: (DATE_LABEL[locale] || DATE_LABEL.en)(day, full[monthIndex], date.getFullYear()),
   };
 }
