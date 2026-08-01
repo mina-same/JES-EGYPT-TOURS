@@ -5,6 +5,7 @@ import {
   ILocalizedString, 
   ILocalizedMixed, 
   LocalizedStringSchema, 
+  OptionalLocalizedStringSchema,
   LocalizedMixedSchema 
 } from './shared/LocalizedSchema';
 import { ICuratedReview, CuratedReviewSchema } from './shared/CuratedReviewSchema';
@@ -152,7 +153,7 @@ const TourCategorySchema = new Schema<ITourCategory>(
      * to `name` shortened at its first separator, so nothing breaks unfilled.
      */
     shortName: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     slug: {
       type: LocalizedStringSchema,

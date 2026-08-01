@@ -164,62 +164,56 @@ const TourCard: React.FC<TourCardProps> = ({
           )}
 
           <div className="listing-card-four__btns">
+            {/* Buttons, not links: none of these navigate. As anchors with
+                href="#" they announced themselves to screen readers as links to
+                nowhere and could not be reached the way a control should be. */}
             {onRemove ? (
-              <Link
-                href="#"
+              <button
+                type="button"
                 aria-label={t("tourCard.removeFromWishlist")}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onRemove(item.id);
-                }}
+                onClick={() => onRemove(item.id)}
               >
                 <i className="far fa-trash-alt"></i>
-              </Link>
+              </button>
             ) : (
-              <Link
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  toggleWishlist?.(item.id);
-                }}
+              <button
+                type="button"
+                onClick={() => toggleWishlist?.(item.id)}
                 aria-label={t(
                   wishlisted ? "tourCard.removeFromWishlist" : "tourCard.addToWishlist"
                 )}
+                aria-pressed={wishlisted}
                 className={wishlisted ? "is-active" : undefined}
               >
                 <i className={wishlisted ? "fas fa-heart" : "far fa-heart"}></i>
-              </Link>
+              </button>
             )}
 
             {(galleryImages.length > 0 || canPlayVideo || canOpenReviews) && (
               <div className="listing-card-four__btns__hover">
                 {galleryImages.length > 0 && (
-                  <Link
-                    href="#"
+                  <button
+                    type="button"
                     className="listing-card-four__popup card__popup"
                     aria-label={t("tourCard.viewPhotos")}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openTourImages(galleryImages);
-                    }}
+                    onClick={() => openTourImages(galleryImages)}
                   >
                     <span className="icon-image"></span>
-                  </Link>
+                  </button>
                 )}
 
                 {(canPlayVideo || canOpenReviews) && (
-                  <Link
+                  <button
+                    type="button"
                     className="video-popup"
-                    href="#"
                     aria-label={t("tourCard.playVideo")}
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       if (canPlayVideo) onPlayVideo!(item.videoId as string);
                       else openVideoReviews!(item.slug as string);
                     }}
                   >
                     <span className="icon-video"></span>
-                  </Link>
+                  </button>
                 )}
               </div>
             )}

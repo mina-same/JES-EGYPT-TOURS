@@ -265,6 +265,23 @@ export const tourAPI = {
   },
 
   /**
+   * Resolve several tours at once — card fields only.
+   *
+   * For the wishlist, which used to fire one getById per saved tour and pull a
+   * whole document (itinerary, FAQs, pricing plans) to draw a card. A tour that
+   * is currently deactivated comes back reduced to `{ _id, isActive: false }`
+   * so it can be shown as unavailable without being dropped; a tour that no
+   * longer exists is simply absent from the reply.
+   */
+  getByIds: async (ids: string[]) => {
+    const response = await axiosInstance.get<ApiResponse<any[]>>(
+      `${API_BASE}/by-ids`,
+      { params: { ids: ids.join(',') } }
+    );
+    return response.data;
+  },
+
+  /**
    * Get tour by slug
    */
   getBySlug: async (slug: string, locale?: string) => {

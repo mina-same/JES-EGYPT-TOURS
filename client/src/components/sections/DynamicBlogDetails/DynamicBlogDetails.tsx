@@ -29,10 +29,25 @@ interface DynamicBlogDetailsProps {
 
 const EDITORIAL_AUTHOR = {
   name: 'Madonna Roshdey',
-  role: 'Travel Specialist at Jes Egypt Tours',
+  role: {
+    en: 'Travel Specialist at Jes Egypt Tours',
+    de: 'Reisespezialistin bei Jes Egypt Tours',
+    it: 'Travel Specialist di Jes Egypt Tours',
+    es: 'Especialista en viajes en Jes Egypt Tours',
+  },
   image: '/images/authors/madonna-roshdey-author.jpg',
-  alt: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
-  bio: 'Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.',
+  alt: {
+    en: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
+    de: 'Madonna Roshdey, Reisespezialistin bei Jes Egypt Tours',
+    it: 'Madonna Roshdey, Travel Specialist di Jes Egypt Tours',
+    es: 'Madonna Roshdey, Especialista en viajes en Jes Egypt Tours',
+  },
+  bio: {
+    en: "Madonna Roshdey is a travel specialist at Jes Egypt Tours, where she helps international travelers plan private tours across Egypt. The tips she shares come from trips she's actually taken, not just research she's done.",
+    de: 'Madonna Roshdey ist Reisespezialistin bei Jes Egypt Tours und hilft internationalen Reisenden dabei, private Touren durch Ägypten zu planen. Die Tipps, die sie teilt, stammen aus Reisen, die sie selbst gemacht hat – nicht nur aus Recherchen am Schreibtisch.',
+    it: "Madonna Roshdey è una travel specialist di Jes Egypt Tours e aiuta viaggiatori internazionali a organizzare tour privati in tutto l'Egitto. I consigli che condivide nascono da viaggi che ha realmente vissuto, non da semplici ricerche.",
+    es: 'Madonna Roshdey es especialista en viajes en Jes Egypt Tours y ayuda a viajeros internacionales a planificar tours privados por todo Egipto. Los consejos que comparte vienen de viajes que ella misma ha vivido, no solo de investigaciones de escritorio.',
+  },
 };
 
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
@@ -99,12 +114,20 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const selectedAuthor = blog.editorialAuthor;
   const author = selectedAuthor?.name || EDITORIAL_AUTHOR.name;
   const editorialAuthorHref = `/${locale}/authors/${selectedAuthor?.slug || 'madonna-roshdey'}`;
-  const authorRole = selectedAuthor ? getLocalizedValue(selectedAuthor.role, locale) : EDITORIAL_AUTHOR.role;
-  const authorBio = selectedAuthor ? getLocalizedValue(selectedAuthor.bio, locale) : EDITORIAL_AUTHOR.bio;
+  const isDefaultEditorialAuthor = !selectedAuthor || selectedAuthor.slug === 'madonna-roshdey';
+  const authorRole = getLocalizedValue(
+    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.role : selectedAuthor.role,
+    locale
+  );
+  const authorBio = getLocalizedValue(
+    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.bio : selectedAuthor.bio,
+    locale
+  );
   const authorImage = selectedAuthor?.image?.url || EDITORIAL_AUTHOR.image;
-  const authorImageAlt = selectedAuthor
-    ? getLocalizedValue(selectedAuthor.image?.alt, locale) || selectedAuthor.name
-    : EDITORIAL_AUTHOR.alt;
+  const authorImageAlt = getLocalizedValue(
+    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.alt : selectedAuthor.image?.alt,
+    locale
+  ) || author;
   
   const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
@@ -414,7 +437,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           className="blog-author-box__avatar"
         />
         <div className="blog-author-box__content">
-          <h2 id="blog-author-title" className="blog-author-box__title">About the author</h2>
+          <h2 id="blog-author-title" className="blog-author-box__title">{t('aboutAuthor')}</h2>
           <h3 className="blog-author-box__name">
             <Link href={editorialAuthorHref} className="blog-author-box__name-link">
               {author}

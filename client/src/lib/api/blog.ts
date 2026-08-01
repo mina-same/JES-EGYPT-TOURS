@@ -235,7 +235,9 @@ export async function getSubCategoryBySlug(slug: string, locale?: string): Promi
 
 // Fetch all blogs with pagination
 export async function getAllBlogs(
-  pageOrOptions: number | { page?: number; limit?: number; search?: string; tags?: string; isFeatured?: boolean } = 1,
+  pageOrOptions:
+    | number
+    | { page?: number; limit?: number; search?: string; tags?: string; isFeatured?: boolean; locale?: string } = 1,
   limitArg: number = 9
 ): Promise<BlogResponse> {
   let page = 1;
@@ -243,6 +245,7 @@ export async function getAllBlogs(
   let search = '';
   let tags: string | undefined = undefined;
   let isFeatured: boolean | undefined = undefined;
+  let locale: string | undefined = undefined;
 
   if (typeof pageOrOptions === 'object') {
     page = pageOrOptions.page || 1;
@@ -250,6 +253,7 @@ export async function getAllBlogs(
     search = pageOrOptions.search || '';
     tags = pageOrOptions.tags;
     isFeatured = pageOrOptions.isFeatured;
+    locale = pageOrOptions.locale;
   } else {
     page = pageOrOptions;
     limit = limitArg;
@@ -272,9 +276,16 @@ export async function getAllBlogs(
     queryParams.append('isFeatured', isFeatured.toString());
   }
 
-  const res = await fetch(`${API_URL}/blog/posts?${queryParams.toString()}`, {
-    next: { revalidate: 60 }, // Revalidate every minute
-  });
+  // `locale` travels as the X-Locale header AND in the query string: the header
+  // is what the API reads, the query parameter gives this cached fetch its own
+  // entry per language so one locale's list is never replayed to another.
+  const res = await fetch(
+    `${API_URL}/blog/posts?${queryParams.toString()}${locale ? `&locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 60 }, // Revalidate every minute
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch blogs');
@@ -284,10 +295,16 @@ export async function getAllBlogs(
 }
 
 // Fetch featured blogs for homepage
-export async function getFeaturedBlogs(limit: number = 6): Promise<BlogResponse> {
-  const res = await fetch(`${API_URL}/blog/posts/featured?limit=${limit}`, {
-    next: { revalidate: 60 },
-  });
+export async function getFeaturedBlogs(limit: number = 6, locale?: string): Promise<BlogResponse> {
+  // Locale in the header for the API, and in the URL so this cached fetch keeps
+  // one entry per language.
+  const res = await fetch(
+    `${API_URL}/blog/posts/featured?limit=${limit}${locale ? `&locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 60 },
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch featured blogs');

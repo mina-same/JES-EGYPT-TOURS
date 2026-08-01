@@ -23,6 +23,8 @@ const FLAG_COMPONENTS: Record<string, any> = {
   es: ES,
 };
 
+const LOCALES: readonly string[] = ["en", "de", "it", "es"];
+
 const STATIC_PATHS = new Set([
   "/",
   "/about",
@@ -33,6 +35,7 @@ const STATIC_PATHS = new Set([
   "/tailor-made",
   "/travel-trade",
   "/privacy-policy",
+  "/payment-cancellation-policy",
   "/search",
   "/wishlist",
   "/tours",
@@ -88,15 +91,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const { localizedSlugs } = useSlugs();
   const router = useRouter();
   const pathname = usePathname();
-  const locales = ["en", "de", "it", "es"];
   const pathLocale = useMemo(() => {
     const seg = (pathname || "/").split("/")[1] || "";
-    return locales.includes(seg) ? seg : "";
+    return LOCALES.includes(seg) ? seg : "";
   }, [pathname]);
   const normalizedPath = useMemo(() => {
     const parts = (pathname || "/").split("/");
     const first = parts[1] || "";
-    if (locales.includes(first)) {
+    if (LOCALES.includes(first)) {
       return "/" + parts.slice(2).join("/");
     }
     return pathname || "/";

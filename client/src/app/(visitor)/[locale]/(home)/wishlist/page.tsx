@@ -29,6 +29,9 @@ type WishlistTour = {
   images?: Array<{ url: string }>;
   gallery?: Array<{ url: string }>;
   reviews?: Array<any>;
+  reviewsCount?: number;
+  /** false when the tour is currently switched off — it stays saved, shown as unavailable. */
+  isActive?: boolean;
   duration?: string;
   tourLocation?: string;
   tourType?: string;
@@ -70,28 +73,28 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
       try {
         setLoading(true);
         setError(null);
-        // Each id is resolved on its own: one deleted tour used to reject the
-        // whole Promise.all and blank the entire page. A 404 means the tour is
-        // gone for good, so the saved id is dropped too — that keeps the header
-        // count in step with what the page can actually show. Any other failure
-        // (offline, 5xx) is transient and must never discard a saved id.
-        const goneIds: string[] = [];
-        const results = await Promise.all(
-          ids.map(async (id) => {
-            try {
-              const res = await tourAPI.getById(id);
-              return res.success ? res.data : null;
-            } catch (err: unknown) {
-              const status = (err as { response?: { status?: number } })?.response?.status;
-              if (status === 404) goneIds.push(id);
-              return null;
-            }
-          })
-        );
+        /*
+         * One request for the whole wishlist, card fields only. This used to be
+         * a getById per saved tour, each returning the full document — itinerary,
+         * FAQs, pricing plans — to draw a card.
+         *
+         * The reply answers all three possible states for an id:
+         *   returned, active    → a normal card
+         *   returned, inactive  → the tour is hidden right now; it STAYS in the
+         *                         wishlist, shown as unavailable
+         *   not returned at all → deleted for good, so the saved id goes too
+         *
+         * A failed request throws and is handled below: it must never be read
+         * as "all of these were deleted".
+         */
+        const res = await tourAPI.getByIds(ids);
         if (!active) return;
-        const filtered = results.filter(Boolean) as WishlistTour[];
-        setTours(filtered);
-        goneIds.forEach(removeFromWishlist);
+
+        const returned = Array.isArray(res?.data) ? (res.data as WishlistTour[]) : [];
+        const returnedIds = new Set(returned.map((t) => String(t._id)));
+        ids.filter((id) => !returnedIds.has(String(id))).forEach(removeFromWishlist);
+
+        setTours(returned);
 
         // Determine most common category among wishlist tours
         const categoryCounts: Record<string, number> = {};
@@ -104,7 +107,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           if (t?.subcategory?._id) return t.subcategory._id; // fallback: subcategory id
           return null;
         };
-        filtered.forEach((t) => {
+        returned.forEach((t) => {
           const cid = pickCategoryId(t);
           if (cid) categoryCounts[cid] = (categoryCounts[cid] || 0) + 1;
         });
@@ -128,7 +131,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           }
         }
         // Filter out already wishlisted tours
-        const wishIds = new Set(filtered.map((t) => t._id));
+        const wishIds = new Set(returned.map((t) => t._id));
         const mapped = (rec || [])
           .filter((t: any) => !wishIds.has(t._id))
           // Only recommend tours that have a real slug for the current locale,
@@ -219,10 +222,32 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           ) : (
             <Row className="gutter-y-30 gutter-x-30">
               {tours.map((tour) => {
+                // Switched off right now. The API sends only { _id, isActive }
+                // for these — deactivated content is not published through the
+                // wishlist — so there is nothing to draw a card with. The saved
+                // tour stays put, plainly marked, with a way to drop it.
+                if (tour.isActive === false) {
+                  return (
+                    <Col lg={4} md={6} key={tour._id}>
+                      <div className="wishlist-unavailable">
+                        <p className="wishlist-unavailable__title">{t('unavailableTitle')}</p>
+                        <p className="wishlist-unavailable__text">{t('unavailableText')}</p>
+                        <button
+                          type="button"
+                          className="wishlist-unavailable__remove"
+                          onClick={() => toggleWishlist(tour._id)}
+                        >
+                          {t('remove')}
+                        </button>
+                      </div>
+                    </Col>
+                  );
+                }
+
                 const image = getPrimaryImage(tour);
                 const title = tour.heading || tour.name || "Untitled Tour";
                 const price = tour.priceStartingFrom || { USD: 0 };
-                const reviews = tour.reviews?.length || 0;
+                const reviews = tour.reviewsCount ?? tour.reviews?.length ?? 0;
                 // The API localizes documents for this page, so name/shortName
                 // usually arrive as plain strings already.
                 const sub = tour.subcategory as any;

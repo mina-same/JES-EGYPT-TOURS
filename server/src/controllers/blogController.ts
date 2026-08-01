@@ -85,7 +85,10 @@ export const getAllBlogs = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .select('-comments') // Exclude comments from list view
+      // Article bodies are for the article page, never for a list of cards.
+      // Shipping them made /blogs/all a 984 KB page — four languages of every
+      // content block for nine articles nobody had opened yet.
+      .select('-comments -contentBlocks')
       .sort('-publishedAt')
       .skip(skip)
       .limit(Number(limit));
@@ -95,7 +98,8 @@ export const getAllBlogs = async (
     res.status(200).json({
       success: true,
       count: blogs.length,
-      data: blogs,
+      // Localized, with `slug` kept raw so per-locale card links still resolve.
+      data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
         page: Number(page),
         limit: Number(limit),

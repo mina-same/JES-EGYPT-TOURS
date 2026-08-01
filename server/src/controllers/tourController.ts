@@ -403,6 +403,78 @@ export const getToursBySubcategory = async (
 };
 
 /**
+ * @desc    Resolve many tours at once, for the visitor's saved wishlist
+ * @route   GET /api/tours/by-ids?ids=a,b,c
+ * @access  Public
+ *
+ * Replaces one full-document request per saved tour. Only card fields are
+ * returned, and the reply answers the question the wishlist actually has about
+ * every id — is this tour still bookable, merely unavailable, or gone?
+ *
+ *   present with isActive true   → render the card
+ *   present with isActive false  → the tour is hidden right now; the visitor
+ *                                  keeps it, shown as unavailable. Deliberately
+ *                                  reduced to { _id, isActive } so deactivated
+ *                                  content is not published through this route.
+ *   absent from the reply        → deleted for good; the client drops the id
+ *
+ * That distinction is the whole point: a tour switched off for a day must not
+ * silently disappear from everyone's wishlist.
+ */
+export const getToursByIds = async (
+  req: Request<{}, {}, {}, { ids?: string }>,
+  res: Response
+): Promise<void> => {
+  try {
+    const requested = (req.query.ids || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => /^[0-9a-fA-F]{24}$/.test(id))
+      // A wishlist is a handful of tours; the cap stops a crafted URL from
+      // turning this into an "export the catalogue" endpoint.
+      .slice(0, 100);
+
+    if (requested.length === 0) {
+      res.status(200).json({ success: true, count: 0, data: [] });
+      return;
+    }
+
+    const tours = await Tour.find({ _id: { $in: requested } })
+      .select(
+        'heading name slug images priceStartingFrom reviewsCount duration tourLocation ' +
+          'subcategory cardDescription Description isActive specialOfferDiscount videoLink'
+      )
+      // `category` inside the subcategory is what the wishlist page uses to pick
+      // its recommendations — dropping it makes them silently fall back to
+      // "latest tours" with no error anywhere.
+      .populate({
+        path: 'subcategory',
+        select: 'name shortName slug category',
+        populate: { path: 'category', select: '_id name slug' },
+      })
+      .lean();
+
+    const data = tours.map((tour: any) =>
+      tour.isActive === false ? { _id: tour._id, isActive: false } : tour
+    );
+
+    res.status(200).json({
+      success: true,
+      count: data.length,
+      // slug stays raw for per-locale links; faqs are absent from the projection.
+      data: localizePreservingSlugs(data, req.locale),
+    });
+  } catch (error: any) {
+    console.error('Error fetching tours by ids:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch tours',
+      message: error.message,
+    });
+  }
+};
+
+/**
  * @desc    Get single tour by ID
  * @route   GET /api/tours/:id
  * @access  Public

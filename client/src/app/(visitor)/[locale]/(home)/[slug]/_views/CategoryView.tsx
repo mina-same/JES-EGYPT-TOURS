@@ -442,7 +442,7 @@ export default function CategoryView({
           getLocalizedValue(category.name, locale)
         }
         breadcrumbs={[
-          { label: getLocalizedValue(category.name, locale) },
+          { label: getDisplayName(category, locale) },
         ]}
       />
 

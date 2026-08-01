@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Accordion, Col, Container, Row } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
 import Image, { StaticImageData } from "next/image";
@@ -92,69 +92,101 @@ export interface FaqData {
   faqTabsContent: FaqTabContent[];
 }
 
+/**
+ * Groups the questions by category and resolves each one into the active
+ * language. Pure, and at module scope, so the server render and the browser
+ * fetch produce identical output from identical input — which is what keeps
+ * hydration quiet.
+ *
+ * No placement filtering happens here: both callers ask the API for
+ * `displayOnHome: false`, so everything that arrives belongs on this page.
+ * Filtering a second time in the browser is what once made the page's FAQPage
+ * schema advertise questions the visitor could not see.
+ */
+function buildFaqData(
+  data: FAQ[],
+  currentLang: 'en' | 'de' | 'it' | 'es',
+  t: (key: string) => string
+): FaqData {
+  const grouped = data.reduce((acc, faq) => {
+    const category = faq.category || t('categoryGeneral');
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(faq);
+    return acc;
+  }, {} as Record<string, FAQ[]>);
+
+  const categories = Object.keys(grouped).sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: 'base' })
+  );
+
+  const tabs: FaqTab[] = categories.map((category, index) => ({
+    id: String(index + 1),
+    title: category,
+  }));
+
+  const faqTabsContent: FaqTabContent[] = tabs.map((tab, index) => ({
+    id: String(index + 1),
+    faqId: tab.id,
+    faqContent: [
+      {
+        id: `content-${tab.id}`,
+        title: tab.title,
+        faqs: (grouped[tab.title] || []).map((f) => ({
+          question: getLocalizedValue(f.question, currentLang),
+          answer: getLocalizedValue(f.answer, currentLang),
+        })),
+      },
+    ],
+  }));
+
+  return {
+    title: t('sectionTitle'),
+    subTitle: t('sectionSubTitle'),
+    image,
+    faqTabs: tabs,
+    faqTabsContent,
+  };
+}
+
 const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
   const { i18n, t } = useTranslation('faq');
   const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
-  const [activeTab, setActiveTab] = useState<string>("1");
-  const [faqData, setFaqData] = useState<FaqData | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  /*
+   * Built during render, not in an effect.
+   *
+   * Effects do not run while the server renders, so shaping the questions there
+   * meant the server sent only a loading skeleton and the accordion appeared
+   * after hydration. The page still declared a FAQPage schema listing questions
+   * that were nowhere in the HTML — structured data with no matching visible
+   * content, which is exactly what Google penalises. useMemo puts the questions
+   * in the server output, and hydration matches because both sides shape the
+   * same `initialData` the same way.
+   */
+  const initialFaqData = useMemo(
+    () => (initialData && initialData.length > 0 ? buildFaqData(initialData, currentLang, t) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [initialData, currentLang]
+  );
+
+  const [activeTab, setActiveTab] = useState<string>(
+    () => initialFaqData?.faqTabs[0]?.id ?? "1"
+  );
+  const [faqData, setFaqData] = useState<FaqData | null>(initialFaqData);
+  const [loading, setLoading] = useState(!initialFaqData);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const processFaqs = (data: FAQ[]) => {
-      const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
-      const faqsForFaqPage = data.filter((f) => !f.displayOnHome);
-
-      const grouped = faqsForFaqPage.reduce((acc, faq) => {
-        const category = faq.category || t('categoryGeneral');
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(faq);
-        return acc;
-      }, {} as Record<string, FAQ[]>);
-
-      const categories = Object.keys(grouped).sort((a, b) =>
-        a.localeCompare(b, undefined, { sensitivity: "base" })
-      );
-
-      const tabs: FaqTab[] = categories.map((category, index) => ({
-        id: String(index + 1),
-        title: category,
-      }));
-
-      const tabContents: FaqTabContent[] = tabs.map((tab, index) => {
-        const faqsForCategory = grouped[tab.title] || [];
-        return {
-          id: String(index + 1),
-          faqId: tab.id,
-          faqContent: [
-            {
-              id: `content-${tab.id}`,
-              title: tab.title,
-              faqs: faqsForCategory.map((f) => ({
-                question: getLocalizedValue(f.question, currentLang),
-                answer: getLocalizedValue(f.answer, currentLang),
-              })),
-            },
-          ],
-        };
-      });
-
-      const structured: FaqData = {
-        title: t('sectionTitle'),
-        subTitle: t('sectionSubTitle'),
-        image,
-        faqTabs: tabs,
-        faqTabsContent: tabContents,
-      };
-
+      const structured = buildFaqData(data, currentLang, t);
       setFaqData(structured);
-      if (tabs.length > 0) {
-        setActiveTab((prev) => prev || tabs[0].id);
+      if (structured.faqTabs.length > 0) {
+        setActiveTab((prev) => prev || structured.faqTabs[0].id);
       }
     };
 
+    // Already shaped during render — nothing left for the effect to do.
     if (initialData && initialData.length > 0) {
-      processFaqs(initialData);
       setLoading(false);
       return;
     }
@@ -166,8 +198,11 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
 
         const response = await faqService.getAllFaqs({
           isActive: true,
+          // Must match the server render — see the note in processFaqs.
+          displayOnHome: false,
           sort: "category,order",
           limit: 200,
+          locale: currentLang,
         });
 
         if (!response.success || !response.data) {

@@ -58,7 +58,7 @@ export const getAllDestinations = async (
       totalPages: Math.ceil(total / limit),
       hasNextPage: page < Math.ceil(total / limit),
       hasPrevPage: page > 1,
-      data: destinations,
+      data: localizePreservingSlugs(destinations, req.locale),
     });
   } catch (error: any) {
     res.status(500).json({ success: false, error: 'Failed to fetch destinations', message: error.message });

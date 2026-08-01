@@ -32,6 +32,7 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
           displayOnHome: true,
           sort: "category,order",
           limit: 8,
+          locale: i18n.language,
         });
         if (response.success && response.data) {
           setFaqs(response.data);

@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { API_URL } from '@/config/api';
 import { getLocalizedStaticPath, getSeoBaseUrl, getStrictLocalizedSlug, SUPPORTED_LOCALES } from '@/lib/url';
+import { getLocalesWithFaqs } from '@/lib/faqLocales';
 
 const baseUrl = getSeoBaseUrl();
 
@@ -63,18 +64,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // NOTE: pages with a per-locale slug are NOT listed here — they go through
   // the localized block below so the sitemap emits the final (non-redirecting)
   // URL for every language.
-  const staticPages = ['', '/faq', '/tours', '/blogs', '/privacy-policy'];
-  
+  const staticPages = [
+    '',
+    '/faq',
+    '/tours',
+    '/blogs',
+    '/privacy-policy',
+    '/payment-cancellation-policy',
+  ];
+
+  // /faq 404s in a language that has no questions of its own, so it is listed
+  // only for the languages that serve it — a sitemap must never advertise a URL
+  // that answers 404.
+  const localesWithFaqs = await getLocalesWithFaqs();
+
   const entries: MetadataRoute.Sitemap = [];
 
   // 1. Static Pages
   staticPages.forEach((path) => {
     SUPPORTED_LOCALES.forEach((locale) => {
+      if (path === '/faq' && !localesWithFaqs.includes(locale)) return;
       entries.push({
         url: `${baseUrl}/${locale}${path}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
-        priority: path === '' ? 1 : path === '/privacy-policy' ? 0.4 : 0.8,
+        priority: path === '' ? 1 : path.endsWith('policy') ? 0.4 : 0.8,
       });
     });
   });

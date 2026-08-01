@@ -10,13 +10,30 @@ export const ensureDefaultEditorialAuthor = async () => EditorialAuthor.findOneA
     $setOnInsert: {
       name: 'Madonna Roshdey',
       slug: 'madonna-roshdey',
-      role: { en: 'Travel Specialist at Jes Egypt Tours' },
-      bio: { en: 'Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.' },
+      isActive: true,
+    },
+    $set: {
+      role: {
+        en: 'Travel Specialist at Jes Egypt Tours',
+        de: 'Reisespezialistin bei Jes Egypt Tours',
+        it: 'Travel Specialist di Jes Egypt Tours',
+        es: 'Especialista en viajes en Jes Egypt Tours',
+      },
+      bio: {
+        en: "Madonna Roshdey is a travel specialist at Jes Egypt Tours, where she helps international travelers plan private tours across Egypt. The tips she shares come from trips she's actually taken, not just research she's done.",
+        de: 'Madonna Roshdey ist Reisespezialistin bei Jes Egypt Tours und hilft internationalen Reisenden dabei, private Touren durch Ägypten zu planen. Die Tipps, die sie teilt, stammen aus Reisen, die sie selbst gemacht hat – nicht nur aus Recherchen am Schreibtisch.',
+        it: "Madonna Roshdey è una travel specialist di Jes Egypt Tours e aiuta viaggiatori internazionali a organizzare tour privati in tutto l'Egitto. I consigli che condivide nascono da viaggi che ha realmente vissuto, non da semplici ricerche.",
+        es: 'Madonna Roshdey es especialista en viajes en Jes Egypt Tours y ayuda a viajeros internacionales a planificar tours privados por todo Egipto. Los consejos que comparte vienen de viajes que ella misma ha vivido, no solo de investigaciones de escritorio.',
+      },
       image: {
         url: '/images/authors/madonna-roshdey-author.jpg',
-        alt: { en: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours' },
+        alt: {
+          en: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
+          de: 'Madonna Roshdey, Reisespezialistin bei Jes Egypt Tours',
+          it: 'Madonna Roshdey, Travel Specialist di Jes Egypt Tours',
+          es: 'Madonna Roshdey, Especialista en viajes en Jes Egypt Tours',
+        },
       },
-      isActive: true,
     },
   },
   { upsert: true, new: true }

@@ -49,6 +49,8 @@ export interface FAQQueryParams {
   limit?: number;
   sort?: string;
   search?: string;
+  /** 'en' | 'de' | 'it' | 'es' for visitors, or 'bypass' for the admin. */
+  locale?: string;
 }
 
 class FaqService {
@@ -69,8 +71,14 @@ class FaqService {
         ? `${API_ENDPOINTS.FAQ.BASE}?${searchParams.toString()}`
         : API_ENDPOINTS.FAQ.BASE;
 
-      const response = await fetch(url);
-      
+      // The API narrows FAQs to the requested language and drops rows that have
+      // no question/answer in it. Visitor callers pass their locale; the ADMIN
+      // must pass 'bypass' so the editor always sees every row in every
+      // language — otherwise an Italian-only FAQ would vanish from the list.
+      const response = await fetch(url, {
+        ...(params?.locale ? { headers: { 'X-Locale': params.locale } } : {}),
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch FAQs: ${response.statusText}`);
       }
@@ -83,9 +91,11 @@ class FaqService {
   }
 
   // Get FAQs specifically for home page
-  async getHomeFaqs(limit: number = 8): Promise<FAQResponse> {
+  async getHomeFaqs(limit: number = 8, locale?: string): Promise<FAQResponse> {
     try {
-      const response = await fetch(`${API_ENDPOINTS.FAQ.HOME}?limit=${limit}`);
+      const response = await fetch(`${API_ENDPOINTS.FAQ.HOME}?limit=${limit}`, {
+        ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+      });
       
       if (!response.ok) {
         throw new Error(`Failed to fetch home FAQs: ${response.statusText}`);
@@ -98,10 +108,28 @@ class FaqService {
     }
   }
 
-  // Get single FAQ by ID
+  /**
+   * Every FAQ, in every language, whatever the caller's UI language.
+   *
+   * The admin screens must use THIS rather than getAllFaqs: the visitor endpoint
+   * drops rows that have no text in the requested language, so an Italian-only
+   * FAQ would silently disappear from the editor and become uneditable. Making
+   * it a separate method means a new admin screen cannot forget the flag.
+   */
+  async getAllFaqsForAdmin(params?: Omit<FAQQueryParams, 'locale'>): Promise<FAQResponse> {
+    return this.getAllFaqs({ ...params, locale: 'bypass' });
+  }
+
+  /**
+   * Single FAQ, always with all four languages — the edit form needs every tab.
+   * `bypass` is explicit so this keeps working if the endpoint ever starts
+   * narrowing by locale like the list one does.
+   */
   async getFaqById(id: string): Promise<FAQSingleResponse> {
     try {
-      const response = await fetch(API_ENDPOINTS.FAQ.BY_ID(id));
+      const response = await fetch(API_ENDPOINTS.FAQ.BY_ID(id), {
+        headers: { 'X-Locale': 'bypass' },
+      });
       
       if (!response.ok) {
         throw new Error(`Failed to fetch FAQ: ${response.statusText}`);

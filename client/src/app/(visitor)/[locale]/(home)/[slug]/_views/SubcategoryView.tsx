@@ -425,10 +425,10 @@ export default function SubcategoryView({
         }
         breadcrumbs={[
           {
-            label: getLocalizedValue(subcategory.category?.name, locale) || t('breadcrumb.category'),
+            label: getDisplayName(subcategory.category, locale) || t('breadcrumb.category'),
             href: categoryLocalizedSlug ? `/${locale}/${categoryLocalizedSlug}` : undefined,
           },
-          { label: getLocalizedValue(subcategory.name, locale) },
+          { label: getDisplayName(subcategory, locale) },
         ]}
       />
 

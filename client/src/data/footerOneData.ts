@@ -70,6 +70,7 @@ export const footerOneData: FooterDataType = {
     { title: "Travel Trade", href: "/travel-trade", translationKey: "footer.travelTrade" },
     { title: "About Us", href: "/about" },
     { title: "Contact", href: "/contact" },
+    { title: "Payment & Cancellation Policy", href: "/payment-cancellation-policy" },
     { title: "Wishlist", href: "/wishlist" },
     { title: "Search", href: "/search" },
   ],

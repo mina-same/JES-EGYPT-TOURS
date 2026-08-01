@@ -138,6 +138,96 @@ html, body {
 .listing-card-four__btns a.is-active { background-color: #fff; border-color: #fff; }
 .listing-card-four__btns a.is-active i { color: #e53e3e; }
 
+/* ─────────────────────────────────────────────────────────────
+   The card's image controls — wishlist, photo gallery, video — are
+   <button>s, because none of them navigate anywhere; they were
+   <a href="#"> only to inherit the theme's circle styling. The theme
+   styles this cluster as `.listing-card-four__btns a`, so the same
+   look is restated here for buttons and gotur.css stays untouched.
+   The selector covers the nested `__btns__hover` group too.
+   ───────────────────────────────────────────────────────────── */
+.listing-card-four__btns button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--gotur-white, #fff);
+  font-size: 16px;
+  color: var(--gotur-text, #595959);
+  cursor: pointer;
+  transition: all 0.4s ease-in-out;
+}
+
+.listing-card-four__btns button:hover {
+  background-color: var(--gotur-primary, #f7921e);
+  color: var(--gotur-white, #fff);
+}
+
+.listing-card-four__btns button.is-active { background-color: #fff; }
+.listing-card-four__btns button.is-active i { color: #e53e3e; }
+
+/* A real button can be reached by keyboard, so it needs a visible focus ring —
+   something the anchor version never showed. */
+.listing-card-four__btns button:focus-visible {
+  outline: 2px solid var(--gotur-primary, #f7921e);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   A saved tour that is switched off. Deliberately quiet and card-
+   shaped so the grid keeps its rhythm, without pretending to be a
+   bookable tour — the API sends no content for these at all.
+   ───────────────────────────────────────────────────────────── */
+.wishlist-unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  min-height: 220px;
+  padding: 24px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 12px;
+  background-color: #fafafa;
+}
+
+.wishlist-unavailable__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gotur-black, #1d231f);
+}
+
+.wishlist-unavailable__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gotur-text, #595959);
+}
+
+.wishlist-unavailable__remove {
+  margin-top: 4px;
+  padding: 8px 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 20px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gotur-text, #595959);
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.wishlist-unavailable__remove:hover {
+  border-color: var(--gotur-base, #d4af37);
+  color: var(--gotur-black, #1d231f);
+}
+
 .listing-card-four__meta { background-color: #f2c43c; color: #fff; border-radius: 18px; padding: 12px 18px; min-height: 56px; }
 .listing-card-four__meta .meta-text { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
 

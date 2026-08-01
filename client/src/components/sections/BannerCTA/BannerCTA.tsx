@@ -31,6 +31,16 @@ interface BannerCTAProps {
   articleCount?: number;
   imageUrl?: string;
   contained?: boolean;
+  customContent?: {
+    eyebrow: string;
+    title: string;
+    text: string;
+    primaryLabel: string;
+    primaryHref: string;
+    secondaryLabel: string;
+    secondaryHref: string;
+  };
+  showFeatures?: boolean;
 }
 
 type PromoImageSource = string | StaticImageData;
@@ -60,6 +70,8 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
   articleCount,
   imageUrl,
   contained = true,
+  customContent,
+  showFeatures = true,
 }) => {
   const { t } = useTranslation('common');
   const resolvedVariant: ResolvedVariant = variant ?? 'default';
@@ -88,12 +100,18 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
 
   const renderActions = (buttonClass?: string) => (
     <div className={styles.actions}>
-      <Link href={primaryHref} className={`${styles.primaryButton} ${buttonClass || ''}`.trim()}>
-        <span>{t('cta.actions.primary')}</span>
+      <Link
+        href={customContent ? localizeInternalUrl(customContent.primaryHref, locale) : primaryHref}
+        className={`${styles.primaryButton} ${buttonClass || ''}`.trim()}
+      >
+        <span>{customContent?.primaryLabel || t('cta.actions.primary')}</span>
         <ArrowRight size={18} strokeWidth={2.2} />
       </Link>
-      <Link href={secondaryHref} className={styles.secondaryButton}>
-        <span>{t('cta.actions.secondary')}</span>
+      <Link
+        href={customContent ? localizeInternalUrl(customContent.secondaryHref, locale) : secondaryHref}
+        className={styles.secondaryButton}
+      >
+        <span>{customContent?.secondaryLabel || t('cta.actions.secondary')}</span>
         <Calendar size={18} strokeWidth={2.2} />
       </Link>
     </div>
@@ -164,15 +182,19 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
   const renderDefault = () => (
     <div className={styles.layout}>
       <div className={styles.content}>
-        <span className={styles.eyebrow}>{t('cta.default.eyebrow')}</span>
-        <h2 className={styles.title}>{t('cta.default.title')}</h2>
-        <p className={styles.text}>{t('cta.default.text')}</p>
-        {renderFeatureList(defaultFeatures)}
+        <span className={styles.eyebrow}>{customContent?.eyebrow || t('cta.default.eyebrow')}</span>
+        <h2 className={styles.title}>{customContent?.title || t('cta.default.title')}</h2>
+        <p className={styles.text}>{customContent?.text || t('cta.default.text')}</p>
+        {showFeatures ? renderFeatureList(defaultFeatures) : null}
         {renderActions()}
       </div>
 
       <div className={styles.visual}>
-        {renderPromoImage(defaultPromoImage, t('cta.default.title'), t('cta.default.eyebrow'))}
+        {renderPromoImage(
+          defaultPromoImage,
+          customContent?.title || t('cta.default.title'),
+          customContent?.eyebrow || t('cta.default.eyebrow')
+        )}
       </div>
     </div>
   );
