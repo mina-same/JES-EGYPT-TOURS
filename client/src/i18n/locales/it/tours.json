@@ -49,8 +49,6 @@
     "location": "Posizione"
   },
   "tourDetails": {
-    "reviewSuccess": "Recensione inviata con successo! Apparirà dopo l'approvazione.",
-    "reviewFail": "Impossibile inviare la recensione.",
     "bookConfidence": "Prenota con Fiducia",
     "bookConfidenceDesc": "Il tuo partner di fiducia per indimenticabili avventure egiziane",
     "bestSeller": "Pronto per la prenotazione",
@@ -73,8 +71,7 @@
       "brochure": "Scarica la Brochure",
       "faq": "Domande Frequenti sul Tour",
       "map": "Esplora la Mappa",
-      "honestReviews": "Recensioni Oneste e Riflessive",
-      "reviews": "Recensioni del Tour"
+      "honestReviews": "Recensioni Oneste e Riflessive"
     },
     "mapTitle": "Mappa del Tour",
     "highlightList": "Elenco dei Punti Salienti",
@@ -137,8 +134,6 @@
       "traveler": "Viaggiatori",
       "priceStartsFrom": "Il prezzo parte da"
     },
-    "reviewsTitle": "Recensioni",
-    "reviewsSubtitle": "Scopri cosa dicono i nostri viaggiatori",
     "brochure": {
       "scanOnline": "Scansiona per visualizzare online",
       "mapLabel": "Mappa e Posizione",
@@ -163,20 +158,6 @@
         "email": "Email",
         "available": "Disponibile"
       }
-    },
-    "reviews": {
-      "title": "Testimonianze dei nostri viaggiatori",
-      "subtitle": "Scopri come abbiamo reso ogni viaggio eccezionale — direttamente da chi ha viaggiato con noi.",
-      "count": "{{count}} Recensioni",
-      "verified": "Viaggiatore Verificato",
-      "noReviews": "Ancora nessuna recensione.",
-      "addReview": "Aggiungi una Recensione",
-      "yourRating": "Il Tuo Voto*",
-      "yourName": "Il Tuo Nome",
-      "yourEmail": "La Tua Email",
-      "writeMessage": "Scrivi Messaggio",
-      "submitting": "Invio in corso...",
-      "submitBtn": "Invia Recensione"
     },
     "pricing": {
       "emptyState": "Le informazioni sui prezzi non sono disponibili per questo tour. Contattaci per i dettagli.",

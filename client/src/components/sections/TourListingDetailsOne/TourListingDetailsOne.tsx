@@ -11,7 +11,6 @@ import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 import Link from "next/link";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
-import { reviewsAPI } from "@/lib/api/reviews";
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -20,7 +19,6 @@ import { TourListingOneDetailsProps } from "./types";
 import { useTourData } from "./useTourData";
 
 // Import sub-components
-import { TourHeader } from "./components/TourHeader";
 import { TourInfoBar } from "./components/TourInfoBar";
 import { BookingForm } from "./components/BookingForm";
 import { TourPlan } from "./components/TourPlan";
@@ -29,7 +27,6 @@ import { TourCarousel } from "./components/TourCarousel";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
-import TourReviews2 from "../TourListingDetailsTwo/TourReviews2";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
@@ -129,7 +126,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   // Handle scroll spy and smooth scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'gallery', 'download-pdf', 'faqs', 'honest-reviews', 'reviews'];
+      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'gallery', 'download-pdf', 'faqs', 'honest-reviews'];
 
       // Find the current active section
       for (const sectionId of sections) {
@@ -187,13 +184,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     title,
     overview,
     overviewTitle,
-    reviews,
     location,
     activitiesType,
     activateDay,
     traveler,
     price,
-    comments,
     relatedTours,
     sliderImages,
     amenities,
@@ -217,27 +212,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     // You could send bookingData to your API here
   };
 
-  const handleCommentSubmit = async (data: any) => {
-    if (!id) {
-      console.error("No tour ID found");
-      return;
-    }
-
-    try {
-      await reviewsAPI.submitReview({
-        tourId: id,
-        name: data.name,
-        email: data.email,
-        rating: Number(data.rating),
-        comment: data.comment
-      });
-
-      alert(t("tourDetails.reviewSuccess"));
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      alert(t("tourDetails.reviewFail"));
-    }
-  };
 
   if (loading) {
     return <TourListingDetailsOneSkeleton />;
@@ -255,7 +229,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     <>
       <section className='tour-listing-details section-space'>
         {/* Header Section - Commented out */}
-        {/* <TourHeader title={title} reviews={reviews} location={location} /> */}
 
         <PhotoSwipeGallery>
         {/* Carousel Section */}
@@ -349,16 +322,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
               <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
               <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
               <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
-              {hasReviewVideos ? (
-                <a href="#honest-reviews" className={`tour-nav-link ${activeSection === 'honest-reviews' ? 'active' : ''}`}>
-                  {t("tourDetails.nav.honestReviews")}
-                  <span className="review-count">{reviewVideos?.length || 0}</span>
-                </a>
-              ) : null}
-              <a href="#reviews" className={`tour-nav-link ${activeSection === 'reviews' ? 'active' : ''}`}>
-                {t("tourDetails.nav.reviews")}
-                <span className="review-count">{reviews}</span>
-              </a>
+              {/* No "Reviews" tab: the section it pointed at is gone. The video
+                  reviews keep their own tab above. */}
             </nav>
           </div>
 
@@ -850,20 +815,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   </section>
                 ) : null}
 
-                {/* Reviews Section */}
-                <section id="reviews" className="tour-section">
-                  <div className="mb-4">
-                    <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.reviewsTitle", "Reviews")}</h2>
-                    <p className="tour-reviews-subtitle">{t("tourDetails.reviewsSubtitle", "See what our travelers say")}</p>
-                  </div>
-                  <TourReviews2
-                    comments={comments}
-                    tourId={id || ""}
-                    onSubmit={handleCommentSubmit}
-                    totalReviews={reviews}
-                    averageRating={4.9}
-                  />
-                </section>
+                {/* The written-reviews section is gone: it showed a hardcoded
+                    4.9 average and five fixed stars over an empty review table,
+                    none of it from a real traveller. */}
 
               </div>
             </div>

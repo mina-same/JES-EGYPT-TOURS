@@ -17,8 +17,6 @@ interface FeaturePackageItem {
   title: string;
   link: string;
   price: number | ICurrencyPrice;
-  rating: number;
-  reviews: number;
   videoId: string;
   discount: string;
   /** Short summary shown under the title (HTML is stripped by the card). */
@@ -73,8 +71,6 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
     title,
     link: `/${locale}/${slug}`,
     price,
-    rating: tour.rating ?? 5,
-    reviews: tour.reviewsCount ?? tour.reviews?.length ?? 0,
     videoId,
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : "",
     description:

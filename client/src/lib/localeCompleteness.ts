@@ -32,7 +32,7 @@ const DEFAULT_SKIP_KEYS = new Set([
   'author', 'editorialAuthor',
   'relatedTours', 'relatedBlogs', 'relatedPosts', 'blogReferences',
   'destination', 'destinations', 'featuredBlogs', 'featuredDestinations',
-  'reviews', 'comments', 'reviewsCount',
+  'reviews', 'comments',
   'faqs', 'contentBlocks',
 ]);
 

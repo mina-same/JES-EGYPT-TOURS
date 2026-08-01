@@ -83,13 +83,8 @@ const AboutTestimonials: React.FC = () => {
                 >
                   {testimonials.map((testimonial, index) => (
                     <div className='about-testimonials__item' key={index}>
-                      <div className='about-testimonials__star'>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                      </div>
+                      {/* No star row — see TestimonialsTwo: five hardcoded icons
+                          on every quote, matching no rating anyone gave. */}
                       <p className='about-testimonials__text'>
                         {testimonial.text}
                       </p>

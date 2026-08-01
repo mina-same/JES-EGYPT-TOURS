@@ -69,8 +69,6 @@ function mapTour(tour: any, locale: string) {
      * offer footer picks it up with no further change here.
      */
     originalPrice: tour.originalPrice,
-    rating: 5,
-    reviews: tour.reviewsCount || tour.reviews?.length || 0,
     videoId: tour.videoLink || "",
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : undefined,
     description:

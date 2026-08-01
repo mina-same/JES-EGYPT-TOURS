@@ -111,7 +111,6 @@ export default function TourViewPage() {
           <Field label="Duration">{getLocalizedValue(entity.duration) || '—'}</Field>
           <Field label="Location">{getLocalizedValue(entity.tourLocation) || '—'}</Field>
           <Field label="Price from">{money(entity.priceStartingFrom)}</Field>
-          <Field label="Reviews">{entity.reviewsCount ?? reviews.length}</Field>
           <Field label="Itinerary days">{days.length}</Field>
           <Field label="Pricing plans">{plans.length}</Field>
           {entity.isSpecialOffer && <Field label="Offer discount">{entity.specialOfferDiscount != null ? `${entity.specialOfferDiscount}%` : '—'}</Field>}

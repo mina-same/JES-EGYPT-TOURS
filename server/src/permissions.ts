@@ -27,9 +27,6 @@ export const PERMISSIONS = {
   TAILOR_MADE_DELETE: 'tailor_made:delete',
 
   // Review permissions
-  REVIEW_READ: 'review:read',
-  REVIEW_UPDATE: 'review:update',
-  REVIEW_DELETE: 'review:delete',
 
   // User management (superadmin only)
   USER_CREATE: 'user:create',
@@ -51,6 +48,4 @@ export const DEFAULT_ADMIN_PERMISSIONS: Permission[] = [
   PERMISSIONS.CONTACT_UPDATE,
   PERMISSIONS.TAILOR_MADE_READ,
   PERMISSIONS.TAILOR_MADE_UPDATE,
-  PERMISSIONS.REVIEW_READ,
-  PERMISSIONS.REVIEW_UPDATE,
 ];

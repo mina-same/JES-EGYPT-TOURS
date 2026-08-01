@@ -4,8 +4,6 @@
   "partnerAlt": "Vertrauenswürdiger Partner {{count}}",
   "partnerTitle": "JES Ägypten Touren Partner {{count}}",
   "articlesCount": "{{count}} Artikel",
-  "reviewCount_one": "({{count}} Bewertung)",
-  "reviewCount_other": "({{count}} Bewertungen)",
   "tourCard": {
     "saveTour": "Zur Merkliste hinzufügen",
     "savedTour": "In der Merkliste",

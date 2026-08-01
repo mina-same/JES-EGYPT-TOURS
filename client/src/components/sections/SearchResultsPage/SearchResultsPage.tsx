@@ -250,8 +250,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             title: getLocalizedValue(tour.heading || tour.name, locale),
             link: `/${locale}/${tourSlug}`,
             price: tour.priceStartingFrom || { USD: 0 },
-            rating: 5,
-            reviews: tour.reviewsCount ?? tour.reviews?.length ?? 0,
             videoId: tour.videoLink || "",
             discount: "",
             description:

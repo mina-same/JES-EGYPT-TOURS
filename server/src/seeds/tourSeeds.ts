@@ -309,6 +309,5 @@ export const tourSeed = {
   priceStartingFrom: 650,
   oldPrice: 850,
   rating: 4.9,
-  reviewsCount: 345,
   isFeatured: true,
 };

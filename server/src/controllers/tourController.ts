@@ -296,7 +296,7 @@ export const getFeaturedTours = async (
       .select(
         // `subcategory` must be selected for the populate above to resolve — the
         // card shows its name as the tour's category label.
-        'heading slug images cardDescription Description tourLocation subcategory pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer reviews.url'
+        'heading slug images cardDescription Description tourLocation subcategory pricingPlans priceStartingFrom duration specialOfferDiscount isSpecialOffer reviews.url'
       )
       .lean();
 
@@ -441,7 +441,7 @@ export const getToursByIds = async (
 
     const tours = await Tour.find({ _id: { $in: requested } })
       .select(
-        'heading name slug images priceStartingFrom reviewsCount duration tourLocation ' +
+        'heading name slug images priceStartingFrom duration tourLocation ' +
           'subcategory cardDescription Description isActive specialOfferDiscount videoLink'
       )
       // `category` inside the subcategory is what the wishlist page uses to pick

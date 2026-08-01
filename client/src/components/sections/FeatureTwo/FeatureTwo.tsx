@@ -20,8 +20,6 @@ interface FeaturePackageItem {
   title: string;
   link: string;
   price: string | number;
-  rating: number;
-  reviews: number;
   videoId: string;
   discount: string;
   /** Short summary shown under the title (HTML is stripped by the card). */

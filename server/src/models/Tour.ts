@@ -159,7 +159,6 @@ export interface ITour extends Document {
   blogReferences?: IBlogReference[];
   relatedTours?: IRelatedTour[];
   reviews?: IReview[];
-  reviewsCount?: number;
   seo?: ISEO;
   isActive: boolean;
   scheduledAt?: Date;
@@ -632,11 +631,6 @@ const TourSchema = new Schema<ITour>(
     blogReferences: [BlogReferenceSchema],
     relatedTours: [RelatedTourSchema],
     reviews: [ReviewSchema],
-    reviewsCount: {
-      type: Number,
-      default: 0,
-      min: [0, 'Reviews count cannot be negative'],
-    },
     seo: SEOSchema,
     isActive: {
       type: Boolean,

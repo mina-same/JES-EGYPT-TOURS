@@ -28,8 +28,6 @@ type WishlistTour = {
   priceStartingFrom?: any;
   images?: Array<{ url: string }>;
   gallery?: Array<{ url: string }>;
-  reviews?: Array<any>;
-  reviewsCount?: number;
   /** false when the tour is currently switched off — it stays saved, shown as unavailable. */
   isActive?: boolean;
   duration?: string;
@@ -150,8 +148,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               title: t.heading || t.name || "Tour",
               link: `/${locale}/${slug}`,
               price: t.priceStartingFrom || { USD: 0 },
-              rating: 5,
-              reviews: t.reviews?.length || 0,
               videoId: "",
               discount: "",
               meta: [
@@ -247,7 +243,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 const image = getPrimaryImage(tour);
                 const title = tour.heading || tour.name || "Untitled Tour";
                 const price = tour.priceStartingFrom || { USD: 0 };
-                const reviews = tour.reviewsCount ?? tour.reviews?.length ?? 0;
                 // The API localizes documents for this page, so name/shortName
                 // usually arrive as plain strings already.
                 const sub = tour.subcategory as any;
@@ -271,8 +266,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                         title,
                         link: tourSlug ? `/${locale}/${tourSlug}` : "",
                         price,
-                        rating: 5,
-                        reviews,
                         description: tour.cardDescription || tour.Description?.text || "",
                         meta: [
                           { id: 1, title: tour.tourLocation || t('location'), icon: "icon-location" },

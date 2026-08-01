@@ -271,19 +271,6 @@ html, body {
   border-bottom-color: #b79c5c;
 }
 
-.tour-nav-link .review-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #b79c5c, #d4af37);
-  color: #fff;
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  font-size: 11px;
-  font-weight: 700;
-  margin-left: 4px;
-}
 
 .tour-section {
   scroll-margin-top: 120px;
@@ -1098,31 +1085,9 @@ body {
     margin-bottom: 1rem;
 }
 
-.tour-reviews-count {
-    font-size: 1.125rem; /* text-lg */
-    font-weight: 700;
-    color: var(--gotur-black, #0A2B4B);
-    margin: 0;
-    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-}
 
-.tour-reviews-rating-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
 
-.tour-reviews-avg-rating {
-    font-size: 1.25rem; /* text-xl */
-    font-weight: 700;
-    color: #9CA3AF;
-    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-}
 
-.tour-reviews-stars {
-    display: flex;
-    color: #F5A31B;
-}
 
 .tour-reviews-testimonial-box {
     background-color: #F5F6F8 !important;
@@ -2134,9 +2099,6 @@ div[suppressHydrationWarning] {
     gap: 10px !important;
     margin-bottom: 20px !important;
   }
-  .tour-reviews-count {
-    font-size: 24px !important;
-  }
 }
 
 /* ==========================================================================
@@ -2869,16 +2831,6 @@ button[data-action="stop"] {
   margin: 0 0 6px;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Tour listing cards — full 5-star gold across all pages.
-   The theme grays out the 5th star (a static "4/5" look) via
-   `.listing-card-four__rating i:nth-child(6)`. Tours have no real
-   rating field, so restore the 5th star to the same gold as the
-   others everywhere this shared card is used.
-   ───────────────────────────────────────────────────────────── */
-.listing-card-four__rating i:nth-child(6) {
-  color: var(--gotur-primary, #f7921e);
-}
 
 /* ─────────────────────────────────────────────────────────────
    Hero (MainSliderFour) — cinematic restyle: gold eyebrow, title

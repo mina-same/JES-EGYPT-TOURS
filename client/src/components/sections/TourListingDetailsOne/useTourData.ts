@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
-import { reviewsAPI } from "@/lib/api/reviews";
 import { getBlogById } from "@/lib/api/blog";
 import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
@@ -77,8 +76,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       title: tourTitle || "Tour",
       link: `/${currentLang}/${tourSlug}`,
       price: t.priceStartingFrom || t.price || 0,
-      rating: 5,
-      reviews: t.reviewsCount || t.reviews?.length || 0,
       videoId: t.videoLink || "",
       discount: t.discount || "",
       description: getLocalizedValue(t?.cardDescription) || getLocalizedValue(t?.Description?.text) || "",
@@ -86,7 +83,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     };
   };
 
-  const mapRawTourData = (tour: any, fetchedReviews: any[] = [], fetchedRelatedTours: any[] = []): TourDetailsOneData => {
+  const mapRawTourData = (tour: any, fetchedRelatedTours: any[] = []): TourDetailsOneData => {
     const tourId = tour._id;
     // Per-image language visibility: absent/empty languages = all locales.
     // Must run BEFORE mapping — the map drops every field except url/alt/title.
@@ -128,7 +125,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       title: getLocalizedValue(tour.heading) || tour.name || "",
       titleTwo: tour.name || "",
       overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
-      reviews: tour.reviewsCount || fetchedReviews.length,
       location: getLocalizedValue(tour.tourLocation) || "",
       activitiesType: getLocalizedValue(tour.tourType) || "",
       traveler: 10,
@@ -152,13 +148,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         text: getLocalizedValue(n?.text),
       })),
       relatedTours: fetchedRelatedTours.map(mapTourToItem).filter(Boolean) as any[],
-      comments: fetchedReviews.map((r: any) => ({
-        name: r?.name || "Anonymous",
-        date: r?.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        text: r?.comment || "",
-        rating: r.rating || 5,
-        avatar: r?.avatar || "https://placehold.co/100x100?text=User",
-      })),
       images: galleryImages,
       // Strict locale lookup — no fallback to English.
       // Only include rows where the active locale has both question and answer.
@@ -258,7 +247,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
         // 2. Curated Content Promises
         const commonDataPromises = [
-          reviewsAPI.getReviewsByTour(tourId),
           // Curated related tours (max 3)
           Promise.all(safeArray(tour.relatedTours).slice(0, 3).map(async (ref: any) => {
             try {
@@ -319,7 +307,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           }
         }
 
-        const [reviewsRes, relatedToursData, blogDataRaw] = await Promise.all(commonDataPromises);
+        const [relatedToursData, blogDataRaw] = await Promise.all(commonDataPromises);
         
         // Final fallback for blogs: if no curated blogs, fetch featured blogs
         let fetchedRelatedBlogs = safeArray<any>(blogDataRaw).filter(Boolean);
@@ -332,11 +320,10 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           } catch { /* ignore */ }
         }
 
-        const fetchedReviews = reviewsRes.success ? safeArray<any>(reviewsRes.data) : [];
         const fetchedRelatedTours = safeArray(relatedToursData).filter(Boolean);
 
         // ── Consolidate mappings ──
-        const mappedData = mapRawTourData(tour, fetchedReviews, fetchedRelatedTours);
+        const mappedData = mapRawTourData(tour, fetchedRelatedTours);
 
         const mappedBlogs = fetchedRelatedBlogs.map((b: any) => {
           const blogSlug = getStrictLocalizedSlug(b?.slug, currentLang);

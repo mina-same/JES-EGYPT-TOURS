@@ -4,8 +4,6 @@
   "partnerAlt": "Trusted Partner {{count}}",
   "partnerTitle": "JES Egypt Tours Partner {{count}}",
   "articlesCount": "{{count}} Articles",
-  "reviewCount_one": "({{count}} review)",
-  "reviewCount_other": "({{count}} reviews)",
   "tourCard": {
     "saveTour": "Save to wishlist",
     "savedTour": "Saved to wishlist",

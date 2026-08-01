@@ -238,7 +238,6 @@ export default function EditTourPage() {
               publishedAt: tour.publishedAt,
               isSpecialOffer: tour.isSpecialOffer || false,
               specialOfferDiscount: tour.specialOfferDiscount ?? 0,
-              reviewsCount: tour.reviewsCount || 0,
               seo: {
                 metaTitle: toLocalized(tour.seo?.metaTitle),
                 metaDescription: toLocalized(tour.seo?.metaDescription),

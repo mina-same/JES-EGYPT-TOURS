@@ -29,7 +29,6 @@ import ListingGallery from "@/components/common/ListingSections/ListingGallery";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
-import ListingReviews from "@/components/common/ListingSections/ListingReviews";
 
 const FiltersContent = ({ 
   t, 
@@ -277,8 +276,6 @@ export default function CategoryView({
               title: getLocalizedValue(tour.heading || tour.name, locale),
               link: `/${locale}/${tourSlug}`,
               price: tour.priceStartingFrom || { USD: 0 },
-              rating: 5,
-              reviews: tour.reviewsCount || tour.reviews?.length || 0,
               videoId: tour.videoLink || "",
               discount: "",
               description:
@@ -632,11 +629,6 @@ export default function CategoryView({
       />
 
       {/* Reviews Section */}
-      <ListingReviews 
-        reviews={category.reviews}
-        sectionTitle={category.reviewsSectionTitle}
-        locale={locale}
-      />
 
       {/* Blogs Section */}
       <ListingBlogs 

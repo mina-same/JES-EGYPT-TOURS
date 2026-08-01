@@ -53,9 +53,7 @@ export interface ITourCategory {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -84,9 +82,7 @@ export interface ITourSubcategory {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -125,7 +121,6 @@ export interface ITour {
   publishedAt?: Date | string;
   seo?: ISEO;
   idExternal?: string;
-  reviewsCount?: number;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -146,9 +141,7 @@ export interface TourCategoryFormData {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -173,9 +166,7 @@ export interface TourSubcategoryFormData {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -240,14 +231,6 @@ export interface IFAQ {
   order?: number;
 }
 
-export interface ICuratedReview {
-  name: ILocalizedString;
-  avatar?: string;
-  rating: number;
-  comment: ILocalizedString;
-  status?: string;
-}
-
 export interface ITourDescription {
   header: ILocalizedString;
   text: ILocalizedMixed;
@@ -292,7 +275,6 @@ export interface TourFormData {
   blogReferences?: { id: string; title: string }[];
   relatedTours?: { id: string; title: string }[];
   reviews?: { type: string; url?: string; title: ILocalizedString; content?: ILocalizedMixed }[];
-  reviewsCount?: number;
   // Additional tour details
   priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;

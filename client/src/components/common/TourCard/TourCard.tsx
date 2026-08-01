@@ -35,8 +35,6 @@ export interface TourCardItem {
   price: number | any;
   /** Pre-discount price, when the data provides one (offer footer only). */
   originalPrice?: number | any;
-  rating: number;
-  reviews: number;
   videoId?: string;
   discount?: string;
   meta: TourCardMeta[];
@@ -222,13 +220,9 @@ const TourCard: React.FC<TourCardProps> = ({
         </div>
 
         <div className={`listing-card-four__content ${styles.body}`}>
-          <div className={`listing-card-four__rating ${styles.rating}`}>
-            <span>{t("reviewCount", { count: item.reviews })}</span>
-            {[...Array(item.rating)].map((_, i) => (
-              <i key={i} className="icon-star"></i>
-            ))}
-          </div>
-
+          {/* No rating row. The stars were five hardcoded icons on every card
+              and the count was a number typed by hand in the admin — neither
+              came from a real review, so both are gone rather than dressed up. */}
           <h3 className={`listing-card-four__title ${styles.title}`}>
             {item.link ? <Link href={item.link}>{item.title}</Link> : <span>{item.title}</span>}
           </h3>

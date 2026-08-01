@@ -231,20 +231,6 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="reviewsCount">Reviews Number (Manual Count)</Label>
-              <Input
-                id="reviewsCount"
-                type="number"
-                min="0"
-                value={formData.reviewsCount || 0}
-                onChange={(e) => handleChange('reviewsCount', parseInt(e.target.value) || 0)}
-                placeholder="e.g. 150"
-              />
-              <p className="text-xs text-muted-foreground italic">Displays this number as review count on cards.</p>
-            </div>
-          </div>
 
           <div>
             <LocalizedTextArea

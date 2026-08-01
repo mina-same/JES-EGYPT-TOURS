@@ -4,8 +4,6 @@
   "partnerAlt": "Partner di fiducia {{count}}",
   "partnerTitle": "JES Egypt Tours Partner {{count}}",
   "articlesCount": "{{count}} articoli",
-  "reviewCount_one": "({{count}} recensione)",
-  "reviewCount_other": "({{count}} recensioni)",
   "tourCard": {
     "saveTour": "Aggiungi ai preferiti",
     "savedTour": "Nei preferiti",

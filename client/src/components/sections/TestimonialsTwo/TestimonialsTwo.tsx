@@ -108,15 +108,9 @@ const TestimonialsTwo = () => {
                           </div>
                           <p className='testimonials-two-card__text'>{text}</p>
                         </div>
-                        <div className='testimonials-two-card__star'>
-                          <div className='testimonials-two-card__star__item'>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                          </div>
-                        </div>
+                        {/* No star row: these were five icons typed into the
+                            markup, identical on every testimonial and tied to
+                            no rating anyone gave. */}
                       </div>
                     </div>
                   </div>

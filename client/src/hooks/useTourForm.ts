@@ -56,7 +56,6 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   blogReferences: [],
   relatedTours: [],
   reviews: [],
-  reviewsCount: 0,
   priceStartingFrom: undefined,
   duration: { en: '', de: '', it: '', es: '' },
   meetingPoint: { en: '', de: '', it: '', es: '' },
