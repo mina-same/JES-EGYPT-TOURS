@@ -228,8 +228,6 @@ html, body {
   color: var(--gotur-black, #1d231f);
 }
 
-.listing-card-four__meta { background-color: #f2c43c; color: #fff; border-radius: 18px; padding: 12px 18px; min-height: 56px; }
-.listing-card-four__meta .meta-text { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
 
 .tour-details-nav {
   display: flex;

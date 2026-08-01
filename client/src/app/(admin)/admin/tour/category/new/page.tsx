@@ -42,6 +42,7 @@ const TABS = [
 
 const INITIAL_TOUR_CATEGORY: TourCategoryFormData = {
   name: { en: '', de: '', it: '', es: '' },
+  shortName: { en: '', de: '', it: '', es: '' },
   slug: { en: '', de: '', it: '', es: '' },
   description: { en: '', de: '', it: '', es: '' },
   images: [],
@@ -192,6 +193,7 @@ export default function NewCategoryPage() {
 
         const loadedFormData: TourCategoryFormData = {
           name: ensureLocalized(data.name),
+          shortName: ensureLocalized(data.shortName),
           slug: ensureLocalized(data.slug),
           description: ensureLocalized(data.description, true),
           images: Array.isArray(data.images)
@@ -605,6 +607,7 @@ export default function NewCategoryPage() {
 
       const payload: any = {
         name: formData.name,
+        shortName: formData.shortName,
         slug: formData.slug,
         isActive: formData.isActive,
       };
@@ -848,6 +851,16 @@ export default function NewCategoryPage() {
                 activeLanguage={activeLanguage}
                 error={!!getFieldError('name.en')}
                 data-field="name.en"
+              />
+              {/* Same idea as on subcategories: an SEO-length H1 makes a poor
+                  label on a card or in a menu, so the editor can give a short
+                  one. Empty falls back to shortening the name automatically. */}
+              <LocalizedInput
+                label="Short Name (cards, menus, filters)"
+                value={formData.shortName}
+                onChange={(val, lang) => handleChange('shortName', val, lang)}
+                placeholder="Adventure Tours — leave empty to shorten the name automatically"
+                activeLanguage={activeLanguage}
               />
               <LocalizedInput
                 label="URL Slug *"

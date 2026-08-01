@@ -58,7 +58,11 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
 
     const loadFeatured = async () => {
       try {
-        const res = await fetch(`${API_URL}/blog/posts/featured?limit=${FEATURED_FETCH_POOL}`);
+        // Fallback path only — the homepage normally passes initialBlogs. The API
+        // localizes this response, so the locale has to travel with the request.
+        const res = await fetch(`${API_URL}/blog/posts/featured?limit=${FEATURED_FETCH_POOL}`, {
+          headers: { "X-Locale": currentLocale },
+        });
         if (!res.ok) {
           throw new Error("Failed to fetch featured blogs");
         }
@@ -79,7 +83,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
     return () => {
       isMounted = false;
     };
-  }, [initialBlogs]);
+  }, [initialBlogs, currentLocale]);
 
   const featuredViewModel = useMemo(() => {
     return featuredBlogs

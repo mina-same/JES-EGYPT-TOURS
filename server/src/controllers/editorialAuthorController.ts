@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import EditorialAuthor from '../models/EditorialAuthor';
 import Blog from '../models/Blog';
@@ -87,10 +88,16 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
 
     res.json({
       success: true,
-      data: {
-        ...author.toObject(),
-        articles,
-      },
+      // Localized, with every `slug` kept raw so the article links still resolve
+      // per language. This response used to carry all four languages of the bio,
+      // role and every article title — 86 KB on a single page.
+      data: localizePreservingSlugs(
+        {
+          ...author.toObject(),
+          articles,
+        },
+        req.locale
+      ),
     });
   } catch (error) {
     console.error('Error loading editorial author:', error);

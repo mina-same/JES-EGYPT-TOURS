@@ -41,6 +41,8 @@ export interface ISectionHeader {
 export interface ITourCategory {
   _id: string;
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed; // Plain text or HTML for page header
   images: IImage[];
@@ -129,6 +131,8 @@ export interface ITour {
 
 export interface TourCategoryFormData {
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed;
   images: IImage[];

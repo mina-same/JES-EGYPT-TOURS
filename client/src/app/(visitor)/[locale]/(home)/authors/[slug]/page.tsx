@@ -16,7 +16,10 @@ import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 
 export default async function EditorialAuthorPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
-  const response = await fetch(`${API_URL}/blog/authors/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+  const response = await fetch(`${API_URL}/blog/authors/${encodeURIComponent(slug)}`, {
+    cache: 'no-store',
+    headers: { 'X-Locale': locale },
+  });
   if (!response.ok) notFound();
   const payload = await response.json();
   const author = payload.data;

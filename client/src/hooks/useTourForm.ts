@@ -169,14 +169,6 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
     setFormData(getInitialFormData());
   };
 
-  // Generate slug from name
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-  };
-
   // Handle form field changes
   const handleChange = (field: string, value: any, lang?: AdminLanguage) => {
     setFormData(prev => {
@@ -212,24 +204,12 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
         updated[field] = value;
       }
 
-      // Auto-update slug and SEO metaTitle if heading changes
+      // Auto-update SEO metaTitle if heading changes
       if (field === 'heading' || field.startsWith('heading.')) {
         let targetLang: AdminLanguage = 'en';
         
         if (field.startsWith('heading.')) targetLang = field.split('.')[1] as AdminLanguage;
         else if (lang) targetLang = lang;
-
-        // If 'heading' is the whole object (from LocalizedInput)
-        if (field === 'heading' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
-           if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
-           // Generate slugs for each language
-           Object.keys(value).forEach((l) => {
-             updated.slug[l as AdminLanguage] = generateSlug(value[l as AdminLanguage] || '');
-           });
-        } else {
-           if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
-           updated.slug[targetLang] = generateSlug(value);
-        }
 
         if (!updated.seo) updated.seo = {};
         if (!updated.seo.metaTitle) updated.seo.metaTitle = { en: '', de: '', it: '', es: '' };

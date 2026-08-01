@@ -29,7 +29,11 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ currentBlog }) => {
           limit: "50",
         });
 
-        const blogsRes = await fetch(`${API_URL}/blog/posts?${queryParams.toString()}`);
+        // The API localizes this response, so without the locale the tag list
+        // would come back in English on /de, /it and /es.
+        const blogsRes = await fetch(`${API_URL}/blog/posts?${queryParams.toString()}`, {
+          headers: { "X-Locale": currentLocale },
+        });
 
         if (blogsRes.ok) {
           const blogsResponse: BlogResponse = await blogsRes.json();
