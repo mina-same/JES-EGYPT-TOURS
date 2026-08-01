@@ -4,11 +4,24 @@
   "partnerAlt": "Socio de confianza {{count}}",
   "partnerTitle": "JES Egypt Tours Socio {{count}}",
   "articlesCount": "{{count}} artículos",
+  "tourCard": {
+    "saveTour": "Añadir a favoritos",
+    "savedTour": "En favoritos",
+    "startFrom": "Desde",
+    "viewTour": "Ver tour",
+    "viewPhotos": "Ver fotos del tour",
+    "playVideo": "Reproducir vídeo del tour",
+    "addToWishlist": "Añadir a favoritos",
+    "removeFromWishlist": "Quitar de favoritos"
+  },
   "updatedRecently": "Actualizado recientemente",
   "links": {
     "faq": "Preguntas frecuentes",
     "about": "Sobre nosotros",
     "contact": "Contacto"
+  },
+  "footer": {
+    "travelTrade": "Profesionales de Viajes"
   },
   "language": {
     "english": "Inglés",
@@ -178,6 +191,13 @@
     "readLess": "Mostrar menos"
   },
   "destinations": {
+    "carousel": {
+      "sectionTitle": "Descubre los destinos de Egipto",
+      "navigationLabel": "Navegación del carrusel de destinos",
+      "previous": "Destino anterior",
+      "next": "Destino siguiente",
+      "viewDestination": "Descubre {{destination}}"
+    },
     "aswan": { "title": "Asuán", "subtitle": "Tour en Feluca por el Nilo" },
     "dahab": { "title": "Dahab", "subtitle": "Tour Mar Rojo & Montañas" },
     "giza": { "title": "Guiza", "subtitle": "Panorama Pirámides & Esfinge" },

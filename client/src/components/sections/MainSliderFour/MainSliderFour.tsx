@@ -11,7 +11,11 @@ import { sliderService } from "@/services/sliderService";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import { getLocalizedStaticSlug } from "@/lib/url";
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
+import type { TinySliderInfo } from "tiny-slider";
 
 type SlideVM = {
   id: string;
@@ -138,10 +142,12 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
 
   const [slides, setSlides] = useState<SlideVM[]>(initialSlides);
   const [promo, setPromo] = useState<SliderUnderPromo | null>(initialPromo);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   // Keep slides in sync with the server data / active language.
   useEffect(() => {
     setSlides(initialSlides);
+    setActiveSlide(0);
   }, [initialSlides]);
 
   // Client fallback: fetch slides only when the server provided none.
@@ -186,14 +192,10 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   const hasSlides = slides.length > 0;
   const hasMultiple = slides.length > 1;
 
-  // The dot indicator only makes sense with more than one slide. tiny-slider
-  // binds clicks + toggles `tns-nav-active` on the buttons we render in
-  // `.main-slider-four__dots` (its real option is `nav`, not owl's `dots`).
+  // The dots are React controls. Keeping them outside tiny-slider prevents
+  // its destroy() implementation from replacing React-owned DOM.
   const settings = useMemo(
-    () =>
-      hasMultiple
-        ? { ...baseSettings, nav: true, navContainer: ".main-slider-four__dots" }
-        : { ...baseSettings, nav: false },
+    () => ({ ...baseSettings, nav: false, autoplay: hasMultiple }),
     [hasMultiple]
   );
 
@@ -207,7 +209,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   // which flips on any 1px movement). A gesture counts as a swipe only when
   // it is clearly horizontal and travels >= 50px — then exactly ONE flip.
   const SWIPE_THRESHOLD_PX = 50;
-  const sliderRef = useRef<any>(null);
+  const sliderRef = useRef<TinySliderHandle>(null);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const suppressClick = useRef(false);
 
@@ -233,6 +235,11 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
     swipeStart.current = null;
   };
 
+  const handleIndexChanged = (info: TinySliderInfo) => {
+    if (!slides.length) return;
+    setActiveSlide(((info.index % slides.length) + slides.length) % slides.length);
+  };
+
   const onClickCapture = (e: React.MouseEvent) => {
     if (suppressClick.current) {
       suppressClick.current = false;
@@ -251,7 +258,13 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
         onClickCapture={onClickCapture}
       >
         {hasSlides ? (
-          <TinySlider ref={sliderRef} settings={settings} placeholderClassName="main-slider-four__slider-placeholder">
+          <TinySlider
+            ref={sliderRef}
+            settings={settings}
+            rebuildKey={`${lang}:${JSON.stringify(slides)}`}
+            onIndexChanged={handleIndexChanged}
+            placeholderClassName="main-slider-four__slider-placeholder"
+          >
             {slides.map((item, index) => {
               const primaryLabel = item.buttonText || t("hero.primaryCtaFallback");
               const primaryHref =
@@ -377,16 +390,17 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
         ) : (
           <div className="main-slider-four__empty-shell" aria-hidden="true" />
         )}
-        {/* Glass-pill slide indicator: one dot per slide, clickable; the
-            active dot stretches into a gold "worm" whose fill visualizes the
-            auto-rotation. tiny-slider wires the clicks via navContainer. */}
+        {/* Glass-pill slide indicator: one React-owned button per slide. */}
         {hasMultiple && (
           <div className="main-slider-four__dots" aria-label="Slides">
             {slides.map((item, index) => (
               <button
                 key={item.id}
                 type="button"
+                className={activeSlide === index ? "tns-nav-active" : undefined}
+                aria-current={activeSlide === index ? "true" : undefined}
                 aria-label={`Go to slide ${index + 1} of ${slides.length}`}
+                onClick={() => sliderRef.current?.slider?.goTo(index)}
               />
             ))}
           </div>

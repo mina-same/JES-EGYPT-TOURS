@@ -14,6 +14,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "@/hooks/use-toast";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { useTranslation } from "react-i18next";
@@ -246,17 +247,22 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             slug: tourSlug,
             image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
             allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
-            title: getLocalizedValue(tour.heading || tour.name, locale),
+            title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
             link: `/${locale}/${tourSlug}`,
             price: tour.priceStartingFrom || { USD: 0 },
-            rating: 5,
-            reviews: tour.reviewsCount ?? tour.reviews?.length ?? 0,
             videoId: tour.videoLink || "",
             discount: "",
+            description:
+              // Editor-written card teaser wins; the long intro is the fallback.
+              getLocalizedValue(tour.cardDescription, locale) ||
+              getLocalizedValue(tour.Description?.text, locale) ||
+              "",
             meta: [
-              { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '3 Days'}`, icon: "icon-clock" },
-              { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
-              { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Location", icon: "icon-location" },
+              { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || "Location", icon: "icon-location" },
+              { id: 2, title: `${getLocalizedValue(tour.duration, locale) || '3 Days'}`, icon: "icon-clock" },
+              ...(getDisplayName(tour.subcategory, locale)
+                  ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]
+                  : []),
             ]
           };
         }).filter(Boolean);

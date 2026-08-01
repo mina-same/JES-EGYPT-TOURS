@@ -2,7 +2,7 @@
 
 import { clientCarouselData } from "@/data/clientCarouselData";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
 
@@ -13,16 +13,7 @@ interface ClientCarouselProps {
 }
 
 const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
-  const { t } = useTranslation("common");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
+  const { t, i18n } = useTranslation("common");
 
   // Don't render if no items
   if (!clientCarouselData?.items || clientCarouselData.items.length === 0) {
@@ -32,7 +23,8 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
   const settings = {
     items: Math.min(5, clientCarouselData.items.length),
     gutter: 65,
-    loop: clientCarouselData.items.length > 1,
+    loop: false,
+    rewind: clientCarouselData.items.length > 1,
     autoplay: false,
     autoplayTimeout: 6000,
     mouseDrag: true,
@@ -78,6 +70,7 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
 
         <TinySlider
           settings={settings}
+          rebuildKey={i18n.language}
           className='client-carousel__one gotur-owl__carousel owl-theme owl-carousel'
         >
           {clientCarouselData.items.map((item, index) => (

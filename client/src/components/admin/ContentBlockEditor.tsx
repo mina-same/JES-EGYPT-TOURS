@@ -427,6 +427,7 @@ function BlockContent({
               )}
             </LocalizedField>
           </div>
+          <BlockLanguagesPicker block={block} index={index} onUpdate={onUpdate} />
         </div>
       );
 
@@ -452,6 +453,7 @@ function BlockContent({
               )}
             </LocalizedField>
           </div>
+          <BlockLanguagesPicker block={block} index={index} onUpdate={onUpdate} />
         </div>
       );
 

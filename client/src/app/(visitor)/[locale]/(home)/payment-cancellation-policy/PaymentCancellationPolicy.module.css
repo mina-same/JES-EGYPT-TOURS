@@ -1,0 +1,815 @@
+.page {
+  background: var(--gotur-white, #fff);
+  color: var(--gotur-text, #0e3a57);
+}
+
+.summarySection {
+  padding: 78px 0 62px;
+  background: rgba(var(--gotur-gray-rgb, 243, 248, 246), 0.72);
+  border-bottom: 1px solid var(--gotur-border-color, #e5e5e5);
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 30px;
+}
+
+.eyebrow,
+.sectionNumber {
+  display: block;
+  color: var(--gotur-base, #d4af37);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+}
+
+.summaryHeader h2,
+.policySection h2 {
+  color: var(--gotur-black, #1d231f);
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.summaryHeader h2 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3vw, 2.55rem);
+  line-height: 1.15;
+}
+
+.lastUpdated {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  min-height: 42px;
+  margin: 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.28);
+  border-radius: 100px;
+  background: var(--gotur-white, #fff);
+  color: var(--gotur-text, #0e3a57);
+  font-size: 0.84rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.summaryCard {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid rgba(var(--gotur-black-rgb, 29, 35, 31), 0.1);
+  border-radius: 12px;
+  background: var(--gotur-white, #fff);
+  box-shadow: 0 12px 30px rgba(var(--gotur-black-rgb, 29, 35, 31), 0.045);
+}
+
+.summaryIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.13);
+  color: var(--gotur-base, #d4af37);
+}
+
+.summaryCard h3,
+.methodCard h3,
+.securityPanel h3,
+.cancellationCard h3,
+.refundGrid h3,
+.subsection h3 {
+  color: var(--gotur-black, #1d231f);
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-weight: 750;
+}
+
+.summaryCard h3 {
+  margin: 0 0 9px;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.summaryCard p,
+.summaryNote p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.summaryCard p {
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.76);
+}
+
+.summaryNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-left: 3px solid var(--gotur-base, #d4af37);
+  border-radius: 0 12px 12px 0;
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.08);
+  color: var(--gotur-text, #0e3a57);
+}
+
+.summaryNote svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--gotur-base, #d4af37);
+}
+
+.policyBody {
+  padding: 78px 0 52px;
+}
+
+.contentLayout {
+  display: grid;
+  grid-template-columns: 255px minmax(0, 790px);
+  justify-content: center;
+  align-items: start;
+  gap: clamp(38px, 5vw, 70px);
+}
+
+.sidebar,
+.article {
+  min-width: 0;
+}
+
+.navigation {
+  position: sticky;
+  top: 108px;
+  max-height: calc(100vh - 128px);
+  overflow-y: auto;
+  border: 1px solid var(--gotur-border-color, #e5e5e5);
+  border-radius: 12px;
+  background: rgba(var(--gotur-gray-rgb, 243, 248, 246), 0.6);
+  scrollbar-width: thin;
+}
+
+.desktopNavigation {
+  padding: 22px 20px;
+}
+
+.navigationTitle {
+  margin: 0 0 14px;
+  color: var(--gotur-black, #1d231f);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.navigationList {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navigationList a {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 40px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.8);
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.navigationList a span {
+  color: var(--gotur-base, #d4af37);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.navigationList a:hover {
+  background: var(--gotur-white, #fff);
+  color: var(--gotur-black, #1d231f);
+}
+
+.mobileNavigation {
+  display: none;
+}
+
+.policySection,
+.subsection {
+  scroll-margin-top: 126px;
+}
+
+.policySection {
+  padding-bottom: 50px;
+  margin-bottom: 50px;
+  border-bottom: 1px solid var(--gotur-border-color, #e5e5e5);
+}
+
+.policySection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionNumber {
+  margin-bottom: 9px;
+}
+
+.policySection h2 {
+  margin: 0 0 22px;
+  font-size: clamp(1.65rem, 2.5vw, 2.08rem);
+  line-height: 1.2;
+}
+
+.policySection > p,
+.subsection > p,
+.securityPanel p,
+.cancellationCard p,
+.refundGrid p,
+.supplierIntro p,
+.calmWarning p {
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.8);
+  font-size: 1rem;
+  line-height: 1.82;
+}
+
+.policySection > p,
+.subsection > p {
+  margin: 0 0 18px;
+}
+
+.policySection > p:last-child,
+.subsection > p:last-child,
+.securityPanel p,
+.cancellationCard p:last-child,
+.refundGrid p,
+.supplierIntro p,
+.calmWarning p {
+  margin-bottom: 0;
+}
+
+.highlightNote,
+.calmWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 26px;
+  padding: 20px 22px;
+  border-radius: 12px;
+}
+
+.highlightNote {
+  border-left: 4px solid var(--gotur-base, #d4af37);
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.085);
+}
+
+.highlightNote svg,
+.calmWarning svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--gotur-base, #d4af37);
+}
+
+.highlightNote p {
+  margin: 0;
+  color: var(--gotur-black, #1d231f);
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.7;
+}
+
+.subsection + .subsection {
+  margin-top: 34px;
+  padding-top: 34px;
+  border-top: 1px dashed rgba(var(--gotur-black-rgb, 29, 35, 31), 0.15);
+}
+
+.subsection h3 {
+  margin: 0 0 14px;
+  font-size: 1.24rem;
+}
+
+.standardList,
+.twoColumnList,
+.changeGrid {
+  margin: 18px 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.twoColumnList,
+.changeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+}
+
+.standardList li,
+.twoColumnList li,
+.changeGrid li {
+  position: relative;
+  padding-left: 22px;
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.82);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.standardList li + li {
+  margin-top: 10px;
+}
+
+.standardList li::before,
+.twoColumnList li::before,
+.changeGrid li::before {
+  content: "";
+  position: absolute;
+  top: 0.68em;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gotur-base, #d4af37);
+}
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.methodCard {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(var(--gotur-black-rgb, 29, 35, 31), 0.11);
+  border-radius: 12px;
+  background: var(--gotur-white, #fff);
+}
+
+.methodCard > svg {
+  margin-bottom: 16px;
+  color: var(--gotur-base, #d4af37);
+}
+
+.methodCard h3,
+.securityPanel h3,
+.refundGrid h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.methodCard p {
+  margin: 0;
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.75);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.securityPanel {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 16px;
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--gotur-black, #1d231f);
+}
+
+.securityPanel > svg {
+  color: var(--gotur-base, #d4af37);
+}
+
+.securityPanel h3 {
+  color: var(--gotur-white, #fff);
+}
+
+.securityPanel p {
+  color: rgba(var(--gotur-white-rgb, 255, 255, 255), 0.76);
+  font-size: 0.92rem;
+}
+
+.changeGrid li {
+  padding: 14px 14px 14px 38px;
+  border-radius: 10px;
+  background: rgba(var(--gotur-gray-rgb, 243, 248, 246), 0.7);
+}
+
+.changeGrid li::before {
+  top: 1.36em;
+  left: 18px;
+}
+
+.processList {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.processList div {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.processList span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.14);
+  color: var(--gotur-black, #1d231f);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.processList p {
+  margin: 0;
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.82);
+  line-height: 1.65;
+}
+
+.cancellationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.cancellationCard {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--gotur-border-color, #e5e5e5);
+  border-radius: 12px;
+  background: rgba(var(--gotur-gray-rgb, 243, 248, 246), 0.45);
+}
+
+.cancellationCard h3 {
+  margin: 0 0 12px;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.cancellationCard p {
+  font-size: 0.91rem;
+  line-height: 1.72;
+}
+
+.flexibleCard {
+  grid-column: 1 / -1;
+  border-color: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.3);
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.07);
+}
+
+.cardException {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.22);
+  color: var(--gotur-black, #1d231f) !important;
+  font-weight: 700;
+}
+
+.supplierSection {
+  padding: 34px;
+  border: 1px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.24);
+  border-radius: 16px;
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.045);
+}
+
+.supplierIntro {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 13px;
+}
+
+.supplierIntro svg {
+  color: var(--gotur-base, #d4af37);
+}
+
+.calmWarning {
+  border: 1px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.2);
+  background: var(--gotur-white, #fff);
+}
+
+.calmWarning p {
+  font-size: 0.92rem;
+}
+
+.refundGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.refundGrid article {
+  padding: 24px;
+  border-left: 3px solid var(--gotur-base, #d4af37);
+  border-radius: 0 12px 12px 0;
+  background: rgba(var(--gotur-gray-rgb, 243, 248, 246), 0.66);
+}
+
+.refundGrid svg {
+  margin-bottom: 14px;
+  color: var(--gotur-base, #d4af37);
+}
+
+.refundGrid p {
+  font-size: 0.91rem;
+  line-height: 1.72;
+}
+
+.faqHeading {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 24px;
+}
+
+.faqHeadingIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.25);
+  border-radius: 12px;
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.1);
+  color: var(--gotur-base, #d4af37);
+}
+
+.faqHeading h2 {
+  margin-bottom: 7px;
+}
+
+.faqHeading p {
+  margin: 0;
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.72);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.faqList {
+  display: grid;
+  gap: 10px;
+}
+
+.faqItem {
+  overflow: hidden;
+  border: 1px solid var(--gotur-border-color, #e5e5e5);
+  border-radius: 12px;
+  background: var(--gotur-white, #fff);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.faqItem[open] {
+  border-color: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.48);
+  box-shadow: 0 10px 26px rgba(var(--gotur-black-rgb, 29, 35, 31), 0.055);
+}
+
+.faqItem summary {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 28px;
+  gap: 12px;
+  align-items: center;
+  min-height: 66px;
+  padding: 14px 18px;
+  color: var(--gotur-black, #1d231f);
+  font-size: 0.96rem;
+  font-weight: 750;
+  line-height: 1.5;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faqItem summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqItem summary:focus-visible {
+  outline: 3px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.48);
+  outline-offset: -3px;
+}
+
+.faqNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border-radius: 8px;
+  background: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.1);
+  color: var(--gotur-base, #d4af37);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.faqChevron {
+  color: var(--gotur-base, #d4af37);
+  transition: transform 180ms ease;
+}
+
+.faqItem[open] .faqChevron {
+  transform: rotate(180deg);
+}
+
+.faqAnswer {
+  padding: 0 20px 20px 72px;
+}
+
+.faqAnswer p {
+  margin: 0;
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.8);
+  font-size: 0.93rem;
+  line-height: 1.75;
+}
+
+.acceptanceSection {
+  padding: 34px;
+  border: 1px solid rgba(var(--gotur-black-rgb, 29, 35, 31), 0.12);
+  border-radius: 16px;
+  background: rgba(var(--gotur-gray-rgb, 243, 248, 246), 0.5);
+}
+
+.acceptanceList {
+  display: grid;
+  gap: 11px;
+  margin: 24px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.acceptanceList li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  color: rgba(var(--gotur-text-rgb, 14, 58, 87), 0.84);
+  line-height: 1.6;
+}
+
+.acceptanceList svg {
+  margin-top: 4px;
+  color: var(--gotur-base, #d4af37);
+}
+
+.relatedLinks a {
+  color: var(--gotur-black, #1d231f);
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-color: var(--gotur-base, #d4af37);
+  text-underline-offset: 4px;
+}
+
+.navigationList a:focus-visible,
+.relatedLinks a:focus-visible {
+  outline: 3px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.48);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1199px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991px) {
+  .summarySection,
+  .policyBody {
+    padding-top: 64px;
+  }
+
+  .contentLayout {
+    grid-template-columns: minmax(0, 790px);
+    gap: 34px;
+  }
+
+  .navigation {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .desktopNavigation {
+    display: none;
+  }
+
+  .mobileNavigation {
+    display: block;
+  }
+
+  .mobileNavigation summary {
+    min-height: 50px;
+    padding: 14px 18px;
+    color: var(--gotur-black, #1d231f);
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .mobileNavigation .navigationList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 4px 14px 16px;
+    border-top: 1px solid var(--gotur-border-color, #e5e5e5);
+  }
+}
+
+@media (max-width: 767px) {
+  .summarySection {
+    padding: 52px 0 46px;
+  }
+
+  .policyBody {
+    padding: 48px 0 24px;
+  }
+
+  .summaryHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .summaryGrid,
+  .methodGrid,
+  .twoColumnList,
+  .changeGrid,
+  .cancellationGrid,
+  .refundGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCard {
+    padding: 21px;
+  }
+
+  .mobileNavigation .navigationList {
+    grid-template-columns: 1fr;
+  }
+
+  .policySection {
+    padding-bottom: 40px;
+    margin-bottom: 40px;
+  }
+
+  .policySection,
+  .subsection {
+    scroll-margin-top: 96px;
+  }
+
+  .flexibleCard {
+    grid-column: auto;
+  }
+
+  .supplierSection,
+  .acceptanceSection {
+    padding: 24px 20px;
+  }
+
+  .securityPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .highlightNote,
+  .calmWarning {
+    padding: 18px;
+  }
+
+  .faqItem summary {
+    grid-template-columns: 34px minmax(0, 1fr) 24px;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .faqAnswer {
+    padding: 0 16px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigationList a,
+  .faqItem,
+  .faqChevron {
+    transition: none;
+  }
+}

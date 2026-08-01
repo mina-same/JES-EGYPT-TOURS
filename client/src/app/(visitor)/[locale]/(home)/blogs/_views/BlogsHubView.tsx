@@ -1,0 +1,226 @@
+'use client';
+import React from "react";
+import { Col, Container, Row } from "react-bootstrap";
+import Link from "next/link";
+import { ChevronRight, Hash } from "lucide-react";
+import { getLocalizedValue } from "@/lib/localize";
+import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { useTranslation } from "react-i18next";
+
+import Layout from "@/components/layout/Layout/Layout";
+import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
+import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
+import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import PageHeader from "@/components/sections/PageHeader/PageHeader";
+import FooterOne from "@/components/layout/FooterOne/FooterOne";
+
+export interface BlogCategoryWithSubs {
+  _id: string;
+  name: any;
+  slug: any;
+  image?: string;
+  description?: any;
+  subcategories: any[];
+}
+
+/**
+ * The presentation half of /blogs. Categories now arrive from the server
+ * component alongside the HTML, so this renders them on the first paint —
+ * no loading spinner, and a crawler that never runs JavaScript still sees the
+ * whole directory. Only the locale-aware labels stay client-side.
+ */
+export default function BlogsHubView({
+  categories,
+  locale,
+}: {
+  categories: BlogCategoryWithSubs[];
+  locale: string;
+}) {
+  const { t, i18n } = useTranslation('blogs');
+  const currentLocale = i18n.language || locale || 'en';
+
+  return (
+    <Layout>
+      <TopbarOne />
+      <HeaderOne linkTheme="light" />
+      <HeaderOneCloned />
+      <PageHeader title={t('blogCategoriesTitle')} subTitle={t('exploreStories')} />
+      
+      <section className="blog-category-directory section-space">
+        <Container>
+          <div className="section-title text-center mb-5">
+            <span className="section-title__tagline">{t('knowledgeBase')}</span>
+            <h2 className="section-title__title">{t('exploreByTopics')}</h2>
+          </div>
+
+          <Row className="gutter-y-30">
+            {categories.map((category) => {
+              const catSlug = getStrictLocalizedSlug(category.slug, currentLocale as SupportedLocale) || "";
+              const catName = getLocalizedValue(category.name, currentLocale);
+              return (
+              <Col lg={4} md={6} key={category._id}>
+                <div className="blog-cat-card">
+                  <div className="blog-cat-card__content">
+                    <div className="blog-cat-card__header">
+                       <h3 className="blog-cat-card__title">
+                         {catSlug ? (
+                           <Link href={`/${currentLocale}/${catSlug}`}>{catName}</Link>
+                         ) : (
+                           <span>{catName}</span>
+                         )}
+                       </h3>
+
+                       <span className="blog-cat-card__count">{category.subcategories.length} {t('topics')}</span>
+                    </div>
+
+                    {category.description && (
+                      <p className="blog-cat-card__text">
+                        {getLocalizedValue(category.description, currentLocale).replace(/<[^>]*>/g, '').substring(0, 100)}...
+                      </p>
+                    )}
+
+
+                    <div className="blog-cat-card__subs mt-4">
+                      <ul className="blog-cat-card__list">
+                        {category.subcategories.map((sub) => {
+                          const subSlug = getStrictLocalizedSlug(sub.slug, currentLocale as SupportedLocale) || "";
+                          const subName = getLocalizedValue(sub.name, currentLocale);
+                          return (
+                          <li key={sub._id}>
+                            {subSlug ? (
+                              <Link href={`/${currentLocale}/${subSlug}`} className="flex items-center gap-2">
+                                 <Hash className="w-3 h-3" />
+                                 {subName}
+                              </Link>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                 <Hash className="w-3 h-3" />
+                                 {subName}
+                              </span>
+                            )}
+                          </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+
+                    {catSlug && (
+                      <Link href={`/${currentLocale}/${catSlug}`} className="blog-cat-card__btn mt-4">
+                        {t('exploreArticles')} <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </Col>
+              );
+            })}
+          </Row>
+
+          <div className="text-center mt-5">
+            <Link href={`/${currentLocale}/blogs/all`} className="gotur-btn">
+               {t('viewAllNews')}
+               <span className="icon"><i className="icon-right"></i></span>
+            </Link>
+          </div>
+        </Container>
+      </section>
+
+      <style jsx global>{`
+        .blog-cat-card {
+          background: #f8f6f2;
+          padding: 40px;
+          border-radius: 20px;
+          height: 100%;
+          border: 1px solid transparent;
+          transition: all 0.3s ease;
+        }
+
+        .blog-cat-card:hover {
+          background: white;
+          border-color: #eee;
+          box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+          transform: translateY(-5px);
+        }
+
+        .blog-cat-card__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .blog-cat-card__title {
+          font-size: 22px;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        .blog-cat-card__title a {
+          color: #1a1a1a;
+          text-decoration: none;
+        }
+
+        .blog-cat-card__count {
+          font-size: 12px;
+          background: white;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-weight: 700;
+          color: #b79c5c;
+        }
+
+        .blog-cat-card__text {
+          font-size: 15px;
+          color: #666;
+          line-height: 1.6;
+          margin-bottom: 25px;
+        }
+
+        .blog-cat-card__list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .blog-cat-card__list li a {
+          font-size: 13px;
+          color: #444;
+          background: rgba(0,0,0,0.03);
+          padding: 6px 14px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 600;
+          transition: all 0.2s;
+        }
+
+        .blog-cat-card__list li a:hover {
+          background: #b79c5c;
+          color: white;
+        }
+
+        .blog-cat-card__btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 700;
+          font-size: 14px;
+          color: #1a1a1a;
+          text-decoration: none;
+          border-bottom: 2px solid #b79c5c;
+          padding-bottom: 4px;
+          width: fit-content;
+          transition: gap 0.3s;
+        }
+
+        .blog-cat-card__btn:hover {
+          gap: 12px;
+        }
+      `}</style>
+
+      <FooterOne />
+    </Layout>
+  );
+}

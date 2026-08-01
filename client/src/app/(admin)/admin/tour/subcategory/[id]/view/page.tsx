@@ -11,16 +11,20 @@ import LanguageBadges from '@/components/admin/LanguageBadges';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
-  useEntity, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview, GalleryGroups,
+  useEntity, EditEntityButton, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview, GalleryGroups,
   hasText, localeHasField, faqHasLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const EDIT_PATH = '/admin/tour/subcategory/new?id=';
 const LIST_PATH = '/admin/tour/subcategory';
 const TOURS_PAGE_SIZE = 8;
 
 export default function TourSubcategoryViewPage() {
+  // Row-level Edit links in the embedded tours table need the same gate as the
+  // header action, which carries its own check inside EditEntityButton.
+  const { canEdit } = usePermissions();
   const { id } = useParams<{ id: string }>();
   const { entity, loading, error } = useEntity(tourSubcategoryAPI.getById, id, 'Tour subcategory not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
@@ -99,7 +103,7 @@ export default function TourSubcategoryViewPage() {
           <p className="admin-page-subtitle flex items-center gap-2"><span>Tour subcategory{parentName ? ` · under ${parentName}` : ''} · read-only</span><LanguageBadges entity={entity} /></p>
         </div>
         <div className="header-actions">
-          <Link href={`${EDIT_PATH}${id}`} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"><Edit2 size={16} /> Edit</Link>
+          <EditEntityButton href={`${EDIT_PATH}${id}`} resource="tour" />
           <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1"><ArrowLeft size={16} /> Back</Link>
         </div>
       </div>
@@ -151,7 +155,9 @@ export default function TourSubcategoryViewPage() {
                         <td className="py-2 pl-3">
                           <div className="flex items-center justify-end gap-1">
                             <Link href={`/admin/tour/tour/${t._id}/view`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="View"><Eye size={15} /></Link>
-                            <Link href={`/admin/tour/tour/${t._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
+                            {canEdit('tour') && (
+                              <Link href={`/admin/tour/tour/${t._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
+                            )}
                           </div>
                         </td>
                       </tr>

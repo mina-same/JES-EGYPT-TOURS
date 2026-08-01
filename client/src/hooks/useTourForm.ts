@@ -17,6 +17,7 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   idExternal: '',
   heading: { en: '', de: '', it: '', es: '' },
   headingDescription: { en: '', de: '', it: '', es: '' },
+  cardDescription: { en: '', de: '', it: '', es: '' },
   tourLocation: { en: '', de: '', it: '', es: '' },
   tourAvailability: { en: '', de: '', it: '', es: '' },
   pickupAndDropOff: { en: '', de: '', it: '', es: '' },
@@ -55,7 +56,6 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   blogReferences: [],
   relatedTours: [],
   reviews: [],
-  reviewsCount: 0,
   priceStartingFrom: undefined,
   duration: { en: '', de: '', it: '', es: '' },
   meetingPoint: { en: '', de: '', it: '', es: '' },
@@ -169,14 +169,6 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
     setFormData(getInitialFormData());
   };
 
-  // Generate slug from name
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-  };
-
   // Handle form field changes
   const handleChange = (field: string, value: any, lang?: AdminLanguage) => {
     setFormData(prev => {
@@ -212,24 +204,12 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
         updated[field] = value;
       }
 
-      // Auto-update slug and SEO metaTitle if heading changes
+      // Auto-update SEO metaTitle if heading changes
       if (field === 'heading' || field.startsWith('heading.')) {
         let targetLang: AdminLanguage = 'en';
         
         if (field.startsWith('heading.')) targetLang = field.split('.')[1] as AdminLanguage;
         else if (lang) targetLang = lang;
-
-        // If 'heading' is the whole object (from LocalizedInput)
-        if (field === 'heading' && typeof value === 'object' && value !== null && !Array.isArray(value)) {
-           if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
-           // Generate slugs for each language
-           Object.keys(value).forEach((l) => {
-             updated.slug[l as AdminLanguage] = generateSlug(value[l as AdminLanguage] || '');
-           });
-        } else {
-           if (!updated.slug) updated.slug = { en: '', de: '', it: '', es: '' };
-           updated.slug[targetLang] = generateSlug(value);
-        }
 
         if (!updated.seo) updated.seo = {};
         if (!updated.seo.metaTitle) updated.seo.metaTitle = { en: '', de: '', it: '', es: '' };
@@ -290,11 +270,10 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
         generalDescription: prev.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' },
         days: [
           ...(prev.itinerary?.days || []),
-          { 
-            day: (prev.itinerary?.days?.length || 0) + 1, 
-            title: { en: '', de: '', it: '', es: '' }, 
-            description: { en: '', de: '', it: '', es: '' }, 
-            activities: [] 
+          {
+            day: (prev.itinerary?.days?.length || 0) + 1,
+            title: { en: '', de: '', it: '', es: '' },
+            activities: []
           }
         ],
       },

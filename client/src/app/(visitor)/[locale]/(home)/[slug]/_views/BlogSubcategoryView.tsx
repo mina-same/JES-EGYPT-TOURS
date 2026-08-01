@@ -56,21 +56,21 @@ export default function BlogSubcategoryView({ slug, locale }: { slug: string; lo
     const fetchData = async () => {
       setLoading(true);
       try {
-        const sub = await getSubCategoryBySlug(slug);
+        const sub = await getSubCategoryBySlug(slug, locale);
         setSubcategory(sub);
 
         // Fetch sibling subcategories if category is available
         if (sub.category) {
           const categoryId = typeof sub.category === 'object' ? sub.category._id : sub.category;
           if (categoryId) {
-            const siblings = await getSubCategoriesByCategory(categoryId);
+            const siblings = await getSubCategoriesByCategory(categoryId, locale);
             setSiblingSubcategories(siblings);
           }
         }
 
         // Use the base (English) slug for the posts API call
         const baseSlug = typeof sub.slug === 'object' ? sub.slug.en : sub.slug;
-        const blogs = await getBlogsBySubCategory(baseSlug || slug, page, 9);
+        const blogs = await getBlogsBySubCategory(baseSlug || slug, page, 9, locale);
         setBlogsData(blogs);
       } catch (err) {
         console.error("Error fetching blog subcategory data:", err);

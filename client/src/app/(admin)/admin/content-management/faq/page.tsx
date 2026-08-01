@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowRightLeft,
   Home,
   Loader2,
   Plus,
@@ -38,7 +39,10 @@ const AdminFAQManagement: React.FC = () => {
   const [toggling, setToggling] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [homeFilter, setHomeFilter] = useState<string>("all");
+  // Which list is open: 'yes' = home page, 'no' = FAQ page. There is no "all"
+  // view — the two are separate places, and showing them merged is what hid the
+  // fact that the FAQ page had nothing in it.
+  const [homeFilter, setHomeFilter] = useState<string>("yes");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
@@ -48,14 +52,32 @@ const AdminFAQManagement: React.FC = () => {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  // Totals per placement, independent of the current tab, page and filters —
+  // they label the tabs, so they must not change when you page through a list.
+  const [placementCounts, setPlacementCounts] = useState({ home: 0, faq: 0 });
 
-  useEffect(() => {
-    fetchFAQs();
-  }, [page, limit, searchTerm, statusFilter, homeFilter, categoryFilter]);
+  const fetchPlacementCounts = useCallback(async () => {
+    try {
+      // limit: 1 — only `pagination.total` is wanted, not the rows.
+      const [home, faq] = await Promise.all([
+        faqService.getAllFaqsForAdmin({ displayOnHome: true, limit: 1 }),
+        faqService.getAllFaqsForAdmin({ displayOnHome: false, limit: 1 }),
+      ]);
+      setPlacementCounts({
+        home: home.pagination?.total ?? 0,
+        faq: faq.pagination?.total ?? 0,
+      });
+    } catch (error) {
+      console.error("Error fetching FAQ placement counts:", error);
+    }
+  }, []);
 
+  // Declared after fetchPlacementCounts: a `const` callback cannot be referenced
+  // in a dependency array before it is initialised.
   useEffect(() => {
     fetchCategories();
-  }, []);
+    fetchPlacementCounts();
+  }, [fetchPlacementCounts]);
 
   const fetchCategories = async () => {
     try {
@@ -68,7 +90,7 @@ const AdminFAQManagement: React.FC = () => {
     }
   };
 
-  const fetchFAQs = async () => {
+  const fetchFAQs = useCallback(async () => {
     try {
       setLoading(true);
       const params: any = {
@@ -93,7 +115,9 @@ const AdminFAQManagement: React.FC = () => {
         params.displayOnHome = homeFilter === 'yes';
       }
 
-      const response = await faqService.getAllFaqs(params);
+      // Admin-only fetcher: always every FAQ in every language, so a row with
+      // no text in the current UI language never vanishes from the editor.
+      const response = await faqService.getAllFaqsForAdmin(params);
       
       if (response.success && response.data) {
         setFaqs(response.data);
@@ -118,7 +142,14 @@ const AdminFAQManagement: React.FC = () => {
       setLoading(false);
       setInitialLoad(false);
     }
-  };
+  }, [page, limit, searchTerm, statusFilter, homeFilter, categoryFilter, toast]);
+
+  // Declared after fetchFAQs on purpose: a `const` callback cannot be referenced
+  // in a dependency array before it is initialised. It closes over the filter
+  // state, so this re-runs exactly when a filter changes.
+  useEffect(() => {
+    fetchFAQs();
+  }, [fetchFAQs]);
 
   const handleToggleActive = async (faq: FAQ) => {
     try {
@@ -156,12 +187,13 @@ const AdminFAQManagement: React.FC = () => {
       });
 
       if (!response.success) return;
-      setFaqs(faqs.map(f => 
-        f._id === faq._id ? { ...f, displayOnHome: !f.displayOnHome } : f
-      ));
+      // The question now belongs to the OTHER tab, so it has to leave this list
+      // rather than sit here mislabelled — and both tab counts have changed.
+      fetchFAQs();
+      fetchPlacementCounts();
       toast({
         title: "Success",
-        description: `FAQ ${!faq.displayOnHome ? "added to" : "removed from"} home page`,
+        description: `Moved to the ${!faq.displayOnHome ? "home page" : "FAQ page"}`,
         variant: "success",
       });
     } catch (error) {
@@ -204,6 +236,7 @@ const AdminFAQManagement: React.FC = () => {
       setDeleteModalOpen(false);
       setDeleteIds([]);
       fetchFAQs();
+      fetchPlacementCounts();
     } catch (error) {
       console.error("Error deleting FAQ:", error);
       toast({
@@ -222,10 +255,9 @@ const AdminFAQManagement: React.FC = () => {
   };
 
   const stats = {
-    total: totalItems,
+    total: placementCounts.home + placementCounts.faq,
     active: faqs.filter((f) => f.isActive).length,
     inactive: faqs.filter((f) => !f.isActive).length,
-    home: faqs.filter((f) => f.displayOnHome).length,
   };
 
   const columns: Array<AdminTableColumn<FAQ>> = [
@@ -307,9 +339,11 @@ const AdminFAQManagement: React.FC = () => {
             className={`btn-icon btn-featured ${faq.displayOnHome ? 'is-featured' : ''}`}
             onClick={() => handleToggleHomeDisplay(faq)}
             disabled={toggling === faq._id}
-            title={faq.displayOnHome ? "Remove from Home" : "Show on Home"}
+            title={faq.displayOnHome ? "Move to the FAQ page" : "Move to the home page"}
           >
-            <Home size={16} />
+            {/* A transfer arrow, not a house: the button MOVES the question to
+                the other list, and a house icon read as "this is the home one". */}
+            <ArrowRightLeft size={16} />
           </button>
           <button
             className="btn-icon btn-delete"
@@ -352,9 +386,14 @@ const AdminFAQManagement: React.FC = () => {
             <RefreshCw size={18} className={loading ? 'spinning' : ''} />
             Refresh
           </button>
-          <Link href='/admin/content-management/faq/new' className='btn-add-new'>
+          {/* Creates the question in the list you are looking at, so the common
+              case needs no extra decision. The form still lets you change it. */}
+          <Link
+            href={`/admin/content-management/faq/new?placement=${homeFilter === 'yes' ? 'home' : 'faq'}`}
+            className='btn-add-new'
+          >
             <Plus size={18} />
-            Add FAQ
+            {homeFilter === 'yes' ? 'Add to home page' : 'Add to FAQ page'}
           </Link>
         </div>
       </div>
@@ -363,7 +402,49 @@ const AdminFAQManagement: React.FC = () => {
         <StatCard icon={HelpCircle} value={stats.total} label='Total FAQs' iconVariant='total' />
         <StatCard icon={CheckCircle} value={stats.active} label='Active' iconVariant='active' />
         <StatCard icon={XCircle} value={stats.inactive} label='Hidden' iconVariant='inactive' />
-        <StatCard icon={Home} value={stats.home} label='On Home' iconVariant='progress' />
+        {/* The two placements side by side: a "FAQ page 0" here is the signal
+            that /faq has nothing to show — the state that used to be invisible. */}
+        <StatCard icon={Home} value={placementCounts.home} label='Home page' iconVariant='progress' />
+        <StatCard icon={HelpCircle} value={placementCounts.faq} label='FAQ page' iconVariant='total' />
+      </div>
+
+      {/*
+        Two lists, not one with a filter. A question belongs to exactly one of
+        them — the FAQ page deliberately leaves out whatever the homepage shows —
+        so the editor picks a place first and works inside it. "Add FAQ" then
+        creates the question where you already are.
+      */}
+      <div className='flex flex-wrap items-center gap-2 mb-4'>
+        {([
+          { key: 'yes', icon: Home, label: 'Home page', count: placementCounts.home },
+          { key: 'no', icon: HelpCircle, label: 'FAQ page', count: placementCounts.faq },
+        ] as const).map((tab) => {
+          const selected = homeFilter === tab.key;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              type='button'
+              onClick={() => {
+                setHomeFilter(tab.key);
+                setPage(1);
+                setSelectedRowKeys([]);
+              }}
+              aria-pressed={selected}
+              className={`inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-semibold transition-colors ${
+                selected
+                  ? 'border-[#b79c5c] bg-[#b79c5c]/10 text-[#b79c5c]'
+                  : 'border-gray-200 text-gray-600 hover:border-[#b79c5c]/60 dark:border-slate-700 dark:text-gray-300'
+              }`}
+            >
+              <Icon size={16} />
+              {tab.label}
+              <span className='rounded-full bg-black/5 px-2 py-0.5 text-xs dark:bg-white/10'>
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className='filters-bar'>
@@ -405,20 +486,6 @@ const AdminFAQManagement: React.FC = () => {
             <option value='all'>All Status</option>
             <option value='active'>Active</option>
             <option value='inactive'>Inactive</option>
-          </select>
-        </div>
-        <div className='filter-group'>
-          <Home size={18} />
-          <select
-            value={homeFilter}
-            onChange={(e) => {
-              setHomeFilter(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value='all'>All Visibility</option>
-            <option value='yes'>On Home</option>
-            <option value='no'>Not on Home</option>
           </select>
         </div>
       </div>

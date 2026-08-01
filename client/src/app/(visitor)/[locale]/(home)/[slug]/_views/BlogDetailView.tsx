@@ -48,7 +48,7 @@ export default function BlogDetailView({ slug, locale, initialBlog }: BlogDetail
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await getBlogBySlug(slug);
+        const data = await getBlogBySlug(slug, locale);
         setBlog(data);
       } catch (err) {
         console.error("Error fetching blog detail data:", err);

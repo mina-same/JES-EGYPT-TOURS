@@ -10,7 +10,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
 import { useSlugs } from "@/contexts/SlugContext";
-import { localizeStaticPathSegment } from "@/lib/url";
+import {
+  getCanonicalStaticSlug,
+  localizeInternalUrl,
+  localizeStaticPathSegment,
+} from "@/lib/url";
 
 const FLAG_COMPONENTS: Record<string, any> = {
   en: GB,
@@ -18,6 +22,8 @@ const FLAG_COMPONENTS: Record<string, any> = {
   it: IT,
   es: ES,
 };
+
+const LOCALES: readonly string[] = ["en", "de", "it", "es"];
 
 const STATIC_PATHS = new Set([
   "/",
@@ -27,6 +33,9 @@ const STATIC_PATHS = new Set([
   "/login",
   "/special-offers",
   "/tailor-made",
+  "/travel-trade",
+  "/privacy-policy",
+  "/payment-cancellation-policy",
   "/search",
   "/wishlist",
   "/tours",
@@ -50,6 +59,10 @@ function hasRealSlugMap(slugs: Record<string, string | undefined> | null): boole
 
 function isLikelyDynamicSlugPath(path: string): boolean {
   const normalized = path === "" ? "/" : path;
+  const firstSegment = normalized.replace(/^\/+/, "").split(/[/?#]/)[0];
+  const canonicalStaticSlug = getCanonicalStaticSlug(firstSegment);
+  if (canonicalStaticSlug && STATIC_PATHS.has(`/${canonicalStaticSlug}`)) return false;
+
   // Canonicalize localized static slugs first ("/sonderangebote" →
   // "/special-offers") so they are recognized as static pages.
   if (STATIC_PATHS.has(localizeStaticPathSegment(normalized, "en"))) return false;
@@ -78,15 +91,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const { localizedSlugs } = useSlugs();
   const router = useRouter();
   const pathname = usePathname();
-  const locales = ["en", "de", "it", "es"];
   const pathLocale = useMemo(() => {
     const seg = (pathname || "/").split("/")[1] || "";
-    return locales.includes(seg) ? seg : "";
+    return LOCALES.includes(seg) ? seg : "";
   }, [pathname]);
   const normalizedPath = useMemo(() => {
     const parts = (pathname || "/").split("/");
     const first = parts[1] || "";
-    if (locales.includes(first)) {
+    if (LOCALES.includes(first)) {
       return "/" + parts.slice(2).join("/");
     }
     return pathname || "/";
@@ -200,8 +212,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
           // If detected non-english and we are currently on default 'en'
           if (detectedLocale !== 'en' && pathLocale === 'en') {
-             const detectedPath = localizeStaticPathSegment(normalizedPath, detectedLocale);
-             const target = `/${detectedLocale}${detectedPath === "/" ? "/" : detectedPath}`;
+             const target = localizeInternalUrl(normalizedPath, detectedLocale);
              i18n.changeLanguage(detectedLocale);
              localStorage.setItem("i18nextLng", detectedLocale);
              document.cookie = `NEXT_LOCALE=${detectedLocale};path=/`;
@@ -282,7 +293,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             document.cookie = `NEXT_LOCALE=${option.value};path=/`;
           } catch {}
 
-          const target = `/${option.value}${targetPath === "/" ? "/" : targetPath}`;
+          const target = isDynamicSlugPage
+            ? `/${option.value}${targetPath === "/" ? "/" : targetPath}`
+            : localizeInternalUrl(normalizedPath, option.value);
           router.push(target);
         }}
         options={options}

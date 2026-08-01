@@ -422,13 +422,11 @@ export default function ItineraryTab({
                                 activeLanguage={activeLanguage}
                               />
 
-                              <LocalizedRichText
-                                label="Day Description"
-                                value={day.description || { en: '', de: '', it: '', es: '' }}
-                                onChange={(val) => updateItineraryDay(dayIndex, 'description', val)}
-                                placeholder="Describe what happens on this day..."
-                                activeLanguage={activeLanguage}
-                              />
+                              {/* Day Description removed: the itinerary's own
+                                  general description already covers the day, and
+                                  writing a stop here left it outside the activity
+                                  timeline — no image, no marker, out of sequence.
+                                  A day is a title plus its activities. */}
 
                               {/* Activities */}
                               <div className="space-y-3">

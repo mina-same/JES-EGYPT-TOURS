@@ -24,6 +24,7 @@ import {
   getToursBySubcategory,
   getTourById,
   getTourBySlug,
+  getToursByIds,
   getTourByExternalId,
   getRelatedTours,
   createTour,
@@ -159,6 +160,16 @@ router.get('/stats', protect, permit(PERMISSIONS.TOUR_READ), getTourStats);
  * @query   ?limit=6
  */
 router.get('/featured', getFeaturedTours);
+
+/**
+ * @route   GET /api/tours/by-ids?ids=a,b,c
+ * @desc    Resolve several tours at once for the visitor's wishlist
+ * @access  Public
+ *
+ * Registered before '/:id' — Express matches in order, and otherwise "by-ids"
+ * would be read as a tour id.
+ */
+router.get('/by-ids', getToursByIds);
 
 /**
  * @route   GET /api/tours/slug/:slug

@@ -34,6 +34,18 @@ const VideoModal: React.FC<VideoModalProps> = ({
     };
   }, [isOpen]);
 
+  // Escape closes it. Clicking the backdrop already did, but a keyboard user
+  // had no way out at all — the close button is the only focusable control and
+  // reaching it means tabbing past the video iframe.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, setOpen]);
+
   if (!isOpen) return null;
 
   const getVideoUrl = () => {
@@ -47,6 +59,11 @@ const VideoModal: React.FC<VideoModalProps> = ({
     <div
       className="video-modal-overlay"
       onClick={() => setOpen(false)}
+      // Announced as a dialog so a screen reader knows the page behind it is
+      // inert, instead of reading it as one more div in the document.
+      role="dialog"
+      aria-modal="true"
+      aria-label="Video player"
       style={{
         position: "fixed",
         top: 0,

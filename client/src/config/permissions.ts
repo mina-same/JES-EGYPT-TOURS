@@ -27,9 +27,6 @@ export const PERMISSIONS = {
   TAILOR_MADE_DELETE: 'tailor_made:delete',
   
   // Review
-  REVIEW_READ: 'review:read',
-  REVIEW_UPDATE: 'review:update',
-  REVIEW_DELETE: 'review:delete',
   
   // User (superadmin only)
   USER_CREATE: 'user:create',

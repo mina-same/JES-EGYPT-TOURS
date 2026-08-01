@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
@@ -28,7 +29,6 @@ import ListingGallery from "@/components/common/ListingSections/ListingGallery";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
-import ListingReviews from "@/components/common/ListingSections/ListingReviews";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 
 const FiltersContent = ({
@@ -280,17 +280,22 @@ export default function SubcategoryView({
               image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
               imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
               allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
-              title: getLocalizedValue(tour.heading || tour.name, locale),
+              title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
               link: `/${locale}/${tourSlug}`,
               price: tour.priceStartingFrom || { USD: 0 },
-              rating: 5,
-              reviews: tour.reviewsCount || tour.reviews?.length || 0,
               videoId: tour.videoLink || "",
               discount: "",
+              description:
+              // Editor-written card teaser wins; the long intro is the fallback.
+              getLocalizedValue(tour.cardDescription, locale) ||
+              getLocalizedValue(tour.Description?.text, locale) ||
+              "",
               meta: [
-                { id: 1, title: `${getLocalizedValue(tour.duration, locale) || t('fallback.days')}`, icon: "icon-clock" },
-                { id: 2, title: `${tour.minAge || "12"} +`, icon: "icon-user" },
-                { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || t('fallback.location'), icon: "icon-location" },
+                { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || t('fallback.location'), icon: "icon-location" },
+                { id: 2, title: `${getLocalizedValue(tour.duration, locale) || t('fallback.days')}`, icon: "icon-clock" },
+                ...(getDisplayName(tour.subcategory, locale)
+                  ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]
+                  : []),
               ],
             };
           }).filter(Boolean);
@@ -417,10 +422,10 @@ export default function SubcategoryView({
         }
         breadcrumbs={[
           {
-            label: getLocalizedValue(subcategory.category?.name, locale) || t('breadcrumb.category'),
+            label: getDisplayName(subcategory.category, locale) || t('breadcrumb.category'),
             href: categoryLocalizedSlug ? `/${locale}/${categoryLocalizedSlug}` : undefined,
           },
-          { label: getLocalizedValue(subcategory.name, locale) },
+          { label: getDisplayName(subcategory, locale) },
         ]}
       />
 
@@ -459,7 +464,7 @@ export default function SubcategoryView({
                   const isActive = String(sub?._id || "") === String(subcategory?._id || "") || String(sub?.slug || "") === String(slug || "");
                   const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale);
                   if (!isActive && !subSlug) return null;
-                  const subName = getLocalizedValue(sub.name, locale);
+                  const subName = getDisplayName(sub, locale);
                   return (
                     <div key={sub._id} className="subcategory-slide">
                       <Link
@@ -609,11 +614,6 @@ export default function SubcategoryView({
       />
 
       {/* Reviews Section */}
-      <ListingReviews
-        reviews={subcategory.reviews}
-        sectionTitle={subcategory.reviewsSectionTitle}
-        locale={locale}
-      />
 
       {/* Blogs Section */}
       <ListingBlogs

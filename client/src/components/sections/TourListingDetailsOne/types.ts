@@ -20,8 +20,6 @@ export interface Item {
   title: string;
   link: string;
   price: string | number;
-  rating: number;
-  reviews: number;
   videoId: string;
   discount: string;
   meta: Metadata[];
@@ -68,7 +66,6 @@ export interface Activity {
 export interface ItineraryDay {
   day: number;
   title: string;
-  description: string;
   activities: Activity[];
 }
 
@@ -96,7 +93,6 @@ export interface TourDetailsOneData {
   title: string;
   titleTwo: string;
   overview: string;
-  reviews: number;
   location: string;
   activitiesType: string;
   traveler: number;
@@ -109,7 +105,6 @@ export interface TourDetailsOneData {
   amenities: string;
   amenitiesTwo: string;
   relatedTours: Item[];
-  comments: Comment[];
   images: (StaticImageData | string | ImageObject)[];
   faqs: { question: string; answer: string }[];
   map: string;

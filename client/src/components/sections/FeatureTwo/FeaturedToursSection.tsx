@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 import { type ICurrencyPrice } from "@/contexts/CurrencyContext";
@@ -16,10 +17,10 @@ interface FeaturePackageItem {
   title: string;
   link: string;
   price: number | ICurrencyPrice;
-  rating: number;
-  reviews: number;
   videoId: string;
   discount: string;
+  /** Short summary shown under the title (HTML is stripped by the card). */
+  description?: string;
   meta: { id: number; title: string; icon: string }[];
 }
 
@@ -42,7 +43,8 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
 
   const slug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
   const title =
-    getLocalizedValue(tour.heading || tour.name, locale) ||
+    getLocalizedValue(tour.heading, locale) ||
+    getLocalizedValue(tour.name, locale) ||
     tour.heading?.en ||
     tour.name?.en ||
     "";
@@ -70,13 +72,18 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
     title,
     link: `/${locale}/${slug}`,
     price,
-    rating: tour.rating ?? 5,
-    reviews: tour.reviewsCount ?? tour.reviews?.length ?? 0,
     videoId,
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : "",
+    description:
+      getLocalizedValue(tour.cardDescription, locale) ||
+      getLocalizedValue(tour.Description?.text, locale) ||
+      "",
     meta: [
-      { id: 1, title: duration, icon: "icon-clock" },
-      { id: 2, title: location, icon: "icon-pin1" },
+      { id: 1, title: location, icon: "icon-pin1" },
+      { id: 2, title: duration, icon: "icon-clock" },
+      ...(getDisplayName(tour.subcategory, locale)
+        ? [{ id: 3, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]
+        : []),
     ],
   };
 }

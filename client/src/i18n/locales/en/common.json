@@ -4,11 +4,24 @@
   "partnerAlt": "Trusted Partner {{count}}",
   "partnerTitle": "JES Egypt Tours Partner {{count}}",
   "articlesCount": "{{count}} Articles",
+  "tourCard": {
+    "saveTour": "Save to wishlist",
+    "savedTour": "Saved to wishlist",
+    "startFrom": "Start from",
+    "viewTour": "View Tour",
+    "viewPhotos": "View tour photos",
+    "playVideo": "Play tour video",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist"
+  },
   "updatedRecently": "Updated Recently",
   "links": {
     "faq": "FAQ",
     "about": "About",
     "contact": "Contact"
+  },
+  "footer": {
+    "travelTrade": "Travel Trade"
   },
   "language": {
     "english": "English",
@@ -179,6 +192,13 @@
     "readLess": "Show Less"
   },
   "destinations": {
+    "carousel": {
+      "sectionTitle": "Explore Egypt's destinations",
+      "navigationLabel": "Destination carousel navigation",
+      "previous": "Previous destination",
+      "next": "Next destination",
+      "viewDestination": "Explore {{destination}}"
+    },
     "aswan": { "title": "Aswan", "subtitle": "Nile Felucca Sailing Tour" },
     "dahab": { "title": "Dahab", "subtitle": "Red Sea Mountains Tour" },
     "giza": { "title": "Giza", "subtitle": "Pyramids & Sphinx Sunset Panorama" },

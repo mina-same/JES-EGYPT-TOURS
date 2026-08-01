@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import Menu from '../models/Menu';
 
@@ -94,15 +95,23 @@ export const getMenuByKey = async (req: Request, res: Response): Promise<void> =
 
     res.status(200).json({
       success: true,
-      data: {
-        _id: (menu as any)._id,
-        key: (menu as any).key,
-        title: (menu as any).title,
-        isActive: (menu as any).isActive,
-        items,
-        createdAt: (menu as any).createdAt,
-        updatedAt: (menu as any).updatedAt,
-      },
+      // The header menu is fetched on EVERY page, so four languages of every
+      // label and url rode along with every single request. The header resolves
+      // each item with getLocalizedValue(item.url, language), which is just as
+      // happy with a plain string, and the language switcher builds its targets
+      // from the route — not from this menu — so narrowing is safe here.
+      data: localizePreservingSlugs(
+        {
+          _id: (menu as any)._id,
+          key: (menu as any).key,
+          title: (menu as any).title,
+          isActive: (menu as any).isActive,
+          items,
+          createdAt: (menu as any).createdAt,
+          updatedAt: (menu as any).updatedAt,
+        },
+        req.locale
+      ),
     });
   } catch (error: any) {
     console.error('Error fetching menu:', error);

@@ -91,9 +91,9 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
     const fetchData = async () => {
       setLoading(true);
       try {
-        const dest = await getDestinationBySlug(slug);
+        const dest = await getDestinationBySlug(slug, locale);
         if (!dest) throw new Error('Destination not found');
-        const blogs = await getBlogsByDestination(dest._id, page, 9);
+        const blogs = await getBlogsByDestination(dest._id, page, 9, locale);
         setDestination(dest);
         setBlogsData(blogs);
       } catch (err: any) {

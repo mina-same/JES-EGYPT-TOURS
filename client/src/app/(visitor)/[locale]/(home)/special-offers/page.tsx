@@ -9,6 +9,7 @@ import { getLocalizedStaticSlug } from "@/lib/url";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
 import { API_URL } from "@/config/api";
 import { SPECIAL_OFFERS_FAQS } from "./specialOffersFaqs";
+import { CARD_FIELDS } from "./cardFields";
 
 const baseUrl = SEO_BASE_URL;
 
@@ -17,10 +18,6 @@ const strings: Record<string, typeof enStrings> = { en: enStrings, de: deStrings
 type Lang = "en" | "de" | "it" | "es";
 const toLang = (locale: string): Lang =>
   (["en", "de", "it", "es"].includes(locale) ? locale : "en") as Lang;
-
-// Fields the tour card needs — same projection the view uses client-side.
-const CARD_FIELDS =
-  "slug,heading,name,images,gallery,priceStartingFrom,reviewsCount,videoLink,specialOfferDiscount,duration,minAge,tourLocation";
 
 // Page 1 of the offers, fetched server-side so the grid is part of the
 // initial HTML (SEO + no spinner). The API localizes per the X-Locale header.

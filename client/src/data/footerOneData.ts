@@ -30,6 +30,7 @@ export interface FooterDataType {
   usefulLinks: {
     title: string;
     href: string;
+    translationKey?: string;
   }[];
   newsletter: {
     text: string;
@@ -66,13 +67,15 @@ export const footerOneData: FooterDataType = {
     { title: "FAQ", href: "/faq" },
   ],
   usefulLinks: [
+    { title: "Travel Trade", href: "/travel-trade", translationKey: "footer.travelTrade" },
     { title: "About Us", href: "/about" },
     { title: "Contact", href: "/contact" },
+    { title: "Payment & Cancellation Policy", href: "/payment-cancellation-policy" },
     { title: "Wishlist", href: "/wishlist" },
     { title: "Search", href: "/search" },
   ],
   newsletter: {
     text: "Sign up to searing weekly newsletter to get the latest updates.",
-    privacyLink: "/faq",
+    privacyLink: "/privacy-policy",
   },
 };

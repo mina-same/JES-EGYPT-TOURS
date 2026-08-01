@@ -7,11 +7,13 @@
   "emptyText": "Looks like you haven't saved any tours yet. Explore our top-rated tours and find your next adventure!",
   "browseTours": "Browse Tours",
   "flexible": "Flexible",
+  "unavailableTitle": "Currently unavailable",
+  "unavailableText": "This tour is not bookable right now. We have kept it in your wishlist in case it returns.",
+  "remove": "Remove",
   "location": "Location",
-  "review": "Review",
-  "startFrom": "Start from",
-  "viewTour": "View Tour",
   "more": "More",
   "tours": "Tours",
-  "youMayAlsoLike": "You may also like"
+  "youMayAlsoLike": "You may also like",
+  "pageMetaTitle": "My Wishlist | JES Egypt Tours",
+  "pageMetaDescription": "The Egypt tours you saved for later."
 }

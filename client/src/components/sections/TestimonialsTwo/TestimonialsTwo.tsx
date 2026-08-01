@@ -3,12 +3,17 @@
 import { Container, Row, Col } from "react-bootstrap";
 import testimonialsTwoData, { TestimonialItem } from "@/data/testimonialsTwoData";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
 import { useTranslation } from "react-i18next";
+import { useRef } from "react";
 
 type SupportedLang = "en" | "de" | "it" | "es";
 
 const TestimonialsTwo = () => {
+  const sliderRef = useRef<TinySliderHandle>(null);
   const { i18n } = useTranslation("common");
   const lang = (i18n.language?.split("-")[0] as SupportedLang) ?? "en";
 
@@ -22,9 +27,8 @@ const TestimonialsTwo = () => {
     loop: testimonials.length > 1,
     nav: false,
     autoplay: false,
-    controls: testimonials.length > 1,
+    controls: false,
     mouseDrag: true,
-    controlsContainer: testimonials.length > 1 ? ".testimonials-two__bottom__nav" : undefined,
     responsive: {
       0: { items: 1 },
       768: { items: Math.min(2, testimonials.length) },
@@ -53,10 +57,20 @@ const TestimonialsTwo = () => {
               </div>
               {testimonials.length > 1 && (
                 <div className='testimonials-two__bottom__nav'>
-                  <button className='testimonials-two__carousel__nav--left'>
+                  <button
+                    type="button"
+                    className='testimonials-two__carousel__nav--left'
+                    aria-label="Previous testimonial"
+                    onClick={() => sliderRef.current?.slider?.goTo("prev")}
+                  >
                     <span className='icon-arrow-left'></span>
                   </button>
-                  <button className='testimonials-two__carousel__nav--right'>
+                  <button
+                    type="button"
+                    className='testimonials-two__carousel__nav--right'
+                    aria-label="Next testimonial"
+                    onClick={() => sliderRef.current?.slider?.goTo("next")}
+                  >
                     <span className='icon-arrow-right'></span>
                   </button>
                 </div>
@@ -66,7 +80,9 @@ const TestimonialsTwo = () => {
 
           <Col xl={8} xxl={9}>
             <TinySlider
+              ref={sliderRef}
               settings={settings}
+              rebuildKey={lang}
               className='testimonials-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme'
             >
               {testimonials.map((testimonial: TestimonialItem) => {
@@ -92,15 +108,9 @@ const TestimonialsTwo = () => {
                           </div>
                           <p className='testimonials-two-card__text'>{text}</p>
                         </div>
-                        <div className='testimonials-two-card__star'>
-                          <div className='testimonials-two-card__star__item'>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                            <i className='icon-star'></i>
-                          </div>
-                        </div>
+                        {/* No star row: these were five icons typed into the
+                            markup, identical on every testimonial and tied to
+                            no rating anyone gave. */}
                       </div>
                     </div>
                   </div>

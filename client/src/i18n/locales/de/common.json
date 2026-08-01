@@ -4,11 +4,24 @@
   "partnerAlt": "Vertrauenswürdiger Partner {{count}}",
   "partnerTitle": "JES Ägypten Touren Partner {{count}}",
   "articlesCount": "{{count}} Artikel",
+  "tourCard": {
+    "saveTour": "Zur Merkliste hinzufügen",
+    "savedTour": "In der Merkliste",
+    "startFrom": "Ab",
+    "viewTour": "Tour ansehen",
+    "viewPhotos": "Tourfotos ansehen",
+    "playVideo": "Tourvideo abspielen",
+    "addToWishlist": "Zur Merkliste hinzufügen",
+    "removeFromWishlist": "Von der Merkliste entfernen"
+  },
   "updatedRecently": "Kürzlich aktualisiert",
   "links": {
     "faq": "FAQ",
     "about": "Über uns",
     "contact": "Kontakt"
+  },
+  "footer": {
+    "travelTrade": "Reisebranche"
   },
   "language": {
     "english": "English",
@@ -178,6 +191,13 @@
     "readLess": "Weniger anzeigen"
   },
   "destinations": {
+    "carousel": {
+      "sectionTitle": "Ägyptens Reiseziele entdecken",
+      "navigationLabel": "Navigation des Reiseziel-Karussells",
+      "previous": "Vorheriges Reiseziel",
+      "next": "Nächstes Reiseziel",
+      "viewDestination": "{{destination}} entdecken"
+    },
     "aswan": { "title": "Assuan", "subtitle": "Nil-Feluke Segel-Tour" },
     "dahab": { "title": "Dahab", "subtitle": "Rotes Meer & Bergtour" },
     "giza": { "title": "Gizeh", "subtitle": "Pyramiden & Sphinx Panorama" },

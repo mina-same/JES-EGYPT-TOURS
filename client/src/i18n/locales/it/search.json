@@ -31,5 +31,7 @@
   "noVideoReviews": "Nessuna video recensione",
   "noVideoReviewsDesc": "Questo tour non ha ancora video di recensioni oneste.",
   "failedVideos": "Impossibile caricare i video",
-  "failedVideosDesc": "Errore di rete o del server. Riprovare."
+  "failedVideosDesc": "Errore di rete o del server. Riprovare.",
+  "pageMetaTitle": "Ricerca | JES Egypt Tours",
+  "pageMetaDescription": "Cerca tour e articoli di viaggio su JES Egypt Tours."
 }

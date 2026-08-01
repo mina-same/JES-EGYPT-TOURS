@@ -1,297 +1,54 @@
-'use client';
-import React, { useState, useEffect } from "react";
-import { Col, Container, Row } from "react-bootstrap";
-import Image from "next/image";
-import Link from "next/link";
-import { tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { Loader2, ChevronRight, MapPin } from "lucide-react";
-import { use } from "react";
-import { getLocalizedValue } from "@/lib/localize";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
-import Layout from "@/components/layout/Layout/Layout";
-import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
-import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
-import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
-import PageHeader from "@/components/sections/PageHeader/PageHeader";
-import FooterOne from "@/components/layout/FooterOne/FooterOne";
+import { API_URL } from "@/config/api";
+import ToursHubView, { type CategoryWithSubcategories } from "./_views/ToursHubView";
 
-interface CategoryWithSubcategories {
-  _id: string;
-  name: any;
-  slug: any;
-  image?: { url: string; alt: string };
-  description?: any;
-  subcategories: any[];
+/**
+ * Server component. This page used to fetch its categories from an effect, so
+ * the HTML shipped empty even though the page is listed in the sitemap for all
+ * four languages. The fetch happens here now.
+ *
+ * Plain `fetch` rather than the axios client: that one is built for the
+ * browser. Records stay raw (all four languages) because
+ * `getStrictLocalizedSlug` needs the untouched slug object to know whether a
+ * category exists in the visitor's language at all.
+ */
+async function getJson(path: string) {
+  const res = await fetch(`${API_URL}${path}`, { next: { revalidate: 3600 } });
+  if (!res.ok) throw new Error(`Request failed: ${path}`);
+  return res.json();
 }
 
-export default function TourCategoriesPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = use(params);
-  const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function getCategoryDirectory(): Promise<CategoryWithSubcategories[]> {
+  try {
+    const categories = await getJson("/tours/categories?isActive=true&limit=100");
+    if (!categories?.success || !Array.isArray(categories.data)) return [];
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        setLoading(true);
-        const catRes = await tourCategoryAPI.getAll({ isActive: true, limit: 100 });
-        
-        if (catRes.success && catRes.data) {
-          const catsWithSubs = await Promise.all(
-            catRes.data.map(async (cat: any) => {
-              const subRes = await tourSubcategoryAPI.getByCategory(cat._id);
-              return {
-                ...cat,
-                subcategories: subRes.success ? subRes.data : []
-              };
-            })
-          );
-          setCategories(catsWithSubs);
+    return await Promise.all(
+      categories.data.map(async (category: any) => {
+        try {
+          const subs = await getJson(`/tours/categories/${category._id}/subcategories`);
+          return {
+            ...category,
+            subcategories: subs?.success && Array.isArray(subs.data) ? subs.data : [],
+          };
+        } catch {
+          // One failing category must not blank out the whole directory.
+          return { ...category, subcategories: [] };
         }
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-        setError("Failed to load categories.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAll();
-  }, []);
-
-  if (loading) {
-    return (
-      <Layout>
-        <TopbarOne />
-        <HeaderOne linkTheme="light" />
-        <HeaderOneCloned />
-        <PageHeader title="Tour Categories" subTitle="Explore" />
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
-        <FooterOne />
-      </Layout>
+      })
     );
+  } catch (error) {
+    console.error("Failed to load the tour category directory:", error);
+    return [];
   }
+}
 
-  return (
-    <Layout>
-      <TopbarOne />
-      <HeaderOne linkTheme="light" />
-      <HeaderOneCloned />
-      <PageHeader
-        title="Tour Categories"
-        breadcrumbs={[]}
-      />
-      
-      <section className="category-directory section-space">
-        <Container>
-          <div className="section-title text-center mb-5">
-            <span className="section-title__tagline">Browse Tours</span>
-            <h2 className="section-title__title">Our Destinations & Categories</h2>
-          </div>
+export default async function TourCategoriesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const categories = await getCategoryDirectory();
 
-          <Row className="gutter-y-40">
-            {categories.map((category) => {
-              const catSlug = getStrictLocalizedSlug(category.slug, locale as SupportedLocale) || "";
-              const catName = getLocalizedValue(category.name, locale);
-              return (
-              <Col lg={4} md={6} key={category._id} className="wow fadeInUp" data-wow-delay="100ms">
-                <div className="category-card-premium">
-                  <div className="category-card-premium__image-wrapper">
-                    <Image
-                      src={category.image?.url || "/assets/images/resources/tour-1-1.jpg"}
-                      alt={getLocalizedValue(category.name, locale)}
-                      fill
-                      className="category-card-premium__image"
-                    />
-                    <div className="category-card-premium__overlay" />
-                    <div className="category-card-premium__content">
-                      <div className="category-card-premium__badge">
-                        {category.subcategories.length} Sub-destinations
-                      </div>
-                      <h3 className="category-card-premium__title">
-                        {catSlug ? (
-                          <Link href={`/${locale}/${catSlug}`}>{catName}</Link>
-                        ) : (
-                          <span>{catName}</span>
-                        )}
-                      </h3>
-                      {catSlug && (
-                        <Link href={`/${locale}/${catSlug}`} className="category-card-premium__link">
-                          View All Tours <ChevronRight className="w-4 h-4" />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="category-card-premium__subcategories">
-                    <h4 className="category-card-premium__sub-title">Popular in {catName}</h4>
-                    <ul className="category-card-premium__list">
-                      {category.subcategories.slice(0, 5).map((sub) => {
-                        const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale) || "";
-                        const subName = getLocalizedValue(sub.name, locale);
-                        return (
-                        <li key={sub._id}>
-                          {subSlug ? (
-                            <Link href={`/${locale}/${subSlug}`} className="flex items-center gap-2">
-                               <MapPin className="w-3 h-3 text-primary" />
-                               {subName}
-                            </Link>
-                          ) : (
-                            <span className="flex items-center gap-2">
-                               <MapPin className="w-3 h-3 text-primary" />
-                               {subName}
-                            </span>
-                          )}
-                        </li>
-                        );
-                      })}
-                      {category.subcategories.length > 5 && catSlug && (
-                        <li className="more-link">
-                           <Link href={`/${locale}/${catSlug}`}>+ {category.subcategories.length - 5} more</Link>
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              </Col>
-              );
-            })}
-          </Row>
-
-          <div className="text-center mt-5">
-            <Link href={`/${locale}/tours/all`} className="gotur-btn">
-               View All Tours
-               <span className="icon"><i className="icon-right"></i></span>
-            </Link>
-          </div>
-        </Container>
-      </section>
-
-      <style jsx global>{`
-        .category-card-premium {
-          background: white;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .category-card-premium:hover {
-          transform: translateY(-10px);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-
-        .category-card-premium__image-wrapper {
-          position: relative;
-          height: 240px;
-          width: 100%;
-        }
-
-        .category-card-premium__image {
-          object-cover: cover;
-        }
-
-        .category-card-premium__overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
-        }
-
-        .category-card-premium__content {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          padding: 20px;
-          color: white;
-          width: 100%;
-        }
-
-        .category-card-premium__badge {
-          display: inline-block;
-          background: var(--gotur-primary, #b79c5c);
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          margin-bottom: 10px;
-        }
-
-        .category-card-premium__title {
-          font-size: 24px;
-          margin-bottom: 8px;
-          font-weight: 700;
-        }
-
-        .category-card-premium__title a {
-          color: white;
-          text-decoration: none;
-        }
-
-        .category-card-premium__link {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.8);
-          font-weight: 600;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-
-        .category-card-premium__link:hover {
-          color: white;
-        }
-
-        .category-card-premium__subcategories {
-          padding: 24px;
-          background: white;
-          flex-grow: 1;
-        }
-
-        .category-card-premium__sub-title {
-          font-size: 14px;
-          font-weight: 700;
-          text-transform: uppercase;
-          color: #888;
-          letter-spacing: 0.05em;
-          margin-bottom: 16px;
-        }
-
-        .category-card-premium__list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 10px;
-        }
-
-        .category-card-premium__list li a {
-          font-size: 15px;
-          color: #444;
-          text-decoration: none;
-          transition: color 0.2s;
-          font-weight: 500;
-        }
-
-        .category-card-premium__list li a:hover {
-          color: var(--gotur-primary, #b79c5c);
-        }
-
-        .more-link a {
-          font-size: 13px !important;
-          color: #b79c5c !important;
-          font-weight: 700 !important;
-        }
-      `}</style>
-
-      <FooterOne />
-    </Layout>
-  );
+  return <ToursHubView categories={categories} locale={locale} />;
 }

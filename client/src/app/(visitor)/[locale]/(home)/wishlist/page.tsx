@@ -9,12 +9,12 @@ import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { tourAPI } from "@/lib/api/tour";
-import { Loader2, Trash2, Heart } from "lucide-react";
-import { useCurrency } from "@/contexts/CurrencyContext";
+import { Loader2, Heart } from "lucide-react";
 import { Col, Container, Row } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import Image from "next/image";
 import Link from "next/link";
+import TourCard from "@/components/common/TourCard/TourCard";
+import { shortenLabel } from "@/lib/displayName";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 
@@ -28,10 +28,13 @@ type WishlistTour = {
   priceStartingFrom?: any;
   images?: Array<{ url: string }>;
   gallery?: Array<{ url: string }>;
-  reviews?: Array<any>;
+  /** false when the tour is currently switched off — it stays saved, shown as unavailable. */
+  isActive?: boolean;
   duration?: string;
-  minAge?: number;
   tourLocation?: string;
+  tourType?: string;
+  cardDescription?: any;
+  Description?: { text?: any };
   category?: string | { _id?: string } | any;
   subcategory?:
     | string
@@ -49,8 +52,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
     }
   }, [locale, i18n]);
 
-  const { wishlist, toggleWishlist } = useWishlist();
-  const { formatPrice } = useCurrency();
+  const { wishlist, toggleWishlist, removeFromWishlist } = useWishlist();
   const [loading, setLoading] = useState(false);
   const [tours, setTours] = useState<WishlistTour[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -69,15 +71,28 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
       try {
         setLoading(true);
         setError(null);
-        const results = await Promise.all(
-          ids.map(async (id) => {
-            const res = await tourAPI.getById(id);
-            return res.success ? res.data : null;
-          })
-        );
+        /*
+         * One request for the whole wishlist, card fields only. This used to be
+         * a getById per saved tour, each returning the full document — itinerary,
+         * FAQs, pricing plans — to draw a card.
+         *
+         * The reply answers all three possible states for an id:
+         *   returned, active    → a normal card
+         *   returned, inactive  → the tour is hidden right now; it STAYS in the
+         *                         wishlist, shown as unavailable
+         *   not returned at all → deleted for good, so the saved id goes too
+         *
+         * A failed request throws and is handled below: it must never be read
+         * as "all of these were deleted".
+         */
+        const res = await tourAPI.getByIds(ids);
         if (!active) return;
-        const filtered = results.filter(Boolean) as WishlistTour[];
-        setTours(filtered);
+
+        const returned = Array.isArray(res?.data) ? (res.data as WishlistTour[]) : [];
+        const returnedIds = new Set(returned.map((t) => String(t._id)));
+        ids.filter((id) => !returnedIds.has(String(id))).forEach(removeFromWishlist);
+
+        setTours(returned);
 
         // Determine most common category among wishlist tours
         const categoryCounts: Record<string, number> = {};
@@ -90,7 +105,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           if (t?.subcategory?._id) return t.subcategory._id; // fallback: subcategory id
           return null;
         };
-        filtered.forEach((t) => {
+        returned.forEach((t) => {
           const cid = pickCategoryId(t);
           if (cid) categoryCounts[cid] = (categoryCounts[cid] || 0) + 1;
         });
@@ -114,7 +129,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           }
         }
         // Filter out already wishlisted tours
-        const wishIds = new Set(filtered.map((t) => t._id));
+        const wishIds = new Set(returned.map((t) => t._id));
         const mapped = (rec || [])
           .filter((t: any) => !wishIds.has(t._id))
           // Only recommend tours that have a real slug for the current locale,
@@ -133,8 +148,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               title: t.heading || t.name || "Tour",
               link: `/${locale}/${slug}`,
               price: t.priceStartingFrom || { USD: 0 },
-              rating: 5,
-              reviews: t.reviews?.length || 0,
               videoId: "",
               discount: "",
               meta: [
@@ -143,7 +156,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                   title: `${t.duration || "3 Days"}`,
                   icon: "icon-clock",
                 },
-                { id: 2, title: `${t.minAge || "12"} +`, icon: "icon-user" },
                 {
                   id: 3,
                   title: t.tourLocation || "Location",
@@ -206,111 +218,67 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           ) : (
             <Row className="gutter-y-30 gutter-x-30">
               {tours.map((tour) => {
+                // Switched off right now. The API sends only { _id, isActive }
+                // for these — deactivated content is not published through the
+                // wishlist — so there is nothing to draw a card with. The saved
+                // tour stays put, plainly marked, with a way to drop it.
+                if (tour.isActive === false) {
+                  return (
+                    <Col lg={4} md={6} key={tour._id}>
+                      <div className="wishlist-unavailable">
+                        <p className="wishlist-unavailable__title">{t('unavailableTitle')}</p>
+                        <p className="wishlist-unavailable__text">{t('unavailableText')}</p>
+                        <button
+                          type="button"
+                          className="wishlist-unavailable__remove"
+                          onClick={() => toggleWishlist(tour._id)}
+                        >
+                          {t('remove')}
+                        </button>
+                      </div>
+                    </Col>
+                  );
+                }
+
                 const image = getPrimaryImage(tour);
                 const title = tour.heading || tour.name || "Untitled Tour";
                 const price = tour.priceStartingFrom || { USD: 0 };
-                const reviews = tour.reviews?.length || 0;
+                // The API localizes documents for this page, so name/shortName
+                // usually arrive as plain strings already.
+                const sub = tour.subcategory as any;
+                const subcategoryName = sub
+                  ? shortenLabel(
+                      typeof sub.shortName === "string"
+                        ? sub.shortName
+                        : sub.shortName?.[locale] || sub.shortName?.en ||
+                          (typeof sub.name === "string" ? sub.name : sub.name?.[locale] || sub.name?.en || "")
+                    )
+                  : "";
                 // Keep the wishlisted item visible, but only link to its detail
                 // page when a real slug exists for the current locale.
                 const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
                 return (
                   <Col lg={4} md={6} key={tour._id}>
-                    <div className="item">
-                      <div
-                        className="listing-card-four wow fadeInUp"
-                        data-wow-duration="1500ms"
-                      >
-                        <div className="listing-card-four__image">
-                          <div
-                            className="relative w-full"
-                            style={{ height: "257px" }}
-                          >
-                            <Image
-                              src={image}
-                              alt={title}
-                              fill
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              className="object-cover"
-                            />
-                          </div>
-                          <div className="listing-card-four__btns">
-                            <button
-                              type="button"
-                              className="wishlist-btn"
-                              aria-label="Remove from wishlist"
-                              onClick={() => toggleWishlist(tour._id)}
-                              style={{
-                                background: "#fff",
-                                border: "none",
-                                padding: 10,
-                                borderRadius: "50%",
-                                cursor: "pointer",
-                              }}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                        <ul className="listing-card-four__meta list-unstyled">
-                          <li>
-                            <span className="listing-card-four__meta__icon">
-                              <i className="icon-clock"></i>
-                            </span>
-                            {tour.duration || t('flexible')}
-                          </li>
-                          <li>
-                            <span className="listing-card-four__meta__icon">
-                              <i className="icon-user"></i>
-                            </span>
-                            {(tour.minAge ?? 12) + " +"}
-                          </li>
-                          <li>
-                            <span className="listing-card-four__meta__icon">
-                              <i className="icon-location"></i>
-                            </span>
-                            {tour.tourLocation || t('location')}
-                          </li>
-                        </ul>
-                        <div className="listing-card-four__content">
-                          <div className="listing-card-four__rating">
-                            <span>({reviews} {t('review')})</span>
-                            {[...Array(5)].map((_, i) => (
-                              <i key={i} className="icon-star"></i>
-                            ))}
-                          </div>
-                          <h3 className="listing-card-four__title">
-                            {tourSlug ? (
-                              <Link href={`/${locale}/${tourSlug}`}>
-                                {title}
-                              </Link>
-                            ) : (
-                              <span>{title}</span>
-                            )}
-                          </h3>
-                          <div className="listing-card-four__content__btn">
-                            <div className="listing-card-four__price">
-                              <span className="listing-card-four__price__sub">
-                                {t('startFrom')}
-                              </span>
-                              <span className="listing-card-four__price__number">
-                                {formatPrice(price)}
-                              </span>
-                            </div>
-                            {tourSlug && (
-                              <Link
-                                href={`/${locale}/${tourSlug}`}
-                                className="listing-card-four__btn gotur-btn"
-                              >
-                                {t("viewTour")}{" "}
-                                <span className="icon">
-                                  <i className="icon-right"></i>
-                                </span>
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <TourCard
+                      item={{
+                        id: tour._id,
+                        image,
+                        title,
+                        link: tourSlug ? `/${locale}/${tourSlug}` : "",
+                        price,
+                        description: tour.cardDescription || tour.Description?.text || "",
+                        meta: [
+                          { id: 1, title: tour.tourLocation || t('location'), icon: "icon-location" },
+                          { id: 2, title: tour.duration || t('flexible'), icon: "icon-clock" },
+                          // The API localizes documents for this page, so the name
+                          // normally arrives as a plain string already.
+                          ...(subcategoryName ? [{ id: 4, title: subcategoryName, icon: "icon-flag" }] : []),
+                        ],
+                      }}
+                      onRemove={toggleWishlist}
+                      showBadges={false}
+                      linkMeta={false}
+                    />
                   </Col>
                 );
               })}

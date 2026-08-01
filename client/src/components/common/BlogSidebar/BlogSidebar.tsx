@@ -29,7 +29,11 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ currentBlog }) => {
           limit: "50",
         });
 
-        const blogsRes = await fetch(`${API_URL}/blog/posts?${queryParams.toString()}`);
+        // The API localizes this response, so without the locale the tag list
+        // would come back in English on /de, /it and /es.
+        const blogsRes = await fetch(`${API_URL}/blog/posts?${queryParams.toString()}`, {
+          headers: { "X-Locale": currentLocale },
+        });
 
         if (blogsRes.ok) {
           const blogsResponse: BlogResponse = await blogsRes.json();
@@ -69,7 +73,8 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ currentBlog }) => {
               {tags.map((tag, index) => (
                 <Link
                   key={index}
-                  href={`${blogsPath}?tag=${encodeURIComponent(tag)}`}
+                  // /blogs ignores ?tag= — /blogs/all is the filtering route.
+                  href={`${blogsPath}/all?tag=${encodeURIComponent(tag)}`}
                   className='gotur-btn'
                 >
                   {tag}

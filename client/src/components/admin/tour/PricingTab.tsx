@@ -29,7 +29,7 @@ export default function PricingTab({ formData, handleChange, activeLanguage, for
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <CurrencyInput
-              label="Starting From Price *"
+              label="Starting From Price"
               value={formData.priceStartingFrom || { USD: 0 }}
               onChange={(val) => handleChange('priceStartingFrom', val)}
               placeholder="0.00"
@@ -43,7 +43,7 @@ export default function PricingTab({ formData, handleChange, activeLanguage, for
 
           <div className="space-y-2">
             <LocalizedInput
-              label="Cancellation Policy *"
+              label="Cancellation Policy"
               value={formData.cancellationPolicy || { en: '', de: '', it: '', es: '' }}
               onChange={(val) => handleChange('cancellationPolicy', val)}
               placeholder="e.g., Free cancellation up to 24h before"
@@ -63,7 +63,7 @@ export default function PricingTab({ formData, handleChange, activeLanguage, for
       {/* Pricing Plans Manager */}
       <Card className={cn(hasPricingError && 'border-red-400 ring-1 ring-red-300')}>
         <CardHeader>
-          <CardTitle className={cn(hasPricingError && 'text-red-600')}>Pricing Plans *</CardTitle>
+          <CardTitle className={cn(hasPricingError && 'text-red-600')}>Pricing Plans</CardTitle>
           <CardDescription>Manage seasonal pricing and packages</CardDescription>
           {hasPricingError && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path === 'pricingPlans')?.message}</p>}
         </CardHeader>

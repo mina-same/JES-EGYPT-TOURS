@@ -43,18 +43,10 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
               </Accordion.Header>
               <Accordion.Body>
                 <div className='accordion-content' style={{ padding: '20px 35px' }}>
-                  {/* Day Description */}
-                  <div 
-                    style={{ 
-                      marginBottom: '32px', 
-                      color: '#4a4a4a', 
-                      fontSize: '15px', 
-                      lineHeight: '1.8',
-                      fontWeight: '400'
-                    }} 
-                    dangerouslySetInnerHTML={{ __html: day.description }} 
-                  />
-                  
+                  {/* A day is now its title plus its activities — the free-text
+                      day description was retired because a stop written there
+                      rendered outside the timeline, with no image and no marker. */}
+
                   {/* Activities Timeline */}
                   {day.activities && day.activities.length > 0 && (
                     <div style={{ position: 'relative', paddingLeft: '0', marginTop: '24px' }}>

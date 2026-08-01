@@ -3,7 +3,7 @@ import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
 import { ITour } from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
-import { localize } from '../utils/localize';
+import { localize, localizePreservingSlugs } from '../utils/localize';
 import {
   parseFutureSchedule,
   PublishingValidationError,
@@ -37,6 +37,17 @@ interface QueryParams {
 }
 
 // ==================== HELPER FUNCTIONS ====================
+
+// English is the only required slug. Remove blank optional locale keys so the
+// sparse unique indexes do not treat an empty string as a real duplicate slug.
+const stripEmptyLocalizedSlugs = (slug: any): void => {
+  if (!slug || typeof slug !== 'object') return;
+  for (const lang of ['de', 'it', 'es'] as const) {
+    if (typeof slug[lang] === 'string' && slug[lang].trim() === '') {
+      delete slug[lang];
+    }
+  }
+};
 
 /**
  * Build query filter from request parameters
@@ -146,23 +157,38 @@ const parsePagination = (queryParams: QueryParams) => {
  */
 const parseSort = (sortParam?: string): string => {
   const validSortFields = ['heading', 'createdAt', 'updatedAt', 'tourLocation', 'priceStartingFrom'];
-  
+  // Localized fields are {en,de,it,es} objects: sorting on the bare field makes
+  // Mongo compare the whole sub-document (i.e. always by EN). Callers may pass
+  // a locale suffix ("heading.de") so each language sorts by its OWN text.
+  const localizedSortFields = ['heading', 'tourLocation'];
+  const supportedLocales = ['en', 'de', 'it', 'es'];
+
   if (!sortParam) return '-createdAt';
 
   // Handle descending sort (e.g., '-createdAt')
   const isDescending = sortParam.startsWith('-');
-  const field = isDescending ? sortParam.substring(1) : sortParam;
+  const raw = isDescending ? sortParam.substring(1) : sortParam;
+  const [field, locale] = raw.split('.');
 
   if (!validSortFields.includes(field)) {
     return '-createdAt';
   }
 
-  // If sorting by price, use the USD field
-  if (field === 'priceStartingFrom') {
-    return isDescending ? '-priceStartingFrom.USD' : 'priceStartingFrom.USD';
+  // A suffix is only allowed on localized fields, and only a real locale.
+  if (locale && !(localizedSortFields.includes(field) && supportedLocales.includes(locale))) {
+    return '-createdAt';
   }
 
-  return sortParam;
+  let target = raw;
+  if (field === 'priceStartingFrom') {
+    // Price is {USD,EUR,GBP} — sort on the always-present USD amount.
+    target = 'priceStartingFrom.USD';
+  } else if (localizedSortFields.includes(field) && !locale) {
+    // Keep the previous effective behaviour explicit instead of implicit.
+    target = `${field}.en`;
+  }
+
+  return isDescending ? `-${target}` : target;
 };
 
 /**
@@ -273,13 +299,15 @@ export const getFeaturedTours = async (
     const limit = parseInt(req.query.limit as string || '6', 10);
 
     const tours = await Tour.find({ isActive: true, isFeatured: true })
-      .populate('subcategory', 'name slug')
+      .populate('subcategory', 'name shortName slug')
       .sort('-createdAt')
       .limit(limit)
       // `reviews.url` only (not full reviews) so we can derive a video link
       // without shipping the heavy reviews array to the client.
       .select(
-        'heading slug images Description tourLocation tourType pricingPlans priceStartingFrom reviewsCount duration specialOfferDiscount isSpecialOffer reviews.url'
+        // `subcategory` must be selected for the populate above to resolve — the
+        // card shows its name as the tour's category label.
+        'heading slug images cardDescription Description tourLocation subcategory pricingPlans priceStartingFrom duration specialOfferDiscount isSpecialOffer reviews.url'
       )
       .lean();
 
@@ -295,16 +323,17 @@ export const getFeaturedTours = async (
       return videoUrl ? { ...rest, videoUrl } : rest;
     });
 
-    // Return RAW (non-localized) documents — same as getFeaturedBlogs. The
-    // homepage localizes on the client (getLocalizedValue / getStrictLocalizedSlug),
-    // which needs the localized `slug` as an OBJECT { en, de, it, es } to build
-    // correct per-locale URLs. Server-side localize() would flatten slug to a
-    // single string, which the strict-slug filter treats as English-only,
-    // hiding all tours on the de/it/es pages.
+    // Localized, EXCEPT `slug`. The homepage builds per-locale URLs with
+    // getStrictLocalizedSlug(tour.slug, locale), which needs slug as an OBJECT
+    // { en, de, it, es } — a flattened slug reads as English-only and hides
+    // every tour on the de/it/es pages. Returning the rest raw (as this did)
+    // shipped all four languages of every field to every visitor.
+    const payload = localizePreservingSlugs(data, req.locale);
+
     res.status(200).json({
       success: true,
-      count: data.length,
-      data,
+      count: payload.length,
+      data: payload,
     });
   } catch (error: any) {
     console.error('Error fetching featured tours:', error);
@@ -347,7 +376,7 @@ export const getToursBySubcategory = async (
 
     const [tours, total] = await Promise.all([
       Tour.find(filter)
-        .populate('subcategory', 'name slug')
+        .populate('subcategory', 'name shortName slug')
         .sort('-createdAt')
         .skip(skip)
         .limit(limitNum)
@@ -385,6 +414,78 @@ export const getToursBySubcategory = async (
 };
 
 /**
+ * @desc    Resolve many tours at once, for the visitor's saved wishlist
+ * @route   GET /api/tours/by-ids?ids=a,b,c
+ * @access  Public
+ *
+ * Replaces one full-document request per saved tour. Only card fields are
+ * returned, and the reply answers the question the wishlist actually has about
+ * every id — is this tour still bookable, merely unavailable, or gone?
+ *
+ *   present with isActive true   → render the card
+ *   present with isActive false  → the tour is hidden right now; the visitor
+ *                                  keeps it, shown as unavailable. Deliberately
+ *                                  reduced to { _id, isActive } so deactivated
+ *                                  content is not published through this route.
+ *   absent from the reply        → deleted for good; the client drops the id
+ *
+ * That distinction is the whole point: a tour switched off for a day must not
+ * silently disappear from everyone's wishlist.
+ */
+export const getToursByIds = async (
+  req: Request<{}, {}, {}, { ids?: string }>,
+  res: Response
+): Promise<void> => {
+  try {
+    const requested = (req.query.ids || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => /^[0-9a-fA-F]{24}$/.test(id))
+      // A wishlist is a handful of tours; the cap stops a crafted URL from
+      // turning this into an "export the catalogue" endpoint.
+      .slice(0, 100);
+
+    if (requested.length === 0) {
+      res.status(200).json({ success: true, count: 0, data: [] });
+      return;
+    }
+
+    const tours = await Tour.find({ _id: { $in: requested } })
+      .select(
+        'heading name slug images priceStartingFrom duration tourLocation ' +
+          'subcategory cardDescription Description isActive specialOfferDiscount videoLink'
+      )
+      // `category` inside the subcategory is what the wishlist page uses to pick
+      // its recommendations — dropping it makes them silently fall back to
+      // "latest tours" with no error anywhere.
+      .populate({
+        path: 'subcategory',
+        select: 'name shortName slug category',
+        populate: { path: 'category', select: '_id name slug' },
+      })
+      .lean();
+
+    const data = tours.map((tour: any) =>
+      tour.isActive === false ? { _id: tour._id, isActive: false } : tour
+    );
+
+    res.status(200).json({
+      success: true,
+      count: data.length,
+      // slug stays raw for per-locale links; faqs are absent from the projection.
+      data: localizePreservingSlugs(data, req.locale),
+    });
+  } catch (error: any) {
+    console.error('Error fetching tours by ids:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch tours',
+      message: error.message,
+    });
+  }
+};
+
+/**
  * @desc    Get single tour by ID
  * @route   GET /api/tours/:id
  * @access  Public
@@ -395,7 +496,7 @@ export const getTourById = async (
 ): Promise<void> => {
   try {
     const tour = await Tour.findById(req.params.id)
-      .populate('subcategory', 'name slug description category')
+      .populate('subcategory', 'name shortName slug description category')
       .populate({
         path: 'subcategory',
         populate: {
@@ -475,7 +576,9 @@ export const getTourBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: ensureTourMapSchema(tour),
+      // Localized, but every `slug` stays raw so the language switcher and the
+      // hreflang alternates can still resolve this tour in the other locales.
+      data: localizePreservingSlugs(ensureTourMapSchema(tour), req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour by slug:', error);
@@ -498,7 +601,7 @@ export const getTourByExternalId = async (
 ): Promise<void> => {
   try {
     const tour = await Tour.findOne({ idExternal: req.params.idExternal })
-      .populate('subcategory', 'name slug')
+      .populate('subcategory', 'name shortName slug')
       .lean();
 
     if (!tour) {
@@ -551,7 +654,7 @@ export const getRelatedTours = async (
       _id: { $ne: req.params.id },
       isActive: true,
     })
-      .select('heading slug images Description tourLocation pricingPlans')
+      .select('heading slug images cardDescription Description tourLocation pricingPlans')
       .limit(limit)
       .lean();
 
@@ -581,6 +684,7 @@ export const createTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    stripEmptyLocalizedSlugs(body.slug);
 
     if (
       Object.prototype.hasOwnProperty.call(body, 'scheduledAt') &&
@@ -602,7 +706,7 @@ export const createTour = async (
     const tour = await Tour.create(body);
 
     // Populate subcategory details
-    await tour.populate('subcategory', 'name slug');
+    await tour.populate('subcategory', 'name shortName slug');
 
     void emitDashboardStatsUpdate();
 
@@ -688,6 +792,7 @@ export const updateTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    stripEmptyLocalizedSlugs(body.slug);
 
     // Stale-save conflict guard — reject saves from stale drafts or old tabs
     const submittedVersion: number | undefined =
@@ -782,7 +887,7 @@ export const updateTour = async (
         new: true,
         runValidators: true,
       }
-    ).populate('subcategory', 'name slug');
+    ).populate('subcategory', 'name shortName slug');
 
     if (!tour) {
       res.status(404).json({
@@ -980,6 +1085,7 @@ export const toggleTourFeatured = async (
     }
 
     tour.isFeatured = !tour.isFeatured;
+    tour.editVersion = (tour.editVersion ?? 0) + 1;
     await tour.save();
 
     void emitDashboardStatsUpdate();

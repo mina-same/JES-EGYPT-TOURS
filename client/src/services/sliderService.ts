@@ -6,9 +6,12 @@ class SliderService {
   /**
    * Fetch all active slider content for public display
    */
-  async getActiveSliderContent(): Promise<SliderItem[]> {
+  /** `locale` narrows the response to one language; omit it for all four. */
+  async getActiveSliderContent(locale?: string): Promise<SliderItem[]> {
     try {
-      const response = await fetch(API_ENDPOINTS.SLIDER_CONTENT.PUBLIC);
+      const response = await fetch(API_ENDPOINTS.SLIDER_CONTENT.PUBLIC, {
+        ...(locale ? { headers: { "X-Locale": locale } } : {}),
+      });
       
       if (!response.ok) {
         throw new Error(`Failed to fetch slider content: ${response.statusText}`);
@@ -27,9 +30,11 @@ class SliderService {
     }
   }
 
-  async getPublicSliderPromo(): Promise<SliderUnderPromo | null> {
+  async getPublicSliderPromo(locale?: string): Promise<SliderUnderPromo | null> {
     try {
-      const response = await fetch(API_ENDPOINTS.SLIDER_CONTENT.PROMO_PUBLIC);
+      const response = await fetch(API_ENDPOINTS.SLIDER_CONTENT.PROMO_PUBLIC, {
+        ...(locale ? { headers: { "X-Locale": locale } } : {}),
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch slider promo: ${response.statusText}`);

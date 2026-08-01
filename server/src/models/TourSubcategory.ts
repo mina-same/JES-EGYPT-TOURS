@@ -5,9 +5,9 @@ import {
   ILocalizedString, 
   ILocalizedMixed, 
   LocalizedStringSchema, 
+  OptionalLocalizedStringSchema,
   LocalizedMixedSchema 
 } from './shared/LocalizedSchema';
-import { ICuratedReview, CuratedReviewSchema } from './shared/CuratedReviewSchema';
 
 // ==================== INTERFACES ====================
 
@@ -38,6 +38,8 @@ export interface ISectionHeader {
 export interface ITourSubcategory extends Document {
   category: Types.ObjectId;
   name: ILocalizedString;
+  /** Short label for compact UI; falls back to `name` when empty. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed; // Rich text for page header
   images: IImage[];
@@ -50,9 +52,7 @@ export interface ITourSubcategory extends Document {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: Types.ObjectId[];
   destinationsSectionTitle?: ILocalizedString;
   featuredDestinations?: Types.ObjectId[];
@@ -151,6 +151,14 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
       type: LocalizedStringSchema,
       required: [true, 'Subcategory name is required'],
     },
+    /**
+     * Optional short label for compact UI (cards, chips, filters, breadcrumbs).
+     * `name` stays the long, keyword-rich page H1; leaving this empty falls back
+     * to `name` shortened at its first separator, so nothing breaks unfilled.
+     */
+    shortName: {
+      type: OptionalLocalizedStringSchema,
+    },
     slug: {
       type: LocalizedStringSchema,
       required: [true, 'Slug is required'],
@@ -199,16 +207,8 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
       type: LocalizedStringSchema,
       required: false,
     },
-    reviewsSectionTitle: {
-      type: LocalizedStringSchema,
-      required: false,
-    },
     faqs: {
       type: [FAQSchema],
-      required: false,
-    },
-    reviews: {
-      type: [CuratedReviewSchema],
       required: false,
     },
     featuredBlogs: [

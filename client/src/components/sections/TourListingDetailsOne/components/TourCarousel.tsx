@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
 
 interface TourCarouselProps {
   sliderImages: any[];
@@ -9,7 +12,7 @@ interface TourCarouselProps {
 }
 
 export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title }) => {
-  const sliderRef = useRef<any>(null);
+  const sliderRef = useRef<TinySliderHandle>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const refreshTimeoutRef = useRef<number | null>(null);
 
@@ -30,12 +33,8 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
         return;
       }
 
-      try {
-        slider.refresh?.();
-        slider.updateSliderHeight?.();
-      } catch (error) {
-        console.debug("Tour carousel refresh handled:", error);
-      }
+      slider.refresh();
+      slider.updateSliderHeight();
     }, 60);
   }, []);
 
@@ -73,7 +72,8 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
     items: 3,
     gutter: 30,
     center: true,
-    loop: true,
+    loop: false,
+    rewind: true,
     nav: false,
     controls: false,
     autoplay: false,
@@ -100,6 +100,11 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
           <TinySlider
             ref={sliderRef}
             settings={settings}
+            rebuildKey={`${title}:${sliderImages
+              .map((image) =>
+                typeof image === "string" ? image : image?.url || image?.src || ""
+              )
+              .join("|")}`}
             onInit={refreshSliderLayout}
           >
             {sliderImages.map((img, idx) => {
@@ -116,7 +121,7 @@ export const TourCarousel: React.FC<TourCarouselProps> = ({ sliderImages, title 
                 : (imageTitle || `${title} - Image ${idx + 1}`);
               
               return (
-                <div key={idx}>
+                <div key={`${imageUrl}-${idx}`}>
                   <div className='item'>
                     <Item 
                       original={imageUrl} 

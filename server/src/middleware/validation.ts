@@ -134,6 +134,113 @@ export const contactSubmissionValidation: ValidationChain[] = [
     .withMessage('Message cannot exceed 5000 characters'),
 ];
 
+export const travelTradeInquiryValidation: ValidationChain[] = [
+  body('source')
+    .equals('travel-trade')
+    .withMessage('Invalid inquiry source'),
+  body('inquiryType')
+    .isIn(['b2b-rates', 'client-request', 'general-partnership'])
+    .withMessage('Please select a valid inquiry type'),
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Full name is required')
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Full name must be between 2 and 100 characters'),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Business email is required')
+    .isLength({ max: 150 })
+    .withMessage('Business email cannot exceed 150 characters')
+    .isEmail()
+    .withMessage('Please provide a valid business email')
+    .normalizeEmail(),
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Phone or WhatsApp is required')
+    .isLength({ max: 40 })
+    .withMessage('Phone or WhatsApp cannot exceed 40 characters'),
+  body('companyName')
+    .trim()
+    .notEmpty()
+    .withMessage('Company name is required')
+    .isLength({ min: 2, max: 150 })
+    .withMessage('Company name must be between 2 and 150 characters'),
+  body('companyWebsite')
+    .trim()
+    .notEmpty()
+    .withMessage('Company website is required')
+    .isLength({ max: 250 })
+    .withMessage('Company website cannot exceed 250 characters')
+    .isURL({ require_protocol: false, protocols: ['http', 'https'] })
+    .withMessage('Please provide a valid company website'),
+  body('country')
+    .trim()
+    .notEmpty()
+    .withMessage('Country is required')
+    .isLength({ max: 100 })
+    .withMessage('Country cannot exceed 100 characters'),
+  body('businessType')
+    .isIn([
+      'travel-agency',
+      'tour-operator',
+      'travel-advisor',
+      'group-organizer',
+      'corporate-incentive',
+      'other',
+    ])
+    .withMessage('Please select a valid business type'),
+  body('primaryMarket')
+    .trim()
+    .notEmpty()
+    .withMessage('Primary market is required')
+    .isLength({ max: 150 })
+    .withMessage('Primary market cannot exceed 150 characters'),
+  body('annualTravelers')
+    .isIn(['under-10', '10-25', '26-50', '51-100', 'over-100', 'not-sure'])
+    .withMessage('Please select a valid annual traveler range'),
+  body('travelDates')
+    .trim()
+    .notEmpty()
+    .withMessage('Expected travel dates are required')
+    .isLength({ max: 150 })
+    .withMessage('Travel dates cannot exceed 150 characters'),
+  body('travelers')
+    .isInt({ min: 1, max: 10000 })
+    .withMessage('Travelers must be a whole number between 1 and 10000')
+    .toInt(),
+  body('destinations')
+    .trim()
+    .notEmpty()
+    .withMessage('Destinations are required')
+    .isLength({ max: 500 })
+    .withMessage('Destinations cannot exceed 500 characters'),
+  body('serviceLanguage')
+    .trim()
+    .notEmpty()
+    .withMessage('Preferred service language is required')
+    .isLength({ max: 100 })
+    .withMessage('Service language cannot exceed 100 characters'),
+  body('serviceLevel')
+    .isIn(['standard', 'premium', 'luxury', 'mixed'])
+    .withMessage('Please select a valid service level'),
+  body('message')
+    .trim()
+    .notEmpty()
+    .withMessage('Message is required')
+    .isLength({ min: 20, max: 5000 })
+    .withMessage('Message must be between 20 and 5000 characters'),
+  body('consentGiven')
+    .custom((value) => value === true)
+    .withMessage('Consent is required'),
+  body('locale')
+    .optional()
+    .isIn(['en', 'de', 'it', 'es'])
+    .withMessage('Invalid locale'),
+];
+
 export const registerValidation: ValidationChain[] = [
   body('name')
     .trim()

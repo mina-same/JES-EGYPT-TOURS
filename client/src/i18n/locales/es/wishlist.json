@@ -7,11 +7,13 @@
   "emptyText": "Parece que aún no has guardado ningún tour. ¡Explora nuestros tours mejor valorados y encuentra tu próxima aventura!",
   "browseTours": "Explorar tours",
   "flexible": "Flexible",
+  "unavailableTitle": "No disponible por ahora",
+  "unavailableText": "Este tour no se puede reservar en este momento. Lo hemos guardado en tus favoritos por si vuelve a estar disponible.",
+  "remove": "Quitar",
   "location": "Ubicación",
-  "review": "Opinión",
-  "startFrom": "Desde",
-  "viewTour": "Ver tour",
   "more": "Más",
   "tours": "Tours",
-  "youMayAlsoLike": "También te podría gustar"
+  "youMayAlsoLike": "También te podría gustar",
+  "pageMetaTitle": "Mi lista de deseos | JES Egypt Tours",
+  "pageMetaDescription": "Los tours por Egipto que guardaste para más tarde."
 }

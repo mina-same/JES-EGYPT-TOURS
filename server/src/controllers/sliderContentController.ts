@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import SliderContent from '../models/SliderContent';
 import { FilterQuery } from 'mongoose';
@@ -91,7 +92,7 @@ export const getActiveSliderContent = async (req: Request, res: Response) => {
 
     res.status(200).json({
       success: true,
-      data: sliderItems,
+      data: localizePreservingSlugs(sliderItems, req.locale),
       pagination: {
         page: pageNum,
         limit: limitNum,

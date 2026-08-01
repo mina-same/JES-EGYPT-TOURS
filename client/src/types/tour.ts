@@ -41,6 +41,8 @@ export interface ISectionHeader {
 export interface ITourCategory {
   _id: string;
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed; // Plain text or HTML for page header
   images: IImage[];
@@ -53,9 +55,7 @@ export interface ITourCategory {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -84,9 +84,7 @@ export interface ITourSubcategory {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -107,6 +105,8 @@ export interface ITour {
   subcategory: string | ITourSubcategory; // Can be populated or just ID
   heading: ILocalizedString;
   headingDescription?: ILocalizedMixed;
+  /** Short teaser for the tour card (two clamped lines). */
+  cardDescription?: ILocalizedString;
   images: IImage[];
   gallery?: IImage[];
   price?: number;
@@ -123,7 +123,6 @@ export interface ITour {
   publishedAt?: Date | string;
   seo?: ISEO;
   idExternal?: string;
-  reviewsCount?: number;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -132,6 +131,8 @@ export interface ITour {
 
 export interface TourCategoryFormData {
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed;
   images: IImage[];
@@ -144,9 +145,7 @@ export interface TourCategoryFormData {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -157,6 +156,8 @@ export interface TourCategoryFormData {
 export interface TourSubcategoryFormData {
   category: string;
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed;
   images: IImage[];
@@ -169,9 +170,7 @@ export interface TourSubcategoryFormData {
   gallerySectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
-  reviewsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
-  reviews?: ICuratedReview[];
   featuredBlogs?: string[];
   featuredDestinations?: string[];
   destinationsSectionTitle?: ILocalizedString;
@@ -220,8 +219,13 @@ export interface IItineraryActivity {
 export interface IItineraryDay {
   day: number;
   title: ILocalizedString;
-  description: ILocalizedMixed;
   activities: IItineraryActivity[];
+  /**
+   * Retired field. Still declared because older tours carry it in the database
+   * and would otherwise fail to type-check when read; nothing writes or renders
+   * it any more — a day is its title plus its activities.
+   */
+  description?: ILocalizedMixed;
 }
 
 export interface IItinerary {
@@ -234,14 +238,6 @@ export interface IFAQ {
   answer:   { en?: any; de?: any; it?: any; es?: any };
   isActive?: boolean;
   order?: number;
-}
-
-export interface ICuratedReview {
-  name: ILocalizedString;
-  avatar?: string;
-  rating: number;
-  comment: ILocalizedString;
-  status?: string;
 }
 
 export interface ITourDescription {
@@ -259,6 +255,8 @@ export interface TourFormData {
   idExternal?: string;
   heading?: ILocalizedString;
   headingDescription?: ILocalizedMixed;
+  /** Short teaser for the tour card (two clamped lines). */
+  cardDescription?: ILocalizedString;
   tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
@@ -286,7 +284,6 @@ export interface TourFormData {
   blogReferences?: { id: string; title: string }[];
   relatedTours?: { id: string; title: string }[];
   reviews?: { type: string; url?: string; title: ILocalizedString; content?: ILocalizedMixed }[];
-  reviewsCount?: number;
   // Additional tour details
   priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;

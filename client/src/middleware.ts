@@ -48,6 +48,12 @@ export function middleware(request: NextRequest) {
     );
   }
 
+  // Egypt DMC is the one English static page whose canonical URL intentionally
+  // omits `/en`; next.config rewrites it to the internal localized route.
+  if (pathname === '/egypt-dmc') {
+    return NextResponse.next();
+  }
+
   // 3. Check if the current path already has a locale prefix
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`

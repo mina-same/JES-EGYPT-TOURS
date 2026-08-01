@@ -1,8 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
-import { Loader2, Tag, ShieldCheck, BadgePercent, Clock3, ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { Loader2, Tag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import Layout from "@/components/layout/Layout/Layout";
@@ -17,18 +16,27 @@ import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, getLocalizedStaticSlug, type SupportedLocale } from "@/lib/url";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { toast } from "@/hooks/use-toast";
 import { SPECIAL_OFFERS_FAQS } from "../specialOffersFaqs";
+import { CARD_FIELDS } from "../cardFields";
+import OffersCta from "./OffersCta";
+import SpecialOffersBanner from "./SpecialOffersBanner";
+
+/** Shown in the banner headline when no live offer carries a discount yet. */
+const FALLBACK_HEADLINE_PERCENT = 30;
 
 const GOLD = "#b79c5c";
 const DARK = "#1d231f";
 
-// Fields the card actually needs — keeps the list payload ~95% smaller than
-// full tour documents (the API supports comma-separated projection).
-const CARD_FIELDS =
-  "slug,heading,name,images,gallery,priceStartingFrom,reviewsCount,videoLink,specialOfferDiscount,duration,minAge,tourLocation";
+/** Highest discount in a raw API result set (0 when none carry one). */
+const maxDiscountOf = (list?: any[] | null): number =>
+  (list || []).reduce((max: number, t: any) => {
+    const d = Number(t?.specialOfferDiscount) || 0;
+    return d > max ? d : max;
+  }, 0);
 
 // The API localizes documents per the X-Locale header: on non-EN locales
 // `tour.slug` arrives as an already-localized plain STRING. Accept it as-is;
@@ -50,17 +58,30 @@ function mapTour(tour: any, locale: string) {
     image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
     imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
     allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
-    title: getLocalizedValue(tour.heading || tour.name, locale),
+    title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
     link: `/${locale}/${tourSlug}`,
     price: tour.priceStartingFrom || { USD: 0 },
-    rating: 5,
-    reviews: tour.reviewsCount || tour.reviews?.length || 0,
+    /*
+     * The Tour model has no pre-discount price today — only `specialOfferDiscount`,
+     * a percentage used for the image badge and never applied to any amount. So
+     * this stays undefined and the card renders the price without a "Was …" or a
+     * saving pill, rather than inventing one. Add the field server-side and the
+     * offer footer picks it up with no further change here.
+     */
+    originalPrice: tour.originalPrice,
     videoId: tour.videoLink || "",
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : undefined,
+    description:
+              // Editor-written card teaser wins; the long intro is the fallback.
+              getLocalizedValue(tour.cardDescription, locale) ||
+              getLocalizedValue(tour.Description?.text, locale) ||
+              "",
     meta: [
-      { id: 1, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },
-      { id: 2, title: `${tour.minAge || "12"} +`, icon: "icon-user" },
-      { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
+      { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
+      { id: 2, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },
+      ...(getDisplayName(tour.subcategory, locale)
+                  ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]
+                  : []),
     ],
   };
 }
@@ -94,19 +115,29 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
   const [videoIds, setVideoIds] = useState<string[]>([]);
   const toursPerPage = 9;
 
-  const maxDiscount = tours.reduce((max, t) => {
-    const d = Number(t.discount);
-    return d > max ? d : max;
-  }, 0);
+  // Headline discount is taken from the first result set only and then frozen:
+  // deriving it from `tours` made the "up to X% off" claim change every time the
+  // visitor paginated or re-sorted (it only ever saw the current 9 items).
+  const [bannerDiscount, setBannerDiscount] = useState(() => maxDiscountOf(initialTours || []));
 
   const fetchTours = async (page: number, sortVal: string, initial = false) => {
     if (initial) setLoading(true); else setPageLoading(true);
     try {
-      const res = await tourAPI.getAll({ isSpecialOffer: true, page, limit: toursPerPage, sort: sortVal, fields: CARD_FIELDS });
+      const res = await tourAPI.getAll({
+        isSpecialOffer: true,
+        page,
+        limit: toursPerPage,
+        // Localized text fields must be sorted per locale, otherwise "Name A–Z"
+        // orders every language by its ENGLISH title (see parseSort on the API).
+        sort: sortVal === "heading" ? `heading.${locale}` : sortVal,
+        fields: CARD_FIELDS,
+      });
       if (res.success && res.data) {
         setTotalPages(res.totalPages || 1);
         setTotal(res.total || res.count || 0);
         setTours(res.data.map((tour: any) => mapTour(tour, locale)).filter(Boolean));
+        // Only fills the gap when the server-rendered page was unavailable.
+        setBannerDiscount((prev) => prev || maxDiscountOf(res.data));
       }
     } catch {
       toast({ title: "Error", description: "Failed to load tours.", variant: "destructive" });
@@ -156,7 +187,18 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const displayDiscount = maxDiscount > 0 ? maxDiscount : 30;
+  // Real max discount when we know it, so the headline never overstates the
+  // saving; the copy fallback only applies before/without live discount data.
+  const headlinePercent = bannerDiscount || FALLBACK_HEADLINE_PERCENT;
+
+  // Localized labels for the offer card footer — kept here so the shared
+  // TourCard stays free of any page-specific translation namespace.
+  const offerLabels = {
+    was: t("card.was"),
+    perPerson: t("card.perPerson"),
+    viewOffer: t("card.viewOffer"),
+    save: (amount: string) => t("card.save", { amount }),
+  };
 
   return (
     <Layout>
@@ -170,119 +212,11 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
         bgImage="/egypt-nile-cruise-ancient-wonders-tour.webp"
       />
 
-      {/* ── Deal Banner ──────────────────────────────────────────────── */}
-      <section style={{ position: "relative", overflow: "hidden", padding: "120px 0" }}>
-        {/* Background image with dark overlay */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(29,35,31)" }} />
-        </div>
-
-        <Container style={{ position: "relative", zIndex: 1 }}>
-          <Row className="align-items-center gutter-y-40">
-            {/* Left: copy */}
-            <Col lg={7}>
-              <div style={{ borderLeft: `4px solid ${GOLD}`, paddingLeft: 28 }}>
-                <span style={{
-                  display: "inline-block",
-                  background: "rgba(183,156,92,0.15)",
-                  color: GOLD,
-                  border: `1px solid rgba(183,156,92,0.4)`,
-                  borderRadius: 50,
-                  padding: "6px 18px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  marginBottom: 20,
-                }}>
-                  {t("banner.tagline")}
-                </span>
-
-                <h2 style={{
-                  color: "#fff",
-                  fontSize: "clamp(36px, 5vw, 56px)",
-                  fontWeight: 800,
-                  lineHeight: 1.1,
-                  letterSpacing: "-1.5px",
-                  marginBottom: 20,
-                }}>
-                  {t("banner.upTo")}{" "}
-                  <span style={{ color: GOLD }}>{displayDiscount}% {t("banner.off")}</span>
-                  <br />
-                  {t("banner.heading")}
-                </h2>
-
-                <p style={{
-                  color: "rgba(255,255,255,0.65)",
-                  fontSize: 17,
-                  lineHeight: 1.7,
-                  maxWidth: 520,
-                  marginBottom: 36,
-                }}>
-                  {t("banner.description")}
-                </p>
-
-                {/* Trust badges */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-                  {[
-                    { Icon: BadgePercent, label: t("banner.trust.discountLabel", { percent: displayDiscount }), sub: t("banner.trust.discountSub") },
-                    { Icon: ShieldCheck,  label: t("banner.trust.guidesLabel"),   sub: t("banner.trust.guidesSub") },
-                    { Icon: Clock3,       label: t("banner.trust.timeLabel"),     sub: t("banner.trust.timeSub") },
-                  ].map(({ Icon, label, sub }) => (
-                    <div key={label} style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: 12,
-                      padding: "10px 16px",
-                    }}>
-                      <Icon size={18} color={GOLD} strokeWidth={1.8} />
-                      <div>
-                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{label}</div>
-                        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}>{sub}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Col>
-
-            {/* Right: circular stat */}
-            <Col lg={5} className="text-center text-lg-end">
-              <div style={{
-                display: "inline-flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 200,
-                height: 200,
-                borderRadius: "50%",
-                border: `3px solid rgba(183,156,92,0.35)`,
-                background: "rgba(183,156,92,0.08)",
-                position: "relative",
-              }}>
-                <div style={{
-                  position: "absolute",
-                  inset: -12,
-                  borderRadius: "50%",
-                  border: `1px solid rgba(183,156,92,0.15)`,
-                }} />
-                <span style={{ color: GOLD, fontSize: 62, fontWeight: 900, lineHeight: 1, letterSpacing: "-3px" }}>
-                  {displayDiscount}<span style={{ fontSize: 32 }}>%</span>
-                </span>
-                <span style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>
-                  {t("banner.badge")}
-                </span>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </section>
+      {/* ── Compact deals banner (replaces the old full-bleed dark block) ── */}
+      <SpecialOffersBanner percent={headlinePercent} />
 
       {/* ── Tours Grid ───────────────────────────────────────────────── */}
-      <section style={{ padding: "72px 0 40px" }}>
+      <section style={{ padding: "36px 0 40px" }}>
         <Container>
           {/* Controls bar */}
           <div style={{
@@ -311,7 +245,9 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
                 <span style={{ fontWeight: 700, fontSize: 15, color: DARK }}>
                   {loading
                     ? t("controls.loading")
-                    : t("controls.found_other", { count: total })}
+                    /* `found` (not `found_other`) so i18next picks the singular
+                       form — the explicit plural key rendered "1 Special Offers". */
+                    : t("controls.found", { count: total })}
                 </span>
                 {!loading && (
                   <span style={{ color: "#999", fontSize: 13, marginLeft: 6 }}>{t("controls.available")}</span>
@@ -320,8 +256,12 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#777" }}>{t("controls.sort")}</span>
+              <label htmlFor="offers-sort" style={{ fontSize: 13, fontWeight: 600, color: "#777", marginBottom: 0 }}>
+                {t("controls.sort")}
+              </label>
               <select
+                id="offers-sort"
+                aria-label={t("controls.sort")}
                 value={sort}
                 onChange={(e) => { setSort(e.target.value); setCurrentPage(1); }}
                 style={{
@@ -397,6 +337,8 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
                       toggleWishlist={toggleWishlist}
                       isInWishlist={isInWishlist}
                       openVideoReviews={openVideoReviews}
+                      variant="special-offer"
+                      offerLabels={offerLabels}
                     />
                   </Col>
                 ))}
@@ -412,6 +354,9 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
           )}
         </Container>
       </section>
+
+      {/* ── Alternative path — right where "none of these fit" happens ── */}
+      <OffersCta locale={locale} />
 
       {/* ── Promo Section ────────────────────────────────────────────── */}
       <ListingPromo

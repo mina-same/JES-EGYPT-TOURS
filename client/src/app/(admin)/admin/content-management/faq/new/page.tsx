@@ -1,24 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { faqService, type FAQCreateRequest } from "@/services/faqService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import AdminLanguageTabs, { type AdminLanguage } from "@/components/admin/AdminLanguageTabs";
 import LocalizedField from "@/components/admin/LocalizedField";
+import FaqPlacementField from "@/components/admin/FaqPlacementField";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 
 const AdminFAQCreate: React.FC = () => {
   const router = useRouter();
+  // The list page opens this with ?placement=home|faq so the new question lands
+  // in the list the editor was already working in.
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>("en");
   const [formData, setFormData] = useState<FAQCreateRequest>({
@@ -26,7 +29,7 @@ const AdminFAQCreate: React.FC = () => {
     answer: { en: "", de: "", it: "", es: "" },
     category: "General",
     isActive: true,
-    displayOnHome: false,
+    displayOnHome: searchParams.get("placement") === "home",
   });
 
   const handleChange = (
@@ -105,9 +108,11 @@ const AdminFAQCreate: React.FC = () => {
                       onChange={(e) => handleLang(e.target.value)}
                       placeholder={`Enter the frequently asked question in ${lang}`}
                       required={lang === "en"}
+                      maxLength={500}
                     />
                   )}
                 </LocalizedField>
+                {/* The counter used to advertise a 500 limit that nothing enforced. */}
                 <p className="text-xs text-muted-foreground">
                   {formData.question?.[activeLanguage]?.length || 0}/500 characters
                 </p>
@@ -135,50 +140,37 @@ const AdminFAQCreate: React.FC = () => {
                 globalLanguage={activeLanguage}
                 onChange={(lang, val) => handleLocalizedChange("answer", val, lang)}
               >
+                {/* The site renders this answer as HTML (dangerouslySetInnerHTML
+                    in HomeFAQ and FaqSection), so it is edited as HTML too. A
+                    plain textarea silently dropped every line break and made
+                    formatting impossible. */}
                 {(lang, currentValue, handleLang) => (
-                  <Textarea
-                    id={`answer-${lang}`}
+                  <RichTextEditor
                     value={currentValue || ""}
-                    onChange={(e) => handleLang(e.target.value)}
+                    onChange={handleLang}
                     placeholder={`Provide a detailed answer to the question in ${lang}`}
-                    rows={6}
-                    required={lang === "en"}
                   />
                 )}
               </LocalizedField>
-              <p className="text-xs text-muted-foreground">
-                {formData.answer?.[activeLanguage]?.length || 0}/5000 characters
-              </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex items-center justify-between space-y-0 py-2">
-                <div className="space-y-0.5">
-                  <Label htmlFor="isActive">Active</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Whether this FAQ should be visible on the website
-                  </p>
-                </div>
-                <Switch
-                  id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => handleChange("isActive", checked)}
-                />
-              </div>
+            <FaqPlacementField
+              value={!!formData.displayOnHome}
+              onChange={(onHome) => handleChange("displayOnHome", onHome)}
+            />
 
-              <div className="flex items-center justify-between space-y-0 py-2">
-                <div className="space-y-0.5">
-                  <Label htmlFor="displayOnHome">Display on Home</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Show this FAQ on the home page
-                  </p>
-                </div>
-                <Switch
-                  id="displayOnHome"
-                  checked={formData.displayOnHome}
-                  onCheckedChange={(checked) => handleChange("displayOnHome", checked)}
-                />
+            <div className="flex items-center justify-between space-y-0 py-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="isActive">Active</Label>
+                <p className="text-xs text-muted-foreground">
+                  Whether this FAQ should be visible on the website
+                </p>
               </div>
+              <Switch
+                id="isActive"
+                checked={formData.isActive}
+                onCheckedChange={(checked) => handleChange("isActive", checked)}
+              />
             </div>
 
             <div className="flex items-center gap-4 pt-4">

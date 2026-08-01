@@ -99,10 +99,16 @@ export async function getAllDestinations(params?: {
  * Get a destination by its slug (any locale)
  * Used in SSR slug router
  */
-export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
+/**
+ * `locale` reaches the API as the X-Locale header. Without it the server falls
+ * back to Accept-Language — absent on server-side renders, present in a browser —
+ * so the same page could render in two different languages.
+ */
+export async function getDestinationBySlug(slug: string, locale?: string): Promise<Destination | null> {
   try {
     const res = await fetch(`${API_URL}/destinations/slug/${slug}`, {
       cache: 'no-store',
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -131,14 +137,20 @@ export async function getDestinationById(id: string): Promise<Destination | null
 /**
  * Get paginated blogs tagged with this destination
  */
+/**
+ * `locale` reaches the API as the X-Locale header. Without it the server falls
+ * back to Accept-Language — absent on server-side renders, present in a browser —
+ * so the same page could render in two different languages.
+ */
 export async function getBlogsByDestination(
   id: string,
   page = 1,
-  limit = 9
+  limit = 9,
+  locale?: string
 ): Promise<DestinationBlogsResponse> {
   const res = await fetch(
     `${API_URL}/destinations/${id}/blogs?page=${page}&limit=${limit}`,
-    { cache: 'no-store' }
+    { cache: 'no-store', ...(locale ? { headers: { 'X-Locale': locale } } : {}) }
   );
   if (!res.ok) throw new Error('Failed to fetch destination blogs');
   return res.json();

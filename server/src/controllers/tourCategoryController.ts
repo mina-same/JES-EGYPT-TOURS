@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import TourCategory from '../models/TourCategory';
 import { FilterQuery } from 'mongoose';
@@ -105,7 +106,7 @@ export const getAllCategories = async (
       totalPages,
       hasNextPage,
       hasPrevPage,
-      data: categories,
+      data: localizePreservingSlugs(categories, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour categories:', error);
@@ -199,7 +200,9 @@ export const getCategoryBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: category,
+      // Localized, but every `slug` (this category's and any nested one) stays
+      // raw so per-locale URLs, hreflang and the language switcher keep working.
+      data: localizePreservingSlugs(category, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour category by slug:', error);
@@ -436,6 +439,7 @@ export const toggleCategoryStatus = async (
     }
 
     category.isActive = !category.isActive;
+    category.editVersion = (category.editVersion ?? 0) + 1;
     await category.save();
 
     res.status(200).json({

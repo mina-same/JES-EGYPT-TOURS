@@ -14,6 +14,7 @@ import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2, Plu
 import ReviewAvatar from "@/components/common/ReviewAvatar";
 import { API_URL } from "@/config/api";
 import TourCard from "@/components/common/TourCard/TourCard";
+import { visibleBlocksFor } from "@/lib/blogBlocks";
 import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
@@ -28,10 +29,25 @@ interface DynamicBlogDetailsProps {
 
 const EDITORIAL_AUTHOR = {
   name: 'Madonna Roshdey',
-  role: 'Travel Specialist at Jes Egypt Tours',
+  role: {
+    en: 'Travel Specialist at Jes Egypt Tours',
+    de: 'Reisespezialistin bei Jes Egypt Tours',
+    it: 'Travel Specialist di Jes Egypt Tours',
+    es: 'Especialista en viajes en Jes Egypt Tours',
+  },
   image: '/images/authors/madonna-roshdey-author.jpg',
-  alt: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
-  bio: 'Madonna Roshdey is a travel specialist at Jes Egypt Tours, helping international travelers plan private tours across Egypt. She writes from real experience — so every tip you read has been lived, not just researched.',
+  alt: {
+    en: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
+    de: 'Madonna Roshdey, Reisespezialistin bei Jes Egypt Tours',
+    it: 'Madonna Roshdey, Travel Specialist di Jes Egypt Tours',
+    es: 'Madonna Roshdey, Especialista en viajes en Jes Egypt Tours',
+  },
+  bio: {
+    en: "Madonna Roshdey is a travel specialist at Jes Egypt Tours, where she helps international travelers plan private tours across Egypt. The tips she shares come from trips she's actually taken, not just research she's done.",
+    de: 'Madonna Roshdey ist Reisespezialistin bei Jes Egypt Tours und hilft internationalen Reisenden dabei, private Touren durch Ägypten zu planen. Die Tipps, die sie teilt, stammen aus Reisen, die sie selbst gemacht hat – nicht nur aus Recherchen am Schreibtisch.',
+    it: "Madonna Roshdey è una travel specialist di Jes Egypt Tours e aiuta viaggiatori internazionali a organizzare tour privati in tutto l'Egitto. I consigli che condivide nascono da viaggi che ha realmente vissuto, non da semplici ricerche.",
+    es: 'Madonna Roshdey es especialista en viajes en Jes Egypt Tours y ayuda a viajeros internacionales a planificar tours privados por todo Egipto. Los consejos que comparte vienen de viajes que ella misma ha vivido, no solo de investigaciones de escritorio.',
+  },
 };
 
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
@@ -94,16 +110,24 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
 
 
-  const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt);
+  const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt, locale);
   const selectedAuthor = blog.editorialAuthor;
   const author = selectedAuthor?.name || EDITORIAL_AUTHOR.name;
   const editorialAuthorHref = `/${locale}/authors/${selectedAuthor?.slug || 'madonna-roshdey'}`;
-  const authorRole = selectedAuthor ? getLocalizedValue(selectedAuthor.role, locale) : EDITORIAL_AUTHOR.role;
-  const authorBio = selectedAuthor ? getLocalizedValue(selectedAuthor.bio, locale) : EDITORIAL_AUTHOR.bio;
+  const isDefaultEditorialAuthor = !selectedAuthor || selectedAuthor.slug === 'madonna-roshdey';
+  const authorRole = getLocalizedValue(
+    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.role : selectedAuthor.role,
+    locale
+  );
+  const authorBio = getLocalizedValue(
+    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.bio : selectedAuthor.bio,
+    locale
+  );
   const authorImage = selectedAuthor?.image?.url || EDITORIAL_AUTHOR.image;
-  const authorImageAlt = selectedAuthor
-    ? getLocalizedValue(selectedAuthor.image?.alt, locale) || selectedAuthor.name
-    : EDITORIAL_AUTHOR.alt;
+  const authorImageAlt = getLocalizedValue(
+    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.alt : selectedAuthor.image?.alt,
+    locale
+  ) || author;
   
   const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
@@ -126,25 +150,24 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     }
   };
 
-  // Per-language block visibility: text blocks (html/blockquote) belong to
-  // the languages they carry. When the current language has its own text
-  // blocks, show exactly those; otherwise fall back to the legacy behavior
-  // (all text blocks, getLocalizedValue resolves). Non-text blocks (image/
-  // imageRow/video) follow their optional `languages` list in BOTH branches —
-  // absent/empty means every language, so existing data is unaffected.
-  const TEXT_BLOCK_TYPES = ['html', 'blockquote'];
-  const hasOwnText = (v: any) => typeof v?.[locale] === 'string' && v[locale].trim().length > 0;
-  const langAllows = (b: any) =>
-    !Array.isArray(b?.languages) || b.languages.length === 0 || b.languages.includes(locale);
+  /*
+   * Per-language block visibility — one rule, no fallback to another language.
+   *
+   * A block renders in this locale when BOTH hold:
+   *   1. its `languages` list allows the locale (absent/empty = every language),
+   *   2. and, for text blocks, it actually has text in THIS locale.
+   *
+   * That is what makes a language-specific block possible: a sixth block written
+   * only in German shows only to German readers, and an editor who deliberately
+   * leaves a block empty in a language keeps it off that language's article.
+   *
+   * The old code had a second branch: if a locale had no text blocks of its own
+   * it rendered ALL of them and let getLocalizedValue fall back to English. That
+   * republished hidden blocks in the wrong language, so it is gone — a locale
+   * with nothing of its own now has no article at all (the page 404s).
+   */
   const allContentBlocks: any[] = blog.contentBlocks || [];
-  const localeHasOwnBlocks = allContentBlocks.some(
-    (b) => TEXT_BLOCK_TYPES.includes(b?.type) && hasOwnText(b?.content)
-  );
-  const visibleContentBlocks = localeHasOwnBlocks
-    ? allContentBlocks.filter((b) =>
-        TEXT_BLOCK_TYPES.includes(b?.type) ? hasOwnText(b?.content) || hasOwnText(b?.title) : langAllows(b)
-      )
-    : allContentBlocks.filter((b) => TEXT_BLOCK_TYPES.includes(b?.type) || langAllows(b));
+  const visibleContentBlocks = visibleBlocksFor(allContentBlocks, locale);
 
   const renderContentBlock = (block: any, index: number) => {
     const content = getLocalizedValue(block.content, locale);
@@ -414,7 +437,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           className="blog-author-box__avatar"
         />
         <div className="blog-author-box__content">
-          <h2 id="blog-author-title" className="blog-author-box__title">About the author</h2>
+          <h2 id="blog-author-title" className="blog-author-box__title">{t('aboutAuthor')}</h2>
           <h3 className="blog-author-box__name">
             <Link href={editorialAuthorHref} className="blog-author-box__name-link">
               {author}
@@ -486,7 +509,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     if (posts.length === 0) return null;
 
     const postCards = posts.map((post: any, idx: number) => {
-      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt);
+      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, locale);
       const postTitle = getLocalizedValue(post.title, locale);
       const postSlug = getStrictLocalizedSlug(post.slug, locale as SupportedLocale);
       if (!postSlug) return null;
@@ -550,7 +573,13 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 href={postLink}
                 className='blog-card-two__content__btn'
               >
-                {t('readMore')} <i className='icon-arrow-right'></i>
+                {t('readMore')}
+                {/* The article title, clipped rather than hidden, so the link
+                    reads descriptively to a crawler while the button still
+                    says just "Read More". Driven by the post, so new articles
+                    need no further work. */}
+                {postTitle && <span className='sr-only'> — {postTitle}</span>}{" "}
+                <i className='icon-arrow-right'></i>
               </Link>
             </div>
           </div>
@@ -605,16 +634,19 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
         imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
         allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
-        title: getLocalizedValue(tour.heading || tour.name, locale),
+        title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
         link: `/${locale}/${tourSlug}`,
         price: tour.priceStartingFrom || { USD: 0 },
-        rating: 5,
-        reviews: tour.reviewsCount || tour.reviews?.length || 0,
         videoId: tour.videoLink || "",
         discount: "",
+        // Same source as every other listing: the editor's card teaser, with
+        // the overview text as the fallback.
+        description:
+          getLocalizedValue(tour.cardDescription, locale) ||
+          getLocalizedValue(tour.Description?.text, locale) ||
+          "",
         meta: [
           { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
-          { id: 2, title: `${tour.minAge || '12'} +`, icon: "icon-user" },
           { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },
         ],
       };
@@ -791,7 +823,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     <div className='blog-details__categories__box'>
                       {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
                         <Link
-                          href={`${blogsPath}?tag=${encodeURIComponent(tag)}`}
+                          // /blogs ignores ?tag= — /blogs/all is the filtering route.
+                          href={`${blogsPath}/all?tag=${encodeURIComponent(tag)}`}
                           key={index}
                           className='blog-details__categories__btn gotur-btn'
                         >

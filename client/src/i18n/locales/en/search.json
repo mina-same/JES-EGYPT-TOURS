@@ -31,5 +31,7 @@
   "noVideoReviews": "No video reviews",
   "noVideoReviewsDesc": "This tour doesn’t have any reflective & honest review videos yet.",
   "failedVideos": "Failed to load videos",
-  "failedVideosDesc": "Network or server error. Please try again."
+  "failedVideosDesc": "Network or server error. Please try again.",
+  "pageMetaTitle": "Search | JES Egypt Tours",
+  "pageMetaDescription": "Search tours and travel articles across JES Egypt Tours."
 }

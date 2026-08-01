@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import SliderPromoConfig from '../models/SliderPromoConfig';
 
@@ -28,7 +29,7 @@ const normalizeLink = (link: any): { en: string; de: string; it: string; es: str
   };
 };
 
-export const getSliderPromoPublic = async (_req: Request, res: Response) => {
+export const getSliderPromoPublic = async (req: Request, res: Response) => {
   try {
     const doc = await SliderPromoConfig.findOne({ key: GLOBAL_KEY }).lean();
     const promo = doc?.underPromo ?? null;
@@ -37,7 +38,7 @@ export const getSliderPromoPublic = async (_req: Request, res: Response) => {
       success: true,
       // A disabled promo stays stored for the admin but is invisible to
       // visitors (legacy documents without the flag count as active).
-      data: promo && promo.isActive === false ? null : promo,
+      data: localizePreservingSlugs(promo && promo.isActive === false ? null : promo, req.locale),
     });
   } catch (error) {
     return res.status(500).json({

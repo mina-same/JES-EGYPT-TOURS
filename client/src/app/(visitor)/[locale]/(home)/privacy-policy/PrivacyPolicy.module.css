@@ -1,0 +1,95 @@
+.policy {
+  padding: 88px 0 105px;
+  background: #fff;
+}
+
+.article {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.intro {
+  margin-bottom: 46px;
+  padding: 24px 27px;
+  border-left: 3px solid #b79c5c;
+  color: #43545f;
+  background: #f7f5f0;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.section {
+  padding: 28px 0;
+  border-bottom: 1px solid #e4e0d7;
+}
+
+.section h2,
+.contact h2 {
+  margin: 0 0 12px;
+  color: #0f2433;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.section p,
+.contact p {
+  margin: 0;
+  color: #59656d;
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.contact {
+  margin-top: 42px;
+  padding: 28px;
+  border-radius: 12px;
+  color: #fff;
+  background: #0f2433;
+}
+
+.contact h2 {
+  color: #fff;
+}
+
+.contact p {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.contact a {
+  color: #d7bd7f;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.back {
+  display: inline-flex;
+  margin-top: 28px;
+  color: #947c45;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.back:hover {
+  color: #0f2433;
+}
+
+@media (max-width: 767px) {
+  .policy {
+    padding: 62px 0 75px;
+  }
+
+  .intro {
+    padding: 20px;
+    font-size: 15px;
+  }
+
+  .section h2,
+  .contact h2 {
+    font-size: 21px;
+  }
+
+  .contact {
+    padding: 23px;
+  }
+}

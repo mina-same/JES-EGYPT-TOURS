@@ -12,16 +12,20 @@ import LanguageBadges from '@/components/admin/LanguageBadges';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
-  useEntity, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview,
+  useEntity, EditEntityButton, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview,
   hasText, localeHasField, faqHasLocale, rawLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const EDIT_PATH = '/admin/blogs/subcategory/new?id=';
 const LIST_PATH = '/admin/blogs/subcategory';
 const ARTICLES_PAGE_SIZE = 8;
 
 export default function BlogSubcategoryViewPage() {
+  // Row-level Edit links in the embedded articles table need the same gate as
+  // the header action, which carries its own check inside EditEntityButton.
+  const { canEdit } = usePermissions();
   const { id } = useParams<{ id: string }>();
   const { entity, loading, error } = useEntity(blogSubcategoryAPI.getById, id, 'Blog subcategory not found');
   const [previewLocale, setPreviewLocale] = useState<SupportedLocale>('en');
@@ -102,9 +106,7 @@ export default function BlogSubcategoryViewPage() {
           </p>
         </div>
         <div className="header-actions">
-          <Link href={`${EDIT_PATH}${id}`} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors">
-            <Edit2 size={16} /> Edit
-          </Link>
+          <EditEntityButton href={`${EDIT_PATH}${id}`} resource="blog" />
           <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1"><ArrowLeft size={16} /> Back</Link>
         </div>
       </div>
@@ -155,7 +157,9 @@ export default function BlogSubcategoryViewPage() {
                       <td className="py-2 pl-3">
                         <div className="flex items-center justify-end gap-1">
                           <Link href={`/admin/blogs/articles/${a._id}/view`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="View"><Eye size={15} /></Link>
-                          <Link href={`/admin/blogs/articles/${a._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
+                          {canEdit('blog') && (
+                            <Link href={`/admin/blogs/articles/${a._id}/edit`} className="p-1.5 text-gray-400 hover:text-[#b79c5c] rounded-md transition-colors" title="Edit"><Edit2 size={15} /></Link>
+                          )}
                         </div>
                       </td>
                     </tr>

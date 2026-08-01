@@ -49,10 +49,13 @@ const EDITORIAL_FOCUS = [
   },
 ];
 
-async function getMadonnaArticles(): Promise<BlogPost[]> {
+async function getMadonnaArticles(locale: string): Promise<BlogPost[]> {
   try {
     const response = await fetch(`${API_URL}/blog/authors/madonna-roshdey`, {
       cache: "no-store",
+      // The API now localizes this response server-side; without the locale it
+      // falls back to English and the cards show English titles on /de, /it, /es.
+      headers: { "X-Locale": locale },
     });
 
     if (!response.ok) {
@@ -76,7 +79,7 @@ export default async function MadonnaRoshdeyAuthorPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const articles = await getMadonnaArticles();
+  const articles = await getMadonnaArticles(locale);
   const visibleArticles = articles
     .filter((article) =>
       getStrictLocalizedSlug(article.slug, locale as SupportedLocale)

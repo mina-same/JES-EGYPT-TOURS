@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getServerTranslation } from "@/lib/i18n-server";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 
 // Metadata-only layout: the /tours listing is a client component and can't
@@ -11,7 +12,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return { alternates: getStaticLocaleAlternates(locale, "tours") };
+  const { t } = await getServerTranslation(locale, "tours");
+  return {
+    title: t("pageMetaTitle"),
+    description: t("pageMetaDescription"),
+    alternates: getStaticLocaleAlternates(locale, "tours"),
+  };
 }
 
 export default function ToursLayout({ children }: { children: React.ReactNode }) {

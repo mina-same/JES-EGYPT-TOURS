@@ -24,6 +24,10 @@ const nextConfig: NextConfig = {
      on non-English locales so each language has ONE indexable URL. */
   async rewrites() {
     return [
+      { source: "/egypt-dmc", destination: "/en/travel-trade" },
+      { source: "/de/aegypten-dmc", destination: "/de/travel-trade" },
+      { source: "/it/egitto-dmc", destination: "/it/travel-trade" },
+      { source: "/es/egipto-dmc", destination: "/es/travel-trade" },
       { source: "/de/sonderangebote", destination: "/de/special-offers" },
       { source: "/it/offerte-speciali", destination: "/it/special-offers" },
       { source: "/es/ofertas-especiales", destination: "/es/special-offers" },
@@ -40,6 +44,12 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      { source: "/travel-trade", destination: "/egypt-dmc", permanent: true },
+      { source: "/en/travel-trade", destination: "/egypt-dmc", permanent: true },
+      { source: "/en/egypt-dmc", destination: "/egypt-dmc", permanent: true },
+      { source: "/de/travel-trade", destination: "/de/aegypten-dmc", permanent: true },
+      { source: "/it/travel-trade", destination: "/it/egitto-dmc", permanent: true },
+      { source: "/es/travel-trade", destination: "/es/egipto-dmc", permanent: true },
       { source: "/de/special-offers", destination: "/de/sonderangebote", permanent: true },
       { source: "/it/special-offers", destination: "/it/offerte-speciali", permanent: true },
       { source: "/es/special-offers", destination: "/es/ofertas-especiales", permanent: true },

@@ -16,10 +16,14 @@ import type { Menu } from "@/services/menuService";
 // HTML (SEO: crawlers see the nav without executing JavaScript). Revalidated
 // every 5 minutes — pages stay static/fast while admin menu edits still roll
 // out quickly.
-async function getHeaderMenu(): Promise<Menu | null> {
+async function getHeaderMenu(locale: string): Promise<Menu | null> {
   try {
-    const res = await fetch(`${API_URL}/menus/header-main`, {
+    // The locale rides in the header (what the API reads) and in the query
+    // string (so this cached fetch keeps one entry per language — otherwise a
+    // German menu could be replayed to an Italian visitor).
+    const res = await fetch(`${API_URL}/menus/header-main?locale=${locale}`, {
       next: { revalidate: 300 },
+      headers: { 'X-Locale': locale },
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -31,10 +35,13 @@ async function getHeaderMenu(): Promise<Menu | null> {
 
 export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }>) {
-  const headerMenu = await getHeaderMenu();
+  const { locale } = await params;
+  const headerMenu = await getHeaderMenu(locale);
 
   return (
     <HomeClientShell>

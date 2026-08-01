@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { Request, Response } from 'express';
+import { protect } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -29,7 +30,11 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Upload Endpoint
-router.post('/', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+// `protect` first, so an anonymous request is rejected BEFORE multer buffers the
+// file: without it this was an open door to the project's Cloudinary account.
+// Every caller is an admin screen going through the axios instance that attaches
+// the bearer token, so nothing visitor-facing depends on this being public.
+router.post('/', protect, upload.single('file'), async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, error: 'No file uploaded' });

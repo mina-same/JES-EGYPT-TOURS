@@ -328,11 +328,6 @@ function ToursPageContent() {
               </button>
             </>
           )}
-          <Link href={`/admin/tour/tour/${tour._id}/reviews`}>
-            <button className="btn-icon btn-view" title="Reviews / Messages">
-              <MessageSquare size={16} />
-            </button>
-          </Link>
           {canDelete('tour') && (
             <button
               className="btn-icon btn-delete"

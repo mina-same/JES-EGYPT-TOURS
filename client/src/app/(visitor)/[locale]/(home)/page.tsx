@@ -54,17 +54,17 @@ export async function generateMetadata({
 
 
 
-async function getInitialSliders(): Promise<SliderItem[]> {
+async function getInitialSliders(locale: string): Promise<SliderItem[]> {
   try {
-    return await sliderService.getActiveSliderContent();
+    return await sliderService.getActiveSliderContent(locale);
   } catch {
     return [];
   }
 }
 
-async function getInitialSliderPromo(): Promise<SliderUnderPromo | null> {
+async function getInitialSliderPromo(locale: string): Promise<SliderUnderPromo | null> {
   try {
-    return await sliderService.getPublicSliderPromo();
+    return await sliderService.getPublicSliderPromo(locale);
   } catch {
     return null;
   }
@@ -90,9 +90,11 @@ async function getInitialFeaturedTours(locale: string): Promise<any[]> {
   }
 }
 
-async function getInitialFeaturedBlogs(): Promise<BlogPost[]> {
+async function getInitialFeaturedBlogs(locale: string): Promise<BlogPost[]> {
   try {
-    const response = await getFeaturedBlogs(FEATURED_BLOGS_POOL);
+    // Without the locale the API falls back to English, so the German homepage
+    // would show English blog cards.
+    const response = await getFeaturedBlogs(FEATURED_BLOGS_POOL, locale);
 
     return Array.isArray(response.data) ? response.data : [];
   } catch {
@@ -100,13 +102,14 @@ async function getInitialFeaturedBlogs(): Promise<BlogPost[]> {
   }
 }
 
-async function getInitialHomeFaqs(): Promise<FAQ[]> {
+async function getInitialHomeFaqs(locale: string): Promise<FAQ[]> {
   try {
     const response = await faqService.getAllFaqs({
       isActive: true,
       displayOnHome: true,
       sort: "category,order",
       limit: HOME_FAQS_LIMIT,
+      locale,
     });
 
     return response.success && Array.isArray(response.data) ? response.data : [];
@@ -122,11 +125,11 @@ export default async function HomeThree({
 }) {
   const { locale } = await params;
   const [initialSliders, initialSliderPromo, initialTours, initialBlogs, initialFaqs] = await Promise.all([
-    getInitialSliders(),
-    getInitialSliderPromo(),
+    getInitialSliders(locale),
+    getInitialSliderPromo(locale),
     getInitialFeaturedTours(locale),
-    getInitialFeaturedBlogs(),
-    getInitialHomeFaqs(),
+    getInitialFeaturedBlogs(locale),
+    getInitialHomeFaqs(locale),
   ]);
 
   return (

@@ -49,8 +49,6 @@
     "location": "Location"
   },
   "tourDetails": {
-    "reviewSuccess": "Review submitted successfully! It will appear after approval.",
-    "reviewFail": "Failed to submit review.",
     "bookConfidence": "Book With Confidence",
     "bookConfidenceDesc": "Your trusted partner for unforgettable Egyptian adventures",
     "bestSeller": "Ready to book",
@@ -73,8 +71,7 @@
       "brochure": "Download Brochure",
       "faq": "Tour FAQ",
       "map": "Explore the Map",
-      "honestReviews": "Reflective & Honest Reviews",
-      "reviews": "Tour Reviews"
+      "honestReviews": "Reflective & Honest Reviews"
     },
     "mapTitle": "Tour Location Map",
     "highlightList": "Highlight List",
@@ -115,8 +112,6 @@
       "title": "Our Travel Partners",
       "subtitle": "We collaborate with trusted local and international travel partners"
     },
-    "reviewsTitle": "Reviews",
-    "reviewsSubtitle": "See what our travelers say",
     "readMore": "Read More",
     "readLess": "Read Less",
     "showAll": "Show All",
@@ -156,20 +151,6 @@
         "email": "Email",
         "available": "Available"
       }
-    },
-    "reviews": {
-      "title": "Our Travelers Testimonials",
-      "subtitle": "See how we’ve made every journey exceptional — straight from those who’ve traveled with us.",
-      "count": "{{count}} Reviews",
-      "verified": "Verified Traveler",
-      "noReviews": "No reviews yet.",
-      "addReview": "Add a Review",
-      "yourRating": "Your Rating*",
-      "yourName": "Your Name",
-      "yourEmail": "Your Email",
-      "writeMessage": "Write Message",
-      "submitting": "Submitting...",
-      "submitBtn": "Submit Review"
     },
     "pricing": {
       "emptyState": "Pricing information is not available for this tour. Please contact us for details.",
@@ -214,5 +195,11 @@
         "adults": "At least one adult is required"
       }
     }
-  }
+  },
+  "pageMetaTitle": "Egypt Tour Categories | Private Tours & Day Trips | JES Egypt Tours",
+  "pageMetaDescription": "Browse every Egypt tour category — multi-day packages, Nile cruises and private day trips from Cairo, Luxor, Aswan and the Red Sea.",
+  "categoriesTitle": "Tour Categories",
+  "categoriesTagline": "Browse Tours",
+  "categoriesHeading": "Our Destinations & Categories",
+  "categoriesSubtitle": "Explore"
 }

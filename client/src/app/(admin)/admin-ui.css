@@ -1470,8 +1470,37 @@
   margin: 0;
 }
 
+.admin-scope .contact-submission-modal .submission-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.admin-scope .contact-submission-modal .contact-status-badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-scope .contact-submission-modal .submission-received-at {
+  margin: 3px 0 0;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 .dark .admin-scope .modal-header h2 {
   color: #f9fafb;
+}
+
+.dark .admin-scope .contact-submission-modal .submission-received-at {
+  color: #aeb7c5;
 }
 
 .admin-scope .modal-close {
@@ -1614,6 +1643,14 @@
   margin-bottom: 8px;
 }
 
+.admin-scope .contact-submission-modal .detail-item label {
+  color: #667085;
+}
+
+.dark .admin-scope .contact-submission-modal .detail-item label {
+  color: #aeb7c5;
+}
+
 .admin-scope .detail-item p {
   font-size: 15px;
   color: #111827;
@@ -1638,10 +1675,113 @@
   font-style: italic;
 }
 
+.admin-scope .contact-submission-modal .comments-text {
+  color: #344054;
+  font-style: normal;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .dark .admin-scope .comments-text {
   background: #1f2937;
   border-color: #111827;
   color: #9ca3af;
+}
+
+.dark .admin-scope .contact-submission-modal .comments-text {
+  color: #d0d5dd;
+}
+
+.admin-scope .contact-submission-modal .admin-management-grid {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.7fr) minmax(0, 1.3fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.admin-scope .contact-submission-modal .admin-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-scope .contact-submission-modal .admin-field label {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.admin-scope .contact-submission-modal .status-select,
+.admin-scope .contact-submission-modal .admin-notes-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 11px 13px;
+  color: #101828;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.admin-scope .contact-submission-modal .status-select {
+  min-height: 46px;
+  cursor: pointer;
+}
+
+.admin-scope .contact-submission-modal .admin-notes-textarea {
+  min-height: 116px;
+  resize: vertical;
+}
+
+.admin-scope .contact-submission-modal .admin-notes-textarea::placeholder {
+  color: #98a2b3;
+}
+
+.admin-scope .contact-submission-modal .status-select:focus,
+.admin-scope .contact-submission-modal .admin-notes-textarea:focus {
+  border-color: #b79c5c;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(183, 156, 92, 0.16);
+}
+
+.admin-scope .contact-submission-modal .btn-primary:disabled {
+  box-shadow: none;
+  opacity: 0.5;
+  transform: none;
+}
+
+.dark .admin-scope .contact-submission-modal .admin-field label {
+  color: #d0d5dd;
+}
+
+.dark .admin-scope .contact-submission-modal .status-select,
+.dark .admin-scope .contact-submission-modal .admin-notes-textarea {
+  border-color: #475467;
+  color: #f2f4f7;
+  background: #1f2937;
+}
+
+.dark .admin-scope .contact-submission-modal .admin-notes-textarea::placeholder {
+  color: #98a2b3;
+}
+
+@media (max-width: 640px) {
+  .admin-scope .contact-submission-modal .admin-management-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-scope .contact-submission-modal .submission-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
 }
 
 .admin-scope .slider-edit-grid {

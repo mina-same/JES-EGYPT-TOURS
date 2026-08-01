@@ -1,3 +1,4 @@
+import { narrowFaqsToLocale } from '../utils/localize';
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Faq, { IFaq } from '../models/Faq';
@@ -55,7 +56,11 @@ export const getAllFaqs = async (req: Request, res: Response) => {
 
     res.status(200).json({
       success: true,
-      data: faqs,
+      // Same rule as every other FAQ on the site: a row is returned only when
+      // THIS language has both a question and an answer, and it keeps the
+      // { locale: text } object shape the renderers read. 'bypass' (the admin)
+      // gets everything untouched.
+      data: narrowFaqsToLocale(faqs, req.locale),
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -86,7 +91,7 @@ export const getHomeFaqs = async (req: Request, res: Response) => {
 
     res.status(200).json({
       success: true,
-      data: faqs
+      data: narrowFaqsToLocale(faqs, req.locale)
     });
   } catch (error) {
     console.error('Error fetching home FAQs:', error);

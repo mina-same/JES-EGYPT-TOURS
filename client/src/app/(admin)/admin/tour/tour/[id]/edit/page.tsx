@@ -222,6 +222,7 @@ export default function EditTourPage() {
               idExternal: tour.idExternal || '',
               heading: toLocalized(tour.heading),
               headingDescription: toLocalized(tour.headingDescription),
+              cardDescription: toLocalized(tour.cardDescription),
               meetingPoint: toLocalized(tour.meetingPoint),
               tags: toLocalizedMixed(tour.tags),
               tourLocation: toLocalized(tour.tourLocation),
@@ -237,7 +238,6 @@ export default function EditTourPage() {
               publishedAt: tour.publishedAt,
               isSpecialOffer: tour.isSpecialOffer || false,
               specialOfferDiscount: tour.specialOfferDiscount ?? 0,
-              reviewsCount: tour.reviewsCount || 0,
               seo: {
                 metaTitle: toLocalized(tour.seo?.metaTitle),
                 metaDescription: toLocalized(tour.seo?.metaDescription),

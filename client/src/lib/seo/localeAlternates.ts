@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import {
   DEFAULT_LOCALE,
+  getCanonicalStaticSlug,
+  getLocalizedStaticPath,
   getSeoBaseUrl,
   getStrictLocalizedSlug,
   localizeStaticPathSegment,
@@ -79,9 +81,16 @@ export function getStrictSlugLocaleAlternates({
   };
 }
 
+/**
+ * @param onlyLocales restricts the alternates to the languages that actually
+ *   serve this page. Pages whose content is per-language (the FAQ page 404s in
+ *   a language that has no questions of its own) must pass it — hreflang that
+ *   points at a 404 is worse than no hreflang at all.
+ */
 export function getStaticLocaleAlternates(
   locale: string,
-  path: string = ""
+  path: string = "",
+  onlyLocales?: readonly string[]
 ): NonNullable<Metadata["alternates"]> {
   const normalizedPath = normalizeStaticPath(path);
   const currentLocale = normalizeLocale(locale);
@@ -89,21 +98,36 @@ export function getStaticLocaleAlternates(
   // Static pages may carry a per-locale slug (e.g. special-offers →
   // /de/sonderangebote): every alternate must point to the slug that locale
   // actually serves, not the English one.
+  const canonicalStaticSlug = normalizedPath
+    ? getCanonicalStaticSlug(normalizedPath.slice(1))
+    : null;
   const localizedPathFor = (supportedLocale: SupportedLocale) =>
     normalizedPath ? localizeStaticPathSegment(normalizedPath, supportedLocale) : "";
+  const publicPathFor = (supportedLocale: SupportedLocale) =>
+    canonicalStaticSlug
+      ? getLocalizedStaticPath(canonicalStaticSlug, supportedLocale)
+      : `/${supportedLocale}${localizedPathFor(supportedLocale)}`;
 
-  const languages = SUPPORTED_LOCALES.reduce<Record<string, string>>(
+  // Spread the readonly tuple into a plain array so both branches share one type.
+  const servedLocales: SupportedLocale[] = onlyLocales
+    ? SUPPORTED_LOCALES.filter((l) => onlyLocales.includes(l))
+    : [...SUPPORTED_LOCALES];
+
+  const languages = servedLocales.reduce<Record<string, string>>(
     (acc, supportedLocale) => {
-      acc[supportedLocale] = `${SEO_BASE_URL}/${supportedLocale}${localizedPathFor(supportedLocale)}`;
+      acc[supportedLocale] = `${SEO_BASE_URL}${publicPathFor(supportedLocale)}`;
       return acc;
     },
     {}
   );
 
-  languages["x-default"] = `${SEO_BASE_URL}/${DEFAULT_LOCALE}${localizedPathFor(DEFAULT_LOCALE)}`;
+  // x-default points at English only when English actually serves the page.
+  if (servedLocales.includes(DEFAULT_LOCALE)) {
+    languages["x-default"] = `${SEO_BASE_URL}${publicPathFor(DEFAULT_LOCALE)}`;
+  }
 
   return {
-    canonical: `${SEO_BASE_URL}/${currentLocale}${localizedPathFor(currentLocale)}`,
+    canonical: `${SEO_BASE_URL}${publicPathFor(currentLocale)}`,
     languages,
   };
 }

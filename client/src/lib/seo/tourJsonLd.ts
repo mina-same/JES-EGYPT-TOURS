@@ -531,25 +531,20 @@ export function generateTourJsonLd({
           itemListOrder: "https://schema.org/ItemListOrderAscending",
           itemListElement: itineraryDays.map((day: any) => {
             const dayTitle = stripHtml(getLocalizedValue(day.title, loc));
-            const dayDescription = stripHtml(getLocalizedValue(day.description, loc));
             const activities: any[] = Array.isArray(day.activities)
               ? day.activities
               : [];
 
-            // Build an augmented description that includes activity headings
-            // so Google sees the full itinerary detail
-            let fullDescription = dayDescription;
-            if (activities.length > 0) {
-              const actList = activities
-                .map((a: any) => stripHtml(getLocalizedValue(a.heading, loc)))
-                .filter(Boolean)
-                .join(" • ");
-              if (actList) {
-                fullDescription = fullDescription
-                  ? `${fullDescription} — ${actList}`
-                  : actList;
-              }
-            }
+            // The day's own description used to lead this string. That field is
+            // gone from the page, and structured data must never advertise text
+            // a visitor cannot see — so the day is described by its stops.
+            const fullDescription =
+              activities.length > 0
+                ? activities
+                    .map((a: any) => stripHtml(getLocalizedValue(a.heading, loc)))
+                    .filter(Boolean)
+                    .join(" • ")
+                : "";
 
             return {
               "@type": "ListItem",

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useRef } from "react";
 
 import Image, { StaticImageData } from "next/image"; // Import Image from next/image
 import { Container, Row, Col } from "react-bootstrap";
@@ -7,7 +7,10 @@ import { aboutTestimonialsData } from "@/data/aboutTestimonialsData";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
-import { TinySliderWrapper as TinySlider } from "@/components/common/TinySliderWrapper";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
 export interface Testimonial {
   image: StaticImageData;
   text: string;
@@ -27,13 +30,13 @@ export interface AboutTestimonialsData {
   }[];
 }
 const AboutTestimonials: React.FC = () => {
+  const sliderRef = useRef<TinySliderHandle>(null);
   const {
     sectionTitle,
     sectionTagline,
     testiThumb,
     testimonials,
     shapeImages,
-    brands,
   }: AboutTestimonialsData = aboutTestimonialsData;
   return (
     <section className='about-testimonials section-space' id='testimonials'>
@@ -64,28 +67,24 @@ const AboutTestimonials: React.FC = () => {
               </div>
               <div className='gotur-owl__carousel--basic-nav owl-carousel about-testimonials__carousel gotur-owl__carousel  owl-theme wow fadeInUp'>
                 <TinySlider
+                  ref={sliderRef}
                   settings={{
                     items: 1,
                     gutter: 30,
-                    smartSpeed: 700,
+                    speed: 700,
                     loop: false,
+                    rewind: true,
                     nav: false,
                     autoplay: false,
-                    controlsContainer:
-                      ".gotur-owl__carousel--basic-nav .owl-nav",
+                    controls: false,
                     mouseDrag: true,
                   }}
                   className=''
                 >
                   {testimonials.map((testimonial, index) => (
                     <div className='about-testimonials__item' key={index}>
-                      <div className='about-testimonials__star'>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                        <i className='icon-star'></i>
-                      </div>
+                      {/* No star row — see TestimonialsTwo: five hardcoded icons
+                          on every quote, matching no rating anyone gave. */}
                       <p className='about-testimonials__text'>
                         {testimonial.text}
                       </p>
@@ -106,17 +105,17 @@ const AboutTestimonials: React.FC = () => {
                 <div className='owl-nav'>
                   <button
                     type='button'
-                    role='presentation'
-                    className='owl-prev disabled'
-                    aria-label='carousel button'
+                    className='owl-prev'
+                    aria-label='Previous testimonial'
+                    onClick={() => sliderRef.current?.slider?.goTo("prev")}
                   >
                     <span className='icon-arrow-left'></span>
                   </button>
                   <button
                     type='button'
-                    role='presentation'
                     className='owl-next'
-                    aria-label='carousel button'
+                    aria-label='Next testimonial'
+                    onClick={() => sliderRef.current?.slider?.goTo("next")}
                   >
                     <span className='icon-arrow-right'></span>
                   </button>

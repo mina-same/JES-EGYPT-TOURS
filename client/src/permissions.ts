@@ -21,9 +21,6 @@ export const PERMISSIONS = {
   TAILOR_MADE_UPDATE: 'tailor_made:update',
   TAILOR_MADE_DELETE: 'tailor_made:delete',
 
-  REVIEW_READ: 'review:read',
-  REVIEW_UPDATE: 'review:update',
-  REVIEW_DELETE: 'review:delete',
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
@@ -41,8 +38,6 @@ export const DEFAULT_ADMIN_PERMISSIONS: Permission[] = [
   PERMISSIONS.CONTACT_UPDATE,
   PERMISSIONS.TAILOR_MADE_READ,
   PERMISSIONS.TAILOR_MADE_UPDATE,
-  PERMISSIONS.REVIEW_READ,
-  PERMISSIONS.REVIEW_UPDATE,
 ];
 
 export type PermissionPresetId =
@@ -80,7 +75,6 @@ export const PERMISSION_PRESETS: PermissionPreset[] = [
       PERMISSIONS.BOOKING_READ,
       PERMISSIONS.CONTACT_READ,
       PERMISSIONS.TAILOR_MADE_READ,
-      PERMISSIONS.REVIEW_READ,
     ],
   },
   {

@@ -1,3 +1,4 @@
+import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import TourSubcategory from '../models/TourSubcategory';
 import { FilterQuery } from 'mongoose';
@@ -124,7 +125,7 @@ export const getAllSubcategories = async (
       totalPages,
       hasNextPage,
       hasPrevPage,
-      data: subcategories,
+      data: localizePreservingSlugs(subcategories, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour subcategories:', error);
@@ -163,7 +164,7 @@ export const getSubcategoriesByCategory = async (
     res.status(200).json({
       success: true,
       count: subcategories.length,
-      data: subcategories,
+      data: localizePreservingSlugs(subcategories, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching subcategories by category:', error);
@@ -279,7 +280,9 @@ export const getSubcategoryBySlug = async (
 
     res.status(200).json({
       success: true,
-      data: subcategory,
+      // Localized, but every `slug` (this subcategory's and any nested one)
+      // stays raw so per-locale URLs and the language switcher keep working.
+      data: localizePreservingSlugs(subcategory, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tour subcategory by slug:', error);
@@ -535,6 +538,7 @@ export const toggleSubcategoryStatus = async (
     }
 
     subcategory.isActive = !subcategory.isActive;
+    subcategory.editVersion = (subcategory.editVersion ?? 0) + 1;
     await subcategory.save();
 
     res.status(200).json({

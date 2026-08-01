@@ -25,14 +25,17 @@ export async function generateMetadata({
 }
 
 export default async function AllBlogsPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string; tag?: string }>;
 }) {
+  const { locale } = await params;
   const resolvedSearchParams = await searchParams;
   const page = Number(resolvedSearchParams.page) || 1;
   const tag = typeof resolvedSearchParams.tag === "string" ? resolvedSearchParams.tag : undefined;
-  const blogsData = await getAllBlogs({ page, limit: 9, tags: tag });
+  const blogsData = await getAllBlogs({ page, limit: 9, tags: tag, locale });
 
   return (
     <Layout>

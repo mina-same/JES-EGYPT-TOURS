@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Eye, Loader2, Mail, MessageSquare, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
+import { Building2, Eye, Globe2, Loader2, Mail, MapPin, MessageSquare, Phone, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 import { useContactForm } from '@/contexts/ContactFormContext';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -17,11 +17,33 @@ interface ContactSubmission {
   name: string;
   email: string;
   message: string;
+  source?: 'contact' | 'travel-trade';
+  inquiryType?: 'b2b-rates' | 'client-request' | 'general-partnership';
+  phone?: string;
+  companyName?: string;
+  companyWebsite?: string;
+  country?: string;
+  businessType?: string;
+  primaryMarket?: string;
+  annualTravelers?: string;
+  travelDates?: string;
+  travelers?: number;
+  destinations?: string;
+  serviceLanguage?: string;
+  serviceLevel?: string;
+  consentGiven?: boolean;
+  locale?: string;
   status: 'new' | 'replied' | 'archived';
   adminNotes?: string;
   createdAt: string;
   updatedAt: string;
 }
+
+const STATUS_LABELS: Record<ContactSubmission['status'], string> = {
+  new: 'New Submission',
+  replied: 'Replied',
+  archived: 'Archived',
+};
 
 const ContactFormPage: React.FC = () => {
   const { refreshCount } = useContactForm();
@@ -44,6 +66,35 @@ const ContactFormPage: React.FC = () => {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+
+  const formatValue = (value?: string) =>
+    value
+      ? value
+          .split('-')
+          .map((part) =>
+            part.toLowerCase() === 'b2b'
+              ? 'B2B'
+              : part.charAt(0).toUpperCase() + part.slice(1)
+          )
+          .join(' ')
+      : '—';
+
+  const formatReceivedAt = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Date unavailable';
+
+    const datePart = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(date);
+    const timePart = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(date);
+
+    return `${datePart} • ${timePart}`;
+  };
 
   const fetchSubmissions = async () => {
     setLoading(true);
@@ -237,6 +288,12 @@ const ContactFormPage: React.FC = () => {
     archived: submissions.filter(s => s.status === 'archived').length,
   };
 
+  const hasUnsavedChanges = Boolean(
+    selected &&
+      (newStatus !== selected.status ||
+        adminNotes !== (selected.adminNotes || ''))
+  );
+
   const columns: Array<AdminTableColumn<ContactSubmission>> = [
     {
       header: 'Customer',
@@ -246,6 +303,9 @@ const ContactFormPage: React.FC = () => {
           <div className='customer-details'>
             <Mail size={14} /> {item.email}
           </div>
+          {item.source === 'travel-trade' && (
+            <span className='status-badge status-in-progress'>Travel Trade</span>
+          )}
         </div>
       ),
     },
@@ -409,18 +469,37 @@ const ContactFormPage: React.FC = () => {
 
       {showModal && selected && (
         <div className='modal-overlay' onClick={() => setShowModal(false)}>
-          <div className='modal-content max-w-2xl' onClick={(e) => e.stopPropagation()}>
+          <div
+            className='modal-content max-w-2xl contact-submission-modal'
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='submission-details-title'
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className='modal-header'>
               <div className="flex items-center gap-3">
                 <div className="bg-[#b79c5c]/10 p-2 rounded-lg">
                   <MessageSquare className="text-[#b79c5c]" size={20} />
                 </div>
                 <div>
-                  <h2>Submission Details</h2>
-                  <p className="text-xs text-gray-500 font-normal">Received on {new Date(selected.createdAt).toLocaleString()}</p>
+                  <div className='submission-title-row'>
+                    <h2 id='submission-details-title'>Submission Details</h2>
+                    <span
+                      className={`status-badge contact-status-badge ${getStatusColor(selected.status)}`}
+                    >
+                      {STATUS_LABELS[selected.status]}
+                    </span>
+                  </div>
+                  <p className='submission-received-at'>
+                    Received {formatReceivedAt(selected.createdAt)}
+                  </p>
                 </div>
               </div>
-              <button className='modal-close' onClick={() => setShowModal(false)}>
+              <button
+                className='modal-close'
+                onClick={() => setShowModal(false)}
+                aria-label='Close submission details'
+              >
                 <XCircle size={22} />
               </button>
             </div>
@@ -440,8 +519,90 @@ const ContactFormPage: React.FC = () => {
                        {selected.email}
                     </p>
                   </div>
+                  {selected.source === 'travel-trade' && (
+                    <>
+                      <div className='detail-item'>
+                        <label>Company</label>
+                        <p className="flex items-center gap-2">
+                          <Building2 size={14} className="text-[#b79c5c]" />
+                          {selected.companyName || '—'}
+                        </p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Phone / WhatsApp</label>
+                        <p className="flex items-center gap-2">
+                          <Phone size={14} className="text-[#b79c5c]" />
+                          {selected.phone || '—'}
+                        </p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Company Website</label>
+                        <p className="flex items-center gap-2">
+                          <Globe2 size={14} className="text-[#b79c5c]" />
+                          {selected.companyWebsite || '—'}
+                        </p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Country</label>
+                        <p className="flex items-center gap-2">
+                          <MapPin size={14} className="text-[#b79c5c]" />
+                          {selected.country || '—'}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {selected.source === 'travel-trade' && (
+                <>
+                  <div className='detail-section'>
+                    <h3><Building2 size={14} /> Travel Trade Details</h3>
+                    <div className='detail-grid'>
+                      <div className='detail-item'>
+                        <label>Inquiry Type</label>
+                        <p>{formatValue(selected.inquiryType)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Business Type</label>
+                        <p>{formatValue(selected.businessType)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Primary Market</label>
+                        <p>{selected.primaryMarket || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Expected Travelers / Year</label>
+                        <p>{formatValue(selected.annualTravelers)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Expected Travel Dates</label>
+                        <p>{selected.travelDates || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Travelers</label>
+                        <p>{selected.travelers ?? '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Destinations</label>
+                        <p>{selected.destinations || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Service Language</label>
+                        <p>{selected.serviceLanguage || '—'}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Service Level</label>
+                        <p>{formatValue(selected.serviceLevel)}</p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Submitted Locale</label>
+                        <p>{selected.locale?.toUpperCase() || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className='detail-section'>
                 <h3><MessageSquare size={14} /> Message Content</h3>
@@ -452,10 +613,13 @@ const ContactFormPage: React.FC = () => {
                 <h3><CheckCircle size={14} /> Admin Actions</h3>
                 <div className='admin-management-grid'>
                   <div className='admin-field'>
-                    <label>Update Status</label>
+                    <label htmlFor='submission-status'>Update Status</label>
                     <select
+                      id='submission-status'
                       value={newStatus}
-                      onChange={(e) => setNewStatus(e.target.value as any)}
+                      onChange={(e) =>
+                        setNewStatus(e.target.value as ContactSubmission['status'])
+                      }
                       className='status-select'
                     >
                       <option value='new'>New Submission</option>
@@ -464,8 +628,9 @@ const ContactFormPage: React.FC = () => {
                     </select>
                   </div>
                   <div className='admin-field'>
-                    <label>Admin Internal Notes</label>
+                    <label htmlFor='submission-admin-notes'>Admin Internal Notes</label>
                     <textarea
+                      id='submission-admin-notes'
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
                       placeholder='Add internal notes regarding this submission...'
@@ -481,7 +646,12 @@ const ContactFormPage: React.FC = () => {
               <button className='btn-secondary' onClick={() => setShowModal(false)}>
                 Close
               </button>
-              <button className='btn-primary' onClick={handleUpdateSubmission} disabled={updating}>
+              <button
+                className='btn-primary'
+                onClick={handleUpdateSubmission}
+                disabled={updating || !hasUnsavedChanges}
+                title={!hasUnsavedChanges ? 'No changes to save' : undefined}
+              >
                 {updating ? (
                   <>
                     <Loader2 size={18} className='spinner' />

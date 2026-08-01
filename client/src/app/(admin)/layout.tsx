@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Script from 'next/script';
 import { AppSidebar } from '@/components/admin/app-sidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -37,10 +37,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
     // Force English in the admin panel regardless of the user's selected language
     import('@/lib/i18n').then((module) => {
       const i18n = module.default;
@@ -130,118 +127,40 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             `,
           }}
         />
-        <Script
-          id="suppress-tiny-slider-nomod"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function () {
-                try {
-                  function isTinySliderNoMod(msg, stack, filename) {
-                    msg = String(msg || '');
-                    stack = String(stack || '');
-                    filename = String(filename || '');
-
-                    var hasOuter = msg.indexOf('outerHTML') !== -1 || msg.indexOf('element has no parent node') !== -1;
-                    var hasNoMod = msg.indexOf('NoModificationAllowedError') !== -1;
-                    var hasTiny = stack.indexOf('tiny-slider') !== -1 || filename.indexOf('tiny-slider') !== -1;
-
-                    return (hasOuter || hasNoMod) && hasTiny;
-                  }
-
-                  var originalConsoleError = console.error;
-                  console.error = function () {
-                    try {
-                      var args = Array.prototype.slice.call(arguments);
-                      var joined = args.map(function (a) { return String(a); }).join(' ');
-                      var stack = '';
-                      for (var i = 0; i < args.length; i++) {
-                        if (args[i] && args[i].stack) {
-                          stack = String(args[i].stack);
-                          break;
-                        }
-                      }
-
-                      if (isTinySliderNoMod(joined, stack, '')) {
-                        return;
-                      }
-                    } catch (e) {
-                      // ignore
-                    }
-                    return originalConsoleError.apply(console, arguments);
-                  };
-
-                  window.addEventListener('error', function (event) {
-                    try {
-                      var err = event && event.error;
-                      var msg = (event && event.message) || (err && (err.message || err.toString())) || '';
-                      var stack = (err && err.stack) || '';
-                      var filename = (event && event.filename) || '';
-
-                      if (isTinySliderNoMod(msg, stack, filename)) {
-                        event.preventDefault();
-                      }
-                    } catch (e) {
-                      // ignore
-                    }
-                  }, true);
-
-                  window.addEventListener('unhandledrejection', function (event) {
-                    try {
-                      var reason = event && event.reason;
-                      var msg = (reason && (reason.message || reason.toString())) || '';
-                      var stack = (reason && reason.stack) || '';
-
-                      if (isTinySliderNoMod(msg, stack, '')) {
-                        event.preventDefault();
-                      }
-                    } catch (e) {
-                      // ignore
-                    }
-                  });
-                } catch (e) {
-                  // ignore
-                }
-              })();
-            `,
-          }}
-        />
-        {!mounted ? null : (
-          <ErrorBoundary>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange
-            >
-              <AuthProvider>
-                <NotificationProvider>
-                  <div className="admin-scope">
-                    <TailorMadeProvider>
-                      <ContactFormProvider>
-                        <BookingProvider>
-                          <ProtectedRoute>
-                            <AdminRealtimeListener />
-                            <SidebarProvider>
-                              <AppSidebar />
-                              <SidebarInset>
-                                <AdminHeader />
-                                <main className="flex flex-1 flex-col gap-4 bg-muted/30 p-4 md:p-6">
-                                  <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
-                                </main>
-                              </SidebarInset>
-                            </SidebarProvider>
-                          </ProtectedRoute>
-                        </BookingProvider>
-                      </ContactFormProvider>
-                    </TailorMadeProvider>
-                  </div>
-                  <Toaster />
-                </NotificationProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </ErrorBoundary>
-        )}
+        <ErrorBoundary>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <AuthProvider>
+              <NotificationProvider>
+                <div className="admin-scope">
+                  <TailorMadeProvider>
+                    <ContactFormProvider>
+                      <BookingProvider>
+                        <ProtectedRoute>
+                          <AdminRealtimeListener />
+                          <SidebarProvider>
+                            <AppSidebar />
+                            <SidebarInset>
+                              <AdminHeader />
+                              <main className="flex flex-1 flex-col gap-4 bg-muted/30 p-4 md:p-6">
+                                <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+                              </main>
+                            </SidebarInset>
+                          </SidebarProvider>
+                        </ProtectedRoute>
+                      </BookingProvider>
+                    </ContactFormProvider>
+                  </TailorMadeProvider>
+                </div>
+                <Toaster />
+              </NotificationProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

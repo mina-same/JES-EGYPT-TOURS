@@ -70,6 +70,56 @@ export const LocalizedStringSchema = new Schema(
 );
 
 /**
+ * Localized text whose entire value may be left blank.
+ *
+ * Use this only for genuinely optional labels such as `shortName`. Required
+ * localized fields must continue using LocalizedStringSchema so their English
+ * value is still validated.
+ */
+export const OptionalLocalizedStringSchema = new Schema(
+  {
+    en: {
+      type: String,
+      trim: true,
+    },
+    de: {
+      type: String,
+      trim: true,
+    },
+    it: {
+      type: String,
+      trim: true,
+    },
+    es: {
+      type: String,
+      trim: true,
+    },
+  },
+  { _id: false }
+);
+
+/**
+ * Localized rich/mixed content whose languages may all be left blank.
+ */
+export const OptionalLocalizedMixedSchema = new Schema(
+  {
+    en: {
+      type: Schema.Types.Mixed,
+    },
+    de: {
+      type: Schema.Types.Mixed,
+    },
+    it: {
+      type: Schema.Types.Mixed,
+    },
+    es: {
+      type: Schema.Types.Mixed,
+    },
+  },
+  { _id: false }
+);
+
+/**
  * Reusable Mongoose schema for localized mixed content (HTML)
  */
 export const LocalizedMixedSchema = new Schema(

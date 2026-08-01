@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Edit2, FileText,
+  ArrowLeft, FileText,
   Star, Info, Search, Tag, MapPin, Clock,
 } from 'lucide-react';
 import { blogAPI } from '@/lib/api/blogAdmin';
@@ -15,7 +15,7 @@ import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
-  useEntity, EntityViewError, LocalePreviewTabs, FaqPreview,
+  useEntity, EditEntityButton, EntityViewError, LocalePreviewTabs, FaqPreview,
   hasText, localeHasField, faqHasLocale, blocksHaveLocale, rawLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
@@ -97,12 +97,7 @@ export default function BlogViewPage() {
           </p>
         </div>
         <div className="header-actions">
-          <Link
-            href={`/admin/blogs/articles/${id}/edit`}
-            className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"
-          >
-            <Edit2 size={16} /> Edit
-          </Link>
+          <EditEntityButton href={`/admin/blogs/articles/${id}/edit`} resource="blog" />
           <Link href="/admin/blogs/articles" className="btn-refresh inline-flex items-center gap-1">
             <ArrowLeft size={16} /> Back
           </Link>

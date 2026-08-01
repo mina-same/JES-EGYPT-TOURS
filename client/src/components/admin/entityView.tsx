@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Globe, Layers, Search, Check, AlertTriangle, Copy, ArrowLeft, FileText } from 'lucide-react';
+import { Globe, Layers, Search, Check, AlertTriangle, Copy, ArrowLeft, FileText, Edit2 } from 'lucide-react';
+import { usePermissions } from '@/hooks/usePermissions';
 import { getStrictLocalizedSlug, getSeoBaseUrl, SUPPORTED_LOCALES, type SupportedLocale } from '@/lib/url';
 import { getLocalizedValue } from '@/lib/localize';
 
@@ -154,6 +155,28 @@ export function EntityViewError({ error, backHref, backLabel = 'Back' }: { error
       <Link href={backHref} className="btn-refresh inline-flex items-center gap-1 mb-4"><ArrowLeft size={16} /> {backLabel}</Link>
       <div className="rounded-md border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 p-4 text-red-700 dark:text-red-300">{error || 'Not found'}</div>
     </div>
+  );
+}
+
+/*
+ * The Edit action every view page shows, with its permission check built in so
+ * no page can forget it. The list pages already hide (not disable) controls the
+ * signed-in admin may not use; this keeps the two consistent.
+ *
+ * `resource` must match what the SERVER enforces on the update route, not what
+ * the page is called — destinations, for example, are guarded by `blog:update`
+ * (server/src/routes/destinationRoutes.ts:25), so they pass "blog" here.
+ */
+export function EditEntityButton({ href, resource }: { href: string; resource: 'tour' | 'blog' }) {
+  const { canEdit } = usePermissions();
+  if (!canEdit(resource)) return null;
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"
+    >
+      <Edit2 size={16} /> Edit
+    </Link>
   );
 }
 

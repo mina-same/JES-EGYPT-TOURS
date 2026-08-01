@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import React, { useCallback, useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { faqService, type FAQ, type FAQUpdateRequest } from "@/services/faqService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import AdminLanguageTabs, { type AdminLanguage } from "@/components/admin/AdminLanguageTabs";
 import LocalizedField from "@/components/admin/LocalizedField";
+import FaqPlacementField from "@/components/admin/FaqPlacementField";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 
 interface AdminFAQEditPageProps {
@@ -39,11 +39,7 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
     order: 0,
   });
 
-  useEffect(() => {
-    fetchFAQ();
-  }, [id]);
-
-  const fetchFAQ = async () => {
+  const fetchFAQ = useCallback(async () => {
     try {
       setLoading(true);
       const response = await faqService.getFaqById(id);
@@ -74,7 +70,13 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  // Declared after fetchFAQ on purpose: a `const` callback cannot be referenced
+  // in a dependency array before it is initialised.
+  useEffect(() => {
+    fetchFAQ();
+  }, [fetchFAQ]);
 
   const handleChange = (
     field: keyof FAQUpdateRequest,
@@ -182,9 +184,11 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
                       onChange={(e) => handleLang(e.target.value)}
                       placeholder={`Enter the frequently asked question in ${lang}`}
                       required={lang === "en"}
+                      maxLength={500}
                     />
                   )}
                 </LocalizedField>
+                {/* The counter used to advertise a 500 limit that nothing enforced. */}
                 <p className="text-xs text-muted-foreground">
                   {(formData.question as any)?.[activeLanguage]?.length || 0}/500 characters
                 </p>
@@ -212,23 +216,26 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
                 globalLanguage={activeLanguage}
                 onChange={(lang, val) => handleLocalizedChange("answer", val, lang)}
               >
+                {/* The site renders this answer as HTML (dangerouslySetInnerHTML
+                    in HomeFAQ and FaqSection), so it is edited as HTML too. A
+                    plain textarea silently dropped every line break and made
+                    formatting impossible. */}
                 {(lang, currentValue, handleLang) => (
-                  <Textarea
-                    id={`answer-${lang}`}
+                  <RichTextEditor
                     value={currentValue || ""}
-                    onChange={(e) => handleLang(e.target.value)}
+                    onChange={handleLang}
                     placeholder={`Provide a detailed answer to the question in ${lang}`}
-                    rows={6}
-                    required={lang === "en"}
                   />
                 )}
               </LocalizedField>
-              <p className="text-xs text-muted-foreground">
-                {(formData.answer as any)?.[activeLanguage]?.length || 0}/5000 characters
-              </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <FaqPlacementField
+              value={!!formData.displayOnHome}
+              onChange={(onHome) => handleChange("displayOnHome", onHome)}
+            />
+
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="flex items-center justify-between space-y-0 py-2">
                 <div className="space-y-0.5">
                   <Label htmlFor="isActive">Active</Label>
@@ -240,20 +247,6 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
                   id="isActive"
                   checked={formData.isActive}
                   onCheckedChange={(checked) => handleChange("isActive", checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between space-y-0 py-2">
-                <div className="space-y-0.5">
-                  <Label htmlFor="displayOnHome">Display on Home</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Show this FAQ on the home page
-                  </p>
-                </div>
-                <Switch
-                  id="displayOnHome"
-                  checked={formData.displayOnHome}
-                  onCheckedChange={(checked) => handleChange("displayOnHome", checked)}
                 />
               </div>
 

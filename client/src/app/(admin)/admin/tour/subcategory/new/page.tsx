@@ -29,7 +29,6 @@ import { useFormDraft } from '@/hooks/useFormDraft';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { useToast } from '@/hooks/use-toast';
 import FaqManager from '@/components/admin/FaqManager';
-import ReviewCuratedManager from '@/components/admin/ReviewCuratedManager';
 import { blogAPI } from '@/lib/api/blogAdmin';
 import { Search, MessageSquare } from 'lucide-react';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
@@ -39,13 +38,13 @@ const TABS = [
   { id: 'sections', label: 'Page Sections', icon: ListChecks },
   { id: 'media', label: 'Media & Gallery', icon: ImageIcon },
   { id: 'faq-blog', label: 'FAQs & Blogs', icon: HelpCircle },
-  { id: 'reviews', label: 'Reviews', icon: MessageSquare },
   { id: 'seo', label: 'SEO & Promo', icon: Settings },
 ];
 
 const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
   category: '',
   name: { en: '', de: '', it: '', es: '' },
+  shortName: { en: '', de: '', it: '', es: '' },
   slug: { en: '', de: '', it: '', es: '' },
   description: { en: '', de: '', it: '', es: '' },
   images: [],
@@ -69,9 +68,7 @@ const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
   gallerySectionTitle: { en: '', de: '', it: '', es: '' },
   blogsSectionTitle: { en: '', de: '', it: '', es: '' },
   faqsSectionTitle: { en: '', de: '', it: '', es: '' },
-  reviewsSectionTitle: { en: '', de: '', it: '', es: '' },
   faqs: [],
-  reviews: [],
   featuredBlogs: [],
   destinationsSectionTitle: { en: '', de: '', it: '', es: '' },
   featuredDestinations: [],
@@ -205,6 +202,7 @@ export default function NewSubcategoryPage() {
           const loadedFormData: TourSubcategoryFormData = {
             category: categoryValue,
             name: typeof data.name === 'object' ? data.name : { en: data.name || '', de: '', it: '', es: '' },
+            shortName: typeof data.shortName === 'object' ? data.shortName : { en: data.shortName || '', de: '', it: '', es: '' },
             slug: typeof data.slug === 'object' ? data.slug : { en: data.slug || '', de: '', it: '', es: '' },
             description: typeof data.description === 'object' ? data.description : { en: data.description || '', de: '', it: '', es: '' },
             images: Array.isArray(data.images)
@@ -253,15 +251,7 @@ export default function NewSubcategoryPage() {
             gallerySectionTitle: typeof data.gallerySectionTitle === 'object' ? data.gallerySectionTitle : { en: data.gallerySectionTitle || '', de: '', it: '', es: '' },
             blogsSectionTitle: typeof data.blogsSectionTitle === 'object' ? data.blogsSectionTitle : { en: data.blogsSectionTitle || '', de: '', it: '', es: '' },
             faqsSectionTitle: typeof data.faqsSectionTitle === 'object' ? data.faqsSectionTitle : { en: data.faqsSectionTitle || '', de: '', it: '', es: '' },
-            reviewsSectionTitle: typeof data.reviewsSectionTitle === 'object' ? data.reviewsSectionTitle : { en: data.reviewsSectionTitle || '', de: '', it: '', es: '' },
             faqs: Array.isArray(data.faqs) ? data.faqs : [],
-            reviews: Array.isArray(data.reviews) ? data.reviews.map((r: any) => ({
-              ...r,
-              name: r.name || '',
-              avatar: r.avatar || '',
-              rating: typeof r.rating === 'number' ? r.rating : 5,
-              comment: typeof r.comment === 'object' ? r.comment : { en: r.comment || '', de: '', it: '', es: '' }
-            })) : [],
             featuredBlogs: Array.isArray(data.featuredBlogs)
               ? data.featuredBlogs.map((b: any) => typeof b === 'object' ? b._id : b)
               : [],
@@ -564,6 +554,7 @@ export default function NewSubcategoryPage() {
       const payload: any = {
         category: formData.category,
         name: formData.name,
+        shortName: formData.shortName,
         slug: formData.slug,
         isActive: formData.isActive,
       };
@@ -575,15 +566,8 @@ export default function NewSubcategoryPage() {
       if (hasEn(formData.gallerySectionTitle)) payload.gallerySectionTitle = formData.gallerySectionTitle;
       if (hasEn(formData.blogsSectionTitle)) payload.blogsSectionTitle = formData.blogsSectionTitle;
       if (hasEn(formData.faqsSectionTitle)) payload.faqsSectionTitle = formData.faqsSectionTitle;
-      if (hasEn(formData.reviewsSectionTitle)) payload.reviewsSectionTitle = formData.reviewsSectionTitle;
       
       payload.faqs = normalizeFaqsForSave(formData.faqs);
-      if (formData.reviews && formData.reviews.length > 0) {
-        payload.reviews = formData.reviews.map((r: any) => ({
-          ...r,
-          comment: hasEn(r.comment) ? r.comment : undefined
-        })).filter((r: any) => !!r.name && !!r.comment);
-      }
       if (formData.featuredBlogs && formData.featuredBlogs.length > 0) {
         payload.featuredBlogs = formData.featuredBlogs;
       }
@@ -839,6 +823,13 @@ export default function NewSubcategoryPage() {
                 placeholder="Desert Safari"
                 activeLanguage={activeLanguage}
                 error={!!getFieldError('name.en')}
+              />
+              <LocalizedInput
+                label="Short Name (cards, menus, filters)"
+                value={formData.shortName}
+                onChange={(val, lang) => handleChange('shortName', val, lang)}
+                placeholder="Desert Safari — leave empty to shorten the name automatically"
+                activeLanguage={activeLanguage}
               />
               <LocalizedInput
                 label="URL Slug *"
@@ -1523,27 +1514,7 @@ export default function NewSubcategoryPage() {
     {/* REVIEWS TAB */}
     {activeTab === 'reviews' && (
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Reviews Section Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LocalizedInput
-              label="Reviews Section Title"
-              value={formData.reviewsSectionTitle || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('reviewsSectionTitle', val, lang)}
-              placeholder="e.g., What Our Travelers Say"
-              activeLanguage={activeLanguage}
-            />
-          </CardContent>
-        </Card>
 
-        <ReviewCuratedManager
-          reviews={formData.reviews || []}
-          onChange={(reviews) => handleChange('reviews', reviews)}
-          onUpload={handleImageUpload}
-          activeLanguage={activeLanguage}
-        />
       </div>
     )}
 

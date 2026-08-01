@@ -7,11 +7,13 @@
   "emptyText": "Es sieht so aus, als hätten Sie noch keine Touren gespeichert. Entdecken Sie unsere erstklassigen Touren und finden Sie Ihr nächstes Abenteuer!",
   "browseTours": "Touren durchsuchen",
   "flexible": "Flexibel",
+  "unavailableTitle": "Derzeit nicht verfügbar",
+  "unavailableText": "Diese Tour ist momentan nicht buchbar. Wir haben sie in deiner Merkliste behalten, falls sie zurückkehrt.",
+  "remove": "Entfernen",
   "location": "Ort",
-  "review": "Bewertung",
-  "startFrom": "Ab",
-  "viewTour": "Tour ansehen",
   "more": "Mehr",
   "tours": "Touren",
-  "youMayAlsoLike": "Das könnte Ihnen auch gefallen"
+  "youMayAlsoLike": "Das könnte Ihnen auch gefallen",
+  "pageMetaTitle": "Meine Wunschliste | JES Egypt Tours",
+  "pageMetaDescription": "Die Ägypten-Touren, die Sie für später gespeichert haben."
 }

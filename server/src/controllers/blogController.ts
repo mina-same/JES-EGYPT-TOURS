@@ -9,6 +9,8 @@ import {
   PublishingValidationError,
 } from '../utils/publishing';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { localizePreservingSlugs } from '../utils/localize';
+import { narrowBlocksToLocale } from '../utils/blogBlocks';
 
 const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
   const searchRegex = createSearchRegex(search);
@@ -65,10 +67,15 @@ export const getAllBlogs = async (
     }
     // If not specified, show all (both featured and non-featured)
 
-    // Filter by tags
+    // Filter by tags.
+    // `tags` is a localized object ({ en: [...], de: [...] }), not a flat
+    // array, so matching the field itself made Mongoose try to cast a plain
+    // string into that subdocument and every ?tags= request answered 500.
+    // A visitor's tag is in their own language, so filter that language.
     if (tags) {
       const tagArray = Array.isArray(tags) ? tags : [tags];
-      query.tags = { $in: tagArray };
+      const tagLocale = req.locale && req.locale !== 'bypass' ? req.locale : 'en';
+      query[`tags.${tagLocale}`] = { $in: tagArray };
     }
 
     const searchFilters = await buildBlogSearchFilters(search);
@@ -83,7 +90,10 @@ export const getAllBlogs = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .select('-comments') // Exclude comments from list view
+      // Article bodies are for the article page, never for a list of cards.
+      // Shipping them made /blogs/all a 984 KB page — four languages of every
+      // content block for nine articles nobody had opened yet.
+      .select('-comments -contentBlocks')
       .sort('-publishedAt')
       .skip(skip)
       .limit(Number(limit));
@@ -93,7 +103,8 @@ export const getAllBlogs = async (
     res.status(200).json({
       success: true,
       count: blogs.length,
-      data: blogs,
+      // Localized, with `slug` kept raw so per-locale card links still resolve.
+      data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
         page: Number(page),
         limit: Number(limit),
@@ -152,9 +163,14 @@ export const getAllBlogsAdmin = async (
       query.isFeatured = false;
     }
 
+    // Same localized-object problem as the public list. The admin sees every
+    // language at once, so a tag matches in any of them. It goes in `$and`
+    // because `$or` below belongs to the search filter and would overwrite it.
     if (tags) {
       const tagArray = Array.isArray(tags) ? tags : [tags];
-      query.tags = { $in: tagArray };
+      query.$and = [
+        { $or: ['en', 'de', 'it', 'es'].map((lng) => ({ [`tags.${lng}`]: { $in: tagArray } })) },
+      ];
     }
 
     const searchFilters = await buildBlogSearchFilters(search);
@@ -219,14 +235,21 @@ export const getFeaturedBlogs = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .select('-comments')
+      // The homepage draws cards — title, excerpt, image, slug. It never reads
+      // contentBlocks, and shipping full article bodies in four languages made
+      // this the single heaviest request on the site (598 KB).
+      .select('-comments -contentBlocks')
       .sort({ publishedAt: -1 })
       .limit(Number(limit));
 
+    // Localized, EXCEPT `slug` — the homepage builds per-locale article URLs
+    // from the raw { en, de, it, es } object.
+    const payload = localizePreservingSlugs(blogs, req.locale);
+
     res.status(200).json({
       success: true,
-      count: blogs.length,
-      data: blogs,
+      count: payload.length,
+      data: payload,
     });
   } catch (error: any) {
     console.error('Error fetching featured blogs:', error);
@@ -263,7 +286,7 @@ export const getBlogBySlug = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
+      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {
       res.status(404).json({
@@ -273,9 +296,16 @@ export const getBlogBySlug = async (
       return;
     }
 
+    // Localize the article, then narrow its blocks to the requested language.
+    // `slug` and `faqs` stay raw (PRESERVE_RAW) because the client resolves those
+    // per locale itself. `contentBlocks` is preserved by that same rule and then
+    // handled here, where the block-visibility rule lives.
+    const localized = localizePreservingSlugs(blog, req.locale);
+    localized.contentBlocks = narrowBlocksToLocale(localized.contentBlocks, req.locale);
+
     res.status(200).json({
       success: true,
-      data: blog,
+      data: localized,
     });
   } catch (error: any) {
     console.error('Error fetching blog:', error);
@@ -305,7 +335,7 @@ export const getBlogByIdPublic = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
+      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {
       res.status(404).json({
@@ -826,7 +856,7 @@ export const getBlogById = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('destination', 'name slug')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink minAge');
+      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {
       res.status(404).json({
@@ -949,6 +979,7 @@ export const toggleComments = async (
     }
 
     blog.commentsEnabled = !blog.commentsEnabled;
+    blog.editVersion = (blog.editVersion ?? 0) + 1;
     await blog.save();
 
     res.status(200).json({

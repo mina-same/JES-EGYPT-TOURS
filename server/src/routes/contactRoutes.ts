@@ -1,17 +1,22 @@
 import express from 'express';
 import {
   createContactSubmission,
+  createTravelTradeSubmission,
   getAllContactSubmissions,
   updateContactSubmission,
   deleteContactSubmission,
 } from '../controllers/contactController';
 import { protect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
-import { contactSubmissionValidation } from '../middleware/validation';
+import {
+  contactSubmissionValidation,
+  travelTradeInquiryValidation,
+} from '../middleware/validation';
 
 const router = express.Router();
 
 router.post('/', contactSubmissionValidation, createContactSubmission);
+router.post('/travel-trade', travelTradeInquiryValidation, createTravelTradeSubmission);
 
 router.get('/', protect, permit(PERMISSIONS.CONTACT_READ), getAllContactSubmissions);
 router.patch('/:id', protect, permit(PERMISSIONS.CONTACT_UPDATE), updateContactSubmission);

@@ -1,0 +1,481 @@
+{
+  "navigationLabel": "Travel Trade",
+  "metadata": {
+    "title": "Egypt DMC for Travel Agencies & Tour Operators | JES Egypt Tours",
+    "description": "Partner with a Cairo-based Egypt DMC for customized itineraries, private transport, licensed guides, Nile cruises and complete ground handling."
+  },
+  "breadcrumb": {
+    "ariaLabel": "Breadcrumb",
+    "home": "Home",
+    "current": "Travel Trade"
+  },
+  "hero": {
+    "eyebrow": "FOR TRAVEL PROFESSIONALS",
+    "title": "Egypt DMC for Travel Agencies & Tour Operators",
+    "text": "Work with a Cairo-based local tour operator for customized Egypt itineraries, private transportation, licensed guides, Nile cruises, hotel coordination and complete ground handling across Egypt.",
+    "primaryCta": "Request B2B Rates",
+    "secondaryCta": "Explore DMC Services",
+    "trustPoints": [
+      "Local Cairo/Giza Operations",
+      "Custom FIT & Group Programs",
+      "Multilingual Support",
+      "On-Trip Assistance"
+    ],
+    "imageAlt": "International travelers jumping in front of the Giza pyramids in Egypt",
+    "cardTitle": "Local operations in Egypt",
+    "cardText": "Planning, coordination and on-trip support"
+  },
+  "audience": {
+    "eyebrow": "WHO WE SUPPORT",
+    "title": "A Local Egypt Partner for Travel Professionals",
+    "intro": "We support international travel businesses that need a dependable local team to plan, coordinate and operate services throughout Egypt.",
+    "items": [
+      {
+        "title": "Travel Agencies",
+        "text": "Flexible private and multi-day Egypt programs prepared for your clients and market."
+      },
+      {
+        "title": "Tour Operators",
+        "text": "Reliable local operations for scheduled departures, customized groups and specialist itineraries."
+      },
+      {
+        "title": "Independent Travel Advisors",
+        "text": "Responsive support for tailor-made client requests, from initial planning through final operation."
+      },
+      {
+        "title": "Group Organizers",
+        "text": "Coordinated guides, vehicles, hotels, domestic travel and site visits for private groups."
+      },
+      {
+        "title": "Corporate & Incentive Planners",
+        "text": "Ground arrangements for company trips, incentives, delegations and special programs."
+      },
+      {
+        "title": "International Partners",
+        "text": "A local operations team for companies that do not maintain their own office in Egypt."
+      }
+    ]
+  },
+  "services": {
+    "eyebrow": "GROUND HANDLING",
+    "title": "Ground Services We Can Arrange Across Egypt",
+    "intro": "Choose individual services or ask us to coordinate the complete journey from arrival to departure.",
+    "categories": [
+      {
+        "title": "Arrival & Transportation",
+        "items": [
+          "Airport meet-and-assist",
+          "Private airport and hotel transfers",
+          "Modern private vehicles",
+          "Domestic transportation coordination"
+        ]
+      },
+      {
+        "title": "Guides & Experiences",
+        "items": [
+          "Licensed Egyptologist guides",
+          "Private sightseeing",
+          "Specialist experiences",
+          "Multilingual guide coordination"
+        ]
+      },
+      {
+        "title": "Accommodation & Travel",
+        "items": [
+          "Hotel coordination",
+          "Nile cruise coordination",
+          "Domestic flight assistance",
+          "Red Sea and desert extensions"
+        ]
+      },
+      {
+        "title": "Complete Operations",
+        "items": [
+          "Customized multi-day itineraries",
+          "FIT handling",
+          "Private group coordination",
+          "Meal arrangements and on-trip support"
+        ]
+      }
+    ]
+  },
+  "benefits": {
+    "eyebrow": "WHY JES EGYPT TOURS",
+    "title": "Why Travel Professionals Work With JES Egypt Tours",
+    "items": [
+      {
+        "title": "Local Operations Team",
+        "text": "A Cairo/Giza-based team coordinating services directly with local guides, drivers and suppliers."
+      },
+      {
+        "title": "Customized Programs",
+        "text": "Itineraries can be adjusted around your client's dates, interests, travel pace and preferred service level."
+      },
+      {
+        "title": "Clear B2B Communication",
+        "text": "Receive structured proposals, clear inclusions and direct operational communication throughout the booking process."
+      },
+      {
+        "title": "Private FIT and Group Handling",
+        "text": "Support for couples, families, private groups, specialist programs and customized multi-day journeys."
+      },
+      {
+        "title": "Multilingual Support",
+        "text": "Coordination for international markets with multilingual tour operators and licensed guides, subject to availability."
+      },
+      {
+        "title": "Support During the Journey",
+        "text": "An operations contact remains available to assist with arrangements and changes during the trip."
+      }
+    ]
+  },
+  "protection": {
+    "eyebrow": "YOUR CLIENT RELATIONSHIP",
+    "title": "Your Clients Remain Your Clients",
+    "text": "We operate as your local partner in Egypt. We do not use a partner's client details for unrelated direct marketing, and we follow the agreed communication and branding arrangement for each booking.",
+    "note": "White-label or partner-branded operational support can be discussed according to the booking requirements.",
+    "points": [
+      "Partner-led communication",
+      "White-label operational support when agreed",
+      "No unrelated direct marketing to partner clients"
+    ]
+  },
+  "process": {
+    "eyebrow": "A CLEAR WORKFLOW",
+    "title": "How the B2B Process Works",
+    "steps": [
+      {
+        "title": "Send the Request",
+        "text": "Share the travel dates, number of travelers, required destinations, service level and any client preferences."
+      },
+      {
+        "title": "Receive a Proposal",
+        "text": "Our team prepares a customized itinerary, service breakdown and B2B quotation."
+      },
+      {
+        "title": "Review and Confirm",
+        "text": "You review the proposal, request any adjustments and confirm the final arrangements."
+      },
+      {
+        "title": "We Operate the Trip",
+        "text": "JES Egypt Tours coordinates the confirmed services through the local operations team."
+      },
+      {
+        "title": "Ongoing Support",
+        "text": "We provide operational updates and assistance before and during the journey."
+      }
+    ]
+  },
+  "capabilities": {
+    "eyebrow": "B2B CAPABILITIES",
+    "title": "Flexible Support for Your Egypt Business",
+    "intro": "Combine the services your business needs into a clear operating plan for private clients or groups.",
+    "items": [
+      "Net B2B quotations",
+      "Customized itineraries",
+      "Private FIT handling",
+      "Private group coordination",
+      "Multi-city Egypt programs",
+      "White-label support when agreed",
+      "Dedicated operations contact",
+      "Flexible service combinations",
+      "Clear inclusions and exclusions",
+      "Emergency and on-trip assistance"
+    ],
+    "note": "Net rates and payment terms are provided according to the itinerary, travel dates, group size and requested services."
+  },
+  "coverage": {
+    "eyebrow": "DESTINATIONS",
+    "title": "Operational Coverage Across Egypt",
+    "intro": "Our team can coordinate single-city services and multi-destination programs across Egypt's principal travel regions.",
+    "destinations": [
+      "Cairo",
+      "Giza",
+      "Alexandria",
+      "Luxor",
+      "Aswan",
+      "Abu Simbel",
+      "Nile Cruises",
+      "Hurghada",
+      "Sharm El Sheikh",
+      "Siwa Oasis",
+      "Bahariya & the White Desert",
+      "Red Sea extensions"
+    ]
+  },
+  "journeyHub": {
+    "eyebrow": "EXPLORE THE POSSIBILITIES",
+    "title": "Start With the Right Building Blocks for Your Egypt Program",
+    "intro": "Every partner request begins differently. Use these travel styles and regional pages to shape the first outline, then our local team can adapt the timing, pace and services around your clients.",
+    "groups": [
+      {
+        "title": "Private Journeys and Multi-Day Programs",
+        "text": "Start here when you need a complete Egypt journey rather than a single service. These programs can be refined for couples, families, private departures or larger groups.",
+        "links": [
+          {
+            "key": "privateTours",
+            "label": "Private Egypt Tours"
+          },
+          {
+            "key": "tourPackages",
+            "label": "Egypt Tour Packages"
+          },
+          {
+            "key": "customItineraries",
+            "label": "Custom Egypt Itineraries"
+          },
+          {
+            "key": "groupTours",
+            "label": "Group Tours"
+          }
+        ]
+      },
+      {
+        "title": "Cairo, Giza and Upper Egypt",
+        "text": "Build city stays and sightseeing days around the places your travelers care about most, with private transport and licensed guiding coordinated between each stop.",
+        "links": [
+          {
+            "key": "cairoTours",
+            "label": "Cairo Day Tours"
+          },
+          {
+            "key": "gizaTours",
+            "label": "Giza Pyramids Tours"
+          },
+          {
+            "key": "luxorTours",
+            "label": "Luxor Tours"
+          },
+          {
+            "key": "aswanTours",
+            "label": "Aswan Tours"
+          }
+        ]
+      },
+      {
+        "title": "Nile, Coast and Arrival Logistics",
+        "text": "Add the parts that turn a route into a seamless trip: a Nile sailing, a Mediterranean or Red Sea extension, and coordinated arrivals from the moment clients land.",
+        "links": [
+          {
+            "key": "nileCruises",
+            "label": "Nile Cruises"
+          },
+          {
+            "key": "alexandriaTours",
+            "label": "Alexandria Tours"
+          },
+          {
+            "key": "redSeaTours",
+            "label": "Red Sea Tours"
+          },
+          {
+            "key": "airportTransfers",
+            "label": "Airport Transfers"
+          }
+        ]
+      }
+    ]
+  },
+  "internalLinks": {
+    "ariaLabel": "Related JES Egypt Tours pages",
+    "tours": "Browse Egypt Tours",
+    "tailorMade": "Tailor-Made Travel",
+    "about": "About JES Egypt Tours",
+    "contact": "Contact Our Team"
+  },
+  "inquiry": {
+    "eyebrow": "START A CONVERSATION",
+    "title": "Discuss a Travel Trade Partnership",
+    "intro": "Tell us about your business or send the details of an upcoming client request. Our team will review the requirements and respond with the relevant next steps.",
+    "sections": {
+      "contact": "Contact details",
+      "business": "Business information",
+      "request": "Request details"
+    },
+    "fields": {
+      "inquiryType": "Inquiry type",
+      "fullName": "Full name",
+      "businessEmail": "Business email",
+      "phone": "Phone / WhatsApp",
+      "companyName": "Company name",
+      "companyWebsite": "Company website",
+      "country": "Country",
+      "businessType": "Business type",
+      "primaryMarket": "Primary market",
+      "annualTravelers": "Expected Egypt travelers per year",
+      "travelDates": "Expected travel dates",
+      "travelers": "Number of travelers",
+      "destinations": "Destinations required",
+      "serviceLanguage": "Preferred service language",
+      "serviceLevel": "Approximate service level",
+      "message": "Message / requirements"
+    },
+    "placeholders": {
+      "fullName": "Your full name",
+      "businessEmail": "name@company.com",
+      "phone": "Include country code",
+      "companyName": "Your agency or company",
+      "companyWebsite": "www.example.com",
+      "country": "Where your business is based",
+      "primaryMarket": "Countries or customer markets served",
+      "travelDates": "Exact dates or an approximate period",
+      "travelers": "e.g. 12",
+      "destinations": "Cities, regions or services required",
+      "serviceLanguage": "e.g. English, German, Italian or Spanish",
+      "message": "Share the itinerary outline, client preferences and any operational requirements."
+    },
+    "options": {
+      "inquiryTypes": [
+        {
+          "value": "b2b-rates",
+          "label": "Request B2B Rates"
+        },
+        {
+          "value": "client-request",
+          "label": "Send a Client Request"
+        },
+        {
+          "value": "general-partnership",
+          "label": "Discuss a General Partnership"
+        }
+      ],
+      "businessTypes": [
+        {
+          "value": "travel-agency",
+          "label": "Travel Agency"
+        },
+        {
+          "value": "tour-operator",
+          "label": "Tour Operator"
+        },
+        {
+          "value": "travel-advisor",
+          "label": "Independent Travel Advisor"
+        },
+        {
+          "value": "group-organizer",
+          "label": "Group Organizer"
+        },
+        {
+          "value": "corporate-incentive",
+          "label": "Corporate / Incentive Planner"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ],
+      "annualTravelers": [
+        {
+          "value": "under-10",
+          "label": "Fewer than 10"
+        },
+        {
+          "value": "10-25",
+          "label": "10–25"
+        },
+        {
+          "value": "26-50",
+          "label": "26–50"
+        },
+        {
+          "value": "51-100",
+          "label": "51–100"
+        },
+        {
+          "value": "over-100",
+          "label": "More than 100"
+        },
+        {
+          "value": "not-sure",
+          "label": "Not sure yet"
+        }
+      ],
+      "serviceLevels": [
+        {
+          "value": "standard",
+          "label": "Standard"
+        },
+        {
+          "value": "premium",
+          "label": "Premium"
+        },
+        {
+          "value": "luxury",
+          "label": "Luxury"
+        },
+        {
+          "value": "mixed",
+          "label": "Mixed / Not Sure"
+        }
+      ]
+    },
+    "consentPrefix": "I agree that JES Egypt Tours may use the submitted information to respond to this business inquiry, as explained in the",
+    "consentLink": "Privacy Policy",
+    "consentSuffix": ".",
+    "fileNote": "You can send supporting files after our team replies to your inquiry.",
+    "submit": "Send Partnership Request",
+    "submitting": "Sending request…",
+    "successTitle": "Your request has been received.",
+    "successMessage": "Thank you. Our operations team will review the details and contact you with the relevant next steps.",
+    "errorTitle": "The request could not be sent.",
+    "errorMessage": "Review the highlighted fields or try again. You can also contact our team by email or WhatsApp.",
+    "validation": {
+      "required": "This field is required.",
+      "email": "Enter a valid business email address.",
+      "website": "Enter a valid company website.",
+      "consent": "Please confirm that we may use these details to respond to your inquiry.",
+      "nameLength": "Enter between 2 and 100 characters.",
+      "companyLength": "Enter between 2 and 150 characters.",
+      "messageLength": "Enter between 20 and 5,000 characters.",
+      "travelers": "Enter a whole number between 1 and 10,000."
+    },
+    "alternative": {
+      "title": "Already have a prepared itinerary?",
+      "text": "Send the request to our operations team by email or WhatsApp.",
+      "email": "Email the operations team",
+      "whatsapp": "Send by WhatsApp",
+      "whatsappMessage": "Hello JES Egypt Tours, I would like to discuss a travel trade inquiry for Egypt."
+    }
+  },
+  "faq": {
+    "eyebrow": "PRACTICAL INFORMATION",
+    "title": "Travel Trade Frequently Asked Questions",
+    "items": [
+      {
+        "question": "Do you provide net rates for travel agencies?",
+        "answer": "Yes. B2B quotations are prepared according to the itinerary, travel dates, group size and services required."
+      },
+      {
+        "question": "Can you prepare a customized Egypt itinerary for our client?",
+        "answer": "Yes. We can prepare private itineraries based on the client's dates, interests, pace, destinations and preferred service level."
+      },
+      {
+        "question": "Do you handle both individual travelers and groups?",
+        "answer": "Yes. We can coordinate private FIT bookings as well as customized private groups, subject to availability and the requested services."
+      },
+      {
+        "question": "Can you operate under our company name?",
+        "answer": "White-label or partner-branded operational arrangements can be discussed and confirmed according to the requirements of each booking."
+      },
+      {
+        "question": "Will you contact our client directly?",
+        "answer": "Communication arrangements are agreed with the partner before operation. When direct operational contact is required, it is handled according to the confirmed booking arrangement."
+      },
+      {
+        "question": "Which services can you arrange in Egypt?",
+        "answer": "Services may include private transportation, licensed guides, sightseeing, hotels, Nile cruises, domestic travel coordination, desert programs and complete multi-day ground arrangements."
+      },
+      {
+        "question": "How quickly will we receive a quotation?",
+        "answer": "Response time depends on the complexity of the request and supplier availability. Complete requests with confirmed dates and traveler details can usually be reviewed more efficiently."
+      }
+    ]
+  },
+  "finalCta": {
+    "eyebrow": "WORK WITH A LOCAL TEAM",
+    "title": "Looking for a Local Egypt Operations Partner?",
+    "text": "Send your company details or an upcoming client request and start a conversation with the JES Egypt Tours operations team.",
+    "button": "Request a B2B Proposal"
+  }
+}

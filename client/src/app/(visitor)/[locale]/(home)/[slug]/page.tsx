@@ -22,6 +22,7 @@ import BlogSubcategoryView from "./_views/BlogSubcategoryView";
 import BlogDetailView from "./_views/BlogDetailView";
 import DestinationView from "./_views/DestinationView";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
+import { hasNoContentForLocale } from "@/lib/blogBlocks";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
@@ -214,7 +215,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
 
   // 4. Try Blog Category
   try {
-    const category = await getBlogCategoryBySlug(slug);
+    const category = await getBlogCategoryBySlug(slug, locale);
     if (category) {
       const correctSlug = getLocaleSlug(category.slug, locale);
       if (correctSlug) return { type: "blogCategory", data: category, correctSlug };
@@ -223,7 +224,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
 
   // 5. Try Blog Subcategory
   try {
-    const subcategory = await getBlogSubCategoryBySlug(slug);
+    const subcategory = await getBlogSubCategoryBySlug(slug, locale);
     if (subcategory) {
       const correctSlug = getLocaleSlug(subcategory.slug, locale);
       if (correctSlug) return { type: "blogSubcategory", data: subcategory, correctSlug };
@@ -232,16 +233,22 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
 
   // 6. Try Blog Post
   try {
-    const blog = await getBlogBySlug(slug);
+    const blog = await getBlogBySlug(slug, locale);
     if (blog) {
       const correctSlug = getLocaleSlug(blog.slug, locale);
-      if (correctSlug) return { type: "blog", data: blog, correctSlug };
+      // A slug alone is not enough: if none of the article's blocks belong to
+      // this language there is nothing to render, and falling back to another
+      // language would republish content the editor scoped elsewhere. Returning
+      // nothing here makes the page 404 and keeps it out of generateMetadata.
+      if (correctSlug && !hasNoContentForLocale(blog.contentBlocks, locale)) {
+        return { type: "blog", data: blog, correctSlug };
+      }
     }
   } catch {}
 
   // 7. Try Destination
   try {
-    const destination = await getDestinationBySlug(slug);
+    const destination = await getDestinationBySlug(slug, locale);
     if (destination) {
       const correctSlug = getLocaleSlug(destination.slug, locale);
       if (correctSlug) return { type: "destination", data: destination, correctSlug };
@@ -719,7 +726,7 @@ export default async function SlugPage({ params }: PageProps) {
 
     if (tourData) {
       const tour = tourData;
-      const name = getLocalizedValue(tour.heading || tour.name, locale) || "Tour Details";
+      const name = getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale) || "Tour Details";
 
       // ── Breadcrumbs — flat URLs for category and subcategory ────────────────
       const subcategory = tour.subcategory;

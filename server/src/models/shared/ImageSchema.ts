@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { ILocalizedString, LocalizedStringSchema } from './LocalizedSchema';
+import { ILocalizedString, OptionalLocalizedStringSchema } from './LocalizedSchema';
 
 /**
  * Unified Image Interface used across all models
@@ -31,10 +31,10 @@ export const ImageSchema = new Schema<IImage>(
       trim: true,
     },
     title: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     alt: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     // Locales this image renders for; absent/empty = all languages.
     // default: undefined stops mongoose from stamping [] on every image.

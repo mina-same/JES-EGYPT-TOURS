@@ -7,19 +7,14 @@
     "subtitle": "Exclusive deals on Egypt's finest tours — handpicked for you."
   },
   "banner": {
-    "tagline": "Limited Time Deals",
-    "heading": "Handpicked Egypt Tours",
-    "upTo": "Up To",
-    "off": "Off",
-    "description": "Curated by our Egypt experts. Every tour on this page is priced lower — no codes needed, no fine print.",
-    "badge": "off selected tours",
+    "eyebrow": "Selected Egypt Tour Deals",
+    "heading": "Save Up to <gold>{{percent}}%</gold> on Selected Private Tours",
+    "description": "Explore reduced prices on selected Egypt day tours and private experiences. Discounts are already applied — no promo code required.",
+    "cta": "View Current Offers",
     "trust": {
-      "discountLabel": "Up to {{percent}}% Off",
-      "discountSub": "Verified discounts",
-      "guidesLabel": "Expert Guides",
-      "guidesSub": "Licensed & local",
-      "timeLabel": "Limited Time",
-      "timeSub": "Book before they're gone"
+      "private": "Private Tours",
+      "guides": "Licensed Local Guides",
+      "inclusions": "Clear Inclusions"
     }
   },
   "controls": {
@@ -42,5 +37,20 @@
   "promoTitle": "Why Book a Special Offer Tour?",
   "promoDescription": "<p>Our special offer tours are carefully selected to give you the best value without compromising on quality. Every deal pairs expert local guides, handpicked hotels, and iconic Egyptian destinations — at a price that makes your dream trip possible.</p><p>From the Pyramids of Giza to the temples of Luxor and the shores of the Red Sea, every special offer tour is crafted with the same care as our full-price experiences.</p>",
   "promoSubtitle": "JES Egypt Tours",
-  "promoButton": "Contact Us"
+  "promoButton": "Contact Us",
+  "cta": {
+    "eyebrow": "Still deciding?",
+    "title": "Didn't find the right offer?",
+    "text": "Tell us your dates, group size and preferred destinations. Our Cairo team will prepare a private Egypt itinerary based on your budget.",
+    "primary": "Request a Custom Offer",
+    "secondary": "Chat on WhatsApp",
+    "whatsappMessage": "Hello JES Egypt Tours, I saw your special offers but none matched my dates. Could you prepare a custom offer for me?",
+    "reassurance": "Free quote · Reply within 24 hours · No obligation"
+  },
+  "card": {
+    "was": "Was",
+    "perPerson": "per person",
+    "save": "Save {{amount}}",
+    "viewOffer": "View Offer"
+  }
 }

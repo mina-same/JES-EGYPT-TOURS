@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Info, Search, Tag, Clock, FileText, Star, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, Info, Search, Tag, Clock, FileText, Star, MapPin, Calendar } from 'lucide-react';
 import { tourAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
@@ -11,7 +11,7 @@ import LanguageBadges from '@/components/admin/LanguageBadges';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
-  useEntity, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview, GalleryGroups,
+  useEntity, EditEntityButton, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview, GalleryGroups,
   hasText, localeHasField, faqHasLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
@@ -51,14 +51,29 @@ export default function TourViewPage() {
     { label: 'Overview', has: (l) => localeHasField(entity.Description?.text, l) },
     { label: 'Highlights', has: (l) => localeHasField(entity.tourHighlights, l) },
     { label: 'Inclusions / Exclusions', has: (l) => localeHasField(entity.inclusion, l) || localeHasField(entity.exclusion, l) },
-    { label: 'Itinerary', has: (l) => days.some((d) => localeHasField(d?.title, l) || localeHasField(d?.description, l)) },
+    // A day is its title plus its activities now — the day description field is
+    // gone, so counting it would mark a language ready on text nobody can edit.
+    {
+      label: 'Itinerary',
+      has: (l) =>
+        days.some(
+          (d) =>
+            localeHasField(d?.title, l) ||
+            (Array.isArray(d?.activities) &&
+              d.activities.some(
+                (a: any) => localeHasField(a?.heading, l) || localeHasField(a?.description, l)
+              ))
+        ),
+    },
     { label: 'FAQs', has: (l) => faqHasLocale(entity.faqs, l) },
   ];
 
   const readiness: ReadinessItem[] = [
-    { label: 'Heading (EN)', ok: hasText(strictText(entity.heading, 'en')), required: true },
+    { label: 'System Name', ok: hasText(entity.name), required: true },
     { label: 'Slug (EN)', ok: !!getStrictLocalizedSlug(entity.slug, 'en'), required: true },
+    { label: 'Subcategory', ok: !!entity.subcategory, required: true },
     { label: 'Images', ok: Array.isArray(entity.images) && entity.images.some((i: any) => i?.url), required: true },
+    { label: 'Heading (EN)', ok: hasText(strictText(entity.heading, 'en')), required: false },
     { label: 'Meta title (EN)', ok: hasText(strictText(seo.metaTitle, 'en')), required: false },
     { label: 'Meta description (EN)', ok: hasText(strictText(seo.metaDescription, 'en')), required: false },
     { label: 'SEO image', ok: !!socialImageUrl, required: false },
@@ -95,7 +110,7 @@ export default function TourViewPage() {
           <p className="admin-page-subtitle flex items-center gap-2"><span>Tour{subName ? ` · ${parentName ? parentName + ' / ' : ''}${subName}` : ''} · read-only</span><LanguageBadges entity={entity} /></p>
         </div>
         <div className="header-actions">
-          <Link href={`${EDIT_PATH}${id}/edit`} className="inline-flex items-center gap-1 rounded-md bg-[#b79c5c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a68b4b] transition-colors"><Edit2 size={16} /> Edit</Link>
+          <EditEntityButton href={`${EDIT_PATH}${id}/edit`} resource="tour" />
           <Link href={LIST_PATH} className="btn-refresh inline-flex items-center gap-1"><ArrowLeft size={16} /> Back</Link>
         </div>
       </div>
@@ -111,7 +126,6 @@ export default function TourViewPage() {
           <Field label="Duration">{getLocalizedValue(entity.duration) || '—'}</Field>
           <Field label="Location">{getLocalizedValue(entity.tourLocation) || '—'}</Field>
           <Field label="Price from">{money(entity.priceStartingFrom)}</Field>
-          <Field label="Reviews">{entity.reviewsCount ?? reviews.length}</Field>
           <Field label="Itinerary days">{days.length}</Field>
           <Field label="Pricing plans">{plans.length}</Field>
           {entity.isSpecialOffer && <Field label="Offer discount">{entity.specialOfferDiscount != null ? `${entity.specialOfferDiscount}%` : '—'}</Field>}
@@ -125,6 +139,9 @@ export default function TourViewPage() {
         <div className="space-y-5">
           {strictText(entity.headingDescription, previewLocale) && (
             <div><label className="text-[11px] uppercase font-bold text-gray-400">Heading description</label><p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{strictText(entity.headingDescription, previewLocale)}</p></div>
+          )}
+          {strictText(entity.cardDescription, previewLocale) && (
+            <div><label className="text-[11px] uppercase font-bold text-gray-400">Card description</label><p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{strictText(entity.cardDescription, previewLocale)}</p></div>
           )}
           {htmlBlocks.map((b) => (
             <div key={b.label}>
