@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { TourFormData, ITourSubcategory } from '@/types/tour';
 import { tourSubcategoryAPI } from '@/lib/api/tour';
-import { API_URL } from '@/config/api';
+import { uploadAPI } from '@/lib/api/upload';
+import { toast } from '@/hooks/use-toast';
+
 import { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 
 const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFormData => ({
@@ -421,23 +423,25 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
 
   // Image upload handler
   const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
-    const uploadFormData = new FormData();
-    uploadFormData.append('file', file);
-
     try {
-      const response = await fetch(`${API_URL}/upload`, {
-        method: 'POST',
-        body: uploadFormData,
-      });
-      const data = await response.json();
-      if (data.success) {
+      // Every other admin form uploads through uploadAPI, which carries the
+      // admin's token. This one posted with a bare fetch, so once /api/upload
+      // required authentication it answered 401 and the picture simply never
+      // appeared — no error, nothing.
+      const data = await uploadAPI.uploadFile(file);
+      if (data?.success && data?.data?.url) {
         return { url: data.data.url, fileName: data.data.fileName };
-      } else {
-        console.error('Upload failed:', data.error);
-        return null;
       }
-    } catch (error) {
+      throw new Error(data?.error || 'The server did not return an image URL.');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const reason =
+        status === 401 || status === 403
+          ? 'Your session has expired — sign in again and retry.'
+          : error?.response?.data?.error || error?.message || 'Unknown error.';
       console.error('Upload error:', error);
+      // Failing silently is what made this hard to spot in the first place.
+      toast({ title: 'Image upload failed', description: reason, variant: 'destructive' });
       return null;
     }
   };
