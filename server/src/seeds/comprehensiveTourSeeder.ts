@@ -935,7 +935,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
     for (const tourData of tours) {
       const tour = await Tour.create(tourData);
       createdCount++;
-        log.success(`Tour ${createdCount}/${tours.length}: ${tour.heading.en}`);
+        log.success(`Tour ${createdCount}/${tours.length}: ${tour.heading?.en || tour.name}`);
     }
     
     log.success(`Created ${createdCount} tours successfully`);

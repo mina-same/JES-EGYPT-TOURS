@@ -3165,3 +3165,30 @@ button[data-action="stop"] {
     transition: none;
   }
 }
+
+
+/* ─────────────────────────────────────────────────────────────
+   Keyboard focus, restored.
+
+   The theme removes the focus ring from every button it styles
+   (`.gotur-btn { outline: none !important }` and the same on the carousel
+   controls), so someone navigating by keyboard could tab the whole site
+   without ever seeing where they were. These rules put it back.
+
+   `:focus-visible` rather than `:focus` — the browser only matches it for
+   keyboard/assistive navigation, so a mouse click still looks exactly as it
+   does today. `!important` is required only because the theme used it first.
+
+   Two rings, not one: buttons here sit on white sections, on gold fills and
+   on photographs. The dark outline carries the light grounds and the white
+   halo behind it carries the dark ones, so one of the two always has contrast
+   whatever is underneath.
+   ───────────────────────────────────────────────────────────── */
+.gotur-btn:focus-visible,
+.tns-outer .tns-controls button:focus-visible,
+.gotur-owl__carousel--basic-nav.owl-carousel .owl-nav button:focus-visible,
+.gotur-owl__carousel--basic-nav.owl-carousel .owl-dots .owl-dot:focus-visible {
+  outline: 3px solid var(--gotur-black, #1d231f) !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.9);
+}

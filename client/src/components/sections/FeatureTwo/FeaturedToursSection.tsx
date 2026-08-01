@@ -43,7 +43,8 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
 
   const slug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
   const title =
-    getLocalizedValue(tour.heading || tour.name, locale) ||
+    getLocalizedValue(tour.heading, locale) ||
+    getLocalizedValue(tour.name, locale) ||
     tour.heading?.en ||
     tour.name?.en ||
     "";

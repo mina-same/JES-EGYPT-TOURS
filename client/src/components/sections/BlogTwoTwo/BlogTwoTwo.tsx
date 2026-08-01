@@ -123,8 +123,9 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
         authorLink,
         category,
         // A tag belongs on the tag listing, not back on the article the card
-        // already links to four other ways.
-        categoryLink: `/${currentLocale}/blogs?tag=${encodeURIComponent(category)}`,
+        // already links to four other ways. /blogs is the hub page and ignores
+        // the parameter — /blogs/all is the route that actually filters.
+        categoryLink: `/${currentLocale}/blogs/all?tag=${encodeURIComponent(category)}`,
         link: `/${currentLocale}/${slug}`,
       };
 
@@ -269,7 +270,14 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                     aria-hidden='true'
                     tabIndex={-1}
                   >
-                    {t('readMore')} <i className='icon-arrow-right'></i>
+                    {t('readMore')}
+                    {/* Five "Read More" links pointing at five different
+                        articles told a crawler nothing. The title comes from
+                        the post itself, so every article added or removed gets
+                        this for free. Clipped, not display:none, so it still
+                        counts as the link's text. */}
+                    {post.title && <span className='sr-only'> — {post.title}</span>}{" "}
+                    <i className='icon-arrow-right'></i>
                   </Link>
                 </div>
               </div>

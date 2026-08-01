@@ -219,8 +219,13 @@ export interface IItineraryActivity {
 export interface IItineraryDay {
   day: number;
   title: ILocalizedString;
-  description: ILocalizedMixed;
   activities: IItineraryActivity[];
+  /**
+   * Retired field. Still declared because older tours carry it in the database
+   * and would otherwise fail to type-check when read; nothing writes or renders
+   * it any more — a day is its title plus its activities.
+   */
+  description?: ILocalizedMixed;
 }
 
 export interface IItinerary {

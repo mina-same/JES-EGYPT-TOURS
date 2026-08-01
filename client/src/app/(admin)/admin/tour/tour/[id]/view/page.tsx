@@ -51,14 +51,29 @@ export default function TourViewPage() {
     { label: 'Overview', has: (l) => localeHasField(entity.Description?.text, l) },
     { label: 'Highlights', has: (l) => localeHasField(entity.tourHighlights, l) },
     { label: 'Inclusions / Exclusions', has: (l) => localeHasField(entity.inclusion, l) || localeHasField(entity.exclusion, l) },
-    { label: 'Itinerary', has: (l) => days.some((d) => localeHasField(d?.title, l) || localeHasField(d?.description, l)) },
+    // A day is its title plus its activities now — the day description field is
+    // gone, so counting it would mark a language ready on text nobody can edit.
+    {
+      label: 'Itinerary',
+      has: (l) =>
+        days.some(
+          (d) =>
+            localeHasField(d?.title, l) ||
+            (Array.isArray(d?.activities) &&
+              d.activities.some(
+                (a: any) => localeHasField(a?.heading, l) || localeHasField(a?.description, l)
+              ))
+        ),
+    },
     { label: 'FAQs', has: (l) => faqHasLocale(entity.faqs, l) },
   ];
 
   const readiness: ReadinessItem[] = [
-    { label: 'Heading (EN)', ok: hasText(strictText(entity.heading, 'en')), required: true },
+    { label: 'System Name', ok: hasText(entity.name), required: true },
     { label: 'Slug (EN)', ok: !!getStrictLocalizedSlug(entity.slug, 'en'), required: true },
+    { label: 'Subcategory', ok: !!entity.subcategory, required: true },
     { label: 'Images', ok: Array.isArray(entity.images) && entity.images.some((i: any) => i?.url), required: true },
+    { label: 'Heading (EN)', ok: hasText(strictText(entity.heading, 'en')), required: false },
     { label: 'Meta title (EN)', ok: hasText(strictText(seo.metaTitle, 'en')), required: false },
     { label: 'Meta description (EN)', ok: hasText(strictText(seo.metaDescription, 'en')), required: false },
     { label: 'SEO image', ok: !!socialImageUrl, required: false },

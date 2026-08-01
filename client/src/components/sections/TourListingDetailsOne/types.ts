@@ -66,7 +66,6 @@ export interface Activity {
 export interface ItineraryDay {
   day: number;
   title: string;
-  description: string;
   activities: Activity[];
 }
 

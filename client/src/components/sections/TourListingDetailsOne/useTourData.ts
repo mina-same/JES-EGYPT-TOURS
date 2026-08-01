@@ -160,10 +160,11 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
       itinerary: {
         generalDescription: getLocalizedValue(tour.itinerary?.generalDescription),
+        // No `description` here on purpose: the day description was retired, so
+        // carrying it through the view model would ship dead text to the client.
         days: safeArray(tour.itinerary?.days).map((d: any) => ({
           day: d?.day || 0,
           title: getLocalizedValue(d?.title),
-          description: getLocalizedValue(d?.description),
           activities: safeArray(d?.activities).map((a: any) => ({
             heading: getLocalizedValue(a?.heading),
             description: getLocalizedValue(a?.description),

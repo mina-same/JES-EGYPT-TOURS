@@ -132,7 +132,13 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
                     href={post.link}
                     className='blog-card-two__content__btn'
                   >
-                    {t('readMore')} <i className='icon-arrow-right'></i>
+                    {t('readMore')}
+                    {/* The article title, clipped rather than hidden, so the
+                        link reads descriptively to a crawler while the button
+                        still says just "Read More". Driven by the post, so new
+                        articles need no further work. */}
+                    {post.title && <span className='sr-only'> — {post.title}</span>}{" "}
+                    <i className='icon-arrow-right'></i>
                   </Link>
                 </div>
               </div>

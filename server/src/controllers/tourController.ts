@@ -38,6 +38,17 @@ interface QueryParams {
 
 // ==================== HELPER FUNCTIONS ====================
 
+// English is the only required slug. Remove blank optional locale keys so the
+// sparse unique indexes do not treat an empty string as a real duplicate slug.
+const stripEmptyLocalizedSlugs = (slug: any): void => {
+  if (!slug || typeof slug !== 'object') return;
+  for (const lang of ['de', 'it', 'es'] as const) {
+    if (typeof slug[lang] === 'string' && slug[lang].trim() === '') {
+      delete slug[lang];
+    }
+  }
+};
+
 /**
  * Build query filter from request parameters
  */
@@ -673,6 +684,7 @@ export const createTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    stripEmptyLocalizedSlugs(body.slug);
 
     if (
       Object.prototype.hasOwnProperty.call(body, 'scheduledAt') &&
@@ -780,6 +792,7 @@ export const updateTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    stripEmptyLocalizedSlugs(body.slug);
 
     // Stale-save conflict guard — reject saves from stale drafts or old tabs
     const submittedVersion: number | undefined =

@@ -73,7 +73,8 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ currentBlog }) => {
               {tags.map((tag, index) => (
                 <Link
                   key={index}
-                  href={`${blogsPath}?tag=${encodeURIComponent(tag)}`}
+                  // /blogs ignores ?tag= — /blogs/all is the filtering route.
+                  href={`${blogsPath}/all?tag=${encodeURIComponent(tag)}`}
                   className='gotur-btn'
                 >
                   {tag}

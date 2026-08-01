@@ -1,7 +1,14 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { IImage, ImageSchema } from './shared/ImageSchema';
-import { ILocalizedString, ILocalizedMixed, LocalizedStringSchema, LocalizedMixedSchema } from './shared/LocalizedSchema';
+import {
+  ILocalizedString,
+  ILocalizedMixed,
+  LocalizedStringSchema,
+  OptionalLocalizedStringSchema,
+  LocalizedMixedSchema,
+  OptionalLocalizedMixedSchema,
+} from './shared/LocalizedSchema';
 
 // ==================== INTERFACES ====================
 
@@ -9,8 +16,8 @@ import { ILocalizedString, ILocalizedMixed, LocalizedStringSchema, LocalizedMixe
 export { IImage };
 
 export interface IDescription {
-  header: ILocalizedString;
-  text: ILocalizedMixed; // Localized Mixed content
+  header?: ILocalizedString;
+  text?: ILocalizedMixed; // Localized Mixed content
 }
 
 export interface INote {
@@ -121,9 +128,10 @@ export interface ISEO {
 }
 
 export interface ITour extends Document {
+  name: string;
   subcategory: Types.ObjectId;
   idExternal?: string;
-  heading: ILocalizedString;
+  heading?: ILocalizedString;
   headingDescription?: ILocalizedMixed;
   /**
    * Short teaser shown on the tour CARD only (two clamped lines). Kept separate
@@ -132,7 +140,7 @@ export interface ITour extends Document {
    */
   cardDescription?: ILocalizedString;
   slug: ILocalizedString;
-  Description: IDescription;
+  Description?: IDescription;
   images: IImage[];
   gallery?: IImage[];
   tourLocation?: ILocalizedString;
@@ -177,12 +185,10 @@ export interface ITour extends Document {
 const DescriptionSchema = new Schema<IDescription>(
   {
     header: {
-      type: LocalizedStringSchema,
-      required: [true, 'Description header is required'],
+      type: OptionalLocalizedStringSchema,
     },
     text: {
-      type: LocalizedMixedSchema,
-      required: [true, 'Description text is required'],
+      type: OptionalLocalizedMixedSchema,
     },
   },
   { _id: false }
@@ -336,7 +342,7 @@ const ItineraryDaySchema = new Schema<IItineraryDay>(
 const ItinerarySchema = new Schema<IItinerary>(
   {
     generalDescription: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     days: {
       type: [ItineraryDaySchema],
@@ -395,7 +401,7 @@ const ReviewSchema = new Schema<IReview>(
       required: [true, 'Review title is required'],
     },
     content: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
   },
   { _id: false }
@@ -501,13 +507,13 @@ const MapSchemaSchema = new Schema<IMapSchema>(
 const SEOSchema = new Schema<ISEO>(
   {
     metaTitle: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     metaDescription: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     metaKeywords: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     metaImage: ImageSchema,
     mapSchema: MapSchemaSchema,
@@ -519,6 +525,11 @@ const SEOSchema = new Schema<ISEO>(
 
 const TourSchema = new Schema<ITour>(
   {
+    name: {
+      type: String,
+      required: [true, 'System name is required'],
+      trim: true,
+    },
     subcategory: {
       type: Schema.Types.ObjectId,
       ref: 'TourSubcategory',
@@ -532,15 +543,14 @@ const TourSchema = new Schema<ITour>(
       sparse: true,
     },
     heading: {
-      type: LocalizedStringSchema,
-      required: [true, 'Tour heading is required'],
+      type: OptionalLocalizedStringSchema,
     },
     headingDescription: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     // Plain text (no rich text): it renders as two clamped lines on the card.
     cardDescription: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     slug: {
       type: LocalizedStringSchema,
@@ -548,7 +558,6 @@ const TourSchema = new Schema<ITour>(
     },
     Description: {
       type: DescriptionSchema,
-      required: [true, 'Description is required'],
     },
     images: {
       type: [ImageSchema],
@@ -565,50 +574,44 @@ const TourSchema = new Schema<ITour>(
       default: [],
     },
     tourLocation: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     tourAvailability: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     pickupAndDropOff: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     tourType: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     tourStyle: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     tourHighlights: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     inclusion: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     exclusion: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     pricingPlans: {
       type: [PricingPlanSchema],
-      required: [true, 'At least one pricing plan is required'],
-      validate: {
-        validator: function (plans: IPricingPlan[]) {
-          return plans.length > 0;
-        },
-        message: 'At least one pricing plan must be provided',
-      },
+      default: [],
     },
     priceStartingFrom: {
       type: CurrencyPriceSchema,
     },
     duration: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     meetingPoint: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     cancellationPolicy: {
-      type: LocalizedStringSchema,
+      type: OptionalLocalizedStringSchema,
     },
     tags: {
       type: [LocalizedMixedSchema],
@@ -616,7 +619,7 @@ const TourSchema = new Schema<ITour>(
     },
     notes: [NoteSchema],
     whatToPack: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     tourMapIframe: {
       type: String,
@@ -624,7 +627,7 @@ const TourSchema = new Schema<ITour>(
     },
     mapSchema: MapSchemaSchema,
     whatYouWillLoveHtml: {
-      type: LocalizedMixedSchema,
+      type: OptionalLocalizedMixedSchema,
     },
     itinerary: ItinerarySchema,
     faqs: [FAQSchema],
@@ -711,17 +714,21 @@ TourSchema.pre<ITour>('save', function (next) {
     this.seo = {};
   }
 
-  // Auto-populate metaTitle from heading if not provided
+  // Auto-populate metaTitle from the optional heading, then the required
+  // internal system name when no public heading was supplied.
   if (!this.seo.metaTitle || !this.seo.metaTitle.en) {
-    this.seo.metaTitle = { 
-      en: this.heading.en, 
-      de: this.heading.de, 
-      it: this.heading.it,
-      es: this.heading.es
-    };
+    const fallbackTitle = this.heading?.en || this.name;
+    if (fallbackTitle) {
+      this.seo.metaTitle = {
+        en: fallbackTitle,
+        de: this.heading?.de,
+        it: this.heading?.it,
+        es: this.heading?.es,
+      };
+    }
   }
 
-  if (!this.seo.metaDescription && this.Description && this.Description.text) {
+  if (!this.seo.metaDescription?.en && this.Description?.text?.en) {
     this.seo.metaDescription = {
       en: this.Description.text.en,
       de: this.Description.text.de,

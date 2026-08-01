@@ -99,6 +99,27 @@ export const OptionalLocalizedStringSchema = new Schema(
 );
 
 /**
+ * Localized rich/mixed content whose languages may all be left blank.
+ */
+export const OptionalLocalizedMixedSchema = new Schema(
+  {
+    en: {
+      type: Schema.Types.Mixed,
+    },
+    de: {
+      type: Schema.Types.Mixed,
+    },
+    it: {
+      type: Schema.Types.Mixed,
+    },
+    es: {
+      type: Schema.Types.Mixed,
+    },
+  },
+  { _id: false }
+);
+
+/**
  * Reusable Mongoose schema for localized mixed content (HTML)
  */
 export const LocalizedMixedSchema = new Schema(

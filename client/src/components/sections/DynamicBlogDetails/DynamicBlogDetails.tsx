@@ -573,7 +573,13 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 href={postLink}
                 className='blog-card-two__content__btn'
               >
-                {t('readMore')} <i className='icon-arrow-right'></i>
+                {t('readMore')}
+                {/* The article title, clipped rather than hidden, so the link
+                    reads descriptively to a crawler while the button still
+                    says just "Read More". Driven by the post, so new articles
+                    need no further work. */}
+                {postTitle && <span className='sr-only'> — {postTitle}</span>}{" "}
+                <i className='icon-arrow-right'></i>
               </Link>
             </div>
           </div>
@@ -628,7 +634,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
         imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
         allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
-        title: getLocalizedValue(tour.heading || tour.name, locale),
+        title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
         link: `/${locale}/${tourSlug}`,
         price: tour.priceStartingFrom || { USD: 0 },
         videoId: tour.videoLink || "",
@@ -817,7 +823,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     <div className='blog-details__categories__box'>
                       {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
                         <Link
-                          href={`${blogsPath}?tag=${encodeURIComponent(tag)}`}
+                          // /blogs ignores ?tag= — /blogs/all is the filtering route.
+                          href={`${blogsPath}/all?tag=${encodeURIComponent(tag)}`}
                           key={index}
                           className='blog-details__categories__btn gotur-btn'
                         >

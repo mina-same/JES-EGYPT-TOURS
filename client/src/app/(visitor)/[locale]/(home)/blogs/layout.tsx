@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getServerTranslation } from "@/lib/i18n-server";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 
 // Metadata-only layout: the /blogs listing is a client component and can't
@@ -12,7 +13,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return { alternates: getStaticLocaleAlternates(locale, "blogs") };
+  const { t } = await getServerTranslation(locale, "blogs");
+  return {
+    title: t("pageMetaTitle"),
+    description: t("pageMetaDescription"),
+    alternates: getStaticLocaleAlternates(locale, "blogs"),
+  };
 }
 
 export default function BlogsLayout({ children }: { children: React.ReactNode }) {

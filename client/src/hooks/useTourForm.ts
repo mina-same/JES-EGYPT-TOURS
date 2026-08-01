@@ -270,11 +270,10 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
         generalDescription: prev.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' },
         days: [
           ...(prev.itinerary?.days || []),
-          { 
-            day: (prev.itinerary?.days?.length || 0) + 1, 
-            title: { en: '', de: '', it: '', es: '' }, 
-            description: { en: '', de: '', it: '', es: '' }, 
-            activities: [] 
+          {
+            day: (prev.itinerary?.days?.length || 0) + 1,
+            title: { en: '', de: '', it: '', es: '' },
+            activities: []
           }
         ],
       },

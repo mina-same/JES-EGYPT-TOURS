@@ -726,7 +726,7 @@ export default async function SlugPage({ params }: PageProps) {
 
     if (tourData) {
       const tour = tourData;
-      const name = getLocalizedValue(tour.heading || tour.name, locale) || "Tour Details";
+      const name = getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale) || "Tour Details";
 
       // ── Breadcrumbs — flat URLs for category and subcategory ────────────────
       const subcategory = tour.subcategory;

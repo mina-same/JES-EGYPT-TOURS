@@ -67,10 +67,15 @@ export const getAllBlogs = async (
     }
     // If not specified, show all (both featured and non-featured)
 
-    // Filter by tags
+    // Filter by tags.
+    // `tags` is a localized object ({ en: [...], de: [...] }), not a flat
+    // array, so matching the field itself made Mongoose try to cast a plain
+    // string into that subdocument and every ?tags= request answered 500.
+    // A visitor's tag is in their own language, so filter that language.
     if (tags) {
       const tagArray = Array.isArray(tags) ? tags : [tags];
-      query.tags = { $in: tagArray };
+      const tagLocale = req.locale && req.locale !== 'bypass' ? req.locale : 'en';
+      query[`tags.${tagLocale}`] = { $in: tagArray };
     }
 
     const searchFilters = await buildBlogSearchFilters(search);
@@ -158,9 +163,14 @@ export const getAllBlogsAdmin = async (
       query.isFeatured = false;
     }
 
+    // Same localized-object problem as the public list. The admin sees every
+    // language at once, so a tag matches in any of them. It goes in `$and`
+    // because `$or` below belongs to the search filter and would overwrite it.
     if (tags) {
       const tagArray = Array.isArray(tags) ? tags : [tags];
-      query.tags = { $in: tagArray };
+      query.$and = [
+        { $or: ['en', 'de', 'it', 'es'].map((lng) => ({ [`tags.${lng}`]: { $in: tagArray } })) },
+      ];
     }
 
     const searchFilters = await buildBlogSearchFilters(search);
