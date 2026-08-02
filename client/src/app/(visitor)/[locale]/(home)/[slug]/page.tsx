@@ -2,6 +2,7 @@ import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
 import { getCategoryBySlug as getBlogCategoryBySlug, getSubCategoryBySlug as getBlogSubCategoryBySlug, getBlogBySlug } from "@/lib/api/blog";
 import { getDestinationBySlug } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
+import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
@@ -468,7 +469,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const seoDescription = getLocalizedValue(tour.seo?.metaDescription, locale);
     const description = stripHtml(seoDescription || "");
     const keywords = getLocalizedValue(tour.seo?.metaKeywords, locale);
-    const image = getSeoImage(tour.seo?.metaImage, tour.featuredImage || tour.sliderImages?.[0], locale, seoTitle || getLocalizedValue(tour.title, locale));
+    const tourHeading = getLocalizedValue(tour.heading, locale);
+    const pageTitle = seoTitle || tourHeading || "JES Egypt Tours";
+    const ogTitle = ownLocaleValue(tour.seo?.ogTitle, locale) || pageTitle;
+    const ogDescription = stripHtml(ownLocaleValue(tour.seo?.ogDescription, locale)) || description;
+    // A metaImage row can exist with an empty url (alt/title typed first), so it
+    // only wins when it actually carries one — otherwise fall through to ogImage
+    // and then the tour's own first image.
+    const metaImage = getImageUrl(tour.seo?.metaImage) ? tour.seo?.metaImage : undefined;
+    const image = getSeoImage(metaImage, tour.seo?.ogImage || tour.images?.[0], locale, pageTitle);
     const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: tour.slug, baseUrl });
     return {
       title: seoTitle ? seoTitle : "JES Egypt Tours",
@@ -477,15 +486,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       alternates,
       openGraph: {
         ...ogSiteDefaults(locale),
-        title: seoTitle || "JES Egypt Tours",
-        description,
+        title: ogTitle,
+        description: ogDescription,
         images: image ? [image] : [],
         type: "website"
       },
       twitter: {
         card: "summary_large_image",
-        title: seoTitle || "JES Egypt Tours",
-        description,
+        title: ogTitle,
+        description: ogDescription,
         images: image ? [image] : []
       },
       other: withImageSource(image),
@@ -733,18 +742,18 @@ export default async function SlugPage({ params }: PageProps) {
       const category = subcategory?.category;
       const breadcrumbs: { label: string; href?: string }[] = [];
 
-      if (category?.name) {
-        const catSlug = getStrictLocalizedSlug(category.slug, locale as SupportedLocale);
+      const catSlug = getStrictLocalizedSlug(category?.slug, locale as SupportedLocale);
+      if (catSlug && (category?.name || category?.shortName)) {
         breadcrumbs.push({
-          label: getLocalizedValue(category.name, locale),
-          href: catSlug ? `/${locale}/${catSlug}` : undefined,
+          label: getDisplayName(category, locale),
+          href: `/${locale}/${catSlug}`,
         });
       }
-      if (subcategory?.name) {
-        const subSlug = getStrictLocalizedSlug(subcategory.slug, locale as SupportedLocale);
+      const subSlug = getStrictLocalizedSlug(subcategory?.slug, locale as SupportedLocale);
+      if (subSlug && (subcategory?.name || subcategory?.shortName)) {
         breadcrumbs.push({
-          label: getLocalizedValue(subcategory.name, locale),
-          href: subSlug ? `/${locale}/${subSlug}` : undefined,
+          label: getDisplayName(subcategory, locale),
+          href: `/${locale}/${subSlug}`,
         });
       }
       breadcrumbs.push({ label: name as string });

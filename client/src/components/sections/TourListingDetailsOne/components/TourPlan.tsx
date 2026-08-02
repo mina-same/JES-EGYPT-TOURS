@@ -4,6 +4,7 @@ import { Accordion } from "react-bootstrap";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { Itinerary } from "../types";
+import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 
 interface TourPlanProps {
   itinerary?: Itinerary;
@@ -22,8 +23,10 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
       
       {itinerary.generalDescription && (
         <div 
-          className="tour-plan-general-description mb-4"
-          dangerouslySetInnerHTML={{ __html: itinerary.generalDescription }}
+          className="html-content mb-4"
+          dangerouslySetInnerHTML={{
+            __html: normalizeRichTextInternalLinks(itinerary.generalDescription),
+          }}
         />
       )}
 

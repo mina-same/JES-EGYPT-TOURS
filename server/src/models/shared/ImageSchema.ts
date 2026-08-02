@@ -10,6 +10,14 @@ export interface IImage {
   fileName: string;
   title?: ILocalizedString;
   alt?: ILocalizedString;
+  /**
+   * Intrinsic pixel size, captured from the upload response. Only used to emit
+   * og:image:width / og:image:height, which lets Facebook and LinkedIn lay the
+   * card out on the FIRST crawl instead of showing a thumbnail until they have
+   * fetched the file themselves.
+   */
+  width?: number;
+  height?: number;
   /** Locales this image renders for; absent/empty = all languages. */
   languages?: string[];
 }
@@ -35,6 +43,12 @@ export const ImageSchema = new Schema<IImage>(
     },
     alt: {
       type: OptionalLocalizedStringSchema,
+    },
+    width: {
+      type: Number,
+    },
+    height: {
+      type: Number,
     },
     // Locales this image renders for; absent/empty = all languages.
     // default: undefined stops mongoose from stamping [] on every image.

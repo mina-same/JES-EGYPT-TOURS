@@ -1,10 +1,8 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import RichTextEditor from '@/components/ui/RichTextEditor';
 import { cn } from '@/lib/utils';
 import { Search, Loader2, Plus, Trash2, X } from 'lucide-react';
 
@@ -25,6 +23,13 @@ interface ResourcesTabProps {
   blogSearchResults: any[];
   isSearchingBlogs?: boolean;
   activeLanguage: AdminLanguage;
+}
+
+function getReferenceId(value: any): string {
+  if (typeof value === 'string') return value;
+
+  const id = value?.id ?? value?._id;
+  return id == null ? '' : String(id);
 }
 
 function getYouTubeVideoId(url: string): string {
@@ -67,6 +72,19 @@ export default function ResourcesTab({
   const tourRef = useRef<HTMLDivElement>(null);
   const blogRef = useRef<HTMLDivElement>(null);
 
+  const selectedTourIds = new Set(
+    (formData.relatedTours || []).map(getReferenceId).filter(Boolean)
+  );
+  const selectedBlogIds = new Set(
+    (formData.blogReferences || []).map(getReferenceId).filter(Boolean)
+  );
+  const availableTourSearchResults = tourSearchResults.filter(
+    (tour) => !selectedTourIds.has(getReferenceId(tour))
+  );
+  const availableBlogSearchResults = blogSearchResults.filter(
+    (blog) => !selectedBlogIds.has(getReferenceId(blog))
+  );
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -81,14 +99,6 @@ export default function ResourcesTab({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-
-  // The following FAQ handlers are removed as FaqManager will handle them internally
-  // const duplicateFaq = useCallback(...)
-  // const closeAll = useCallback(...)
-  // const addFaq = () => { ... }
-  // const removeFaq = (index: number) => { ... }
-  // const updateFaq = (index: number, field: string, value: any, lang: AdminLanguage = activeLanguage) => { ... }
 
   const addReviewVideo = () => {
     const next = [
@@ -124,10 +134,11 @@ export default function ResourcesTab({
 
   // Related Tour Handlers
   const addRelatedTour = (tour: any) => {
-    if (!formData.relatedTours?.some((t: any) => t.id === tour._id)) {
+    const tourId = getReferenceId(tour);
+    if (tourId && !selectedTourIds.has(tourId)) {
       const newRelated = [
         ...(formData.relatedTours || []),
-        { id: tour._id, title: typeof tour.heading === 'object' ? tour.heading : typeof tour.name === 'object' ? tour.name : { en: tour.heading || tour.name || '', de: '', it: '' } }
+        { id: tourId, title: typeof tour.heading === 'object' ? tour.heading : typeof tour.name === 'object' ? tour.name : { en: tour.heading || tour.name || '', de: '', it: '' } }
       ];
       handleChange('relatedTours', newRelated);
       setTourSearchQuery(''); // Clear search
@@ -141,10 +152,11 @@ export default function ResourcesTab({
 
   // Blog Reference Handlers
   const addBlogReference = (blog: any) => {
-    if (!formData.blogReferences?.some((b: any) => b.id === blog._id)) {
+    const blogId = getReferenceId(blog);
+    if (blogId && !selectedBlogIds.has(blogId)) {
       const newRefs = [
         ...(formData.blogReferences || []),
-        { id: blog._id, title: typeof blog.title === 'object' ? blog.title : { en: blog.title || '', de: '', it: '' } }
+        { id: blogId, title: typeof blog.title === 'object' ? blog.title : { en: blog.title || '', de: '', it: '' } }
       ];
       handleChange('blogReferences', newRefs);
       setBlogSearchQuery(''); // Clear search
@@ -303,9 +315,9 @@ export default function ResourcesTab({
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute z-50 left-0 right-0 mt-1 border rounded-md max-h-60 overflow-y-auto bg-background shadow-lg"
                 >
-                  {tourSearchResults.length > 0 ? (
+                  {availableTourSearchResults.length > 0 ? (
                     <div className="py-1">
-                      {tourSearchResults.map((tour) => (
+                      {availableTourSearchResults.map((tour) => (
                         <button
                           key={tour._id}
                           type="button"
@@ -393,9 +405,9 @@ export default function ResourcesTab({
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute z-50 left-0 right-0 mt-1 border rounded-md max-h-60 overflow-y-auto bg-background shadow-lg"
                 >
-                  {blogSearchResults.length > 0 ? (
+                  {availableBlogSearchResults.length > 0 ? (
                     <div className="py-1">
-                      {blogSearchResults.map((blog) => (
+                      {availableBlogSearchResults.map((blog) => (
                         <button
                           key={blog._id}
                           type="button"

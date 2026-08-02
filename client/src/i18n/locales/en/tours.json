@@ -95,6 +95,8 @@
     "gallerySubtitle": "A visual journey through the amazing places you will visit.",
     "faqTitle": "Frequently Asked Questions",
     "faqSubtitle": "Common questions and answers to help you prepare.",
+    "faqShowMore": "Read More ({{remaining}} more)",
+    "faqShowLess": "Show Less",
     "honestReviewsTitle": "Reflective & Honest Reviews",
     "honestReviewsSubtitle": "Watch real experiences from travelers on YouTube.",
     "openYoutube": "Open on YouTube",

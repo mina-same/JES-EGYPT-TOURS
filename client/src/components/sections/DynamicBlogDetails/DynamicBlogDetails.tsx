@@ -58,11 +58,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const locale = (i18n.language || 'en');
   const blogsPath = `/${locale}/blogs`;
 
-  const [commentForm, setCommentForm] = useState({
-    name: '',
-    email: '',
-    message: ''
-  });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [relatedTours, setRelatedTours] = useState<any[]>([]);
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -136,19 +131,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
   
   const approvedComments = blog.comments?.filter(c => c.isApproved) || [];
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    try {
-      // TODO: Implement comment submission to API
-      alert("Comment submitted successfully! It will be visible after approval.");
-      setCommentForm({ name: '', email: '', message: '' });
-    } catch (error) {
-      console.error("Error submitting comment:", error);
-      alert("Failed to submit comment. Please try again.");
-    }
-  };
 
   /*
    * Per-language block visibility — one rule, no fallback to another language.
@@ -867,7 +849,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 <div className='comments-one'>
                   <h3 className='comments-one__title'>{t('comments')}</h3>
                   <ul className='list-unstyled comments-one__list'>
-                    {approvedComments.map((comment, index) => (
+                    {approvedComments.map((comment) => (
                       <li
                         key={comment._id}
                         className='comments-one__card wow fadeInUp'
@@ -909,75 +891,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 </div>
               )}
 
-              {/* Comment Form */}
-              {/* {blog.commentsEnabled && (
-                <div className='comments-form'>
-                  <h3 className='comments-form__title'>Leave a Comment</h3>
-                  <form
-                    className='comments-form__form contact-form-validated form-one'
-                    onSubmit={handleSubmit}
-                  >
-                    <div className='form-one__group'>
-                      <div
-                        className='form-one__control wow fadeInUp'
-                        data-wow-duration='1500ms'
-                        data-wow-delay='100ms'
-                      >
-                        <label htmlFor='name'>Your Name*</label>
-                        <input
-                          type='text'
-                          id='name'
-                          name='name'
-                          placeholder='Your Name'
-                          value={commentForm.name}
-                          onChange={(e) => setCommentForm({...commentForm, name: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div
-                        className='form-one__control wow fadeInUp'
-                        data-wow-duration='1500ms'
-                        data-wow-delay='200ms'
-                      >
-                        <label htmlFor='email'>Your Email*</label>
-                        <input
-                          type='email'
-                          id='email'
-                          name='email'
-                          placeholder='Your Email'
-                          value={commentForm.email}
-                          onChange={(e) => setCommentForm({...commentForm, email: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div
-                        className='form-one__control form-one__control--full wow fadeInUp'
-                        data-wow-duration='1500ms'
-                        data-wow-delay='300ms'
-                      >
-                        <label htmlFor='message'>Message*</label>
-                        <textarea
-                          name='message'
-                          id='message'
-                          placeholder='Write Message'
-                          value={commentForm.message}
-                          onChange={(e) => setCommentForm({...commentForm, message: e.target.value})}
-                          required
-                        ></textarea>
-                      </div>
-                      <div
-                        className='form-one__control form-one__control--full wow fadeInUp'
-                        data-wow-duration='1500ms'
-                        data-wow-delay='350ms'
-                      >
-                        <button type='submit' className='gotur-btn'>
-                          Post a Comment
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              )} */}
             </div>
           </Col>
           
@@ -1360,21 +1273,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           margin-top: 0.75rem;
           font-style: italic;
         }
-        /* Link Styling */
-        .blog-details-card__content__inner a {
-          color: #b79c5c;
-          text-decoration: underline;
-          text-underline-offset: 4px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .blog-details-card__content__inner a:hover {
-          color: #1b4168;
-          text-decoration-color: #1b4168;
-        }
-
         /* Blog Meta Bar */
         .blog-meta-bar {
           display: flex;

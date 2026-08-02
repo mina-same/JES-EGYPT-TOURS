@@ -53,6 +53,23 @@ export default function DetailsTab({
         </CardContent>
       </Card>
 
+      {/* What You Will Love */}
+      <Card className={cn(hasError('whatYouWillLoveHtml') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>
+        <CardHeader>
+          <CardTitle className={cn(hasError('whatYouWillLoveHtml') && "text-red-600")}>What You Will Love</CardTitle>
+          <CardDescription>Marketing content for the tour page</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LocalizedRichText
+            label="Why travelers will love this tour"
+            value={formData.whatYouWillLoveHtml || { en: '', de: '', it: '', es: '' }}
+            onChange={(val) => handleChange('whatYouWillLoveHtml', val)}
+            placeholder="Why travelers will love this tour"
+            activeLanguage={activeLanguage}
+          />
+        </CardContent>
+      </Card>
+
       {/* Inclusions & Exclusions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className={cn(hasError('inclusion') && "border-red-500 ring-1 ring-red-200 shadow-red-50")}>

@@ -30,6 +30,14 @@ import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
+/** Questions shown before the "Read More" button. The rest are rendered too —
+ *  see the FAQ section — just hidden until the button is pressed. */
+const FAQ_VISIBLE_COUNT = 4;
+
+/** Lines of description TEXT shown before "Read More". The effect below turns
+ *  this into a pixel height; the CSS fallback only covers the first paint. */
+const DESCRIPTION_VISIBLE_LINES = 5;
+
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
   const [activeSection, setActiveSection] = useState("description");
@@ -43,7 +51,24 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  /**
+   * A callback ref, not useRef: `loading` flips true→false while the tour is
+   * fetched, so the component swaps to the skeleton and back and React mounts a
+   * BRAND NEW description node. A plain ref would leave the measurement effect
+   * pointing at the discarded node — the clamp it wrote was silently thrown
+   * away. Storing the node in state re-runs the effect on every remount.
+   */
+  const [descriptionEl, setDescriptionEl] = useState<HTMLDivElement | null>(null);
+  /**
+   * Starts true so the button is part of the SERVER-rendered markup — the clamp
+   * is CSS-only and therefore already active on first paint, so a button that
+   * only appeared after hydration would leave the control missing exactly when
+   * the text is cut. The effect below switches it off for the rare description
+   * that is short enough to fit uncut.
+   */
+  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(true);
   const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
+  const [showAllFaqs, setShowAllFaqs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams() as { locale: string };
@@ -55,6 +80,93 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     }
   }, [params?.locale, i18n]);
 
+  /**
+   * Sizes the clamp to exactly DESCRIPTION_VISIBLE_LINES lines OF TEXT.
+   *
+   * A plain max-height cannot do this: the budget is shared with the gaps
+   * between paragraphs, so a height worth five lines renders four lines plus a
+   * blank one, and how many lines survive changes with where the paragraph
+   * breaks happen to fall — one tour showed a single orphaned line. Measuring
+   * the real line boxes and clamping to the fifth one's baseline box makes the
+   * count identical on every tour, whatever the paragraph rhythm.
+   *
+   * Overflowing content is still laid out under `overflow: hidden`, so the rects
+   * for the clipped lines are available and the element can be measured without
+   * expanding it first.
+   */
+  useEffect(() => {
+    const el = descriptionEl;
+    if (!el) return;
+
+    const measure = () => {
+      const inner = el.firstElementChild as HTMLElement | null;
+      if (!inner) return;
+
+      // Collect the elements that actually own line boxes: descend until a node
+      // whose children are all inline. Ranging the whole description at once
+      // reports the paragraph boxes ALONGSIDE the line boxes, which inflated the
+      // count and clamped some tours to three lines instead of five.
+      const isBlock = (node: Element) => {
+        const display = getComputedStyle(node).display;
+        return display === "block" || display === "list-item" || display === "flex" || display === "grid" || display === "table";
+      };
+      const leafBlocks: Element[] = [];
+      const collect = (node: Element) => {
+        const children = Array.from(node.children);
+        if (children.length === 0 || !children.some(isBlock)) {
+          leafBlocks.push(node);
+          return;
+        }
+        children.forEach(collect);
+      };
+      collect(inner);
+
+      // Blocks stack vertically, so de-duplicating by top WITHIN a block folds
+      // the several rects of one line (split by inline tags) into a single line.
+      const lines: DOMRect[] = [];
+      const range = document.createRange();
+      for (const block of leafBlocks) {
+        range.selectNodeContents(block);
+        const seen = new Set<number>();
+        for (const rect of Array.from(range.getClientRects())) {
+          if (rect.height <= 0 || rect.width <= 0) continue;
+          const key = Math.round(rect.top * 10);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          lines.push(rect);
+        }
+      }
+      lines.sort((a, b) => a.top - b.top);
+
+      if (lines.length <= DESCRIPTION_VISIBLE_LINES) {
+        el.style.removeProperty("--desc-clamp");
+        setIsDescriptionOverflowing(false);
+        return;
+      }
+
+      const lastVisible = lines[DESCRIPTION_VISIBLE_LINES - 1];
+      const lineHeight = parseFloat(getComputedStyle(inner).lineHeight);
+      // getClientRects returns the glyph box, which is shorter than the line
+      // box. Adding the half-leading back puts the cut on the line boundary
+      // instead of shaving the descenders.
+      const halfLeading = Number.isFinite(lineHeight)
+        ? Math.max(0, (lineHeight - lastVisible.height) / 2)
+        : 0;
+      const clamp = Math.ceil(lastVisible.bottom - el.getBoundingClientRect().top + halfLeading);
+
+      el.style.setProperty("--desc-clamp", `${clamp}px`);
+      setIsDescriptionOverflowing(true);
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    // Web fonts land after first paint and change where the lines break.
+    document.fonts?.ready.then(measure).catch(() => {});
+    return () => window.removeEventListener("resize", measure);
+    // `tourData.overview` rather than the destructured `overview`, which is
+    // declared further down and would be in its temporal dead zone here.
+  }, [descriptionEl, tourData.overview]);
+
   useEffect(() => {
     const updateNavHeight = () => {
       const h = navRef.current?.getBoundingClientRect().height || 0;
@@ -65,7 +177,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       const sidebar = sidebarRef.current;
       const row = sidebarRowRef.current;
       if (!sidebar || !row) return;
-      const rowRect = row.getBoundingClientRect();
       const sidebarRect = sidebar.getBoundingClientRect();
       setSidebarLeft(sidebarRect.left);
       setSidebarWidth(sidebarRect.width);
@@ -208,11 +319,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const whatToPackItems = normalizeAmenityItems(tourData.whatToPack);
   const highlightItems = normalizeAmenityItems(highlightList);
 
-  const handleBookingSubmit = (data: any) => {
-    // You could send bookingData to your API here
-  };
-
-
   if (loading) {
     return <TourListingDetailsOneSkeleton />;
   }
@@ -344,14 +450,45 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </h2>
                     </div>
                     
-                    <div className={`tour-description-wrapper ${isMobile && !isDescriptionExpanded ? 'collapsed' : ''}`}>
+                    {/* The clamp is CSS-only and covers the prose alone. Every
+                        word — including the part below the fold — is rendered
+                        into the server HTML and merely clipped, so the copy stays
+                        crawlable and any internal links inside it keep counting.
+                        Never trim `overview` itself to shorten this. */}
+                    <div
+                      id="tour-description-body"
+                      ref={setDescriptionEl}
+                      className={`tour-description-wrapper ${isDescriptionExpanded ? '' : 'collapsed'}`}
+                    >
                       <div
-                        className='tour-listing-details__text mb-4'
+                        className='tour-listing-details__text'
                         style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
                         dangerouslySetInnerHTML={{ __html: overview }}
                       />
-                      
-                      {tourData.whatYouWillLoveHtml && (
+                    </div>
+
+                    {isDescriptionOverflowing && (
+                      <button
+                        type="button"
+                        className="tour-read-more-btn"
+                        onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                        aria-expanded={isDescriptionExpanded}
+                        aria-controls="tour-description-body"
+                      >
+                        <span>
+                          {isDescriptionExpanded
+                            ? t("tourDetails.readLess", "Read Less")
+                            : t("tourDetails.readMore", "Read More")}
+                        </span>
+                        <ChevronDown
+                          size={16}
+                          className="tour-read-more-btn__chevron"
+                          style={{ transform: isDescriptionExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                        />
+                      </button>
+                    )}
+
+                    {tourData.whatYouWillLoveHtml && (
                         <div className="tour-listing-details__what-you-love mt-5 p-5 rounded-4 shadow-sm" style={{ 
                           background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)', 
                           border: '1px solid rgba(183, 156, 92, 0.15)',
@@ -394,15 +531,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           />
                         </div>
                       )}
-                    </div>
-                    {isMobile && (
-                      <button 
-                        className="tour-read-more-btn"
-                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                      >
-                        {isDescriptionExpanded ? t("tourDetails.readLess", "Read Less") : t("tourDetails.readMore", "Read More")}
-                      </button>
-                    )}
                   </div>
 
                   {/* Tour Highlights Section */}
@@ -720,7 +848,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
                       </div>
                       <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
-                        <Accordion 
+                        <Accordion
+                          id="tour-faq-list"
                           defaultActiveKey="0"
                           activeKey={faqActiveKey || undefined}
                           onSelect={(k) => setFaqActiveKey(k as string)}
@@ -728,11 +857,21 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           data-wow-duration="1500ms"
                           data-wow-delay="500ms"
                         >
+                          {/* EVERY question is rendered, always. The ones past the
+                              fold are hidden in CSS rather than sliced out of the
+                              array, so the full Q&A text ships in the server HTML
+                              and stays crawlable — and keeps matching the FAQPage
+                              JSON-LD, which Google requires to be page-visible. */}
                           {faqs.map((faq, index) => {
                             const eventKey = String(index);
                             const isOpen = faqActiveKey === eventKey;
+                            const isBeyondFold = index >= FAQ_VISIBLE_COUNT;
                             return (
-                              <Accordion.Item eventKey={eventKey} key={index}>
+                              <Accordion.Item
+                                eventKey={eventKey}
+                                key={index}
+                                className={(!showAllFaqs && isBeyondFold) ? 'faq-item--collapsed' : undefined}
+                              >
                                 <div className="accordion-header">
                                   <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
                                     <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
@@ -765,6 +904,27 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             );
                           })}
                         </Accordion>
+
+                        {faqs.length > FAQ_VISIBLE_COUNT && (
+                          <button
+                            type="button"
+                            className="faq-toggle-btn"
+                            onClick={() => setShowAllFaqs((prev) => !prev)}
+                            aria-expanded={showAllFaqs}
+                            aria-controls="tour-faq-list"
+                          >
+                            <span>
+                              {showAllFaqs
+                                ? t("tourDetails.faqShowLess")
+                                : t("tourDetails.faqShowMore", { remaining: faqs.length - FAQ_VISIBLE_COUNT })}
+                            </span>
+                            <ChevronDown
+                              size={18}
+                              className="faq-toggle-btn__chevron"
+                              style={{ transform: showAllFaqs ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                            />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -841,58 +1001,25 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   height: 'fit-content',
                 }}
               >
-                <BookingForm tourId={String(tourData.id || '')} onSubmit={handleBookingSubmit} />
+                <BookingForm tourId={String(tourData.id || '')} />
               </div>
             </div>
           </div>
         </Container>
 
-        {/* ── Related Tours (max 3, curated) ── */}
+        {/* ── Related Tours (curated in the admin) ── */}
         {relatedTours.length > 0 && (
-          <section id="related-tours" className="py-5" style={{ borderTop: '1px solid #eee' }}>
-            <Container>
-                <div className="sec-title text-center mb-3">
-                  <h2 className='sec-title__title'>{t("tourDetails.relatedTours.title", "Related Tours")}</h2>
-                  <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
-                </div>
-                <div className={`row gutter-y-30 ${relatedTours.length < 3 ? "justify-content-center" : ""}`}>
-                  {relatedTours.map((tour: any, index: number) => (
-                    <div key={tour.id} className="col-lg-4 col-md-6">
-                      <article 
-                        className="tour-listing-one__item wow fadeInUp"
-                        data-wow-duration='1500ms'
-                        data-wow-delay={`${100 * (index + 1)}ms`}
-                      >
-                        <div className="tour-listing-one__image">
-                          <Image
-                            src={tour.image}
-                            alt={tour.imageAlt || tour.title || "Tour Image"}
-                            title={tour.imageTitle || tour.title || "Tour Image"}
-                            width={500}
-                            height={350}
-                            className="img-fluid"
-                            style={{ height: '280px', objectFit: 'cover' }}
-                          />
-                          <Link href={tour.link} className="tour-listing-one__image__link">
-                            <span className="sr-only">{tour.title}</span>
-                          </Link>
-                        </div>
-                        <div className="tour-listing-one__content">
-                          <h3 className="tour-listing-one__title text-center">
-                            <Link href={tour.link}>{tour.title}</Link>
-                          </h3>
-                          <div className="text-center mt-2">
-                            <Link href={tour.link} className="gotur-btn gotur-btn--base py-2 px-4" style={{ fontSize: '14px' }}>
-                              View Details
-                            </Link>
-                          </div>
-                        </div>
-                      </article>
-                    </div>
-                  ))}
-                </div>
-            </Container>
-          </section>
+          <FeatureTwo
+            id="related-tours"
+            extraClass="section-space-top"
+            itemsPerRow={4}
+            homeThree={false}
+            showShape={false}
+            tours={relatedTours}
+            title={t("tourDetails.relatedTours.title", "Related Tours")}
+            titleSpan=""
+            subtitle={t("tourDetails.relatedTours.tagline", "Curated Selection")}
+          />
         )}
 
         {/* ── Related Blogs (max 3, curated or featured fallback) ── */}
@@ -985,7 +1112,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             title={t("tourDetails.moreTours.title", "More")}
             titleSpan={t("tourDetails.moreTours.span", "Tours")}
             subtitle={t("tourDetails.moreTours.subtitle", "More tours from this category")}
-            uniqueId="more-tours"
           />
         )}
 

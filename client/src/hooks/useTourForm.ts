@@ -5,6 +5,7 @@ import { uploadAPI } from '@/lib/api/upload';
 import { toast } from '@/hooks/use-toast';
 
 import { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import type { UploadResult } from '@/components/admin/ImageUpload';
 
 const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFormData => ({
   name: '',
@@ -180,10 +181,15 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
         const keys = field.split('.');
         let current = updated;
         for (let i = 0; i < keys.length - 1; i++) {
-          if (!current[keys[i]]) current[keys[i]] = {};
+          // Clone every level on the way down. `updated` is only a shallow copy,
+          // so descending into it and assigning would write straight into the
+          // PREVIOUS state object — the nested value would change identity-free,
+          // which breaks any memoised child and double-renders under StrictMode.
+          const level = current[keys[i]];
+          current[keys[i]] = Array.isArray(level) ? [...level] : { ...(level || {}) };
           current = current[keys[i]];
         }
-        
+
         const lastKey = keys[keys.length - 1];
         const targetVal = current[lastKey];
         
@@ -244,14 +250,16 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
     setFormData(prev => {
       const updated = { ...prev } as any;
       
-      // Handle nested fields like 'seo.someField'
+      // Handle nested fields like 'seo.someField' — cloning each level so the
+      // walk never writes through into the previous state object.
       let target = updated;
       const keys = field.split('.');
       for (let i = 0; i < keys.length - 1; i++) {
-        if (!target[keys[i]]) target[keys[i]] = {};
+        const level = target[keys[i]];
+        target[keys[i]] = Array.isArray(level) ? [...level] : { ...(level || {}) };
         target = target[keys[i]];
       }
-      
+
       const lastKey = keys[keys.length - 1];
       if (!target[lastKey]) target[lastKey] = { en: [], de: [], it: [], es: [] };
       
@@ -345,7 +353,9 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
   const updateImage = (index: number, field: string, value: any) => {
     setFormData(prev => {
       const updated = { ...prev } as any;
-      if (!updated.images) updated.images = [];
+      // Clone the array too — `updated` is shallow, so writing into it directly
+      // would edit the previous state's array in place.
+      updated.images = [...(updated.images || [])];
       const image = { ...updated.images[index] };
       image[field] = value;
       updated.images[index] = image;
@@ -381,7 +391,7 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
   const updateGalleryImage = (index: number, field: string, value: any) => {
     setFormData(prev => {
       const updated = { ...prev } as any;
-      if (!updated.gallery) updated.gallery = [];
+      updated.gallery = [...(updated.gallery || [])];
       const image = { ...updated.gallery[index] };
       image[field] = value;
       updated.gallery[index] = image;
@@ -422,7 +432,7 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
   };
 
   // Image upload handler
-  const handleImageUpload = async (file: File): Promise<{ url: string, fileName: string } | null> => {
+  const handleImageUpload = async (file: File): Promise<UploadResult | null> => {
     try {
       // Every other admin form uploads through uploadAPI, which carries the
       // admin's token. This one posted with a bare fetch, so once /api/upload
@@ -430,7 +440,12 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
       // appeared — no error, nothing.
       const data = await uploadAPI.uploadFile(file);
       if (data?.success && data?.data?.url) {
-        return { url: data.data.url, fileName: data.data.fileName };
+        return {
+          url: data.data.url,
+          fileName: data.data.fileName,
+          width: data.data.width,
+          height: data.data.height,
+        };
       }
       throw new Error(data?.error || 'The server did not return an image URL.');
     } catch (error: any) {

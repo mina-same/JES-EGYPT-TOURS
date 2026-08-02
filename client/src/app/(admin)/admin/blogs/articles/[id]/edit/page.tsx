@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
+import ImageUpload, { ImageData, type UploadResult } from '@/components/admin/ImageUpload';
 import LocalizedField from '@/components/admin/LocalizedField';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
@@ -278,11 +278,16 @@ export default function EditBlogPage() {
   };
 
   // Handle Image Upload
-  const handleImageUpload = async (file: File, index?: number): Promise<{ url: string, fileName: string } | null> => {
+  const handleImageUpload = async (file: File, index?: number): Promise<UploadResult | null> => {
     try {
       const response = await uploadAPI.uploadFile(file);
       if (response.success && response.data && response.data.url) {
-        return { url: response.data.url, fileName: response.data.fileName || '' };
+        return {
+          url: response.data.url,
+          fileName: response.data.fileName || '',
+          width: response.data.width,
+          height: response.data.height,
+        };
       } else {
         console.error('Upload failed:', response.error || 'No URL in response');
         return null;
@@ -341,6 +346,10 @@ export default function EditBlogPage() {
                 fileName: img.fileName || '',
                 title: normalizeLocalizedString(img.title),
                 alt: normalizeLocalizedString(img.alt),
+                // Carried through so re-saving an untouched post doesn't drop the
+                // stored dimensions and silently remove og:image:width/height.
+                ...(typeof img.width === 'number' ? { width: img.width } : {}),
+                ...(typeof img.height === 'number' ? { height: img.height } : {}),
             };
         };
 
@@ -1302,6 +1311,15 @@ export default function EditBlogPage() {
                       onUpload={async (file, index) => {
                         return await handleImageUpload(file, index);
                       }}
+                      onUploadResult={(index, result) => {
+                        handleChange('featuredImage', {
+                          ...(formData.featuredImage || {}),
+                          url: result.url,
+                          fileName: result.fileName,
+                          width: result.width,
+                          height: result.height,
+                        });
+                      }}
                       title="Featured Image"
                       description="Main image for the blog post"
                       required={true}
@@ -1435,8 +1453,17 @@ export default function EditBlogPage() {
                         onUpload={async (file, index) => {
                           return await handleImageUpload(file, index);
                         }}
+                        onUploadResult={(index, result) => {
+                          handleChange('metaImage', {
+                            ...(formData.metaImage || {}),
+                            url: result.url,
+                            fileName: result.fileName,
+                            width: result.width,
+                            height: result.height,
+                          });
+                        }}
                         title="Meta / Social Image"
-                        description="Used for SEO and social sharing previews"
+                        description="Used for SEO and social sharing previews. Recommended 1200 × 630 px."
                         maxImages={1}
                         activeLanguage={activeLanguage}
                       />

@@ -73,6 +73,9 @@ export const localize = (data: any, locale: string): any => {
  * - slug        the client builds per-locale URLs, hreflang alternates and the
  *               language switcher from it; a flattened slug reads as
  *               English-only and hides content on the de/it/es pages.
+ * - shortName   compact labels must be resolved strictly for the active locale.
+ *               If that translation is blank, the client falls back to the
+ *               same locale's full `name`, never to an English short label.
  * - faqs        the visitor pages pick `question[locale]` / `answer[locale]`
  *               DIRECTLY and drop any row the active language is missing. That
  *               is deliberate: an unanswered question stays hidden instead of
@@ -85,12 +88,20 @@ export const localize = (data: any, locale: string): any => {
  *               page decides that by reading `content[locale]` itself. Localizing
  *               here would fall back to English and publish blocks that were
  *               meant to stay hidden.
+ * - ogTitle /   generateMetadata resolves these with ownLocaleValue: an Open
+ *   ogDescription  Graph override applies ONLY to the language it was written
+ *               in, and any other language falls back to that language's own
+ *               meta text rather than borrowing the English card. Flattening
+ *               here applies the English OG title to every locale, which is the
+ *               exact outcome that guard exists to prevent — and it silently
+ *               turned ownLocaleValue into dead code, since `"text"[locale]` is
+ *               undefined for an already-flattened string.
  *
  * The shared rule: anything the client resolves per-locale ITSELF must stay raw,
  * because localize() falls back to English and would turn "deliberately empty"
  * into "shows another language".
  */
-const PRESERVE_RAW = new Set(['slug', 'contentBlocks']);
+const PRESERVE_RAW = new Set(['slug', 'shortName', 'contentBlocks', 'ogTitle', 'ogDescription']);
 
 const localeText = (field: any, locale: string): string =>
   typeof field?.[locale] === 'string' ? field[locale].trim() : '';

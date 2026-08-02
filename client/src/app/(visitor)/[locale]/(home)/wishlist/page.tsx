@@ -14,7 +14,7 @@ import { Col, Container, Row } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import TourCard from "@/components/common/TourCard/TourCard";
-import { shortenLabel } from "@/lib/displayName";
+import { getDisplayName } from "@/lib/displayName";
 import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 
@@ -243,17 +243,8 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 const image = getPrimaryImage(tour);
                 const title = tour.heading || tour.name || "Untitled Tour";
                 const price = tour.priceStartingFrom || { USD: 0 };
-                // The API localizes documents for this page, so name/shortName
-                // usually arrive as plain strings already.
                 const sub = tour.subcategory as any;
-                const subcategoryName = sub
-                  ? shortenLabel(
-                      typeof sub.shortName === "string"
-                        ? sub.shortName
-                        : sub.shortName?.[locale] || sub.shortName?.en ||
-                          (typeof sub.name === "string" ? sub.name : sub.name?.[locale] || sub.name?.en || "")
-                    )
-                  : "";
+                const subcategoryName = getDisplayName(sub, locale);
                 // Keep the wishlisted item visible, but only link to its detail
                 // page when a real slug exists for the current locale.
                 const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
@@ -298,7 +289,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
             title={t('more')}
             titleSpan={t('tours')}
             subtitle={t('youMayAlsoLike')}
-            uniqueId="wishlist-recommendations"
           />
         </div>
       )}

@@ -235,6 +235,22 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         }
 
         const tourId = tour._id;
+        const getTourId = (value: any): string => {
+          if (typeof value === 'string') return value;
+          const valueId = value?.id ?? value?._id;
+          return valueId == null ? '' : String(valueId);
+        };
+        const curatedRelatedTourIds = new Set(
+          safeArray<any>(tour.relatedTours).map(getTourId).filter(Boolean)
+        );
+        const excludedMoreTourIds = new Set([
+          ...(tourId ? [String(tourId)] : []),
+          ...curatedRelatedTourIds,
+        ]);
+        const isEligibleMoreTour = (candidate: any) => {
+          const candidateId = getTourId(candidate);
+          return Boolean(candidateId) && !excludedMoreTourIds.has(candidateId);
+        };
 
         // Ensure subcategory ID and Category ID
         const subId = typeof tour.subcategory === 'object'
@@ -248,13 +264,29 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
         // 2. Curated Content Promises
         const commonDataPromises = [
-          // Curated related tours (max 3)
-          Promise.all(safeArray(tour.relatedTours).slice(0, 3).map(async (ref: any) => {
+          // Resolve every curated tour in one request. Rebuild the array in the
+          // admin-selected order because MongoDB's `$in` query does not preserve it.
+          (async () => {
+            const selectedIds = Array.from(curatedRelatedTourIds);
+            if (selectedIds.length === 0) return [];
+
             try {
-              const res = await tourAPI.getById(ref.id);
-              return res?.success && res?.data ? res.data : null;
-            } catch { return null; }
-          })),
+              const res = await tourAPI.getByIds(selectedIds);
+              if (!res?.success || !res?.data) return [];
+
+              const toursById = new Map(
+                safeArray<any>(res.data)
+                  .filter((relatedTour) => relatedTour?.isActive !== false)
+                  .map((relatedTour) => [getTourId(relatedTour), relatedTour])
+              );
+
+              return selectedIds
+                .map((selectedId) => toursById.get(selectedId))
+                .filter(Boolean);
+            } catch {
+              return [];
+            }
+          })(),
           // Curated blog references (max 3)
           Promise.all(safeArray(tour.blogReferences).slice(0, 3).map(async (ref: any) => {
             try {
@@ -268,8 +300,8 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           ? await tourAPI.getBySubcategory(String(subId), { limit: 12, isActive: true })
           : { success: false, data: [] };
 
-        let fetchedMoreToursRaw = moreToursRes.success
-          ? safeArray<any>(moreToursRes.data).filter((t: any) => t._id !== tourId)
+        const fetchedMoreToursRaw = moreToursRes.success
+          ? safeArray<any>(moreToursRes.data).filter(isEligibleMoreTour)
           : [];
 
         // If subcategory count is low (< 9), try category fallback
@@ -281,11 +313,13 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           });
           if (catMoreRes.success) {
             // Merge but unique by _id
-            const catTours = safeArray<any>(catMoreRes.data).filter((t: any) => t._id !== tourId);
-            const existingIds = new Set(fetchedMoreToursRaw.map(t => t._id));
+            const catTours = safeArray<any>(catMoreRes.data).filter(isEligibleMoreTour);
+            const existingIds = new Set(fetchedMoreToursRaw.map(getTourId).filter(Boolean));
             catTours.forEach(t => {
-              if (!existingIds.has(t._id)) {
+              const candidateId = getTourId(t);
+              if (candidateId && !existingIds.has(candidateId)) {
                 fetchedMoreToursRaw.push(t);
+                existingIds.add(candidateId);
               }
             });
           }
@@ -298,11 +332,13 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
             isActive: true 
           });
           if (allMoreRes.success) {
-            const allTours = safeArray<any>(allMoreRes.data).filter((t: any) => t._id !== tourId);
-            const existingIds = new Set(fetchedMoreToursRaw.map(t => t._id));
+            const allTours = safeArray<any>(allMoreRes.data).filter(isEligibleMoreTour);
+            const existingIds = new Set(fetchedMoreToursRaw.map(getTourId).filter(Boolean));
             allTours.forEach(t => {
-              if (!existingIds.has(t._id)) {
+              const candidateId = getTourId(t);
+              if (candidateId && !existingIds.has(candidateId)) {
                 fetchedMoreToursRaw.push(t);
+                existingIds.add(candidateId);
               }
             });
           }

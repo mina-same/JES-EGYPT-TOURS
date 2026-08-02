@@ -13,10 +13,9 @@ import { useWishlist } from "@/contexts/WishlistContext";
 
 interface BookingFormProps {
   tourId: string;
-  onSubmit?: (data: any) => void;
 }
 
-export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) => {
+export const BookingForm: React.FC<BookingFormProps> = ({ tourId }) => {
   const { t } = useTranslation('tours');
   // The wishlist labels live in `common`, alongside the ones the tour cards use,
   // so the same wording appears wherever a tour can be saved.
@@ -124,11 +123,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, onSubmit }) =>
         setChildren(0);
         setInfants(0);
         setPhone(undefined);
-
-        // Call optional onSubmit callback
-        if (onSubmit) {
-          onSubmit(data);
-        }
 
         // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(""), 5000);

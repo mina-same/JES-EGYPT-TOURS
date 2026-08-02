@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
+import ImageUpload, { ImageData, type UploadResult } from '@/components/admin/ImageUpload';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
@@ -295,11 +295,16 @@ export default function NewBlogPage() {
   };
 
   // Handle Image Upload
-  const handleImageUpload = async (file: File, index?: number) => {
+  const handleImageUpload = async (file: File, index?: number): Promise<UploadResult | null> => {
     try {
       const response = await uploadAPI.uploadFile(file);
       if (response.success && response.data && response.data.url) {
-        return { url: response.data.url, fileName: response.data.fileName || '' };
+        return {
+          url: response.data.url,
+          fileName: response.data.fileName || '',
+          width: response.data.width,
+          height: response.data.height,
+        };
       } else {
         console.error('Upload failed:', response.error || 'No URL in response');
         return null;
@@ -1106,6 +1111,15 @@ export default function NewBlogPage() {
                       onUpload={async (file, index) => {
                         return await handleImageUpload(file, index);
                       }}
+                      onUploadResult={(index, result) => {
+                        handleChange('featuredImage', {
+                          ...(formData.featuredImage || {}),
+                          url: result.url,
+                          fileName: result.fileName,
+                          width: result.width,
+                          height: result.height,
+                        });
+                      }}
                       title="Featured Image"
                       description="Main image for the blog post"
                       required={true}
@@ -1208,8 +1222,17 @@ export default function NewBlogPage() {
                         onUpload={async (file, index) => {
                           return await handleImageUpload(file, index);
                         }}
+                        onUploadResult={(index, result) => {
+                          handleChange('metaImage', {
+                            ...(formData.metaImage || {}),
+                            url: result.url,
+                            fileName: result.fileName,
+                            width: result.width,
+                            height: result.height,
+                          });
+                        }}
                         title="Meta / Social Image"
-                        description="Used for SEO and social sharing previews"
+                        description="Used for SEO and social sharing previews. Recommended 1200 × 630 px."
                         maxImages={1}
                         activeLanguage={activeLanguage}
                       />

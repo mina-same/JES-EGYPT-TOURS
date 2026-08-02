@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
-import { ITour } from '../models/Tour';
+import { ITour, completeTourSeo } from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { localize, localizePreservingSlugs } from '../utils/localize';
 import {
@@ -558,10 +558,10 @@ export const getTourBySlug = async (
     })
       .populate({
         path: 'subcategory',
-        select: 'name slug description category',
+        select: 'name shortName slug description category',
         populate: {
           path: 'category',
-          select: 'name slug description',
+          select: 'name shortName slug description',
         },
       })
       .lean();
@@ -703,6 +703,12 @@ export const createTour = async (
       }
     }
 
+    // Runs here rather than relying on the model's pre('save') hook alone:
+    // mongoose validates BEFORE user save hooks, so a metaImage carrying only a
+    // pasted url would be rejected for the required fileName before the hook
+    // ever got the chance to derive it.
+    body.seo = completeTourSeo(body);
+
     const tour = await Tour.create(body);
 
     // Populate subcategory details
@@ -799,9 +805,11 @@ export const updateTour = async (
       typeof body._editVersion === 'number' ? body._editVersion : undefined;
     delete body._editVersion;
 
+    // The SEO fields ride along on this existing lookup so completeTourSeo can
+    // fill from the stored tour for anything this request didn't resubmit.
     const existingTour = await Tour.findById(
       req.params.id,
-      'editVersion isActive scheduledAt publishedAt'
+      'editVersion isActive scheduledAt publishedAt seo heading name Description mapSchema'
     ).lean();
     if (!existingTour) {
       res.status(404).json({ success: false, error: 'Tour not found' });
@@ -874,6 +882,21 @@ export const updateTour = async (
         body.publishedAt = new Date();
       }
     }
+
+    // findByIdAndUpdate skips document middleware, so the model's pre('save')
+    // SEO completion never runs on an edit. Without this the first save strips
+    // the auto-filled metaImage — `$set: body` replaces the whole `seo`
+    // subdocument, and nothing puts it back. Anything the form didn't resubmit
+    // is read from the stored tour so a partial update can't erase it.
+    const pick = (key: string) =>
+      body[key] !== undefined ? body[key] : (existingTour as any)[key];
+    body.seo = completeTourSeo({
+      seo: pick('seo'),
+      heading: pick('heading'),
+      name: pick('name'),
+      Description: pick('Description'),
+      mapSchema: pick('mapSchema'),
+    });
 
     const update: any = { $set: body };
     if (Object.keys(fieldsToUnset).length > 0) {

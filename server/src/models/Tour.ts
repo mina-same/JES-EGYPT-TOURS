@@ -124,6 +124,15 @@ export interface ISEO {
   metaDescription?: ILocalizedString;
   metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
+  /**
+   * Open Graph overrides, stored per language exactly as written. A language
+   * left blank is resolved at render time against that language's own meta
+   * field, so these are never back-filled here.
+   */
+  ogTitle?: ILocalizedString;
+  ogDescription?: ILocalizedString;
+  /** Plain URL fallback used when no metaImage subdocument is set. */
+  ogImage?: string;
   mapSchema?: IMapSchema;
 }
 
@@ -516,6 +525,16 @@ const SEOSchema = new Schema<ISEO>(
       type: OptionalLocalizedMixedSchema,
     },
     metaImage: ImageSchema,
+    ogTitle: {
+      type: OptionalLocalizedStringSchema,
+    },
+    ogDescription: {
+      type: OptionalLocalizedStringSchema,
+    },
+    ogImage: {
+      type: String,
+      trim: true,
+    },
     mapSchema: MapSchemaSchema,
   },
   { _id: false }
@@ -706,46 +725,119 @@ TourSchema.virtual('subcategoryDetails', {
   justOne: true,
 });
 
-// ==================== MIDDLEWARE ====================
+// ==================== SEO COMPLETION ====================
 
-// Pre-save: Auto-populate SEO fields
-TourSchema.pre<ITour>('save', function (next) {
-  if (!this.seo) {
-    this.seo = {};
-  }
+/** Mongoose subdocuments don't spread into plain data — `{...subdoc}` yields the
+ *  internal `$__`/`_doc` machinery instead of the fields. */
+const toPlain = (value: any): any =>
+  value && typeof value.toObject === 'function' ? value.toObject() : value;
+
+export interface TourSeoSource {
+  seo?: ISEO | null;
+  heading?: ILocalizedString;
+  name?: string;
+  Description?: IDescription;
+  mapSchema?: IMapSchema;
+}
+
+/** True when a localized string has no actual text in ANY language — the admin
+ *  form ships `{ en: '', de: '', it: '', es: '' }` rather than omitting a field. */
+const isLocalizedBlank = (value: any): boolean =>
+  !value ||
+  typeof value !== 'object' ||
+  !Object.values(value).some((entry) => typeof entry === 'string' && entry.trim());
+
+/**
+ * Fills every SEO field the admin form is allowed to leave blank.
+ *
+ * Exported on purpose: `pre('save')` runs on create only, because tour updates
+ * go through `findByIdAndUpdate`, which skips document middleware entirely. The
+ * update path in tourController calls this with the same inputs so an edited
+ * tour ends up with exactly the SEO a freshly created one would have.
+ */
+export const completeTourSeo = (source: TourSeoSource): ISEO => {
+  const seo: any = { ...(toPlain(source.seo) || {}) };
+  const heading: any = toPlain(source.heading) || undefined;
+  const descriptionText: any = toPlain(toPlain(source.Description)?.text) || undefined;
 
   // Auto-populate metaTitle from the optional heading, then the required
   // internal system name when no public heading was supplied.
-  if (!this.seo.metaTitle || !this.seo.metaTitle.en) {
-    const fallbackTitle = this.heading?.en || this.name;
+  if (!seo.metaTitle || !seo.metaTitle.en) {
+    const fallbackTitle = heading?.en || source.name;
     if (fallbackTitle) {
-      this.seo.metaTitle = {
+      seo.metaTitle = {
         en: fallbackTitle,
-        de: this.heading?.de,
-        it: this.heading?.it,
-        es: this.heading?.es,
+        de: heading?.de,
+        it: heading?.it,
+        es: heading?.es,
       };
     }
   }
 
-  if (!this.seo.metaDescription?.en && this.Description?.text?.en) {
-    this.seo.metaDescription = {
-      en: this.Description.text.en,
-      de: this.Description.text.de,
-      it: this.Description.text.it,
-      es: this.Description.text.es,
+  if (!seo.metaDescription?.en && descriptionText?.en) {
+    seo.metaDescription = {
+      en: descriptionText.en,
+      de: descriptionText.de,
+      it: descriptionText.it,
+      es: descriptionText.es,
     };
   }
 
-  // Auto-populate metaImage from first image if not provided
-  if (!this.seo.metaImage && this.images && this.images.length > 0) {
-    this.seo.metaImage = this.images[0];
+  // metaImage stays an explicit OVERRIDE — it is deliberately NOT seeded from
+  // images[0]. Copying the first photo in here used to leave a frozen duplicate
+  // that kept pointing at the old picture after the gallery changed; the tour
+  // page falls back to the CURRENT first image instead, so an empty value is
+  // both correct and clearable.
+  seo.metaImage = toPlain(seo.metaImage);
+
+  if (seo.metaImage?.url) {
+    // ImageSchema requires fileName, but the admin's "Image URL" box only ever
+    // sets `url` — a pasted link would fail validation without this.
+    if (!String(seo.metaImage.fileName || '').trim()) {
+      const urlParts = String(seo.metaImage.url).split('/');
+      seo.metaImage.fileName = urlParts[urlParts.length - 1] || 'meta-image.jpg';
+    }
+    // An untouched alt arrives as four empty strings, so blankness — not
+    // absence — is what decides whether the meta title stands in for it.
+    if (isLocalizedBlank(seo.metaImage.alt) && !isLocalizedBlank(seo.metaTitle)) {
+      seo.metaImage.alt = { ...seo.metaTitle };
+    }
+  } else {
+    delete seo.metaImage;
+  }
+
+  // The OG fields are stored EXACTLY as written and are never back-filled from
+  // the meta fields. Copying the meta text in would freeze it: a later edit to
+  // the meta title would leave the social card showing the old wording forever.
+  // generateMetadata does the fallback per language at render time instead, so
+  // a language the editor left blank always tracks its current meta value.
+  if (isLocalizedBlank(seo.ogTitle)) delete seo.ogTitle;
+  if (isLocalizedBlank(seo.ogDescription)) delete seo.ogDescription;
+  // Blank for the same reason as metaImage: the page resolves
+  // metaImage -> ogImage -> images[0] at render time, against the current gallery.
+  if (!String(seo.ogImage || '').trim()) {
+    delete seo.ogImage;
   }
 
   // Auto-populate mapSchema from root level if SEO doesn't have it
-  if (!this.seo.mapSchema && this.mapSchema) {
-    this.seo.mapSchema = this.mapSchema;
+  if (!seo.mapSchema && source.mapSchema) {
+    seo.mapSchema = toPlain(source.mapSchema);
   }
+
+  return seo;
+};
+
+// ==================== MIDDLEWARE ====================
+
+// Pre-save: Auto-populate SEO fields
+TourSchema.pre<ITour>('save', function (next) {
+  this.seo = completeTourSeo({
+    seo: this.seo,
+    heading: this.heading,
+    name: this.name,
+    Description: this.Description,
+    mapSchema: this.mapSchema,
+  });
 
   next();
 });
