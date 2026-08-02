@@ -30,6 +30,10 @@ import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
+/** Questions shown before the "Read More" button. The rest are rendered too —
+ *  see the FAQ section — just hidden until the button is pressed. */
+const FAQ_VISIBLE_COUNT = 4;
+
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
   const [activeSection, setActiveSection] = useState("description");
@@ -44,6 +48,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
+  const [showAllFaqs, setShowAllFaqs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams() as { locale: string };
@@ -65,7 +70,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       const sidebar = sidebarRef.current;
       const row = sidebarRowRef.current;
       if (!sidebar || !row) return;
-      const rowRect = row.getBoundingClientRect();
       const sidebarRect = sidebar.getBoundingClientRect();
       setSidebarLeft(sidebarRect.left);
       setSidebarWidth(sidebarRect.width);
@@ -207,11 +211,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const excludedAmenityItems = normalizeAmenityItems(amenitiesTwo);
   const whatToPackItems = normalizeAmenityItems(tourData.whatToPack);
   const highlightItems = normalizeAmenityItems(highlightList);
-
-  const handleBookingSubmit = (data: any) => {
-    // You could send bookingData to your API here
-  };
-
 
   if (loading) {
     return <TourListingDetailsOneSkeleton />;
@@ -720,7 +719,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
                       </div>
                       <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
-                        <Accordion 
+                        <Accordion
+                          id="tour-faq-list"
                           defaultActiveKey="0"
                           activeKey={faqActiveKey || undefined}
                           onSelect={(k) => setFaqActiveKey(k as string)}
@@ -728,11 +728,21 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           data-wow-duration="1500ms"
                           data-wow-delay="500ms"
                         >
+                          {/* EVERY question is rendered, always. The ones past the
+                              fold are hidden in CSS rather than sliced out of the
+                              array, so the full Q&A text ships in the server HTML
+                              and stays crawlable — and keeps matching the FAQPage
+                              JSON-LD, which Google requires to be page-visible. */}
                           {faqs.map((faq, index) => {
                             const eventKey = String(index);
                             const isOpen = faqActiveKey === eventKey;
+                            const isBeyondFold = index >= FAQ_VISIBLE_COUNT;
                             return (
-                              <Accordion.Item eventKey={eventKey} key={index}>
+                              <Accordion.Item
+                                eventKey={eventKey}
+                                key={index}
+                                className={(!showAllFaqs && isBeyondFold) ? 'faq-item--collapsed' : undefined}
+                              >
                                 <div className="accordion-header">
                                   <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
                                     <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
@@ -765,6 +775,27 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             );
                           })}
                         </Accordion>
+
+                        {faqs.length > FAQ_VISIBLE_COUNT && (
+                          <button
+                            type="button"
+                            className="faq-toggle-btn"
+                            onClick={() => setShowAllFaqs((prev) => !prev)}
+                            aria-expanded={showAllFaqs}
+                            aria-controls="tour-faq-list"
+                          >
+                            <span>
+                              {showAllFaqs
+                                ? t("tourDetails.faqShowLess")
+                                : t("tourDetails.faqShowMore", { remaining: faqs.length - FAQ_VISIBLE_COUNT })}
+                            </span>
+                            <ChevronDown
+                              size={18}
+                              className="faq-toggle-btn__chevron"
+                              style={{ transform: showAllFaqs ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                            />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -841,58 +872,25 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   height: 'fit-content',
                 }}
               >
-                <BookingForm tourId={String(tourData.id || '')} onSubmit={handleBookingSubmit} />
+                <BookingForm tourId={String(tourData.id || '')} />
               </div>
             </div>
           </div>
         </Container>
 
-        {/* ── Related Tours (max 3, curated) ── */}
+        {/* ── Related Tours (curated in the admin) ── */}
         {relatedTours.length > 0 && (
-          <section id="related-tours" className="py-5" style={{ borderTop: '1px solid #eee' }}>
-            <Container>
-                <div className="sec-title text-center mb-3">
-                  <h2 className='sec-title__title'>{t("tourDetails.relatedTours.title", "Related Tours")}</h2>
-                  <h6 className='sec-title__tagline'>{t("tourDetails.relatedTours.tagline", "Curated Selection")}</h6>
-                </div>
-                <div className={`row gutter-y-30 ${relatedTours.length < 3 ? "justify-content-center" : ""}`}>
-                  {relatedTours.map((tour: any, index: number) => (
-                    <div key={tour.id} className="col-lg-4 col-md-6">
-                      <article 
-                        className="tour-listing-one__item wow fadeInUp"
-                        data-wow-duration='1500ms'
-                        data-wow-delay={`${100 * (index + 1)}ms`}
-                      >
-                        <div className="tour-listing-one__image">
-                          <Image
-                            src={tour.image}
-                            alt={tour.imageAlt || tour.title || "Tour Image"}
-                            title={tour.imageTitle || tour.title || "Tour Image"}
-                            width={500}
-                            height={350}
-                            className="img-fluid"
-                            style={{ height: '280px', objectFit: 'cover' }}
-                          />
-                          <Link href={tour.link} className="tour-listing-one__image__link">
-                            <span className="sr-only">{tour.title}</span>
-                          </Link>
-                        </div>
-                        <div className="tour-listing-one__content">
-                          <h3 className="tour-listing-one__title text-center">
-                            <Link href={tour.link}>{tour.title}</Link>
-                          </h3>
-                          <div className="text-center mt-2">
-                            <Link href={tour.link} className="gotur-btn gotur-btn--base py-2 px-4" style={{ fontSize: '14px' }}>
-                              View Details
-                            </Link>
-                          </div>
-                        </div>
-                      </article>
-                    </div>
-                  ))}
-                </div>
-            </Container>
-          </section>
+          <FeatureTwo
+            id="related-tours"
+            extraClass="section-space-top"
+            itemsPerRow={4}
+            homeThree={false}
+            showShape={false}
+            tours={relatedTours}
+            title={t("tourDetails.relatedTours.title", "Related Tours")}
+            titleSpan=""
+            subtitle={t("tourDetails.relatedTours.tagline", "Curated Selection")}
+          />
         )}
 
         {/* ── Related Blogs (max 3, curated or featured fallback) ── */}
@@ -985,7 +983,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             title={t("tourDetails.moreTours.title", "More")}
             titleSpan={t("tourDetails.moreTours.span", "Tours")}
             subtitle={t("tourDetails.moreTours.subtitle", "More tours from this category")}
-            uniqueId="more-tours"
           />
         )}
 

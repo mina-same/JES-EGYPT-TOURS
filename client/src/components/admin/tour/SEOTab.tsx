@@ -3,12 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import RichTextEditor from '@/components/ui/RichTextEditor';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
-import LocalizedRichText from '@/components/admin/LocalizedRichText';
+import ImageUpload, { type ImageData, type UploadResult } from '@/components/admin/ImageUpload';
 import {
   getLocalTimezoneLabel,
   parseDatetimeLocal,
@@ -19,7 +18,7 @@ interface SEOTabProps {
   formData: any;
   handleChange: (field: string, value: any, lang?: AdminLanguage) => void;
   handleKeywordsChange: (value: any, lang: AdminLanguage) => void;
-  handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
+  handleImageUpload: (file: File) => Promise<UploadResult | null>;
   activeLanguage: AdminLanguage;
 }
 
@@ -37,6 +36,20 @@ export default function SEOTab({
     : formData.isActive
       ? 'active'
       : 'inactive';
+
+  // The form seeds metaImage with blank url/title/alt, so mere presence proves
+  // nothing — the row renders only once something has actually been typed into
+  // it, which keeps alt-before-upload working without showing an empty card.
+  const hasText = (value: any) =>
+    !!value &&
+    typeof value === 'object' &&
+    Object.values(value).some((entry) => typeof entry === 'string' && entry.trim());
+  const rawMetaImage = formData.seo?.metaImage;
+  const metaImage =
+    rawMetaImage &&
+    (String(rawMetaImage.url || '').trim() || hasText(rawMetaImage.alt) || hasText(rawMetaImage.title))
+      ? rawMetaImage
+      : null;
 
   const handlePublishingStatusChange = (status: string) => {
     if (status === 'scheduled') {
@@ -182,80 +195,69 @@ export default function SEOTab({
             activeLanguage={activeLanguage}
           />
           
-          <div className="space-y-2">
-            <Label>Social Share Image</Label>
-            <div className="flex gap-4 items-start">
-              <div className="flex-1 space-y-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const result = await handleImageUpload(file);
-                      if (result) {
-                        handleChange('seo.metaImage', {
-                          ...formData.seo?.metaImage,
-                          url: result.url,
-                          fileName: result.fileName
-                        });
-                      }
-                    }
-                  }}
-                />
-                <Input
-                  value={formData.seo?.metaImage?.url || ''}
-                  onChange={(e) => handleChange('seo.metaImage.url', e.target.value)}
-                  placeholder="Image URL"
-                />
-              </div>
-              {formData.seo?.metaImage?.url && (
-                <img
-                  src={formData.seo.metaImage.url}
-                  alt={formData.seo.metaImage.alt?.[activeLanguage] || "SEO Preview"}
-                  className="w-32 h-24 object-cover rounded border"
-                />
-              )}
-            </div>
-            
-            {(formData.seo?.metaImage?.url || formData.seo?.metaImage?.title || formData.seo?.metaImage?.alt) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <LocalizedInput
-                  label="Social Image Title"
-                  value={formData.seo?.metaImage?.title || { en: '', de: '', it: '', es: '' }}
-                  onChange={(val, lang) => handleChange('seo.metaImage.title', val, lang)}
-                  placeholder="Title for social share image"
-                  activeLanguage={activeLanguage}
-                />
-                <LocalizedInput
-                  label="Alt Text"
-                  value={formData.seo?.metaImage?.alt || { en: '', de: '', it: '', es: '' }}
-                  onChange={(val, lang) => handleChange('seo.metaImage.alt', val, lang)}
-                  placeholder="Accessibility description"
-                  activeLanguage={activeLanguage}
-                />
-              </div>
-            )}
-          </div>
         </CardContent>
       </Card>
 
-      {/* What You Will Love */}
+      {/* Social Sharing */}
       <Card>
         <CardHeader>
-          <CardTitle>What You Will Love</CardTitle>
-          <CardDescription>Marketing content for the tour page</CardDescription>
+          <CardTitle>Social Sharing (Open Graph)</CardTitle>
+          <CardDescription>
+            How the tour looks when its link is pasted into Facebook, X, LinkedIn or WhatsApp.
+            Leave the text fields empty to reuse the SEO title and description above.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <LocalizedRichText
-              label="Why travelers will love this tour"
-              value={formData.whatYouWillLoveHtml || { en: '', de: '', it: '', es: '' }}
-              onChange={(val) => handleChange('whatYouWillLoveHtml', val)}
-              activeLanguage={activeLanguage}
-              placeholder="Why travelers will love this tour"
-            />
-          </div>
+        <CardContent className="space-y-6">
+          <LocalizedInput
+            label="Social Title"
+            value={formData.seo?.ogTitle || { en: '', de: '', it: '', es: '' }}
+            onChange={(val, lang) => handleChange('seo.ogTitle', val, lang)}
+            placeholder="Defaults to the Meta Title"
+            activeLanguage={activeLanguage}
+          />
+
+          <LocalizedTextArea
+            label="Social Description"
+            value={formData.seo?.ogDescription || { en: '', de: '', it: '', es: '' }}
+            onChange={(val, lang) => handleChange('seo.ogDescription', val, lang)}
+            placeholder="Defaults to the Meta Description"
+            rows={3}
+            activeLanguage={activeLanguage}
+          />
+
+          <ImageUpload
+            images={metaImage ? [metaImage as ImageData] : []}
+            onAdd={() =>
+              handleChange('seo.metaImage', {
+                url: '',
+                fileName: '',
+                title: { en: '', de: '', it: '', es: '' },
+                alt: { en: '', de: '', it: '', es: '' },
+              })
+            }
+            onRemove={() => handleChange('seo.metaImage', undefined)}
+            onUpdate={(index, field, value, lang) =>
+              handleChange(`seo.metaImage.${field}`, value, lang)
+            }
+            onUpload={(file) => handleImageUpload(file)}
+            // One merged write keeps fileName and the dimensions attached to the
+            // url; fileName is required by the API, and the dimensions become
+            // og:image:width / og:image:height.
+            onUploadResult={(index, result) =>
+              handleChange('seo.metaImage', {
+                ...(formData.seo?.metaImage || {}),
+                url: result.url,
+                fileName: result.fileName,
+                width: result.width,
+                height: result.height,
+              })
+            }
+            title="Social Share Image"
+            description="Recommended 1200 × 630 px. Leave empty and the tour's first photo is used automatically."
+            maxImages={1}
+            activeLanguage={activeLanguage}
+            addButtonLabel="Add Social Share Image"
+          />
         </CardContent>
       </Card>
     </div>

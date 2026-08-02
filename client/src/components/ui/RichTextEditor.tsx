@@ -3,6 +3,7 @@
 import React, { useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
+import { normalizeRichTextInternalLinks } from '@/lib/richTextLinks';
 
 // Dynamic import to avoid SSR issues with Quill
 const ReactQuill = dynamic(() => import('react-quill-new'), {
@@ -23,7 +24,7 @@ const sanitizeHTML = (val: string | any): string => {
   const html = typeof val === 'string' ? val : String(val);
   
   // Remove potentially problematic tags and attributes
-  return html
+  const sanitized = html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
     .replace(/on\w+="[^"]*"/gi, '')
@@ -31,6 +32,8 @@ const sanitizeHTML = (val: string | any): string => {
     .replace(/javascript:/gi, '')
     .replace(/vbscript:/gi, '')
     .replace(/data:/gi, '');
+
+  return normalizeRichTextInternalLinks(sanitized);
 };
 
 export default function RichTextEditor({

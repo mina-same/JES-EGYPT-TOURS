@@ -245,6 +245,9 @@ export default function EditTourPage() {
                 metaImage: tour.seo?.metaImage
                   ? toLocalizedImage(tour.seo.metaImage) || { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } }
                   : { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
+                ogTitle: toLocalized(tour.seo?.ogTitle),
+                ogDescription: toLocalized(tour.seo?.ogDescription),
+                ogImage: tour.seo?.ogImage || '',
               },
               tourHighlights: toLocalizedHtml(tour.tourHighlights),
               inclusion: toLocalizedHtml(tour.inclusion),
@@ -450,7 +453,11 @@ export default function EditTourPage() {
       }
       
       if (cleanData.seo) {
-        if (!cleanData.seo.metaTitle && !cleanData.seo.metaDescription && 
+        // The Open Graph fields count too — dropping the whole `seo` object
+        // because only a social title was filled in would throw that edit away.
+        if (!cleanData.seo.metaTitle && !cleanData.seo.metaDescription &&
+            !cleanData.seo.ogTitle && !cleanData.seo.ogDescription &&
+            !cleanData.seo.ogImage && !cleanData.seo.metaImage?.url &&
             isMixedEmpty(cleanData.seo.metaKeywords)) {
           delete cleanData.seo;
         } else if (!cleanData.seo.metaImage?.url) {
@@ -660,7 +667,7 @@ export default function EditTourPage() {
             if (tab.id === 'overview') return ['name', 'heading', 'subcategory', 'slug', 'description', 'tourAvailability', 'pickupAndDropOff', 'tourType', 'tourStyle', 'meetingPoint'].some(p => err.path?.startsWith(p));
             if (tab.id === 'media') return ['images', 'gallery'].some(p => err.path?.startsWith(p));
             if (tab.id === 'itinerary') return err.path?.startsWith('itinerary');
-            if (tab.id === 'details') return ['tourHighlights', 'inclusion', 'exclusion', 'whatToPack', 'notes'].some(p => err.path?.startsWith(p));
+            if (tab.id === 'details') return ['tourHighlights', 'inclusion', 'exclusion', 'whatToPack', 'notes', 'whatYouWillLoveHtml'].some(p => err.path?.startsWith(p));
             if (tab.id === 'pricing') return ['pricingPlans', 'priceStartingFrom', 'cancellationPolicy'].some(p => err.path?.startsWith(p));
             if (tab.id === 'attractions') return err.path?.startsWith('mapSchema') || err.path?.startsWith('seo.mapSchema');
             if (tab.id === 'seo') return err.path?.startsWith('seo');

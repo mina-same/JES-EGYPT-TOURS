@@ -20,6 +20,9 @@ export interface IImage {
   fileName: string;
   title?: ILocalizedString;
   alt?: ILocalizedString;
+  /** Intrinsic pixel size, captured on upload, used to emit og:image:width/height. */
+  width?: number;
+  height?: number;
   /** Locales this image renders for; absent/empty = all languages. */
   languages?: ('en' | 'de' | 'it' | 'es')[];
 }

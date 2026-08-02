@@ -1009,6 +1009,60 @@ body {
   }
 }
 
+/* --------------------------------------------------------------------------
+   FAQ "Read More" — questions past the fold
+   --------------------------------------------------------------------------
+   These items ARE rendered into the HTML; only their painting is suppressed.
+   Keeping them in the document is deliberate: the full Q&A text has to stay
+   crawlable and has to keep matching the FAQPage JSON-LD, which Google only
+   accepts when the same content is present on the page. Never swap this for a
+   .slice() on the array — that would drop the text from the markup entirely.
+   -------------------------------------------------------------------------- */
+.faq-accordion .accordion-item.faq-item--collapsed {
+  display: none;
+}
+
+.faq-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px auto 0;
+  padding: 12px 28px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  color: #1a1a1a;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.faq-toggle-btn:hover {
+  color: #b79c5c;
+  border-color: #b79c5c;
+  box-shadow: 0 2px 8px rgba(183, 156, 92, 0.15);
+}
+
+.faq-toggle-btn:focus-visible {
+  outline: 2px solid #b79c5c;
+  outline-offset: 2px;
+}
+
+.faq-toggle-btn__chevron {
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .faq-toggle-btn {
+    width: 100%;
+    padding: 14px 20px;
+  }
+}
+
 /* ==========================================================================
    7. STICKY SIDEBAR
    ========================================================================== */
@@ -2102,16 +2156,37 @@ div[suppressHydrationWarning] {
 /* ==========================================================================
    7. HTML CONTENT RENDERING (for dangerousSetInnerHTML)
    ========================================================================== */
-.html-content a {
-  color: #b79c5c !important;
-  text-decoration: underline !important;
+/* Shared editorial-link treatment for rich content in tours and blog posts.
+   The darker gold preserves the brand character while meeting normal-text
+   contrast requirements on white backgrounds. */
+.html-content a,
+.html-content a:visited,
+.blog-details-card__content__inner a,
+.blog-details-card__content__inner a:visited {
+  color: #806515 !important;
   font-weight: 600;
-  transition: all 0.3s ease;
+  text-decoration-line: underline !important;
+  text-decoration-thickness: 0.08em !important;
+  text-underline-offset: 4px;
+  text-decoration-color: currentColor !important;
+  cursor: pointer;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
 }
-.html-content a:hover {
-  color: #d4af37 !important; 
-  text-decoration: none !important;
-  text-shadow: 0 0 1px rgba(212, 175, 55, 0.2);
+
+.html-content a:hover,
+.blog-details-card__content__inner a:hover {
+  color: #1b4168 !important;
+  text-decoration-line: underline !important;
+  text-decoration-color: currentColor !important;
+  text-shadow: none;
+}
+
+.html-content a:focus-visible,
+.blog-details-card__content__inner a:focus-visible {
+  color: #1b4168 !important;
+  outline: 3px solid rgba(var(--gotur-base-rgb, 212, 175, 55), 0.75);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 .html-content strong, 
 .html-content b {

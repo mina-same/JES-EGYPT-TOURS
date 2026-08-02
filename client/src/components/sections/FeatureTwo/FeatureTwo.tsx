@@ -44,17 +44,6 @@ interface FeatureTwoProps {
   title?: string;
   titleSpan?: string;
   subtitle?: string;
-  uniqueId?: string;
-  headerStyle?: string;
-  showPartners?: boolean;
-  partners?: Array<{
-    id: number;
-    name: string;
-    logo: string;
-    link: string;
-  }>;
-  partnersTitle?: string;
-  partnersSubtitle?: string;
   showShape?: boolean;
 }
 const FeatureTwo: React.FC<FeatureTwoProps> = ({
@@ -81,7 +70,9 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
 
   // Use custom title data if provided
   const displayTitle = title || (homeThree ? featurePackageData.title2 : featurePackageData.title);
-  const displayTitleSpan = titleSpan || (homeThree ? featurePackageData.titleSpan2 : featurePackageData.titleSpan);
+  // An explicitly empty span lets callers use an already-complete localized
+  // title (for example "Related Tours") without appending the default span.
+  const displayTitleSpan = titleSpan ?? (homeThree ? featurePackageData.titleSpan2 : featurePackageData.titleSpan);
   const displaySubtitle = subtitle || featurePackageData.subtitle;
 
   // Create responsive breakpoints based on itemsPerRow
@@ -129,14 +120,18 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                       animationType='left'
                       semantic
                     />
-                    {" "}
-                    <span>
-                      <TextAnimation
-                        text={displayTitleSpan}
-                        animationType='left'
-                        semantic
-                      />
-                    </span>
+                    {displayTitleSpan && (
+                      <>
+                        {" "}
+                        <span>
+                          <TextAnimation
+                            text={displayTitleSpan}
+                            animationType='left'
+                            semantic
+                          />
+                        </span>
+                      </>
+                    )}
                   </h2>
                 </div>
               </div>

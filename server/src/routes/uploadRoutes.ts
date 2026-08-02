@@ -57,6 +57,11 @@ router.post('/', protect, upload.single('file'), async (req: Request, res: Respo
         url: result.secure_url,
         fileName: req.file.originalname, // Return original filename as requested
         public_id: result.public_id,
+        // Cloudinary already measured the file — passing the dimensions on lets
+        // the admin store them so og:image:width / og:image:height can be
+        // emitted. Absent for non-image uploads (resource_type: 'auto').
+        width: result.width,
+        height: result.height,
       },
     });
   } catch (error: any) {

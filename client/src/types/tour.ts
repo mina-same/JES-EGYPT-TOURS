@@ -16,6 +16,11 @@ export interface ISEO {
   metaDescription?: ILocalizedString;
   metaKeywords?: ILocalizedMixed;
   metaImage?: IImage;
+  /** Social-card overrides; blank falls back to the same language's meta field. */
+  ogTitle?: ILocalizedString;
+  ogDescription?: ILocalizedString;
+  /** Plain URL fallback used when no metaImage is set. */
+  ogImage?: string;
   mapSchema?: any;
 }
 

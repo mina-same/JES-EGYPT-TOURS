@@ -15,8 +15,18 @@ export interface ImageData {
   title?: string | any;
   alt?: string | any;
   fileName?: string;
+  /** Intrinsic pixel size from the upload response; feeds og:image:width/height. */
+  width?: number;
+  height?: number;
   /** Locales this image renders for; absent/empty = all languages. */
   languages?: AdminLanguage[];
+}
+
+export interface UploadResult {
+  url: string;
+  fileName: string;
+  width?: number;
+  height?: number;
 }
 
 interface ImageUploadProps {
@@ -24,7 +34,13 @@ interface ImageUploadProps {
   onAdd: () => void;
   onRemove: (index: number) => void;
   onUpdate: (index: number, field: keyof ImageData, value: any, lang?: AdminLanguage) => void;
-  onUpload: (file: File, index: number) => Promise<{ url: string, fileName: string } | null>;
+  onUpload: (file: File, index: number) => Promise<UploadResult | null>;
+  /**
+   * Receives the WHOLE upload result so the parent can merge url, fileName and
+   * dimensions in one state update. Without it only `url` is stored — see the
+   * fallback in handleFileUpload for why it can't just call onUpdate repeatedly.
+   */
+  onUploadResult?: (index: number, result: UploadResult) => void;
   title?: string;
   description?: string;
   required?: boolean;
@@ -44,6 +60,7 @@ export default function ImageUpload({
   onRemove,
   onUpdate,
   onUpload,
+  onUploadResult,
   title = "Images",
   description = "Upload and manage images",
   required = false,
@@ -96,11 +113,17 @@ export default function ImageUpload({
       const result = await onUpload(file, index);
       
       if (result && result.url) {
-        // We only trigger "url" update. 
-        // We let parents automatically infer "fileName" from the url before API submission
-        // to avoid React batching/closure issues where calling onUpdate twice wipes out the first update.
-        onUpdate(index, 'url', result.url);
-        
+        if (onUploadResult) {
+          // One merged write, so fileName and the dimensions survive alongside
+          // the url instead of each onUpdate call clobbering the previous one.
+          onUploadResult(index, result);
+        } else {
+          // Legacy path: only "url" is stored, and the parent infers "fileName"
+          // from it before submitting. Calling onUpdate twice here would hit the
+          // React batching/closure issue where the second write wipes the first.
+          onUpdate(index, 'url', result.url);
+        }
+
         toast({
           title: "Upload successful",
           description: `${file.name} (${formatBytes(file.size)}) uploaded successfully.`,

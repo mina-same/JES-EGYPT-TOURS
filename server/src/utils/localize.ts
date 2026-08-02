@@ -85,12 +85,20 @@ export const localize = (data: any, locale: string): any => {
  *               page decides that by reading `content[locale]` itself. Localizing
  *               here would fall back to English and publish blocks that were
  *               meant to stay hidden.
+ * - ogTitle /   generateMetadata resolves these with ownLocaleValue: an Open
+ *   ogDescription  Graph override applies ONLY to the language it was written
+ *               in, and any other language falls back to that language's own
+ *               meta text rather than borrowing the English card. Flattening
+ *               here applies the English OG title to every locale, which is the
+ *               exact outcome that guard exists to prevent — and it silently
+ *               turned ownLocaleValue into dead code, since `"text"[locale]` is
+ *               undefined for an already-flattened string.
  *
  * The shared rule: anything the client resolves per-locale ITSELF must stay raw,
  * because localize() falls back to English and would turn "deliberately empty"
  * into "shows another language".
  */
-const PRESERVE_RAW = new Set(['slug', 'contentBlocks']);
+const PRESERVE_RAW = new Set(['slug', 'contentBlocks', 'ogTitle', 'ogDescription']);
 
 const localeText = (field: any, locale: string): string =>
   typeof field?.[locale] === 'string' ? field[locale].trim() : '';

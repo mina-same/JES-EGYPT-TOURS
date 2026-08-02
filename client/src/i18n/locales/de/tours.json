@@ -95,6 +95,8 @@
     "gallerySubtitle": "Eine visuelle Reise durch die atemberaubenden Orte, die Sie besuchen werden.",
     "faqTitle": "Häufig gestellte Fragen",
     "faqSubtitle": "Häufige Fragen und Antworten für Ihre Vorbereitung.",
+    "faqShowMore": "Mehr lesen ({{remaining}} weitere)",
+    "faqShowLess": "Weniger anzeigen",
     "honestReviewsTitle": "Ehrliche und reflektierende Bewertungen",
     "honestReviewsSubtitle": "Sehen Sie echte Reiseberichte auf YouTube.",
     "openYoutube": "Auf YouTube öffnen",

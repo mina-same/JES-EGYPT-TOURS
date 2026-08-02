@@ -11,6 +11,7 @@ import type { FormErrorItem } from '@/lib/parseApiError';
 import { type AdminLanguage } from '../AdminLanguageTabs';
 import LocalizedInput from '../LocalizedInput';
 import ImageLanguagesPicker from '../ImageLanguagesPicker';
+import type { UploadResult } from '../ImageUpload';
 
 interface MediaTabProps {
   formData: any;
@@ -21,7 +22,7 @@ interface MediaTabProps {
   addGalleryImage: () => void;
   removeGalleryImage: (index: number) => void;
   updateGalleryImage: (index: number, field: string, value: any) => void;
-  handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
+  handleImageUpload: (file: File) => Promise<UploadResult | null>;
   activeLanguage: AdminLanguage;
   formErrors?: FormErrorItem[];
 }
@@ -56,13 +57,14 @@ export default function MediaTab({
     try {
       const result = await handleImageUpload(file);
       if (result) {
-        if (type === 'main') {
-          updateImage(index, 'url', result.url);
-          updateImage(index, 'fileName', result.fileName);
-        } else {
-          updateGalleryImage(index, 'url', result.url);
-          updateGalleryImage(index, 'fileName', result.fileName);
-        }
+        // Dimensions ride along because the first main image is the social-card
+        // fallback when no dedicated share image is set — see the tour branch of
+        // generateMetadata.
+        const update = type === 'main' ? updateImage : updateGalleryImage;
+        update(index, 'url', result.url);
+        update(index, 'fileName', result.fileName);
+        if (typeof result.width === 'number') update(index, 'width', result.width);
+        if (typeof result.height === 'number') update(index, 'height', result.height);
       }
     } finally {
       setUploadingIndex(null);

@@ -298,7 +298,6 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
             title={t('more')}
             titleSpan={t('tours')}
             subtitle={t('youMayAlsoLike')}
-            uniqueId="wishlist-recommendations"
           />
         </div>
       )}
