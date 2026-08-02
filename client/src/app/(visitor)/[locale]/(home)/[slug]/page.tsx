@@ -742,18 +742,18 @@ export default async function SlugPage({ params }: PageProps) {
       const category = subcategory?.category;
       const breadcrumbs: { label: string; href?: string }[] = [];
 
-      if (category?.name || category?.shortName) {
-        const catSlug = getStrictLocalizedSlug(category.slug, locale as SupportedLocale);
+      const catSlug = getStrictLocalizedSlug(category?.slug, locale as SupportedLocale);
+      if (catSlug && (category?.name || category?.shortName)) {
         breadcrumbs.push({
           label: getDisplayName(category, locale),
-          href: catSlug ? `/${locale}/${catSlug}` : undefined,
+          href: `/${locale}/${catSlug}`,
         });
       }
-      if (subcategory?.name || subcategory?.shortName) {
-        const subSlug = getStrictLocalizedSlug(subcategory.slug, locale as SupportedLocale);
+      const subSlug = getStrictLocalizedSlug(subcategory?.slug, locale as SupportedLocale);
+      if (subSlug && (subcategory?.name || subcategory?.shortName)) {
         breadcrumbs.push({
           label: getDisplayName(subcategory, locale),
-          href: subSlug ? `/${locale}/${subSlug}` : undefined,
+          href: `/${locale}/${subSlug}`,
         });
       }
       breadcrumbs.push({ label: name as string });

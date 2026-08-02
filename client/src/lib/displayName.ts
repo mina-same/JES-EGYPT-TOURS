@@ -41,7 +41,15 @@ export function getDisplayName(
 ): string {
   if (!entity) return "";
 
-  const short = String(getLocalizedValue(entity.shortName as any, locale) ?? "").trim();
+  // `shortName` is optional. For an explicit locale, use only that locale's
+  // value; falling back to its English value would produce mixed-language UI
+  // even when the full `name` has a valid translation.
+  const shortName = entity.shortName as any;
+  const short = String(
+    locale && shortName && typeof shortName === "object"
+      ? shortName[locale] ?? ""
+      : getLocalizedValue(shortName, locale)
+  ).trim();
   if (short) return short;
 
   return shortenLabel(getLocalizedValue(entity.name as any, locale));

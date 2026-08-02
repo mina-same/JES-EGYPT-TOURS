@@ -34,6 +34,10 @@ import ClientCarousel from "../ClientCarousel/ClientCarousel";
  *  see the FAQ section — just hidden until the button is pressed. */
 const FAQ_VISIBLE_COUNT = 4;
 
+/** Lines of description TEXT shown before "Read More". The effect below turns
+ *  this into a pixel height; the CSS fallback only covers the first paint. */
+const DESCRIPTION_VISIBLE_LINES = 5;
+
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
   const [activeSection, setActiveSection] = useState("description");
@@ -47,6 +51,22 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  /**
+   * A callback ref, not useRef: `loading` flips true→false while the tour is
+   * fetched, so the component swaps to the skeleton and back and React mounts a
+   * BRAND NEW description node. A plain ref would leave the measurement effect
+   * pointing at the discarded node — the clamp it wrote was silently thrown
+   * away. Storing the node in state re-runs the effect on every remount.
+   */
+  const [descriptionEl, setDescriptionEl] = useState<HTMLDivElement | null>(null);
+  /**
+   * Starts true so the button is part of the SERVER-rendered markup — the clamp
+   * is CSS-only and therefore already active on first paint, so a button that
+   * only appeared after hydration would leave the control missing exactly when
+   * the text is cut. The effect below switches it off for the rare description
+   * that is short enough to fit uncut.
+   */
+  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(true);
   const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
   const [showAllFaqs, setShowAllFaqs] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -59,6 +79,93 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       i18n.changeLanguage(params.locale);
     }
   }, [params?.locale, i18n]);
+
+  /**
+   * Sizes the clamp to exactly DESCRIPTION_VISIBLE_LINES lines OF TEXT.
+   *
+   * A plain max-height cannot do this: the budget is shared with the gaps
+   * between paragraphs, so a height worth five lines renders four lines plus a
+   * blank one, and how many lines survive changes with where the paragraph
+   * breaks happen to fall — one tour showed a single orphaned line. Measuring
+   * the real line boxes and clamping to the fifth one's baseline box makes the
+   * count identical on every tour, whatever the paragraph rhythm.
+   *
+   * Overflowing content is still laid out under `overflow: hidden`, so the rects
+   * for the clipped lines are available and the element can be measured without
+   * expanding it first.
+   */
+  useEffect(() => {
+    const el = descriptionEl;
+    if (!el) return;
+
+    const measure = () => {
+      const inner = el.firstElementChild as HTMLElement | null;
+      if (!inner) return;
+
+      // Collect the elements that actually own line boxes: descend until a node
+      // whose children are all inline. Ranging the whole description at once
+      // reports the paragraph boxes ALONGSIDE the line boxes, which inflated the
+      // count and clamped some tours to three lines instead of five.
+      const isBlock = (node: Element) => {
+        const display = getComputedStyle(node).display;
+        return display === "block" || display === "list-item" || display === "flex" || display === "grid" || display === "table";
+      };
+      const leafBlocks: Element[] = [];
+      const collect = (node: Element) => {
+        const children = Array.from(node.children);
+        if (children.length === 0 || !children.some(isBlock)) {
+          leafBlocks.push(node);
+          return;
+        }
+        children.forEach(collect);
+      };
+      collect(inner);
+
+      // Blocks stack vertically, so de-duplicating by top WITHIN a block folds
+      // the several rects of one line (split by inline tags) into a single line.
+      const lines: DOMRect[] = [];
+      const range = document.createRange();
+      for (const block of leafBlocks) {
+        range.selectNodeContents(block);
+        const seen = new Set<number>();
+        for (const rect of Array.from(range.getClientRects())) {
+          if (rect.height <= 0 || rect.width <= 0) continue;
+          const key = Math.round(rect.top * 10);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          lines.push(rect);
+        }
+      }
+      lines.sort((a, b) => a.top - b.top);
+
+      if (lines.length <= DESCRIPTION_VISIBLE_LINES) {
+        el.style.removeProperty("--desc-clamp");
+        setIsDescriptionOverflowing(false);
+        return;
+      }
+
+      const lastVisible = lines[DESCRIPTION_VISIBLE_LINES - 1];
+      const lineHeight = parseFloat(getComputedStyle(inner).lineHeight);
+      // getClientRects returns the glyph box, which is shorter than the line
+      // box. Adding the half-leading back puts the cut on the line boundary
+      // instead of shaving the descenders.
+      const halfLeading = Number.isFinite(lineHeight)
+        ? Math.max(0, (lineHeight - lastVisible.height) / 2)
+        : 0;
+      const clamp = Math.ceil(lastVisible.bottom - el.getBoundingClientRect().top + halfLeading);
+
+      el.style.setProperty("--desc-clamp", `${clamp}px`);
+      setIsDescriptionOverflowing(true);
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    // Web fonts land after first paint and change where the lines break.
+    document.fonts?.ready.then(measure).catch(() => {});
+    return () => window.removeEventListener("resize", measure);
+    // `tourData.overview` rather than the destructured `overview`, which is
+    // declared further down and would be in its temporal dead zone here.
+  }, [descriptionEl, tourData.overview]);
 
   useEffect(() => {
     const updateNavHeight = () => {
@@ -343,14 +450,45 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </h2>
                     </div>
                     
-                    <div className={`tour-description-wrapper ${isMobile && !isDescriptionExpanded ? 'collapsed' : ''}`}>
+                    {/* The clamp is CSS-only and covers the prose alone. Every
+                        word — including the part below the fold — is rendered
+                        into the server HTML and merely clipped, so the copy stays
+                        crawlable and any internal links inside it keep counting.
+                        Never trim `overview` itself to shorten this. */}
+                    <div
+                      id="tour-description-body"
+                      ref={setDescriptionEl}
+                      className={`tour-description-wrapper ${isDescriptionExpanded ? '' : 'collapsed'}`}
+                    >
                       <div
-                        className='tour-listing-details__text mb-4'
+                        className='tour-listing-details__text'
                         style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
                         dangerouslySetInnerHTML={{ __html: overview }}
                       />
-                      
-                      {tourData.whatYouWillLoveHtml && (
+                    </div>
+
+                    {isDescriptionOverflowing && (
+                      <button
+                        type="button"
+                        className="tour-read-more-btn"
+                        onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                        aria-expanded={isDescriptionExpanded}
+                        aria-controls="tour-description-body"
+                      >
+                        <span>
+                          {isDescriptionExpanded
+                            ? t("tourDetails.readLess", "Read Less")
+                            : t("tourDetails.readMore", "Read More")}
+                        </span>
+                        <ChevronDown
+                          size={16}
+                          className="tour-read-more-btn__chevron"
+                          style={{ transform: isDescriptionExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                        />
+                      </button>
+                    )}
+
+                    {tourData.whatYouWillLoveHtml && (
                         <div className="tour-listing-details__what-you-love mt-5 p-5 rounded-4 shadow-sm" style={{ 
                           background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)', 
                           border: '1px solid rgba(183, 156, 92, 0.15)',
@@ -393,15 +531,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           />
                         </div>
                       )}
-                    </div>
-                    {isMobile && (
-                      <button 
-                        className="tour-read-more-btn"
-                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                      >
-                        {isDescriptionExpanded ? t("tourDetails.readLess", "Read Less") : t("tourDetails.readMore", "Read More")}
-                      </button>
-                    )}
                   </div>
 
                   {/* Tour Highlights Section */}

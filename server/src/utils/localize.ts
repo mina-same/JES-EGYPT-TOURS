@@ -73,6 +73,9 @@ export const localize = (data: any, locale: string): any => {
  * - slug        the client builds per-locale URLs, hreflang alternates and the
  *               language switcher from it; a flattened slug reads as
  *               English-only and hides content on the de/it/es pages.
+ * - shortName   compact labels must be resolved strictly for the active locale.
+ *               If that translation is blank, the client falls back to the
+ *               same locale's full `name`, never to an English short label.
  * - faqs        the visitor pages pick `question[locale]` / `answer[locale]`
  *               DIRECTLY and drop any row the active language is missing. That
  *               is deliberate: an unanswered question stays hidden instead of
@@ -98,7 +101,7 @@ export const localize = (data: any, locale: string): any => {
  * because localize() falls back to English and would turn "deliberately empty"
  * into "shows another language".
  */
-const PRESERVE_RAW = new Set(['slug', 'contentBlocks', 'ogTitle', 'ogDescription']);
+const PRESERVE_RAW = new Set(['slug', 'shortName', 'contentBlocks', 'ogTitle', 'ogDescription']);
 
 const localeText = (field: any, locale: string): string =>
   typeof field?.[locale] === 'string' ? field[locale].trim() : '';

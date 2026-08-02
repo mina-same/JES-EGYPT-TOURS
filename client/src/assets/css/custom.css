@@ -37,6 +37,12 @@ html, body {
   width: 100%;
 }
 
+/* Breadcrumb labels are localized editorial content, so preserve the exact
+   capitalization stored for every language. */
+.gotur-breadcrumb li {
+  text-transform: none;
+}
+
 /* Fix for oversized background shapes in Offer section */
 [class*="offer-two__element"] {
   max-width: 100vw;
@@ -1010,6 +1016,66 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Tour description "Read More"
+   --------------------------------------------------------------------------
+   Applies at EVERY width (it used to be mobile-only, which meant the desktop
+   page printed the whole description). The clamp is a pure max-height clip, so
+   the full text — and every link inside it — stays in the DOM and crawlable.
+
+   The real height comes from --desc-clamp, which the component measures from
+   the rendered line boxes so exactly five lines OF TEXT show regardless of how
+   the paragraph breaks fall. A fixed height cannot do that: it spends the same
+   budget on the gaps between paragraphs, which cost a visible line and made the
+   count differ from tour to tour. The literal below is only the first-paint
+   fallback — five lines plus one paragraph gap — so the server HTML already
+   renders collapsed and nothing jumps on hydration.
+   -------------------------------------------------------------------------- */
+.tour-description-wrapper {
+  position: relative;
+}
+
+/* Clipping belongs to the collapsed state only. Left on permanently it also
+   trimmed the expanded text, because the theme gives .tour-listing-details__text
+   a margin-bottom of -4px and the hidden overflow cut that much off the last
+   line's leading. */
+.tour-description-wrapper.collapsed {
+  overflow: hidden;
+  max-height: var(--desc-clamp, calc(1.8rem * 5 + 1rem));
+}
+
+.tour-read-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #b79c5c;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.tour-read-more-btn:hover {
+  color: #9c8449;
+  text-decoration: underline;
+}
+
+.tour-read-more-btn:focus-visible {
+  outline: 2px solid #b79c5c;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.tour-read-more-btn__chevron {
+  transition: transform 0.3s ease;
+}
+
+/* --------------------------------------------------------------------------
    FAQ "Read More" — questions past the fold
    --------------------------------------------------------------------------
    These items ARE rendered into the HTML; only their painting is suppressed.
@@ -1727,37 +1793,6 @@ div[suppressHydrationWarning] {
   /* Amenities Stacking */
   .inclusion-card, .exclusion-card {
     margin-bottom: 20px !important;
-  }
-
-  /* Description Collapsible */
-  .tour-description-wrapper {
-    position: relative;
-    overflow: hidden;
-  }
-  .tour-description-wrapper.collapsed {
-    max-height: 250px;
-  }
-  .tour-description-wrapper.collapsed::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 80px;
-    background: linear-gradient(transparent, white);
-  }
-  .tour-read-more-btn {
-    display: block;
-    width: 100%;
-    text-align: center;
-    background: #f8f8f8;
-    border: 1px solid #ebebeb;
-    border-radius: 8px;
-    color: #b79c5c;
-    font-weight: 700;
-    padding: 12px;
-    margin-top: 15px;
-    font-size: 15px;
   }
 
   /* Swipeable Mobile Gallery */
