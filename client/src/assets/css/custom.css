@@ -1040,7 +1040,15 @@ body {
    line's leading. */
 .tour-description-wrapper.collapsed {
   overflow: hidden;
-  max-height: var(--desc-clamp, calc(1.8rem * 5 + 1rem));
+  /* Narrow screens: five lines. A line holds far fewer words here, so matching
+     the desktop count would leave barely a sentence showing. */
+  max-height: var(--desc-clamp, calc(1.8rem * 5));
+}
+
+@media (min-width: 992px) {
+  .tour-description-wrapper.collapsed {
+    max-height: var(--desc-clamp, calc(1.8rem * 3));
+  }
 }
 
 .tour-read-more-btn {

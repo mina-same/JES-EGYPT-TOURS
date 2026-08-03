@@ -23,6 +23,40 @@ function getYouTubeVideoId(url: string): string {
   return '';
 }
 
+/**
+ * Pulls the embed URL out of whatever the admin pasted into `tourMapIframe` and
+ * pins the map's language to the page's.
+ *
+ * Two things this has to survive:
+ *
+ * 1. The stored value is a whole `<iframe …>` snippet copied from Google Maps.
+ *    Matching only double quotes silently lost the map when someone pasted
+ *    single-quoted markup or just the bare URL, so both are accepted.
+ * 2. Google renders the embed in the VISITOR'S BROWSER language when no `hl` is
+ *    given — an Italian browser got an Italian map on the English page, place
+ *    names and number formats included. `tourMapIframe` is one shared string for
+ *    all four locales, so the language cannot be baked into the stored value; it
+ *    is forced here, per render, and overrides any `hl` already in the URL.
+ */
+export const buildLocalizedMapSrc = (rawIframe?: string, locale: string = 'en'): string => {
+  if (!rawIframe) return '';
+  const raw = String(rawIframe).trim();
+
+  const quoted = raw.match(/src\s*=\s*["']([^"']+)["']/i);
+  const src = quoted?.[1] ?? (/^https?:\/\//i.test(raw) ? raw : '');
+  if (!src) return '';
+
+  try {
+    const url = new URL(src, 'https://www.google.com');
+    url.searchParams.set('hl', locale);
+    return url.toString();
+  } catch {
+    // Unparseable src: fall back to appending, still better than the wrong language.
+    const separator = src.includes('?') ? '&' : '?';
+    return /[?&]hl=/i.test(src) ? src : `${src}${separator}hl=${encodeURIComponent(locale)}`;
+  }
+};
+
 export const useTourData = (id?: string, initialRawTour?: any) => {
   const { i18n } = useTranslation();
   const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
@@ -157,7 +191,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           answer:   f?.answer?.[currentLang]   || '',
         }))
         .filter(f => f.question && f.answer),
-      map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
+      map: buildLocalizedMapSrc(tour.tourMapIframe, currentLang),
       itinerary: {
         generalDescription: getLocalizedValue(tour.itinerary?.generalDescription),
         // No `description` here on purpose: the day description was retired, so

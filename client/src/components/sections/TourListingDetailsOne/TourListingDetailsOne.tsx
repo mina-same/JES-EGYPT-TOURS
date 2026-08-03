@@ -34,9 +34,20 @@ import ClientCarousel from "../ClientCarousel/ClientCarousel";
  *  see the FAQ section — just hidden until the button is pressed. */
 const FAQ_VISIBLE_COUNT = 4;
 
-/** Lines of description TEXT shown before "Read More". The effect below turns
- *  this into a pixel height; the CSS fallback only covers the first paint. */
-const DESCRIPTION_VISIBLE_LINES = 5;
+/**
+ * Lines of description TEXT shown before "Read More". The effect below turns
+ * this into a pixel height; the CSS fallback only covers the first paint.
+ *
+ * Two values because a line holds far fewer words on a phone: measured against
+ * the real descriptions, three lines is a quarter of the copy on a 1440px screen
+ * but barely a tenth — one short sentence — at 420px. Keeping the counts apart
+ * shows a comparable amount of text on both instead of a teaser so short that
+ * everyone has to expand it.
+ */
+const DESCRIPTION_VISIBLE_LINES_DESKTOP = 3;
+const DESCRIPTION_VISIBLE_LINES_MOBILE = 5;
+/** Same breakpoint the rest of this page treats as desktop (CSS: max-width 991px). */
+const DESKTOP_MIN_WIDTH = 992;
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
@@ -81,13 +92,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   }, [params?.locale, i18n]);
 
   /**
-   * Sizes the clamp to exactly DESCRIPTION_VISIBLE_LINES lines OF TEXT.
+   * Sizes the clamp to exactly the wanted number of lines OF TEXT.
    *
    * A plain max-height cannot do this: the budget is shared with the gaps
    * between paragraphs, so a height worth five lines renders four lines plus a
    * blank one, and how many lines survive changes with where the paragraph
    * breaks happen to fall — one tour showed a single orphaned line. Measuring
-   * the real line boxes and clamping to the fifth one's baseline box makes the
+   * the real line boxes and clamping to the last wanted line's box makes the
    * count identical on every tour, whatever the paragraph rhythm.
    *
    * Overflowing content is still laid out under `overflow: hidden`, so the rects
@@ -102,10 +113,15 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       const inner = el.firstElementChild as HTMLElement | null;
       if (!inner) return;
 
+      const visibleLines =
+        window.innerWidth >= DESKTOP_MIN_WIDTH
+          ? DESCRIPTION_VISIBLE_LINES_DESKTOP
+          : DESCRIPTION_VISIBLE_LINES_MOBILE;
+
       // Collect the elements that actually own line boxes: descend until a node
       // whose children are all inline. Ranging the whole description at once
       // reports the paragraph boxes ALONGSIDE the line boxes, which inflated the
-      // count and clamped some tours to three lines instead of five.
+      // count and clamped some tours to fewer lines than asked for.
       const isBlock = (node: Element) => {
         const display = getComputedStyle(node).display;
         return display === "block" || display === "list-item" || display === "flex" || display === "grid" || display === "table";
@@ -138,13 +154,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       }
       lines.sort((a, b) => a.top - b.top);
 
-      if (lines.length <= DESCRIPTION_VISIBLE_LINES) {
+      if (lines.length <= visibleLines) {
         el.style.removeProperty("--desc-clamp");
         setIsDescriptionOverflowing(false);
         return;
       }
 
-      const lastVisible = lines[DESCRIPTION_VISIBLE_LINES - 1];
+      const lastVisible = lines[visibleLines - 1];
       const lineHeight = parseFloat(getComputedStyle(inner).lineHeight);
       // getClientRects returns the glyph box, which is shorter than the line
       // box. Adding the half-leading back puts the cut on the line boundary
@@ -422,7 +438,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             <nav className="tour-details-nav">
               <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>{t("tourDetails.nav.description")}</a>
               <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>{t("tourDetails.nav.tourPlan")}</a>
-              <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
+              {/* Only when the tour actually has a map — the tab used to scroll to
+                  an empty section on the tours with no embed. */}
+              {map && (
+                <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
+              )}
               <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
               <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
               <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
@@ -488,49 +508,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </button>
                     )}
 
-                    {tourData.whatYouWillLoveHtml && (
-                        <div className="tour-listing-details__what-you-love mt-5 p-5 rounded-4 shadow-sm" style={{ 
-                          background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)', 
-                          border: '1px solid rgba(183, 156, 92, 0.15)',
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}>
-                          {/* Premium Background Element */}
-                          <div style={{ 
-                            position: 'absolute', 
-                            top: '-20px', 
-                            right: '-20px', 
-                            fontSize: '160px', 
-                            opacity: '0.04',
-                            transform: 'rotate(-15deg)',
-                            userSelect: 'none',
-                            pointerEvents: 'none'
-                          }}>💎</div>
-                          
-                          <div className="d-flex align-items-center gap-4 mb-4">
-                            <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style={{ width: '54px', height: '54px' }}>
-                              <i className="icon-star" style={{ fontSize: '24px', color: '#b79c5c' }}></i>
-                            </div>
-                            <div>
-                               <h4 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
-                                 {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
-                               </h4>
-                               <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
-                            </div>
-                          </div>
-
-                          <div
-                            className='tour-listing-details__text'
-                            style={{ 
-                              color: '#333', 
-                              lineHeight: '1.9',
-                              fontSize: '1rem',
-                              fontWeight: '400'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
-                          />
-                        </div>
-                      )}
                   </div>
 
                   {/* Tour Highlights Section */}
@@ -566,23 +543,36 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <TourPlan itinerary={itinerary} />
                 </section>
 
-                <section id="map" className="tour-section">
-                  {map && (
+                {/* The <section> itself is conditional: `.tour-section` carries 40px
+                    of padding top and bottom plus a bottom border, so rendering it
+                    empty for a tour with no map left a blank gap and a stray rule. */}
+                {map && (
+                  <section id="map" className="tour-section">
                     <div className='tour-listing-details__content__item'>
-                      <h4 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h4>
+                      <h2 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h2>
                       <div className="tour-listing-details__map-box" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
                         <iframe
-                          title='Google Map'
+                          // Names the tour, in the page's language: screen readers
+                          // announce an iframe by its title, and "Google Map" named
+                          // the vendor rather than the content — identically on
+                          // every tour and in English on the translated pages.
+                          title={title ? `${t("tourDetails.mapTitle")} — ${title}` : t("tourDetails.mapTitle")}
                           src={map}
                           allowFullScreen
+                          // Restored from the pasted iframe, which the old code
+                          // dropped by keeping only `src`. Without lazy loading the
+                          // Maps bundle was fetched on every tour view even though
+                          // the map sits far below the fold.
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
                           className='w-100'
                           height='450'
                           style={{ border: 0 }}
                         />
                       </div>
                     </div>
-                  )}
-                </section>
+                  </section>
+                )}
 
                 {/* Amenities Section */}
                 <section id="amenities" className="tour-section">
@@ -658,19 +648,56 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   )}
                 </section>
                 
+                {/* Important Notes Section */}
+                {tourData.notes && tourData.notes.length > 0 && (
+                  <section id="important-notes" className="tour-section mt-4 pt-3 border-top">
+                    <div className="mb-4 d-flex align-items-center gap-2">
+                      <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
+                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
+                        {t("tourDetails.importantNotes", "Important Notes")}
+                      </h2>
+                    </div>
+                    <div className="d-flex flex-column gap-3">
+                      {tourData.notes?.map((note, index) => (
+                        <div key={index} className="tour-note-item">
+                          {note.title && (
+                            <div className="mb-1">
+                              <span className="fw-bold fs-7 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.05em', color: '#b79c5c' }}>
+                                {note.title}
+                              </span>
+                            </div>
+                          )}
+                          <div
+                            className="text-muted tour-listing-details__text"
+                            style={{
+                              fontSize: '0.925rem',
+                              lineHeight: '1.6',
+                              color: '#555 !important'
+                            }}
+                            dangerouslySetInnerHTML={{ __html: note.text }}
+                          />
+                          {index < (tourData.notes?.length || 0) - 1 && (
+                            <hr className="mt-3 mb-0 opacity-10" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
                 {/* What to Pack Section */}
                 {whatToPackItems.length > 0 && (
                   <section id="what-to-pack" className="tour-section mt-4">
-                    <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{ 
-                      backgroundColor: 'rgba(183, 156, 92, 0.02)', 
+                    <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{
+                      backgroundColor: 'rgba(183, 156, 92, 0.02)',
                       border: '1px solid rgba(183, 156, 92, 0.1)',
                       borderRight: '4px solid #b79c5c'
                     }}>
                       <div className="mb-3 d-flex align-items-center justify-content-between">
-                        <h4 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
-                          <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }}></i>
+                        <h2 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
+                          <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }} aria-hidden="true"></i>
                           {t("tourDetails.whatToPack", "What to Pack")}
-                        </h4>
+                        </h2>
                       </div>
                       <div className="row g-2">
                         {whatToPackItems.map((item, index) => (
@@ -686,39 +713,49 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   </section>
                 )}
 
-                {/* Important Notes Section */}
-                {tourData.notes && tourData.notes.length > 0 && (
-                  <section id="important-notes" className="tour-section mt-4 pt-3 border-top">
-                    <div className="mb-4 d-flex align-items-center gap-2">
-                      <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
-                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
-                        {t("tourDetails.importantNotes", "Important Notes")}
-                      </h4>
-                    </div>
-                    <div className="d-flex flex-column gap-3">
-                      {tourData.notes?.map((note, index) => (
-                        <div key={index} className="tour-note-item">
-                          {note.title && (
-                            <div className="mb-1">
-                              <span className="fw-bold fs-7 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.05em', color: '#b79c5c' }}>
-                                {note.title}
-                              </span>
-                            </div>
-                          )}
-                          <div 
-                            className="text-muted tour-listing-details__text" 
-                            style={{ 
-                              fontSize: '0.925rem', 
-                              lineHeight: '1.6',
-                              color: '#555 !important'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: note.text }}
-                          />
-                          {index < (tourData.notes?.length || 0) - 1 && (
-                            <hr className="mt-3 mb-0 opacity-10" />
-                          )}
+                {/* What You Will Love — sits between What to Pack and the gallery */}
+                {tourData.whatYouWillLoveHtml && (
+                  <section id="what-you-will-love" className="tour-section">
+                    <div className="tour-listing-details__what-you-love p-5 rounded-4 shadow-sm" style={{
+                      background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)',
+                      border: '1px solid rgba(183, 156, 92, 0.15)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      {/* Premium Background Element */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '-20px',
+                        right: '-20px',
+                        fontSize: '160px',
+                        opacity: '0.04',
+                        transform: 'rotate(-15deg)',
+                        userSelect: 'none',
+                        pointerEvents: 'none'
+                      }}>💎</div>
+
+                      <div className="d-flex align-items-center gap-4 mb-4">
+                        <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style={{ width: '54px', height: '54px' }}>
+                          <i className="icon-star" style={{ fontSize: '24px', color: '#b79c5c' }}></i>
                         </div>
-                      ))}
+                        <div>
+                          <h2 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
+                            {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
+                          </h2>
+                          <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
+                        </div>
+                      </div>
+
+                      <div
+                        className='tour-listing-details__text'
+                        style={{
+                          color: '#333',
+                          lineHeight: '1.9',
+                          fontSize: '1rem',
+                          fontWeight: '400'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
+                      />
                     </div>
                   </section>
                 )}
@@ -728,7 +765,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   {images && images.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__thumb'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.gallerySubtitle")}</p>
                       </div>
                       
@@ -941,7 +978,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <section id="honest-reviews" className="tour-section">
                     <div className='tour-listing-details__content__item'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.honestReviewsSubtitle")}</p>
                       </div>
                       <div className="row gutter-y-30">
