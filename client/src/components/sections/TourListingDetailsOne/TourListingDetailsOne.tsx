@@ -461,7 +461,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
               <div className='tour-listing-details__content'>
 
                 {/* Description Section */}
-                <section id="description" className="tour-section mb-5">
+                <section id="description" className="tour-section">
                   <div className='tour-listing-details__content__item border-0 p-0 shadow-none'>
                     <div className="d-flex align-items-center gap-3 mb-4">
                       <div style={{ width: '5px', height: '32px', borderRadius: '4px', backgroundColor: '#b79c5c' }}></div>
@@ -511,7 +511,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   </div>
 
                   {/* Tour Highlights Section */}
-                  <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
+                  <div className='tour-listing-details__content__item border-0 p-0'>
                     <div className="d-flex align-items-center gap-2 mb-4">
                       <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
                       <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
@@ -577,7 +577,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* Amenities Section */}
                 <section id="amenities" className="tour-section">
                   {includedAmenityItems.length > 0 || excludedAmenityItems.length > 0 ? (
-                    <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
+                    <div className='tour-listing-details__content__item border-0 p-0'>
                       <h2 className='tour-listing-details__title mb-4' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
                         {t("tourDetails.amenitiesTitle")}
                       </h2>
@@ -650,7 +650,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 
                 {/* Important Notes Section */}
                 {tourData.notes && tourData.notes.length > 0 && (
-                  <section id="important-notes" className="tour-section mt-4 pt-3 border-top">
+                  <section id="important-notes" className="tour-section">
                     <div className="mb-4 d-flex align-items-center gap-2">
                       <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
                       <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
@@ -687,7 +687,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
                 {/* What to Pack Section */}
                 {whatToPackItems.length > 0 && (
-                  <section id="what-to-pack" className="tour-section mt-4">
+                  <section id="what-to-pack" className="tour-section">
                     <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{
                       backgroundColor: 'rgba(183, 156, 92, 0.02)',
                       border: '1px solid rgba(183, 156, 92, 0.1)',

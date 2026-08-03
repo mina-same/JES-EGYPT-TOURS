@@ -276,10 +276,13 @@ html, body {
 }
 
 
+/* 40px top + 40px bottom put ~80px between two sections' text and left the
+   divider line floating in the middle of that void rather than reading as a
+   separator. 24px keeps the sections distinct at roughly half the gap. */
 .tour-section {
   scroll-margin-top: 120px;
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 24px;
+  padding-bottom: 24px;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -1013,6 +1016,57 @@ body {
     padding: 0 20px 16px 20px;
     font-size: 14px;
   }
+}
+
+/* --------------------------------------------------------------------------
+   Vertical rhythm — hero and tour body
+   --------------------------------------------------------------------------
+   Measured on the tour page: ~560px of the 1170px between the hero's last line
+   and the first line of the description was pure padding. These rules take that
+   back. Loaded after gotur.css, so they override the theme without editing it.
+   -------------------------------------------------------------------------- */
+
+/* The 220px above the breadcrumb only had to clear the 108px site header that
+   overlays the hero; 150px still leaves ~40px of air. The 130px below the
+   subtitle was slack. NOTE: .page-header is shared by every page with a hero,
+   so this tightens all of them — deliberately, to keep them consistent. */
+.page-header {
+  padding: 150px 0px 70px;
+}
+
+@media (max-width: 991px) {
+  .page-header {
+    padding: 130px 0px 56px;
+  }
+}
+
+/* The tour body stacked TWO 120px top paddings with nothing between them:
+   `section-space` on this section and `section-space-top` on the carousel
+   inside it — 240px of blank band under the hero. The carousel keeps a smaller
+   one; the section's own top padding goes entirely.
+   Scoped to `.tour-listing-details` so the same theme utilities keep their
+   original 120px everywhere else on the site. */
+.tour-listing-details.section-space {
+  padding-top: 0;
+  padding-bottom: 56px;
+}
+
+.tour-listing-details .section-space-top {
+  padding-top: 56px;
+}
+
+.tour-listing-details .section-space-bottom {
+  padding-bottom: 56px;
+}
+
+.tour-listing-details .tour-one.section-space-top {
+  padding-top: 40px;
+}
+
+/* 50px margin + 30px padding put 80px above the "Location / Type / Price" row. */
+.tour-listing-details__info-area__info {
+  margin-top: 24px;
+  padding: 20px 0px;
 }
 
 /* --------------------------------------------------------------------------
@@ -1794,8 +1848,8 @@ div[suppressHydrationWarning] {
   }
 
   .tour-section {
-    padding-top: 30px !important;
-    padding-bottom: 30px !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
   }
 
   /* Amenities Stacking */
