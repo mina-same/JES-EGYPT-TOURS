@@ -243,12 +243,22 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
   const [error, setError] = useState<string | null>(null);
   const [moreTours, setMoreTours] = useState<any[]>([]);
   const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
+  /**
+   * Whether a real tour is available to render. True from the first render when
+   * the server supplied one. The page uses this to decide whether a failure is
+   * fatal: with content already on screen it never is.
+   */
+  const [hasTourContent, setHasTourContent] = useState<boolean>(Boolean(initialRawTour));
 
   useEffect(() => {
     const fetchAll = async () => {
       if (!id && !initialRawTour) return;
       try {
-        setLoading(true);
+        // Only show the skeleton when there is genuinely nothing to show. The
+        // server-rendered tour is already painted, so flipping `loading` here
+        // used to tear the whole page down and rebuild it on every visit — a
+        // visible flash, wasted SSR, and a fresh DOM that invalidated refs.
+        if (!initialRawTour) setLoading(true);
 
         // 1. Use the server-fetched tour when available (avoids a redundant
         //    client getBySlug); otherwise fetch the main tour by slug (raw data).
@@ -329,53 +339,51 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           })),
         ];
 
-        // 3. Fallback "More Tours" Promise (try subcategory first)
-        const moreToursRes = subId
-          ? await tourAPI.getBySubcategory(String(subId), { limit: 12, isActive: true })
-          : { success: false, data: [] };
-
-        const fetchedMoreToursRaw = moreToursRes.success
-          ? safeArray<any>(moreToursRes.data).filter(isEligibleMoreTour)
-          : [];
-
-        // If subcategory count is low (< 9), try category fallback
-        if (fetchedMoreToursRaw.length < 9 && catId) {
-          const catMoreRes = await tourAPI.getAll({ 
-            category: String(catId), 
-            limit: 15, 
-            isActive: true 
-          });
-          if (catMoreRes.success) {
-            // Merge but unique by _id
-            const catTours = safeArray<any>(catMoreRes.data).filter(isEligibleMoreTour);
+        // 3. Fallback "More Tours" (try subcategory, then category, then anything)
+        //
+        // Own try/catch on purpose. These three lookups feed ONE decorative
+        // carousel, yet an unhandled rejection here used to jump straight to the
+        // fatal catch below and blank a page whose real content had already
+        // rendered. A failure now just leaves the section empty, and whatever was
+        // collected before the throw is still used.
+        const fetchedMoreToursRaw: any[] = [];
+        try {
+          const mergeUnique = (candidates: any[]) => {
             const existingIds = new Set(fetchedMoreToursRaw.map(getTourId).filter(Boolean));
-            catTours.forEach(t => {
-              const candidateId = getTourId(t);
+            candidates.filter(isEligibleMoreTour).forEach((candidate) => {
+              const candidateId = getTourId(candidate);
               if (candidateId && !existingIds.has(candidateId)) {
-                fetchedMoreToursRaw.push(t);
+                fetchedMoreToursRaw.push(candidate);
                 existingIds.add(candidateId);
               }
             });
-          }
-        }
+          };
 
-        // Final fallback: if still < 9, show any other tours
-        if (fetchedMoreToursRaw.length < 9) {
-          const allMoreRes = await tourAPI.getAll({ 
-            limit: 15, 
-            isActive: true 
-          });
-          if (allMoreRes.success) {
-            const allTours = safeArray<any>(allMoreRes.data).filter(isEligibleMoreTour);
-            const existingIds = new Set(fetchedMoreToursRaw.map(getTourId).filter(Boolean));
-            allTours.forEach(t => {
-              const candidateId = getTourId(t);
-              if (candidateId && !existingIds.has(candidateId)) {
-                fetchedMoreToursRaw.push(t);
-                existingIds.add(candidateId);
-              }
+          const moreToursRes = subId
+            ? await tourAPI.getBySubcategory(String(subId), { limit: 12, isActive: true })
+            : { success: false, data: [] };
+          if (moreToursRes.success) mergeUnique(safeArray<any>(moreToursRes.data));
+
+          // If subcategory count is low (< 9), try category fallback
+          if (fetchedMoreToursRaw.length < 9 && catId) {
+            const catMoreRes = await tourAPI.getAll({
+              category: String(catId),
+              limit: 15,
+              isActive: true
             });
+            if (catMoreRes.success) mergeUnique(safeArray<any>(catMoreRes.data));
           }
+
+          // Final fallback: if still < 9, show any other tours
+          if (fetchedMoreToursRaw.length < 9) {
+            const allMoreRes = await tourAPI.getAll({
+              limit: 15,
+              isActive: true
+            });
+            if (allMoreRes.success) mergeUnique(safeArray<any>(allMoreRes.data));
+          }
+        } catch (moreToursError) {
+          console.warn('useTourData: "more tours" lookup failed; hiding that section only', moreToursError);
         }
 
         const [relatedToursData, blogDataRaw] = await Promise.all(commonDataPromises);
@@ -420,9 +428,14 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         setRelatedBlogs(mappedBlogs);
         setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
         setTourData(mappedData);
+        setHasTourContent(true);
       } catch (err) {
         console.error("useTourData error:", err);
-        setError("Failed to load tour details");
+        // Fatal ONLY when nothing is renderable. The tour itself comes from the
+        // server, so a failure in this effect must not replace a page that
+        // already displays correct content with an error screen — which is what
+        // happened when any secondary request was blocked or timed out.
+        if (!initialRawTour) setError("Failed to load tour details");
       } finally {
         setLoading(false);
       }
@@ -430,5 +443,5 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     fetchAll();
   }, [id, currentLang]);
 
-  return { tourData, loading, error, moreTours, relatedBlogs };
+  return { tourData, loading, error, moreTours, relatedBlogs, hasTourContent };
 };

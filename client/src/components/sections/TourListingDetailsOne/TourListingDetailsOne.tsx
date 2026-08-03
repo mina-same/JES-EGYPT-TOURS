@@ -50,7 +50,7 @@ const DESCRIPTION_VISIBLE_LINES_MOBILE = 5;
 const DESKTOP_MIN_WIDTH = 992;
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
-  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
+  const { tourData, loading, error, moreTours, relatedBlogs, hasTourContent } = useTourData(id, initialRawTour);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
   const navPlaceholderRef = useRef<HTMLDivElement>(null);
@@ -339,7 +339,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     return <TourListingDetailsOneSkeleton />;
   }
 
-  if (error) {
+  // The error screen replaces the page only when there is no tour to show.
+  // Second guard alongside the hook's own check: a decorative lookup failing
+  // must never hide content the server already rendered.
+  if (error && !hasTourContent) {
     return (
       <div className="d-flex align-items-center justify-content-center text-danger" style={{ minHeight: '400px' }}>
         {error}
