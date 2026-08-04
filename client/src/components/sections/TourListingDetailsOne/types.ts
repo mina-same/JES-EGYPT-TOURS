@@ -95,7 +95,6 @@ export interface TourDetailsOneData {
   overview: string;
   location: string;
   activitiesType: string;
-  traveler: number;
   activateDay: string;
   price: number;
   overviewTitle: string;

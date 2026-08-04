@@ -93,6 +93,7 @@
     "pricingSubtitle": "Find the perfect package that suits your budget and preferences.",
     "galleryTitle": "Tour Gallery",
     "gallerySubtitle": "A visual journey through the amazing places you will visit.",
+    "photoCount": "{{count}} photos",
     "faqTitle": "Frequently Asked Questions",
     "faqSubtitle": "Common questions and answers to help you prepare.",
     "faqShowMore": "Read More ({{remaining}} more)",
@@ -126,7 +127,6 @@
       "location": "Location",
       "activitiesType": "Activities Type",
       "activateDay": "Duration",
-      "traveler": "Traveler",
       "priceStartsFrom": "Price starts from"
     },
     "brochure": {

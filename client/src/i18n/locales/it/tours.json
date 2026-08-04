@@ -93,6 +93,7 @@
     "pricingSubtitle": "Trova il pacchetto perfetto in base al budget e alle preferenze.",
     "galleryTitle": "Galleria del Tour",
     "gallerySubtitle": "Un viaggio visivo attraverso i fantastici posti che visiterai.",
+    "photoCount": "{{count}} foto",
     "faqTitle": "Domande Frequenti",
     "faqSubtitle": "Domande e risposte comuni per aiutarti nella preparazione.",
     "faqShowMore": "Leggi di più (altre {{remaining}})",
@@ -133,7 +134,6 @@
       "location": "Località",
       "activitiesType": "Tipo di attività",
       "activateDay": "Durata",
-      "traveler": "Viaggiatori",
       "priceStartsFrom": "Il prezzo parte da"
     },
     "brochure": {

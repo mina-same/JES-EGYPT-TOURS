@@ -10,13 +10,30 @@ import { createBooking } from "@/lib/api/booking";
 import { Loader2, CheckCircle, XCircle, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useCurrency, type ICurrencyPrice } from "@/contexts/CurrencyContext";
 
 interface BookingFormProps {
   tourId: string;
+  /**
+   * Starting price, shown at the top of the card. Deliberately optional: the
+   * mobile bottom sheet renders this same form WITHOUT it, because the sticky
+   * bar above the sheet already shows the price and two would compete.
+   *
+   * Not a plain number — `priceStartingFrom` is a { USD, EUR, GBP } object, so
+   * the currency context resolves it.
+   */
+  price?: number | ICurrencyPrice | null;
+  /** True when the tour has real pricing plans, so the price can link to them. */
+  hasPricing?: boolean;
 }
 
-export const BookingForm: React.FC<BookingFormProps> = ({ tourId }) => {
+export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPricing }) => {
   const { t } = useTranslation('tours');
+  const { formatPrice, getPriceValue } = useCurrency();
+  // Resolved through the context rather than a `typeof === 'number'` check: the
+  // value arrives as a per-currency object on real tours, so a numeric test
+  // silently hid the price on every one of them.
+  const resolvedPrice = getPriceValue(price);
   // The wishlist labels live in `common`, alongside the ones the tour cards use,
   // so the same wording appears wherever a tour can be saved.
   const { t: tCommon } = useTranslation('common');
@@ -146,6 +163,26 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId }) => {
       data-wow-delay='0.4s'
       data-wow-duration='1500ms'
     >
+      {/* The price the old info-bar button advertised, now heading the card it
+          belongs to. Above the title on purpose: a visitor who meets nine form
+          fields before any number reads the form as an unpriced commitment. */}
+      {resolvedPrice > 0 && (
+        <div className="booking-price-block">
+          <span className="booking-price-block__label">
+            {t("tourDetails.info.priceStartsFrom", "Price starts from")}
+          </span>
+          <span className="booking-price-block__value">{formatPrice(price)}</span>
+          <span className="booking-price-block__unit">
+            {t("tourDetails.pricing.perPerson", "per person")}
+          </span>
+          {hasPricing && (
+            <a className="booking-price-block__link" href="#pricing">
+              {t("tourDetails.nav.pricing")}
+            </a>
+          )}
+        </div>
+      )}
+
       <h2 className='tour-listing-details__sidebar__title' style={{ fontSize: '1.4rem' }}>
         {t("tourDetails.bookingForm.title")}
       </h2>

@@ -58,7 +58,6 @@ map_raw_func = """
       reviews: tour.reviewsCount || fetchedReviews.length,
       location: getLocalizedValue(tour.tourLocation) || "",
       activitiesType: getLocalizedValue(tour.tourType) || "",
-      traveler: 10,
       activateDay: getLocalizedValue(tour.duration) || "",
       price: tour.priceStartingFrom || tour.price || 0,
       overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",

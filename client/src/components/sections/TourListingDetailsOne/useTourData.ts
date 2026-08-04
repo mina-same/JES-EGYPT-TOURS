@@ -161,7 +161,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
       location: getLocalizedValue(tour.tourLocation) || "",
       activitiesType: getLocalizedValue(tour.tourType) || "",
-      traveler: 10,
       activateDay: getLocalizedValue(tour.duration) || "",
       price: tour.priceStartingFrom || tour.price || 0,
       overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",

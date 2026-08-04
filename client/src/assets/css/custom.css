@@ -93,11 +93,6 @@ html, body {
   width: 100%;
 }
 
-.tour-listing-details__sidebar {
-  position: sticky;
-  top: 75px;
-}
-
 /* Ensure tour slider items always stretch to full slide width */
 .tour-one__carousel .item,
 .tour-one__carousel .item > div,
@@ -305,11 +300,15 @@ html, body {
   letter-spacing: 0.5px;
 }
 
+/* The card is now beside the photos rather than far down the page, so its
+   height decides how much of the form a visitor sees before scrolling. Eleven
+   rows at a 20px gap spent 200px on gaps alone; 14px keeps the fields clearly
+   separated and returns ~60px, and the smaller top padding another 16px. */
 .booking-form-inner {
-  padding: 30px 0px;
+  padding: 14px 0px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 /* Inputs */
@@ -1018,6 +1017,315 @@ body {
   }
 }
 
+/* ==========================================================================
+   TOUR TOP MOSAIC  (replaces the 3-item tiny-slider carousel)
+   ONE fixed height for every photo count, so the block never changes size
+   between tours and the booking card's top alignment is identical across the
+   catalogue. Cell division changes with the real count via [data-tiles]; every
+   cell is always filled. useTourData strips intrinsic width/height from every
+   image, so a fixed track height is the only zero-CLS option here.
+   ========================================================================== */
+/* Breathing room between the hero and the two-column block. A dedicated class
+   rather than the theme's `.section-space-top` utility: overriding that utility
+   from here does not take effect (globals.css's `*` reset wins on this
+   property), whereas a purpose-made class does. */
+.tour-top-block {
+  padding-top: 40px;
+}
+
+@media (max-width: 991px) {
+  .tour-top-block { padding-top: 24px; }
+}
+
+.tour-mosaic {
+  display: grid;
+  gap: 10px;
+  height: clamp(300px, 32vw, 460px);
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  margin-bottom: 20px;
+}
+
+/* Transparent on desktop so tiles 2..6 become grid items of .tour-mosaic; the
+   horizontal scroll rail on mobile. One DOM tree serves both, so the server
+   HTML equals the first client paint — no isMobile branch. */
+.tour-mosaic__rail { display: contents; }
+
+.tour-mosaic__tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f5f5f5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.tour-mosaic__tile:hover { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); }
+.tour-mosaic__tile:focus-visible { outline: 2px solid #b79c5c; outline-offset: 3px; }
+
+.tour-mosaic__img { object-fit: cover; transition: transform 0.4s ease; }
+.tour-mosaic__tile:hover .tour-mosaic__img { transform: scale(1.05); }
+
+/* No translateY lift (unlike .tour-gallery-image-wrapper): inside a fixed grid
+   a lift clips against the neighbouring tile. The zoom carries the hover. */
+.tour-mosaic__tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(183, 156, 92, 0.1), rgba(212, 175, 55, 0.1));
+  transition: opacity 0.4s ease;
+}
+.tour-mosaic__tile:hover::after { opacity: 1; }
+
+/* Real photo count — icon plus numeral, so it needs no translation. */
+.tour-mosaic__count {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1a1a1a;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+/* "+N" on the last visible tile when a tour has more than six photos. */
+.tour-mosaic__more {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.5);
+  color: #fff;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* ---- count-driven templates (desktop) ---------------------------------- */
+.tour-mosaic[data-tiles="2"] { grid-template-columns: 1fr 1fr; }
+
+.tour-mosaic[data-tiles="3"] {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.tour-mosaic[data-tiles="4"],
+.tour-mosaic[data-tiles="5"] {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.tour-mosaic[data-tiles="3"] > .tour-mosaic__tile--hero,
+.tour-mosaic[data-tiles="4"] > .tour-mosaic__tile--hero,
+.tour-mosaic[data-tiles="5"] > .tour-mosaic__tile--hero {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+/* 4 photos: the 4th spans both right-hand columns so no cell is left empty. */
+.tour-mosaic[data-tiles="4"] .tour-mosaic__rail > .tour-mosaic__tile:last-child {
+  grid-column: 2 / span 2;
+}
+
+.tour-mosaic[data-tiles="6"] {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr 1fr;
+}
+
+/* ---- mobile: full-width hero + scroll-snap thumb rail ------------------
+   100px-wide thumbnails convey nothing, and PhotoSwipe is already a good
+   full-screen swipe gallery. Same idiom as .mobile-swipeable-gallery. */
+@media (max-width: 991px) {
+  .tour-mosaic,
+  .tour-mosaic[data-tiles="2"],
+  .tour-mosaic[data-tiles="3"],
+  .tour-mosaic[data-tiles="4"],
+  .tour-mosaic[data-tiles="5"],
+  .tour-mosaic[data-tiles="6"] {
+    display: block;
+    height: auto;
+    grid-template-columns: none;
+    grid-template-rows: none;
+  }
+
+  .tour-mosaic__tile--hero { height: auto; aspect-ratio: 3 / 2; }
+
+  .tour-mosaic__rail {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tour-mosaic__rail::-webkit-scrollbar { display: none; }
+  .tour-mosaic__rail > .tour-mosaic__tile {
+    flex: 0 0 30%;
+    scroll-snap-align: start;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .tour-mosaic__rail > .tour-mosaic__tile { flex-basis: 34%; }
+}
+
+@media (max-width: 575px) {
+  .tour-mosaic__tile--hero { aspect-ratio: 4 / 3; }
+  /* 2.5 tiles visible, so the scroll affordance is obvious. */
+  .tour-mosaic__rail > .tour-mosaic__tile { flex-basis: 38%; }
+  .tour-mosaic__count { left: 10px; bottom: 10px; padding: 6px 11px; font-size: 12px; }
+}
+
+/* Safari < 15 and older Android have no aspect-ratio. */
+@supports not (aspect-ratio: 3 / 2) {
+  @media (max-width: 991px) {
+    .tour-mosaic__tile--hero { height: 58vw; max-height: 380px; }
+    .tour-mosaic__rail > .tour-mosaic__tile { height: 26vw; }
+  }
+}
+
+/* ==========================================================================
+   TOUR FACTS STRIP
+   The info bar was a full-bleed five-item band; it is now a three-item strip
+   inside the 9-column rail. The theme's divider pseudo-elements were positioned
+   for that band and its last <li> was the price button, so both are replaced
+   with real borders. Icon / title / text typography is inherited from gotur.css.
+   ========================================================================== */
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 0;
+  padding: 18px 0;
+}
+.tour-listing-details__info-area--rail li { min-width: 0; padding: 0 18px; }
+.tour-listing-details__info-area--rail li:first-child { padding-left: 0; }
+.tour-listing-details__info-area--rail li:last-child { padding-right: 0; }
+.tour-listing-details__info-area--rail li::after { display: none !important; }
+.tour-listing-details__info-area--rail li + li { border-left: 1px solid #f0f0f0; }
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__text {
+  overflow-wrap: anywhere;
+}
+
+.tour-info-fact-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(183, 156, 92, 0.5);
+  text-underline-offset: 3px;
+}
+.tour-info-fact-link:hover { color: #9c8449; }
+
+@media (max-width: 991px) {
+  .tour-listing-details__info-area--rail .tour-listing-details__info-area__info li:last-child {
+    grid-column: auto;
+    margin-top: 0 !important;
+  }
+}
+
+/* ==========================================================================
+   "BOOK WITH CONFIDENCE" — in-rail band
+   Same markup, same seven i18n keys, same five icons. The col-lg-4/col-lg-8
+   split is forced to full width so the five 120px items get the whole rail.
+   ========================================================================== */
+.tour-trust-band {
+  margin: 4px 0 24px;
+  padding: 22px 24px;
+  border-radius: 20px;
+  background: rgba(183, 156, 92, 0.04);
+  border: 1px solid rgba(183, 156, 92, 0.15);
+}
+.tour-trust-band > .row > [class*="col-lg-"] {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+.tour-trust-band .col-lg-8 { margin-top: 18px; }
+
+@media (max-width: 991px) {
+  .tour-trust-band { padding: 18px 16px; }
+}
+
+/* ==========================================================================
+   BOOKING CARD — "Price starts from" header
+   Type scale lifted from .booking-bar-price, one step larger for the desktop
+   card. Above the form title on purpose: a visitor who meets nine fields
+   before any number reads the form as an unpriced commitment.
+   ========================================================================== */
+.booking-price-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0 0 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.booking-price-block__label,
+.booking-price-block__link { flex: 0 0 100%; }
+.booking-price-block__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gotur-text, #595959);
+}
+.booking-price-block__value {
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #b79c5c;
+}
+.booking-price-block__unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gotur-text, #595959);
+}
+.booking-price-block__link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b79c5c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.booking-price-block__link:hover { color: #9c8449; }
+
+/* The mobile bottom sheet renders the same form; its bar already shows the
+   price, so the card's own price block must not appear there. */
+.bottom-sheet-content .booking-price-block { display: none !important; }
+
+/* 30px on all four sides was sized for a card sitting alone far down the page.
+   Beside the photos its height is what limits how much of the form is visible,
+   so the vertical padding comes down while the horizontal stays generous. */
+.tour-listing-details__sidebar .tour-listing-details__sidebar__item-form {
+  padding: 22px 24px;
+}
+
 /* --------------------------------------------------------------------------
    Vertical rhythm — hero and tour body
    --------------------------------------------------------------------------
@@ -1201,10 +1509,12 @@ body {
 }
 
 /* Base sticky positioning for sidebar */
+/* NO `position: sticky` / `top` here. The sticky never worked — `html, body
+   { overflow-x: hidden }` makes body a scroll container, so sticky descendants
+   never stick, which is why the card is positioned by JS instead. Worse, the
+   dead `top: 75px` DID apply once the JS set `position: relative`, pushing the
+   card 75px below the photos for no reason. */
 .tour-listing-details__sidebar {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 75px;
   z-index: 10;
   height: fit-content;
 }
@@ -1215,13 +1525,6 @@ body {
 
 .tour-listing-details__sidebar > *:last-child {
   margin-bottom: 0;
-}
-
-@media (max-width: 575px) {
-  .tour-listing-details__sidebar {
-    position: relative;
-    top: 0;
-  }
 }
 
 /* ==========================================================================

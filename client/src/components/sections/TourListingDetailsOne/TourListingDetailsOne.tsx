@@ -23,7 +23,7 @@ import { TourInfoBar } from "./components/TourInfoBar";
 import { BookingForm } from "./components/BookingForm";
 import { TourPlan } from "./components/TourPlan";
 import { PricingPlans } from "./components/PricingPlans";
-import { TourCarousel } from "./components/TourCarousel";
+import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
@@ -54,13 +54,29 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
   const navPlaceholderRef = useRef<HTMLDivElement>(null);
+  /** The content column, so the pinned nav can match its width instead of the
+   *  viewport's — otherwise it stretches over the booking card. */
+  const contentColRef = useRef<HTMLDivElement>(null);
   const [navHeight, setNavHeight] = useState(0);
   const [isNavFixed, setIsNavFixed] = useState(false);
+  const [contentLeft, setContentLeft] = useState(0);
+  const [contentWidth, setContentWidth] = useState<number | undefined>(undefined);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarRowRef = useRef<HTMLDivElement>(null);
+  /** The column, not the card: while the card is `fixed` its own rect reports the
+   *  fixed position, so measuring bounds from it made the card drift on resize. */
+  const sidebarColRef = useRef<HTMLDivElement>(null);
   const [isSidebarFixed, setIsSidebarFixed] = useState(false);
+  /** The row now spans the whole page, so the card reaches the row's end long
+   *  before the page does. Parked = stop pinning, rest at the column bottom. */
+  const [isSidebarParked, setIsSidebarParked] = useState(false);
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
+  const [sidebarTop, setSidebarTop] = useState(20);
+  const [parkOffset, setParkOffset] = useState(0);
+  /** Measured reactively rather than read during render — the card grows when a
+   *  validation message appears, and a render-time read misses that. */
+  const [cardHeight, setCardHeight] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   /**
    * A callback ref, not useRef: `loading` flips true→false while the tour is
@@ -189,13 +205,33 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       setNavHeight(h);
     };
 
+    // Measured from the COLUMN. Reading the card instead meant that once it was
+    // `fixed`, its rect reported the fixed position, so every resize re-fixed it
+    // against its own displaced coordinates and the card drifted.
+    // Inner (content-box) bounds of a column, in viewport coordinates. Used to
+    // pin both the nav and the booking card to their own column rather than to
+    // the page — a fixed element gets no layout from its parent, so without this
+    // it spans the viewport.
+    const columnBounds = (col: HTMLDivElement | null) => {
+      if (!col) return null;
+      const rect = col.getBoundingClientRect();
+      const style = window.getComputedStyle(col);
+      const padLeft = parseFloat(style.paddingLeft || '0');
+      const padRight = parseFloat(style.paddingRight || '0');
+      return { left: rect.left + padLeft, width: rect.width - padLeft - padRight };
+    };
+
     const updateSidebarBounds = () => {
-      const sidebar = sidebarRef.current;
-      const row = sidebarRowRef.current;
-      if (!sidebar || !row) return;
-      const sidebarRect = sidebar.getBoundingClientRect();
-      setSidebarLeft(sidebarRect.left);
-      setSidebarWidth(sidebarRect.width);
+      const sidebar = columnBounds(sidebarColRef.current);
+      if (sidebar) {
+        setSidebarLeft(sidebar.left);
+        setSidebarWidth(sidebar.width);
+      }
+      const content = columnBounds(contentColRef.current);
+      if (content) {
+        setContentLeft(content.left);
+        setContentWidth(content.width);
+      }
     };
 
     updateNavHeight();
@@ -208,6 +244,19 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Track the booking card's height. It changes when validation messages or the
+  // success banner appear, and the pin maths needs the current value.
+  useEffect(() => {
+    const el = sidebarRef.current;
+    if (!el) return;
+    const read = () => setCardHeight(el.getBoundingClientRect().height);
+    read();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(read);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -228,6 +277,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       // Only run sticky logic on desktop (>= 992px)
       if (window.innerWidth < 992) {
         setIsSidebarFixed(false);
+        setIsSidebarParked(false);
         return;
       }
 
@@ -235,9 +285,23 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       if (!row) return;
       const rowRect = row.getBoundingClientRect();
       const fixedNavHeight = isNavFixed ? navHeight : 0;
-      const threshold = fixedNavHeight + 20;
-      const shouldFix = rowRect.top <= threshold && rowRect.bottom > window.innerHeight;
-      setIsSidebarFixed(shouldFix);
+      const height = cardHeight || sidebarRef.current?.getBoundingClientRect().height || 0;
+
+      // The card is ~925px with the price block — taller than a 1440x900 laptop
+      // can show. Pinning its TOP would strand the submit button above the fold
+      // for the whole page, so once it cannot fit, pin its BOTTOM instead by
+      // letting `top` go negative.
+      const top = height + fixedNavHeight + 40 > window.innerHeight
+        ? window.innerHeight - height - 20
+        : fixedNavHeight + 20;
+
+      const canFix = rowRect.top <= top;
+      const reachedEnd = rowRect.bottom <= top + height;
+
+      setSidebarTop(top);
+      setIsSidebarFixed(canFix && !reachedEnd);
+      setIsSidebarParked(canFix && reachedEnd);
+      setParkOffset(Math.max(0, rowRect.height - height));
     };
 
     const onScroll = () => {
@@ -248,7 +312,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true } as any);
     return () => window.removeEventListener("scroll", onScroll as any);
-  }, [isNavFixed, navHeight]);
+  }, [isNavFixed, navHeight, cardHeight]);
 
   // Handle scroll spy and smooth scroll
   useEffect(() => {
@@ -314,7 +378,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     location,
     activitiesType,
     activateDay,
-    traveler,
     price,
     relatedTours,
     sliderImages,
@@ -356,111 +419,123 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         {/* Header Section - Commented out */}
 
         <PhotoSwipeGallery>
-        {/* Carousel Section */}
-        <TourCarousel sliderImages={sliderImages} title={title} />
-
-        {/* Tour Key Facts - Screen Reader Only */}
-        <h2 className="sr-only">Tour Key Facts</h2>
-
-        {/* Info Bar Section */}
-        <TourInfoBar
-          location={location}
-          activitiesType={activitiesType}
-          activateDay={activateDay}
-          traveler={traveler}
-          price={price}
-        />
-
+        {/* paddingLeft/Right rather than the shorthand `padding: '0 20px'` the
+            other containers use: the shorthand also sets padding-top to 0
+            inline, which no stylesheet rule can then override. */}
         <Container
           fluid
-          style={{ maxWidth: '1400px', padding: '0 20px' }}
-          className="info-area info-bg pb-3 py-4"
+          style={{ maxWidth: '1400px', paddingLeft: '20px', paddingRight: '20px' }}
+          className="tour-top-block"
         >
-          <div className="row align-items-center">
-            <div className="col-lg-4">
-              <div className="section-heading" style={{ marginBottom: '0' }}>
-                <h2 className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>{t("tourDetails.bookConfidence")}</h2>
-                <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>{t("tourDetails.bookConfidenceDesc")}</p>
-              </div>
-            </div>
-            <div className="col-lg-8">
-              <div className="d-flex justify-content-center align-items-center flex-wrap" style={{ gap: '20px' }}>
-                {[
-                  { title: t("tourDetails.features.monthly"), icon: Calendar },
-                  { title: t("tourDetails.features.support"), icon: Headphones },
-                  { title: t("tourDetails.features.prices"), icon: Tag },
-                  { title: t("tourDetails.features.rating"), icon: Star },
-                  { title: t("tourDetails.features.fast"), icon: Zap }
-                ].map((item, idx) => (
-                  <div key={idx} className="text-center" style={{ minWidth: '120px' }}>
-                    <div className="info-icon flex-shrink-0 bg-white shadow-sm mx-auto mb-2" style={{
-                      width: '70px',
-                      height: '70px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                      border: '1.5px solid #b79c5c',
-                      transition: 'transform 0.3s ease',
-                      boxShadow: '0 8px 16px rgba(183, 156, 92, 0.15)'
-                    }}>
-                      <item.icon size={35} color="#b79c5c" />
-                    </div>
-                    <h4 className="info__title" style={{ fontSize: '13px', color: '#1a1a1a', fontWeight: '600', margin: '0' }}>{item.title}</h4>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Container>
-
-        {/* Section Separator */}
-        <div className="section-separator" style={{
-          height: '1px',
-          background: 'linear-gradient(90deg, transparent, #e0e0e0, transparent)',
-          margin: '40px 0'
-        }}></div>
-
-        <Container fluid style={{ maxWidth: '1400px', padding: '0 20px' }}>
-          {/* Navigation Bar */}
-          <div ref={navPlaceholderRef} />
-          <div
-            ref={navRef}
-            className="tour-details-nav-wrapper bg-white"
-            style={{
-              position: isNavFixed ? 'fixed' : 'relative',
-              top: isNavFixed ? 0 : undefined,
-              left: isNavFixed ? 0 : undefined,
-              right: isNavFixed ? 0 : undefined,
-              zIndex: isNavFixed ? 1100 : undefined,
-              background: '#fff',
-              borderBottom: '2px solid #f0f0f0',
-              width: '100%',
-            }}
-          >
-            <nav className="tour-details-nav">
-              <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>{t("tourDetails.nav.description")}</a>
-              <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>{t("tourDetails.nav.tourPlan")}</a>
-              {/* Only when the tour actually has a map — the tab used to scroll to
-                  an empty section on the tours with no embed. */}
-              {map && (
-                <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
-              )}
-              <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
-              <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
-              <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
-              <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
-              <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
-              {/* No "Reviews" tab: the section it pointed at is gone. The video
-                  reviews keep their own tab above. */}
-            </nav>
-          </div>
-
-          <div style={{ height: (isNavFixed && !isMobile) ? (navHeight || 0) + 40 : 0 }} />
-
+          {/* ONE two-column row for the whole page: it starts here, right under
+              the hero, and ends after the last section. That is what makes the
+              booking card stay pinned for the length of the page — the existing
+              sidebarRowRef mechanism measures this row, so no new machinery. */}
           <div className='row gutter-y-30 tour-details-row' ref={sidebarRowRef}>
             {/* Main Content */}
-            <div className='col-lg-9'>
+            <div className='col-lg-9' ref={contentColRef}>
+              {/* Photos first: an adaptive grid that fills every cell at any
+                  photo count, replacing the 3-item slider whose centred first
+                  slide left a wide blank edge. */}
+              <TourMosaic images={sliderImages} title={title} />
+
+              {/* Tour Key Facts - Screen Reader Only. Now actually precedes the
+                  facts it labels. */}
+              <h2 className="sr-only">Tour Key Facts</h2>
+
+              {/* Info Bar Section */}
+              <TourInfoBar
+                location={location}
+                activitiesType={activitiesType}
+                activateDay={activateDay}
+                mapHref={map ? '#map' : undefined}
+              />
+
+              {/* Trust band — same content and icons as before, moved into the
+                  rail so it sits level with the price instead of below the
+                  twelfth section where almost nobody reached it. */}
+              <div className="info-area info-bg tour-trust-band">
+                <div className="row align-items-center">
+                  <div className="col-lg-4">
+                    <div className="section-heading" style={{ marginBottom: '0' }}>
+                      <p className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>{t("tourDetails.bookConfidence")}</p>
+                      <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>{t("tourDetails.bookConfidenceDesc")}</p>
+                    </div>
+                  </div>
+                  <div className="col-lg-8">
+                    <div className="d-flex justify-content-center align-items-center flex-wrap" style={{ gap: '20px' }}>
+                      {[
+                        { title: t("tourDetails.features.monthly"), icon: Calendar },
+                        { title: t("tourDetails.features.support"), icon: Headphones },
+                        { title: t("tourDetails.features.prices"), icon: Tag },
+                        { title: t("tourDetails.features.rating"), icon: Star },
+                        { title: t("tourDetails.features.fast"), icon: Zap }
+                      ].map((item, idx) => (
+                        <div key={idx} className="text-center" style={{ minWidth: '120px' }}>
+                          <div className="info-icon flex-shrink-0 bg-white shadow-sm mx-auto mb-2" style={{
+                            width: '70px',
+                            height: '70px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '50%',
+                            border: '1.5px solid #b79c5c',
+                            transition: 'transform 0.3s ease',
+                            boxShadow: '0 8px 16px rgba(183, 156, 92, 0.15)'
+                          }}>
+                            <item.icon size={35} color="#b79c5c" />
+                          </div>
+                          <span className="info__title d-block" style={{ fontSize: '13px', color: '#1a1a1a', fontWeight: '600', margin: '0' }}>{item.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Bar */}
+              <div ref={navPlaceholderRef} />
+              <div
+                ref={navRef}
+                className="tour-details-nav-wrapper bg-white"
+                style={{
+                  position: isNavFixed ? 'fixed' : 'relative',
+                  top: isNavFixed ? 0 : undefined,
+                  // Pinned to the CONTENT COLUMN's bounds, not the viewport. This
+                  // bar used to span the full page because it lived outside the
+                  // columns; now that it sits inside col-lg-9, `left: 0; right: 0`
+                  // made it stretch across the booking card and cover it.
+                  left: isNavFixed ? contentLeft : undefined,
+                  zIndex: isNavFixed ? 1100 : undefined,
+                  background: '#fff',
+                  borderBottom: '2px solid #f0f0f0',
+                  width: isNavFixed ? contentWidth : '100%',
+                }}
+              >
+                <nav className="tour-details-nav">
+                  <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>{t("tourDetails.nav.description")}</a>
+                  <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>{t("tourDetails.nav.tourPlan")}</a>
+                  {/* Only when the tour actually has a map — the tab used to scroll to
+                      an empty section on the tours with no embed. */}
+                  {map && (
+                    <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
+                  )}
+                  <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
+                  <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
+                  {/* Same guard as the map: tour.gallery is empty on most tours,
+                      so the tab used to scroll to an EmptyState. */}
+                  {images && images.length > 0 && (
+                    <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
+                  )}
+                  <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
+                  <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
+                  {/* No "Reviews" tab: the section it pointed at is gone. The video
+                      reviews keep their own tab above. */}
+                </nav>
+              </div>
+
+              <div style={{ height: (isNavFixed && !isMobile) ? (navHeight || 0) + 40 : 0 }} />
+
               <div className='tour-listing-details__content'>
 
                 {/* Description Section */}
@@ -763,9 +838,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   </section>
                 )}
 
-                {/* Gallery Section */}
-                <section id="gallery" className="tour-section">
-                  {images && images.length > 0 ? (
+                {/* Gallery Section — the whole section is conditional, same as the
+                    map: `tour.gallery` is empty on most tours, so this used to
+                    render a padded section containing only an EmptyState, with a
+                    nav tab pointing at it. */}
+                {images && images.length > 0 && (
+                  <section id="gallery" className="tour-section">
                     <div className='tour-listing-details__content__item tour-listing-details__thumb'>
                       <div className="mb-4">
                         <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h2>
@@ -864,15 +942,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         </Masonry>
                       )}
                     </div>
-                  ) : (
-                    <EmptyState
-                      title={t("tourDetails.empty.galleryTitle")}
-                      description={t("tourDetails.empty.galleryDesc")}
-                      icon="inbox"
-                      size="medium"
-                    />
-                  )}
-                </section>
+                  </section>
+                )}
 
                 {/* Download Section */}
                 <section id="download-pdf" className="tour-section">
@@ -1023,11 +1094,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             </div>
 
             {/* Sidebar - Booking Form */}
-            <div className='col-lg-3'>
+            <div className='col-lg-3' ref={sidebarColRef}>
               {/* Spacer to prevent layout jump when sidebar is fixed */}
-              {isSidebarFixed && (
-                <div style={{ height: sidebarRef.current?.getBoundingClientRect().height || 0 }} />
-              )}
+              {isSidebarFixed && <div style={{ height: cardHeight }} />}
               <div
                 ref={sidebarRef}
                 className='tour-listing-details__sidebar'
@@ -1035,13 +1104,20 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   position: isSidebarFixed ? 'fixed' : 'relative',
                   left: isSidebarFixed ? sidebarLeft : undefined,
                   width: isSidebarFixed ? sidebarWidth : undefined,
-                  top: isSidebarFixed ? (isNavFixed ? navHeight : 0) + 20 : undefined,
+                  top: isSidebarFixed ? sidebarTop : undefined,
+                  // Parked: the row has ended, so stop pinning and let the card
+                  // rest at the bottom of the column instead of snapping upward.
+                  marginTop: (!isSidebarFixed && isSidebarParked) ? parkOffset : undefined,
                   zIndex: isSidebarFixed ? 1000 : undefined,
                   alignSelf: 'flex-start',
                   height: 'fit-content',
                 }}
               >
-                <BookingForm tourId={String(tourData.id || '')} />
+                <BookingForm
+                  tourId={String(tourData.id || '')}
+                  price={price as any}
+                  hasPricing={(pricingPlans || []).length > 0}
+                />
               </div>
             </div>
           </div>
