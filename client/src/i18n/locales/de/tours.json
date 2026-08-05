@@ -182,7 +182,7 @@
       "namePlaceholder": "Name *",
       "emailPlaceholder": "E-Mail *",
       "nationalityPlaceholder": "Wählen Sie Ihre Nationalität",
-      "mobilePlaceholder": "Mobiltelefon",
+      "mobilePlaceholder": "Mobiltelefon *",
       "dateFromPlaceholder": "Von *",
       "dateToPlaceholder": "Bis *",
       "adults": "Anzahl der Erwachsenen",
@@ -194,15 +194,24 @@
       "requirementsPlaceholder": "Bitte teilen Sie uns Ihre Tour-Anforderungen mit",
       "submitBtn": "Absenden",
       "submitting": "Wird gesendet...",
+      "whatsapp": "Auf WhatsApp fragen",
       "success": "Ihre Buchung wurde erfolgreich übermittelt!",
       "error": "Buchung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "emailFallback": "Leider können wir Ihre Anfrage derzeit hier nicht entgegennehmen. Bitte senden Sie sie direkt per E-Mail an",
+      "emailSubject": "Buchungsanfrage: {{title}}",
+      "emailBody": "Hallo,\n\nich möchte diese Tour anfragen: {{title}}\n{{url}}\n\nMeine Angaben:\n",
       "validation": {
         "name": "Name ist erforderlich und muss mindestens 2 Zeichen lang sein",
         "email": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+        "phone": "Bitte geben Sie eine gültige internationale Mobiltelefonnummer an",
+        "rateLimited": "Zu viele Buchungsversuche. Bitte warten Sie, bevor Sie es erneut versuchen.",
         "dateFrom": "Bitte wählen Sie ein Startdatum",
         "dateTo": "Bitte wählen Sie ein Enddatum",
-        "adults": "Mindestens ein Erwachsener ist erforderlich"
-      }
+        "adults": "Mindestens ein Erwachsener ist erforderlich",
+        "dateRange": "Das Enddatum darf nicht vor dem Startdatum liegen"
+      },
+      "decrease": "{{field}} verringern",
+      "increase": "{{field}} erhöhen"
     }
   },
   "pageMetaTitle": "Ägypten Tour-Kategorien | Privattouren & Tagesausflüge | JES Egypt Tours",

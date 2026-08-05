@@ -259,6 +259,22 @@ html, body {
   gap: 8px;
 }
 
+/* Keep the desktop navigation on one clean row. If localized labels exceed the
+   9-column content rail, the bar scrolls horizontally instead of creating an
+   uneven second row. Mobile uses the same interaction in its rules below. */
+@media (min-width: 992px) {
+  .tour-details-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .tour-nav-link {
+    /* Fill the rail when labels fit; keep natural widths when they overflow. */
+    flex: 1 0 auto;
+  }
+}
+
 .tour-nav-link:hover {
   color: #b79c5c;
   background-color: rgba(183, 156, 92, 0.05);
@@ -309,6 +325,20 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* Spam trap: removed from layout, pointer/keyboard flow and assistive output.
+   Keeping it in the DOM lets unsophisticated form-fill bots reveal themselves. */
+.booking-honeypot {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 /* Inputs */
@@ -439,6 +469,32 @@ html, body {
   background-color: #fee2e2;
   color: #991b1b;
   border: 1px solid #fca5a5;
+  align-items: flex-start;
+}
+
+.booking-message-error > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.booking-message__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.booking-email-fallback {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.booking-email-fallback a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
 }
 
 .booking-input-error,
@@ -629,6 +685,43 @@ html, body {
 
 .booking-save-btn:hover {
   background: rgba(212, 175, 55, 0.12);
+}
+
+/* Sits between Submit and Save: the same pill as the save button so the two read
+   as one group of secondary actions, but in WhatsApp green because it leaves the
+   site. Deliberately not filled — Submit stays the only primary action. */
+.booking-whatsapp-btn {
+  width: 100%;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #25d366;
+  border-radius: 30px;
+  background: transparent;
+  color: #128c4a;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.booking-whatsapp-btn:hover {
+  background: rgba(37, 211, 102, 0.12);
+  color: #0f7a40;
+}
+
+.booking-whatsapp-btn:focus-visible {
+  outline: 2px solid #128c4a;
+  outline-offset: 2px;
+}
+
+.booking-whatsapp-btn i {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .booking-save-btn[aria-pressed='true'] {
@@ -1317,8 +1410,6 @@ body {
 
 /* The mobile bottom sheet renders the same form; its bar already shows the
    price, so the card's own price block must not appear there. */
-.bottom-sheet-content .booking-price-block { display: none !important; }
-
 /* 30px on all four sides was sized for a card sitting alone far down the page.
    Beside the photos its height is what limits how much of the form is visible,
    so the vertical padding comes down while the horizontal stays generous. */
@@ -1838,6 +1929,16 @@ body {
 .feature-package__carousel .tns-nav,
 .feature-package__carousel .tns-controls {
   display: none !important;
+}
+
+/* Keep the centered Featured Tours carousel inside the viewport. The theme's
+   desktop -50px right margin is intended for edge-aligned variants, but this
+   centered variant otherwise pushes the final card beyond the page edge. */
+@media (min-width: 992px) {
+  .feature-package--two .feature-package__inner {
+    margin-right: 0;
+    margin-left: 0;
+  }
 }
 
 /* Hide any TinySlider generated buttons with prev/next text */

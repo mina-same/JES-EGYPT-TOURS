@@ -7,7 +7,7 @@ export interface IBooking extends Document {
   // Personal Information
   name: string;
   email: string;
-  phone?: string;
+  phone: string;
   nationality?: string;
 
   // Booking Details
@@ -17,6 +17,19 @@ export interface IBooking extends Document {
   children: number;
   infants: number;
   requirements?: string;
+
+  /**
+   * What the visitor was LOOKING AT when they submitted: the currency selected
+   * in the site header and the per-person starting price the booking card
+   * displayed. Advisory only — never used for charging — but it settles any
+   * later "the site quoted me €X" question from the booking itself.
+   */
+  currency?: 'USD' | 'EUR' | 'GBP';
+  quotedPrice?: number;
+
+  // Technical identity for safe retries. Hidden from every API response.
+  idempotencyKey?: string;
+  requestFingerprint?: string;
 
   // Status tracking
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
@@ -50,14 +63,20 @@ const bookingSchema = new Schema<IBooking>(
       lowercase: true,
       trim: true,
       match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
         'Please provide a valid email',
       ],
       index: true,
     },
     phone: {
       type: String,
+      required: [true, 'Mobile number is required'],
       trim: true,
+      maxlength: [16, 'Mobile number cannot exceed 16 characters'],
+      match: [
+        /^\+[1-9]\d{7,14}$/,
+        'Please provide a valid international mobile number',
+      ],
     },
     nationality: {
       type: String,
@@ -96,6 +115,26 @@ const bookingSchema = new Schema<IBooking>(
       trim: true,
       maxlength: [2000, 'Requirements cannot exceed 2000 characters'],
     },
+    currency: {
+      type: String,
+      enum: ['USD', 'EUR', 'GBP'],
+    },
+    quotedPrice: {
+      type: Number,
+      min: [0, 'Quoted price cannot be negative'],
+    },
+    idempotencyKey: {
+      type: String,
+      trim: true,
+      maxlength: [36, 'Idempotency key cannot exceed 36 characters'],
+      select: false,
+    },
+    requestFingerprint: {
+      type: String,
+      minlength: [64, 'Request fingerprint must be a SHA-256 digest'],
+      maxlength: [64, 'Request fingerprint must be a SHA-256 digest'],
+      select: false,
+    },
 
     // Status tracking
     status: {
@@ -116,10 +155,12 @@ const bookingSchema = new Schema<IBooking>(
 
 // Add indexes for better query performance
 bookingSchema.index({ tour: 1, createdAt: -1 });
-bookingSchema.index({ status: 1 });
-bookingSchema.index({ email: 1 });
 bookingSchema.index({ dateFrom: 1 });
 bookingSchema.index({ dateTo: 1 });
+bookingSchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, sparse: true, name: 'unique_booking_idempotency_key' }
+);
 
 // Add virtual id field
 bookingSchema.virtual('id').get(function () {
@@ -130,8 +171,10 @@ bookingSchema.virtual('id').get(function () {
 bookingSchema.set('toJSON', {
   virtuals: true,
   transform: function (_doc, ret) {
-    const { __v, ...rest } = ret;
-    return rest;
+    Reflect.deleteProperty(ret, '__v');
+    Reflect.deleteProperty(ret, 'idempotencyKey');
+    Reflect.deleteProperty(ret, 'requestFingerprint');
+    return ret;
   }
 });
 

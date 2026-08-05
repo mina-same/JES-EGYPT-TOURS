@@ -65,7 +65,7 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Locale'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Locale', 'Idempotency-Key'],
     exposedHeaders: ['Content-Type', 'Authorization', 'X-Locale'],
     preflightContinue: false,
     optionsSuccessStatus: 204,

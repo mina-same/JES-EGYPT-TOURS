@@ -182,7 +182,7 @@
       "namePlaceholder": "Nombre *",
       "emailPlaceholder": "Correo electrónico *",
       "nationalityPlaceholder": "Selecciona tu Nacionalidad",
-      "mobilePlaceholder": "Móvil",
+      "mobilePlaceholder": "Móvil *",
       "dateFromPlaceholder": "Desde *",
       "dateToPlaceholder": "Hasta *",
       "adults": "Nº de Adultos",
@@ -194,15 +194,24 @@
       "requirementsPlaceholder": "Por favor, indícanos tus requisitos para el tour",
       "submitBtn": "Enviar",
       "submitting": "Enviando...",
+      "whatsapp": "Preguntar por WhatsApp",
       "success": "¡Tu reserva ha sido enviada con éxito!",
       "error": "Error al enviar la reserva. Por favor, inténtalo de nuevo.",
+      "emailFallback": "Lamentablemente, ahora mismo no podemos recibir tu solicitud aquí. Puedes enviarla directamente por correo electrónico a",
+      "emailSubject": "Solicitud de reserva: {{title}}",
+      "emailBody": "Hola,\n\nme gustaría solicitar este tour: {{title}}\n{{url}}\n\nMis datos:\n",
       "validation": {
         "name": "El nombre es obligatorio y debe tener al menos 2 caracteres",
         "email": "Por favor, proporciona un correo electrónico válido",
+        "phone": "Proporciona un número de móvil internacional válido",
+        "rateLimited": "Demasiados intentos de reserva. Espera antes de volver a intentarlo.",
         "dateFrom": "Por favor, seleccione una fecha de inicio",
         "dateTo": "Por favor, seleccione una fecha de finalización",
-        "adults": "Se requiere al menos un adulto"
-      }
+        "adults": "Se requiere al menos un adulto",
+        "dateRange": "La fecha de fin no puede ser anterior a la fecha de inicio"
+      },
+      "decrease": "Reducir {{field}}",
+      "increase": "Aumentar {{field}}"
     }
   },
   "pageMetaTitle": "Categorías de tours en Egipto | Tours privados y de un día | JES Egypt Tours",

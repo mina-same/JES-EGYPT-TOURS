@@ -59,6 +59,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const contentColRef = useRef<HTMLDivElement>(null);
   const [navHeight, setNavHeight] = useState(0);
   const [isNavFixed, setIsNavFixed] = useState(false);
+  /** True once the reader has scrolled PAST the last section: the pinned bar
+   *  then navigates nothing on screen, so it slides away. It slides (transform)
+   *  rather than unpinning, because unpinning would collapse the spacer above
+   *  the viewport and visibly jolt the page. */
+  const [isNavHidden, setIsNavHidden] = useState(false);
   const [contentLeft, setContentLeft] = useState(0);
   const [contentWidth, setContentWidth] = useState<number | undefined>(undefined);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -73,7 +78,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [sidebarTop, setSidebarTop] = useState(20);
-  const [parkOffset, setParkOffset] = useState(0);
+  /** The column's own left padding — the parked (absolute) card is positioned
+   *  against the column's padding box, so this realigns it with the content. */
+  const [sidebarPadLeft, setSidebarPadLeft] = useState(0);
   /** Measured reactively rather than read during render — the card grows when a
    *  validation message appears, and a render-time read misses that. */
   const [cardHeight, setCardHeight] = useState(0);
@@ -218,7 +225,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       const style = window.getComputedStyle(col);
       const padLeft = parseFloat(style.paddingLeft || '0');
       const padRight = parseFloat(style.paddingRight || '0');
-      return { left: rect.left + padLeft, width: rect.width - padLeft - padRight };
+      return { left: rect.left + padLeft, width: rect.width - padLeft - padRight, padLeft };
     };
 
     const updateSidebarBounds = () => {
@@ -226,6 +233,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       if (sidebar) {
         setSidebarLeft(sidebar.left);
         setSidebarWidth(sidebar.width);
+        setSidebarPadLeft(sidebar.padLeft);
       }
       const content = columnBounds(contentColRef.current);
       if (content) {
@@ -271,6 +279,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       if (!el) return;
       const top = el.getBoundingClientRect().top;
       setIsNavFixed(top <= 0);
+
+      // Past the end of the two-column row (= past #honest-reviews, the last
+      // section the bar links to), the bar only hovers over related tours and
+      // the footer — hide it there, bring it back when scrolling up.
+      const row = sidebarRowRef.current;
+      const barHeight = navRef.current?.getBoundingClientRect().height || 64;
+      setIsNavHidden(!!row && row.getBoundingClientRect().bottom <= barHeight + 8);
     };
 
     const updateSidebarFixed = () => {
@@ -301,7 +316,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       setSidebarTop(top);
       setIsSidebarFixed(canFix && !reachedEnd);
       setIsSidebarParked(canFix && reachedEnd);
-      setParkOffset(Math.max(0, rowRect.height - height));
     };
 
     const onScroll = () => {
@@ -510,6 +524,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   background: '#fff',
                   borderBottom: '2px solid #f0f0f0',
                   width: isNavFixed ? contentWidth : '100%',
+                  // Slide away below the last section; visibility also drops it
+                  // from the tab order and the accessibility tree while gone.
+                  transform: isNavFixed && isNavHidden ? 'translateY(-110%)' : undefined,
+                  visibility: isNavFixed && isNavHidden ? 'hidden' : undefined,
+                  transition: isNavFixed ? 'transform 0.25s ease, visibility 0.25s ease' : undefined,
                 }}
               >
                 <nav className="tour-details-nav">
@@ -1094,20 +1113,23 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             </div>
 
             {/* Sidebar - Booking Form */}
-            <div className='col-lg-3' ref={sidebarColRef}>
+            <div className='col-lg-3' ref={sidebarColRef} style={{ position: 'relative' }}>
               {/* Spacer to prevent layout jump when sidebar is fixed */}
               {isSidebarFixed && <div style={{ height: cardHeight }} />}
               <div
                 ref={sidebarRef}
                 className='tour-listing-details__sidebar'
                 style={{
-                  position: isSidebarFixed ? 'fixed' : 'relative',
-                  left: isSidebarFixed ? sidebarLeft : undefined,
-                  width: isSidebarFixed ? sidebarWidth : undefined,
+                  // Parked = absolutely pinned to the COLUMN'S bottom, out of the
+                  // flow. The previous margin-top approach fed on itself: the
+                  // margin was computed from the row's height and then ADDED to
+                  // that height, so every scroll event grew the page — measured
+                  // at +6,000px of blank space after a few wheel ticks.
+                  position: isSidebarFixed ? 'fixed' : isSidebarParked ? 'absolute' : 'relative',
+                  left: isSidebarFixed ? sidebarLeft : isSidebarParked ? sidebarPadLeft : undefined,
+                  width: (isSidebarFixed || isSidebarParked) ? sidebarWidth : undefined,
                   top: isSidebarFixed ? sidebarTop : undefined,
-                  // Parked: the row has ended, so stop pinning and let the card
-                  // rest at the bottom of the column instead of snapping upward.
-                  marginTop: (!isSidebarFixed && isSidebarParked) ? parkOffset : undefined,
+                  bottom: isSidebarParked ? 0 : undefined,
                   zIndex: isSidebarFixed ? 1000 : undefined,
                   alignSelf: 'flex-start',
                   height: 'fit-content',
@@ -1115,8 +1137,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
               >
                 <BookingForm
                   tourId={String(tourData.id || '')}
-                  price={price as any}
+                  price={price}
                   hasPricing={(pricingPlans || []).length > 0}
+                  tourTitle={title}
                 />
               </div>
             </div>
@@ -1238,7 +1261,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       </section>
 
       {/* Mobile Sticky Booking Bar */}
-      <MobileStickyBookingBar tourId={id || ""} price={price} />
+      <MobileStickyBookingBar
+        tourId={String(tourData.id || "")}
+        price={price}
+        tourTitle={title}
+      />
     </>
   );
 };

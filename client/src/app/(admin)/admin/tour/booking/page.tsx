@@ -220,6 +220,9 @@ const BookingPage: React.FC = () => {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      // Booking dates are stored as UTC calendar days, not instants. Rendering
+      // in UTC prevents the admin browser's timezone from moving the date.
+      timeZone: 'UTC',
     });
   };
 
@@ -534,6 +537,16 @@ const BookingPage: React.FC = () => {
                         <p className="text-sm text-[#b79c5c] font-medium flex flex-wrap items-center gap-1.5 mt-1">
                             <Calendar size={12} /> {formatDate(selectedBooking.dateFrom)} <span className="opacity-50 mx-1">to</span> {formatDate(selectedBooking.dateTo)}
                         </p>
+                        {/* The price the visitor was LOOKING AT when they booked
+                            (advisory, recorded with the booking). Absent on
+                            bookings made before this field existed. */}
+                        {typeof selectedBooking.quotedPrice === 'number' && selectedBooking.quotedPrice > 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Quoted at booking: <span className="font-bold text-gray-700 dark:text-gray-300">
+                              {selectedBooking.quotedPrice} {selectedBooking.currency || ''}
+                            </span> / person
+                          </p>
+                        )}
                     </div>
                   </div>
                 )}

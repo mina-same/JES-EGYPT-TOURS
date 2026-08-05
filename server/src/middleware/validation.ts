@@ -1,4 +1,9 @@
-import { body, ValidationChain } from 'express-validator';
+import { body, header, ValidationChain } from 'express-validator';
+import {
+  isBookingDateTodayOrFuture,
+  isValidBookingDate,
+  isValidInternationalPhone,
+} from '../utils/booking';
 
 export const tailorMadeRequestValidation: ValidationChain[] = [
   // Personal Information
@@ -336,8 +341,12 @@ export const bookingValidation: ValidationChain[] = [
     .withMessage('Please provide a valid email')
     .normalizeEmail(),
   body('phone')
-    .optional()
-    .trim(),
+    .trim()
+    .notEmpty()
+    .withMessage('Mobile number is required')
+    .bail()
+    .custom(isValidInternationalPhone)
+    .withMessage('Please provide a valid international mobile number'),
   body('nationality')
     .optional()
     .trim(),
@@ -346,13 +355,28 @@ export const bookingValidation: ValidationChain[] = [
   body('dateFrom')
     .notEmpty()
     .withMessage('Start date is required')
-    .isISO8601()
-    .withMessage('Invalid start date format'),
+    .bail()
+    .custom(isValidBookingDate)
+    .withMessage('Invalid start date format')
+    .bail()
+    .custom((value) => isBookingDateTodayOrFuture(value))
+    .withMessage('Start date cannot be in the past'),
   body('dateTo')
     .notEmpty()
     .withMessage('End date is required')
-    .isISO8601()
-    .withMessage('Invalid end date format'),
+    .bail()
+    .custom(isValidBookingDate)
+    .withMessage('Invalid end date format')
+    .bail()
+    // Nothing anywhere checked the ORDER of the pair, so an inverted range
+    // (end before start) reached the database. Guarded here and not only in
+    // the client, because the client can be bypassed.
+    .custom((value, { req }) => {
+      const from = req.body?.dateFrom;
+      if (!isValidBookingDate(from) || !isValidBookingDate(value)) return true;
+      return value >= from;
+    })
+    .withMessage('End date must be on or after the start date'),
   body('adults')
     .notEmpty()
     .withMessage('Number of adults is required')
@@ -371,4 +395,23 @@ export const bookingValidation: ValidationChain[] = [
     .trim()
     .isLength({ max: 2000 })
     .withMessage('Requirements cannot exceed 2000 characters'),
+
+  // The visitor chooses a display currency. The controller derives the amount
+  // from the authoritative Tour record; no public quotedPrice is accepted.
+  body('currency')
+    .optional()
+    .isIn(['USD', 'EUR', 'GBP'])
+    .withMessage('Invalid currency'),
+];
+
+/** One UUID identifies one exact submission attempt. It is separate from the
+ * body so public callers cannot accidentally persist it as ordinary form data. */
+export const bookingIdempotencyValidation: ValidationChain[] = [
+  header('Idempotency-Key')
+    .trim()
+    .notEmpty()
+    .withMessage('Idempotency-Key header is required')
+    .bail()
+    .isUUID(4)
+    .withMessage('Idempotency-Key header must be a valid UUID v4'),
 ];

@@ -2,17 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import type { ICurrencyPrice } from "@/contexts/CurrencyContext";
 import { BookingForm } from './BookingForm';
 import { BadgeCheck, CalendarDays, ChevronUp, X } from 'lucide-react';
 
 interface MobileStickyBookingBarProps {
   tourId: string;
-  price?: number;
+  price?: number | ICurrencyPrice | null;
+  /** Passed through to the sheet's BookingForm so the WhatsApp message names the tour. */
+  tourTitle?: string;
 }
 
-export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ tourId, price }) => {
+export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ tourId, price, tourTitle }) => {
   const { t } = useTranslation("tours");
-  const { formatPrice } = useCurrency();
+  const { formatPrice, getPriceValue } = useCurrency();
+  const hasPrice = getPriceValue(price) > 0;
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -106,16 +110,18 @@ export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ 
     <>
       <div className={`mobile-sticky-booking-bar ${isVisible && !isOpen ? 'is-visible' : ''}`}>
         <div className="booking-bar-content">
-          <div className="booking-bar-meta">
-            <span className="booking-bar-chip">
-              <BadgeCheck size={14} />
-              {t("tourDetails.bestSeller", "Ready to book")}
-            </span>
-            <div className="booking-bar-price">
-              <span className="price-label">{t("tourDetails.from")}</span>
-              <span className="price-value">{formatPrice(price)}</span>
+          {hasPrice && (
+            <div className="booking-bar-meta">
+              <span className="booking-bar-chip">
+                <BadgeCheck size={14} />
+                {t("tourDetails.bestSeller", "Ready to book")}
+              </span>
+              <div className="booking-bar-price">
+                <span className="price-label">{t("tourDetails.from")}</span>
+                <span className="price-value">{formatPrice(price)}</span>
+              </div>
             </div>
-          </div>
+          )}
           <button className="theme-btn booking-bar-btn" onClick={() => setIsOpen(true)}>
             <span>{t("tourDetails.bookThisTour", "Book This Tour")}</span>
             <ChevronUp size={18} />
@@ -141,7 +147,7 @@ export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ 
           </button>
         </div>
         <div className="bottom-sheet-content">
-          <BookingForm tourId={tourId} />
+          <BookingForm tourId={tourId} price={price} tourTitle={tourTitle} />
         </div>
       </div>
     </>

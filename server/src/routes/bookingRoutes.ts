@@ -9,12 +9,24 @@ import {
 } from '../controllers/bookingController';
 import { protect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
-import { bookingValidation } from '../middleware/validation';
+import {
+  bookingIdempotencyValidation,
+  bookingValidation,
+} from '../middleware/validation';
+import { bookingSubmissionLimiter } from '../middleware/bookingRateLimit';
+import { bookingHoneypotGuard } from '../middleware/bookingHoneypot';
 
 const router = express.Router();
 
 // Public route - anyone can submit a booking
-router.post('/', bookingValidation, createBooking);
+router.post(
+  '/',
+  bookingSubmissionLimiter,
+  bookingHoneypotGuard,
+  bookingIdempotencyValidation,
+  bookingValidation,
+  createBooking
+);
 
 // Admin only routes
 router.get('/stats', protect, permit(PERMISSIONS.BOOKING_READ), getBookingStats);
