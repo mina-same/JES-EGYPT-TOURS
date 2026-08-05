@@ -12,6 +12,10 @@ import { useTranslation } from "react-i18next";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency, type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import { footerOneData } from "@/data/footerOneData";
+import {
+  focusWithComfortableScroll,
+  getFirstInvalidBookingField,
+} from "@/lib/bookingFormUx";
 
 /** Mirror of the server's express-validator / mongoose bounds. The UI stopping
  *  at the same numbers means the visitor can never build a party size the API
@@ -121,6 +125,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string>("");
+  const feedbackRef = useRef<HTMLDivElement>(null);
   /** Tracked so unmounting (the bottom sheet closes) or a quick second submit
    *  cannot leave a stale timer firing setState on a gone component. */
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -165,6 +170,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
       if (successTimerRef.current) clearTimeout(successTimerRef.current);
     };
   }, []);
+
+  /** Success and API errors render above a long form. Bring that result back to
+   * the visitor after submit, including inside the mobile sheet's scroll area. */
+  useEffect(() => {
+    if (!successMessage && !errors.submit) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      focusWithComfortableScroll(feedbackRef.current);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [successMessage, errors.submit]);
 
   const nationalityOptions = getCountries()
     .map((code) => ({
@@ -225,7 +242,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+
+    if (!isValid) {
+      const firstInvalidField = getFirstInvalidBookingField(newErrors);
+
+      if (firstInvalidField) {
+        window.requestAnimationFrame(() => {
+          focusWithComfortableScroll(
+            document.getElementById(fieldId(firstInvalidField))
+          );
+        });
+      }
+    }
+
+    return isValid;
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -269,7 +300,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
       const response = await createBooking(data);
 
       if (response.success) {
-        setSuccessMessage(response.message || t("tourDetails.bookingForm.success"));
+        // The API message is an English compatibility string. The visitor-facing
+        // confirmation must come from the active locale so it cannot override
+        // the richer translated guidance (response time + spam folder).
+        setSuccessMessage(t("tourDetails.bookingForm.success"));
 
         // Reset form
         formRef.current.reset();
@@ -280,8 +314,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
         setInfants(0);
         setPhone(undefined);
 
-        // Clear success message after 5 seconds
-        successTimerRef.current = setTimeout(() => setSuccessMessage(""), 5000);
+        // The confirmation includes important response-time and spam-folder
+        // guidance, so keep it visible for a full minute on every screen size.
+        successTimerRef.current = setTimeout(() => setSuccessMessage(""), 60_000);
       } else {
         setErrors({ submit: response.error || t("tourDetails.bookingForm.error") });
       }
@@ -339,14 +374,24 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
           noValidate
         >
           {successMessage && (
-            <div className="booking-message booking-message-success" role="status">
+            <div
+              ref={feedbackRef}
+              className="booking-message booking-message-success"
+              role="status"
+              tabIndex={-1}
+            >
               <CheckCircle size={20} />
               <span>{successMessage}</span>
             </div>
           )}
 
           {errors.submit && (
-            <div className="booking-message booking-message-error" role="alert">
+            <div
+              ref={feedbackRef}
+              className="booking-message booking-message-error"
+              role="alert"
+              tabIndex={-1}
+            >
               <XCircle size={20} />
               <div className="booking-message__content">
                 <span>{errors.submit}</span>
@@ -477,6 +522,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
                   }}
                   placeholderText={t("tourDetails.bookingForm.dateFromPlaceholder")}
                   className={`booking-date-input ${errors.dateFrom ? 'booking-input-error' : ''}`}
+                  popperClassName="booking-date-popper"
+                  popperPlacement="bottom-start"
                   minDate={new Date()}
                   autoComplete="off"
                 />
@@ -498,6 +545,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
                   }}
                   placeholderText={t("tourDetails.bookingForm.dateToPlaceholder")}
                   className={`booking-date-input ${errors.dateTo ? 'booking-input-error' : ''}`}
+                  popperClassName="booking-date-popper"
+                  popperPlacement="bottom-end"
                   minDate={startDate || new Date()}
                   autoComplete="off"
                 />

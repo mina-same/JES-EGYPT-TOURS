@@ -195,7 +195,7 @@
       "submitBtn": "Absenden",
       "submitting": "Wird gesendet...",
       "whatsapp": "Auf WhatsApp fragen",
-      "success": "Ihre Buchung wurde erfolgreich übermittelt!",
+      "success": "Ihre Buchungsanfrage wurde erfolgreich übermittelt. Unser Team wird Sie innerhalb der nächsten Stunden per E-Mail oder WhatsApp kontaktieren. Sollten Sie in dieser Zeit nichts von uns hören, prüfen Sie bitte den Spam- oder Junk-Ordner Ihres E-Mail-Postfachs, da unsere E-Mails gelegentlich dort eingeordnet werden können.",
       "error": "Buchung fehlgeschlagen. Bitte versuchen Sie es erneut.",
       "emailFallback": "Leider können wir Ihre Anfrage derzeit hier nicht entgegennehmen. Bitte senden Sie sie direkt per E-Mail an",
       "emailSubject": "Buchungsanfrage: {{title}}",

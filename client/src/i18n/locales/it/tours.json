@@ -195,7 +195,7 @@
       "submitBtn": "Invia",
       "submitting": "Invio in corso...",
       "whatsapp": "Chiedi su WhatsApp",
-      "success": "La tua prenotazione è stata inviata con successo!",
+      "success": "La tua richiesta di prenotazione è stata inviata con successo. Il nostro team ti contatterà via e-mail o WhatsApp entro le prossime ore. Se non ricevi nostre notizie entro questo periodo, controlla la cartella spam o posta indesiderata della tua e-mail, perché occasionalmente i nostri messaggi potrebbero essere filtrati lì.",
       "error": "Impossibile inviare la prenotazione. Riprova.",
       "emailFallback": "Purtroppo al momento non possiamo ricevere la tua richiesta qui. Puoi inviarla direttamente via e-mail a",
       "emailSubject": "Richiesta di prenotazione: {{title}}",

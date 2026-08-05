@@ -459,10 +459,22 @@ html, body {
   font-weight: 500;
 }
 
+.booking-message:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
 .booking-message-success {
   background-color: #d1fae5;
   color: #065f46;
   border: 1px solid #6ee7b7;
+  align-items: flex-start;
+  line-height: 1.55;
+}
+
+.booking-message-success > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
 }
 
 .booking-message-error {
@@ -546,6 +558,24 @@ html, body {
 
 .date-input-wrapper {
   position: relative;
+}
+
+/* react-datepicker defaults its floating layer to z-index: 1, while the phone
+   country flag/select use 2/3. That made the flag paint through the calendar.
+   The start/end placements on the two inputs keep the 300px popup inside the
+   booking card instead of centering it beyond the card edge. */
+.booking-form-inner .react-datepicker-popper {
+  z-index: 50;
+}
+
+.date-input-wrapper .react-datepicker-wrapper,
+.date-input-wrapper .react-datepicker__input-container {
+  display: block;
+  width: 100%;
+}
+
+.booking-date-popper .react-datepicker {
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
 }
 
 .date-input-wrapper .icon-calendar {
