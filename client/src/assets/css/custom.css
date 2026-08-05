@@ -1640,6 +1640,29 @@ body {
   height: fit-content;
 }
 
+/* A desktop booking card is taller than many laptop viewports. Once pinned,
+   scroll the CARD rather than forcing the reader away from the itinerary.
+   `scrollbar-gutter` prevents the form width changing when the bar appears. */
+.tour-listing-details__sidebar--scrollable {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(183, 156, 92, 0.7) rgba(15, 23, 42, 0.06);
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar-thumb {
+  background: rgba(183, 156, 92, 0.75);
+  border-radius: 999px;
+}
+
 .tour-listing-details__sidebar > * {
   margin-bottom: 30px;
 }
@@ -2121,7 +2144,7 @@ div[suppressHydrationWarning] {
 
 .floating-whatsapp-button {
   position: fixed;
-  right: 32px;
+  right: 12px;
   bottom: 28px;
   width: 56px;
   height: 56px;
@@ -2149,7 +2172,7 @@ div[suppressHydrationWarning] {
 }
 
 .scroll-to-top {
-  right: 32px !important;
+  right: 10px !important;
   bottom: 96px !important;
   z-index: 1190 !important;
 }

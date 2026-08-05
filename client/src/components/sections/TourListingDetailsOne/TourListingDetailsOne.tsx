@@ -27,6 +27,7 @@ import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
@@ -78,6 +79,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [sidebarTop, setSidebarTop] = useState(20);
+  const [sidebarViewportHeight, setSidebarViewportHeight] = useState(0);
   /** The column's own left padding — the parked (absolute) card is positioned
    *  against the column's padding box, so this realigns it with the content. */
   const [sidebarPadLeft, setSidebarPadLeft] = useState(0);
@@ -259,11 +261,18 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   useEffect(() => {
     const el = sidebarRef.current;
     if (!el) return;
-    const read = () => setCardHeight(el.getBoundingClientRect().height);
+    const content = el.firstElementChild instanceof HTMLElement
+      ? el.firstElementChild
+      : null;
+    const read = () => setCardHeight(Math.max(
+      el.scrollHeight,
+      content?.getBoundingClientRect().height || 0
+    ));
     read();
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(read);
     observer.observe(el);
+    if (content) observer.observe(content);
     return () => observer.disconnect();
   }, []);
 
@@ -293,29 +302,26 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       if (window.innerWidth < 992) {
         setIsSidebarFixed(false);
         setIsSidebarParked(false);
+        setSidebarViewportHeight(0);
         return;
       }
 
       const row = sidebarRowRef.current;
       if (!row) return;
       const rowRect = row.getBoundingClientRect();
-      const fixedNavHeight = isNavFixed ? navHeight : 0;
       const height = cardHeight || sidebarRef.current?.getBoundingClientRect().height || 0;
 
-      // The card is ~925px with the price block — taller than a 1440x900 laptop
-      // can show. Pinning its TOP would strand the submit button above the fold
-      // for the whole page, so once it cannot fit, pin its BOTTOM instead by
-      // letting `top` go negative.
-      const top = height + fixedNavHeight + 40 > window.innerHeight
-        ? window.innerHeight - height - 20
-        : fixedNavHeight + 20;
+      const layout = calculateBookingSidebarLayout({
+        rowTop: rowRect.top,
+        rowBottom: rowRect.bottom,
+        cardHeight: height,
+        viewportHeight: window.innerHeight,
+      });
 
-      const canFix = rowRect.top <= top;
-      const reachedEnd = rowRect.bottom <= top + height;
-
-      setSidebarTop(top);
-      setIsSidebarFixed(canFix && !reachedEnd);
-      setIsSidebarParked(canFix && reachedEnd);
+      setSidebarTop(layout.top);
+      setSidebarViewportHeight(layout.availableHeight);
+      setIsSidebarFixed(layout.canFix && !layout.reachedEnd);
+      setIsSidebarParked(layout.canFix && layout.reachedEnd);
     };
 
     const onScroll = () => {
@@ -325,8 +331,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true } as any);
-    return () => window.removeEventListener("scroll", onScroll as any);
-  }, [isNavFixed, navHeight, cardHeight]);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll as any);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [cardHeight]);
 
   // Handle scroll spy and smooth scroll
   useEffect(() => {
@@ -426,6 +436,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       </div>
     );
   }
+
+  const isSidebarViewportConstrained =
+    (isSidebarFixed || isSidebarParked) &&
+    cardHeight > sidebarViewportHeight;
 
   return (
     <>
@@ -1118,7 +1132,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
               {isSidebarFixed && <div style={{ height: cardHeight }} />}
               <div
                 ref={sidebarRef}
-                className='tour-listing-details__sidebar'
+                className={`tour-listing-details__sidebar ${
+                  isSidebarViewportConstrained
+                    ? 'tour-listing-details__sidebar--scrollable'
+                    : ''
+                }`}
                 style={{
                   // Parked = absolutely pinned to the COLUMN'S bottom, out of the
                   // flow. The previous margin-top approach fed on itself: the
@@ -1133,6 +1151,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   zIndex: isSidebarFixed ? 1000 : undefined,
                   alignSelf: 'flex-start',
                   height: 'fit-content',
+                  maxHeight: (isSidebarFixed || isSidebarParked)
+                    ? sidebarViewportHeight
+                    : undefined,
+                  overflowY: isSidebarViewportConstrained ? 'auto' : undefined,
                 }}
               >
                 <BookingForm
