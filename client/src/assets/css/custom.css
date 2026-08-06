@@ -1630,49 +1630,110 @@ body {
 }
 
 /* ==========================================================================
-   BOOKING CARD — "Price starts from" header
-   Type scale lifted from .booking-bar-price, one step larger for the desktop
-   card. Above the form title on purpose: a visitor who meets nine fields
-   before any number reads the form as an unpriced commitment.
+   BOOKING CARD — header ("Book This Tour" + "Price starts from")
+   Two columns on one row: intent on the left, cost on the right. The price is
+   above the form on purpose — a visitor who meets nine fields before any
+   number reads the form as an unpriced commitment.
+
+   The amount sits on its own tinted surface rather than floating as three
+   right-ragged lines. A bounded shape gives the eye one object to land on,
+   keeps the label/amount/unit reading as a single statement, and stops the
+   title and the price from looking like two unrelated blocks.
    ========================================================================== */
-.booking-price-block {
+.booking-card-header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  margin: 0 0 18px;
-  padding-bottom: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #f0f0f0;
 }
-.booking-price-block__label,
-.booking-price-block__link { flex: 0 0 100%; }
+
+.booking-card-header__intent {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.booking-card-header .tour-listing-details__sidebar__title {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: #161616;
+  /* Never nowrap: "Prenota questo tour" / "Diese Tour buchen" are ~40% wider
+     than the English title and would push the badge out of the card. */
+}
+
+.booking-price-block {
+  flex: 0 0 auto;
+  /* Grid, not flex-wrap: a wrapping flex container reports its max-content as
+     though every child sat on one line, so the badge stretched to its
+     max-width and starved the title column. Grid measures the real two rows. */
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: end;
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 1px;
+  max-width: 60%;
+  margin: 0;
+  padding: 8px 13px 9px;
+  border: 1px solid #ece1c9;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fdfbf5 0%, #f7f1e2 100%);
+  text-align: right;
+}
+/* Label shares the amount's baseline; the unit takes the row underneath. Any
+   other split makes the badge wider than the title column can spare. */
 .booking-price-block__label {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gotur-text, #595959);
+  /* Small text on the tint needs 4.5:1; the warmer #8b7b57 measured 3.68. */
+  color: #6e6349;
 }
 .booking-price-block__value {
   font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-  font-size: 30px;
+  font-size: 27px;
   font-weight: 800;
-  line-height: 1.1;
-  color: #b79c5c;
+  line-height: 1.15;
+  /* Deeper than the #b79c5c brand gold: at 2.3:1 on this tint (and 2.6:1 on
+     white) the brand tone missed the 3:1 large-text minimum. #8f7333 keeps the
+     gold identity and clears it at ~3.8:1. */
+  color: #8f7333;
 }
 .booking-price-block__unit {
-  font-size: 13px;
+  grid-column: 1 / -1;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--gotur-text, #595959);
+  line-height: 1.2;
+  color: #6b6350;
 }
+
+/* Secondary action, so it reads as a link and not as a second CTA competing
+   with Submit — quiet until hover, arrow to signal it jumps down the page. */
 .booking-price-block__link {
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #b79c5c;
+  /* A shade under the amount's gold: 12.5px is small text, and #8f7333 lands
+     on exactly 4.50 against the white card — no margin for rounding. */
+  color: #866c2c;
+  text-decoration: none;
+}
+.booking-price-block__link svg { transition: transform 0.18s ease; }
+.booking-price-block__link:hover {
+  color: #6f591f;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.booking-price-block__link:hover { color: #9c8449; }
+.booking-price-block__link:hover svg { transform: translateX(2px); }
 
 /* The mobile bottom sheet renders the same form; its bar already shows the
    price, so the card's own price block must not appear there. */
@@ -1696,52 +1757,39 @@ body {
     padding: 16px 18px;
   }
 
+  /* Laptop-compact: the card's height is what limits how much of the form is
+     visible beside the photos, so the header gives back vertical space first. */
   .booking-card-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
     gap: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 12px;
+    padding-bottom: 11px;
   }
 
   .booking-card-header .tour-listing-details__sidebar__title {
-    flex: 1 1 auto;
-    min-width: 0;
-    margin: 0;
-    font-size: 18px;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    white-space: nowrap;
+    font-size: 17px;
   }
 
   .booking-card-header .booking-price-block {
-    flex: 0 1 auto;
-    justify-content: flex-end;
-    min-width: 116px;
-    max-width: 50%;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    gap: 1px 6px;
-    text-align: end;
+    padding: 6px 11px 7px;
+    border-radius: 12px;
   }
 
   .booking-card-header .booking-price-block__label {
-    flex: 0 0 100%;
-    font-size: 11px;
-    line-height: 1.2;
+    font-size: 9.5px;
+    letter-spacing: 0.07em;
   }
 
   .booking-card-header .booking-price-block__value {
-    font-size: 26px;
+    font-size: 24px;
   }
 
-  .booking-card-header .booking-price-block__unit,
+  .booking-card-header .booking-price-block__unit {
+    font-size: 11.5px;
+  }
+
   .booking-card-header .booking-price-block__link {
-    flex: 0 0 auto;
+    margin-top: 3px;
     font-size: 12px;
-    line-height: 1.2;
   }
 
   .booking-form-inner {
@@ -1859,7 +1907,16 @@ body {
   }
 
   .booking-card-header {
-    padding-bottom: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 9px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 5px 10px 6px;
+  }
+
+  .booking-card-header .booking-price-block__value {
+    font-size: 22px;
   }
 
   .booking-form-inner {
@@ -1899,15 +1956,29 @@ body {
 
   .booking-card-header {
     gap: 11px;
-    padding-bottom: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 13px;
   }
 
   .booking-card-header .tour-listing-details__sidebar__title {
-    font-size: 19px;
+    font-size: 18px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 7px 12px 8px;
+    border-radius: 13px;
+  }
+
+  .booking-card-header .booking-price-block__label {
+    font-size: 10px;
   }
 
   .booking-card-header .booking-price-block__value {
-    font-size: 27px;
+    font-size: 26px;
+  }
+
+  .booking-card-header .booking-price-block__unit {
+    font-size: 12px;
   }
 
   .booking-form-inner {
@@ -2009,15 +2080,29 @@ body {
 
   .booking-card-header {
     gap: 12px;
-    padding-bottom: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 15px;
   }
 
   .booking-card-header .tour-listing-details__sidebar__title {
     font-size: 19px;
   }
 
+  .booking-card-header .booking-price-block {
+    padding: 8px 13px 9px;
+    border-radius: 14px;
+  }
+
+  .booking-card-header .booking-price-block__label {
+    font-size: 10px;
+  }
+
   .booking-card-header .booking-price-block__value {
-    font-size: 28px;
+    font-size: 27px;
+  }
+
+  .booking-card-header .booking-price-block__unit {
+    font-size: 12px;
   }
 
   .booking-form-inner {
@@ -2106,6 +2191,35 @@ body {
     min-height: 48px;
     padding: 10px 8px;
     font-size: 14px;
+  }
+}
+
+/* The header's two columns compete for horizontal room, and below the 1400px
+   container cap the sidebar narrows with the viewport: at 1280 the card loses
+   30px and "Book This Tour" no longer clears the badge on one line. Both sides
+   step down together so the row keeps its proportions. Last of the booking-card
+   blocks on purpose — it must win over the min-height tiers above, which carry
+   the same specificity. */
+@media (min-width: 992px) and (max-width: 1399.98px) {
+  .booking-card-header .tour-listing-details__sidebar__title {
+    font-size: 16px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 6px 10px 7px;
+  }
+
+  .booking-card-header .booking-price-block__label {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+  }
+
+  .booking-card-header .booking-price-block__value {
+    font-size: 22px;
+  }
+
+  .booking-card-header .booking-price-block__unit {
+    font-size: 11px;
   }
 }
 
@@ -3126,7 +3240,12 @@ div[suppressHydrationWarning] {
     width: 100%;
     height: min(90vh, 920px);
     background: #fff;
-    z-index: 1400;
+    /* Was 1400 — BELOW the 9998 backdrop, which is a full-screen fixed layer
+       with an onClick that closes the sheet. Every tap inside the form landed
+       on the backdrop instead: the sheet dimmed behind the scrim and shut on
+       the first attempt to focus a field, so the mobile booking form could
+       never be filled in. Must stay above the backdrop. */
+    z-index: 9999;
     border-radius: 28px 28px 0 0;
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
@@ -3209,8 +3328,23 @@ div[suppressHydrationWarning] {
     padding: 0 !important;
     background: #fff !important;
   }
-  .bottom-sheet-content .tour-listing-details__sidebar__title {
+  /* The sheet has its own "Book Now / Book This Tour" header, so the form's
+     title would be the same words twice. The price stays: the sticky bar that
+     was showing it is hidden while the sheet is open, and it is the one number
+     the visitor needs in view while filling the form. With the title gone the
+     intent column is empty, so the badge takes the row on its own. */
+  .bottom-sheet-content .tour-listing-details__sidebar__title,
+  .bottom-sheet-content .booking-card-header__intent {
     display: none !important;
+  }
+  .bottom-sheet-content .booking-card-header {
+    justify-content: flex-start;
+    margin-bottom: 14px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .bottom-sheet-content .booking-price-block {
+    max-width: 100%;
   }
   .bottom-sheet-content .booking-form-card {
     background: #fff;

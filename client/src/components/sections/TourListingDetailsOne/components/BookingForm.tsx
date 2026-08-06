@@ -7,14 +7,14 @@ import { de as dateDe } from "date-fns/locale/de";
 import { enUS as dateEn } from "date-fns/locale/en-US";
 import { es as dateEs } from "date-fns/locale/es";
 import { it as dateIt } from "date-fns/locale/it";
-import PhoneInput, { getCountryCallingCode, isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInput, { getCountryCallingCode, isValidPhoneNumber, type Country } from "react-phone-number-input";
 import { getCountries } from "react-phone-number-input";
 import de from "react-phone-number-input/locale/de";
 import en from "react-phone-number-input/locale/en";
 import es from "react-phone-number-input/locale/es";
 import it from "react-phone-number-input/locale/it";
 import { createBooking } from "@/lib/api/booking";
-import { Loader2, CheckCircle, XCircle, Heart } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Heart, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency, type ICurrencyPrice } from "@/contexts/CurrencyContext";
@@ -164,6 +164,24 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [phone, setPhone] = useState<string | undefined>(undefined);
+  /** Seeds the phone field's country from the nationality the visitor picked,
+   *  so they are not left dialling the international globe. Only ever a
+   *  suggestion: PhoneInput adopts a new `defaultCountry` exclusively while
+   *  `!hasUserSelectedACountry && noValueHasBeenEntered`, so the moment the
+   *  visitor types digits or picks a country themselves, later nationality
+   *  changes stop touching the number. Nationality is not residence and is not
+   *  necessarily where the phone is registered — the library's own guard is
+   *  what keeps this from overwriting real input. */
+  const [phoneCountry, setPhoneCountry] = useState<Country | undefined>(undefined);
+  /** The country actually showing in the field, which is NOT always the one
+   *  suggested above: the visitor can pick their own from the flag dropdown.
+   *  Needed because a country change made through `defaultCountry` goes via
+   *  `getDerivedStateFromProps`, which returns `value: undefined` and never
+   *  calls `onChange` — so `phone` stays empty even though the input now
+   *  renders "+43", and the ghost placeholder would be painted over it.
+   *  (Used only to know what is displayed. It cannot serve as a "user touched
+   *  it" flag: it fires for programmatic changes too.) */
+  const [displayedPhoneCountry, setDisplayedPhoneCountry] = useState<Country | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string>("");
@@ -399,27 +417,38 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
       data-wow-delay='0.4s'
       data-wow-duration='1500ms'
     >
+      {/* Keep price and intent together in one compact header. The form stays
+          reassuringly priced without spending three full rows above Name.
+          Two columns: what the card is for on the left, what it costs on the
+          right. The secondary "Pricing" link lives under the title rather than
+          under the amount — it belongs to the reading path, not to the number,
+          and it fills the column's second line instead of ragging the badge. */}
       <div className="booking-card-header">
-        <h2 className='tour-listing-details__sidebar__title'>
-          {t("tourDetails.bookingForm.title")}
-        </h2>
+        <div className="booking-card-header__intent">
+          <h2 className='tour-listing-details__sidebar__title'>
+            {t("tourDetails.bookingForm.title")}
+          </h2>
+          {hasPricing && (
+            <a className="booking-price-block__link" href="#pricing">
+              {t("tourDetails.nav.pricing")}
+              <ChevronRight size={13} aria-hidden="true" />
+            </a>
+          )}
+        </div>
 
-        {/* Keep price and intent together in one compact header. The form stays
-            reassuringly priced without spending three full rows above Name. */}
         {resolvedPrice > 0 && (
           <div className="booking-price-block">
+            {/* "from" rather than "Price starts from": the long label was the
+                widest thing in the header and pushed the title onto two lines
+                in every locale. Same promise, and it now sits on the amount's
+                own baseline where it reads as one phrase. */}
             <span className="booking-price-block__label">
-              {t("tourDetails.info.priceStartsFrom", "Price starts from")}
+              {t("tourDetails.from", "from")}
             </span>
             <span className="booking-price-block__value">{formatPrice(price)}</span>
             <span className="booking-price-block__unit">
               {t("tourDetails.pricing.perPerson", "per person")}
             </span>
-            {hasPricing && (
-              <a className="booking-price-block__link" href="#pricing">
-                {t("tourDetails.nav.pricing")}
-              </a>
-            )}
           </div>
         )}
       </div>
@@ -528,6 +557,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
               className="booking-select"
               autoComplete="country"
               defaultValue=""
+              // Stays uncontrolled — the submit path still reads it from
+              // FormData. This only mirrors the choice into the phone field.
+              onChange={(event) =>
+                setPhoneCountry((event.target.value || undefined) as Country | undefined)
+              }
             >
               <option value="">{t("tourDetails.bookingForm.nationalityPlaceholder")}</option>
               {nationalityOptions.map((c) => (
@@ -545,6 +579,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
             <div className="phone-input-wrapper">
               <PhoneInput
                 international
+                defaultCountry={phoneCountry}
+                onCountryChange={setDisplayedPhoneCountry}
                 id={fieldId('phone')}
                 value={phone}
                 onChange={(value) => {
@@ -559,7 +595,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
                 limitMaxLength
                 aria-invalid={!!errors.phone}
               />
-              {!phone && (
+              {/* Only while the field is truly bare ("+"). Once a calling code
+                  is on screen the flag and the code identify the field, and
+                  this fixed-offset overlay would sit on top of the digits. */}
+              {!phone && !displayedPhoneCountry && (
                 <span className="booking-phone-empty-label" aria-hidden="true">
                   {t("tourDetails.bookingForm.mobilePlaceholder")}
                 </span>
