@@ -1,11 +1,18 @@
 "use client";
 import "react-datepicker/dist/react-datepicker.css";
 import "react-phone-number-input/style.css";
-import React, { FormEvent, useEffect, useId, useRef, useState } from "react";
+import React, { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import { de as dateDe } from "date-fns/locale/de";
+import { enUS as dateEn } from "date-fns/locale/en-US";
+import { es as dateEs } from "date-fns/locale/es";
+import { it as dateIt } from "date-fns/locale/it";
+import PhoneInput, { getCountryCallingCode, isValidPhoneNumber } from "react-phone-number-input";
 import { getCountries } from "react-phone-number-input";
+import de from "react-phone-number-input/locale/de";
 import en from "react-phone-number-input/locale/en";
+import es from "react-phone-number-input/locale/es";
+import it from "react-phone-number-input/locale/it";
 import { createBooking } from "@/lib/api/booking";
 import { Loader2, CheckCircle, XCircle, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -23,6 +30,41 @@ import {
 const PARTY_LIMITS = { adults: { min: 1, max: 50 }, children: { min: 0, max: 50 }, infants: { min: 0, max: 50 } };
 const REQUIREMENTS_MAX = 2000;
 const BOOKING_SUPPORT_EMAIL = footerOneData.contact.email.trim();
+const BOOKING_COUNTRIES = getCountries();
+const PHONE_COUNTRY_LABELS_BY_LANGUAGE: Record<string, Record<string, string>> = {
+  de: de as Record<string, string>,
+  en: en as Record<string, string>,
+  es: es as Record<string, string>,
+  it: it as Record<string, string>,
+};
+const DATE_PICKER_LOCALES = {
+  de: dateDe,
+  en: dateEn,
+  es: dateEs,
+  it: dateIt,
+} as const;
+const NATIONALITY_OPTIONS = BOOKING_COUNTRIES
+  .map((code) => ({
+    code,
+    name: (en as Record<string, string>)[code] || code,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+/** `react-phone-number-input` intentionally maps a lone `+` to `undefined`
+ * because it is not an E.164 number yet. Keep that safe model value while
+ * rendering the international prefix in the real input so visitors can type
+ * their digits directly after it. */
+const InternationalPhoneTextInput = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>(({ value, ...props }, ref) => (
+  <input
+    {...props}
+    ref={ref}
+    value={value === undefined || value === null || value === "" ? "+" : value}
+  />
+));
+InternationalPhoneTextInput.displayName = "InternationalPhoneTextInput";
 
 /** A travel date is a calendar day, not an instant in time. Building the value
  *  from local date parts preserves exactly what the visitor selected instead
@@ -99,7 +141,7 @@ interface BookingFormProps {
 }
 
 export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPricing, tourTitle }) => {
-  const { t } = useTranslation('tours');
+  const { t, i18n } = useTranslation('tours');
   const { formatPrice, getPriceValue, currency } = useCurrency();
   // Resolved through the context rather than a `typeof === 'number'` check: the
   // value arrives as a per-currency object on real tours, so a numeric test
@@ -126,6 +168,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string>("");
   const feedbackRef = useRef<HTMLDivElement>(null);
+  const endDatePickerRef = useRef<DatePicker | null>(null);
   /** Tracked so unmounting (the bottom sheet closes) or a quick second submit
    *  cannot leave a stale timer firing setState on a gone component. */
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -183,12 +226,29 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
     return () => window.cancelAnimationFrame(frame);
   }, [successMessage, errors.submit]);
 
-  const nationalityOptions = getCountries()
-    .map((code) => ({
-      code,
-      name: (en as any)[code] || code,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const nationalityOptions = NATIONALITY_OPTIONS;
+
+  const activeLanguage = (i18n.resolvedLanguage || i18n.language || "en").split("-")[0];
+  const datePickerLocale = DATE_PICKER_LOCALES[
+    activeLanguage as keyof typeof DATE_PICKER_LOCALES
+  ] || DATE_PICKER_LOCALES.en;
+
+  /** Use the phone library's static locale data rather than Intl.DisplayNames.
+   *  ICU country names can differ between Node and the browser, which would
+   *  make the server-rendered <option> text fail React hydration. */
+  const phoneCountryLabels = useMemo(() => {
+    const localizedLabels = PHONE_COUNTRY_LABELS_BY_LANGUAGE[activeLanguage]
+      || PHONE_COUNTRY_LABELS_BY_LANGUAGE.en;
+    const labels: Record<string, string> = { ...localizedLabels };
+    for (const code of BOOKING_COUNTRIES) {
+      const countryName = labels[code] || (en as Record<string, string>)[code] || code;
+      labels[code] = `${countryName} (+${getCountryCallingCode(code)})`;
+    }
+    labels.country = t("tourDetails.bookingForm.countryCodeLabel", "Country calling code");
+    labels.phone = t("tourDetails.bookingForm.mobilePlaceholder", "Mobile *");
+    labels.ZZ = t("tourDetails.bookingForm.internationalOption", "International");
+    return labels;
+  }, [activeLanguage, t]);
 
   const clearError = (field: string) => {
     setErrors(prev => (prev[field] ? { ...prev, [field]: "" } : prev));
@@ -339,29 +399,30 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
       data-wow-delay='0.4s'
       data-wow-duration='1500ms'
     >
-      {/* The price the old info-bar button advertised, now heading the card it
-          belongs to. Above the title on purpose: a visitor who meets nine form
-          fields before any number reads the form as an unpriced commitment. */}
-      {resolvedPrice > 0 && (
-        <div className="booking-price-block">
-          <span className="booking-price-block__label">
-            {t("tourDetails.info.priceStartsFrom", "Price starts from")}
-          </span>
-          <span className="booking-price-block__value">{formatPrice(price)}</span>
-          <span className="booking-price-block__unit">
-            {t("tourDetails.pricing.perPerson", "per person")}
-          </span>
-          {hasPricing && (
-            <a className="booking-price-block__link" href="#pricing">
-              {t("tourDetails.nav.pricing")}
-            </a>
-          )}
-        </div>
-      )}
+      <div className="booking-card-header">
+        <h2 className='tour-listing-details__sidebar__title'>
+          {t("tourDetails.bookingForm.title")}
+        </h2>
 
-      <h2 className='tour-listing-details__sidebar__title' style={{ fontSize: '1.4rem' }}>
-        {t("tourDetails.bookingForm.title")}
-      </h2>
+        {/* Keep price and intent together in one compact header. The form stays
+            reassuringly priced without spending three full rows above Name. */}
+        {resolvedPrice > 0 && (
+          <div className="booking-price-block">
+            <span className="booking-price-block__label">
+              {t("tourDetails.info.priceStartsFrom", "Price starts from")}
+            </span>
+            <span className="booking-price-block__value">{formatPrice(price)}</span>
+            <span className="booking-price-block__unit">
+              {t("tourDetails.pricing.perPerson", "per person")}
+            </span>
+            {hasPricing && (
+              <a className="booking-price-block__link" href="#pricing">
+                {t("tourDetails.nav.pricing")}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
       <div className='booking-form-card'>
         {/* noValidate: without it the browser's own `required` bubbles fired
             first — in the BROWSER's language — and the localized messages below
@@ -484,7 +545,6 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
             <div className="phone-input-wrapper">
               <PhoneInput
                 international
-                defaultCountry="EG"
                 id={fieldId('phone')}
                 value={phone}
                 onChange={(value) => {
@@ -492,11 +552,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
                   if (errors.phone) clearError('phone');
                 }}
                 placeholder={t("tourDetails.bookingForm.mobilePlaceholder")}
+                labels={phoneCountryLabels}
                 className="booking-phone-input"
+                inputComponent={InternationalPhoneTextInput}
                 required
                 limitMaxLength
                 aria-invalid={!!errors.phone}
               />
+              {!phone && (
+                <span className="booking-phone-empty-label" aria-hidden="true">
+                  {t("tourDetails.bookingForm.mobilePlaceholder")}
+                </span>
+              )}
             </div>
             {errors.phone && <span className="booking-error-text" role="alert">{errors.phone}</span>}
           </div>
@@ -519,12 +586,28 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
                       setEndDate(null);
                       clearError('dateTo');
                     }
+                    // Continue the date-range task without making visitors
+                    // find and open the second field themselves.
+                    if (date) {
+                      window.requestAnimationFrame(() => {
+                        endDatePickerRef.current?.setOpen(true);
+                      });
+                    }
                   }}
                   placeholderText={t("tourDetails.bookingForm.dateFromPlaceholder")}
                   className={`booking-date-input ${errors.dateFrom ? 'booking-input-error' : ''}`}
                   popperClassName="booking-date-popper"
                   popperPlacement="bottom-start"
+                  popperProps={{ strategy: "fixed" }}
+                  locale={datePickerLocale}
+                  dateFormat="P"
+                  startDate={startDate}
+                  endDate={endDate}
+                  selectsStart
                   minDate={new Date()}
+                  showDisabledMonthNavigation
+                  previousMonthAriaLabel={t("tourDetails.bookingForm.previousMonth", "Previous month")}
+                  nextMonthAriaLabel={t("tourDetails.bookingForm.nextMonth", "Next month")}
                   autoComplete="off"
                 />
                 <i className='icon-calendar' aria-hidden="true"></i>
@@ -537,6 +620,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
               </label>
               <div className="date-input-wrapper">
                 <DatePicker
+                  ref={endDatePickerRef}
                   id={fieldId('dateTo')}
                   selected={endDate}
                   onChange={(date) => {
@@ -547,7 +631,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
                   className={`booking-date-input ${errors.dateTo ? 'booking-input-error' : ''}`}
                   popperClassName="booking-date-popper"
                   popperPlacement="bottom-end"
+                  popperProps={{ strategy: "fixed" }}
+                  locale={datePickerLocale}
+                  dateFormat="P"
+                  startDate={startDate}
+                  endDate={endDate}
+                  selectsEnd
                   minDate={startDate || new Date()}
+                  showDisabledMonthNavigation
+                  previousMonthAriaLabel={t("tourDetails.bookingForm.previousMonth", "Previous month")}
+                  nextMonthAriaLabel={t("tourDetails.bookingForm.nextMonth", "Next month")}
                   autoComplete="off"
                 />
                 <i className='icon-calendar' aria-hidden="true"></i>
@@ -619,36 +712,40 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
             )}
           </button>
 
-          {/* Between Submit and Save on purpose: it is the alternative way to
-              START a conversation, so it belongs next to the primary action —
-              not filed with "keep for later". An <a>, not a button: it navigates,
-              and rendering it only once `waHref` is computed keeps the phone
-              number and current URL out of the server HTML. */}
-          {waHref && (
-            <a
-              className="booking-whatsapp-btn"
-              href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <i className="fab fa-whatsapp" aria-hidden="true" />
-              {t("tourDetails.bookingForm.whatsapp", "Ask on WhatsApp")}
-            </a>
-          )}
+          {/* Keep both useful secondary actions, but share one row on desktop so
+              they do not make the booking card unnecessarily tall. */}
+          {(waHref || tourId) && (
+            <div className="booking-secondary-actions">
+              {/* An <a>, not a button: WhatsApp navigates away from the form. */}
+              {waHref && (
+                <a
+                  className="booking-whatsapp-btn"
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t("tourDetails.bookingForm.whatsapp", "Ask on WhatsApp")}
+                >
+                  <i className="fab fa-whatsapp" aria-hidden="true" />
+                  {t("tourDetails.bookingForm.whatsappShort", "WhatsApp")}
+                </a>
+              )}
 
-          {/* A soft exit for visitors who are interested but not ready to book:
-              saving keeps the tour without making them leave the page. Outside
-              the submit path, so `type="button"` — it must never post the form. */}
-          {tourId && (
-            <button
-              type="button"
-              className="booking-save-btn"
-              onClick={() => toggleWishlist(tourId)}
-              aria-pressed={saved}
-            >
-              <Heart size={16} fill={saved ? "currentColor" : "none"} />
-              {saved ? tCommon("tourCard.savedTour") : tCommon("tourCard.saveTour")}
-            </button>
+              {/* Outside the submit path so saving can never post the form. */}
+              {tourId && (
+                <button
+                  type="button"
+                  className="booking-save-btn"
+                  onClick={() => toggleWishlist(tourId)}
+                  aria-pressed={saved}
+                  aria-label={saved ? tCommon("tourCard.savedTour") : tCommon("tourCard.saveTour")}
+                >
+                  <Heart size={16} fill={saved ? "currentColor" : "none"} />
+                  {saved
+                    ? t("tourDetails.bookingForm.wishlistedShort", "Saved")
+                    : t("tourDetails.bookingForm.wishlistShort", "Wishlist")}
+                </button>
+              )}
+            </div>
           )}
         </form>
       </div>
