@@ -1,6 +1,12 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { currencyAPI } from "@/lib/api/currency";
+import { currencyForCountry } from "@/lib/currency/countryCurrency";
+import {
+  isCurrencyCode,
+  readCurrencyCookie,
+  writeCurrencyCookie,
+} from "@/lib/currency/currencyCookie";
 
 export type CurrencyCode = "USD" | "EUR" | "GBP";
 
@@ -105,25 +111,75 @@ const CurrencyContext = createContext<CurrencyContextType>({
 
 export const useCurrency = () => useContext(CurrencyContext);
 
-export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
+export const CurrencyProvider: React.FC<{
+  children: React.ReactNode;
+  /** The preference the server read from the cookie for THIS request. Supplying
+   *  it makes the first paint already correct, which is the whole fix for the
+   *  dollar flash: the value used to start at "USD" and only reach localStorage
+   *  in an effect, so everyone who had chosen euros or pounds watched their
+   *  prices change on every single page load. */
+  initialCurrency?: CurrencyCode;
+}> = ({ children, initialCurrency }) => {
+  // Geo, by contrast, is still never applied here — it stays in the effect
+  // below. The cookie is per-visitor and travels with the request; the
+  // visitor's IP would make the rendered output vary by country, which is a
+  // different and unsafe thing to bake into a shared response.
+  const [currency, setCurrencyState] = useState<CurrencyCode>(
+    initialCurrency ?? "USD"
+  );
   const [rates, setRates] = useState<Record<CurrencyCode, number>>(DEFAULT_RATES);
   const [isLoading, setIsLoading] = useState(true);
+  /** True once the visitor's own choice is known, from storage or from the
+   *  switcher. Geo is only ever allowed to fill an empty preference, so this
+   *  also settles the race where someone picks a currency while `/api/geo` is
+   *  still in flight — the reply is then discarded instead of overruling them. */
+  const hasExplicitCurrency = useRef(Boolean(initialCurrency));
 
-  // Load saved currency from localStorage on mount
+  // Resolve the currency: the cookie the server already applied, then a
+  // preference left behind in localStorage by the old build, then the
+  // visitor's country, then the USD default.
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    if (readCurrencyCookie()) {
+      hasExplicitCurrency.current = true;
+      return;
+    }
+
+    // One-time migration. Without it, everyone who had already picked a
+    // currency would silently lose it the moment this build ships, because
+    // the server only ever looks at the cookie.
+    let legacy: string | null = null;
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved && (saved === "USD" || saved === "EUR" || saved === "GBP")) {
-        setCurrencyState(saved as CurrencyCode);
-      }
+      legacy = window.localStorage.getItem(STORAGE_KEY);
     } catch {
       // localStorage unavailable
     }
+
+    if (isCurrencyCode(legacy)) {
+      hasExplicitCurrency.current = true;
+      writeCurrencyCookie(legacy);
+      setCurrencyState(legacy);
+      return;
+    }
+
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const response = await fetch("/api/geo", { signal: controller.signal });
+        if (!response.ok) return;
+        const data: { country?: string | null } = await response.json();
+        if (hasExplicitCurrency.current) return;
+        // Not written to storage: a guess must stay a guess, so that it can be
+        // re-derived if the visitor travels, and so it never masquerades as a
+        // decision they made.
+        setCurrencyState(currencyForCountry(data?.country));
+      } catch {
+        // Aborted, offline, or not deployed behind the edge — stays USD.
+      }
+    })();
+
+    return () => controller.abort();
   }, []);
 
   // Fetch exchange rates from API
@@ -163,9 +219,15 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const setCurrency = useCallback((newCurrency: CurrencyCode) => {
+    // From here on the visitor has decided; geo must not touch the value again.
+    hasExplicitCurrency.current = true;
     setCurrencyState(newCurrency);
     if (typeof window === "undefined") return;
 
+    // The cookie is what the next server render reads, so it is the one that
+    // has to be right. localStorage is kept in step only so that a rollback to
+    // the previous build does not lose the choice.
+    writeCurrencyCookie(newCurrency);
     try {
       window.localStorage.setItem(STORAGE_KEY, newCurrency);
     } catch {
