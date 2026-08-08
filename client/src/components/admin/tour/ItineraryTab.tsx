@@ -22,7 +22,7 @@
  import { Input } from '@/components/ui/input';
  import { Button } from '@/components/ui/button';
  import LocalizedRichText from '../LocalizedRichText';
- import ImageUpload, { ImageData } from '@/components/admin/ImageUpload';
+ import type { ImageData } from '@/components/admin/ImageUpload';
  import { cn } from '@/lib/utils';
  import { ChevronDown, ChevronUp, Copy, GripVertical, Image as ImageIcon, Plus, Trash2, Upload, X } from 'lucide-react';
 
@@ -643,6 +643,16 @@ export default function ItineraryTab({
                                     </div>
                                   </SortableContext>
                                 </DndContext>
+
+                                <Button
+                                  type="button"
+                                  onClick={addActivity}
+                                  variant="outline"
+                                  className="w-full"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Add Activity
+                                </Button>
                               </div>
                             </div>
                           )}
