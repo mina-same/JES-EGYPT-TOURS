@@ -1,9 +1,31 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getLocalizedStaticSlug } from '@/lib/url/staticSlugs';
+import {
+  getCanonicalStaticSlug,
+  getLocalizedStaticPath,
+  getLocalizedStaticSlug,
+} from '@/lib/url/staticSlugs';
 
 const locales = ['en', 'de', 'it', 'es'];
 const defaultLocale = 'en';
+
+function redirectPreservingSearchParams(request: NextRequest, pathname: string) {
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = pathname;
+  return NextResponse.redirect(redirectUrl);
+}
+
+function getLocaleRedirectPath(pathname: string, locale: string) {
+  if (pathname === '/') return `/${locale}`;
+
+  const firstPathSegment = pathname.slice(1).split('/')[0];
+  const canonicalStaticSlug = getCanonicalStaticSlug(firstPathSegment);
+
+  if (!canonicalStaticSlug) return `/${locale}${pathname}`;
+
+  const remainingPath = pathname.slice(firstPathSegment.length + 1);
+  return `${getLocalizedStaticPath(canonicalStaticSlug, locale)}${remainingPath}`;
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,7 +33,8 @@ export function middleware(request: NextRequest) {
   // 1. Skip internal next.js requests, API routes, and static files
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
+    pathname === '/api' ||
+    pathname.startsWith('/api/') ||
     pathname.includes('.') ||
     pathname === '/favicon.ico'
   ) {
@@ -50,18 +73,17 @@ export function middleware(request: NextRequest) {
   const locale = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale;
 
   if (pathname === '/tailorMade') {
-    return NextResponse.redirect(
-      new URL(`/${locale}/${getLocalizedStaticSlug('tailor-made', locale)}`, request.url)
+    return redirectPreservingSearchParams(
+      request,
+      `/${locale}/${getLocalizedStaticSlug('tailor-made', locale)}`
     );
   }
 
   const oldTailorMadeLocale = locales.find((currentLocale) => pathname === `/${currentLocale}/tailorMade`);
   if (oldTailorMadeLocale) {
-    return NextResponse.redirect(
-      new URL(
-        `/${oldTailorMadeLocale}/${getLocalizedStaticSlug('tailor-made', oldTailorMadeLocale)}`,
-        request.url
-      )
+    return redirectPreservingSearchParams(
+      request,
+      `/${oldTailorMadeLocale}/${getLocalizedStaticSlug('tailor-made', oldTailorMadeLocale)}`
     );
   }
 
@@ -82,7 +104,7 @@ export function middleware(request: NextRequest) {
     const firstSegment = pathname.split('/')[1];
     const subPath = pathname.replace(`/${firstSegment}`, '') || '/';
     if (subPath === '/admin' || subPath.startsWith('/admin/')) {
-        return NextResponse.redirect(new URL(subPath, request.url));
+        return redirectPreservingSearchParams(request, subPath);
     }
     
     // Valid localized path: Let Next.js handle it via the [locale] file structure
@@ -91,10 +113,11 @@ export function middleware(request: NextRequest) {
 
   // 4. No locale prefix found: Determine the target locale and redirect
   // We check for the NEXT_LOCALE cookie first, then fall back to default Locale
-  const targetPath = `/${locale}${pathname === '/' ? '' : pathname}`;
+  const targetPath = getLocaleRedirectPath(pathname, locale);
   
-  // Redirect to the localized version (e.g. / -> /en, /about -> /en/about)
-  return NextResponse.redirect(new URL(targetPath, request.url));
+  // Redirect directly to the public slug for the selected locale
+  // (e.g. / -> /en, or /about + de -> /de/ueber-uns).
+  return redirectPreservingSearchParams(request, targetPath);
 }
 
 export const config = {
@@ -104,6 +127,6 @@ export const config = {
     // - _next/image (image optimization files)
     // - favicon.ico (favicon file)
     // - api (API routes)
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api$|api/|_next/static|_next/image|favicon.ico).*)',
   ],
 };
