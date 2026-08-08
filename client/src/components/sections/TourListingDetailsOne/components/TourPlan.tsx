@@ -31,7 +31,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
       )}
 
       <div className='faq-page__accordion faq-accordion gotur-accordion'>
-        <Accordion defaultActiveKey='0'>
+        <Accordion defaultActiveKey={['0']} alwaysOpen>
           {itinerary.days.map((day, idx) => (
             <Accordion.Item eventKey={idx.toString()} key={idx}>
               <Accordion.Header as="div">

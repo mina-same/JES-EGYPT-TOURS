@@ -36,6 +36,11 @@ export interface TourCardItem {
   /** Pre-discount price, when the data provides one (offer footer only). */
   originalPrice?: number | any;
   videoId?: string;
+  /** Every review video on this tour, read from the payload the listing
+   *  already holds. Empty (or absent) means there is nothing to play, and the
+   *  caller then withholds `openVideoReviews` so no button is rendered —
+   *  mirroring how the carousels withhold `onPlayVideo` without a `videoId`. */
+  videoIds?: string[];
   discount?: string;
   meta: TourCardMeta[];
 }

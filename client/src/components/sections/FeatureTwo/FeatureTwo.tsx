@@ -21,6 +21,9 @@ interface FeaturePackageItem {
   link: string;
   price: string | number;
   videoId: string;
+  /** Every review video on the tour. The button opens all of them, the same
+   *  as the cards on the listing pages do. */
+  videoIds?: string[];
   discount: string;
   /** Short summary shown under the title (HTML is stripped by the card). */
   description?: string;
@@ -59,7 +62,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   showShape = true,
 }) => {
   const [isOpen, setOpen] = useState(false);
-  const [videoId, setVideoId] = useState("");
+  const [videoIds, setVideoIds] = useState<string[]>([]);
   const sliderRef = useRef<TinySliderHandle>(null);
   // Without these the card's heart renders but does nothing, and never fills
   // in for tours that are already saved.
@@ -199,11 +202,16 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                       linkMeta={false}
                       toggleWishlist={toggleWishlist}
                       isInWishlist={isInWishlist}
-                      // Per item: the button only appears when a video exists.
+                      // Per item: the button only appears when a video exists,
+                      // and it opens ALL of the tour's review videos — the
+                      // same set the listing pages open, so the control does
+                      // not mean two different things on two pages.
                       onPlayVideo={
                         item.videoId
-                          ? (videoId) => {
-                              setVideoId(videoId);
+                          ? () => {
+                              setVideoIds(
+                                item.videoIds?.length ? item.videoIds : [item.videoId]
+                              );
                               setOpen(true);
                             }
                           : undefined
@@ -222,7 +230,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
           </div>
         )}
       </section>
-      <VideoModal isOpen={isOpen && !!videoId} setOpen={setOpen} id={videoId} />
+      <VideoModal isOpen={isOpen && videoIds.length > 0} setOpen={setOpen} ids={videoIds} />
     </>
   );
 };

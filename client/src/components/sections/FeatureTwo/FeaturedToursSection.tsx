@@ -19,6 +19,9 @@ interface FeaturePackageItem {
   link: string;
   price: number | ICurrencyPrice;
   videoId: string;
+  /** All of the tour's review videos, so the card's button opens the same set
+   *  the listing pages open rather than just the first one. */
+  videoIds: string[];
   discount: string;
   /** Short summary shown under the title (HTML is stripped by the card). */
   description?: string;
@@ -58,9 +61,13 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
       ? tour.priceStartingFrom
       : (typeof tour.price === "number" ? tour.price : 0);
 
-  // Server sends a single lightweight `videoUrl` (or none). Extract the
-  // YouTube id; empty string means the tour has no video (button is hidden).
-  const videoId = tour.videoUrl ? getYouTubeId(tour.videoUrl) : "";
+  // Server sends `videoUrls` (all of the tour's review videos) and keeps
+  // `videoUrl` for the first. Both are absent when the tour has no video, and
+  // an empty `videoIds` is what hides the button.
+  const videoIds: string[] = (Array.isArray(tour.videoUrls) ? tour.videoUrls : [tour.videoUrl])
+    .map((url: unknown) => (typeof url === "string" ? getYouTubeId(url) : ""))
+    .filter(Boolean);
+  const videoId = videoIds[0] || "";
 
   const duration = getLocalizedValue(tour.duration, locale) || "1 Day";
   const location =
@@ -74,6 +81,7 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
     link: `/${locale}/${slug}`,
     price,
     videoId,
+    videoIds,
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : "",
     description:
       getLocalizedValue(tour.cardDescription, locale) ||

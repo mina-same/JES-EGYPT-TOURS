@@ -634,12 +634,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         ],
       };
 
+      // This handler plays `tour.videoLink`, not the review list, so that is
+      // what decides whether the button can do anything at all.
       const card = (
         <TourCard
           item={item}
           toggleWishlist={toggleWishlist}
           isInWishlist={isInWishlist}
-          openVideoReviews={openVideoReviews}
+          openVideoReviews={tour.videoLink ? openVideoReviews : undefined}
         />
       );
 

@@ -507,12 +507,19 @@ export default function EditTourPage() {
       }
       
       if (!cleanData.pricingPlans?.length) delete cleanData.pricingPlans;
-      if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;
-      if (!cleanData.relatedTours?.length) delete cleanData.relatedTours;
-      
+
       // Do NOT delete tags, inclusion, exclusion if they are required by schema
-      
-      if (!(cleanData.reviews as any)?.length) delete cleanData.reviews;
+
+      // These three arrays are deliberately NOT dropped when empty. The update
+      // runs through findByIdAndUpdate, which only touches the keys it is
+      // given — so omitting an emptied array left the previous contents in the
+      // database. Removing the last review, blog reference or related tour
+      // looked like it saved and then reappeared on reload. Sending [] is what
+      // actually clears it. None of the three is `required` in the schema, so
+      // an empty array is a valid value rather than a validation failure.
+      if (!Array.isArray(cleanData.reviews)) cleanData.reviews = [];
+      if (!Array.isArray(cleanData.blogReferences)) cleanData.blogReferences = [];
+      if (!Array.isArray(cleanData.relatedTours)) cleanData.relatedTours = [];
 
       // Sanitize ID fields to ensure they are strings, not objects
       if (cleanData.subcategory && typeof cleanData.subcategory === 'object') {

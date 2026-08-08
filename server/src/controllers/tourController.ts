@@ -311,16 +311,26 @@ export const getFeaturedTours = async (
       )
       .lean();
 
-    // Collapse reviews into a single lightweight `videoUrl` (first review that
-    // has a URL) and drop the reviews array, so the homepage card can show a
-    // working video button without receiving all reviews. Tours without a
-    // video simply have no `videoUrl` (the client then hides the button).
+    // Collapse reviews into their URLs and drop the rest of each review, so the
+    // homepage card can show a working video button without receiving titles
+    // and bodies it never renders. Tours without a video get no `videoUrls` at
+    // all, and the client then hides the button.
+    //
+    // All of them, not just the first: the listing pages open every review a
+    // tour has, and a card that plays one video here and three elsewhere is the
+    // same button behaving differently depending on which page you clicked it
+    // from. `videoUrl` is kept alongside for anything still reading the old
+    // single-value shape.
     const data = tours.map((tour: any) => {
       const { reviews, ...rest } = tour;
-      const videoUrl = Array.isArray(reviews)
-        ? reviews.find((r: any) => typeof r?.url === 'string' && r.url)?.url
-        : undefined;
-      return videoUrl ? { ...rest, videoUrl } : rest;
+      const videoUrls = Array.isArray(reviews)
+        ? reviews
+            .map((r: any) => (typeof r?.url === 'string' ? r.url : ''))
+            .filter(Boolean)
+        : [];
+      return videoUrls.length
+        ? { ...rest, videoUrl: videoUrls[0], videoUrls }
+        : rest;
     });
 
     // Localized, EXCEPT `slug`. The homepage builds per-locale URLs with

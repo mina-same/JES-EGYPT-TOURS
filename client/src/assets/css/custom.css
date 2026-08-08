@@ -4619,3 +4619,48 @@ button[data-action="stop"] {
   outline-offset: 3px;
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.9);
 }
+
+/* ==========================================================================
+   HOMEPAGE VIDEO REVIEWS
+   Managed under Content Management → Video Management. The section removes
+   itself when there is nothing active, so these rules only ever apply to a
+   populated band.
+   ========================================================================== */
+.video-reviews-two__item {
+  height: 100%;
+  overflow: hidden;
+  background: var(--gotur-white, #fff);
+  border: 1px solid #edf0f2;
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* The 16:9 box is reserved before the iframe resolves, so the cards below
+   never get pushed down once the embeds load. */
+.video-reviews-two__frame {
+  background: #0f1113;
+}
+
+.video-reviews-two__frame iframe {
+  border: 0;
+}
+
+.video-reviews-two__body {
+  padding: 18px 20px 20px;
+}
+
+.video-reviews-two__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #161616;
+}
+
+.video-reviews-two__tour {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8f7333;
+}

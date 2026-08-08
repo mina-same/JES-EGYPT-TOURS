@@ -198,14 +198,38 @@
       "next": "Destinazione successiva",
       "viewDestination": "Scopri {{destination}}"
     },
-    "aswan": { "title": "Assuan", "subtitle": "Tour in Feluca sul Nilo" },
-    "dahab": { "title": "Dahab", "subtitle": "Tour Mar Rosso & Montagne" },
-    "giza": { "title": "Giza", "subtitle": "Panorama Piramidi & Sfinge" },
-    "hatshepsut": { "title": "Tempio di Hatshepsut", "subtitle": "Tour Riva Ovest di Luxor" },
-    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Bazar dello Shopping del Cairo" },
-    "luxor": { "title": "Luxor", "subtitle": "Mongolfiera sul Nilo" },
-    "qaitbay": { "title": "Cittadella di Qaitbay", "subtitle": "Tour Costiero di Alessandria" },
-    "siwa": { "title": "Siwa", "subtitle": "Tour dell'Oasi e Laghi Salati" }
+    "aswan": {
+      "title": "Assuan",
+      "subtitle": "Tour in Feluca sul Nilo"
+    },
+    "dahab": {
+      "title": "Dahab",
+      "subtitle": "Tour Mar Rosso & Montagne"
+    },
+    "giza": {
+      "title": "Giza",
+      "subtitle": "Panorama Piramidi & Sfinge"
+    },
+    "hatshepsut": {
+      "title": "Tempio di Hatshepsut",
+      "subtitle": "Tour Riva Ovest di Luxor"
+    },
+    "khanElKhalili": {
+      "title": "Khan El Khalili",
+      "subtitle": "Bazar dello Shopping del Cairo"
+    },
+    "luxor": {
+      "title": "Luxor",
+      "subtitle": "Mongolfiera sul Nilo"
+    },
+    "qaitbay": {
+      "title": "Cittadella di Qaitbay",
+      "subtitle": "Tour Costiero di Alessandria"
+    },
+    "siwa": {
+      "title": "Siwa",
+      "subtitle": "Tour dell'Oasi e Laghi Salati"
+    }
   },
   "tailorOffer": {
     "tagline": "Su misura",
@@ -226,5 +250,9 @@
     "trust2": "Nessun costo nascosto",
     "trust3": "Supporto 24/7",
     "scroll": "Scorri"
+  },
+  "videoReviews": {
+    "tagline": "Viaggiatori Reali",
+    "title": "Recensioni Video"
   }
 }

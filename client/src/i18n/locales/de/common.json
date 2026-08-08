@@ -198,14 +198,38 @@
       "next": "Nächstes Reiseziel",
       "viewDestination": "{{destination}} entdecken"
     },
-    "aswan": { "title": "Assuan", "subtitle": "Nil-Feluke Segel-Tour" },
-    "dahab": { "title": "Dahab", "subtitle": "Rotes Meer & Bergtour" },
-    "giza": { "title": "Gizeh", "subtitle": "Pyramiden & Sphinx Panorama" },
-    "hatshepsut": { "title": "Hatschepsut-Tempel", "subtitle": "Luxor Westufer Tour" },
-    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Kairo Shopping-Basar" },
-    "luxor": { "title": "Luxor", "subtitle": "Heißluftballon über dem Nil" },
-    "qaitbay": { "title": "Qaitbay-Zitadelle", "subtitle": "Alexandria Küstentour" },
-    "siwa": { "title": "Siwa", "subtitle": "Oase & Salzseen Tour" }
+    "aswan": {
+      "title": "Assuan",
+      "subtitle": "Nil-Feluke Segel-Tour"
+    },
+    "dahab": {
+      "title": "Dahab",
+      "subtitle": "Rotes Meer & Bergtour"
+    },
+    "giza": {
+      "title": "Gizeh",
+      "subtitle": "Pyramiden & Sphinx Panorama"
+    },
+    "hatshepsut": {
+      "title": "Hatschepsut-Tempel",
+      "subtitle": "Luxor Westufer Tour"
+    },
+    "khanElKhalili": {
+      "title": "Khan El Khalili",
+      "subtitle": "Kairo Shopping-Basar"
+    },
+    "luxor": {
+      "title": "Luxor",
+      "subtitle": "Heißluftballon über dem Nil"
+    },
+    "qaitbay": {
+      "title": "Qaitbay-Zitadelle",
+      "subtitle": "Alexandria Küstentour"
+    },
+    "siwa": {
+      "title": "Siwa",
+      "subtitle": "Oase & Salzseen Tour"
+    }
   },
   "tailorOffer": {
     "tagline": "Maßgeschneidert",
@@ -226,5 +250,9 @@
     "trust2": "Keine versteckten Gebühren",
     "trust3": "24/7 Support",
     "scroll": "Scrollen"
+  },
+  "videoReviews": {
+    "tagline": "Echte Reisende",
+    "title": "Video-Bewertungen"
   }
 }

@@ -8,6 +8,7 @@ import OfferTwo from "@/components/sections/OfferTwo/OfferTwo";
 import OfferOne from "@/components/sections/OfferOne/OfferOne";
 import DestinationCarouselTwo from "@/components/sections/DestinationCarouselTwo/DestinationCarouselTwo";
 import TestimonialsTwo from "@/components/sections/TestimonialsTwo/TestimonialsTwo";
+import VideoReviewsTwo, { type HomeVideoReview } from "@/components/sections/VideoReviewsTwo/VideoReviewsTwo";
 import LazyInstagramSection from "@/components/common/LazySection/LazyInstagramSection";
 import BlogTwoTwo from "@/components/sections/BlogTwoTwo/BlogTwoTwo";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
@@ -90,6 +91,25 @@ async function getInitialFeaturedTours(locale: string): Promise<any[]> {
   }
 }
 
+async function getInitialVideoReviews(locale: string): Promise<HomeVideoReview[]> {
+  try {
+    // Fetched here rather than in the component so the videos are part of the
+    // server-rendered HTML: a client-side fetch would pop the section in after
+    // hydration and shift everything below it.
+    const response = await fetch(`${API_URL}/video-reviews`, {
+      headers: { "X-Locale": locale },
+    });
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    return data.success && Array.isArray(data.data) ? data.data : [];
+  } catch {
+    // The section simply does not render — the homepage must not fail over a
+    // supplementary band of videos.
+    return [];
+  }
+}
+
 async function getInitialFeaturedBlogs(locale: string): Promise<BlogPost[]> {
   try {
     // Without the locale the API falls back to English, so the German homepage
@@ -124,12 +144,13 @@ export default async function HomeThree({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const [initialSliders, initialSliderPromo, initialTours, initialBlogs, initialFaqs] = await Promise.all([
+  const [initialSliders, initialSliderPromo, initialTours, initialBlogs, initialFaqs, initialVideoReviews] = await Promise.all([
     getInitialSliders(locale),
     getInitialSliderPromo(locale),
     getInitialFeaturedTours(locale),
     getInitialFeaturedBlogs(locale),
     getInitialHomeFaqs(locale),
+    getInitialVideoReviews(locale),
   ]);
 
   return (
@@ -146,6 +167,7 @@ export default async function HomeThree({
       <OfferOne />
       <DestinationCarouselTwo />
       <TestimonialsTwo />
+      <VideoReviewsTwo reviews={initialVideoReviews} />
       <LazyInstagramSection />
       <HomeFAQ initialFaqs={initialFaqs} />
       <BlogTwoTwo initialBlogs={initialBlogs} />
