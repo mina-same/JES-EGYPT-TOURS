@@ -93,11 +93,6 @@ html, body {
   width: 100%;
 }
 
-.tour-listing-details__sidebar {
-  position: sticky;
-  top: 75px;
-}
-
 /* Ensure tour slider items always stretch to full slide width */
 .tour-one__carousel .item,
 .tour-one__carousel .item > div,
@@ -264,6 +259,22 @@ html, body {
   gap: 8px;
 }
 
+/* Keep the desktop navigation on one clean row. If localized labels exceed the
+   9-column content rail, the bar scrolls horizontally instead of creating an
+   uneven second row. Mobile uses the same interaction in its rules below. */
+@media (min-width: 992px) {
+  .tour-details-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .tour-nav-link {
+    /* Fill the rail when labels fit; keep natural widths when they overflow. */
+    flex: 1 0 auto;
+  }
+}
+
 .tour-nav-link:hover {
   color: #b79c5c;
   background-color: rgba(183, 156, 92, 0.05);
@@ -276,10 +287,13 @@ html, body {
 }
 
 
+/* 40px top + 40px bottom put ~80px between two sections' text and left the
+   divider line floating in the middle of that void rather than reading as a
+   separator. 24px keeps the sections distinct at roughly half the gap. */
 .tour-section {
   scroll-margin-top: 120px;
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 24px;
+  padding-bottom: 24px;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -302,11 +316,29 @@ html, body {
   letter-spacing: 0.5px;
 }
 
+/* The card is now beside the photos rather than far down the page, so its
+   height decides how much of the form a visitor sees before scrolling. Eleven
+   rows at a 20px gap spent 200px on gaps alone; 14px keeps the fields clearly
+   separated and returns ~60px, and the smaller top padding another 16px. */
 .booking-form-inner {
-  padding: 30px 0px;
+  padding: 14px 0px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
+}
+
+/* Spam trap: removed from layout, pointer/keyboard flow and assistive output.
+   Keeping it in the DOM lets unsophisticated form-fill bots reveal themselves. */
+.booking-honeypot {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 /* Inputs */
@@ -360,7 +392,7 @@ html, body {
   width: 100%;
   border: 1px solid #e0e0e0;
   border-radius: 30px;
-  padding: 14px 24px 14px 50px;
+  padding: 14px 24px 14px 82px;
   font-size: 15px;
   color: var(--gotur-text, #595959);
   outline: none;
@@ -375,44 +407,76 @@ html, body {
   box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
 }
 
+.booking-phone-empty-label {
+  position: absolute;
+  left: 97px;
+  top: 50%;
+  z-index: 3;
+  transform: translateY(-50%);
+  color: #a8afbd;
+  font-size: 15px;
+  line-height: 1;
+  pointer-events: none;
+}
+
 .booking-phone-input .PhoneInputCountry {
   position: absolute;
-  left: 20px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 2;
+  z-index: 4;
   display: flex;
   align-items: center;
-  pointer-events: none;
+  justify-content: center;
+  gap: 7px;
+  width: 54px;
+  height: 32px;
+  margin: 0;
+  padding-right: 8px;
+  border-right: 1px solid #d9d9d9;
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 .booking-phone-input .PhoneInputCountryIcon {
   width: 20px;
   height: 15px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
   border-radius: 2px;
   display: block;
 }
 
+.booking-phone-input .PhoneInputCountryIcon--border {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
 .booking-phone-input .PhoneInputCountrySelect {
   position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 3;
+  inset: 0;
+  z-index: 5;
   border: none;
   background: transparent;
   padding: 0;
-  font-size: 0;
-  width: 30px;
-  height: 20px;
+  width: 100%;
+  height: 100%;
   cursor: pointer;
   opacity: 0;
-  appearance: none;
 }
 
 .booking-phone-input .PhoneInputCountrySelectArrow {
-  display: none;
+  display: block;
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin: -3px 0 0;
+  border-color: #123d5b;
+  border-width: 0 1.5px 1.5px 0;
+  opacity: 0.85;
+}
+
+.booking-phone-input .PhoneInputCountry:focus-within {
+  border-radius: 8px;
+  outline: 2px solid rgba(212, 175, 55, 0.55);
+  outline-offset: 2px;
 }
 
 /* Booking Form Messages */
@@ -427,16 +491,54 @@ html, body {
   font-weight: 500;
 }
 
+.booking-message:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
 .booking-message-success {
   background-color: #d1fae5;
   color: #065f46;
   border: 1px solid #6ee7b7;
+  align-items: flex-start;
+  line-height: 1.55;
+}
+
+.booking-message-success > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
 }
 
 .booking-message-error {
   background-color: #fee2e2;
   color: #991b1b;
   border: 1px solid #fca5a5;
+  align-items: flex-start;
+}
+
+.booking-message-error > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.booking-message__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.booking-email-fallback {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.booking-email-fallback a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
 }
 
 .booking-input-error,
@@ -490,6 +592,200 @@ html, body {
   position: relative;
 }
 
+/* react-datepicker defaults its floating layer to z-index: 1, while the phone
+   country flag/select use 2/3. That made the flag paint through the calendar.
+   The start/end placements on the two inputs keep the 300px popup inside the
+   booking card instead of centering it beyond the card edge. */
+.booking-form-inner .react-datepicker-popper {
+  z-index: 50;
+}
+
+.date-input-wrapper .react-datepicker-wrapper,
+.date-input-wrapper .react-datepicker__input-container {
+  display: block;
+  width: 100%;
+}
+
+.booking-date-popper .react-datepicker {
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  overflow: visible;
+  border: 1px solid rgba(18, 61, 91, 0.16);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--gotur-black, #1d231f);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2);
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 14px;
+}
+
+.booking-date-popper .react-datepicker__month-container {
+  float: none;
+  width: 100%;
+}
+
+.booking-date-popper .react-datepicker__header {
+  padding: 14px 10px 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(18, 61, 91, 0.1);
+  border-radius: 16px 16px 0 0;
+  background: #fff;
+}
+
+.booking-date-popper .react-datepicker__current-month {
+  min-height: 32px;
+  color: var(--gotur-black, #1d231f);
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 32px;
+  text-transform: capitalize;
+}
+
+.booking-date-popper .react-datepicker__day-names,
+.booking-date-popper .react-datepicker__week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: center;
+  white-space: normal;
+}
+
+.booking-date-popper .react-datepicker__day-names {
+  margin: 7px 0 0;
+}
+
+.booking-date-popper .react-datepicker__month {
+  margin: 8px 10px 12px;
+}
+
+.booking-date-popper .react-datepicker__day-name {
+  width: auto;
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 28px;
+  text-transform: capitalize;
+}
+
+.booking-date-popper .react-datepicker__day {
+  justify-self: center;
+  width: 36px;
+  height: 36px;
+  margin: 1px;
+  border-radius: 10px;
+  color: #253342;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 36px;
+  transition: background-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.booking-date-popper .react-datepicker__day:not([aria-disabled="true"]):not(.react-datepicker__day--selected):not(.react-datepicker__day--range-start):not(.react-datepicker__day--range-end):hover {
+  border-radius: 10px;
+  background: rgba(212, 175, 55, 0.16);
+  color: #725a18;
+}
+
+.booking-date-popper .react-datepicker__day--today:not(.react-datepicker__day--selected):not(.react-datepicker__day--range-start):not(.react-datepicker__day--range-end) {
+  background: #fff;
+  color: #8d701e;
+  font-weight: 800;
+  box-shadow: inset 0 0 0 1.5px #c7a33e;
+}
+
+.booking-date-popper .react-datepicker__day--in-range:not(.react-datepicker__day--selected):not(.react-datepicker__day--range-start):not(.react-datepicker__day--range-end),
+.booking-date-popper .react-datepicker__day--in-selecting-range:not(.react-datepicker__day--selected):not(.react-datepicker__day--range-start):not(.react-datepicker__day--range-end) {
+  background: rgba(212, 175, 55, 0.2);
+  color: #5e4a14;
+}
+
+.booking-date-popper .react-datepicker__day--selected,
+.booking-date-popper .react-datepicker__day--range-start,
+.booking-date-popper .react-datepicker__day--range-end,
+.booking-date-popper .react-datepicker__day.react-datepicker__day--selected.react-datepicker__day--today,
+.booking-date-popper .react-datepicker__day--selected:not([aria-disabled="true"]):hover,
+.booking-date-popper .react-datepicker__day--range-start:not([aria-disabled="true"]):hover,
+.booking-date-popper .react-datepicker__day--range-end:not([aria-disabled="true"]):hover {
+  border-radius: 10px;
+  background: linear-gradient(135deg, #d8ae2f, #f0ca45);
+  color: #172033;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(183, 156, 92, 0.28);
+}
+
+.booking-date-popper .react-datepicker__day--keyboard-selected:not(.react-datepicker__day--selected) {
+  background: rgba(212, 175, 55, 0.22);
+  color: #5e4a14;
+  box-shadow: inset 0 0 0 1px rgba(183, 156, 92, 0.7);
+}
+
+.booking-date-popper .react-datepicker__day:focus-visible {
+  outline: 2px solid #b79c5c;
+  outline-offset: 2px;
+}
+
+.booking-date-popper .react-datepicker__day--outside-month {
+  color: #b7bdc7;
+  opacity: 0.62;
+}
+
+.booking-date-popper .react-datepicker__day--disabled,
+.booking-date-popper .react-datepicker__day--disabled:hover {
+  cursor: not-allowed;
+  background: transparent;
+  color: #c5cad2;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
+.booking-date-popper .react-datepicker__navigation {
+  top: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(212, 175, 55, 0.11);
+  transition: background-color 0.16s ease, opacity 0.16s ease;
+}
+
+.booking-date-popper .react-datepicker__navigation--previous {
+  left: 10px;
+}
+
+.booking-date-popper .react-datepicker__navigation--next {
+  right: 10px;
+}
+
+.booking-date-popper .react-datepicker__navigation-icon::before {
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border-color: #a8872e;
+  border-width: 2px 2px 0 0;
+}
+
+.booking-date-popper .react-datepicker__navigation:not(.react-datepicker__navigation--previous--disabled):not(.react-datepicker__navigation--next--disabled):hover {
+  background: #c8a435;
+}
+
+.booking-date-popper .react-datepicker__navigation:not(.react-datepicker__navigation--previous--disabled):not(.react-datepicker__navigation--next--disabled):hover .react-datepicker__navigation-icon::before {
+  border-color: #fff;
+}
+
+.booking-date-popper .react-datepicker__navigation--previous--disabled,
+.booking-date-popper .react-datepicker__navigation--next--disabled {
+  cursor: default;
+  background: rgba(100, 116, 139, 0.08);
+  opacity: 0.35;
+}
+
+.booking-date-popper.react-datepicker-popper .react-datepicker__triangle {
+  fill: #fff;
+  color: #fff;
+  stroke: rgba(18, 61, 91, 0.16);
+}
+
 .date-input-wrapper .icon-calendar {
   position: absolute;
   right: 20px;
@@ -498,6 +794,23 @@ html, body {
   color: #aaa;
   pointer-events: none;
   font-size: 14px;
+}
+
+/* A full localized date is much wider than the From/To placeholder. Reserve a
+   real icon lane and use tabular digits so the value never paints underneath
+   the calendar glyph inside the two-column booking row. */
+.date-input-wrapper .booking-date-input {
+  padding-left: 13px;
+  padding-right: 33px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+  text-align: center;
+}
+
+.booking-col-date .date-input-wrapper .icon-calendar {
+  right: 11px;
+  font-size: 13px;
 }
 
 /* Counters */
@@ -629,6 +942,43 @@ html, body {
   background: rgba(212, 175, 55, 0.12);
 }
 
+/* Sits between Submit and Save: the same pill as the save button so the two read
+   as one group of secondary actions, but in WhatsApp green because it leaves the
+   site. Deliberately not filled — Submit stays the only primary action. */
+.booking-whatsapp-btn {
+  width: 100%;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #25d366;
+  border-radius: 30px;
+  background: transparent;
+  color: #128c4a;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.booking-whatsapp-btn:hover {
+  background: rgba(37, 211, 102, 0.12);
+  color: #0f7a40;
+}
+
+.booking-whatsapp-btn:focus-visible {
+  outline: 2px solid #128c4a;
+  outline-offset: 2px;
+}
+
+.booking-whatsapp-btn i {
+  font-size: 18px;
+  line-height: 1;
+}
+
 .booking-save-btn[aria-pressed='true'] {
   background: rgba(212, 175, 55, 0.16);
   color: #8a6d1b;
@@ -637,6 +987,17 @@ html, body {
 .booking-save-btn:focus-visible {
   outline: 2px solid var(--gotur-base, #d4af37);
   outline-offset: 2px;
+}
+
+.booking-secondary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.booking-secondary-actions .booking-whatsapp-btn,
+.booking-secondary-actions .booking-save-btn {
+  margin-top: 0;
 }
 
 html,
@@ -1015,6 +1376,904 @@ body {
   }
 }
 
+/* ==========================================================================
+   TOUR TOP MOSAIC  (replaces the 3-item tiny-slider carousel)
+   ONE fixed height for every photo count, so the block never changes size
+   between tours and the booking card's top alignment is identical across the
+   catalogue. Cell division changes with the real count via [data-tiles]; every
+   cell is always filled. useTourData strips intrinsic width/height from every
+   image, so a fixed track height is the only zero-CLS option here.
+   ========================================================================== */
+/* Breathing room between the hero and the two-column block. A dedicated class
+   rather than the theme's `.section-space-top` utility: overriding that utility
+   from here does not take effect (globals.css's `*` reset wins on this
+   property), whereas a purpose-made class does. */
+.tour-top-block {
+  padding-top: 40px;
+}
+
+@media (max-width: 991px) {
+  .tour-top-block { padding-top: 24px; }
+}
+
+.tour-mosaic {
+  display: grid;
+  gap: 10px;
+  height: clamp(300px, 32vw, 460px);
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  margin-bottom: 20px;
+}
+
+/* Transparent on desktop so tiles 2..6 become grid items of .tour-mosaic; the
+   horizontal scroll rail on mobile. One DOM tree serves both, so the server
+   HTML equals the first client paint — no isMobile branch. */
+.tour-mosaic__rail { display: contents; }
+
+.tour-mosaic__tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f5f5f5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.tour-mosaic__tile:hover { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); }
+.tour-mosaic__tile:focus-visible { outline: 2px solid #b79c5c; outline-offset: 3px; }
+
+.tour-mosaic__img { object-fit: cover; transition: transform 0.4s ease; }
+.tour-mosaic__tile:hover .tour-mosaic__img { transform: scale(1.05); }
+
+/* No translateY lift (unlike .tour-gallery-image-wrapper): inside a fixed grid
+   a lift clips against the neighbouring tile. The zoom carries the hover. */
+.tour-mosaic__tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(183, 156, 92, 0.1), rgba(212, 175, 55, 0.1));
+  transition: opacity 0.4s ease;
+}
+.tour-mosaic__tile:hover::after { opacity: 1; }
+
+/* Real photo count — icon plus numeral, so it needs no translation. */
+.tour-mosaic__count {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1a1a1a;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+/* "+N" on the last visible tile when a tour has more than six photos. */
+.tour-mosaic__more {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.5);
+  color: #fff;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* ---- count-driven templates (desktop) ---------------------------------- */
+.tour-mosaic[data-tiles="2"] { grid-template-columns: 1fr 1fr; }
+
+.tour-mosaic[data-tiles="3"] {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.tour-mosaic[data-tiles="4"],
+.tour-mosaic[data-tiles="5"] {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.tour-mosaic[data-tiles="3"] > .tour-mosaic__tile--hero,
+.tour-mosaic[data-tiles="4"] > .tour-mosaic__tile--hero,
+.tour-mosaic[data-tiles="5"] > .tour-mosaic__tile--hero {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+/* 4 photos: the 4th spans both right-hand columns so no cell is left empty. */
+.tour-mosaic[data-tiles="4"] .tour-mosaic__rail > .tour-mosaic__tile:last-child {
+  grid-column: 2 / span 2;
+}
+
+.tour-mosaic[data-tiles="6"] {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr 1fr;
+}
+
+/* ---- mobile: full-width hero + scroll-snap thumb rail ------------------
+   100px-wide thumbnails convey nothing, and PhotoSwipe is already a good
+   full-screen swipe gallery. Same idiom as .mobile-swipeable-gallery. */
+@media (max-width: 991px) {
+  .tour-mosaic,
+  .tour-mosaic[data-tiles="2"],
+  .tour-mosaic[data-tiles="3"],
+  .tour-mosaic[data-tiles="4"],
+  .tour-mosaic[data-tiles="5"],
+  .tour-mosaic[data-tiles="6"] {
+    display: block;
+    height: auto;
+    grid-template-columns: none;
+    grid-template-rows: none;
+  }
+
+  .tour-mosaic__tile--hero { height: auto; aspect-ratio: 3 / 2; }
+
+  .tour-mosaic__rail {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tour-mosaic__rail::-webkit-scrollbar { display: none; }
+  .tour-mosaic__rail > .tour-mosaic__tile {
+    flex: 0 0 30%;
+    scroll-snap-align: start;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .tour-mosaic__rail > .tour-mosaic__tile { flex-basis: 34%; }
+}
+
+@media (max-width: 575px) {
+  .tour-mosaic__tile--hero { aspect-ratio: 4 / 3; }
+  /* 2.5 tiles visible, so the scroll affordance is obvious. */
+  .tour-mosaic__rail > .tour-mosaic__tile { flex-basis: 38%; }
+  .tour-mosaic__count { left: 10px; bottom: 10px; padding: 6px 11px; font-size: 12px; }
+}
+
+/* Safari < 15 and older Android have no aspect-ratio. */
+@supports not (aspect-ratio: 3 / 2) {
+  @media (max-width: 991px) {
+    .tour-mosaic__tile--hero { height: 58vw; max-height: 380px; }
+    .tour-mosaic__rail > .tour-mosaic__tile { height: 26vw; }
+  }
+}
+
+/* ==========================================================================
+   TOUR FACTS STRIP
+   The info bar was a full-bleed five-item band; it is now a three-item strip
+   inside the 9-column rail. The theme's divider pseudo-elements were positioned
+   for that band and its last <li> was the price button, so both are replaced
+   with real borders. Icon / title / text typography is inherited from gotur.css.
+   ========================================================================== */
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 0;
+  padding: 18px 0;
+}
+.tour-listing-details__info-area--rail li { min-width: 0; padding: 0 18px; }
+.tour-listing-details__info-area--rail li:first-child { padding-left: 0; }
+.tour-listing-details__info-area--rail li:last-child { padding-right: 0; }
+.tour-listing-details__info-area--rail li::after { display: none !important; }
+.tour-listing-details__info-area--rail li + li { border-left: 1px solid #f0f0f0; }
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__text {
+  overflow-wrap: anywhere;
+}
+
+.tour-info-fact-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(183, 156, 92, 0.5);
+  text-underline-offset: 3px;
+}
+.tour-info-fact-link:hover { color: #9c8449; }
+
+@media (max-width: 991px) {
+  .tour-listing-details__info-area--rail .tour-listing-details__info-area__info li:last-child {
+    grid-column: auto;
+    margin-top: 0 !important;
+  }
+}
+
+/* ==========================================================================
+   "BOOK WITH CONFIDENCE" — in-rail band
+   Same markup, same seven i18n keys, same five icons. The col-lg-4/col-lg-8
+   split is forced to full width so the five 120px items get the whole rail.
+   ========================================================================== */
+.tour-trust-band {
+  margin: 4px 0 24px;
+  padding: 22px 24px;
+  border-radius: 20px;
+  background: rgba(183, 156, 92, 0.04);
+  border: 1px solid rgba(183, 156, 92, 0.15);
+}
+.tour-trust-band > .row > [class*="col-lg-"] {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+.tour-trust-band .col-lg-8 { margin-top: 18px; }
+
+@media (max-width: 991px) {
+  .tour-trust-band { padding: 18px 16px; }
+}
+
+/* ==========================================================================
+   BOOKING CARD — header ("Book This Tour" + "Price starts from")
+   Two columns on one row: intent on the left, cost on the right. The price is
+   above the form on purpose — a visitor who meets nine fields before any
+   number reads the form as an unpriced commitment.
+
+   The amount sits on its own tinted surface rather than floating as three
+   right-ragged lines. A bounded shape gives the eye one object to land on,
+   keeps the label/amount/unit reading as a single statement, and stops the
+   title and the price from looking like two unrelated blocks.
+   ========================================================================== */
+.booking-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.booking-card-header__intent {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.booking-card-header .tour-listing-details__sidebar__title {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: #161616;
+  /* Never nowrap: "Prenota questo tour" / "Diese Tour buchen" are ~40% wider
+     than the English title and would push the badge out of the card. */
+}
+
+.booking-price-block {
+  flex: 0 0 auto;
+  /* Grid, not flex-wrap: a wrapping flex container reports its max-content as
+     though every child sat on one line, so the badge stretched to its
+     max-width and starved the title column. Grid measures the real two rows. */
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: end;
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 1px;
+  max-width: 60%;
+  margin: 0;
+  padding: 8px 13px 9px;
+  border: 1px solid #ece1c9;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fdfbf5 0%, #f7f1e2 100%);
+  text-align: right;
+}
+/* Label shares the amount's baseline; the unit takes the row underneath. Any
+   other split makes the badge wider than the title column can spare. */
+.booking-price-block__label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  /* Small text on the tint needs 4.5:1; the warmer #8b7b57 measured 3.68. */
+  color: #6e6349;
+}
+.booking-price-block__value {
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.15;
+  /* Deeper than the #b79c5c brand gold: at 2.3:1 on this tint (and 2.6:1 on
+     white) the brand tone missed the 3:1 large-text minimum. #8f7333 keeps the
+     gold identity and clears it at ~3.8:1. */
+  color: #8f7333;
+}
+.booking-price-block__unit {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #6b6350;
+}
+
+/* Secondary action, so it reads as a link and not as a second CTA competing
+   with Submit — quiet until hover, arrow to signal it jumps down the page. */
+.booking-price-block__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  /* A shade under the amount's gold: 12.5px is small text, and #8f7333 lands
+     on exactly 4.50 against the white card — no margin for rounding. */
+  color: #866c2c;
+  text-decoration: none;
+}
+.booking-price-block__link svg { transition: transform 0.18s ease; }
+.booking-price-block__link:hover {
+  color: #6f591f;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.booking-price-block__link:hover svg { transform: translateX(2px); }
+
+/* The mobile bottom sheet renders the same form; its bar already shows the
+   price, so the card's own price block must not appear there. */
+/* 30px on all four sides was sized for a card sitting alone far down the page.
+   Beside the photos its height is what limits how much of the form is visible,
+   so the vertical padding comes down while the horizontal stays generous. */
+.tour-listing-details__sidebar .tour-listing-details__sidebar__item-form {
+  padding: 22px 24px;
+  /* The card becomes `position: fixed` while the page scrolls. Without its own
+     opaque surface, photos passing behind the sidebar showed through its header
+     during the normal/fixed transition. */
+  background-color: var(--gotur-white, #fff);
+}
+
+/* Desktop compact mode: keep the complete booking path visible on common
+   laptop screens without shrinking labels or primary controls below a
+   comfortable size. Very short viewports still use the sidebar's internal
+   scroll as a safety net for validation and translated messages. */
+@media (min-width: 992px) {
+  .tour-listing-details__sidebar .tour-listing-details__sidebar__item-form {
+    padding: 16px 18px;
+  }
+
+  /* Laptop-compact: the card's height is what limits how much of the form is
+     visible beside the photos, so the header gives back vertical space first. */
+  .booking-card-header {
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 11px;
+  }
+
+  .booking-card-header .tour-listing-details__sidebar__title {
+    font-size: 17px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 6px 11px 7px;
+    border-radius: 12px;
+  }
+
+  .booking-card-header .booking-price-block__label {
+    font-size: 9.5px;
+    letter-spacing: 0.07em;
+  }
+
+  .booking-card-header .booking-price-block__value {
+    font-size: 24px;
+  }
+
+  .booking-card-header .booking-price-block__unit {
+    font-size: 11.5px;
+  }
+
+  .booking-card-header .booking-price-block__link {
+    margin-top: 3px;
+    font-size: 12px;
+  }
+
+  .booking-form-inner {
+    padding: 9px 0 0;
+    gap: 8px;
+  }
+
+  .booking-input,
+  .booking-select,
+  .booking-select-code,
+  .booking-date-input {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .booking-select {
+    background-position: right 16px center;
+  }
+
+  .booking-phone-input .PhoneInputInput {
+    min-height: 44px;
+    padding: 10px 16px 10px 78px;
+    font-size: 14px;
+  }
+
+  .booking-form-row {
+    gap: 10px;
+  }
+
+  .date-input-wrapper .icon-calendar {
+    right: 14px;
+  }
+
+  .booking-counter-row {
+    min-height: 40px;
+    padding: 3px 0;
+  }
+
+  .booking-counter-row:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .counter-title {
+    font-size: 14px;
+  }
+
+  .counter-subtitle {
+    margin-top: 0;
+    font-size: 11px;
+  }
+
+  .counter-controls {
+    gap: 8px;
+    padding: 2px 6px;
+  }
+
+  .counter-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+
+  .counter-value {
+    min-width: 18px;
+    font-size: 14px;
+  }
+
+  .booking-textarea {
+    min-height: 72px;
+    height: 72px;
+    padding: 11px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+  }
+
+  .booking-submit-btn {
+    min-height: 46px;
+    margin-top: 2px;
+    padding: 11px 14px;
+    font-size: 16px;
+  }
+
+  .booking-secondary-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .booking-secondary-actions .booking-whatsapp-btn,
+  .booking-secondary-actions .booking-save-btn {
+    min-height: 42px;
+    padding: 8px 6px;
+    gap: 6px;
+    border-radius: 22px;
+    font-size: 13px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .booking-message {
+    margin-bottom: 0;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Browser zoom and short laptop windows reduce the CSS viewport height. Take
+   a little more from spacing—not from readable input heights—before the
+   internal-scroll fallback becomes necessary. */
+@media (min-width: 992px) and (max-height: 799px) {
+  .tour-listing-details__sidebar .tour-listing-details__sidebar__item-form {
+    padding: 12px 16px;
+  }
+
+  .booking-card-header {
+    margin-bottom: 10px;
+    padding-bottom: 9px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 5px 10px 6px;
+  }
+
+  .booking-card-header .booking-price-block__value {
+    font-size: 22px;
+  }
+
+  .booking-form-inner {
+    padding-top: 7px;
+    gap: 6px;
+  }
+
+  .booking-counter-row {
+    min-height: 38px;
+    padding: 2px 0;
+  }
+
+  .booking-textarea {
+    min-height: 64px;
+    height: 64px;
+  }
+
+  .booking-submit-btn {
+    min-height: 44px;
+    padding-block: 10px;
+  }
+
+  .booking-secondary-actions .booking-whatsapp-btn,
+  .booking-secondary-actions .booking-save-btn {
+    min-height: 40px;
+    padding-block: 7px;
+  }
+}
+
+/* A 1080px monitor commonly exposes only ~800–950 CSS pixels after browser
+   chrome and operating-system display scaling. This is the comfortable mode
+   those real-world desktop windows should receive. */
+@media (min-width: 992px) and (min-height: 800px) {
+  .tour-listing-details__sidebar .tour-listing-details__sidebar__item-form {
+    padding: 20px 22px;
+  }
+
+  .booking-card-header {
+    gap: 11px;
+    margin-bottom: 14px;
+    padding-bottom: 13px;
+  }
+
+  .booking-card-header .tour-listing-details__sidebar__title {
+    font-size: 18px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 7px 12px 8px;
+    border-radius: 13px;
+  }
+
+  .booking-card-header .booking-price-block__label {
+    font-size: 10px;
+  }
+
+  .booking-card-header .booking-price-block__value {
+    font-size: 26px;
+  }
+
+  .booking-card-header .booking-price-block__unit {
+    font-size: 12px;
+  }
+
+  .booking-form-inner {
+    padding-top: 10px;
+    gap: 10px;
+  }
+
+  .booking-input,
+  .booking-select,
+  .booking-select-code,
+  .booking-date-input {
+    min-height: 47px;
+    padding: 11px 17px;
+    font-size: 15px;
+  }
+
+  .booking-select {
+    background-position: right 17px center;
+  }
+
+  .booking-phone-input .PhoneInputInput {
+    min-height: 47px;
+    padding: 11px 17px 11px 80px;
+    font-size: 15px;
+  }
+
+  .booking-form-row {
+    gap: 11px;
+  }
+
+  .date-input-wrapper .icon-calendar {
+    right: 15px;
+  }
+
+  .booking-counter-row {
+    min-height: 44px;
+    padding: 4px 0;
+  }
+
+  .counter-title {
+    font-size: 15px;
+  }
+
+  .counter-subtitle {
+    margin-top: 1px;
+    font-size: 12px;
+  }
+
+  .counter-controls {
+    gap: 9px;
+    padding: 3px 7px;
+  }
+
+  .counter-btn {
+    width: 33px;
+    height: 33px;
+    font-size: 16px;
+  }
+
+  .counter-value {
+    min-width: 19px;
+    font-size: 15px;
+  }
+
+  .booking-textarea {
+    min-height: 88px;
+    height: 88px;
+    padding: 13px 17px;
+    border-radius: 18px;
+    font-size: 15px;
+  }
+
+  .booking-submit-btn {
+    min-height: 49px;
+    margin-top: 3px;
+    padding: 12px 15px;
+    font-size: 16px;
+  }
+
+  .booking-secondary-actions {
+    gap: 9px;
+  }
+
+  .booking-secondary-actions .booking-whatsapp-btn,
+  .booking-secondary-actions .booking-save-btn {
+    min-height: 45px;
+    padding: 9px 7px;
+    font-size: 13px;
+  }
+}
+
+/* Tall desktop windows have room for a calmer, more comfortable form. Expand
+   the same controls instead of leaving the sidebar in laptop-compact mode; no
+   extra markup, script, or network work is involved. */
+@media (min-width: 992px) and (min-height: 1050px) {
+  .tour-listing-details__sidebar .tour-listing-details__sidebar__item-form {
+    padding: 22px 24px;
+  }
+
+  .booking-card-header {
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 15px;
+  }
+
+  .booking-card-header .tour-listing-details__sidebar__title {
+    font-size: 19px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 8px 13px 9px;
+    border-radius: 14px;
+  }
+
+  .booking-card-header .booking-price-block__label {
+    font-size: 10px;
+  }
+
+  .booking-card-header .booking-price-block__value {
+    font-size: 27px;
+  }
+
+  .booking-card-header .booking-price-block__unit {
+    font-size: 12px;
+  }
+
+  .booking-form-inner {
+    padding-top: 12px;
+    gap: 12px;
+  }
+
+  .booking-input,
+  .booking-select,
+  .booking-select-code,
+  .booking-date-input {
+    min-height: 50px;
+    padding: 13px 18px;
+    font-size: 15px;
+  }
+
+  .booking-select {
+    background-position: right 18px center;
+  }
+
+  .booking-phone-input .PhoneInputInput {
+    min-height: 50px;
+    padding: 13px 18px 13px 82px;
+    font-size: 15px;
+  }
+
+  .booking-form-row {
+    gap: 12px;
+  }
+
+  .date-input-wrapper .icon-calendar {
+    right: 16px;
+  }
+
+  .booking-counter-row {
+    min-height: 48px;
+    padding: 6px 0;
+  }
+
+  .counter-title {
+    font-size: 15px;
+  }
+
+  .counter-subtitle {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .counter-controls {
+    gap: 10px;
+    padding: 4px 8px;
+  }
+
+  .counter-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .counter-value {
+    min-width: 20px;
+    font-size: 15px;
+  }
+
+  .booking-textarea {
+    min-height: 100px;
+    height: 100px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    font-size: 15px;
+  }
+
+  .booking-submit-btn {
+    min-height: 52px;
+    margin-top: 4px;
+    padding: 14px 16px;
+    font-size: 17px;
+  }
+
+  .booking-secondary-actions {
+    gap: 10px;
+  }
+
+  .booking-secondary-actions .booking-whatsapp-btn,
+  .booking-secondary-actions .booking-save-btn {
+    min-height: 48px;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+}
+
+/* The header's two columns compete for horizontal room, and below the 1400px
+   container cap the sidebar narrows with the viewport: at 1280 the card loses
+   30px and "Book This Tour" no longer clears the badge on one line. Both sides
+   step down together so the row keeps its proportions. Last of the booking-card
+   blocks on purpose — it must win over the min-height tiers above, which carry
+   the same specificity. */
+@media (min-width: 992px) and (max-width: 1399.98px) {
+  .booking-card-header .tour-listing-details__sidebar__title {
+    font-size: 16px;
+  }
+
+  .booking-card-header .booking-price-block {
+    padding: 6px 10px 7px;
+  }
+
+  .booking-card-header .booking-price-block__label {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+  }
+
+  .booking-card-header .booking-price-block__value {
+    font-size: 22px;
+  }
+
+  .booking-card-header .booking-price-block__unit {
+    font-size: 11px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Vertical rhythm — hero and tour body
+   --------------------------------------------------------------------------
+   Measured on the tour page: ~560px of the 1170px between the hero's last line
+   and the first line of the description was pure padding. These rules take that
+   back. Loaded after gotur.css, so they override the theme without editing it.
+   -------------------------------------------------------------------------- */
+
+/* The 220px above the breadcrumb only had to clear the 108px site header that
+   overlays the hero; 150px still leaves ~40px of air. The 130px below the
+   subtitle was slack. NOTE: .page-header is shared by every page with a hero,
+   so this tightens all of them — deliberately, to keep them consistent. */
+.page-header {
+  padding: 150px 0px 70px;
+}
+
+@media (max-width: 991px) {
+  .page-header {
+    padding: 130px 0px 56px;
+  }
+}
+
+/* The tour body stacked TWO 120px top paddings with nothing between them:
+   `section-space` on this section and `section-space-top` on the carousel
+   inside it — 240px of blank band under the hero. The carousel keeps a smaller
+   one; the section's own top padding goes entirely.
+   Scoped to `.tour-listing-details` so the same theme utilities keep their
+   original 120px everywhere else on the site. */
+.tour-listing-details.section-space {
+  padding-top: 0;
+  padding-bottom: 56px;
+}
+
+.tour-listing-details .section-space-top {
+  padding-top: 56px;
+}
+
+.tour-listing-details .section-space-bottom {
+  padding-bottom: 56px;
+}
+
+.tour-listing-details .tour-one.section-space-top {
+  padding-top: 40px;
+}
+
+/* 50px margin + 30px padding put 80px above the "Location / Type / Price" row. */
+.tour-listing-details__info-area__info {
+  margin-top: 24px;
+  padding: 20px 0px;
+}
+
 /* --------------------------------------------------------------------------
    Tour description "Read More"
    --------------------------------------------------------------------------
@@ -1040,7 +2299,15 @@ body {
    line's leading. */
 .tour-description-wrapper.collapsed {
   overflow: hidden;
-  max-height: var(--desc-clamp, calc(1.8rem * 5 + 1rem));
+  /* Narrow screens: five lines. A line holds far fewer words here, so matching
+     the desktop count would leave barely a sentence showing. */
+  max-height: var(--desc-clamp, calc(1.8rem * 5));
+}
+
+@media (min-width: 992px) {
+  .tour-description-wrapper.collapsed {
+    max-height: var(--desc-clamp, calc(1.8rem * 3));
+  }
 }
 
 .tour-read-more-btn {
@@ -1139,12 +2406,39 @@ body {
 }
 
 /* Base sticky positioning for sidebar */
+/* NO `position: sticky` / `top` here. The sticky never worked — `html, body
+   { overflow-x: hidden }` makes body a scroll container, so sticky descendants
+   never stick, which is why the card is positioned by JS instead. Worse, the
+   dead `top: 75px` DID apply once the JS set `position: relative`, pushing the
+   card 75px below the photos for no reason. */
 .tour-listing-details__sidebar {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 75px;
   z-index: 10;
   height: fit-content;
+}
+
+/* A desktop booking card is taller than many laptop viewports. Once pinned,
+   scroll the CARD rather than forcing the reader away from the itinerary.
+   `scrollbar-gutter` prevents the form width changing when the bar appears. */
+.tour-listing-details__sidebar--scrollable {
+  background-color: var(--gotur-white, #fff);
+  border-radius: 10px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(183, 156, 92, 0.7) rgba(15, 23, 42, 0.06);
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar-thumb {
+  background: rgba(183, 156, 92, 0.75);
+  border-radius: 999px;
 }
 
 .tour-listing-details__sidebar > * {
@@ -1153,13 +2447,6 @@ body {
 
 .tour-listing-details__sidebar > *:last-child {
   margin-bottom: 0;
-}
-
-@media (max-width: 575px) {
-  .tour-listing-details__sidebar {
-    position: relative;
-    top: 0;
-  }
 }
 
 /* ==========================================================================
@@ -1475,6 +2762,16 @@ body {
   display: none !important;
 }
 
+/* Keep the centered Featured Tours carousel inside the viewport. The theme's
+   desktop -50px right margin is intended for edge-aligned variants, but this
+   centered variant otherwise pushes the final card beyond the page edge. */
+@media (min-width: 992px) {
+  .feature-package--two .feature-package__inner {
+    margin-right: 0;
+    margin-left: 0;
+  }
+}
+
 /* Hide any TinySlider generated buttons with prev/next text */
 .feature-package__carousel button[data-controls="prev"],
 .feature-package__carousel button[data-controls="next"] {
@@ -1625,7 +2922,7 @@ div[suppressHydrationWarning] {
 
 .floating-whatsapp-button {
   position: fixed;
-  right: 32px;
+  right: 12px;
   bottom: 28px;
   width: 56px;
   height: 56px;
@@ -1653,7 +2950,7 @@ div[suppressHydrationWarning] {
 }
 
 .scroll-to-top {
-  right: 32px !important;
+  right: 10px !important;
   bottom: 96px !important;
   z-index: 1190 !important;
 }
@@ -1786,8 +3083,8 @@ div[suppressHydrationWarning] {
   }
 
   .tour-section {
-    padding-top: 30px !important;
-    padding-bottom: 30px !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
   }
 
   /* Amenities Stacking */
@@ -1943,7 +3240,12 @@ div[suppressHydrationWarning] {
     width: 100%;
     height: min(90vh, 920px);
     background: #fff;
-    z-index: 1400;
+    /* Was 1400 — BELOW the 9998 backdrop, which is a full-screen fixed layer
+       with an onClick that closes the sheet. Every tap inside the form landed
+       on the backdrop instead: the sheet dimmed behind the scrim and shut on
+       the first attempt to focus a field, so the mobile booking form could
+       never be filled in. Must stay above the backdrop. */
+    z-index: 9999;
     border-radius: 28px 28px 0 0;
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
@@ -2026,8 +3328,23 @@ div[suppressHydrationWarning] {
     padding: 0 !important;
     background: #fff !important;
   }
-  .bottom-sheet-content .tour-listing-details__sidebar__title {
+  /* The sheet has its own "Book Now / Book This Tour" header, so the form's
+     title would be the same words twice. The price stays: the sticky bar that
+     was showing it is hidden while the sheet is open, and it is the one number
+     the visitor needs in view while filling the form. With the title gone the
+     intent column is empty, so the badge takes the row on its own. */
+  .bottom-sheet-content .tour-listing-details__sidebar__title,
+  .bottom-sheet-content .booking-card-header__intent {
     display: none !important;
+  }
+  .bottom-sheet-content .booking-card-header {
+    justify-content: flex-start;
+    margin-bottom: 14px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .bottom-sheet-content .booking-price-block {
+    max-width: 100%;
   }
   .bottom-sheet-content .booking-form-card {
     background: #fff;

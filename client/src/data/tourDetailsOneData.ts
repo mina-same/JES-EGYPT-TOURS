@@ -20,7 +20,6 @@ const tourDetailsOneData = {
   reviews: 17,
   location: "Japan",
   activitiesType: "Adventure",
-  traveler: 1,
   activateDay: "Feb 5 - 5",
   price: 150,
   overviewTitle: "Overview",

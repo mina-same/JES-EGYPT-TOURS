@@ -93,6 +93,7 @@
     "pricingSubtitle": "Finden Sie das perfekte Paket für Ihr Budget und Ihre Vorlieben.",
     "galleryTitle": "Tourgalerie",
     "gallerySubtitle": "Eine visuelle Reise durch die atemberaubenden Orte, die Sie besuchen werden.",
+    "photoCount": "{{count}} Fotos",
     "faqTitle": "Häufig gestellte Fragen",
     "faqSubtitle": "Häufige Fragen und Antworten für Ihre Vorbereitung.",
     "faqShowMore": "Mehr lesen ({{remaining}} weitere)",
@@ -133,7 +134,6 @@
       "location": "Standort",
       "activitiesType": "Aktivitätsart",
       "activateDay": "Dauer",
-      "traveler": "Reisende",
       "priceStartsFrom": "Preis ab"
     },
     "brochure": {
@@ -182,9 +182,13 @@
       "namePlaceholder": "Name *",
       "emailPlaceholder": "E-Mail *",
       "nationalityPlaceholder": "Wählen Sie Ihre Nationalität",
-      "mobilePlaceholder": "Mobiltelefon",
+      "mobilePlaceholder": "Mobiltelefon *",
+      "countryCodeLabel": "Ländervorwahl",
+      "internationalOption": "International",
       "dateFromPlaceholder": "Von *",
       "dateToPlaceholder": "Bis *",
+      "previousMonth": "Vorheriger Monat",
+      "nextMonth": "Nächster Monat",
       "adults": "Anzahl der Erwachsenen",
       "adultsSub": "( + 12 Jahre )",
       "children": "Anzahl der Kinder",
@@ -194,15 +198,27 @@
       "requirementsPlaceholder": "Bitte teilen Sie uns Ihre Tour-Anforderungen mit",
       "submitBtn": "Absenden",
       "submitting": "Wird gesendet...",
-      "success": "Ihre Buchung wurde erfolgreich übermittelt!",
+      "whatsapp": "Auf WhatsApp fragen",
+      "whatsappShort": "WhatsApp",
+      "wishlistShort": "Merkliste",
+      "wishlistedShort": "Gespeichert",
+      "success": "Ihre Buchungsanfrage wurde erfolgreich übermittelt. Unser Team wird Sie innerhalb der nächsten Stunden per E-Mail oder WhatsApp kontaktieren. Sollten Sie in dieser Zeit nichts von uns hören, prüfen Sie bitte den Spam- oder Junk-Ordner Ihres E-Mail-Postfachs, da unsere E-Mails gelegentlich dort eingeordnet werden können.",
       "error": "Buchung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "emailFallback": "Leider können wir Ihre Anfrage derzeit hier nicht entgegennehmen. Bitte senden Sie sie direkt per E-Mail an",
+      "emailSubject": "Buchungsanfrage: {{title}}",
+      "emailBody": "Hallo,\n\nich möchte diese Tour anfragen: {{title}}\n{{url}}\n\nMeine Angaben:\n",
       "validation": {
         "name": "Name ist erforderlich und muss mindestens 2 Zeichen lang sein",
         "email": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+        "phone": "Bitte geben Sie eine gültige internationale Mobiltelefonnummer an",
+        "rateLimited": "Zu viele Buchungsversuche. Bitte warten Sie, bevor Sie es erneut versuchen.",
         "dateFrom": "Bitte wählen Sie ein Startdatum",
         "dateTo": "Bitte wählen Sie ein Enddatum",
-        "adults": "Mindestens ein Erwachsener ist erforderlich"
-      }
+        "adults": "Mindestens ein Erwachsener ist erforderlich",
+        "dateRange": "Das Enddatum darf nicht vor dem Startdatum liegen"
+      },
+      "decrease": "{{field}} verringern",
+      "increase": "{{field}} erhöhen"
     }
   },
   "pageMetaTitle": "Ägypten Tour-Kategorien | Privattouren & Tagesausflüge | JES Egypt Tours",

@@ -1,4 +1,5 @@
 import { StaticImageData } from "next/image";
+import type { ICurrencyPrice } from "@/contexts/CurrencyContext";
 
 export interface ContactFormField {
   name: string;
@@ -95,9 +96,8 @@ export interface TourDetailsOneData {
   overview: string;
   location: string;
   activitiesType: string;
-  traveler: number;
   activateDay: string;
-  price: number;
+  price: number | ICurrencyPrice;
   overviewTitle: string;
   topDestinations: string;
   sliderImages: (StaticImageData | string | ImageObject)[];

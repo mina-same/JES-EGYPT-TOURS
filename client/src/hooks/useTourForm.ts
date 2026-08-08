@@ -305,7 +305,7 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
       const updatedDays = (prev.itinerary?.days || []).map((day, i) => {
         if (i !== index) return day;
         
-        if (lang && (field === 'title' || field === 'description')) {
+        if (lang && field === 'title') {
           return {
             ...day,
             [field]: {

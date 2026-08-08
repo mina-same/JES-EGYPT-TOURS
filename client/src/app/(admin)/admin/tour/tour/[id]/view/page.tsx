@@ -155,7 +155,6 @@ export default function TourViewPage() {
               {days.map((d, i) => (
                 <div key={i} className="rounded-lg border border-gray-100 dark:border-slate-800 p-3">
                   <div className="font-semibold text-gray-900 dark:text-white">Day {d.day ?? i + 1}: {strictText(d.title, previewLocale) || `(no ${previewLocale.toUpperCase()} title)`}</div>
-                  {strictText(d.description, previewLocale) && <div className="html-content text-[15px] text-gray-600 dark:text-gray-300 mt-1" dangerouslySetInnerHTML={{ __html: strictText(d.description, previewLocale) }} />}
                   {Array.isArray(d.activities) && d.activities.length > 0 && (
                     <ul className="list-disc pl-5 text-[14px] text-gray-500 dark:text-gray-400 mt-2 space-y-0.5">
                       {d.activities.map((a: any, j: number) => <li key={j}>{strictText(a.heading, previewLocale) || strictText(a.description, previewLocale) || '(activity)'}</li>)}

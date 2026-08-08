@@ -1,5 +1,11 @@
 import axiosInstance from './axios';
 import { API_URL } from '@/config/api';
+import {
+  BOOKING_IDEMPOTENCY_HEADER,
+  clearBookingAttempt,
+  getOrCreateBookingAttempt,
+  type BookingIdempotencyPayload,
+} from '@/lib/bookingIdempotency';
 
 const BASE_URL = `${API_URL}/bookings`;
 
@@ -24,25 +30,18 @@ export interface IBooking {
   children: number;
   infants: number;
   requirements?: string;
+  /** What the visitor was LOOKING AT when they booked: the currency selected in
+   *  the header and the per-person starting price the card displayed. Kept so a
+   *  "but the site said €64" conversation can be settled from the record. */
+  currency?: 'USD' | 'EUR' | 'GBP';
+  quotedPrice?: number;
   status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   adminNotes?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
 
-export interface BookingFormData {
-  tour: string;
-  name: string;
-  email: string;
-  phone?: string;
-  nationality?: string;
-  dateFrom: string;
-  dateTo: string;
-  adults: number;
-  children: number;
-  infants: number;
-  requirements?: string;
-}
+export type BookingFormData = BookingIdempotencyPayload;
 
 export interface BookingStats {
   total: number;
@@ -68,6 +67,7 @@ export interface BookingResponse {
   message?: string;
   error?: string;
   data: IBooking;
+  idempotentReplay?: boolean;
 }
 
 export interface BookingStatsResponse {
@@ -77,8 +77,30 @@ export interface BookingStatsResponse {
 
 // Create a new booking (Public)
 export const createBooking = async (data: BookingFormData): Promise<BookingResponse> => {
-  const response = await axiosInstance.post<BookingResponse>(BASE_URL, data);
-  return response.data;
+  const attempt = getOrCreateBookingAttempt(data);
+  try {
+    const response = await axiosInstance.post<BookingResponse>(BASE_URL, data, {
+      headers: {
+        [BOOKING_IDEMPOTENCY_HEADER]: attempt.idempotencyKey,
+      },
+    });
+
+    if (response.data.success) {
+      clearBookingAttempt(attempt);
+    }
+
+    return response.data;
+  } catch (error: unknown) {
+    const apiCode = (
+      error as { response?: { data?: { code?: string } } }
+    ).response?.data?.code;
+    if (apiCode === 'IDEMPOTENCY_KEY_REUSED') {
+      // A corrupt storage entry or an extraordinarily rare client-hash
+      // collision must not trap every later retry on the same rejected key.
+      clearBookingAttempt(attempt);
+    }
+    throw error;
+  }
 };
 
 // Get all bookings (Admin only)

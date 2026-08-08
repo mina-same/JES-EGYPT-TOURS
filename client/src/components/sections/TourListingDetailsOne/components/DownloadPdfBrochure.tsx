@@ -20,6 +20,13 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
   const [pageUrl, setPageUrl] = useState<string>('');
   const [waHref, setWaHref] = useState<string>('');
   const [website, setWebsite] = useState<string>('');
+  /**
+   * The off-screen brochure used to be rendered on every visit: 214 DOM nodes,
+   * ~7,000 characters and FOUR images that the browser really did download
+   * (verified: naturalWidth 1200/1484/1672/800) for markup nobody ever saw.
+   * It now mounts on the first click and stays mounted for repeat downloads.
+   */
+  const [brochureMounted, setBrochureMounted] = useState(false);
 
   // Compute client-only values once to avoid hydration mismatch
   useEffect(() => {
@@ -41,10 +48,39 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
     );
   }, [tour.title]);
 
+  /**
+   * Waits until the brochure is actually painted before html2canvas reads it.
+   *
+   * Needed twice over: the markup is mounted on demand now, and the QR/logo data
+   * URLs are set inside onDownload — React commits those asynchronously, so
+   * capturing straight after setState could snapshot the brochure before the
+   * assets landed in it. Two frames plus the images' own load events remove both
+   * races.
+   */
+  const waitForBrochurePaint = async () => {
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
+    const el = pdfRef.current;
+    if (!el) return;
+    await Promise.all(
+      Array.from(el.querySelectorAll('img')).map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              const done = () => resolve();
+              img.addEventListener('load', done, { once: true });
+              img.addEventListener('error', done, { once: true });
+            })
+      )
+    );
+  };
+
   // Generate PDF only when button is clicked
   const onDownload = async () => {
     if (generating) return;
     setGenerating(true);
+    setBrochureMounted(true);
 
     try {
       const { default: html2canvas } = await import('html2canvas');
@@ -105,6 +141,9 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
       } catch {
         setLogoDataUrl('');
       }
+
+      // Let the on-demand markup and the freshly-set QR/logo assets paint first.
+      await waitForBrochurePaint();
 
       const el = pdfRef.current;
       if (!el) return;
@@ -343,8 +382,9 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
         }
       `}</style>
 
-      {/* Hidden brochure for PDF generation; render only after client values are ready */}
-      {waHref || website ? (
+      {/* Hidden brochure for PDF generation — mounted only once a download has
+          been requested, and only after the client-only values are ready. */}
+      {brochureMounted && (waHref || website) ? (
         <div
           key={`${JSON.stringify({
             title: tour.title,
@@ -370,6 +410,10 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
             pointerEvents: 'none',
           }}
           aria-hidden
+          /* aria-hidden keeps it out of the accessibility tree but does NOT stop
+             Tab: the brochure holds focusable links, and off-screen focus is the
+             classic keyboard trap. `inert` removes them from the tab order too. */
+          inert
         >
           <TourBrochure
             ref={pdfRef}

@@ -61,7 +61,6 @@ export interface IActivity {
 export interface IItineraryDay {
   day: number;
   title: ILocalizedString;
-  description: ILocalizedMixed;
   activities: IActivity[];
 }
 
@@ -336,10 +335,8 @@ const ItineraryDaySchema = new Schema<IItineraryDay>(
       type: LocalizedStringSchema,
       required: [true, 'Day title is required'],
     },
-    description: {
-      type: LocalizedMixedSchema,
-      required: [true, 'Day description is required'],
-    },
+    // Descriptive content belongs to each activity. Keeping a second description
+    // on the day made the API require a field that the admin form retired.
     activities: {
       type: [ActivitySchema],
       default: [],

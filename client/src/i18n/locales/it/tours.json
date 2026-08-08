@@ -93,6 +93,7 @@
     "pricingSubtitle": "Trova il pacchetto perfetto in base al budget e alle preferenze.",
     "galleryTitle": "Galleria del Tour",
     "gallerySubtitle": "Un viaggio visivo attraverso i fantastici posti che visiterai.",
+    "photoCount": "{{count}} foto",
     "faqTitle": "Domande Frequenti",
     "faqSubtitle": "Domande e risposte comuni per aiutarti nella preparazione.",
     "faqShowMore": "Leggi di più (altre {{remaining}})",
@@ -133,7 +134,6 @@
       "location": "Località",
       "activitiesType": "Tipo di attività",
       "activateDay": "Durata",
-      "traveler": "Viaggiatori",
       "priceStartsFrom": "Il prezzo parte da"
     },
     "brochure": {
@@ -182,9 +182,13 @@
       "namePlaceholder": "Nome *",
       "emailPlaceholder": "E-mail *",
       "nationalityPlaceholder": "Seleziona la tua Nazionalità",
-      "mobilePlaceholder": "Cellulare",
+      "mobilePlaceholder": "Cellulare *",
+      "countryCodeLabel": "Prefisso internazionale",
+      "internationalOption": "Internazionale",
       "dateFromPlaceholder": "Da *",
       "dateToPlaceholder": "A *",
+      "previousMonth": "Mese precedente",
+      "nextMonth": "Mese successivo",
       "adults": "N. di Adulti",
       "adultsSub": "( + 12 anni )",
       "children": "N. di Bambini",
@@ -194,15 +198,27 @@
       "requirementsPlaceholder": "Ti preghiamo di comunicarci le tue esigenze per il tour",
       "submitBtn": "Invia",
       "submitting": "Invio in corso...",
-      "success": "La tua prenotazione è stata inviata con successo!",
+      "whatsapp": "Chiedi su WhatsApp",
+      "whatsappShort": "WhatsApp",
+      "wishlistShort": "Preferiti",
+      "wishlistedShort": "Salvato",
+      "success": "La tua richiesta di prenotazione è stata inviata con successo. Il nostro team ti contatterà via e-mail o WhatsApp entro le prossime ore. Se non ricevi nostre notizie entro questo periodo, controlla la cartella spam o posta indesiderata della tua e-mail, perché occasionalmente i nostri messaggi potrebbero essere filtrati lì.",
       "error": "Impossibile inviare la prenotazione. Riprova.",
+      "emailFallback": "Purtroppo al momento non possiamo ricevere la tua richiesta qui. Puoi inviarla direttamente via e-mail a",
+      "emailSubject": "Richiesta di prenotazione: {{title}}",
+      "emailBody": "Salve,\n\nvorrei richiedere questo tour: {{title}}\n{{url}}\n\nI miei dati:\n",
       "validation": {
         "name": "Il nome è richiesto e deve essere di almeno 2 caratteri",
         "email": "Fornisci un indirizzo email valido",
+        "phone": "Inserisci un numero di cellulare internazionale valido",
+        "rateLimited": "Troppi tentativi di prenotazione. Attendi prima di riprovare.",
         "dateFrom": "Seleziona una data di inizio",
         "dateTo": "Seleziona una data di fine",
-        "adults": "È richiesto almeno un adulto"
-      }
+        "adults": "È richiesto almeno un adulto",
+        "dateRange": "La data di fine non può precedere la data di inizio"
+      },
+      "decrease": "Riduci {{field}}",
+      "increase": "Aumenta {{field}}"
     }
   },
   "pageMetaTitle": "Categorie di tour in Egitto | Tour privati e giornalieri | JES Egypt Tours",

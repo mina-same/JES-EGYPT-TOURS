@@ -23,10 +23,11 @@ import { TourInfoBar } from "./components/TourInfoBar";
 import { BookingForm } from "./components/BookingForm";
 import { TourPlan } from "./components/TourPlan";
 import { PricingPlans } from "./components/PricingPlans";
-import { TourCarousel } from "./components/TourCarousel";
+import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
@@ -34,22 +35,57 @@ import ClientCarousel from "../ClientCarousel/ClientCarousel";
  *  see the FAQ section — just hidden until the button is pressed. */
 const FAQ_VISIBLE_COUNT = 4;
 
-/** Lines of description TEXT shown before "Read More". The effect below turns
- *  this into a pixel height; the CSS fallback only covers the first paint. */
-const DESCRIPTION_VISIBLE_LINES = 5;
+/**
+ * Lines of description TEXT shown before "Read More". The effect below turns
+ * this into a pixel height; the CSS fallback only covers the first paint.
+ *
+ * Two values because a line holds far fewer words on a phone: measured against
+ * the real descriptions, three lines is a quarter of the copy on a 1440px screen
+ * but barely a tenth — one short sentence — at 420px. Keeping the counts apart
+ * shows a comparable amount of text on both instead of a teaser so short that
+ * everyone has to expand it.
+ */
+const DESCRIPTION_VISIBLE_LINES_DESKTOP = 3;
+const DESCRIPTION_VISIBLE_LINES_MOBILE = 5;
+/** Same breakpoint the rest of this page treats as desktop (CSS: max-width 991px). */
+const DESKTOP_MIN_WIDTH = 992;
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
-  const { tourData, loading, error, moreTours, relatedBlogs } = useTourData(id, initialRawTour);
+  const { tourData, loading, error, moreTours, relatedBlogs, hasTourContent } = useTourData(id, initialRawTour);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
   const navPlaceholderRef = useRef<HTMLDivElement>(null);
+  /** The content column, so the pinned nav can match its width instead of the
+   *  viewport's — otherwise it stretches over the booking card. */
+  const contentColRef = useRef<HTMLDivElement>(null);
   const [navHeight, setNavHeight] = useState(0);
   const [isNavFixed, setIsNavFixed] = useState(false);
+  /** True once the reader has scrolled PAST the last section: the pinned bar
+   *  then navigates nothing on screen, so it slides away. It slides (transform)
+   *  rather than unpinning, because unpinning would collapse the spacer above
+   *  the viewport and visibly jolt the page. */
+  const [isNavHidden, setIsNavHidden] = useState(false);
+  const [contentLeft, setContentLeft] = useState(0);
+  const [contentWidth, setContentWidth] = useState<number | undefined>(undefined);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarRowRef = useRef<HTMLDivElement>(null);
+  /** The column, not the card: while the card is `fixed` its own rect reports the
+   *  fixed position, so measuring bounds from it made the card drift on resize. */
+  const sidebarColRef = useRef<HTMLDivElement>(null);
   const [isSidebarFixed, setIsSidebarFixed] = useState(false);
+  /** The row now spans the whole page, so the card reaches the row's end long
+   *  before the page does. Parked = stop pinning, rest at the column bottom. */
+  const [isSidebarParked, setIsSidebarParked] = useState(false);
   const [sidebarLeft, setSidebarLeft] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(0);
+  const [sidebarTop, setSidebarTop] = useState(20);
+  const [sidebarViewportHeight, setSidebarViewportHeight] = useState(0);
+  /** The column's own left padding — the parked (absolute) card is positioned
+   *  against the column's padding box, so this realigns it with the content. */
+  const [sidebarPadLeft, setSidebarPadLeft] = useState(0);
+  /** Measured reactively rather than read during render — the card grows when a
+   *  validation message appears, and a render-time read misses that. */
+  const [cardHeight, setCardHeight] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   /**
    * A callback ref, not useRef: `loading` flips true→false while the tour is
@@ -81,13 +117,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   }, [params?.locale, i18n]);
 
   /**
-   * Sizes the clamp to exactly DESCRIPTION_VISIBLE_LINES lines OF TEXT.
+   * Sizes the clamp to exactly the wanted number of lines OF TEXT.
    *
    * A plain max-height cannot do this: the budget is shared with the gaps
    * between paragraphs, so a height worth five lines renders four lines plus a
    * blank one, and how many lines survive changes with where the paragraph
    * breaks happen to fall — one tour showed a single orphaned line. Measuring
-   * the real line boxes and clamping to the fifth one's baseline box makes the
+   * the real line boxes and clamping to the last wanted line's box makes the
    * count identical on every tour, whatever the paragraph rhythm.
    *
    * Overflowing content is still laid out under `overflow: hidden`, so the rects
@@ -102,10 +138,15 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       const inner = el.firstElementChild as HTMLElement | null;
       if (!inner) return;
 
+      const visibleLines =
+        window.innerWidth >= DESKTOP_MIN_WIDTH
+          ? DESCRIPTION_VISIBLE_LINES_DESKTOP
+          : DESCRIPTION_VISIBLE_LINES_MOBILE;
+
       // Collect the elements that actually own line boxes: descend until a node
       // whose children are all inline. Ranging the whole description at once
       // reports the paragraph boxes ALONGSIDE the line boxes, which inflated the
-      // count and clamped some tours to three lines instead of five.
+      // count and clamped some tours to fewer lines than asked for.
       const isBlock = (node: Element) => {
         const display = getComputedStyle(node).display;
         return display === "block" || display === "list-item" || display === "flex" || display === "grid" || display === "table";
@@ -138,13 +179,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       }
       lines.sort((a, b) => a.top - b.top);
 
-      if (lines.length <= DESCRIPTION_VISIBLE_LINES) {
+      if (lines.length <= visibleLines) {
         el.style.removeProperty("--desc-clamp");
         setIsDescriptionOverflowing(false);
         return;
       }
 
-      const lastVisible = lines[DESCRIPTION_VISIBLE_LINES - 1];
+      const lastVisible = lines[visibleLines - 1];
       const lineHeight = parseFloat(getComputedStyle(inner).lineHeight);
       // getClientRects returns the glyph box, which is shorter than the line
       // box. Adding the half-leading back puts the cut on the line boundary
@@ -173,13 +214,34 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       setNavHeight(h);
     };
 
+    // Measured from the COLUMN. Reading the card instead meant that once it was
+    // `fixed`, its rect reported the fixed position, so every resize re-fixed it
+    // against its own displaced coordinates and the card drifted.
+    // Inner (content-box) bounds of a column, in viewport coordinates. Used to
+    // pin both the nav and the booking card to their own column rather than to
+    // the page — a fixed element gets no layout from its parent, so without this
+    // it spans the viewport.
+    const columnBounds = (col: HTMLDivElement | null) => {
+      if (!col) return null;
+      const rect = col.getBoundingClientRect();
+      const style = window.getComputedStyle(col);
+      const padLeft = parseFloat(style.paddingLeft || '0');
+      const padRight = parseFloat(style.paddingRight || '0');
+      return { left: rect.left + padLeft, width: rect.width - padLeft - padRight, padLeft };
+    };
+
     const updateSidebarBounds = () => {
-      const sidebar = sidebarRef.current;
-      const row = sidebarRowRef.current;
-      if (!sidebar || !row) return;
-      const sidebarRect = sidebar.getBoundingClientRect();
-      setSidebarLeft(sidebarRect.left);
-      setSidebarWidth(sidebarRect.width);
+      const sidebar = columnBounds(sidebarColRef.current);
+      if (sidebar) {
+        setSidebarLeft(sidebar.left);
+        setSidebarWidth(sidebar.width);
+        setSidebarPadLeft(sidebar.padLeft);
+      }
+      const content = columnBounds(contentColRef.current);
+      if (content) {
+        setContentLeft(content.left);
+        setContentWidth(content.width);
+      }
     };
 
     updateNavHeight();
@@ -194,6 +256,26 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Track the booking card's height. It changes when validation messages or the
+  // success banner appear, and the pin maths needs the current value.
+  useEffect(() => {
+    const el = sidebarRef.current;
+    if (!el) return;
+    const content = el.firstElementChild instanceof HTMLElement
+      ? el.firstElementChild
+      : null;
+    const read = () => setCardHeight(Math.max(
+      el.scrollHeight,
+      content?.getBoundingClientRect().height || 0
+    ));
+    read();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(read);
+    observer.observe(el);
+    if (content) observer.observe(content);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const updateFixedState = () => {
       // Disable sticky navigation tabs on mobile
@@ -206,22 +288,40 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       if (!el) return;
       const top = el.getBoundingClientRect().top;
       setIsNavFixed(top <= 0);
+
+      // Past the end of the two-column row (= past #honest-reviews, the last
+      // section the bar links to), the bar only hovers over related tours and
+      // the footer — hide it there, bring it back when scrolling up.
+      const row = sidebarRowRef.current;
+      const barHeight = navRef.current?.getBoundingClientRect().height || 64;
+      setIsNavHidden(!!row && row.getBoundingClientRect().bottom <= barHeight + 8);
     };
 
     const updateSidebarFixed = () => {
       // Only run sticky logic on desktop (>= 992px)
       if (window.innerWidth < 992) {
         setIsSidebarFixed(false);
+        setIsSidebarParked(false);
+        setSidebarViewportHeight(0);
         return;
       }
 
       const row = sidebarRowRef.current;
       if (!row) return;
       const rowRect = row.getBoundingClientRect();
-      const fixedNavHeight = isNavFixed ? navHeight : 0;
-      const threshold = fixedNavHeight + 20;
-      const shouldFix = rowRect.top <= threshold && rowRect.bottom > window.innerHeight;
-      setIsSidebarFixed(shouldFix);
+      const height = cardHeight || sidebarRef.current?.getBoundingClientRect().height || 0;
+
+      const layout = calculateBookingSidebarLayout({
+        rowTop: rowRect.top,
+        rowBottom: rowRect.bottom,
+        cardHeight: height,
+        viewportHeight: window.innerHeight,
+      });
+
+      setSidebarTop(layout.top);
+      setSidebarViewportHeight(layout.availableHeight);
+      setIsSidebarFixed(layout.canFix && !layout.reachedEnd);
+      setIsSidebarParked(layout.canFix && layout.reachedEnd);
     };
 
     const onScroll = () => {
@@ -231,8 +331,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true } as any);
-    return () => window.removeEventListener("scroll", onScroll as any);
-  }, [isNavFixed, navHeight]);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll as any);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [cardHeight]);
 
   // Handle scroll spy and smooth scroll
   useEffect(() => {
@@ -298,7 +402,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     location,
     activitiesType,
     activateDay,
-    traveler,
     price,
     relatedTours,
     sliderImages,
@@ -323,7 +426,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     return <TourListingDetailsOneSkeleton />;
   }
 
-  if (error) {
+  // The error screen replaces the page only when there is no tour to show.
+  // Second guard alongside the hook's own check: a decorative lookup failing
+  // must never hide content the server already rendered.
+  if (error && !hasTourContent) {
     return (
       <div className="d-flex align-items-center justify-content-center text-danger" style={{ minHeight: '400px' }}>
         {error}
@@ -331,117 +437,142 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     );
   }
 
+  const isSidebarViewportConstrained =
+    (isSidebarFixed || isSidebarParked) &&
+    cardHeight > sidebarViewportHeight;
+
   return (
     <>
       <section className='tour-listing-details section-space'>
         {/* Header Section - Commented out */}
 
         <PhotoSwipeGallery>
-        {/* Carousel Section */}
-        <TourCarousel sliderImages={sliderImages} title={title} />
-
-        {/* Tour Key Facts - Screen Reader Only */}
-        <h2 className="sr-only">Tour Key Facts</h2>
-
-        {/* Info Bar Section */}
-        <TourInfoBar
-          location={location}
-          activitiesType={activitiesType}
-          activateDay={activateDay}
-          traveler={traveler}
-          price={price}
-        />
-
+        {/* paddingLeft/Right rather than the shorthand `padding: '0 20px'` the
+            other containers use: the shorthand also sets padding-top to 0
+            inline, which no stylesheet rule can then override. */}
         <Container
           fluid
-          style={{ maxWidth: '1400px', padding: '0 20px' }}
-          className="info-area info-bg pb-3 py-4"
+          style={{ maxWidth: '1400px', paddingLeft: '20px', paddingRight: '20px' }}
+          className="tour-top-block"
         >
-          <div className="row align-items-center">
-            <div className="col-lg-4">
-              <div className="section-heading" style={{ marginBottom: '0' }}>
-                <h2 className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>{t("tourDetails.bookConfidence")}</h2>
-                <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>{t("tourDetails.bookConfidenceDesc")}</p>
-              </div>
-            </div>
-            <div className="col-lg-8">
-              <div className="d-flex justify-content-center align-items-center flex-wrap" style={{ gap: '20px' }}>
-                {[
-                  { title: t("tourDetails.features.monthly"), icon: Calendar },
-                  { title: t("tourDetails.features.support"), icon: Headphones },
-                  { title: t("tourDetails.features.prices"), icon: Tag },
-                  { title: t("tourDetails.features.rating"), icon: Star },
-                  { title: t("tourDetails.features.fast"), icon: Zap }
-                ].map((item, idx) => (
-                  <div key={idx} className="text-center" style={{ minWidth: '120px' }}>
-                    <div className="info-icon flex-shrink-0 bg-white shadow-sm mx-auto mb-2" style={{
-                      width: '70px',
-                      height: '70px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                      border: '1.5px solid #b79c5c',
-                      transition: 'transform 0.3s ease',
-                      boxShadow: '0 8px 16px rgba(183, 156, 92, 0.15)'
-                    }}>
-                      <item.icon size={35} color="#b79c5c" />
-                    </div>
-                    <h4 className="info__title" style={{ fontSize: '13px', color: '#1a1a1a', fontWeight: '600', margin: '0' }}>{item.title}</h4>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Container>
-
-        {/* Section Separator */}
-        <div className="section-separator" style={{
-          height: '1px',
-          background: 'linear-gradient(90deg, transparent, #e0e0e0, transparent)',
-          margin: '40px 0'
-        }}></div>
-
-        <Container fluid style={{ maxWidth: '1400px', padding: '0 20px' }}>
-          {/* Navigation Bar */}
-          <div ref={navPlaceholderRef} />
-          <div
-            ref={navRef}
-            className="tour-details-nav-wrapper bg-white"
-            style={{
-              position: isNavFixed ? 'fixed' : 'relative',
-              top: isNavFixed ? 0 : undefined,
-              left: isNavFixed ? 0 : undefined,
-              right: isNavFixed ? 0 : undefined,
-              zIndex: isNavFixed ? 1100 : undefined,
-              background: '#fff',
-              borderBottom: '2px solid #f0f0f0',
-              width: '100%',
-            }}
-          >
-            <nav className="tour-details-nav">
-              <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>{t("tourDetails.nav.description")}</a>
-              <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>{t("tourDetails.nav.tourPlan")}</a>
-              <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
-              <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
-              <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
-              <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
-              <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
-              <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
-              {/* No "Reviews" tab: the section it pointed at is gone. The video
-                  reviews keep their own tab above. */}
-            </nav>
-          </div>
-
-          <div style={{ height: (isNavFixed && !isMobile) ? (navHeight || 0) + 40 : 0 }} />
-
+          {/* ONE two-column row for the whole page: it starts here, right under
+              the hero, and ends after the last section. That is what makes the
+              booking card stay pinned for the length of the page — the existing
+              sidebarRowRef mechanism measures this row, so no new machinery. */}
           <div className='row gutter-y-30 tour-details-row' ref={sidebarRowRef}>
             {/* Main Content */}
-            <div className='col-lg-9'>
+            <div className='col-lg-9' ref={contentColRef}>
+              {/* Photos first: an adaptive grid that fills every cell at any
+                  photo count, replacing the 3-item slider whose centred first
+                  slide left a wide blank edge. */}
+              <TourMosaic images={sliderImages} title={title} />
+
+              {/* Tour Key Facts - Screen Reader Only. Now actually precedes the
+                  facts it labels. */}
+              <h2 className="sr-only">Tour Key Facts</h2>
+
+              {/* Info Bar Section */}
+              <TourInfoBar
+                location={location}
+                activitiesType={activitiesType}
+                activateDay={activateDay}
+                mapHref={map ? '#map' : undefined}
+              />
+
+              {/* Trust band — same content and icons as before, moved into the
+                  rail so it sits level with the price instead of below the
+                  twelfth section where almost nobody reached it. */}
+              <div className="info-area info-bg tour-trust-band">
+                <div className="row align-items-center">
+                  <div className="col-lg-4">
+                    <div className="section-heading" style={{ marginBottom: '0' }}>
+                      <p className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>{t("tourDetails.bookConfidence")}</p>
+                      <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>{t("tourDetails.bookConfidenceDesc")}</p>
+                    </div>
+                  </div>
+                  <div className="col-lg-8">
+                    <div className="d-flex justify-content-center align-items-center flex-wrap" style={{ gap: '20px' }}>
+                      {[
+                        { title: t("tourDetails.features.monthly"), icon: Calendar },
+                        { title: t("tourDetails.features.support"), icon: Headphones },
+                        { title: t("tourDetails.features.prices"), icon: Tag },
+                        { title: t("tourDetails.features.rating"), icon: Star },
+                        { title: t("tourDetails.features.fast"), icon: Zap }
+                      ].map((item, idx) => (
+                        <div key={idx} className="text-center" style={{ minWidth: '120px' }}>
+                          <div className="info-icon flex-shrink-0 bg-white shadow-sm mx-auto mb-2" style={{
+                            width: '70px',
+                            height: '70px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '50%',
+                            border: '1.5px solid #b79c5c',
+                            transition: 'transform 0.3s ease',
+                            boxShadow: '0 8px 16px rgba(183, 156, 92, 0.15)'
+                          }}>
+                            <item.icon size={35} color="#b79c5c" />
+                          </div>
+                          <span className="info__title d-block" style={{ fontSize: '13px', color: '#1a1a1a', fontWeight: '600', margin: '0' }}>{item.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Bar */}
+              <div ref={navPlaceholderRef} />
+              <div
+                ref={navRef}
+                className="tour-details-nav-wrapper bg-white"
+                style={{
+                  position: isNavFixed ? 'fixed' : 'relative',
+                  top: isNavFixed ? 0 : undefined,
+                  // Pinned to the CONTENT COLUMN's bounds, not the viewport. This
+                  // bar used to span the full page because it lived outside the
+                  // columns; now that it sits inside col-lg-9, `left: 0; right: 0`
+                  // made it stretch across the booking card and cover it.
+                  left: isNavFixed ? contentLeft : undefined,
+                  zIndex: isNavFixed ? 1100 : undefined,
+                  background: '#fff',
+                  borderBottom: '2px solid #f0f0f0',
+                  width: isNavFixed ? contentWidth : '100%',
+                  // Slide away below the last section; visibility also drops it
+                  // from the tab order and the accessibility tree while gone.
+                  transform: isNavFixed && isNavHidden ? 'translateY(-110%)' : undefined,
+                  visibility: isNavFixed && isNavHidden ? 'hidden' : undefined,
+                  transition: isNavFixed ? 'transform 0.25s ease, visibility 0.25s ease' : undefined,
+                }}
+              >
+                <nav className="tour-details-nav">
+                  <a href="#description" className={`tour-nav-link ${activeSection === 'description' ? 'active' : ''}`}>{t("tourDetails.nav.description")}</a>
+                  <a href="#tour-plan" className={`tour-nav-link ${activeSection === 'tour-plan' ? 'active' : ''}`}>{t("tourDetails.nav.tourPlan")}</a>
+                  {/* Only when the tour actually has a map — the tab used to scroll to
+                      an empty section on the tours with no embed. */}
+                  {map && (
+                    <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
+                  )}
+                  <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
+                  <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
+                  {/* Same guard as the map: tour.gallery is empty on most tours,
+                      so the tab used to scroll to an EmptyState. */}
+                  {images && images.length > 0 && (
+                    <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
+                  )}
+                  <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
+                  <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
+                  {/* No "Reviews" tab: the section it pointed at is gone. The video
+                      reviews keep their own tab above. */}
+                </nav>
+              </div>
+
+              <div style={{ height: (isNavFixed && !isMobile) ? (navHeight || 0) + 40 : 0 }} />
+
               <div className='tour-listing-details__content'>
 
                 {/* Description Section */}
-                <section id="description" className="tour-section mb-5">
+                <section id="description" className="tour-section">
                   <div className='tour-listing-details__content__item border-0 p-0 shadow-none'>
                     <div className="d-flex align-items-center gap-3 mb-4">
                       <div style={{ width: '5px', height: '32px', borderRadius: '4px', backgroundColor: '#b79c5c' }}></div>
@@ -488,53 +619,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </button>
                     )}
 
-                    {tourData.whatYouWillLoveHtml && (
-                        <div className="tour-listing-details__what-you-love mt-5 p-5 rounded-4 shadow-sm" style={{ 
-                          background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)', 
-                          border: '1px solid rgba(183, 156, 92, 0.15)',
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}>
-                          {/* Premium Background Element */}
-                          <div style={{ 
-                            position: 'absolute', 
-                            top: '-20px', 
-                            right: '-20px', 
-                            fontSize: '160px', 
-                            opacity: '0.04',
-                            transform: 'rotate(-15deg)',
-                            userSelect: 'none',
-                            pointerEvents: 'none'
-                          }}>💎</div>
-                          
-                          <div className="d-flex align-items-center gap-4 mb-4">
-                            <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style={{ width: '54px', height: '54px' }}>
-                              <i className="icon-star" style={{ fontSize: '24px', color: '#b79c5c' }}></i>
-                            </div>
-                            <div>
-                               <h4 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
-                                 {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
-                               </h4>
-                               <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
-                            </div>
-                          </div>
-
-                          <div
-                            className='tour-listing-details__text'
-                            style={{ 
-                              color: '#333', 
-                              lineHeight: '1.9',
-                              fontSize: '1rem',
-                              fontWeight: '400'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
-                          />
-                        </div>
-                      )}
                   </div>
 
                   {/* Tour Highlights Section */}
-                  <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
+                  <div className='tour-listing-details__content__item border-0 p-0'>
                     <div className="d-flex align-items-center gap-2 mb-4">
                       <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
                       <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
@@ -566,28 +654,41 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <TourPlan itinerary={itinerary} />
                 </section>
 
-                <section id="map" className="tour-section">
-                  {map && (
+                {/* The <section> itself is conditional: `.tour-section` carries 40px
+                    of padding top and bottom plus a bottom border, so rendering it
+                    empty for a tour with no map left a blank gap and a stray rule. */}
+                {map && (
+                  <section id="map" className="tour-section">
                     <div className='tour-listing-details__content__item'>
-                      <h4 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h4>
+                      <h2 className='tour-listing-details__title'>{t("tourDetails.mapTitle")}</h2>
                       <div className="tour-listing-details__map-box" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
                         <iframe
-                          title='Google Map'
+                          // Names the tour, in the page's language: screen readers
+                          // announce an iframe by its title, and "Google Map" named
+                          // the vendor rather than the content — identically on
+                          // every tour and in English on the translated pages.
+                          title={title ? `${t("tourDetails.mapTitle")} — ${title}` : t("tourDetails.mapTitle")}
                           src={map}
                           allowFullScreen
+                          // Restored from the pasted iframe, which the old code
+                          // dropped by keeping only `src`. Without lazy loading the
+                          // Maps bundle was fetched on every tour view even though
+                          // the map sits far below the fold.
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
                           className='w-100'
                           height='450'
                           style={{ border: 0 }}
                         />
                       </div>
                     </div>
-                  )}
-                </section>
+                  </section>
+                )}
 
                 {/* Amenities Section */}
                 <section id="amenities" className="tour-section">
                   {includedAmenityItems.length > 0 || excludedAmenityItems.length > 0 ? (
-                    <div className='tour-listing-details__content__item border-0 p-0 mb-5'>
+                    <div className='tour-listing-details__content__item border-0 p-0'>
                       <h2 className='tour-listing-details__title mb-4' style={{ fontSize: '1.25rem', fontWeight: '800' }}>
                         {t("tourDetails.amenitiesTitle")}
                       </h2>
@@ -658,19 +759,56 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   )}
                 </section>
                 
+                {/* Important Notes Section */}
+                {tourData.notes && tourData.notes.length > 0 && (
+                  <section id="important-notes" className="tour-section">
+                    <div className="mb-4 d-flex align-items-center gap-2">
+                      <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
+                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
+                        {t("tourDetails.importantNotes", "Important Notes")}
+                      </h2>
+                    </div>
+                    <div className="d-flex flex-column gap-3">
+                      {tourData.notes?.map((note, index) => (
+                        <div key={index} className="tour-note-item">
+                          {note.title && (
+                            <div className="mb-1">
+                              <span className="fw-bold fs-7 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.05em', color: '#b79c5c' }}>
+                                {note.title}
+                              </span>
+                            </div>
+                          )}
+                          <div
+                            className="text-muted tour-listing-details__text"
+                            style={{
+                              fontSize: '0.925rem',
+                              lineHeight: '1.6',
+                              color: '#555 !important'
+                            }}
+                            dangerouslySetInnerHTML={{ __html: note.text }}
+                          />
+                          {index < (tourData.notes?.length || 0) - 1 && (
+                            <hr className="mt-3 mb-0 opacity-10" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
                 {/* What to Pack Section */}
                 {whatToPackItems.length > 0 && (
-                  <section id="what-to-pack" className="tour-section mt-4">
-                    <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{ 
-                      backgroundColor: 'rgba(183, 156, 92, 0.02)', 
+                  <section id="what-to-pack" className="tour-section">
+                    <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{
+                      backgroundColor: 'rgba(183, 156, 92, 0.02)',
                       border: '1px solid rgba(183, 156, 92, 0.1)',
                       borderRight: '4px solid #b79c5c'
                     }}>
                       <div className="mb-3 d-flex align-items-center justify-content-between">
-                        <h4 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
-                          <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }}></i>
+                        <h2 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
+                          <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }} aria-hidden="true"></i>
                           {t("tourDetails.whatToPack", "What to Pack")}
-                        </h4>
+                        </h2>
                       </div>
                       <div className="row g-2">
                         {whatToPackItems.map((item, index) => (
@@ -686,49 +824,62 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   </section>
                 )}
 
-                {/* Important Notes Section */}
-                {tourData.notes && tourData.notes.length > 0 && (
-                  <section id="important-notes" className="tour-section mt-4 pt-3 border-top">
-                    <div className="mb-4 d-flex align-items-center gap-2">
-                      <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
-                      <h4 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
-                        {t("tourDetails.importantNotes", "Important Notes")}
-                      </h4>
-                    </div>
-                    <div className="d-flex flex-column gap-3">
-                      {tourData.notes?.map((note, index) => (
-                        <div key={index} className="tour-note-item">
-                          {note.title && (
-                            <div className="mb-1">
-                              <span className="fw-bold fs-7 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.05em', color: '#b79c5c' }}>
-                                {note.title}
-                              </span>
-                            </div>
-                          )}
-                          <div 
-                            className="text-muted tour-listing-details__text" 
-                            style={{ 
-                              fontSize: '0.925rem', 
-                              lineHeight: '1.6',
-                              color: '#555 !important'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: note.text }}
-                          />
-                          {index < (tourData.notes?.length || 0) - 1 && (
-                            <hr className="mt-3 mb-0 opacity-10" />
-                          )}
+                {/* What You Will Love — sits between What to Pack and the gallery */}
+                {tourData.whatYouWillLoveHtml && (
+                  <section id="what-you-will-love" className="tour-section">
+                    <div className="tour-listing-details__what-you-love p-5 rounded-4 shadow-sm" style={{
+                      background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)',
+                      border: '1px solid rgba(183, 156, 92, 0.15)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      {/* Premium Background Element */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '-20px',
+                        right: '-20px',
+                        fontSize: '160px',
+                        opacity: '0.04',
+                        transform: 'rotate(-15deg)',
+                        userSelect: 'none',
+                        pointerEvents: 'none'
+                      }}>💎</div>
+
+                      <div className="d-flex align-items-center gap-4 mb-4">
+                        <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style={{ width: '54px', height: '54px' }}>
+                          <i className="icon-star" style={{ fontSize: '24px', color: '#b79c5c' }}></i>
                         </div>
-                      ))}
+                        <div>
+                          <h2 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
+                            {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
+                          </h2>
+                          <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
+                        </div>
+                      </div>
+
+                      <div
+                        className='tour-listing-details__text'
+                        style={{
+                          color: '#333',
+                          lineHeight: '1.9',
+                          fontSize: '1rem',
+                          fontWeight: '400'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
+                      />
                     </div>
                   </section>
                 )}
 
-                {/* Gallery Section */}
-                <section id="gallery" className="tour-section">
-                  {images && images.length > 0 ? (
+                {/* Gallery Section — the whole section is conditional, same as the
+                    map: `tour.gallery` is empty on most tours, so this used to
+                    render a padded section containing only an EmptyState, with a
+                    nav tab pointing at it. */}
+                {images && images.length > 0 && (
+                  <section id="gallery" className="tour-section">
                     <div className='tour-listing-details__content__item tour-listing-details__thumb'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.galleryTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.gallerySubtitle")}</p>
                       </div>
                       
@@ -824,15 +975,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         </Masonry>
                       )}
                     </div>
-                  ) : (
-                    <EmptyState
-                      title={t("tourDetails.empty.galleryTitle")}
-                      description={t("tourDetails.empty.galleryDesc")}
-                      icon="inbox"
-                      size="medium"
-                    />
-                  )}
-                </section>
+                  </section>
+                )}
 
                 {/* Download Section */}
                 <section id="download-pdf" className="tour-section">
@@ -941,7 +1085,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <section id="honest-reviews" className="tour-section">
                     <div className='tour-listing-details__content__item'>
                       <div className="mb-4">
-                        <h4 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h4>
+                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.honestReviewsTitle")}</h2>
                         <p className="tour-reviews-subtitle">{t("tourDetails.honestReviewsSubtitle")}</p>
                       </div>
                       <div className="row gutter-y-30">
@@ -983,25 +1127,42 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
             </div>
 
             {/* Sidebar - Booking Form */}
-            <div className='col-lg-3'>
+            <div className='col-lg-3' ref={sidebarColRef} style={{ position: 'relative' }}>
               {/* Spacer to prevent layout jump when sidebar is fixed */}
-              {isSidebarFixed && (
-                <div style={{ height: sidebarRef.current?.getBoundingClientRect().height || 0 }} />
-              )}
+              {isSidebarFixed && <div style={{ height: cardHeight }} />}
               <div
                 ref={sidebarRef}
-                className='tour-listing-details__sidebar'
+                className={`tour-listing-details__sidebar ${
+                  isSidebarViewportConstrained
+                    ? 'tour-listing-details__sidebar--scrollable'
+                    : ''
+                }`}
                 style={{
-                  position: isSidebarFixed ? 'fixed' : 'relative',
-                  left: isSidebarFixed ? sidebarLeft : undefined,
-                  width: isSidebarFixed ? sidebarWidth : undefined,
-                  top: isSidebarFixed ? (isNavFixed ? navHeight : 0) + 20 : undefined,
+                  // Parked = absolutely pinned to the COLUMN'S bottom, out of the
+                  // flow. The previous margin-top approach fed on itself: the
+                  // margin was computed from the row's height and then ADDED to
+                  // that height, so every scroll event grew the page — measured
+                  // at +6,000px of blank space after a few wheel ticks.
+                  position: isSidebarFixed ? 'fixed' : isSidebarParked ? 'absolute' : 'relative',
+                  left: isSidebarFixed ? sidebarLeft : isSidebarParked ? sidebarPadLeft : undefined,
+                  width: (isSidebarFixed || isSidebarParked) ? sidebarWidth : undefined,
+                  top: isSidebarFixed ? sidebarTop : undefined,
+                  bottom: isSidebarParked ? 0 : undefined,
                   zIndex: isSidebarFixed ? 1000 : undefined,
                   alignSelf: 'flex-start',
                   height: 'fit-content',
+                  maxHeight: (isSidebarFixed || isSidebarParked)
+                    ? sidebarViewportHeight
+                    : undefined,
+                  overflowY: isSidebarViewportConstrained ? 'auto' : undefined,
                 }}
               >
-                <BookingForm tourId={String(tourData.id || '')} />
+                <BookingForm
+                  tourId={String(tourData.id || '')}
+                  price={price}
+                  hasPricing={(pricingPlans || []).length > 0}
+                  tourTitle={title}
+                />
               </div>
             </div>
           </div>
@@ -1122,7 +1283,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       </section>
 
       {/* Mobile Sticky Booking Bar */}
-      <MobileStickyBookingBar tourId={id || ""} price={price} />
+      <MobileStickyBookingBar
+        tourId={String(tourData.id || "")}
+        price={price}
+        tourTitle={title}
+      />
     </>
   );
 };

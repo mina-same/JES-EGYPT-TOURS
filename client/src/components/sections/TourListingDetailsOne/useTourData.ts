@@ -23,6 +23,40 @@ function getYouTubeVideoId(url: string): string {
   return '';
 }
 
+/**
+ * Pulls the embed URL out of whatever the admin pasted into `tourMapIframe` and
+ * pins the map's language to the page's.
+ *
+ * Two things this has to survive:
+ *
+ * 1. The stored value is a whole `<iframe …>` snippet copied from Google Maps.
+ *    Matching only double quotes silently lost the map when someone pasted
+ *    single-quoted markup or just the bare URL, so both are accepted.
+ * 2. Google renders the embed in the VISITOR'S BROWSER language when no `hl` is
+ *    given — an Italian browser got an Italian map on the English page, place
+ *    names and number formats included. `tourMapIframe` is one shared string for
+ *    all four locales, so the language cannot be baked into the stored value; it
+ *    is forced here, per render, and overrides any `hl` already in the URL.
+ */
+export const buildLocalizedMapSrc = (rawIframe?: string, locale: string = 'en'): string => {
+  if (!rawIframe) return '';
+  const raw = String(rawIframe).trim();
+
+  const quoted = raw.match(/src\s*=\s*["']([^"']+)["']/i);
+  const src = quoted?.[1] ?? (/^https?:\/\//i.test(raw) ? raw : '');
+  if (!src) return '';
+
+  try {
+    const url = new URL(src, 'https://www.google.com');
+    url.searchParams.set('hl', locale);
+    return url.toString();
+  } catch {
+    // Unparseable src: fall back to appending, still better than the wrong language.
+    const separator = src.includes('?') ? '&' : '?';
+    return /[?&]hl=/i.test(src) ? src : `${src}${separator}hl=${encodeURIComponent(locale)}`;
+  }
+};
+
 export const useTourData = (id?: string, initialRawTour?: any) => {
   const { i18n } = useTranslation();
   const currentLang = (i18n.language || 'en') as 'en' | 'de' | 'it' | 'es';
@@ -127,7 +161,6 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
       location: getLocalizedValue(tour.tourLocation) || "",
       activitiesType: getLocalizedValue(tour.tourType) || "",
-      traveler: 10,
       activateDay: getLocalizedValue(tour.duration) || "",
       price: tour.priceStartingFrom || tour.price || 0,
       overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",
@@ -157,7 +190,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           answer:   f?.answer?.[currentLang]   || '',
         }))
         .filter(f => f.question && f.answer),
-      map: tour.tourMapIframe?.match(/src="([^"]+)"/)?.[1] || "",
+      map: buildLocalizedMapSrc(tour.tourMapIframe, currentLang),
       itinerary: {
         generalDescription: getLocalizedValue(tour.itinerary?.generalDescription),
         // No `description` here on purpose: the day description was retired, so
@@ -209,12 +242,22 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
   const [error, setError] = useState<string | null>(null);
   const [moreTours, setMoreTours] = useState<any[]>([]);
   const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
+  /**
+   * Whether a real tour is available to render. True from the first render when
+   * the server supplied one. The page uses this to decide whether a failure is
+   * fatal: with content already on screen it never is.
+   */
+  const [hasTourContent, setHasTourContent] = useState<boolean>(Boolean(initialRawTour));
 
   useEffect(() => {
     const fetchAll = async () => {
       if (!id && !initialRawTour) return;
       try {
-        setLoading(true);
+        // Only show the skeleton when there is genuinely nothing to show. The
+        // server-rendered tour is already painted, so flipping `loading` here
+        // used to tear the whole page down and rebuild it on every visit — a
+        // visible flash, wasted SSR, and a fresh DOM that invalidated refs.
+        if (!initialRawTour) setLoading(true);
 
         // 1. Use the server-fetched tour when available (avoids a redundant
         //    client getBySlug); otherwise fetch the main tour by slug (raw data).
@@ -295,53 +338,51 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           })),
         ];
 
-        // 3. Fallback "More Tours" Promise (try subcategory first)
-        const moreToursRes = subId
-          ? await tourAPI.getBySubcategory(String(subId), { limit: 12, isActive: true })
-          : { success: false, data: [] };
-
-        const fetchedMoreToursRaw = moreToursRes.success
-          ? safeArray<any>(moreToursRes.data).filter(isEligibleMoreTour)
-          : [];
-
-        // If subcategory count is low (< 9), try category fallback
-        if (fetchedMoreToursRaw.length < 9 && catId) {
-          const catMoreRes = await tourAPI.getAll({ 
-            category: String(catId), 
-            limit: 15, 
-            isActive: true 
-          });
-          if (catMoreRes.success) {
-            // Merge but unique by _id
-            const catTours = safeArray<any>(catMoreRes.data).filter(isEligibleMoreTour);
+        // 3. Fallback "More Tours" (try subcategory, then category, then anything)
+        //
+        // Own try/catch on purpose. These three lookups feed ONE decorative
+        // carousel, yet an unhandled rejection here used to jump straight to the
+        // fatal catch below and blank a page whose real content had already
+        // rendered. A failure now just leaves the section empty, and whatever was
+        // collected before the throw is still used.
+        const fetchedMoreToursRaw: any[] = [];
+        try {
+          const mergeUnique = (candidates: any[]) => {
             const existingIds = new Set(fetchedMoreToursRaw.map(getTourId).filter(Boolean));
-            catTours.forEach(t => {
-              const candidateId = getTourId(t);
+            candidates.filter(isEligibleMoreTour).forEach((candidate) => {
+              const candidateId = getTourId(candidate);
               if (candidateId && !existingIds.has(candidateId)) {
-                fetchedMoreToursRaw.push(t);
+                fetchedMoreToursRaw.push(candidate);
                 existingIds.add(candidateId);
               }
             });
-          }
-        }
+          };
 
-        // Final fallback: if still < 9, show any other tours
-        if (fetchedMoreToursRaw.length < 9) {
-          const allMoreRes = await tourAPI.getAll({ 
-            limit: 15, 
-            isActive: true 
-          });
-          if (allMoreRes.success) {
-            const allTours = safeArray<any>(allMoreRes.data).filter(isEligibleMoreTour);
-            const existingIds = new Set(fetchedMoreToursRaw.map(getTourId).filter(Boolean));
-            allTours.forEach(t => {
-              const candidateId = getTourId(t);
-              if (candidateId && !existingIds.has(candidateId)) {
-                fetchedMoreToursRaw.push(t);
-                existingIds.add(candidateId);
-              }
+          const moreToursRes = subId
+            ? await tourAPI.getBySubcategory(String(subId), { limit: 12, isActive: true })
+            : { success: false, data: [] };
+          if (moreToursRes.success) mergeUnique(safeArray<any>(moreToursRes.data));
+
+          // If subcategory count is low (< 9), try category fallback
+          if (fetchedMoreToursRaw.length < 9 && catId) {
+            const catMoreRes = await tourAPI.getAll({
+              category: String(catId),
+              limit: 15,
+              isActive: true
             });
+            if (catMoreRes.success) mergeUnique(safeArray<any>(catMoreRes.data));
           }
+
+          // Final fallback: if still < 9, show any other tours
+          if (fetchedMoreToursRaw.length < 9) {
+            const allMoreRes = await tourAPI.getAll({
+              limit: 15,
+              isActive: true
+            });
+            if (allMoreRes.success) mergeUnique(safeArray<any>(allMoreRes.data));
+          }
+        } catch (moreToursError) {
+          console.warn('useTourData: "more tours" lookup failed; hiding that section only', moreToursError);
         }
 
         const [relatedToursData, blogDataRaw] = await Promise.all(commonDataPromises);
@@ -386,9 +427,14 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         setRelatedBlogs(mappedBlogs);
         setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
         setTourData(mappedData);
+        setHasTourContent(true);
       } catch (err) {
         console.error("useTourData error:", err);
-        setError("Failed to load tour details");
+        // Fatal ONLY when nothing is renderable. The tour itself comes from the
+        // server, so a failure in this effect must not replace a page that
+        // already displays correct content with an error screen — which is what
+        // happened when any secondary request was blocked or timed out.
+        if (!initialRawTour) setError("Failed to load tour details");
       } finally {
         setLoading(false);
       }
@@ -396,5 +442,5 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     fetchAll();
   }, [id, currentLang]);
 
-  return { tourData, loading, error, moreTours, relatedBlogs };
+  return { tourData, loading, error, moreTours, relatedBlogs, hasTourContent };
 };

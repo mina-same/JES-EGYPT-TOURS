@@ -1,10 +1,84 @@
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
-import Booking from '../models/Booking';
+import { matchedData, validationResult } from 'express-validator';
+import Booking, { type IBooking } from '../models/Booking';
 import Tour from '../models/Tour';
 import Notification from '../models/Notification';
+import CurrencyConfig from '../models/CurrencyConfig';
 import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
 import { createSearchRegex } from '../utils/search';
+import {
+  type BookingCurrency,
+  type TourStartingPrice,
+  createBookingRequestFingerprint,
+  resolveTourStartingQuote,
+} from '../utils/booking';
+
+interface PublicBookingInput {
+  tour: string;
+  name: string;
+  email: string;
+  phone: string;
+  nationality?: string;
+  dateFrom: string;
+  dateTo: string;
+  adults: number;
+  children?: number;
+  infants?: number;
+  requirements?: string;
+  currency?: BookingCurrency;
+}
+
+const BOOKING_SUCCESS_MESSAGE =
+  'Your booking has been submitted successfully! We will contact you soon to confirm your reservation.';
+
+interface MongoDuplicateKeyError {
+  code?: number;
+  keyPattern?: Record<string, number>;
+  keyValue?: Record<string, unknown>;
+  message?: string;
+}
+
+const isIdempotencyKeyCollision = (error: unknown): boolean => {
+  const mongoError = error as MongoDuplicateKeyError;
+  if (mongoError?.code !== 11000) return false;
+
+  return Boolean(
+    mongoError.keyPattern?.idempotencyKey ||
+    mongoError.keyValue?.idempotencyKey ||
+    mongoError.message?.includes('idempotencyKey')
+  );
+};
+
+const findBookingByIdempotencyKey = async (idempotencyKey: string) =>
+  Booking.findOne({ idempotencyKey }).select('+requestFingerprint');
+
+const respondWithIdempotentReplay = async (
+  res: Response,
+  booking: IBooking,
+  requestFingerprint: string
+): Promise<void> => {
+  if (booking.requestFingerprint !== requestFingerprint) {
+    res.status(409).json({
+      success: false,
+      code: 'IDEMPOTENCY_KEY_REUSED',
+      error: 'This Idempotency-Key was already used with different booking data',
+    });
+    return;
+  }
+
+  try {
+    await booking.populate('tour', 'heading slug images');
+  } catch (populateError) {
+    console.error('Booking replay succeeded but tour population failed:', populateError);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: BOOKING_SUCCESS_MESSAGE,
+    data: booking,
+    idempotentReplay: true,
+  });
+};
 
 /**
  * @desc    Create a new tour booking
@@ -27,8 +101,37 @@ export const createBooking = async (
       return;
     }
 
+    // `matchedData` is the public endpoint's allowlist. Fields that belong to
+    // admins or the server itself (status, adminNotes, quotedPrice, etc.) never
+    // reach Booking.create even if a caller includes them in the JSON body.
+    const input = matchedData(req, {
+      locations: ['body'],
+      includeOptionals: false,
+    }) as PublicBookingInput;
+
+    // Validation guarantees a UUID v4. Lowercasing makes textual UUID variants
+    // share one unique database key as they represent the same attempt.
+    const rawIdempotencyKey = req.get('Idempotency-Key');
+    if (!rawIdempotencyKey) {
+      res.status(400).json({
+        success: false,
+        error: 'Idempotency-Key header is required',
+      });
+      return;
+    }
+    const idempotencyKey = rawIdempotencyKey.toLowerCase();
+    const requestFingerprint = createBookingRequestFingerprint(input);
+
+    // Fast replay path: a response may have been lost after the durable insert.
+    // Return the original booking without re-running notifications or pricing.
+    const existingBooking = await findBookingByIdempotencyKey(idempotencyKey);
+    if (existingBooking) {
+      await respondWithIdempotentReplay(res, existingBooking, requestFingerprint);
+      return;
+    }
+
     // Verify tour exists
-    const tour = await Tour.findById(req.body.tour);
+    const tour = await Tour.findById(input.tour);
     if (!tour) {
       res.status(404).json({
         success: false,
@@ -37,35 +140,111 @@ export const createBooking = async (
       return;
     }
 
-    // Create booking
-    const booking = await Booking.create(req.body);
+    // A scheduled tour remains inactive until the publishing scheduler enables
+    // it, so this also prevents early bookings for scheduled/unpublished tours.
+    if (tour.isActive !== true) {
+      res.status(409).json({
+        success: false,
+        error: 'This tour is currently unavailable for booking',
+      });
+      return;
+    }
 
-    // Populate tour details
-    await booking.populate('tour', 'heading slug images');
+    const { currency: requestedCurrency, ...publicFields } = input;
+    const currency: BookingCurrency = requestedCurrency || 'USD';
+    const legacyUsdPrice = (tour as unknown as { price?: unknown }).price;
+    const startingPrice: TourStartingPrice | undefined =
+      tour.priceStartingFrom ||
+      (typeof legacyUsdPrice === 'number' ? { USD: legacyUsdPrice } : undefined);
 
-    emitAdminNotification({
-      type: 'booking',
-      title: `Booking from ${booking.name}`,
-      entityId: booking._id.toString(),
-      createdAt: booking.createdAt?.toISOString?.() || new Date().toISOString(),
-    });
+    // Same safe defaults used by the public currency context. The persisted
+    // configuration replaces them when present.
+    let rates: { EUR?: number; GBP?: number } = { EUR: 0.92, GBP: 0.79 };
+    if (
+      startingPrice &&
+      currency !== 'USD' &&
+      typeof startingPrice[currency] !== 'number'
+    ) {
+      const config = await CurrencyConfig.findOne().lean();
+      rates = config?.rates || rates;
+    }
+
+    const quotedPrice = resolveTourStartingQuote(startingPrice, currency, rates);
+
+    // Only publicFields are accepted. Status is forced here even though the
+    // schema also defaults it, making the authorization boundary explicit.
+    // Await the model's cached initialization promise so even the first request
+    // after a deployment cannot race ahead of the unique idempotency index.
+    await Booking.init();
+    let booking: IBooking;
+    try {
+      booking = await Booking.create({
+        ...publicFields,
+        tour: tour._id,
+        status: 'pending',
+        idempotencyKey,
+        requestFingerprint,
+        ...(quotedPrice !== undefined ? { currency, quotedPrice } : {}),
+      });
+    } catch (createError) {
+      // Two identical requests can pass the fast lookup concurrently. The
+      // unique MongoDB index is the final atomic guard; the loser replays the
+      // winner instead of returning an error or producing a second booking.
+      if (isIdempotencyKeyCollision(createError)) {
+        const concurrentBooking = await findBookingByIdempotencyKey(idempotencyKey);
+        if (concurrentBooking) {
+          await respondWithIdempotentReplay(
+            res,
+            concurrentBooking,
+            requestFingerprint
+          );
+          return;
+        }
+      }
+      throw createError;
+    }
+
+    // Everything below is enrichment/notification after the durable write. A
+    // failure here must never tell the visitor the booking failed and invite a
+    // duplicate retry after the booking already exists.
+    try {
+      await booking.populate('tour', 'heading slug images');
+    } catch (populateError) {
+      console.error('Booking created but tour population failed:', populateError);
+    }
+
+    try {
+      emitAdminNotification({
+        type: 'booking',
+        title: `Booking from ${booking.name}`,
+        entityId: booking._id.toString(),
+        createdAt: booking.createdAt?.toISOString?.() || new Date().toISOString(),
+      });
+    } catch (realtimeError) {
+      console.error('Booking created but realtime notification failed:', realtimeError);
+    }
 
     // Save notification to database (supports polling fallback on Vercel)
-    await Notification.create({
-      type: 'booking',
-      title: 'New Booking',
-      message: `Booking from ${booking.name} (${booking.email})`,
-      entityId: booking._id,
-    });
+    try {
+      await Notification.create({
+        type: 'booking',
+        title: 'New Booking',
+        message: `Booking from ${booking.name} (${booking.email})`,
+        entityId: booking._id,
+      });
+    } catch (notificationError) {
+      console.error('Booking created but persisted notification failed:', notificationError);
+    }
 
     void emitDashboardStatsUpdate();
 
     res.status(201).json({
       success: true,
-      message: 'Your booking has been submitted successfully! We will contact you soon to confirm your reservation.',
+      message: BOOKING_SUCCESS_MESSAGE,
       data: booking,
+      idempotentReplay: false,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating booking:', error);
     res.status(500).json({
       success: false,

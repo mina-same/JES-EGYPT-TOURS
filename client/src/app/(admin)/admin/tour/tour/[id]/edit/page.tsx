@@ -264,9 +264,8 @@ export default function EditTourPage() {
               itinerary: {
                 generalDescription: toLocalized(tour.itinerary?.generalDescription),
                 days: (tour.itinerary?.days || []).map((d: any) => ({
-                  ...d,
+                  day: d.day,
                   title: toLocalized(d.title),
-                  description: toLocalized(d.description),
                   activities: (d.activities || []).map((a: any) => ({
                     ...a,
                     heading: toLocalized(a.heading),
@@ -493,6 +492,19 @@ export default function EditTourPage() {
       if (!cleanData.idExternal) delete cleanData.idExternal;
       if (!cleanData.tourMapIframe) delete cleanData.tourMapIframe;
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
+
+      // Old saved drafts may still contain the retired day-level description.
+      // Never send it back; activity descriptions are the single source of truth.
+      if (Array.isArray(cleanData.itinerary?.days)) {
+        cleanData.itinerary = {
+          ...cleanData.itinerary,
+          days: cleanData.itinerary.days.map((day: any) => {
+            const normalizedDay = { ...day };
+            delete normalizedDay.description;
+            return normalizedDay;
+          }),
+        };
+      }
       
       if (!cleanData.pricingPlans?.length) delete cleanData.pricingPlans;
       if (!cleanData.blogReferences?.length) delete cleanData.blogReferences;
