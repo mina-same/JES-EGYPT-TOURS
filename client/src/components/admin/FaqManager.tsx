@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Copy, GripVertical, Plus, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, GripVertical, Plus, Trash2 } from 'lucide-react';
 
 import { type AdminLanguage } from './AdminLanguageTabs';
 import LocalizedField from './LocalizedField';
@@ -494,6 +494,17 @@ export default function FaqManager({
               </div>
             </SortableContext>
           </DndContext>
+        )}
+
+        {faqs.length > 0 && (
+          <Button
+            type="button"
+            onClick={addFaq}
+            className="w-full bg-[#b79c5c] hover:bg-[#a68b4b]"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add FAQ
+          </Button>
         )}
       </CardContent>
     </Card>

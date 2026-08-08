@@ -1,3 +1,10 @@
+import {
+  isAuthenticationErrorMessage,
+  SESSION_EXPIRED_FIELD,
+  SESSION_EXPIRED_SUMMARY,
+  SESSION_RECOVERY_STEPS,
+} from '@/lib/authSessionMessages';
+
 /**
  * Represents a single structured form error.
  */
@@ -10,6 +17,15 @@ export interface FormErrorItem {
   lang?: string;
   /** The raw field path for scroll-to behavior (e.g. "name.en", "seo.metaTitle.de") */
   path?: string;
+  /** Optional instructions and action that help the user recover from the error. */
+  recovery?: {
+    steps: readonly string[];
+    action?: {
+      label: string;
+      href: string;
+      newTab?: boolean;
+    };
+  };
 }
 
 /**
@@ -25,6 +41,24 @@ export function parseApiError(responseData: any): FormErrorItem[] {
   if (!responseData) return [{ field: 'Server', message: 'An unknown error occurred.' }];
 
   const errors: FormErrorItem[] = [];
+  const rawMessage = responseData.message || responseData.error || responseData.msg;
+
+  // Authentication failures are page-level errors, not field validation errors.
+  // Give staff a safe recovery path without closing the page or losing their work.
+  if (typeof rawMessage === 'string' && isAuthenticationErrorMessage(rawMessage)) {
+    return [{
+      field: SESSION_EXPIRED_FIELD,
+      message: SESSION_EXPIRED_SUMMARY,
+      recovery: {
+        steps: SESSION_RECOVERY_STEPS,
+        action: {
+          label: 'Open login in a new tab',
+          href: '/login',
+          newTab: true,
+        },
+      },
+    }];
+  }
 
   // 1. Mongoose-style: { errors: { 'field.lang': { message: '...' } } }
   if (responseData.errors && typeof responseData.errors === 'object' && !Array.isArray(responseData.errors)) {
@@ -54,7 +88,6 @@ export function parseApiError(responseData: any): FormErrorItem[] {
   }
 
   // 3. Simple message string
-  const rawMessage = responseData.message || responseData.error || responseData.msg;
   if (typeof rawMessage === 'string' && rawMessage) {
     // Try to extract field hints from common phrasing like "slug is required"
     errors.push(...extractFromMessage(rawMessage));
@@ -123,12 +156,13 @@ function humanize(str: string): string {
 }
 
 function extractFromMessage(message: string): FormErrorItem[] {
-  const lower = message.toLowerCase();
-
   // Look for known field names in the message
   for (const [key, label] of Object.entries(FIELD_LABELS)) {
     const keyPart = key.split('.').pop() || key;
-    if (lower.includes(keyPart.toLowerCase())) {
+    const escapedKey = keyPart.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const wholeFieldName = new RegExp(`(^|[^a-z0-9])${escapedKey}([^a-z0-9]|$)`, 'i');
+
+    if (wholeFieldName.test(message)) {
       return [{ field: label, message, path: key }];
     }
   }

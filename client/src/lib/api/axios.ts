@@ -1,10 +1,9 @@
 import axios from 'axios';
 import { API_URL } from '@/config/api';
 import { toast } from '@/hooks/use-toast';
+import { SESSION_EXPIRED_MESSAGE } from '@/lib/authSessionMessages';
 
 const API_BASE_URL = API_URL;
-const SESSION_EXPIRED_MESSAGE =
-  'Your session has expired. This page was kept open so your current work is not lost. You cannot save to the server until you log in again. Please log in in another tab, then return here and save.';
 
 let sessionExpiryToastShown = false;
 

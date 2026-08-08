@@ -1251,7 +1251,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             href={blog.link}
                             className='blog-card-two__content__btn'
                           >
-                            {t("tourDetails.relatedBlogs.readMore", "Read More")} <i className='icon-arrow-right'></i>
+                            {t("tourDetails.relatedBlogs.readMore", "Read More")}
+                            {/* Keep the compact visual CTA while giving this link
+                                a unique, descriptive name for crawlers and screen
+                                readers. The title is already localized upstream. */}
+                            {blog.title && <span className='sr-only'> — {blog.title}</span>} {" "}
+                            <i className='icon-arrow-right' aria-hidden='true'></i>
                           </Link>
                         </div>
                       </div>
