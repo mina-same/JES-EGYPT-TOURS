@@ -3,6 +3,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { cookies } from "next/headers";
+import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { SlugProvider } from "@/contexts/SlugContext";
 import SEOProvider from "@/components/common/SEO/SEOProvider";
@@ -67,6 +69,16 @@ export default async function RootLayout({
   if (!locales.includes(locale)) {
     notFound();
   }
+
+  // Read here, in the layout, so the very first HTML already carries the
+  // visitor's currency. Every visitor route is already `ƒ` (dynamic) — the
+  // detail page even declares `revalidate = 0` — so this costs no static
+  // generation that existed. A crawler sends no cookie and therefore keeps
+  // receiving the neutral USD default.
+  const currencyCookie = parseCurrencyCookie(
+    (await cookies()).get(CURRENCY_COOKIE)?.value
+  );
+
   return (
     <html lang={locale || "en"} suppressHydrationWarning>
       <head></head>
@@ -78,7 +90,7 @@ export default async function RootLayout({
           <WishlistProvider>
             <SlugProvider>
               <I18nProvider locale={locale}>
-                <CurrencyProvider>
+                <CurrencyProvider initialCurrency={currencyCookie ?? undefined}>
                   <SEOProvider locale={locale} />
                   {children}
                   <Toaster />
