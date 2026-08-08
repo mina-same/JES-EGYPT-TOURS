@@ -14,6 +14,7 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 export interface CategoryWithSubcategories {
   _id: string;
@@ -66,7 +67,7 @@ export default function ToursHubView({
                 <div className="category-card-premium">
                   <div className="category-card-premium__image-wrapper">
                     <Image
-                      src={category.image?.url || "/assets/images/resources/tour-1-1.jpg"}
+                      src={category.image?.url || TOUR_IMAGE_PLACEHOLDER}
                       alt={getLocalizedValue(category.name, locale)}
                       fill
                       className="category-card-premium__image"

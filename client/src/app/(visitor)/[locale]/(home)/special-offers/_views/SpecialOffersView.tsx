@@ -24,6 +24,7 @@ import { SPECIAL_OFFERS_FAQS } from "../specialOffersFaqs";
 import { CARD_FIELDS } from "../cardFields";
 import OffersCta from "./OffersCta";
 import SpecialOffersBanner from "./SpecialOffersBanner";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 /** Shown in the banner headline when no live offer carries a discount yet. */
 const FALLBACK_HEADLINE_PERCENT = 30;
@@ -55,9 +56,9 @@ function mapTour(tour: any, locale: string) {
   return {
     id: tour._id,
     slug: tourSlug,
-    image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+    image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
     imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-    allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+    allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
     title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
     link: `/${locale}/${tourSlug}`,
     price: tour.priceStartingFrom || { USD: 0 },

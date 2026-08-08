@@ -29,6 +29,7 @@ import ListingGallery from "@/components/common/ListingSections/ListingGallery";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 const FiltersContent = ({ 
   t, 
@@ -270,9 +271,9 @@ export default function CategoryView({
             return {
               id: tour._id,
               slug: tourSlug,
-              image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+              image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
               imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-              allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+              allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
               title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
               link: `/${locale}/${tourSlug}`,
               price: tour.priceStartingFrom || { USD: 0 },
@@ -490,7 +491,7 @@ export default function CategoryView({
                         <div className={`subcategory-card${isActive ? " is-active" : ""}`}>
                           <div className="subcategory-card__image-box">
                             <Image 
-                              src={sub.images?.[0]?.url || "/assets/images/resources/tour-1-1.jpg"} 
+                              src={sub.images?.[0]?.url || TOUR_IMAGE_PLACEHOLDER} 
                               alt={getLocalizedValue(sub.images?.[0]?.alt, locale) || subName} 
                               title={getLocalizedValue(sub.images?.[0]?.title, locale) || getLocalizedValue(sub.images?.[0]?.alt, locale) || subName}
                               fill 

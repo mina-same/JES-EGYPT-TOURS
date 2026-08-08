@@ -19,6 +19,7 @@ import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -245,8 +246,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           return {
             id: tour._id,
             slug: tourSlug,
-            image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
-            allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+            image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
+            allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
             title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
             link: `/${locale}/${tourSlug}`,
             price: tour.priceStartingFrom || { USD: 0 },

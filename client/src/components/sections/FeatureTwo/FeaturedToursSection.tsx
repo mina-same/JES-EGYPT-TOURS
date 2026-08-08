@@ -9,6 +9,7 @@ import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 import { type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import FeatureTwo from "./FeatureTwo";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 interface FeaturePackageItem {
   id: string;
@@ -39,7 +40,7 @@ function mapTour(tour: any, locale: string): FeaturePackageItem {
   const image =
     images[0] ||
     tour.gallery?.[0]?.url ||
-    "/assets/images/resources/tour-1-1.jpg";
+    TOUR_IMAGE_PLACEHOLDER;
 
   const slug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale) || "";
   const title =

@@ -77,7 +77,11 @@ const HeaderOne: React.FC<HeaderOneProps> = ({ linkTheme = "light" }) => {
         <div className='main-header__inner'>
           <div className='main-header__logo logo-retina'>
             <Link href={`/${locale}`}>
-              <Image src={main_logo} alt='JES EGYPT TOURS' title='JES EGYPT TOURS' width='100' height='30' />
+              {/* logo-dark.png is square (313x313) and CSS renders it at
+                  108x108. Declaring 100x30 reserved a box 78px too short, so
+                  when the real ratio applied the header grew 102 -> 108 and
+                  pushed every page down 6px — the site's whole CLS. */}
+              <Image src={main_logo} alt='JES EGYPT TOURS' title='JES EGYPT TOURS' width='108' height='108' />
             </Link>
           </div>
 

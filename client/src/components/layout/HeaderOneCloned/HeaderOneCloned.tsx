@@ -83,7 +83,9 @@ const HeaderOneCloned: React.FC = () => {
         <div className='main-header__inner'>
           <div className='main-header__logo logo-retina'>
             <Link href={`/${locale}`}>
-              <Image src={main_logo} alt='JES Egypt Tours' title="JES Egypt Tours" width='100' height='30' />
+              {/* Square source (313x313) rendered at 108x108 — see HeaderOne.
+                  The declared box must match, or the sticky clone shifts too. */}
+              <Image src={main_logo} alt='JES Egypt Tours' title="JES Egypt Tours" width='108' height='108' />
             </Link>
           </div>
 

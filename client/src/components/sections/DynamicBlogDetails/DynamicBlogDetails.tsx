@@ -20,6 +20,7 @@ import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
 import BannerCTA from "@/components/sections/BannerCTA/BannerCTA";
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 
 interface DynamicBlogDetailsProps {
@@ -613,9 +614,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       const item = {
         id: tour._id,
         slug: tourSlug,
-        image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+        image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
         imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-        allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+        allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
         title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
         link: `/${locale}/${tourSlug}`,
         price: tour.priceStartingFrom || { USD: 0 },
