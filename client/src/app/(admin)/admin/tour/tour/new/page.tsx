@@ -216,6 +216,19 @@ export default function NewTourPage() {
       if (!cleanData.idExternal) delete cleanData.idExternal;
       if (!cleanData.tourMapIframe) delete cleanData.tourMapIframe;
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
+
+      // Drafts created before the day description was retired can still carry
+      // it in localStorage. Activity descriptions now own this content.
+      if (Array.isArray(cleanData.itinerary?.days)) {
+        cleanData.itinerary = {
+          ...cleanData.itinerary,
+          days: cleanData.itinerary.days.map((day: any) => {
+            const normalizedDay = { ...day };
+            delete normalizedDay.description;
+            return normalizedDay;
+          }),
+        };
+      }
       
       // Remove empty fields
       if (!cleanData.tourHighlights?.en?.trim()) delete cleanData.tourHighlights;
