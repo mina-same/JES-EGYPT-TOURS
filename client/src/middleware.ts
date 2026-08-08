@@ -29,6 +29,23 @@ export function middleware(request: NextRequest) {
     return res;
   }
 
+  // Normalize an accidentally repeated locale prefix without guessing between
+  // different locales. Examples: /en/en/tours -> /en/tours and /de/de -> /de.
+  // Cloning nextUrl preserves the query string while keeping the redirect on
+  // the same origin.
+  const pathSegments = pathname.split('/');
+  const firstPathSegment = pathSegments[1];
+  const secondPathSegment = pathSegments[2];
+
+  if (
+    firstPathSegment === secondPathSegment &&
+    locales.includes(firstPathSegment)
+  ) {
+    const normalizedUrl = request.nextUrl.clone();
+    normalizedUrl.pathname = `/${[firstPathSegment, ...pathSegments.slice(3)].join('/')}`;
+    return NextResponse.redirect(normalizedUrl, 308);
+  }
+
   const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
   const locale = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale;
 

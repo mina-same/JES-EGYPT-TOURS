@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X, ChevronRight } from 'lucide-react';
+import { AlertTriangle, X, ChevronRight, ExternalLink } from 'lucide-react';
 import type { FormErrorItem } from '@/lib/parseApiError';
 import { cn } from '@/lib/utils';
 
@@ -99,40 +99,73 @@ export default function FormErrorPanel({ errors, onDismiss, className }: FormErr
         <ul className="space-y-1.5">
           {errors.map((err, i) => (
             <li key={i}>
-              <button
-                type="button"
-                onClick={() => scrollToField(err.path)}
-                className={cn(
-                  'w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg text-sm',
-                  'bg-white border border-red-200 hover:border-red-400 hover:bg-red-50',
-                  'transition-all cursor-pointer group'
-                )}
-              >
-                {/* Lang badge */}
-                {err.lang && (
-                  <span
-                    className={cn(
-                      'flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase',
-                      LANG_COLORS[err.lang] || 'bg-gray-100 text-gray-700'
+              {err.recovery ? (
+                <div className="rounded-lg border border-red-200 bg-white px-3 py-3 text-sm">
+                  <div>
+                    <span className="font-semibold text-red-800">{err.field}</span>
+                    {err.message && (
+                      <span className="ml-1.5 text-red-700">— {err.message}</span>
                     )}
-                  >
-                    {LANG_LABELS[err.lang] || err.lang}
-                  </span>
-                )}
+                  </div>
 
-                {/* Field + message */}
-                <span className="flex-1 min-w-0">
-                  <span className="font-medium text-red-800">{err.field}</span>
-                  {err.message && (
-                    <span className="text-red-600 ml-1.5">— {err.message}</span>
+                  <p className="mt-3 font-medium text-red-800">How to continue safely:</p>
+                  <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-red-700">
+                    {err.recovery.steps.map((step, stepIndex) => (
+                      <li key={stepIndex}>{step}</li>
+                    ))}
+                  </ol>
+
+                  {err.recovery.action && (
+                    <a
+                      href={err.recovery.action.href}
+                      target={err.recovery.action.newTab ? '_blank' : undefined}
+                      rel={err.recovery.action.newTab ? 'noopener noreferrer' : undefined}
+                      className={cn(
+                        'mt-3 inline-flex items-center gap-2 rounded-md bg-red-700 px-3 py-2',
+                        'font-medium text-white transition-colors hover:bg-red-800'
+                      )}
+                    >
+                      {err.recovery.action.label}
+                      {err.recovery.action.newTab && <ExternalLink className="h-3.5 w-3.5" />}
+                    </a>
                   )}
-                </span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => scrollToField(err.path)}
+                  className={cn(
+                    'w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg text-sm',
+                    'bg-white border border-red-200 hover:border-red-400 hover:bg-red-50',
+                    'transition-all cursor-pointer group'
+                  )}
+                >
+                  {/* Lang badge */}
+                  {err.lang && (
+                    <span
+                      className={cn(
+                        'flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase',
+                        LANG_COLORS[err.lang] || 'bg-gray-100 text-gray-700'
+                      )}
+                    >
+                      {LANG_LABELS[err.lang] || err.lang}
+                    </span>
+                  )}
 
-                {/* Arrow hint for clickable errors */}
-                {err.path && (
-                  <ChevronRight className="w-3.5 h-3.5 text-red-400 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                )}
-              </button>
+                  {/* Field + message */}
+                  <span className="flex-1 min-w-0">
+                    <span className="font-medium text-red-800">{err.field}</span>
+                    {err.message && (
+                      <span className="text-red-600 ml-1.5">— {err.message}</span>
+                    )}
+                  </span>
+
+                  {/* Arrow hint for clickable errors */}
+                  {err.path && (
+                    <ChevronRight className="w-3.5 h-3.5 text-red-400 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                  )}
+                </button>
+              )}
             </li>
           ))}
         </ul>
