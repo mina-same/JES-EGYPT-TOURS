@@ -230,6 +230,8 @@ export default function EditTourPage() {
               pickupAndDropOff: toLocalized(tour.pickupAndDropOff),
               tourType: toLocalized(tour.tourType),
               tourStyle: toLocalized(tour.tourStyle),
+              // Plain enum, not a localized field — it is logic, not copy.
+              tourKind: tour.tourKind,
               duration: toLocalized(tour.duration),
               cancellationPolicy: toLocalized(tour.cancellationPolicy),
               isFeatured: tour.isFeatured || false,

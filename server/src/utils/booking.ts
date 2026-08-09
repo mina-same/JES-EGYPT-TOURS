@@ -28,6 +28,7 @@ export interface BookingFingerprintInput {
   infants?: number;
   requirements?: string;
   currency?: BookingCurrency;
+  selectedPackage?: string;
 }
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -87,6 +88,10 @@ export const createBookingRequestFingerprint = (
     Number(input.infants || 0),
     input.requirements?.trim() || '',
     input.currency || 'USD',
+    // Part of the identity: changing the package and resubmitting is a
+    // DIFFERENT enquiry, and without this it would collide with the previous
+    // attempt's key and be rejected as a reused idempotency key.
+    input.selectedPackage?.trim() || '',
   ]);
 
   return createHash('sha256').update(canonical).digest('hex');

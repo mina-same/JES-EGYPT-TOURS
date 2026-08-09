@@ -156,6 +156,12 @@ export interface ITour extends Document {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
+  /** Which pricing shape this tour uses. Unlike `tourType`/`tourStyle`, which
+   *  are free localized labels shown to visitors, this one is logic: it decides
+   *  which plan names may be stored, and whether the booking form offers the
+   *  visitor a package to choose. Optional so tours predating the field keep
+   *  loading; the admin sets it on the next edit. */
+  tourKind?: TourKind;
   tourHighlights?: ILocalizedMixed;
   inclusion?: ILocalizedMixed;
   exclusion?: ILocalizedMixed;
@@ -283,6 +289,70 @@ const SeasonSchema = new Schema<ISeason>(
   { _id: false }
 );
 
+/** A day tour is sold at one price; a package is sold in tiers. Which of the
+ *  two a tour is decides the plan names it may carry, so the two lists below
+ *  are the single source of that rule — the validator, the admin editor and
+ *  the booking form all derive from them rather than repeating the strings. */
+export const TOUR_KINDS = ['DAY_TOUR', 'PACKAGE'] as const;
+export type TourKind = (typeof TOUR_KINDS)[number];
+
+export const DAY_TOUR_PLAN_NAMES = ['TOUR PRICES'] as const;
+export const PACKAGE_PLAN_NAMES = [
+  'AFFORDABLE',
+  'GOLD (5 STAR STANDARD)',
+  'DIAMOND (5 STAR LUXURY)',
+] as const;
+
+export const ALL_PLAN_NAMES = [
+  ...PACKAGE_PLAN_NAMES,
+  ...DAY_TOUR_PLAN_NAMES,
+] as const;
+export type PlanName = (typeof ALL_PLAN_NAMES)[number];
+
+/** The plan names a tour of this kind is allowed to carry. An unset kind (a
+ *  tour created before the field existed) permits all of them, so loading and
+ *  re-saving an old tour cannot fail on a rule it never knew about. */
+export const plansAllowedForKind = (kind?: TourKind | null): readonly string[] =>
+  kind === 'DAY_TOUR'
+    ? DAY_TOUR_PLAN_NAMES
+    : kind === 'PACKAGE'
+      ? PACKAGE_PLAN_NAMES
+      : ALL_PLAN_NAMES;
+
+/**
+ * The kind/plans rule, as a pure function so both write paths can enforce it.
+ * `findByIdAndUpdate` skips document middleware entirely, so a `pre('save')`
+ * hook alone would leave the admin's own update route unguarded.
+ *
+ * @returns an error message, or null when the combination is allowed.
+ */
+export const validateTourKindPlans = (
+  kind: TourKind | null | undefined,
+  plans: Array<{ planName?: string }> | null | undefined
+): string | null => {
+  const names = (plans || []).map((p) => p?.planName).filter(Boolean) as string[];
+  if (names.length === 0) return null;
+
+  const allowed = plansAllowedForKind(kind);
+  const strays = names.filter((n) => !allowed.includes(n));
+  if (strays.length > 0) {
+    return `A ${kind === 'DAY_TOUR' ? 'day tour' : 'package'} cannot use the pricing plan(s): ${strays.join(', ')}. Allowed: ${allowed.join(', ')}.`;
+  }
+
+  const duplicates = names.filter((n, i) => names.indexOf(n) !== i);
+  if (duplicates.length > 0) {
+    return `Duplicate pricing plan(s): ${[...new Set(duplicates)].join(', ')}.`;
+  }
+
+  // A day tour is one price by definition; two "TOUR PRICES" rows would be a
+  // contradiction the booking form could not present a choice between.
+  if (kind === 'DAY_TOUR' && names.length > 1) {
+    return 'A day tour can only have one pricing plan.';
+  }
+
+  return null;
+};
+
 const PricingPlanSchema = new Schema<IPricingPlan>(
   {
     planName: {
@@ -290,7 +360,7 @@ const PricingPlanSchema = new Schema<IPricingPlan>(
       required: [true, 'Plan name is required'],
       trim: true,
       enum: {
-        values: ['AFFORDABLE', 'GOLD (5 STAR STANDARD)', 'DIAMOND (5 STAR LUXURY)', 'TOUR PRICES'],
+        values: [...ALL_PLAN_NAMES],
         message: '{VALUE} is not a valid plan name',
       },
     },
@@ -604,6 +674,13 @@ const TourSchema = new Schema<ITour>(
     tourStyle: {
       type: OptionalLocalizedStringSchema,
     },
+    tourKind: {
+      type: String,
+      enum: {
+        values: [...TOUR_KINDS],
+        message: '{VALUE} is not a valid tour kind',
+      },
+    },
     tourHighlights: {
       type: OptionalLocalizedMixedSchema,
     },
@@ -850,6 +927,15 @@ TourSchema.pre<ITour>('save', async function (next) {
     }
   }
 
+  next();
+});
+
+// Pre-save: a tour's kind must match the pricing plans it carries. The update
+// route enforces the same rule explicitly, because findByIdAndUpdate never
+// reaches document middleware.
+TourSchema.pre<ITour>('save', function (next) {
+  const problem = validateTourKindPlans(this.tourKind, this.pricingPlans);
+  if (problem) throw new Error(problem);
   next();
 });
 

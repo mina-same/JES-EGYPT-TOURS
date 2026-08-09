@@ -218,7 +218,9 @@
         "dateRange": "Das Enddatum darf nicht vor dem Startdatum liegen"
       },
       "decrease": "{{field}} verringern",
-      "increase": "{{field}} erhöhen"
+      "increase": "{{field}} erhöhen",
+      "packageLabel": "Paket",
+      "packageNotSure": "Unsicher — beraten Sie mich"
     }
   },
   "pageMetaTitle": "Ägypten Tour-Kategorien | Privattouren & Tagesausflüge | JES Egypt Tours",

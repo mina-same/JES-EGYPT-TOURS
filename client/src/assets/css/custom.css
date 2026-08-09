@@ -1657,7 +1657,7 @@ body {
 
 .booking-card-header .tour-listing-details__sidebar__title {
   margin: 0;
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: #161616;
@@ -1961,7 +1961,7 @@ body {
   }
 
   .booking-card-header .tour-listing-details__sidebar__title {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .booking-card-header .booking-price-block {
@@ -1974,7 +1974,7 @@ body {
   }
 
   .booking-card-header .booking-price-block__value {
-    font-size: 26px;
+    font-size: 24px;
   }
 
   .booking-card-header .booking-price-block__unit {
@@ -2085,7 +2085,7 @@ body {
   }
 
   .booking-card-header .tour-listing-details__sidebar__title {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .booking-card-header .booking-price-block {
@@ -2098,7 +2098,7 @@ body {
   }
 
   .booking-card-header .booking-price-block__value {
-    font-size: 27px;
+    font-size: 25px;
   }
 
   .booking-card-header .booking-price-block__unit {
@@ -4663,4 +4663,50 @@ button[data-action="stop"] {
   font-size: 13px;
   font-weight: 500;
   color: #8f7333;
+}
+
+/* The only visible label in the booking form: every other field uses its
+   placeholder as its label, but a <select> shows its value, not a placeholder,
+   so "Package" has to be stated. Matches the uppercase field labels in the
+   reference design. */
+.booking-field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6e6349;
+}
+
+/* ==========================================================================
+   BOOKING CARD — package tours
+   The Package row costs ~64px, which is what pushed the pinned card past a
+   900px-tall viewport and re-introduced the internal scrollbar. These rules
+   give that height back from the places with slack — the free-text box, the
+   row rhythm and the counter rows — and apply ONLY to tours that show the
+   row, so day tours keep the spacing they were tuned with.
+   ========================================================================== */
+@media (min-width: 992px) {
+  .booking-form-card--with-package .booking-form-inner {
+    gap: 7px;
+  }
+
+  /* "Anything else?" is optional and scrolls as it fills. It is the one field
+     that can lose rows without losing information. */
+  .booking-form-card--with-package .booking-textarea {
+    min-height: 60px;
+    height: 60px;
+  }
+
+  .booking-form-card--with-package .booking-counter-row {
+    min-height: 40px;
+    padding: 2px 0;
+  }
+
+  /* The label sits above its select; the select already reads as a control, so
+     the gap between them can be tighter than a standalone field's. */
+  .booking-form-card--with-package .booking-field-label {
+    margin-bottom: 4px;
+  }
 }

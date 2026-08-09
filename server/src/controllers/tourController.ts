@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
-import { ITour, completeTourSeo } from '../models/Tour';
+import { ITour, completeTourSeo, validateTourKindPlans } from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { localize, localizePreservingSlugs } from '../utils/localize';
 import {
@@ -819,7 +819,10 @@ export const updateTour = async (
     // fill from the stored tour for anything this request didn't resubmit.
     const existingTour = await Tour.findById(
       req.params.id,
-      'editVersion isActive scheduledAt publishedAt seo heading name Description mapSchema'
+      // `tourKind` and `pricingPlans` ride along so the kind/plan rule can be
+      // checked against the tour as it will be AFTER this update — a request
+      // may change only one of the two, and the other still has to agree.
+      'editVersion isActive scheduledAt publishedAt seo heading name Description mapSchema tourKind pricingPlans'
     ).lean();
     if (!existingTour) {
       res.status(404).json({ success: false, error: 'Tour not found' });
@@ -837,6 +840,25 @@ export const updateTour = async (
     }
 
     body.editVersion = currentVersion + 1;
+
+    // The kind/plan rule, checked against the merged result rather than the
+    // request alone: changing only the kind, or only the plans, still has to
+    // leave the tour in a legal state. Enforced here because this route uses
+    // findByIdAndUpdate, which never runs the model's pre('save') hook.
+    {
+      const nextKind = Object.prototype.hasOwnProperty.call(body, 'tourKind')
+        ? body.tourKind
+        : (existingTour as any).tourKind;
+      const nextPlans = Object.prototype.hasOwnProperty.call(body, 'pricingPlans')
+        ? body.pricingPlans
+        : (existingTour as any).pricingPlans;
+
+      const problem = validateTourKindPlans(nextKind, nextPlans);
+      if (problem) {
+        res.status(400).json({ success: false, error: problem });
+        return;
+      }
+    }
 
     // Filter out empty gallery items (items with empty fileName)
     if (body.gallery && Array.isArray(body.gallery)) {

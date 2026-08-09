@@ -218,7 +218,9 @@
         "dateRange": "La fecha de fin no puede ser anterior a la fecha de inicio"
       },
       "decrease": "Reducir {{field}}",
-      "increase": "Aumentar {{field}}"
+      "increase": "Aumentar {{field}}",
+      "packageLabel": "Paquete",
+      "packageNotSure": "No estoy seguro — asesórenme"
     }
   },
   "pageMetaTitle": "Categorías de tours en Egipto | Tours privados y de un día | JES Egypt Tours",

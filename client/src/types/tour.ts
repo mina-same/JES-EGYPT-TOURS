@@ -122,6 +122,9 @@ export interface ITour {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
+  /** Day tour or package — decides which pricing plans are allowed and
+   *  whether the booking form asks the visitor to choose one. */
+  tourKind?: 'DAY_TOUR' | 'PACKAGE';
   isFeatured: boolean;
   isActive: boolean;
   scheduledAt?: Date | string | null;
@@ -261,6 +264,9 @@ export interface TourFormData {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
+  /** Day tour or package — decides which pricing plans are allowed and
+   *  whether the booking form asks the visitor to choose one. */
+  tourKind?: 'DAY_TOUR' | 'PACKAGE';
   isFeatured: boolean;
   isActive: boolean;
   scheduledAt?: Date | string | null;

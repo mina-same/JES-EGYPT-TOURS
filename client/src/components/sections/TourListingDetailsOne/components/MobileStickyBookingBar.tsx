@@ -11,9 +11,13 @@ interface MobileStickyBookingBarProps {
   price?: number | ICurrencyPrice | null;
   /** Passed through to the sheet's BookingForm so the WhatsApp message names the tour. */
   tourTitle?: string;
+  /** The tour's pricing plan names. The sheet renders the SAME form as the
+   *  sidebar, so it has to offer the same package choice — otherwise a mobile
+   *  visitor books a package tour without ever being asked which tier. */
+  packageOptions?: string[];
 }
 
-export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ tourId, price, tourTitle }) => {
+export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ tourId, price, tourTitle, packageOptions }) => {
   const { t } = useTranslation("tours");
   const { formatPrice, getPriceValue } = useCurrency();
   const hasPrice = getPriceValue(price) > 0;
@@ -147,7 +151,7 @@ export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ 
           </button>
         </div>
         <div className="bottom-sheet-content">
-          <BookingForm tourId={tourId} price={price} tourTitle={tourTitle} />
+          <BookingForm tourId={tourId} price={price} tourTitle={tourTitle} packageOptions={packageOptions} />
         </div>
       </div>
     </>

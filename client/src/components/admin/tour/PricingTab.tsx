@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import PricingPlansManager from '@/components/admin/PricingPlansManager';
+import TourKindSelector from '@/components/admin/tour/TourKindSelector';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import CurrencyInput from '@/components/admin/CurrencyInput';
@@ -60,11 +61,28 @@ export default function PricingTab({ formData, handleChange, activeLanguage, for
         </CardContent>
       </Card>
 
+      {/* Tour kind — chosen BEFORE the plans, because it decides which plans
+          are even offered. */}
+      <TourKindSelector
+        value={formData.tourKind}
+        pricingPlans={formData.pricingPlans || []}
+        onChange={(kind, keptPlans) => {
+          handleChange('tourKind', kind);
+          handleChange('pricingPlans', keptPlans);
+        }}
+      />
+
       {/* Pricing Plans Manager */}
       <Card className={cn(hasPricingError && 'border-red-400 ring-1 ring-red-300')}>
         <CardHeader>
           <CardTitle className={cn(hasPricingError && 'text-red-600')}>Pricing Plans</CardTitle>
-          <CardDescription>Manage seasonal pricing and packages</CardDescription>
+          <CardDescription>
+            {formData.tourKind === 'DAY_TOUR'
+              ? 'One price for the whole tour.'
+              : formData.tourKind === 'PACKAGE'
+                ? 'Add the tiers you offer — one, two or all three.'
+                : 'Choose a tour kind above to pick from the right plans.'}
+          </CardDescription>
           {hasPricingError && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path === 'pricingPlans')?.message}</p>}
         </CardHeader>
         <CardContent>
@@ -73,6 +91,7 @@ export default function PricingTab({ formData, handleChange, activeLanguage, for
             onChange={(plans) => handleChange('pricingPlans', plans)}
             activeLanguage={activeLanguage}
             formErrors={formErrors}
+            tourKind={formData.tourKind}
           />
         </CardContent>
       </Card>

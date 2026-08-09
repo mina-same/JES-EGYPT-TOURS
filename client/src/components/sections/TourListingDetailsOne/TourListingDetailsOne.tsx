@@ -1161,6 +1161,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   tourId={String(tourData.id || '')}
                   price={price}
                   hasPricing={(pricingPlans || []).length > 0}
+                  packageOptions={(pricingPlans || []).map((plan) => plan.planName)}
                   tourTitle={title}
                 />
               </div>
@@ -1292,6 +1293,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         tourId={String(tourData.id || "")}
         price={price}
         tourTitle={title}
+        packageOptions={(pricingPlans || []).map((plan) => plan.planName)}
       />
     </>
   );

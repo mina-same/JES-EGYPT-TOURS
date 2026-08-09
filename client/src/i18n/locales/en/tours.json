@@ -211,7 +211,9 @@
         "dateRange": "End date must be on or after the start date"
       },
       "decrease": "Decrease {{field}}",
-      "increase": "Increase {{field}}"
+      "increase": "Increase {{field}}",
+      "packageLabel": "Package",
+      "packageNotSure": "Not sure — advise me"
     }
   },
   "pageMetaTitle": "Egypt Tour Categories | Private Tours & Day Trips | JES Egypt Tours",

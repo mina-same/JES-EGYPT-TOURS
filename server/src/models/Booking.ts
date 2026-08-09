@@ -1,4 +1,9 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { ALL_PLAN_NAMES } from './Tour';
+
+/** The visitor asked to be advised rather than picking a tier. Deliberately not
+ *  a plan name, so it can never be read as a priced selection. */
+export const BOOKING_PACKAGE_NOT_SURE = 'NOT_SURE';
 
 export interface IBooking extends Document {
   // Tour reference
@@ -26,6 +31,19 @@ export interface IBooking extends Document {
    */
   currency?: 'USD' | 'EUR' | 'GBP';
   quotedPrice?: number;
+
+  /**
+   * Which pricing tier the enquiry is about, e.g. 'GOLD (5 STAR STANDARD)', or
+   * 'NOT_SURE' when the visitor asked to be advised.
+   *
+   * Recorded even when the form never asked — a day tour, or a package with a
+   * single tier, still writes the one plan it sells, so the office always knows
+   * which rate the enquiry refers to without opening the tour.
+   *
+   * Verified server-side against the tour's real plans: it arrives from a
+   * public form and is a claim until checked.
+   */
+  selectedPackage?: string;
 
   // Technical identity for safe retries. Hidden from every API response.
   idempotencyKey?: string;
@@ -122,6 +140,10 @@ const bookingSchema = new Schema<IBooking>(
     quotedPrice: {
       type: Number,
       min: [0, 'Quoted price cannot be negative'],
+    },
+    selectedPackage: {
+      type: String,
+      enum: [...ALL_PLAN_NAMES, BOOKING_PACKAGE_NOT_SURE],
     },
     idempotencyKey: {
       type: String,

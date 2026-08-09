@@ -33,12 +33,18 @@ import { FormErrorItem } from '@/lib/parseApiError';
 import AdminCurrencyTabs, { AdminCurrency } from './AdminCurrencyTabs';
 import CurrencyInput from './CurrencyInput';
 import CurrencyField from './CurrencyField';
+import { plansAllowedForKind, maxPlansForKind, type TourKind } from '@/lib/tours/tourKind';
+import { createEmptyPricingPlan } from '@/lib/tours/pricingPlans';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
   onChange: (plans: IPricingPlan[]) => void;
   activeLanguage: AdminLanguage;
   formErrors?: FormErrorItem[];
+  /** Day tour or package. Decides which plan names may be offered and how many
+   *  plans the tour can hold. Undefined on tours saved before the field
+   *  existed — those keep the full list until the admin picks a kind. */
+  tourKind?: TourKind;
 }
 
 function getPlanId(plan: any, index: number) {
@@ -95,22 +101,30 @@ function SortableItemWrapper({
   );
 }
 
-export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage, formErrors = [] }: PricingPlansManagerProps) {
+export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage, formErrors = [], tourKind }: PricingPlansManagerProps) {
   const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
   const getErrorMessage = (path: string) => formErrors.find(e => e.path === path)?.message;
 
-  const PLAN_OPTIONS = [
-    'AFFORDABLE',
-    'GOLD (5 STAR STANDARD)', 
-    'DIAMOND (5 STAR LUXURY)',
-    'TOUR PRICES'
-  ];
+  // Derived, never hardcoded: a day tour must not be offered package tiers and
+  // vice versa. The server rejects the wrong pairing anyway — this stops the
+  // admin from reaching that error in the first place.
+  const PLAN_OPTIONS = plansAllowedForKind(tourKind);
+  const planLimit = maxPlansForKind(tourKind);
+  const atPlanLimit = pricingPlans.length >= planLimit;
+  /** One allowed name and room for one plan — a day tour. Its plan is created
+   *  and named for it, so there is no type to pick. */
+  const isSingleFixedPlan = PLAN_OPTIONS.length === 1 && planLimit === 1;
 
-  const SEASON_OPTIONS = [
-    '1 May 2026 – 31 August 2026',
-    '1 September 2026 – 19 December 2026 / 6 January 2027 – 24 March 2027',
-    '20 December 2026 – 5 January 2027 / 25 March 2027 – 15 April 2027'
-  ];
+  /** A plan name already used by another plan cannot be picked again — the
+   *  server treats duplicates as invalid, and two identical tiers would give
+   *  the booking form two indistinguishable options. */
+  const optionsFor = (currentName?: string) => {
+    const taken = new Set(
+      pricingPlans.map((p) => p.planName).filter((n) => n && n !== currentName)
+    );
+    return PLAN_OPTIONS.filter((option) => !taken.has(option));
+  };
+
 
   const planIds = useMemo<string[]>(() => pricingPlans.map((_, i) => getPlanId(pricingPlans[i], i)), [pricingPlans]);
 
@@ -173,7 +187,11 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
       if (!current) return;
 
       const cloned = JSON.parse(JSON.stringify(current));
-      cloned.planName = current.planName ? `${current.planName} (Copy)` : '';
+      // Blank, not "X (Copy)": plan names are a fixed enum, so a suffixed name
+      // is rejected by the server, and the original name cannot be reused
+      // either. The copy keeps the seasons and prices; the admin picks which
+      // remaining tier it is.
+      cloned.planName = '';
 
       const next = [...pricingPlans];
       next.splice(planIndex + 1, 0, cloned);
@@ -193,20 +211,12 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
   // Add new pricing plan with all seasons initialized
   const addPricingPlan = () => {
-    const newPlan: IPricingPlan = {
-      planName: '',
-      seasons: SEASON_OPTIONS.map(seasonName => ({
-        seasonName,
-        prices: {
-          solo: { USD: 0 },
-          pax_2_4: { USD: 0 },
-          pax_5_8: { USD: 0 },
-          pax_9_16: { USD: 0 },
-        },
-        notes: [],
-      })),
-    };
-    onChange([...pricingPlans, newPlan]);
+    // Pre-named when only one name is legal, so a day tour never shows an
+    // "Untitled plan" the admin then has to name from a list of one.
+    onChange([
+      ...pricingPlans,
+      createEmptyPricingPlan(isSingleFixedPlan ? PLAN_OPTIONS[0] : ''),
+    ]);
   };
 
   // Remove pricing plan
@@ -296,7 +306,20 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
           </div>
           <div className="flex items-center gap-3">
             <AdminCurrencyTabs activeCurrency={activeCurrency} onCurrencyChange={setActiveCurrency} />
-            <Button type="button" onClick={addPricingPlan}>
+            {/* A day tour is one price, and a package has only three tiers to
+                offer — past that there is no valid plan left to add. */}
+            <Button
+              type="button"
+              onClick={addPricingPlan}
+              disabled={atPlanLimit}
+              title={
+                atPlanLimit
+                  ? tourKind === 'DAY_TOUR'
+                    ? 'A day tour has a single price'
+                    : 'All package tiers have been added'
+                  : undefined
+              }
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Plan
             </Button>
@@ -313,7 +336,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
             <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
               Create your first pricing plan to start adding seasonal rates.
             </p>
-            <Button type="button" onClick={addPricingPlan}>
+            <Button type="button" onClick={addPricingPlan} disabled={atPlanLimit}>
               <Plus className="w-4 h-4 mr-2" />
               Create First Plan
             </Button>
@@ -392,6 +415,8 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                   size="sm"
                                   className="h-8 w-8 p-0"
                                   onClick={() => duplicatePlan(planIndex)}
+                                  disabled={atPlanLimit}
+                                  title={atPlanLimit ? 'No plan slots left' : 'Duplicate plan'}
                                 >
                                   <Copy className="h-4 w-4" />
                                 </Button>
@@ -409,6 +434,18 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                             {!isCollapsed && (
                               <div className="p-4 space-y-6">
+                                {/* A day tour has exactly one legal plan name,
+                                    already set for it. Offering a dropdown with
+                                    a single option is a question with one
+                                    possible answer — state it instead. */}
+                                {isSingleFixedPlan ? (
+                                  <div className="space-y-2">
+                                    <Label>Plan Type</Label>
+                                    <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium">
+                                      {plan.planName || PLAN_OPTIONS[0]}
+                                    </p>
+                                  </div>
+                                ) : (
                                 <div className="space-y-2">
                                   <Label className={cn(hasError(`pricingPlans.${planIndex}.planName`) && 'text-red-600 underline font-bold')}>Plan Type *</Label>
                                   <Select
@@ -419,7 +456,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                       <SelectValue placeholder="Select plan type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {PLAN_OPTIONS.map((option) => (
+                                      {optionsFor(plan.planName).map((option) => (
                                         <SelectItem key={option} value={option}>
                                           {option}
                                         </SelectItem>
@@ -428,6 +465,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                   </Select>
                                   {hasError(`pricingPlans.${planIndex}.planName`) && <p className="text-xs text-red-600 font-medium">{getErrorMessage(`pricingPlans.${planIndex}.planName`)}</p>}
                                 </div>
+                                )}
 
                                 {/* Seasons */}
                                 <div className="space-y-4">

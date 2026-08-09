@@ -26,6 +26,9 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   pickupAndDropOff: { en: '', de: '', it: '', es: '' },
   tourType: { en: '', de: '', it: '', es: '' },
   tourStyle: { en: '', de: '', it: '', es: '' },
+  // Left undefined on purpose: a new tour has no kind until one is picked, and
+  // defaulting to either would silently restrict the pricing plans on offer.
+  tourKind: undefined as 'DAY_TOUR' | 'PACKAGE' | undefined,
   isFeatured: false,
   isActive: true,
   scheduledAt: null,
