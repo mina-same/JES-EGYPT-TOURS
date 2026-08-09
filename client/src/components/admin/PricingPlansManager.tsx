@@ -510,7 +510,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                   <div className="space-y-4 pt-1">
                                                     <CurrencyField
                                                       label="Solo"
-                                                      value={season.prices.solo || { USD: 0 }}
+                                                      value={season.prices.solo || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'solo', { ...season.prices.solo, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.solo`)}
@@ -532,7 +532,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="2-4 Pax"
-                                                      value={season.prices.pax_2_4 || { USD: 0 }}
+                                                      value={season.prices.pax_2_4 || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', { ...season.prices.pax_2_4, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_2_4`)}
@@ -554,7 +554,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="5-8 Pax"
-                                                      value={season.prices.pax_5_8 || { USD: 0 }}
+                                                      value={season.prices.pax_5_8 || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', { ...season.prices.pax_5_8, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_5_8`)}
@@ -576,7 +576,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="9-16 Pax"
-                                                      value={season.prices.pax_9_16 || { USD: 0 }}
+                                                      value={season.prices.pax_9_16 || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', { ...season.prices.pax_9_16, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_9_16`)}

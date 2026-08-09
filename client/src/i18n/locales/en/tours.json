@@ -124,9 +124,11 @@
     "importantNotes": "Important Notes",
     "day": "Day",
     "info": {
+      "pickup": "Pickup & Drop-off",
       "location": "Location",
-      "activitiesType": "Activities Type",
+      "tourType": "Tour Type",
       "activateDay": "Duration",
+      "availability": "Availability",
       "priceStartsFrom": "Price starts from"
     },
     "brochure": {
@@ -157,10 +159,10 @@
     "pricing": {
       "emptyState": "Pricing information is not available for this tour. Please contact us for details.",
       "allYear": "All Year",
-      "soloTraveler": "Solo Traveler",
-      "pax2_4": "2-4 Travelers",
-      "pax5_8": "5-8 Travelers",
-      "pax9_16": "9-16 Travelers",
+      "soloTraveler": "Solo",
+      "pax2_4": "2-4 Pax",
+      "pax5_8": "5-8 Pax",
+      "pax9_16": "9-16 Pax",
       "perPerson": "per person",
       "planNotes": "Important Plan Notes",
       "noteTitle": "Note:",
@@ -168,7 +170,13 @@
       "affordable": "Affordable",
       "gold (5 star standard)": "Gold (5 Star Standard)",
       "diamond (5 star luxury)": "Diamond (5 Star Luxury)",
-      "tour prices": "Tour Prices"
+      "tour prices": "Tour Prices",
+      "startingFrom": "Starting from",
+      "mostChosen": "Most Chosen",
+      "availableDates": "Available Dates:",
+      "datesHint": "Select a date range to view the prices for each group size.",
+      "groupSizePricing": "Group Size & Pricing",
+      "person": "person"
     },
     "bookingForm": {
       "title": "Book This Tour",

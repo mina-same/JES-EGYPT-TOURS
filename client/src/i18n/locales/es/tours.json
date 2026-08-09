@@ -131,9 +131,11 @@
     "importantNotes": "Notas importantes",
     "day": "Día",
     "info": {
+      "pickup": "Recogida y regreso",
       "location": "Ubicación",
-      "activitiesType": "Tipo de actividades",
+      "tourType": "Tipo de tour",
       "activateDay": "Duración",
+      "availability": "Disponibilidad",
       "priceStartsFrom": "El precio comienza desde"
     },
     "brochure": {
@@ -164,10 +166,10 @@
     "pricing": {
       "emptyState": "La información de precios no está disponible para este tour. Por favor, contáctanos para más detalles.",
       "allYear": "Todo el año",
-      "soloTraveler": "Viajero Solo",
-      "pax2_4": "2-4 Viajeros",
-      "pax5_8": "5-8 Viajeros",
-      "pax9_16": "9-16 Viajeros",
+      "soloTraveler": "Individual",
+      "pax2_4": "2-4 pax",
+      "pax5_8": "5-8 pax",
+      "pax9_16": "9-16 pax",
       "perPerson": "por persona",
       "planNotes": "Notas Importantes del Plan",
       "noteTitle": "Nota:",
@@ -175,7 +177,13 @@
       "affordable": "Asequible",
       "gold (5 star standard)": "Oro (Estándar 5 Estrellas)",
       "diamond (5 star luxury)": "Diamante (Lujo 5 Estrellas)",
-      "tour prices": "Precios del Tour"
+      "tour prices": "Precios del Tour",
+      "startingFrom": "Desde",
+      "mostChosen": "Más elegido",
+      "availableDates": "Fechas disponibles:",
+      "datesHint": "Selecciona un rango de fechas para ver los precios por tamaño de grupo.",
+      "groupSizePricing": "Tamaño del grupo y precios",
+      "person": "persona"
     },
     "bookingForm": {
       "title": "Reservar este Tour",

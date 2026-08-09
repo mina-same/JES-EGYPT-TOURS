@@ -886,8 +886,32 @@ html, body {
 /* Textarea */
 .booking-textarea {
   border-radius: 20px;
-  resize: vertical;
+  /* No drag handle. Browsers draw it as a diagonal grip clipped by the 20px
+     radius, and dragging it taller breaks a card whose height is measured to
+     pin against the viewport. Long answers scroll inside instead. */
+  resize: none;
   min-height: 120px;
+}
+
+/* When it does scroll, a thin brand rail rather than the platform's grey
+   arrow-buttons — those were the strongest thing in an otherwise soft card. */
+.booking-textarea {
+  scrollbar-width: thin;
+  scrollbar-color: #cfc4a6 transparent;
+}
+.booking-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+.booking-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+.booking-textarea::-webkit-scrollbar-thumb {
+  background-color: #cfc4a6;
+  border-radius: 999px;
+}
+.booking-textarea::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
 }
 
 /* Submit Button */
@@ -1571,25 +1595,66 @@ body {
 
 /* ==========================================================================
    TOUR FACTS STRIP
-   The info bar was a full-bleed five-item band; it is now a three-item strip
-   inside the 9-column rail. The theme's divider pseudo-elements were positioned
-   for that band and its last <li> was the price button, so both are replaced
-   with real borders. Icon / title / text typography is inherited from gotur.css.
+   The info bar was a full-bleed five-item band; it is now a strip inside the
+   9-column rail. The theme's divider pseudo-elements were positioned for that
+   band and its last <li> was the price button, so both are replaced with real
+   borders. Icon / title / text typography is inherited from gotur.css.
+
+   The column count comes from --fact-count, which TourInfoBar sets from the
+   facts that actually have a value. A fixed `repeat(3, …)` left a dead column
+   when a tour was missing its location, and squeezed a fourth fact into a
+   track sized for three once pickup joined the strip.
    ========================================================================== */
 .tour-listing-details__info-area--rail .tour-listing-details__info-area__info {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--fact-count, 3), minmax(0, 1fr));
   gap: 0;
   margin-top: 0;
   padding: 18px 0;
 }
-.tour-listing-details__info-area--rail li { min-width: 0; padding: 0 18px; }
+/* The 12px gap replaces the theme's 20px: four facts share the rail now, and
+   that space is worth more to the text than to the space beside the icon. */
+.tour-listing-details__info-area--rail li { min-width: 0; padding: 0 18px; gap: 12px; }
 .tour-listing-details__info-area--rail li:first-child { padding-left: 0; }
 .tour-listing-details__info-area--rail li:last-child { padding-right: 0; }
 .tour-listing-details__info-area--rail li::after { display: none !important; }
 .tour-listing-details__info-area--rail li + li { border-left: 1px solid #f0f0f0; }
+/* `line-height: 1` keeps the drawn pickup icon on the same optical centre as
+   the three font glyphs, which carry their own leading. */
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__icon {
+  flex-shrink: 0;
+  line-height: 1;
+}
+/* The label is allowed to wrap. It was clipped to one line, which reads fine at
+   three facts and turns "Pickup & Drop-off" into "Pickup & Dro…" at five — and a
+   truncated label is worse than a wrapped one, because the label is the part
+   that explains the value. */
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__title {
+  overflow-wrap: break-word;
+}
+
+/* Between 992px and the wide layout the rail loses roughly a third of its
+   width while still holding every fact in one row, so the padding, the gap and
+   the icon give back the space instead of the text. */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .tour-listing-details__info-area--rail li { padding: 0 10px; gap: 9px; }
+  .tour-listing-details__info-area--rail .tour-listing-details__info-area__icon {
+    font-size: 20px;
+  }
+  .tour-listing-details__info-area--rail .tour-listing-details__info-area__title {
+    font-size: 13px;
+  }
+}
+/* Two lines, then ellipsis. Pickup is capped at 32 characters in the admin, but
+   tours saved before that cap hold whole sentences, and one of them must not
+   set the height of the entire strip. TourInfoBar puts the full text in the
+   element's `title`. */
 .tour-listing-details__info-area--rail .tour-listing-details__info-area__text {
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .tour-info-fact-link {
@@ -3391,6 +3456,12 @@ div[suppressHydrationWarning] {
     grid-template-columns: 1fr 1fr !important;
   }
 
+  /* Two per row leaves an odd fact stranded in the left cell, looking like a
+     layout slip rather than the last item. It takes the whole row instead. */
+  .tour-listing-details__info-area--rail li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
   .amenities-card-title {
     font-size: 18px !important;
   }
@@ -3458,36 +3529,9 @@ div[suppressHydrationWarning] {
 
 /* --- Responsive Shrinking for Pricing & Comments Mobile --- */
 @media (max-width: 991px) {
-  /* Pricing Plans Tweaks */
-  .pricing-plan-card h3 {
-    font-size: 18px !important;
-  }
-  .pricing-plan-card > div[style] {
-    padding: 15px !important;
-  }
-  .pricing-plan-card h4 {
-    font-size: 16px !important;
-  }
-  .pricing-plan-card p {
-    font-size: 12px !important;
-  }
-  
-  /* The Price Grid Wrapper in PricingPlans */
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-  }
-  
-  /* The Helper PriceCard in PricingPlans */
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div {
-    padding: 10px !important;
-  }
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div div:nth-child(2) {
-    font-size: 20px !important;
-  }
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div div:nth-child(1) {
-    font-size: 12px !important;
-  }
+  /* Pricing plan styles now live with the component, addressed by class
+     name. The nth-child chains that used to sit here targeted an inline-
+     styled DOM that no longer exists. */
 
   /* Tour Reviews Comments */
   .tour-reviews-testimonial-box {
@@ -4689,18 +4733,24 @@ button[data-action="stop"] {
    ========================================================================== */
 @media (min-width: 992px) {
   .booking-form-card--with-package .booking-form-inner {
-    gap: 7px;
+    gap: 6px;
+    /* The header already sits above a rule; the form does not need its own
+       leading gap on top of that. Worth 4px, which is what put this card back
+       inside a 864px-tall window. */
+    padding-top: 5px;
   }
 
-  /* "Anything else?" is optional and scrolls as it fills. It is the one field
-     that can lose rows without losing information. */
+  /* "Anything else?" is optional, so it is the field that gives height back.
+     But not below its own placeholder: at 60px the two-line prompt overflowed
+     and raised a scrollbar inside an empty box, which read as broken. 74px is
+     the smallest height that holds the prompt in every language. */
   .booking-form-card--with-package .booking-textarea {
-    min-height: 60px;
-    height: 60px;
+    min-height: 74px;
+    height: 74px;
   }
 
   .booking-form-card--with-package .booking-counter-row {
-    min-height: 40px;
+    min-height: 39px;
     padding: 2px 0;
   }
 
@@ -4708,5 +4758,377 @@ button[data-action="stop"] {
      the gap between them can be tighter than a standalone field's. */
   .booking-form-card--with-package .booking-field-label {
     margin-bottom: 4px;
+  }
+}
+
+/* ==========================================================================
+   SELECT OPTION LISTS — brand colours
+   The closed control was already branded; the open list was not, so it fell
+   back to the operating system's blue. Chromium renders these popups itself
+   and honours the colours below.
+
+   Worth knowing: `option` is only partially styleable. Background, text colour
+   and the checked row respond in Chromium; padding, radius and the hover
+   highlight are drawn by the platform and ignore CSS. Safari and Firefox on
+   macOS ignore most of it entirely. This brings the list as close to the brand
+   as the native control allows — a fully controlled list would have to stop
+   being a <select>.
+   ========================================================================== */
+.booking-select option,
+.booking-select-code option {
+  background-color: #fff;
+  color: var(--gotur-black, #1d231f);
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 15px;
+}
+
+/* The row the visitor is on, and the one already chosen. The gold is darkened
+   from the brand tone so white text on it stays legible. */
+.booking-select option:checked,
+.booking-select option:hover,
+.booking-select option:focus,
+.booking-select-code option:checked {
+  background: #8f7333 linear-gradient(#8f7333, #8f7333);
+  color: #fff;
+}
+
+/* Windows Chromium reads the control's own colour scheme when painting the
+   popup; declaring it light keeps the list white on machines set to dark mode
+   instead of inheriting a grey the rest of the form does not use. */
+.booking-select,
+.booking-select-code {
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   TOUR PRICING
+   Plan tabs + collapsible seasons. Replaces a version built entirely from
+   inline styles, whose mobile rules reached elements through chains like
+   `.pricing-plan-card > div:nth-child(2) > div > div:nth-child(2)` — any
+   change to the markup broke the phone layout silently. Everything here is
+   addressed by name.
+
+   Hiding is CSS-only by design: inactive plans and collapsed seasons stay in
+   the DOM so every price a tour offers remains in the server-rendered HTML.
+   ========================================================================== */
+.tour-pricing__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 8px;
+  border: 1px solid #eceff3;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.tour-pricing__tab {
+  flex: 1 1 auto;
+  padding: 12px 18px;
+  border: 1px solid #e6e9ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.tour-pricing__tab:hover {
+  border-color: #d9c79a;
+  background: #fdfbf5;
+}
+
+.tour-pricing__tab.is-active {
+  border-color: #8f7333;
+  background: #8f7333;
+  color: #fff;
+}
+
+.tour-pricing__panel {
+  padding: 24px;
+  border: 1px solid #eceff3;
+  border-radius: 16px;
+  background: #fff;
+}
+
+/* The panel of a tab nobody selected. Still rendered, still crawlable. */
+.tour-pricing__panel--hidden {
+  display: none;
+}
+
+.tour-pricing__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eef1f4;
+}
+
+.tour-pricing__plan-name {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #16283c;
+}
+
+.tour-pricing__from-label {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.tour-pricing__from-value {
+  margin: 2px 0 0;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #8f7333;
+}
+
+.tour-pricing__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #8f7333;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tour-pricing__badge i {
+  font-size: 11px;
+  color: #ffd66b;
+}
+
+.tour-pricing__dates {
+  margin-top: 20px;
+}
+
+.tour-pricing__dates-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #16283c;
+}
+
+.tour-pricing__dates-hint {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.tour-pricing__seasons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.tour-pricing__season {
+  border: 1px solid #e8ebef;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tour-pricing__season.is-open {
+  border-color: #d9c79a;
+}
+
+.tour-pricing__season-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 18px;
+  border: 0;
+  background: transparent;
+  color: #16283c;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tour-pricing__season.is-open .tour-pricing__season-toggle {
+  background: #fdfbf5;
+}
+
+.tour-pricing__season-toggle > i:first-child {
+  color: #8f7333;
+}
+
+.tour-pricing__season-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tour-pricing__season-chevron {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Collapsed by default. `display: none` rather than a height animation so a
+   long list of seasons costs nothing to lay out until one is opened. */
+.tour-pricing__season-body {
+  display: none;
+  padding: 4px 18px 18px;
+}
+
+.tour-pricing__season.is-open .tour-pricing__season-body {
+  display: block;
+}
+
+.tour-pricing__group-title {
+  margin: 8px 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #16283c;
+}
+
+.tour-pricing__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.tour-pricing__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e8ebef;
+  border-radius: 10px;
+}
+
+.tour-pricing__row-label {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #16283c;
+}
+
+.tour-pricing__row-price {
+  margin: 0;
+  font-size: 15px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.tour-pricing__row-price strong {
+  font-size: 18px;
+  font-weight: 800;
+  color: #8f7333;
+}
+
+.tour-pricing__season-notes {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-inline-start: 3px solid #8f7333;
+  border-radius: 6px;
+  background: #fdfbf5;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.tour-pricing__season-notes p {
+  margin: 0 0 6px;
+}
+.tour-pricing__season-notes p:last-child {
+  margin-bottom: 0;
+}
+
+.tour-pricing__notes {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tour-pricing__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #eceff3;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.tour-pricing__note i {
+  margin-top: 3px;
+  color: #8f7333;
+}
+
+.tour-pricing__footnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f6f7f9;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.tour-pricing__footnote i {
+  margin-top: 3px;
+  color: #8f7333;
+}
+
+@media (max-width: 991px) {
+  .tour-pricing__panel {
+    padding: 16px;
+  }
+
+  .tour-pricing__tab {
+    flex: 1 1 calc(50% - 8px);
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .tour-pricing__plan-name {
+    font-size: 20px;
+  }
+
+  .tour-pricing__from-value {
+    font-size: 30px;
+  }
+
+  .tour-pricing__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tour-pricing__season-toggle {
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  .tour-pricing__season-body {
+    padding: 4px 14px 14px;
+  }
+
+  .tour-pricing__row {
+    padding: 12px 14px;
   }
 }

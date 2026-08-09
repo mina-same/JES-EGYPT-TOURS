@@ -3,7 +3,7 @@ import React from "react";
 import { MapPin, Calendar, DollarSign, Check, X } from "lucide-react";
 import { footerOneData } from "@/data/footerOneData";
 import { useTranslation } from "react-i18next";
-import type { TourDetailsOneData } from "../types";
+import type { TourDetailsOneData, TierAmount } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
 
@@ -684,7 +684,9 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
   );
 }
 
-function PriceTag({ label, price }: { label: string; price: number }) {
+/** `price` is the per-currency object the API stores, not a bare number — it was
+ *  declared as `number` and only worked because formatPrice accepts both. */
+function PriceTag({ label, price }: { label: string; price: TierAmount }) {
   const { formatPrice } = useCurrency();
   return (
     <div style={{ textAlign: "center", padding: "10px 8px", backgroundColor: "#FDFAF6", borderRadius: 10 }}>

@@ -197,16 +197,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
   const showPackageChoice = packageChoices.length > 1;
   const [selectedPackage, setSelectedPackage] = useState<string>("");
 
+  /** Gold when the tour sells it, otherwise the first tier. It is the middle
+   *  option people are steered toward, so it starts selected rather than
+   *  leaving the cheapest tier to look like the recommendation. */
+  const defaultPackage = useMemo(() => {
+    const gold = packageChoices.find((name) => name.startsWith("GOLD"));
+    return gold || packageChoices[0] || "";
+  }, [packageChoices]);
+
   // Keep the selection valid if the tour's plans change under it (locale swap,
-  // client-side refetch). Defaults to the first tier, matching how the price
-  // above the form quotes the cheapest.
+  // client-side refetch) — but never overwrite a choice the visitor has made.
   useEffect(() => {
     setSelectedPackage((current) =>
       current && (packageChoices.includes(current) || current === PACKAGE_NOT_SURE)
         ? current
-        : packageChoices[0] || ""
+        : defaultPackage
     );
-  }, [packageChoices]);
+  }, [packageChoices, defaultPackage]);
 
   /** What the office is told. A single plan — including a day tour's one price
    *  — is reported even though nothing was asked, so staff always know which
@@ -215,7 +222,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
     packageChoices.length === 0
       ? undefined
       : showPackageChoice
-        ? selectedPackage || packageChoices[0]
+        ? selectedPackage || defaultPackage
         : packageChoices[0];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});

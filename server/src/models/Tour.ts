@@ -282,7 +282,11 @@ const SeasonSchema = new Schema<ISeason>(
     },
     prices: {
       type: PricesSchema,
-      required: [true, 'Prices are required'],
+      // Not required: a season may exist before anyone has priced it. Content
+      // and sales move at different speeds, and forcing a number here is what
+      // pushed placeholder zeros into published tours — which then reached
+      // visitors as "$0.00". An absent amount renders as nothing at all.
+      default: () => ({}),
     },
     notes: [NoteSchema],
   },

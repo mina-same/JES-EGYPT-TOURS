@@ -26,12 +26,22 @@ export interface Item {
   meta: Metadata[];
 }
 
+/** Each tier is a per-currency object, not a bare number — the API stores real
+ *  amounts in USD/EUR/GBP rather than one figure to convert. This was typed as
+ *  `number`, which was simply wrong about the data: it only ever "worked"
+ *  because `formatPrice` accepts both shapes. The same mistyping elsewhere once
+ *  hid the price on every tour on the site. */
 export interface Prices {
-  solo?: number;
-  pax_2_4?: number;
-  pax_5_8?: number;
-  pax_9_16?: number;
+  solo?: TierAmount;
+  pax_2_4?: TierAmount;
+  pax_5_8?: TierAmount;
+  pax_9_16?: TierAmount;
 }
+
+/** Re-exported rather than redeclared: this is the same per-currency shape the
+ *  currency context formats, and CurrencyPriceSchema makes USD mandatory
+ *  whenever a tier exists at all. */
+export type TierAmount = ICurrencyPrice;
 
 export interface Note {
   title: string;
@@ -95,8 +105,10 @@ export interface TourDetailsOneData {
   titleTwo: string;
   overview: string;
   location: string;
+  pickupAndDropOff: string;
   activitiesType: string;
   activateDay: string;
+  availability: string;
   price: number | ICurrencyPrice;
   overviewTitle: string;
   topDestinations: string;

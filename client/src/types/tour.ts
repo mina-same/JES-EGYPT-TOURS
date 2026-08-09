@@ -202,11 +202,15 @@ export interface IPricingSeason {
   seasonName: string;
   startDate?: string | Date; // Optional: start date of season
   endDate?: string | Date; // Optional: end date of season
+  /** Every tier is optional, matching PricesSchema on the server. A tour is
+   *  often published before sales have priced it, and an absent tier is how
+   *  "not priced yet" is expressed — the previous non-optional type forced
+   *  callers to invent a 0, which then reached visitors as "$0.00". */
   prices: {
-    solo: ICurrencyPrice;
-    pax_2_4: ICurrencyPrice;
-    pax_5_8: ICurrencyPrice;
-    pax_9_16: ICurrencyPrice;
+    solo?: ICurrencyPrice;
+    pax_2_4?: ICurrencyPrice;
+    pax_5_8?: ICurrencyPrice;
+    pax_9_16?: ICurrencyPrice;
   };
   notes: IPricingNote[];
 }

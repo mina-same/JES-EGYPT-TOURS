@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
 import { ITour, completeTourSeo, validateTourKindPlans } from '../models/Tour';
+import { deriveStartingPrice } from '../utils/startingPrice';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { localize, localizePreservingSlugs } from '../utils/localize';
 import {
@@ -719,6 +720,13 @@ export const createTour = async (
     // ever got the chance to derive it.
     body.seo = completeTourSeo(body);
 
+    // Derived, never accepted from the client: the "from" price must be the
+    // cheapest amount in this tour's own plans, or the card can advertise a
+    // figure the pricing table below it contradicts.
+    const derivedStartingPrice = deriveStartingPrice(body.pricingPlans);
+    if (derivedStartingPrice) body.priceStartingFrom = derivedStartingPrice;
+    else delete body.priceStartingFrom;
+
     const tour = await Tour.create(body);
 
     // Populate subcategory details
@@ -929,6 +937,22 @@ export const updateTour = async (
       Description: pick('Description'),
       mapSchema: pick('mapSchema'),
     });
+
+    // Recomputed on every update, from whichever plans this write leaves in
+    // place: a partial update that never mentions pricingPlans must still not
+    // strand an old "from" price that the current plans no longer support.
+    const plansAfterUpdate =
+      body.pricingPlans !== undefined
+        ? body.pricingPlans
+        : (existingTour as any).pricingPlans;
+    const derivedStartingPrice = deriveStartingPrice(plansAfterUpdate);
+    if (derivedStartingPrice) {
+      body.priceStartingFrom = derivedStartingPrice;
+    } else {
+      // Nothing quotable left — remove it rather than leaving a stale figure.
+      delete body.priceStartingFrom;
+      fieldsToUnset.priceStartingFrom = 1;
+    }
 
     const update: any = { $set: body };
     if (Object.keys(fieldsToUnset).length > 0) {

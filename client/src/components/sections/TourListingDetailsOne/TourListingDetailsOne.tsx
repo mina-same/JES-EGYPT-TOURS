@@ -26,6 +26,7 @@ import { PricingPlans } from "./components/PricingPlans";
 import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
+import { planHasPrices } from "@/lib/tours/startingPrice";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
@@ -400,8 +401,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     overview,
     overviewTitle,
     location,
+    pickupAndDropOff,
     activitiesType,
     activateDay,
+    availability,
     price,
     relatedTours,
     sliderImages,
@@ -417,6 +420,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   } = tourData;
 
   const hasReviewVideos = (reviewVideos || []).length > 0;
+  /** Plans existing is not the same as prices existing: a plan is created the
+   *  moment a tour is set up, long before anyone fills in amounts. */
+  const hasQuotablePricing = (pricingPlans || []).some(planHasPrices);
   const includedAmenityItems = normalizeAmenityItems(amenities);
   const excludedAmenityItems = normalizeAmenityItems(amenitiesTwo);
   const whatToPackItems = normalizeAmenityItems(tourData.whatToPack);
@@ -473,9 +479,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
               {/* Info Bar Section */}
               <TourInfoBar
+                pickupAndDropOff={pickupAndDropOff}
                 location={location}
                 activitiesType={activitiesType}
                 activateDay={activateDay}
+                availability={availability}
                 mapHref={map ? '#map' : undefined}
               />
 
@@ -554,7 +562,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                     <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
                   )}
                   <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
-                  <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
+                  {/* Same guard as the map and gallery tabs: a tab that scrolls
+                      to a section which is not on the page is a dead control. */}
+                  {hasQuotablePricing && (
+                    <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
+                  )}
                   {/* Same guard as the map: tour.gallery is empty on most tours,
                       so the tab used to scroll to an EmptyState. */}
                   {images && images.length > 0 && (
@@ -739,9 +751,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   )}
                 </section>
 
-                {/* Pricing Section */}
-                <section id="pricing" className="tour-section">
-                  {pricingPlans && pricingPlans.length > 0 ? (
+                {/* Pricing — omitted entirely when nothing is quotable.
+                    Tours are routinely written and published before sales have
+                    priced them, and an empty "Tour Pricing" band advertises the
+                    gap. Showing nothing reads as a tour without published
+                    rates; showing an empty section reads as a broken page. */}
+                {hasQuotablePricing && (
+                  <section id="pricing" className="tour-section">
                     <div className='tour-listing-details__content__item tour-listing-details__pricing'>
                       <div className="mb-4">
                         <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.pricingTitle")}</h2>
@@ -749,15 +765,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </div>
                       <PricingPlans pricingPlans={pricingPlans} />
                     </div>
-                  ) : (
-                    <EmptyState
-                      title={t("tourDetails.empty.pricingTitle")}
-                      description={t("tourDetails.empty.pricingDesc")}
-                      icon="file"
-                      size="medium"
-                    />
-                  )}
-                </section>
+                  </section>
+                )}
                 
                 {/* Important Notes Section */}
                 {tourData.notes && tourData.notes.length > 0 && (
@@ -1160,7 +1169,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 <BookingForm
                   tourId={String(tourData.id || '')}
                   price={price}
-                  hasPricing={(pricingPlans || []).length > 0}
+                  // Gates the card's "Pricing" link. Plans existing is not
+                  // enough: an unpriced tour renders no #pricing section, so
+                  // the link would scroll to nothing.
+                  hasPricing={hasQuotablePricing}
                   packageOptions={(pricingPlans || []).map((plan) => plan.planName)}
                   tourTitle={title}
                 />
