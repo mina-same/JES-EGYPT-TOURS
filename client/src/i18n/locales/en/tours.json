@@ -129,6 +129,8 @@
       "tourType": "Tour Type",
       "activateDay": "Duration",
       "availability": "Availability",
+      "guide": "Guide",
+      "guideLanguage": "Private English Egyptologist",
       "priceStartsFrom": "Price starts from"
     },
     "brochure": {
@@ -176,7 +178,8 @@
       "availableDates": "Available Dates:",
       "datesHint": "Select a date range to view the prices for each group size.",
       "groupSizePricing": "Group Size & Pricing",
-      "person": "person"
+      "person": "person",
+      "accommodationTitle": "Included Accommodation Options:"
     },
     "bookingForm": {
       "title": "Book This Tour",

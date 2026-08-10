@@ -35,6 +35,7 @@ import CurrencyInput from './CurrencyInput';
 import CurrencyField from './CurrencyField';
 import { plansAllowedForKind, maxPlansForKind, type TourKind } from '@/lib/tours/tourKind';
 import { createEmptyPricingPlan } from '@/lib/tours/pricingPlans';
+import AccommodationsEditor from './AccommodationsEditor';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
@@ -240,7 +241,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
             ...plan,
             seasons: plan.seasons.map((season, j) => 
               j === seasonIndex 
-                ? { ...season, prices: { ...season.prices, [priceType]: value } }
+                ? { ...season, prices: { ...(season.prices || {}), [priceType]: value } }
                 : season
             )
           }
@@ -510,9 +511,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                   <div className="space-y-4 pt-1">
                                                     <CurrencyField
                                                       label="Solo"
-                                                      value={season.prices.solo || {}}
+                                                      value={season.prices?.solo || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'solo', { ...season.prices.solo, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'solo', { ...season.prices?.solo, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.solo`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -532,9 +533,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="2-4 Pax"
-                                                      value={season.prices.pax_2_4 || {}}
+                                                      value={season.prices?.pax_2_4 || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', { ...season.prices.pax_2_4, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', { ...season.prices?.pax_2_4, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_2_4`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -554,9 +555,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="5-8 Pax"
-                                                      value={season.prices.pax_5_8 || {}}
+                                                      value={season.prices?.pax_5_8 || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', { ...season.prices.pax_5_8, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', { ...season.prices?.pax_5_8, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_5_8`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -576,9 +577,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="9-16 Pax"
-                                                      value={season.prices.pax_9_16 || {}}
+                                                      value={season.prices?.pax_9_16 || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', { ...season.prices.pax_9_16, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', { ...season.prices?.pax_9_16, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_9_16`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -596,7 +597,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                       )}
                                                     </CurrencyField>
                                                   </div>
-                                                  {hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Requires one USD price minimum</p>}
+                                                  {/* Prices are optional now, so this only fires on a real server
+    rejection (e.g. a negative amount) — word it accordingly. */}
+{hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Check the amounts in this season</p>}
                                                 </div>
 
                                               </div>
@@ -607,6 +610,21 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                  </div>
 
                                  {/* Plan Level Notes */}
+                                 {/* PACKAGE only, per the sales model: a day
+                                     tour has no overnight stay, so offering the
+                                     editor there would only invite data the
+                                     public page never shows. */}
+                                 {tourKind === 'PACKAGE' && (
+                                   <div className="pt-6 border-t">
+                                     <AccommodationsEditor
+                                       accommodations={plan.accommodations || []}
+                                       onChange={(next) => updatePricingPlan(planIndex, 'accommodations', next)}
+                                       activeLanguage={activeLanguage}
+                                       siblingPlans={pricingPlans.filter((_, i) => i !== planIndex)}
+                                     />
+                                   </div>
+                                 )}
+
                                  <div className="space-y-4 pt-6 border-t">
                                    <div className="flex items-center justify-between">
                                       <div className="space-y-1">

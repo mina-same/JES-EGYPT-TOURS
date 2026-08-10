@@ -1600,25 +1600,47 @@ body {
    band and its last <li> was the price button, so both are replaced with real
    borders. Icon / title / text typography is inherited from gotur.css.
 
-   The column count comes from --fact-count, which TourInfoBar sets from the
+   The column count comes from `data-cols`, which TourInfoBar computes from the
    facts that actually have a value. A fixed `repeat(3, …)` left a dead column
-   when a tour was missing its location, and squeezed a fourth fact into a
-   track sized for three once pickup joined the strip.
+   when a tour was missing its location, and squeezed later facts into tracks
+   sized for three as pickup, availability and guide joined the strip.
    ========================================================================== */
 .tour-listing-details__info-area--rail .tour-listing-details__info-area__info {
   display: grid;
-  grid-template-columns: repeat(var(--fact-count, 3), minmax(0, 1fr));
-  gap: 0;
+  gap: 22px 0;
   margin-top: 0;
   padding: 18px 0;
 }
-/* The 12px gap replaces the theme's 20px: four facts share the rail now, and
+.tour-listing-details__info-area__info[data-cols="1"] { grid-template-columns: minmax(0, 1fr); }
+.tour-listing-details__info-area__info[data-cols="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tour-listing-details__info-area__info[data-cols="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tour-listing-details__info-area__info[data-cols="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* The 12px gap replaces the theme's 20px: the facts share the rail now, and
    that space is worth more to the text than to the space beside the icon. */
-.tour-listing-details__info-area--rail li { min-width: 0; padding: 0 18px; gap: 12px; }
-.tour-listing-details__info-area--rail li:first-child { padding-left: 0; }
-.tour-listing-details__info-area--rail li:last-child { padding-right: 0; }
+.tour-listing-details__info-area--rail li {
+  min-width: 0;
+  padding: 0 18px;
+  gap: 12px;
+  border-left: 1px solid #f0f0f0;
+}
 .tour-listing-details__info-area--rail li::after { display: none !important; }
-.tour-listing-details__info-area--rail li + li { border-left: 1px solid #f0f0f0; }
+
+/* Suppress the rule — and reclaim the padding — at each end of every row. Which
+   item that is depends on the column count, hence one pair of rules per count. */
+.tour-listing-details__info-area__info[data-cols="1"] li,
+.tour-listing-details__info-area__info[data-cols="2"] li:nth-child(2n + 1),
+.tour-listing-details__info-area__info[data-cols="3"] li:nth-child(3n + 1),
+.tour-listing-details__info-area__info[data-cols="4"] li:nth-child(4n + 1) {
+  border-left: none;
+  padding-left: 0;
+}
+.tour-listing-details__info-area__info[data-cols="2"] li:nth-child(2n),
+.tour-listing-details__info-area__info[data-cols="3"] li:nth-child(3n),
+.tour-listing-details__info-area__info[data-cols="4"] li:nth-child(4n),
+.tour-listing-details__info-area--rail li:last-child {
+  padding-right: 0;
+}
 /* `line-height: 1` keeps the drawn pickup icon on the same optical centre as
    the three font glyphs, which carry their own leading. */
 .tour-listing-details__info-area--rail .tour-listing-details__info-area__icon {
@@ -1633,15 +1655,15 @@ body {
   overflow-wrap: break-word;
 }
 
-/* Between 992px and the wide layout the rail loses roughly a third of its
-   width while still holding every fact in one row, so the padding, the gap and
-   the icon give back the space instead of the text. */
+/* Between 992px and the wide layout the rail loses roughly a third of its width.
+   Three columns absorb that comfortably; four in one row do not, so only that
+   case gives space back from the padding, the gap and the icon. */
 @media (min-width: 992px) and (max-width: 1199.98px) {
-  .tour-listing-details__info-area--rail li { padding: 0 10px; gap: 9px; }
-  .tour-listing-details__info-area--rail .tour-listing-details__info-area__icon {
+  .tour-listing-details__info-area__info[data-cols="4"] li { padding: 0 10px; gap: 9px; }
+  .tour-listing-details__info-area__info[data-cols="4"] .tour-listing-details__info-area__icon {
     font-size: 20px;
   }
-  .tour-listing-details__info-area--rail .tour-listing-details__info-area__title {
+  .tour-listing-details__info-area__info[data-cols="4"] .tour-listing-details__info-area__title {
     font-size: 13px;
   }
 }
@@ -5130,5 +5152,104 @@ button[data-action="stop"] {
 
   .tour-pricing__row {
     padding: 12px 14px;
+  }
+}
+
+/* Included accommodation — inside the plan panel, below the seasons. One row
+   per stop: icon disc + place name in a fixed left rail, the hotel text beside
+   it. Same skeleton as the competitor's, drawn in the brand gold. */
+.tour-pricing__stays {
+  margin-top: 20px;
+}
+
+.tour-pricing__stays-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #16283c;
+}
+
+.tour-pricing__stays-title i {
+  color: #8f7333;
+}
+
+.tour-pricing__stays-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.tour-pricing__stay {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #e8ebef;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tour-pricing__stay-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 108px;
+  margin: 0;
+  padding: 14px 8px;
+  background: #fff;
+  border-inline-end: 1px dashed #e3e7ec;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #16283c;
+}
+
+.tour-pricing__stay-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f6f1e4;
+  color: #8f7333;
+  font-size: 15px;
+}
+
+.tour-pricing__stay-hotels {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 14px 18px;
+  background: #f8f9fb;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #4b5563;
+}
+
+@media (max-width: 991px) {
+  .tour-pricing__stay-place {
+    flex-basis: 88px;
+    padding: 12px 6px;
+    font-size: 11px;
+  }
+
+  .tour-pricing__stay-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .tour-pricing__stay-hotels {
+    padding: 12px 14px;
+    font-size: 13px;
   }
 }

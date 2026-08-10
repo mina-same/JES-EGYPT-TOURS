@@ -56,10 +56,18 @@ export interface Season {
   notes?: Note[];
 }
 
+/** Localized by the API before it arrives — plain strings here. */
+export interface Accommodation {
+  location: string;
+  icon: string;
+  hotels: string;
+}
+
 export interface PricingPlan {
   planName: string;
   seasons: Season[];
   notes?: Note[];
+  accommodations?: Accommodation[];
 }
 
 export interface ImageObject {

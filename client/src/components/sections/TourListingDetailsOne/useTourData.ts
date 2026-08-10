@@ -227,6 +227,13 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
           title: getLocalizedValue(n?.title),
           text: getLocalizedValue(n?.text),
         })),
+        // getLocalizedValue is a no-op on the already-flat strings the API
+        // sends, and resolves the object shape when raw data slips through.
+        accommodations: safeArray(p?.accommodations).map((a: any) => ({
+          location: getLocalizedValue(a?.location),
+          icon: typeof a?.icon === 'string' ? a.icon : 'city',
+          hotels: getLocalizedValue(a?.hotels),
+        })),
       })),
       whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
       reviewVideos,

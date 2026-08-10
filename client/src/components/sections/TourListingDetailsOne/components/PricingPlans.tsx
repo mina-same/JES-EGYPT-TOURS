@@ -24,6 +24,15 @@ const TIER_LABELS: Record<PriceTier, { key: string; fallback: string }> = {
   pax_9_16: { key: "tourDetails.pricing.pax9_16", fallback: "9-16 Pax" },
 };
 
+/** Font Awesome glyph per accommodation icon. The admin picks the key; the
+ *  drawing lives here so a glyph swap never touches stored data. */
+const STAY_ICONS: Record<string, string> = {
+  city: "fa-archway",
+  cruise: "fa-ship",
+  beach: "fa-umbrella-beach",
+  resort: "fa-water",
+};
+
 /** The tier that visitors are steered toward. Fixed rather than an admin flag:
  *  it is the same tier on every package, and a per-tour switch would be one
  *  more field to keep in sync for no editorial gain. */
@@ -218,6 +227,28 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                 );
               })}
             </div>
+
+            {(plan.accommodations || []).length > 0 && (
+              <div className="tour-pricing__stays">
+                <h4 className="tour-pricing__stays-title">
+                  <i className="fas fa-hotel" aria-hidden="true" />
+                  {t("tourDetails.pricing.accommodationTitle", "Included Accommodation Options:")}
+                </h4>
+                <dl className="tour-pricing__stays-list">
+                  {plan.accommodations!.map((stay, stayIdx) => (
+                    <div key={stayIdx} className="tour-pricing__stay">
+                      <dt className="tour-pricing__stay-place">
+                        <span className="tour-pricing__stay-icon">
+                          <i className={`fas ${STAY_ICONS[stay.icon] || STAY_ICONS.city}`} aria-hidden="true" />
+                        </span>
+                        {stay.location}
+                      </dt>
+                      <dd className="tour-pricing__stay-hotels">{stay.hotels}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
 
             {plan.notes && plan.notes.length > 0 && (
               <ul className="tour-pricing__notes">

@@ -215,10 +215,22 @@ export interface IPricingSeason {
   notes: IPricingNote[];
 }
 
+export const ACCOMMODATION_ICONS = ['city', 'cruise', 'beach', 'resort'] as const;
+export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
+
+/** One accommodation stop on a package tier — where guests sleep and which
+ *  hotels that tier books. Mirrors AccommodationSchema on the server. */
+export interface IAccommodation {
+  location: ILocalizedString;
+  icon: AccommodationIcon;
+  hotels: ILocalizedString;
+}
+
 export interface IPricingPlan {
   planName: string;
   seasons: IPricingSeason[];
   notes?: IPricingNote[];
+  accommodations?: IAccommodation[];
 }
 
 export interface IItineraryActivity {

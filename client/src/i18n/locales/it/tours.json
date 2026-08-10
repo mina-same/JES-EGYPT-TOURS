@@ -136,6 +136,8 @@
       "tourType": "Tipo di tour",
       "activateDay": "Durata",
       "availability": "Disponibilità",
+      "guide": "Guida",
+      "guideLanguage": "Egittologo privato in italiano",
       "priceStartsFrom": "Il prezzo parte da"
     },
     "brochure": {
@@ -183,7 +185,8 @@
       "availableDates": "Date disponibili:",
       "datesHint": "Seleziona un periodo per vedere i prezzi per ogni dimensione del gruppo.",
       "groupSizePricing": "Dimensione gruppo e prezzi",
-      "person": "persona"
+      "person": "persona",
+      "accommodationTitle": "Sistemazioni incluse:"
     },
     "bookingForm": {
       "title": "Prenota questo tour",

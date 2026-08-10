@@ -62,18 +62,12 @@ export function validateTourForm(formData: TourFormData): FormErrorItem[] {
             errors.push({ field: `Season ${sIdx + 1}`, message: 'Season name is required', path: `pricingPlans.${pIdx}.seasons.${sIdx}.seasonName` });
           }
           
-          // Check if at least one price is entered. We check for typeof 'number' to allow 0.
-          const prices = season.prices;
-          const hasPrice = prices && (
-            (typeof prices.solo?.USD === 'number') ||
-            (typeof prices.pax_2_4?.USD === 'number') ||
-            (typeof prices.pax_5_8?.USD === 'number') ||
-            (typeof prices.pax_9_16?.USD === 'number')
-          );
-
-          if (!hasPrice) {
-             errors.push({ field: `Season ${sIdx + 1} Prices`, message: 'At least one price must be entered', path: `pricingPlans.${pIdx}.seasons.${sIdx}.prices` });
-          }
+          // Prices are deliberately NOT required. Content staff publish tours
+          // before sales have priced them, and requiring a number here is what
+          // used to force placeholder zeros into the data — which the public
+          // pages then showed as "$0.00". An unpriced season is a valid state:
+          // the tour page hides its pricing section and the cards hide their
+          // "Start from" line until real amounts exist.
         });
       }
     });

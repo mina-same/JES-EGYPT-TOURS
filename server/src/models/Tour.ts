@@ -46,10 +46,28 @@ export interface ISeason {
   notes?: INote[];
 }
 
+/** The icon shown beside an accommodation stop. An enum, unlike the free-text
+ *  location, because icons are drawn assets — a new value means new artwork,
+ *  not just new data. */
+export const ACCOMMODATION_ICONS = ['city', 'cruise', 'beach', 'resort'] as const;
+export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
+
+/** One stop in a package's included accommodation: where the guests sleep and
+ *  which hotels that tier books. Lives on the PLAN, not the tour — the whole
+ *  point of tiers is that Affordable and Diamond sleep in different hotels. */
+export interface IAccommodation {
+  location: ILocalizedString;
+  icon: AccommodationIcon;
+  /** Editorial text, deliberately one field — "Hyatt Regency / Triumph Luxury
+   *  or similar." is written prose, not a queryable hotel list. */
+  hotels: ILocalizedString;
+}
+
 export interface IPricingPlan {
   planName: string;
   seasons: ISeason[];
   notes?: INote[];
+  accommodations?: IAccommodation[];
 }
 
 export interface IActivity {
@@ -357,6 +375,28 @@ export const validateTourKindPlans = (
   return null;
 };
 
+const AccommodationSchema = new Schema<IAccommodation>(
+  {
+    location: {
+      type: LocalizedStringSchema,
+      required: [true, 'Accommodation location is required'],
+    },
+    icon: {
+      type: String,
+      enum: {
+        values: [...ACCOMMODATION_ICONS],
+        message: '{VALUE} is not a valid accommodation icon',
+      },
+      default: 'city',
+    },
+    hotels: {
+      type: LocalizedStringSchema,
+      required: [true, 'Hotel text is required'],
+    },
+  },
+  { _id: false }
+);
+
 const PricingPlanSchema = new Schema<IPricingPlan>(
   {
     planName: {
@@ -379,6 +419,7 @@ const PricingPlanSchema = new Schema<IPricingPlan>(
       },
     },
     notes: { type: [NoteSchema], default: [] },
+    accommodations: { type: [AccommodationSchema], default: [] },
   },
   { _id: false }
 );

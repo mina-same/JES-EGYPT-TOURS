@@ -116,7 +116,7 @@ const TourCard: React.FC<TourCardProps> = ({
   linkMeta = true,
   showBadges = true,
 }) => {
-  const { formatPrice } = useCurrency();
+  const { formatPrice, getPriceValue } = useCurrency();
   // Owned by the card so every listing gets the same localised, pluralised
   // wording — call sites no longer pass a review label.
   const { t } = useTranslation("common");
@@ -276,14 +276,19 @@ const TourCard: React.FC<TourCardProps> = ({
             />
           ) : (
             <div className="listing-card-four__content__btn">
-              <div className="listing-card-four__price">
-                <span className="listing-card-four__price__sub">
-                  {t("tourCard.startFrom")}
-                </span>
-                <span className="listing-card-four__price__number">
-                  {formatPrice(item.price)}
-                </span>
-              </div>
+              {/* Only when the tour actually has a price. Tours are published
+                  before sales price them, and formatting the absent value
+                  rendered a literal "Start from $0.00" on the card. */}
+              {getPriceValue(item.price) > 0 && (
+                <div className="listing-card-four__price">
+                  <span className="listing-card-four__price__sub">
+                    {t("tourCard.startFrom")}
+                  </span>
+                  <span className="listing-card-four__price__number">
+                    {formatPrice(item.price)}
+                  </span>
+                </div>
+              )}
               {item.link && (
                 <Link href={item.link} className="listing-card-four__btn gotur-btn">
                   {t("tourCard.viewTour")}{" "}

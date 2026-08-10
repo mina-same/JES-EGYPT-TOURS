@@ -2,6 +2,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PickupIcon } from "./PickupIcon";
+import { GuideIcon } from "./GuideIcon";
 
 /** The gold the facts strip has always used for its icons. */
 const ICON_COLOR = "#b79c5c";
@@ -80,9 +81,27 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
       label: t("tourDetails.info.availability", "Availability"),
       value: availability,
     },
+    // Fixed, and deliberately not a Tour field: every tour is guided in the
+    // language of the page it is read on, so the value is the locale's own
+    // language name and the admin has nothing to fill in or keep in sync.
+    {
+      key: "guide",
+      icon: <GuideIcon style={{ color: ICON_COLOR }} />,
+      label: t("tourDetails.info.guide", "Guide"),
+      value: t("tourDetails.info.guideLanguage", "English"),
+    },
   ].filter((fact) => !!fact.value);
 
   if (facts.length === 0) return null;
+
+  /**
+   * How many facts share a row.
+   *
+   * Up to four still read well side by side. Beyond that the rail cannot give
+   * each column enough width for a value like "Private Day Tour" to stay on one
+   * line, so five and six wrap into rows of three instead of being squeezed.
+   */
+  const columns = facts.length <= 4 ? facts.length : 3;
 
   return (
     <div
@@ -90,11 +109,12 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
       data-wow-duration='1500ms'
       data-wow-delay='500ms'
     >
-      {/* The column count follows the facts that survived the filter, so three
-          facts still fill the rail and four do not overflow it. */}
+      {/* `data-cols` drives both the grid and the dividers: CSS cannot work out
+          which item starts a row on its own, and a rule per column count is the
+          only way to stop a vertical line appearing at the left edge of row two. */}
       <ul
         className='tour-listing-details__info-area__info list-unstyled'
-        style={{ ['--fact-count' as string]: facts.length }}
+        data-cols={columns}
       >
         {facts.map((fact) => (
           <li key={fact.key}>

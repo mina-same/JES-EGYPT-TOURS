@@ -24,7 +24,7 @@ interface TourBrochureProps {
 
 const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour, assets }, ref) => {
   const { t, i18n } = useTranslation("tours");
-  const { formatPrice } = useCurrency();
+  const { formatPrice, getPriceValue } = useCurrency();
   const highlightItems = normalizeAmenityItems(tour.highlightList);
   const getImgUrl = (img: any) => {
     if (!img) return "";
@@ -139,21 +139,25 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Calendar size={16} /> {tour.activateDay}
             </span>
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                background: "#F5A623",
-                color: "#000",
-                padding: "6px 16px",
-                borderRadius: 20,
-                fontWeight: 700,
-                fontSize: 16,
-              }}
-            >
-              <DollarSign size={16} /> {t("tourDetails.info.priceStartsFrom")} {formatPrice(tour.price)}
-            </span>
+            {/* Only when a real minimum exists — an unpriced tour's brochure
+                must not carry a "$0.00" badge in its hero. */}
+            {getPriceValue(tour.price as any) > 0 && (
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#F5A623",
+                  color: "#000",
+                  padding: "6px 16px",
+                  borderRadius: 20,
+                  fontWeight: 700,
+                  fontSize: 16,
+                }}
+              >
+                <DollarSign size={16} /> {t("tourDetails.info.priceStartsFrom")} {formatPrice(tour.price)}
+              </span>
+            )}
           </div>
         </div>
       </div>
