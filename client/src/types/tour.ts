@@ -215,7 +215,15 @@ export interface IPricingSeason {
   notes: IPricingNote[];
 }
 
-export const ACCOMMODATION_ICONS = ['city', 'cruise', 'beach', 'resort'] as const;
+export const ACCOMMODATION_ICONS = [
+  'pyramids',
+  'temple',
+  'city',
+  'cruise',
+  'sea',
+  'desert',
+  'hotel',
+] as const;
 export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
 
 /** One accommodation stop on a package tier — where guests sleep and which

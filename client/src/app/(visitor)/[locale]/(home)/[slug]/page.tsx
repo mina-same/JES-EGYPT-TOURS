@@ -24,6 +24,11 @@ import BlogDetailView from "./_views/BlogDetailView";
 import DestinationView from "./_views/DestinationView";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
 import { hasNoContentForLocale } from "@/lib/blogBlocks";
+import {
+  EDITORIAL_AUTHOR_SLUG,
+  getPublicAuthorName,
+  isEditorialAuthor,
+} from "@/lib/blog/author";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
@@ -57,8 +62,6 @@ interface PageProps {
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.jesegypttours.com";
-const EDITORIAL_AUTHOR_NAME = "Madonna Roshdey";
-const EDITORIAL_AUTHOR_SLUG = "madonna-roshdey";
 
 export const revalidate = 0;
 
@@ -79,18 +82,6 @@ function getAbsoluteImageUrl(url: string | undefined): string | undefined {
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   const normalizedPath = url.startsWith('/') ? url : `/${url}`;
   return `${baseUrl}${normalizedPath}`;
-}
-
-function getPublicAuthorName(authorName?: string | null): string {
-  const trimmed = authorName?.trim();
-  if (trimmed && trimmed.toLowerCase() !== "admin") {
-    return trimmed;
-  }
-  return EDITORIAL_AUTHOR_NAME;
-}
-
-function isEditorialAuthor(authorName: string): boolean {
-  return authorName === EDITORIAL_AUTHOR_NAME;
 }
 
 function getSeoImage(

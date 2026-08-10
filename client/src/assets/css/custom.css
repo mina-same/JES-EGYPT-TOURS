@@ -5211,16 +5211,23 @@ button[data-action="stop"] {
   color: #16283c;
 }
 
+/* Solid gold on white rather than gold-on-beige: the disc sat on the rail's
+   own tint and the stroked glyph nearly disappeared into it. */
 .tour-pricing__stay-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: #f6f1e4;
-  color: #8f7333;
-  font-size: 15px;
+  background: #8f7333;
+  color: #fff;
+}
+
+/* These glyphs are drawn as strokes, not filled icon-font shapes, so they need
+   a touch more weight to hold up at 20px. */
+.tour-pricing__stay-icon svg {
+  stroke-width: 1.75;
 }
 
 .tour-pricing__stay-hotels {
@@ -5252,4 +5259,156 @@ button[data-action="stop"] {
     padding: 12px 14px;
     font-size: 13px;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Article cards (BlogCard) — the shared skin.
+
+   These rules exist because the same values used to be inline styles
+   repeated in five components: image heights, the two-line excerpt
+   clamp, the compact related-post padding. Anything a card needs that
+   the theme did not already provide lives here, once.
+   ───────────────────────────────────────────────────────────── */
+
+/* The editorial gold. It is not one of the theme's --gotur-* colours:
+   this layer had been writing #b79c5c literally, dozens of times, and a
+   name is what lets the next component pick the right gold without
+   copying a hex from a neighbour. Existing literals can adopt it as
+   they are touched. */
+:root {
+  --jes-gold: #b79c5c;
+}
+
+/* Fixed media heights keep a row of cards aligned whatever the source
+   image's aspect ratio. Paired with the theme's object-fit: cover. */
+.blog-card-media img {
+  width: 100%;
+  object-fit: cover;
+}
+.blog-card-media--tall img {
+  height: 260px;
+}
+.blog-card-media--medium img {
+  height: 250px;
+}
+.blog-card-media--short img {
+  height: 200px;
+}
+
+/* Meta row: author, section, reading time. Three items no longer fit on
+   one line in a 3-up grid, so it wraps instead of overflowing — the row
+   gap is what keeps a wrapped line from touching the one above. */
+.blog-card-meta {
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+/* Reading time is text, not a link, so the theme's `.blog-card__meta a`
+   rules never reached it and it rendered unstyled beside the author. */
+.blog-card-meta__item {
+  display: flex;
+  align-items: center;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 157%;
+  color: var(--gotur-text, #595959);
+}
+.blog-card-meta__item i {
+  margin-right: 8px;
+  font-size: 18px;
+  color: var(--gotur-base, #63ab45);
+}
+
+/* Two lines of excerpt, then an ellipsis. The min-height reserves the
+   second line so a one-line excerpt does not shorten its card. */
+.blog-card-excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 48px;
+}
+
+/* The compact skin, used for related posts under an article: the same
+   bordered card at a size that reads as secondary to the article above. */
+.blog-card-two--compact .blog-card-two__content {
+  padding: 20px;
+}
+.blog-card-two--compact .blog-card-two__meta {
+  margin-bottom: 10px;
+}
+.blog-card-two--compact .blog-card-two__title {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+/* The theme styles the CTA only under its --one and --two modifiers, so
+   on every other skin "Read More" fell back to a bare anchor. */
+.blog-card__content__btn,
+.blog-card-two--compact .blog-card-two__content__btn {
+  display: inline-block;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 175%;
+  color: var(--gotur-text, #595959);
+  text-transform: capitalize;
+  transition: color 400ms ease;
+}
+.blog-card__content__btn i,
+.blog-card-two--compact .blog-card-two__content__btn i {
+  margin-left: 10px;
+}
+.blog-card__content__btn:hover,
+.blog-card-two--compact .blog-card-two__content__btn:hover {
+  color: var(--gotur-base, #63ab45);
+}
+
+/* The minimal skin: image, date, title. Used where a full card would
+   compete with the section around it. */
+.blog-card-minimal {
+  position: relative;
+  transition: all 500ms ease;
+}
+.blog-card-minimal__media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.blog-card-minimal__veil {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.05);
+  transition: background-color 400ms ease;
+}
+.group:hover .blog-card-minimal__veil {
+  background-color: transparent;
+}
+.blog-card-minimal__date {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--jes-gold, #b79c5c);
+}
+.blog-card-minimal__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--gotur-black, #1d231f);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 300ms ease;
+}
+.group:hover .blog-card-minimal__title {
+  color: var(--jes-gold, #b79c5c);
 }

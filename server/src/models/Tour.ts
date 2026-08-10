@@ -49,7 +49,15 @@ export interface ISeason {
 /** The icon shown beside an accommodation stop. An enum, unlike the free-text
  *  location, because icons are drawn assets — a new value means new artwork,
  *  not just new data. */
-export const ACCOMMODATION_ICONS = ['city', 'cruise', 'beach', 'resort'] as const;
+export const ACCOMMODATION_ICONS = [
+  'pyramids',
+  'temple',
+  'city',
+  'cruise',
+  'sea',
+  'desert',
+  'hotel',
+] as const;
 export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
 
 /** One stop in a package's included accommodation: where the guests sleep and

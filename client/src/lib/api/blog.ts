@@ -454,8 +454,16 @@ export function formatBlogDate(dateValue: unknown, locale = 'en'): BlogDateParts
     return EMPTY_DATE;
   }
 
-  const monthIndex = date.getMonth();
-  const day = date.getDate().toString();
+  // Read in UTC, deliberately. The badge used to take its day and month from
+  // the local-time getters while the ISO attribute came from toISOString(), so
+  // a post published near midnight rendered "30 Jul" above dateTime="…-07-29"
+  // — the machine-readable date disagreeing with the visible one. Local time
+  // is also the wrong clock for this: a publication date is a date, not a
+  // moment, and reading it locally means the server renders one day during SSR
+  // and the reader's browser another on hydration, which is a mismatch nobody
+  // can reproduce without changing timezone.
+  const monthIndex = date.getUTCMonth();
+  const day = date.getUTCDate().toString();
   const short = SHORT_MONTHS[locale] || SHORT_MONTHS.en;
   const full = FULL_MONTHS[locale] || FULL_MONTHS.en;
 
@@ -463,6 +471,6 @@ export function formatBlogDate(dateValue: unknown, locale = 'en'): BlogDateParts
     day,
     month: short[monthIndex],
     iso: date.toISOString().slice(0, 10),
-    label: (DATE_LABEL[locale] || DATE_LABEL.en)(day, full[monthIndex], date.getFullYear()),
+    label: (DATE_LABEL[locale] || DATE_LABEL.en)(day, full[monthIndex], date.getUTCFullYear()),
   };
 }

@@ -17,3 +17,15 @@
  * Replace the file to change the look — no code has to move.
  */
 export const TOUR_IMAGE_PLACEHOLDER = "/images/resources/tour-placeholder.png";
+
+/**
+ * The same asset, under the name the blog cards ask for.
+ *
+ * Article cards used to fall back to `https://placehold.co/600x400?text=Image`,
+ * a third-party image server: a request leaving the site on every card with no
+ * picture, unoptimizable by next/image, and a stranger's uptime deciding
+ * whether a listing renders. It is aliased rather than given its own file
+ * because the stand-in is a flat colour with nothing tour-specific about it —
+ * point this at a blog-specific asset if that ever changes.
+ */
+export const BLOG_IMAGE_PLACEHOLDER = TOUR_IMAGE_PLACEHOLDER;

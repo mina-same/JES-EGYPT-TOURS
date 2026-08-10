@@ -6,6 +6,7 @@ import { FilterQuery } from 'mongoose';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { blogCardPopulate } from '../utils/blogCardPopulate';
 
 interface QueryParams {
   isActive?: string;
@@ -108,7 +109,10 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
         { 'slug.es': slug },
       ],
     })
-      .populate({ path: 'featuredBlogs', populate: { path: 'author', select: 'name' } })
+      // The card's byline is the editorial author, not the admin account that
+      // typed the article in — populating `author` here is what produced the
+      // "By Admin" bylines on this page.
+      .populate(blogCardPopulate('featuredBlogs'))
       .populate('relatedDestinations', 'name slug coverImage')
       .lean();
 

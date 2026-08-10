@@ -8,9 +8,10 @@ import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, HelpCircle } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
-import Link from "next/link";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
+import BlogCard from "@/components/common/BlogCard/BlogCard";
+import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -110,6 +111,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
   const params = useParams() as { locale: string };
   const { t, i18n } = useTranslation("tours");
+
+  const relatedBlogCards = React.useMemo(
+    () => buildBlogCardViewModels(relatedBlogs, i18n.language || params?.locale || "en"),
+    [relatedBlogs, i18n.language, params?.locale]
+  );
 
   useEffect(() => {
     if (params?.locale && i18n.resolvedLanguage !== params.locale) {
@@ -1197,7 +1203,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         )}
 
         {/* ── Related Blogs (max 3, curated or featured fallback) ── */}
-        {relatedBlogs.length > 0 && (
+        {relatedBlogCards.length > 0 && (
           <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
             <Container>
                 <div className="sec-title text-center mb-5">
@@ -1205,74 +1211,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
                 </div>
                 <div className="row gutter-y-30">
-                  {relatedBlogs.map((blog: any, index: number) => (
-                    <div key={blog.id} className="col-lg-4 col-md-6">
-                      <div
-                        className='blog-card-two blog-card-two--one wow fadeInUp'
-                        data-wow-duration='1500ms'
-                        data-wow-delay={`${100 * (index + 1)}ms`}
-                      >
-                        <div className='blog-card-two__image'>
-                          {blog.image ? (
-                            <Image
-                              src={blog.image}
-                              alt={blog.imageAlt || blog.title || "Blog Image"}
-                              title={blog.imageTitle || blog.title || "Blog Image"}
-                              className="img-fluid"
-                              width={600}
-                              height={450}
-                              style={{ width: "100%", height: "260px", objectFit: "cover" }}
-                            />
-                          ) : (
-                            <div style={{ width: "100%", height: "260px", background: "#eee" }} />
-                          )}
-                          <div className='blog-card-two__date'>
-                            <span className='blog-card-two__date__day'>{new Date(blog.date).getDate()}</span>
-                            <span className='blog-card-two__date__month'>
-                              {new Date(blog.date).toLocaleString('default', { month: 'short' })}
-                            </span>
-                          </div>
-                          <Link href={blog.link} className='blog-card-two__image__link'>
-                            <span className='sr-only'>{blog.title}</span>
-                          </Link>
-                        </div>
-                        <div className='blog-card-two__content'>
-                          <ul className='list-unstyled blog-card-two__meta'>
-                            <li>
-                              <Link href={blog.link}>
-                                <span className='blog-card-two__meta__icon'>
-                                  <i className='icon-user'></i>
-                                </span>{" "}
-                                {t("tourDetails.relatedBlogs.by", "By")} {blog.author}
-                              </Link>
-                            </li>
-                            {blog.category && (
-                              <li>
-                                <Link href={blog.link}>
-                                  <span className='blog-card-two__meta__icon'>
-                                    <i className='icon-price-tag'></i>
-                                  </span>{" "}
-                                  {blog.category}
-                                </Link>
-                              </li>
-                            )}
-                          </ul>
-                          <h3 className='blog-card-two__title'>
-                            <Link href={blog.link}>{blog.title}</Link>
-                          </h3>
-                          <Link
-                            href={blog.link}
-                            className='blog-card-two__content__btn'
-                          >
-                            {t("tourDetails.relatedBlogs.readMore", "Read More")}
-                            {/* Keep the compact visual CTA while giving this link
-                                a unique, descriptive name for crawlers and screen
-                                readers. The title is already localized upstream. */}
-                            {blog.title && <span className='sr-only'> — {blog.title}</span>} {" "}
-                            <i className='icon-arrow-right' aria-hidden='true'></i>
-                          </Link>
-                        </div>
-                      </div>
+                  {relatedBlogCards.map((post, index) => (
+                    <div key={post.id} className="col-lg-4 col-md-6">
+                      <BlogCard post={post} variant='feature' index={index} />
                     </div>
                   ))}
                 </div>

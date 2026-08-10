@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PricingPlan, Season } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import StayIcon from "./StayIcon";
 import {
   PRICE_TIERS,
   isUsableAmount,
@@ -22,15 +23,6 @@ const TIER_LABELS: Record<PriceTier, { key: string; fallback: string }> = {
   pax_2_4: { key: "tourDetails.pricing.pax2_4", fallback: "2-4 Pax" },
   pax_5_8: { key: "tourDetails.pricing.pax5_8", fallback: "5-8 Pax" },
   pax_9_16: { key: "tourDetails.pricing.pax9_16", fallback: "9-16 Pax" },
-};
-
-/** Font Awesome glyph per accommodation icon. The admin picks the key; the
- *  drawing lives here so a glyph swap never touches stored data. */
-const STAY_ICONS: Record<string, string> = {
-  city: "fa-archway",
-  cruise: "fa-ship",
-  beach: "fa-umbrella-beach",
-  resort: "fa-water",
 };
 
 /** The tier that visitors are steered toward. Fixed rather than an admin flag:
@@ -239,7 +231,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                     <div key={stayIdx} className="tour-pricing__stay">
                       <dt className="tour-pricing__stay-place">
                         <span className="tour-pricing__stay-icon">
-                          <i className={`fas ${STAY_ICONS[stay.icon] || STAY_ICONS.city}`} aria-hidden="true" />
+                          <StayIcon name={stay.icon} />
                         </span>
                         {stay.location}
                       </dt>

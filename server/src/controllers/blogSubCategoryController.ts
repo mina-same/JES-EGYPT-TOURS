@@ -6,6 +6,7 @@ import { FilterQuery } from 'mongoose';
 import { IBlogSubCategory } from '../models/BlogSubCategory';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -260,7 +261,8 @@ export const getSubcategoryBySlug = async (
 
     const subcategory = await BlogSubCategory.findOne(filter)
       .populate('category', 'name slug description')
-      .populate('featuredBlogs')
+      // Cards, not articles — see blogCardPopulate.
+      .populate(blogCardPopulate('featuredBlogs'))
       .populate('featuredDestinations')
       .lean();
 

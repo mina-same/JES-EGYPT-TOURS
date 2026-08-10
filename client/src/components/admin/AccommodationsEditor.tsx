@@ -10,10 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Building2, Plus, Ship, Trash2, Umbrella, Waves } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import LocalizedInput from './LocalizedInput';
 import LocalizedTextArea from './LocalizedTextArea';
 import { type AdminLanguage } from './AdminLanguageTabs';
+import StayIcon from '@/components/sections/TourListingDetailsOne/components/StayIcon';
 import {
   ACCOMMODATION_ICONS,
   type AccommodationIcon,
@@ -21,20 +22,39 @@ import {
   type IPricingPlan,
 } from '@/types/tour';
 
-/** Lucide previews for the four location icons. The PUBLIC page draws its own
- *  set — these only tell the admin which glyph they are picking. */
-const ICON_PREVIEWS: Record<AccommodationIcon, React.ReactNode> = {
-  city: <Building2 className="h-4 w-4" />,
-  cruise: <Ship className="h-4 w-4" />,
-  beach: <Umbrella className="h-4 w-4" />,
-  resort: <Waves className="h-4 w-4" />,
+const ICON_LABELS: Record<AccommodationIcon, string> = {
+  pyramids: 'Pyramids (Giza)',
+  temple: 'Temple / Obelisk',
+  city: 'City',
+  cruise: 'Nile Cruise',
+  sea: 'Red Sea / Beach',
+  desert: 'Desert / Oasis',
+  hotel: 'Hotel (generic)',
 };
 
-const ICON_LABELS: Record<AccommodationIcon, string> = {
-  city: 'City',
-  cruise: 'Cruise',
-  beach: 'Beach',
-  resort: 'Resort',
+/**
+ * Guesses the icon from the place that was typed.
+ *
+ * Without it every stop kept the default, so Cairo, Luxor and Aswan all drew
+ * the same glyph and the icon column said nothing. Ordered most-specific
+ * first: "Nile Cruise" must match the boat before "Nile" reaches anything else.
+ */
+const ICON_HINTS: Array<[RegExp, AccommodationIcon]> = [
+  [/giza|pyramid|haram/i, 'pyramids'],
+  [/cruise|felucca|dahabiya|\bboat\b|\bm\/?s\b|nile/i, 'cruise'],
+  [/luxor|aswan|abu ?simbel|karnak|edfu|kom ?ombo|philae|temple|valley of/i, 'temple'],
+  [/hurghada|sharm|marsa|dahab|taba|sahl|red ?sea|beach|coast|alamein|soma|gouna/i, 'sea'],
+  [/siwa|oasis|desert|bahariya|farafra|safari|fayoum/i, 'desert'],
+  [/cairo|alexandria|city|downtown|zamalek|heliopolis|maadi/i, 'city'],
+];
+
+export const guessAccommodationIcon = (
+  location: string | undefined
+): AccommodationIcon | null => {
+  const text = (location || '').trim();
+  if (!text) return null;
+  for (const [pattern, icon] of ICON_HINTS) if (pattern.test(text)) return icon;
+  return null;
 };
 
 const EMPTY_LOCALIZED = { en: '', de: '', it: '', es: '' };
@@ -45,7 +65,7 @@ interface AccommodationsEditorProps {
   activeLanguage: AdminLanguage;
   /** The other plans on this tour, for "Copy from". Most of an accommodation
    *  list repeats across tiers with only the hotel names changing, so copying
-   *  a sibling plan and editing beats typing three near-identical lists. */
+   *  a sibling and editing beats typing three near-identical lists. */
   siblingPlans?: IPricingPlan[];
 }
 
@@ -56,6 +76,11 @@ export default function AccommodationsEditor({
   siblingPlans = [],
 }: AccommodationsEditorProps) {
   const rows = accommodations || [];
+
+  /** Rows whose icon was chosen by hand. Component state, not a stored field:
+   *  it describes this editing session, and persisting it would put UI
+   *  bookkeeping into the tour document. */
+  const [pinnedIcons, setPinnedIcons] = React.useState<Set<number>>(new Set());
 
   const update = (index: number, patch: Partial<IAccommodation>) => {
     onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -71,8 +96,9 @@ export default function AccommodationsEditor({
         <div>
           <Label className="text-base font-semibold">Included Accommodation Options</Label>
           <p className="text-xs text-muted-foreground">
-            Where this tier sleeps, stop by stop. Leave empty and the section
-            simply does not appear on the tour page.
+            Where this tier sleeps, stop by stop. The icon is chosen from the
+            place name — change it if the guess is wrong. Leave the list empty
+            and the section does not appear on the tour page.
           </p>
         </div>
         <div className="flex gap-2">
@@ -81,8 +107,10 @@ export default function AccommodationsEditor({
               onValueChange={(planName) => {
                 const source = copySources.find((p) => p.planName === planName);
                 if (!source) return;
-                // Deep copy: the tiers must stay independently editable.
+                // Deep copy: the tiers stay independently editable.
                 onChange(JSON.parse(JSON.stringify(source.accommodations)));
+                // Copied icons were already decided — do not re-guess over them.
+                setPinnedIcons(new Set((source.accommodations || []).map((_, i) => i)));
               }}
             >
               <SelectTrigger className="w-[190px]">
@@ -104,7 +132,7 @@ export default function AccommodationsEditor({
             onClick={() =>
               onChange([
                 ...rows,
-                { location: { ...EMPTY_LOCALIZED }, icon: 'city', hotels: { ...EMPTY_LOCALIZED } },
+                { location: { ...EMPTY_LOCALIZED }, icon: 'hotel', hotels: { ...EMPTY_LOCALIZED } },
               ])
             }
           >
@@ -116,11 +144,14 @@ export default function AccommodationsEditor({
       {rows.map((row, index) => (
         <div key={index} className="rounded-lg border bg-muted/20 p-3 space-y-3">
           <div className="flex items-end gap-2">
-            <div className="w-[150px] space-y-1">
+            <div className="w-[190px] space-y-1">
               <Label className="text-xs">Icon</Label>
               <Select
-                value={row.icon || 'city'}
-                onValueChange={(value) => update(index, { icon: value as AccommodationIcon })}
+                value={row.icon || 'hotel'}
+                onValueChange={(value) => {
+                  setPinnedIcons((prev) => new Set(prev).add(index));
+                  update(index, { icon: value as AccommodationIcon });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -129,7 +160,8 @@ export default function AccommodationsEditor({
                   {ACCOMMODATION_ICONS.map((icon) => (
                     <SelectItem key={icon} value={icon}>
                       <span className="flex items-center gap-2">
-                        {ICON_PREVIEWS[icon]} {ICON_LABELS[icon]}
+                        <StayIcon name={icon} />
+                        {ICON_LABELS[icon]}
                       </span>
                     </SelectItem>
                   ))}
@@ -140,7 +172,12 @@ export default function AccommodationsEditor({
               <LocalizedInput
                 label="Location"
                 value={row.location || EMPTY_LOCALIZED}
-                onChange={(val) => update(index, { location: val })}
+                onChange={(val) => {
+                  // English drives the guess: it is the language every stop is
+                  // written in first, and the icon is shared across locales.
+                  const guess = pinnedIcons.has(index) ? null : guessAccommodationIcon(val?.en);
+                  update(index, guess ? { location: val, icon: guess } : { location: val });
+                }}
                 placeholder="e.g., Cairo"
                 activeLanguage={activeLanguage}
               />

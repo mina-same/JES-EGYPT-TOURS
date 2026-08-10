@@ -412,28 +412,12 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         // ── Consolidate mappings ──
         const mappedData = mapRawTourData(tour, fetchedRelatedTours);
 
-        const mappedBlogs = fetchedRelatedBlogs.map((b: any) => {
-          const blogSlug = getStrictLocalizedSlug(b?.slug, currentLang);
-          if (!blogSlug) return null;
-          const blogTitle = getLocalizedValue(b?.title);
-          const blogImageObj = (typeof b?.featuredImage === 'object' && b?.featuredImage !== null) ? b.featuredImage : {};
-
-          return {
-            id: b._id,
-            title: blogTitle,
-            slug: blogSlug,
-            excerpt: getLocalizedValue(b?.excerpt),
-            image: typeof b?.featuredImage === 'string' ? b.featuredImage : (b?.featuredImage?.url || 'https://placehold.co/600x400?text=No+Image'),
-            imageAlt: getLocalizedValue(blogImageObj?.alt) || blogTitle,
-            imageTitle: getLocalizedValue(blogImageObj?.title) || "",
-            date: b?.publishedAt || b?.createdAt || new Date().toISOString(),
-            link: `/${currentLang}/${blogSlug}`,
-            author: (b?.author as any)?.name || "Admin",
-            category: getLocalizedValue(b?.category?.name) || "",
-          };
-        }).filter(Boolean);
-
-        setRelatedBlogs(mappedBlogs);
+        // Posts are stored raw and shaped into cards by buildBlogCardViewModel
+        // at render time. This hook used to map them itself, which is how the
+        // tour page ended up with an English month on the German site and a
+        // byline of "Admin": its private copy of the mapping never received
+        // the fixes the shared one did.
+        setRelatedBlogs(fetchedRelatedBlogs);
         setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
         setTourData(mappedData);
         setHasTourContent(true);
