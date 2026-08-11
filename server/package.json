@@ -20,7 +20,9 @@
     "test": "jest",
     "migrate:slider-links": "ts-node src/scripts/migrateSliderLegacyLinks.ts",
     "migrate:remove-views": "ts-node src/scripts/removeContentViews.ts",
-    "migrate:reset-tour-social-images": "ts-node src/scripts/resetTourSocialImages.ts"
+    "migrate:reset-tour-social-images": "ts-node src/scripts/resetTourSocialImages.ts",
+    "migrate:tour-kind": "ts-node src/scripts/backfillTourKind.ts",
+    "migrate:clear-placeholder-prices": "ts-node src/scripts/clearPlaceholderPrices.ts"
   },
   "keywords": [
     "express",

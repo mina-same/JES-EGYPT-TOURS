@@ -69,8 +69,14 @@ export default function OfferPriceFooter({
             <s className={styles.wasAmount}>{formatPrice(originalPrice)}</s>
           </span>
         )}
-        <span className={styles.price}>{formatPrice(price)}</span>
-        <span className={styles.unit}>{labels.perPerson}</span>
+        {/* An unpriced tour shows no amount rather than "$0.00 per person" —
+            tours are published before sales price them. */}
+        {current > 0 && (
+          <>
+            <span className={styles.price}>{formatPrice(price)}</span>
+            <span className={styles.unit}>{labels.perPerson}</span>
+          </>
+        )}
       </div>
 
       {hasSaving && (

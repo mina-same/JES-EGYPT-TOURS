@@ -35,6 +35,10 @@ export interface IBooking {
    *  "but the site said €64" conversation can be settled from the record. */
   currency?: 'USD' | 'EUR' | 'GBP';
   quotedPrice?: number;
+  /** Which pricing tier the enquiry is about, or 'NOT_SURE'. Present even when
+   *  the visitor was never asked — a day tour records its single plan — so the
+   *  office can price the enquiry without opening the tour. */
+  selectedPackage?: string;
   status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   adminNotes?: string;
   createdAt?: string | Date;

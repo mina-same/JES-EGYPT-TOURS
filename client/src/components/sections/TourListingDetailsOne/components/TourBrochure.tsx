@@ -3,9 +3,17 @@ import React from "react";
 import { MapPin, Calendar, DollarSign, Check, X } from "lucide-react";
 import { footerOneData } from "@/data/footerOneData";
 import { useTranslation } from "react-i18next";
-import type { TourDetailsOneData } from "../types";
+import type { TourDetailsOneData, TierAmount } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { classifySeason, seasonLabelKey, type SeasonKind } from "@/lib/tours/seasonKind";
+
+/** English wording when a locale lacks the key. */
+const BROCHURE_SEASON_FALLBACKS: Record<SeasonKind, string> = {
+  low: "Low Season",
+  regular: "Regular Season",
+  peak: "Peak Season",
+};
 
 interface TourBrochureProps {
   tour: TourDetailsOneData;
@@ -24,7 +32,7 @@ interface TourBrochureProps {
 
 const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour, assets }, ref) => {
   const { t, i18n } = useTranslation("tours");
-  const { formatPrice } = useCurrency();
+  const { formatPrice, getPriceValue } = useCurrency();
   const highlightItems = normalizeAmenityItems(tour.highlightList);
   const getImgUrl = (img: any) => {
     if (!img) return "";
@@ -139,21 +147,25 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Calendar size={16} /> {tour.activateDay}
             </span>
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                background: "#F5A623",
-                color: "#000",
-                padding: "6px 16px",
-                borderRadius: 20,
-                fontWeight: 700,
-                fontSize: 16,
-              }}
-            >
-              <DollarSign size={16} /> {t("tourDetails.info.priceStartsFrom")} {formatPrice(tour.price)}
-            </span>
+            {/* Only when a real minimum exists — an unpriced tour's brochure
+                must not carry a "$0.00" badge in its hero. */}
+            {getPriceValue(tour.price as any) > 0 && (
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#F5A623",
+                  color: "#000",
+                  padding: "6px 16px",
+                  borderRadius: 20,
+                  fontWeight: 700,
+                  fontSize: 16,
+                }}
+              >
+                <DollarSign size={16} /> {t("tourDetails.info.priceStartsFrom")} {formatPrice(tour.price)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -487,10 +499,22 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                         marginBottom: 4,
                       }}
                     >
-                      {s.seasonName}
+                      {/* Same tier name the tour page shows. A guest comparing
+                          the PDF against the website should not meet two
+                          different names for one season. */}
+                      {(() => {
+                        const kind = classifySeason(s.seasonName);
+                        return kind
+                          ? t(seasonLabelKey(kind), BROCHURE_SEASON_FALLBACKS[kind])
+                          : s.seasonName;
+                      })()}
                     </div>
+                    {/* The date range lives in `seasonName` — the startDate /
+                        endDate fields are unused and rendered as a bare "–".
+                        Now that the heading above carries the tier name, this
+                        line is where the actual dates belong. */}
                     <div style={{ fontSize: 13, color: "#8B7355", marginBottom: 16 }}>
-                      {s.startDate} – {s.endDate}
+                      {s.seasonName}
                     </div>
                     <div
                       style={{
@@ -684,7 +708,9 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
   );
 }
 
-function PriceTag({ label, price }: { label: string; price: number }) {
+/** `price` is the per-currency object the API stores, not a bare number — it was
+ *  declared as `number` and only worked because formatPrice accepts both. */
+function PriceTag({ label, price }: { label: string; price: TierAmount }) {
   const { formatPrice } = useCurrency();
   return (
     <div style={{ textAlign: "center", padding: "10px 8px", backgroundColor: "#FDFAF6", borderRadius: 10 }}>

@@ -103,15 +103,11 @@
     "openYoutube": "Apri su YouTube",
     "relatedTours": {
       "title": "Tour Correlati",
-      "span": "Tour",
-      "subtitle": "Potresti anche apprezzare questi tour",
       "tagline": "Selezione Curata"
     },
     "relatedBlogs": {
       "title": "Blog Correlati",
-      "tagline": "Storie di Viaggio",
-      "by": "Di",
-      "readMore": "Leggi di più"
+      "tagline": "Storie di Viaggio"
     },
     "moreTours": {
       "title": "Di più",
@@ -131,9 +127,13 @@
     "importantNotes": "Note importanti",
     "day": "Giorno",
     "info": {
+      "pickup": "Ritiro e rientro",
       "location": "Località",
-      "activitiesType": "Tipo di attività",
+      "tourType": "Tipo di tour",
       "activateDay": "Durata",
+      "availability": "Disponibilità",
+      "guide": "Guida",
+      "guideLanguage": "Egittologo privato in italiano",
       "priceStartsFrom": "Il prezzo parte da"
     },
     "brochure": {
@@ -162,20 +162,33 @@
       }
     },
     "pricing": {
-      "emptyState": "Le informazioni sui prezzi non sono disponibili per questo tour. Contattaci per i dettagli.",
-      "allYear": "Tutto l'anno",
-      "soloTraveler": "Viaggiatore Singolo",
-      "pax2_4": "2-4 Viaggiatori",
-      "pax5_8": "5-8 Viaggiatori",
-      "pax9_16": "9-16 Viaggiatori",
+      "soloTraveler": "1 pax",
+      "pax2_4": "2-4 pax",
+      "pax5_8": "5-8 pax",
+      "pax9_16": "9-16 pax",
       "perPerson": "a persona",
-      "planNotes": "Note Importanti sul Piano",
       "noteTitle": "Nota:",
-      "noteSub": "I prezzi sono per persona e possono variare in base alla disponibilità e alla data di prenotazione. Gli sconti per i gruppi si applicano automaticamente in base al numero di viaggiatori. Contattaci per preventivi personalizzati o richieste speciali.",
+      "noteSub": "I prezzi sono per persona e possono variare in base alla disponibilità e alla data di prenotazione. Gli sconti per i gruppi si applicano automaticamente in base al numero di viaggiatori. <contactLink>Contattaci</contactLink> per preventivi personalizzati o richieste speciali.",
       "affordable": "Accessibile",
       "gold (5 star standard)": "Gold (Standard 5 Stelle)",
       "diamond (5 star luxury)": "Diamond (Lusso 5 Stelle)",
-      "tour prices": "Prezzi del Tour"
+      "tour prices": "Prezzi del Tour",
+      "startingFrom": "A partire da",
+      "mostChosen": "Più scelto",
+      "datesHint": "Scegli il tuo periodo di viaggio per vedere il prezzo per la tua dimensione di gruppo.",
+      "groupSizePricing": "Dimensione del gruppo e prezzi",
+      "person": "persona",
+      "accommodationTitle": "Sistemazioni incluse:",
+      "season_peak": "Alta stagione",
+      "pricesByDate": "Prezzi per data di viaggio",
+      "fromPerPerson": "Da {{price}} a persona",
+      "season_low": "Bassa stagione",
+      "season_regular": "Media stagione",
+      "seasonDesc_low": "Estate",
+      "seasonDesc_regular": "Inverno",
+      "seasonDesc_peak": "Festività",
+      "holiday_christmas": "Natale e Capodanno",
+      "holiday_easter": "Pasqua"
     },
     "bookingForm": {
       "title": "Prenota questo tour",
@@ -218,7 +231,9 @@
         "dateRange": "La data di fine non può precedere la data di inizio"
       },
       "decrease": "Riduci {{field}}",
-      "increase": "Aumenta {{field}}"
+      "increase": "Aumenta {{field}}",
+      "packageLabel": "Pacchetto",
+      "packageNotSure": "Non sono sicuro — consigliatemi"
     }
   },
   "pageMetaTitle": "Categorie di tour in Egitto | Tour privati e giornalieri | JES Egypt Tours",

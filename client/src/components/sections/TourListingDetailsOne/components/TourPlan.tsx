@@ -31,7 +31,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
       )}
 
       <div className='faq-page__accordion faq-accordion gotur-accordion'>
-        <Accordion defaultActiveKey='0'>
+        <Accordion defaultActiveKey={['0']} alwaysOpen>
           {itinerary.days.map((day, idx) => (
             <Accordion.Item eventKey={idx.toString()} key={idx}>
               <Accordion.Header as="div">
@@ -152,14 +152,21 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                             >
                               {activity.heading}
                             </h5>
-                            <div 
-                              style={{ 
-                                fontSize: '14px', 
-                                color: '#666', 
-                                lineHeight: '1.7', 
-                                margin: 0 
-                              }} 
-                              dangerouslySetInnerHTML={{ __html: activity.description }} 
+                            {/* `html-content` is what gives editorial links their
+                                gold + underline treatment. Without it anchors fall
+                                back to the theme's `a` rule (#d4af37, no underline)
+                                and read as plain body text. */}
+                            <div
+                              className="html-content"
+                              style={{
+                                fontSize: '14px',
+                                color: '#666',
+                                lineHeight: '1.7',
+                                margin: 0
+                              }}
+                              dangerouslySetInnerHTML={{
+                                __html: normalizeRichTextInternalLinks(activity.description),
+                              }}
                             />
                           </div>
                         </div>

@@ -199,14 +199,38 @@
       "next": "Next destination",
       "viewDestination": "Explore {{destination}}"
     },
-    "aswan": { "title": "Aswan", "subtitle": "Nile Felucca Sailing Tour" },
-    "dahab": { "title": "Dahab", "subtitle": "Red Sea Mountains Tour" },
-    "giza": { "title": "Giza", "subtitle": "Pyramids & Sphinx Sunset Panorama" },
-    "hatshepsut": { "title": "Hatshepsut Temple", "subtitle": "Luxor West Bank Tour" },
-    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Cairo Shopping Bazaar" },
-    "luxor": { "title": "Luxor", "subtitle": "Nile Hot Air Balloon View" },
-    "qaitbay": { "title": "Qaitbay Citadel", "subtitle": "Alexandria Coastal Tour" },
-    "siwa": { "title": "Siwa", "subtitle": "Oasis & Salt Lakes Tour" }
+    "aswan": {
+      "title": "Aswan",
+      "subtitle": "Nile Felucca Sailing Tour"
+    },
+    "dahab": {
+      "title": "Dahab",
+      "subtitle": "Red Sea Mountains Tour"
+    },
+    "giza": {
+      "title": "Giza",
+      "subtitle": "Pyramids & Sphinx Sunset Panorama"
+    },
+    "hatshepsut": {
+      "title": "Hatshepsut Temple",
+      "subtitle": "Luxor West Bank Tour"
+    },
+    "khanElKhalili": {
+      "title": "Khan El Khalili",
+      "subtitle": "Cairo Shopping Bazaar"
+    },
+    "luxor": {
+      "title": "Luxor",
+      "subtitle": "Nile Hot Air Balloon View"
+    },
+    "qaitbay": {
+      "title": "Qaitbay Citadel",
+      "subtitle": "Alexandria Coastal Tour"
+    },
+    "siwa": {
+      "title": "Siwa",
+      "subtitle": "Oasis & Salt Lakes Tour"
+    }
   },
   "tailorOffer": {
     "tagline": "Tailor-Made",
@@ -227,5 +251,9 @@
     "trust2": "No hidden fees",
     "trust3": "24/7 support",
     "scroll": "Scroll"
+  },
+  "videoReviews": {
+    "tagline": "Real Travellers",
+    "title": "Video Reviews"
   }
 }

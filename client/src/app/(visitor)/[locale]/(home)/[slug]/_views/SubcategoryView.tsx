@@ -30,6 +30,8 @@ import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
+import { getTourReviewVideoIds } from "@/lib/video/youtube";
 
 const FiltersContent = ({
   t,
@@ -277,13 +279,17 @@ export default function SubcategoryView({
             return {
               id: tour._id,
               slug: tourSlug,
-              image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+              image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
               imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-              allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+              allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
               title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
               link: `/${locale}/${tourSlug}`,
               price: tour.priceStartingFrom || { USD: 0 },
               videoId: tour.videoLink || "",
+              // Gates the card's video button. The listing payload already carries
+              // `reviews`, so this costs no extra request — without it the button
+              // showed on every card and only revealed "no videos" after a click.
+              videoIds: getTourReviewVideoIds(tour.reviews),
               discount: "",
               description:
               // Editor-written card teaser wins; the long intro is the fallback.
@@ -318,29 +324,13 @@ export default function SubcategoryView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, currentPage, sort, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyle]);
 
-  const getYouTubeVideoId = (url: string): string => {
-    if (!url) return "";
-    const t = url.trim();
-    const s = t.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (s?.[1]) return s[1];
-    const w = t.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (w?.[1]) return w[1];
-    const e = t.match(/\/embed\/([a-zA-Z0-9_-]{6,})/); if (e?.[1]) return e[1];
-    const sh = t.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/); if (sh?.[1]) return sh[1];
-    return "";
-  };
 
-  const openVideoReviews = async (tourSlug: string) => {
-    try {
-      const res = await tourApiForFetch.getBySlug(tourSlug, locale);
-      if (res.success && res.data) {
-        const vids = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
-          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
-          .filter(Boolean);
-        if (vids.length > 0) { setVideoIds(vids); setOpen(true); }
-        else toast({ title: t('status.noVideoTitle'), description: t('status.noVideoInfo'), variant: "info" });
-      }
-    } catch {
-      toast({ title: t('status.failedVideoTitle'), description: t('status.failedVideo'), variant: "destructive" });
-    }
+  // The ids are already on the card: the listing payload carries `reviews`, so
+  // opening the player needs no round-trip. This used to re-fetch the whole
+  // tour on every click just to read URLs it already had.
+  const openVideoReviewsFor = (ids: string[]) => {
+    setVideoIds(ids);
+    setOpen(true);
   };
 
   if (initialLoading) {
@@ -476,7 +466,7 @@ export default function SubcategoryView({
                         <div className={`subcategory-card${isActive ? " is-active" : ""}`}>
                           <div className="subcategory-card__image-box">
                             <Image
-                              src={sub.images?.[0]?.url || "/assets/images/resources/tour-1-1.jpg"}
+                              src={sub.images?.[0]?.url || TOUR_IMAGE_PLACEHOLDER}
                               alt={getLocalizedValue(sub.images?.[0]?.alt, locale) || subName}
                               fill
                               className="subcategory-card__image"
@@ -570,7 +560,7 @@ export default function SubcategoryView({
               {pageLoading && (<div className="flex items-center justify-center mb-4" style={{ minHeight: 40 }}><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>)}
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
-                  tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={openVideoReviews} /></Col>))
+                  tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
                 ) : (
                   <div className="flex items-center justify-center min-h-[200px] w-full"><p className="text-xl text-gray-500">{t('listing.noToursSubcategory')}</p></div>
                 )}

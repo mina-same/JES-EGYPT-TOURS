@@ -8,4 +8,7 @@
  * a comma-separated field projection).
  */
 export const CARD_FIELDS =
-  "slug,heading,name,images,gallery,priceStartingFrom,videoLink,specialOfferDiscount,duration,tourLocation,subcategory,cardDescription,Description";
+  // `reviews.url` and nothing more of the review: it is only read to decide
+  // whether the card offers its video button, and the full review bodies would
+  // dwarf everything else in this payload.
+  "slug,heading,name,images,gallery,priceStartingFrom,videoLink,specialOfferDiscount,duration,tourLocation,subcategory,cardDescription,Description,reviews.url";

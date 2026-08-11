@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency, type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import { footerOneData } from "@/data/footerOneData";
+import { PACKAGE_NOT_SURE } from "@/lib/tours/tourKind";
 import {
   focusWithComfortableScroll,
   getFirstInvalidBookingField,
@@ -136,11 +137,15 @@ interface BookingFormProps {
   price?: number | ICurrencyPrice | null;
   /** True when the tour has real pricing plans, so the price can link to them. */
   hasPricing?: boolean;
+  /** The tour's own pricing plan names, in the order the admin arranged them.
+   *  The package choice is built from these — never from a fixed list — so a
+   *  tour offering two tiers offers exactly two. */
+  packageOptions?: string[];
   /** Names the tour in the prefilled WhatsApp message. */
   tourTitle?: string;
 }
 
-export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPricing, tourTitle }) => {
+export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPricing, tourTitle, packageOptions }) => {
   const { t, i18n } = useTranslation('tours');
   const { formatPrice, getPriceValue, currency } = useCurrency();
   // Resolved through the context rather than a `typeof === 'number'` check: the
@@ -182,6 +187,43 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
    *  (Used only to know what is displayed. It cannot serve as a "user touched
    *  it" flag: it fires for programmatic changes too.) */
   const [displayedPhoneCountry, setDisplayedPhoneCountry] = useState<Country | undefined>(undefined);
+  /** The plans this tour actually sells, in admin order. */
+  const packageChoices = useMemo(
+    () => (packageOptions || []).filter(Boolean),
+    [packageOptions]
+  );
+  /** Asked only when there is more than one, so the visitor is never made to
+   *  "pick" from a single option. */
+  const showPackageChoice = packageChoices.length > 1;
+  const [selectedPackage, setSelectedPackage] = useState<string>("");
+
+  /** Gold when the tour sells it, otherwise the first tier. It is the middle
+   *  option people are steered toward, so it starts selected rather than
+   *  leaving the cheapest tier to look like the recommendation. */
+  const defaultPackage = useMemo(() => {
+    const gold = packageChoices.find((name) => name.startsWith("GOLD"));
+    return gold || packageChoices[0] || "";
+  }, [packageChoices]);
+
+  // Keep the selection valid if the tour's plans change under it (locale swap,
+  // client-side refetch) — but never overwrite a choice the visitor has made.
+  useEffect(() => {
+    setSelectedPackage((current) =>
+      current && (packageChoices.includes(current) || current === PACKAGE_NOT_SURE)
+        ? current
+        : defaultPackage
+    );
+  }, [packageChoices, defaultPackage]);
+
+  /** What the office is told. A single plan — including a day tour's one price
+   *  — is reported even though nothing was asked, so staff always know which
+   *  rate the enquiry refers to. */
+  const effectivePackage =
+    packageChoices.length === 0
+      ? undefined
+      : showPackageChoice
+        ? selectedPackage || defaultPackage
+        : packageChoices[0];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string>("");
@@ -373,6 +415,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
         // the authoritative tour price and computes the quote itself; a public
         // caller must never be able to choose the stored quoted amount.
         currency,
+        // Which tier the enquiry is about. Sent even when no question was
+        // asked, so the office always knows the rate. The server checks it
+        // against the tour's real plans — this value is a claim, not a fact.
+        ...(effectivePackage ? { selectedPackage: effectivePackage } : {}),
       };
 
       const response = await createBooking(data);
@@ -452,7 +498,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
           </div>
         )}
       </div>
-      <div className='booking-form-card'>
+      {/* The package row adds a field's worth of height, which pushed the card
+          past the viewport on 900px-tall screens and brought back the internal
+          scrollbar the layout was tuned to avoid. The tightening is scoped to
+          the tours that actually carry the extra row, so day tours keep the
+          spacing they were tuned with. */}
+      <div className={`booking-form-card${showPackageChoice ? ' booking-form-card--with-package' : ''}`}>
         {/* noValidate: without it the browser's own `required` bubbles fired
             first — in the BROWSER's language — and the localized messages below
             never appeared. Validation still runs in validateForm(), and the
@@ -721,6 +772,34 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
             decreaseLabel={t("tourDetails.bookingForm.decrease", { field: t("tourDetails.bookingForm.infants") })}
             increaseLabel={t("tourDetails.bookingForm.increase", { field: t("tourDetails.bookingForm.infants") })}
           />
+
+          {/* Only when there is a real choice to make. One plan (or a day
+              tour's single price) still reaches the office on the booking —
+              see `effectivePackage` — but asking the visitor to "choose" from
+              a list of one is a question with no answer. */}
+          {showPackageChoice && (
+            <div className='booking-form-control'>
+              <label htmlFor={fieldId('package')} className="booking-field-label">
+                {t("tourDetails.bookingForm.packageLabel", "Package")}
+              </label>
+              <select
+                id={fieldId('package')}
+                name="selectedPackage"
+                className="booking-select"
+                value={selectedPackage}
+                onChange={(event) => setSelectedPackage(event.target.value)}
+              >
+                {packageChoices.map((planName) => (
+                  <option key={planName} value={planName}>
+                    {t(`tourDetails.pricing.${planName.toLowerCase()}`, planName)}
+                  </option>
+                ))}
+                <option value={PACKAGE_NOT_SURE}>
+                  {t("tourDetails.bookingForm.packageNotSure", "Not sure — advise me")}
+                </option>
+              </select>
+            </div>
+          )}
 
           <div className='booking-form-control'>
             <label htmlFor={fieldId('requirements')} className="sr-only">

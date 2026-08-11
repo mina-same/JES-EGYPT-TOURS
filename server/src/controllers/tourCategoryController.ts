@@ -4,6 +4,7 @@ import TourCategory from '../models/TourCategory';
 import { FilterQuery } from 'mongoose';
 import { ITourCategory } from '../models/TourCategory';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -186,7 +187,10 @@ export const getCategoryBySlug = async (
       ],
     })
       .populate('subcategoriesCount')
-      .populate('featuredBlogs')
+      // Cards, not articles: the visitor page draws three blog cards from
+      // this, and an unprojected populate shipped whole article bodies in
+      // four languages to do it.
+      .populate(blogCardPopulate('featuredBlogs'))
       .populate('featuredDestinations')
       .lean();
 

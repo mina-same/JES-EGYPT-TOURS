@@ -103,8 +103,11 @@
     "openYoutube": "Open on YouTube",
     "relatedTours": {
       "title": "Related Tours",
-      "span": "Tours",
-      "subtitle": "You might also like those tour"
+      "tagline": "Curated Selection"
+    },
+    "relatedBlogs": {
+      "title": "Related Blogs",
+      "tagline": "Travel Stories"
     },
     "moreTours": {
       "title": "More",
@@ -124,9 +127,13 @@
     "importantNotes": "Important Notes",
     "day": "Day",
     "info": {
+      "pickup": "Pickup & Drop-off",
       "location": "Location",
-      "activitiesType": "Activities Type",
+      "tourType": "Tour Type",
       "activateDay": "Duration",
+      "availability": "Availability",
+      "guide": "Guide",
+      "guideLanguage": "Private English Egyptologist",
       "priceStartsFrom": "Price starts from"
     },
     "brochure": {
@@ -155,20 +162,33 @@
       }
     },
     "pricing": {
-      "emptyState": "Pricing information is not available for this tour. Please contact us for details.",
-      "allYear": "All Year",
-      "soloTraveler": "Solo Traveler",
-      "pax2_4": "2-4 Travelers",
-      "pax5_8": "5-8 Travelers",
-      "pax9_16": "9-16 Travelers",
+      "soloTraveler": "Solo",
+      "pax2_4": "2-4 Pax",
+      "pax5_8": "5-8 Pax",
+      "pax9_16": "9-16 Pax",
       "perPerson": "per person",
-      "planNotes": "Important Plan Notes",
       "noteTitle": "Note:",
-      "noteSub": "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. Contact us for custom quotes or special requests.",
+      "noteSub": "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. <contactLink>Contact us</contactLink> for custom quotes or special requests.",
       "affordable": "Affordable",
       "gold (5 star standard)": "Gold (5 Star Standard)",
       "diamond (5 star luxury)": "Diamond (5 Star Luxury)",
-      "tour prices": "Tour Prices"
+      "tour prices": "Tour Prices",
+      "startingFrom": "Starting from",
+      "mostChosen": "Most Chosen",
+      "datesHint": "Choose your travel period to see the price for your group size.",
+      "groupSizePricing": "Group Size & Pricing",
+      "person": "person",
+      "accommodationTitle": "Included Accommodation Options:",
+      "season_peak": "Peak Season",
+      "pricesByDate": "Prices by Travel Date",
+      "fromPerPerson": "From {{price}} per person",
+      "season_low": "Low Season",
+      "season_regular": "Regular Season",
+      "seasonDesc_low": "Summer",
+      "seasonDesc_regular": "Winter",
+      "seasonDesc_peak": "Holidays",
+      "holiday_christmas": "Christmas & New Year",
+      "holiday_easter": "Easter"
     },
     "bookingForm": {
       "title": "Book This Tour",
@@ -211,7 +231,9 @@
         "dateRange": "End date must be on or after the start date"
       },
       "decrease": "Decrease {{field}}",
-      "increase": "Increase {{field}}"
+      "increase": "Increase {{field}}",
+      "packageLabel": "Package",
+      "packageNotSure": "Not sure — advise me"
     }
   },
   "pageMetaTitle": "Egypt Tour Categories | Private Tours & Day Trips | JES Egypt Tours",

@@ -1,5 +1,13 @@
 import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { getCategoryBySlug as getBlogCategoryBySlug, getSubCategoryBySlug as getBlogSubCategoryBySlug, getBlogBySlug } from "@/lib/api/blog";
+import {
+  type BlogResponse,
+  type BlogSubCategory,
+  getBlogsBySubCategory,
+  getCategoryBySlug as getBlogCategoryBySlug,
+  getSubCategoriesByCategory as getBlogSubCategoriesByCategory,
+  getSubCategoryBySlug as getBlogSubCategoryBySlug,
+  getBlogBySlug,
+} from "@/lib/api/blog";
 import { getDestinationBySlug } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
@@ -24,6 +32,11 @@ import BlogDetailView from "./_views/BlogDetailView";
 import DestinationView from "./_views/DestinationView";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
 import { hasNoContentForLocale } from "@/lib/blogBlocks";
+import {
+  EDITORIAL_AUTHOR_SLUG,
+  getPublicAuthorName,
+  isEditorialAuthor,
+} from "@/lib/blog/author";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
@@ -54,11 +67,10 @@ function ensureTourMapSchema(tour: any) {
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
+  searchParams: Promise<{ page?: string | string[] }>;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.jesegypttours.com";
-const EDITORIAL_AUTHOR_NAME = "Madonna Roshdey";
-const EDITORIAL_AUTHOR_SLUG = "madonna-roshdey";
 
 export const revalidate = 0;
 
@@ -79,18 +91,6 @@ function getAbsoluteImageUrl(url: string | undefined): string | undefined {
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   const normalizedPath = url.startsWith('/') ? url : `/${url}`;
   return `${baseUrl}${normalizedPath}`;
-}
-
-function getPublicAuthorName(authorName?: string | null): string {
-  const trimmed = authorName?.trim();
-  if (trimmed && trimmed.toLowerCase() !== "admin") {
-    return trimmed;
-  }
-  return EDITORIAL_AUTHOR_NAME;
-}
-
-function isEditorialAuthor(authorName: string): boolean {
-  return authorName === EDITORIAL_AUTHOR_NAME;
 }
 
 function getSeoImage(
@@ -504,8 +504,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: "Not Found | JES Egypt Tours", robots: "noindex" };
 }
 
-export default async function SlugPage({ params }: PageProps) {
+export default async function SlugPage({ params, searchParams }: PageProps) {
   const { slug, locale } = await params;
+  const query = await searchParams;
+  const rawPage = Array.isArray(query.page) ? query.page[0] : query.page;
+  const parsedPage = Number(rawPage);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0
+    ? Math.floor(parsedPage)
+    : 1;
   const resolved = await resolveSlugContent(slug, locale);
 
   // ── 1. Category ──────────────────────────────────────────────────────────
@@ -584,17 +590,57 @@ export default async function SlugPage({ params }: PageProps) {
   {
     let redirectTarget: string | null = null;
     let renderBlogSubcategory = false;
+    let subcategoryData: BlogSubCategory | null = null;
+    let initialBlogsData: BlogResponse | null = null;
+    let initialSiblingSubcategories: BlogSubCategory[] = [];
+    let blogListingError: unknown = null;
     try {
       if (resolved?.type === "blogSubcategory") {
         if (resolved.correctSlug !== slug) {
           redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
+          const data = resolved.data as BlogSubCategory;
+          subcategoryData = data;
           renderBlogSubcategory = true;
+
+          const categoryId = typeof data.category === "object"
+            ? data.category?._id
+            : data.category;
+          const baseSlug = typeof data.slug === "object"
+            ? data.slug?.en
+            : data.slug;
+
+          const [siblingsResult, blogsResult] = await Promise.allSettled([
+            categoryId
+              ? getBlogSubCategoriesByCategory(categoryId, locale)
+              : Promise.resolve([]),
+            getBlogsBySubCategory(baseSlug || slug, page, 9, locale),
+          ]);
+
+          if (siblingsResult.status === "fulfilled") {
+            initialSiblingSubcategories = siblingsResult.value;
+          }
+          if (blogsResult.status === "fulfilled") {
+            initialBlogsData = blogsResult.value;
+          } else {
+            blogListingError = blogsResult.reason;
+          }
         }
       }
     } catch { /* API error — fall through */ }
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderBlogSubcategory) return <BlogSubcategoryView slug={slug} locale={locale} />;
+    if (blogListingError) throw blogListingError;
+    if (renderBlogSubcategory && subcategoryData && initialBlogsData) {
+      return (
+        <BlogSubcategoryView
+          slug={slug}
+          locale={locale}
+          subcategory={subcategoryData}
+          blogsData={initialBlogsData}
+          siblingSubcategories={initialSiblingSubcategories}
+        />
+      );
+    }
   }
 
   // ── 5. Blog Post ───────────────────────────────────────────────────────────

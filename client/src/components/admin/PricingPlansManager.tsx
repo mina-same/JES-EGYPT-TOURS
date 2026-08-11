@@ -33,12 +33,20 @@ import { FormErrorItem } from '@/lib/parseApiError';
 import AdminCurrencyTabs, { AdminCurrency } from './AdminCurrencyTabs';
 import CurrencyInput from './CurrencyInput';
 import CurrencyField from './CurrencyField';
+import { plansAllowedForKind, maxPlansForKind, type TourKind } from '@/lib/tours/tourKind';
+import { createEmptyPricingPlan } from '@/lib/tours/pricingPlans';
+import AccommodationsEditor from './AccommodationsEditor';
+import { classifySeason } from '@/lib/tours/seasonKind';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
   onChange: (plans: IPricingPlan[]) => void;
   activeLanguage: AdminLanguage;
   formErrors?: FormErrorItem[];
+  /** Day tour or package. Decides which plan names may be offered and how many
+   *  plans the tour can hold. Undefined on tours saved before the field
+   *  existed — those keep the full list until the admin picks a kind. */
+  tourKind?: TourKind;
 }
 
 function getPlanId(plan: any, index: number) {
@@ -53,6 +61,17 @@ const PLAN_BG_CLASSES = [
   'bg-rose-50',
   'bg-violet-50',
 ] as const;
+
+/** The visitor-facing tier name for each season, so the admin and the tour
+ *  page speak the same language. 'unknown' covers a season whose dates the
+ *  classifier cannot place — it still prices normally, it just carries no tier
+ *  name, exactly as on the public page. */
+const ADMIN_SEASON_LABELS: Record<string, string> = {
+  low: 'Low Season · Summer',
+  regular: 'Regular Season · Winter',
+  peak: 'Peak Season · Holidays',
+  unknown: 'Season',
+};
 
 const SEASON_BG_CLASSES = [
   'bg-white/70',
@@ -95,22 +114,30 @@ function SortableItemWrapper({
   );
 }
 
-export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage, formErrors = [] }: PricingPlansManagerProps) {
+export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage, formErrors = [], tourKind }: PricingPlansManagerProps) {
   const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
   const getErrorMessage = (path: string) => formErrors.find(e => e.path === path)?.message;
 
-  const PLAN_OPTIONS = [
-    'AFFORDABLE',
-    'GOLD (5 STAR STANDARD)', 
-    'DIAMOND (5 STAR LUXURY)',
-    'TOUR PRICES'
-  ];
+  // Derived, never hardcoded: a day tour must not be offered package tiers and
+  // vice versa. The server rejects the wrong pairing anyway — this stops the
+  // admin from reaching that error in the first place.
+  const PLAN_OPTIONS = plansAllowedForKind(tourKind);
+  const planLimit = maxPlansForKind(tourKind);
+  const atPlanLimit = pricingPlans.length >= planLimit;
+  /** One allowed name and room for one plan — a day tour. Its plan is created
+   *  and named for it, so there is no type to pick. */
+  const isSingleFixedPlan = PLAN_OPTIONS.length === 1 && planLimit === 1;
 
-  const SEASON_OPTIONS = [
-    '1 May 2026 – 31 August 2026',
-    '1 September 2026 – 19 December 2026 / 6 January 2027 – 24 March 2027',
-    '20 December 2026 – 5 January 2027 / 25 March 2027 – 15 April 2027'
-  ];
+  /** A plan name already used by another plan cannot be picked again — the
+   *  server treats duplicates as invalid, and two identical tiers would give
+   *  the booking form two indistinguishable options. */
+  const optionsFor = (currentName?: string) => {
+    const taken = new Set(
+      pricingPlans.map((p) => p.planName).filter((n) => n && n !== currentName)
+    );
+    return PLAN_OPTIONS.filter((option) => !taken.has(option));
+  };
+
 
   const planIds = useMemo<string[]>(() => pricingPlans.map((_, i) => getPlanId(pricingPlans[i], i)), [pricingPlans]);
 
@@ -173,7 +200,11 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
       if (!current) return;
 
       const cloned = JSON.parse(JSON.stringify(current));
-      cloned.planName = current.planName ? `${current.planName} (Copy)` : '';
+      // Blank, not "X (Copy)": plan names are a fixed enum, so a suffixed name
+      // is rejected by the server, and the original name cannot be reused
+      // either. The copy keeps the seasons and prices; the admin picks which
+      // remaining tier it is.
+      cloned.planName = '';
 
       const next = [...pricingPlans];
       next.splice(planIndex + 1, 0, cloned);
@@ -193,20 +224,12 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
   // Add new pricing plan with all seasons initialized
   const addPricingPlan = () => {
-    const newPlan: IPricingPlan = {
-      planName: '',
-      seasons: SEASON_OPTIONS.map(seasonName => ({
-        seasonName,
-        prices: {
-          solo: { USD: 0 },
-          pax_2_4: { USD: 0 },
-          pax_5_8: { USD: 0 },
-          pax_9_16: { USD: 0 },
-        },
-        notes: [],
-      })),
-    };
-    onChange([...pricingPlans, newPlan]);
+    // Pre-named when only one name is legal, so a day tour never shows an
+    // "Untitled plan" the admin then has to name from a list of one.
+    onChange([
+      ...pricingPlans,
+      createEmptyPricingPlan(isSingleFixedPlan ? PLAN_OPTIONS[0] : ''),
+    ]);
   };
 
   // Remove pricing plan
@@ -230,7 +253,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
             ...plan,
             seasons: plan.seasons.map((season, j) => 
               j === seasonIndex 
-                ? { ...season, prices: { ...season.prices, [priceType]: value } }
+                ? { ...season, prices: { ...(season.prices || {}), [priceType]: value } }
                 : season
             )
           }
@@ -296,7 +319,20 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
           </div>
           <div className="flex items-center gap-3">
             <AdminCurrencyTabs activeCurrency={activeCurrency} onCurrencyChange={setActiveCurrency} />
-            <Button type="button" onClick={addPricingPlan}>
+            {/* A day tour is one price, and a package has only three tiers to
+                offer — past that there is no valid plan left to add. */}
+            <Button
+              type="button"
+              onClick={addPricingPlan}
+              disabled={atPlanLimit}
+              title={
+                atPlanLimit
+                  ? tourKind === 'DAY_TOUR'
+                    ? 'A day tour has a single price'
+                    : 'All package tiers have been added'
+                  : undefined
+              }
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Plan
             </Button>
@@ -313,7 +349,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
             <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
               Create your first pricing plan to start adding seasonal rates.
             </p>
-            <Button type="button" onClick={addPricingPlan}>
+            <Button type="button" onClick={addPricingPlan} disabled={atPlanLimit}>
               <Plus className="w-4 h-4 mr-2" />
               Create First Plan
             </Button>
@@ -392,6 +428,8 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                   size="sm"
                                   className="h-8 w-8 p-0"
                                   onClick={() => duplicatePlan(planIndex)}
+                                  disabled={atPlanLimit}
+                                  title={atPlanLimit ? 'No plan slots left' : 'Duplicate plan'}
                                 >
                                   <Copy className="h-4 w-4" />
                                 </Button>
@@ -409,6 +447,18 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                             {!isCollapsed && (
                               <div className="p-4 space-y-6">
+                                {/* A day tour has exactly one legal plan name,
+                                    already set for it. Offering a dropdown with
+                                    a single option is a question with one
+                                    possible answer — state it instead. */}
+                                {isSingleFixedPlan ? (
+                                  <div className="space-y-2">
+                                    <Label>Plan Type</Label>
+                                    <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium">
+                                      {plan.planName || PLAN_OPTIONS[0]}
+                                    </p>
+                                  </div>
+                                ) : (
                                 <div className="space-y-2">
                                   <Label className={cn(hasError(`pricingPlans.${planIndex}.planName`) && 'text-red-600 underline font-bold')}>Plan Type *</Label>
                                   <Select
@@ -419,7 +469,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                       <SelectValue placeholder="Select plan type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {PLAN_OPTIONS.map((option) => (
+                                      {optionsFor(plan.planName).map((option) => (
                                         <SelectItem key={option} value={option}>
                                           {option}
                                         </SelectItem>
@@ -428,6 +478,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                   </Select>
                                   {hasError(`pricingPlans.${planIndex}.planName`) && <p className="text-xs text-red-600 font-medium">{getErrorMessage(`pricingPlans.${planIndex}.planName`)}</p>}
                                 </div>
+                                )}
 
                                 {/* Seasons */}
                                 <div className="space-y-4">
@@ -447,12 +498,17 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                             seasonHasError && "border-red-400 ring-1 ring-red-300 shadow-red-50"
                                           )}
                                         >
-                                          {/* Season Header */}
+                                          {/* Season Header — named with the SAME tier the visitor
+                                              sees on the tour page. The admin used to show only
+                                              the raw date string while the public page called it
+                                              "Peak Season", so staff had to translate between two
+                                              vocabularies to know which box they were pricing. */}
                                           <div className={cn("p-3 border-b", seasonHasError ? "bg-red-50/50" : "bg-muted/30")}>
                                             <div className="flex items-center gap-2 mb-1">
                                               <Calendar className={cn("w-3.5 h-3.5", seasonHasError ? "text-red-500" : "text-primary")} />
                                               <span className={cn("text-xs font-semibold uppercase tracking-wider", seasonHasError ? "text-red-600" : "text-primary")}>
-                                                Season {seasonHasError && "⚠"}
+                                                {ADMIN_SEASON_LABELS[classifySeason(season.seasonName) ?? 'unknown']}
+                                                {seasonHasError && " ⚠"}
                                               </span>
                                             </div>
                                             <p className="text-sm font-bold leading-tight min-h-[2.5rem] flex items-center">
@@ -472,9 +528,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                   <div className="space-y-4 pt-1">
                                                     <CurrencyField
                                                       label="Solo"
-                                                      value={season.prices.solo || { USD: 0 }}
+                                                      value={season.prices?.solo || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'solo', { ...season.prices.solo, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'solo', { ...season.prices?.solo, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.solo`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -494,9 +550,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="2-4 Pax"
-                                                      value={season.prices.pax_2_4 || { USD: 0 }}
+                                                      value={season.prices?.pax_2_4 || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', { ...season.prices.pax_2_4, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', { ...season.prices?.pax_2_4, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_2_4`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -516,9 +572,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="5-8 Pax"
-                                                      value={season.prices.pax_5_8 || { USD: 0 }}
+                                                      value={season.prices?.pax_5_8 || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', { ...season.prices.pax_5_8, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', { ...season.prices?.pax_5_8, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_5_8`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -538,9 +594,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
 
                                                     <CurrencyField
                                                       label="9-16 Pax"
-                                                      value={season.prices.pax_9_16 || { USD: 0 }}
+                                                      value={season.prices?.pax_9_16 || {}}
                                                       activeCurrency={activeCurrency}
-                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', { ...season.prices.pax_9_16, [cur]: val })}
+                                                      onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', { ...season.prices?.pax_9_16, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_9_16`)}
                                                     >
                                                       {(cur, val, handleVal) => (
@@ -558,7 +614,9 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                       )}
                                                     </CurrencyField>
                                                   </div>
-                                                  {hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Requires one USD price minimum</p>}
+                                                  {/* Prices are optional now, so this only fires on a real server
+    rejection (e.g. a negative amount) — word it accordingly. */}
+{hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Check the amounts in this season</p>}
                                                 </div>
 
                                               </div>
@@ -569,6 +627,21 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                  </div>
 
                                  {/* Plan Level Notes */}
+                                 {/* PACKAGE only, per the sales model: a day
+                                     tour has no overnight stay, so offering the
+                                     editor there would only invite data the
+                                     public page never shows. */}
+                                 {tourKind === 'PACKAGE' && (
+                                   <div className="pt-6 border-t">
+                                     <AccommodationsEditor
+                                       accommodations={plan.accommodations || []}
+                                       onChange={(next) => updatePricingPlan(planIndex, 'accommodations', next)}
+                                       activeLanguage={activeLanguage}
+                                       siblingPlans={pricingPlans.filter((_, i) => i !== planIndex)}
+                                     />
+                                   </div>
+                                 )}
+
                                  <div className="space-y-4 pt-6 border-t">
                                    <div className="flex items-center justify-between">
                                       <div className="space-y-1">

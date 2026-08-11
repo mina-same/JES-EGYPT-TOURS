@@ -160,8 +160,10 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       titleTwo: tour.name || "",
       overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
       location: getLocalizedValue(tour.tourLocation) || "",
+      pickupAndDropOff: getLocalizedValue(tour.pickupAndDropOff) || "",
       activitiesType: getLocalizedValue(tour.tourType) || "",
       activateDay: getLocalizedValue(tour.duration) || "",
+      availability: getLocalizedValue(tour.tourAvailability) || "",
       price: tour.priceStartingFrom || tour.price || 0,
       overviewTitle: getLocalizedValue(tour.Description?.header) || "Overview",
       topDestinations: "",
@@ -224,6 +226,13 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         notes: safeArray(p?.notes).map((n: any) => ({
           title: getLocalizedValue(n?.title),
           text: getLocalizedValue(n?.text),
+        })),
+        // getLocalizedValue is a no-op on the already-flat strings the API
+        // sends, and resolves the object shape when raw data slips through.
+        accommodations: safeArray(p?.accommodations).map((a: any) => ({
+          location: getLocalizedValue(a?.location),
+          icon: typeof a?.icon === 'string' ? a.icon : 'city',
+          hotels: getLocalizedValue(a?.hotels),
         })),
       })),
       whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
@@ -403,28 +412,12 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         // ── Consolidate mappings ──
         const mappedData = mapRawTourData(tour, fetchedRelatedTours);
 
-        const mappedBlogs = fetchedRelatedBlogs.map((b: any) => {
-          const blogSlug = getStrictLocalizedSlug(b?.slug, currentLang);
-          if (!blogSlug) return null;
-          const blogTitle = getLocalizedValue(b?.title);
-          const blogImageObj = (typeof b?.featuredImage === 'object' && b?.featuredImage !== null) ? b.featuredImage : {};
-
-          return {
-            id: b._id,
-            title: blogTitle,
-            slug: blogSlug,
-            excerpt: getLocalizedValue(b?.excerpt),
-            image: typeof b?.featuredImage === 'string' ? b.featuredImage : (b?.featuredImage?.url || 'https://placehold.co/600x400?text=No+Image'),
-            imageAlt: getLocalizedValue(blogImageObj?.alt) || blogTitle,
-            imageTitle: getLocalizedValue(blogImageObj?.title) || "",
-            date: b?.publishedAt || b?.createdAt || new Date().toISOString(),
-            link: `/${currentLang}/${blogSlug}`,
-            author: (b?.author as any)?.name || "Admin",
-            category: getLocalizedValue(b?.category?.name) || "",
-          };
-        }).filter(Boolean);
-
-        setRelatedBlogs(mappedBlogs);
+        // Posts are stored raw and shaped into cards by buildBlogCardViewModel
+        // at render time. This hook used to map them itself, which is how the
+        // tour page ended up with an English month on the German site and a
+        // byline of "Admin": its private copy of the mapping never received
+        // the fixes the shared one did.
+        setRelatedBlogs(fetchedRelatedBlogs);
         setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
         setTourData(mappedData);
         setHasTourContent(true);

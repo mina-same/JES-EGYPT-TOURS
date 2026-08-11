@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { matchedData, validationResult } from 'express-validator';
-import Booking, { type IBooking } from '../models/Booking';
+import Booking, { type IBooking, BOOKING_PACKAGE_NOT_SURE } from '../models/Booking';
 import Tour from '../models/Tour';
 import Notification from '../models/Notification';
 import CurrencyConfig from '../models/CurrencyConfig';
@@ -26,6 +26,8 @@ interface PublicBookingInput {
   infants?: number;
   requirements?: string;
   currency?: BookingCurrency;
+  /** Verified against the tour's real plans below before it is stored. */
+  selectedPackage?: string;
 }
 
 const BOOKING_SUCCESS_MESSAGE =
@@ -148,6 +150,31 @@ export const createBooking = async (
         error: 'This tour is currently unavailable for booking',
       });
       return;
+    }
+
+    // The package is a claim from a public form until it is matched against the
+    // tour's real plans. Without this, anyone could post 'AFFORDABLE' for a
+    // tour that only sells the top tier and the office would quote the wrong
+    // rate off its own booking record.
+    const claimedPackage = input.selectedPackage?.trim() || undefined;
+
+    if (claimedPackage) {
+      const tourPlanNames = (tour.pricingPlans || [])
+        .map((plan) => plan?.planName)
+        .filter(Boolean) as string[];
+
+      const isRealPlan = tourPlanNames.includes(claimedPackage);
+      // "Not sure" is only meaningful where a choice was actually offered.
+      const isNotSure =
+        claimedPackage === BOOKING_PACKAGE_NOT_SURE && tourPlanNames.length > 1;
+
+      if (!isRealPlan && !isNotSure) {
+        res.status(400).json({
+          success: false,
+          error: 'Selected package is not available for this tour',
+        });
+        return;
+      }
     }
 
     const { currency: requestedCurrency, ...publicFields } = input;

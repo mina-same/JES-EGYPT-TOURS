@@ -1,13 +1,13 @@
 "use client";
 
-import { BlogPost, PaginationData, formatBlogDate } from "@/lib/api/blog";
-import Image from "next/image";
+import { BlogPost, PaginationData } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getLocalizedValue } from "@/lib/localize";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+
+import BlogCard from "@/components/common/BlogCard/BlogCard";
+import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
 interface DynamicBlogGridProps {
   blogs: BlogPost[];
@@ -16,11 +16,45 @@ interface DynamicBlogGridProps {
   variant?: 'standard' | 'featured';
 }
 
+/**
+ * How many numbered pages to show at once. Beyond this the list collapses to
+ * first / … / a window around the current page / … / last, because rendering
+ * every number turned a 40-page listing into a wall of buttons that wrapped
+ * over several lines.
+ */
+const PAGE_WINDOW = 2;
+
+/**
+ * The page numbers to render: always the first and last, always the pages
+ * either side of the current one, and an ellipsis wherever that skips a gap.
+ */
+function buildPageList(current: number, total: number): (number | 'gap')[] {
+  const pages = new Set<number>([1, total]);
+  for (let page = current - PAGE_WINDOW; page <= current + PAGE_WINDOW; page++) {
+    if (page > 1 && page < total) pages.add(page);
+  }
+
+  const sorted = Array.from(pages).sort((a, b) => a - b);
+  const withGaps: (number | 'gap')[] = [];
+  sorted.forEach((page, index) => {
+    if (index > 0 && page - (sorted[index - 1] as number) > 1) {
+      withGaps.push('gap');
+    }
+    withGaps.push(page);
+  });
+
+  return withGaps;
+}
+
 const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, basePath, variant = 'standard' }) => {
   const router = useRouter();
-  const { t, i18n } = useTranslation('blogs');
+  const { i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
-  const renderableBlogs = blogs.filter((post) => getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale));
+
+  const cards = useMemo(
+    () => buildBlogCardViewModels(blogs, currentLocale),
+    [blogs, currentLocale]
+  );
 
   const handlePageChange = (page: number) => {
     const separator = basePath.includes("?") ? "&" : "?";
@@ -30,54 +64,17 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
   if (variant === 'featured') {
     return (
       <Row className='gutter-y-20'>
-        {renderableBlogs.map((post, index) => {
-          const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, currentLocale);
-          const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
-          const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
-            ? getLocalizedValue(post.featuredImage.alt, currentLocale)
-            : getLocalizedValue(post.title, currentLocale);
-          const imageTitle = typeof post.featuredImage === 'object' && post.featuredImage?.title
-            ? getLocalizedValue(post.featuredImage.title, currentLocale)
-            : imageAlt;
-          
-          const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale);
-          if (!blogSlug) return null;
-          const blogUrl = `/${currentLocale}/${blogSlug}`;
-
-          return (
-            <Col lg={3} md={6} key={post._id}>
-              <Link href={blogUrl} className="group block no-underline">
-                <div 
-                  className='relative transition-all duration-500'
-                  data-wow-duration='1500ms'
-                  data-wow-delay={`${100 * (index + 1)}ms`}
-                >
-                  {/* Clean Image Container */}
-                  <div className='relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-3'>
-                    <Image 
-                      src={imageUrl || "https://placehold.co/600x400?text=Image"} 
-                      alt={imageAlt}
-                      title={imageTitle}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
-                  </div>
-
-                  {/* Minimal Content */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                       <span className="text-[9px] font-black text-[#b79c5c] uppercase tracking-widest">{day} {month}</span>
-                    </div>
-                    <h3 className='text-sm font-bold text-[#1d231f] group-hover:text-[#b79c5c] transition-colors duration-300 leading-tight line-clamp-2'>
-                      {getLocalizedValue(post.title, currentLocale)}
-                    </h3>
-                  </div>
-                </div>
-              </Link>
-            </Col>
-          );
-        })}
+        {cards.map((post, index) => (
+          <Col lg={3} md={6} key={post.id}>
+            <BlogCard
+              post={post}
+              variant='minimal'
+              index={index}
+              animate={false}
+              sizes='(max-width: 768px) 100vw, (max-width: 992px) 50vw, 25vw'
+            />
+          </Col>
+        ))}
       </Row>
     );
   }
@@ -86,106 +83,12 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
     <section className='blog-page'>
       <Container>
         <Row className='gutter-y-30'>
-          {renderableBlogs.map((post, index) => {
-            const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, currentLocale);
-            const imageUrl = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url;
-            const imageAlt = typeof post.featuredImage === 'object' && post.featuredImage?.alt
-              ? getLocalizedValue(post.featuredImage.alt, currentLocale)
-              : getLocalizedValue(post.title, currentLocale);
-            const imageTitle = typeof post.featuredImage === 'object' && post.featuredImage?.title
-              ? getLocalizedValue(post.featuredImage.title, currentLocale)
-              : imageAlt;
+          {cards.map((post, index) => (
+            <Col lg={4} md={6} key={post.id}>
+              <BlogCard post={post} variant='classic' index={index} showExcerpt />
+            </Col>
+          ))}
 
-            const authorName =
-              post.author && typeof post.author === 'object'
-                ? (post.author as any).name || 'Admin'
-                : 'Admin';
-            
-            // Build blog URL using localized slug
-            const blogSlug = getStrictLocalizedSlug(post.slug, currentLocale as SupportedLocale);
-            if (!blogSlug) return null;
-            const blogUrl = `/${currentLocale}/${blogSlug}`;
-
-            return (
-              <Col lg={4} md={6} key={post._id}>
-                <div
-                  className='blog-card wow fadeInUp'
-                  data-wow-duration='1500ms'
-                  data-wow-delay={`${100 * (index + 1)}ms`}
-                >
-                  <div className='blog-card__image'>
-                    <div className="relative w-full" style={{ height: '250px' }}>
-                      <Image 
-                        src={imageUrl || "https://placehold.co/600x400?text=Image"} 
-                        alt={imageAlt}
-                        title={imageTitle}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </div>
-                    <Link href={blogUrl} className='blog-card-two__image__link'>
-                      <span className='sr-only'>{getLocalizedValue(post.title, currentLocale)}</span>
-                    </Link>
-
-                  </div>
-                  <div className='blog-card__content'>
-                    <div className='blog-card__content__top'>
-                      <div className='blog-card__date'>
-                        <span className='blog-card__date__day'>{day}</span>
-                        <span className='blog-card__date__month'>{month}</span>
-                      </div>
-                      <ul className='list-unstyled blog-card__meta'>
-                        <li>
-                          <Link href={blogUrl}>
-                            <span className='blog-card__meta__icon'>
-                              <i className='icon-user'></i>
-                            </span>
-                            {t('by')} {authorName}
-                          </Link>
-                        </li>
-                        {post.tags && (getLocalizedValue(post.tags, currentLocale) as string[]).length > 0 && (
-                          <li>
-                            <Link href={blogUrl}>
-                              <span className='blog-card__meta__icon'>
-                                <i className='icon-price-tag'></i>
-                              </span>
-                              {(getLocalizedValue(post.tags, currentLocale) as string[])[0]}
-                            </Link>
-                          </li>
-                        )}
-
-                      </ul>
-                    </div>
-                    <h3 className='blog-card__title'>
-                      <Link href={blogUrl}>{getLocalizedValue(post.title, currentLocale)}</Link>
-                    </h3>
-                    {post.excerpt && (
-                      <p 
-                        className='blog-card__text' 
-                        style={{ 
-                          display: '-webkit-box', 
-                          WebkitLineClamp: 2, 
-                          WebkitBoxOrient: 'vertical', 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis',
-                          minHeight: '48px' 
-                        }}
-                      >
-                        {getLocalizedValue(post.excerpt, currentLocale)}
-                      </p>
-                    )}
-
-                    <Link href={blogUrl} className='blog-card__content__btn'>
-                      {t('readMore', { defaultValue: 'Read More' })} <i className='icon-arrow-right'></i>
-                    </Link>
-                  </div>
-                </div>
-              </Col>
-            );
-          })}
-          
           {/* Pagination */}
           {pagination && pagination.pages > 1 && (
             <Col lg={12}>
@@ -202,16 +105,23 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({ blogs, pagination, ba
                 </li>
 
                 {/* Page Numbers */}
-                {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((pageNum) => (
-                  <li key={pageNum} className={pagination.page === pageNum ? 'active' : ''}>
-                    <button
-                      onClick={() => handlePageChange(pageNum)}
-                      className='page-link'
-                    >
-                      {pageNum}
-                    </button>
-                  </li>
-                ))}
+                {buildPageList(pagination.page, pagination.pages).map((pageNum, index) =>
+                  pageNum === 'gap' ? (
+                    <li key={`gap-${index}`} className='disabled'>
+                      <span className='page-link'>…</span>
+                    </li>
+                  ) : (
+                    <li key={pageNum} className={pagination.page === pageNum ? 'active' : ''}>
+                      <button
+                        onClick={() => handlePageChange(pageNum)}
+                        className='page-link'
+                        aria-current={pagination.page === pageNum ? 'page' : undefined}
+                      >
+                        {pageNum}
+                      </button>
+                    </li>
+                  )
+                )}
 
                 {/* Next Button */}
                 <li className={pagination.page === pagination.pages ? 'disabled' : ''}>

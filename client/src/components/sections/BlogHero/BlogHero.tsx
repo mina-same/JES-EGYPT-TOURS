@@ -31,8 +31,10 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
         animate={{ scale: 1 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
       >
+        {/* Files in public/ are served from the site root — there is no
+            /assets segment, so the old fallback 400'd through the optimizer. */}
         <Image
-          src={bgImage || "/assets/images/backgrounds/page-header-bg-1-1.jpg"}
+          src={bgImage || "/images/backgrounds/page-header-bg-1-1.jpg"}
           alt={imageAlt || title}
           title={imageTitle || imageAlt || title}
           fill

@@ -19,6 +19,7 @@ import FeatureTwo from "@/components/sections/FeatureTwo/FeatureTwo";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 
 import { use } from "react";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 type WishlistTour = {
   _id: string;
@@ -144,7 +145,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
             const unique = Array.from(new Set(galleryImages));
             return {
               id: t._id,
-              image: unique[0] || "/assets/images/resources/tour-1-1.jpg",
+              image: unique[0] || TOUR_IMAGE_PLACEHOLDER,
               title: t.heading || t.name || "Tour",
               link: `/${locale}/${slug}`,
               price: t.priceStartingFrom || { USD: 0 },
@@ -184,7 +185,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
       ...(tour.gallery || []).map((img) => img.url),
     ].filter(Boolean);
     const unique = Array.from(new Set(galleryImages));
-    return unique[0] || "/assets/images/resources/tour-1-1.jpg";
+    return unique[0] || TOUR_IMAGE_PLACEHOLDER;
   };
 
   return (

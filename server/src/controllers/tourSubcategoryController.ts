@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import TourSubcategory from '../models/TourSubcategory';
 import { FilterQuery } from 'mongoose';
 import { ITourSubcategory } from '../models/TourSubcategory';
+import { blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -266,7 +267,8 @@ export const getSubcategoryBySlug = async (
     const subcategory = await TourSubcategory.findOne(filter)
       .populate('category', 'name slug description')
       .populate('toursCount')
-      .populate('featuredBlogs')
+      // Cards, not articles — see blogCardPopulate.
+      .populate(blogCardPopulate('featuredBlogs'))
       .populate('featuredDestinations')
       .lean();
 

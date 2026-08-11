@@ -11,6 +11,7 @@ import {
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { localizePreservingSlugs } from '../utils/localize';
 import { narrowBlocksToLocale } from '../utils/blogBlocks';
+import { blogCardPopulate } from '../utils/blogCardPopulate';
 
 const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
   const searchRegex = createSearchRegex(search);
@@ -285,7 +286,9 @@ export const getBlogBySlug = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
+      // Related posts are drawn with the same card as everywhere else, so they
+      // are populated with the same field set — see blogCardPopulate.
+      .populate(blogCardPopulate('relatedPosts'))
       .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {
@@ -334,7 +337,9 @@ export const getBlogByIdPublic = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .populate('relatedPosts', 'title slug featuredImage excerpt publishedAt tags')
+      // Related posts are drawn with the same card as everywhere else, so they
+      // are populated with the same field set — see blogCardPopulate.
+      .populate(blogCardPopulate('relatedPosts'))
       .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
 
     if (!blog) {

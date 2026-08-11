@@ -886,8 +886,32 @@ html, body {
 /* Textarea */
 .booking-textarea {
   border-radius: 20px;
-  resize: vertical;
+  /* No drag handle. Browsers draw it as a diagonal grip clipped by the 20px
+     radius, and dragging it taller breaks a card whose height is measured to
+     pin against the viewport. Long answers scroll inside instead. */
+  resize: none;
   min-height: 120px;
+}
+
+/* When it does scroll, a thin brand rail rather than the platform's grey
+   arrow-buttons — those were the strongest thing in an otherwise soft card. */
+.booking-textarea {
+  scrollbar-width: thin;
+  scrollbar-color: #cfc4a6 transparent;
+}
+.booking-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+.booking-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+.booking-textarea::-webkit-scrollbar-thumb {
+  background-color: #cfc4a6;
+  border-radius: 999px;
+}
+.booking-textarea::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
 }
 
 /* Submit Button */
@@ -1255,126 +1279,14 @@ body {
 }
 
 /* ==========================================================================
-   6. FAQ ACCORDION (Simple & Professional)
+   6. FAQ ACCORDION - removed.
+   Every rule here was scoped to `.tour-listing-details__faqs-accordion`, a
+   class no component ever rendered: the tour FAQ markup uses
+   `tour-listing-details__faqs` on the wrapper and `faq-accordion
+   gotur-accordion` on the accordion, so none of it matched. The live styling
+   comes from the theme's `.faq-accordion` rules in gotur.css, and FAQ answers
+   now carry `html-content` for the shared editorial-link treatment.
    ========================================================================== */
-.tour-listing-details__faqs-accordion {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.tour-listing-details__faqs-accordion .accordion-item {
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #fff;
-  transition: all 0.3s ease;
-  margin-bottom: 0;
-}
-
-.tour-listing-details__faqs-accordion .accordion-item:hover {
-  border-color: #b79c5c;
-  box-shadow: 0 2px 8px rgba(183, 156, 92, 0.1);
-}
-
-.tour-listing-details__faqs-accordion .accordion-header {
-  margin-bottom: 0;
-}
-
-.tour-listing-details__faqs-accordion .accordion-button {
-  background: #fff;
-  border: none;
-  padding: 20px 24px;
-  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-  line-height: 1.5;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.tour-listing-details__faqs-accordion .accordion-button:not(.collapsed) {
-  background: #fff;
-  color: #b79c5c;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.tour-listing-details__faqs-accordion .accordion-button:focus {
-  box-shadow: none;
-  border-color: transparent;
-}
-
-.tour-listing-details__faqs-accordion .accordion-button::after {
-  width: 20px;
-  height: 20px;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23666'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-size: 16px;
-  background-position: center;
-  transition: transform 0.3s ease;
-  flex-shrink: 0;
-}
-
-.tour-listing-details__faqs-accordion .accordion-button:not(.collapsed)::after {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23b79c5c'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
-  transform: rotate(-180deg);
-}
-
-.tour-listing-details__faqs-accordion .accordion-body {
-  padding: 0 24px 20px 24px;
-  font-size: 15px;
-  line-height: 1.7;
-  color: #666;
-  background: #fff;
-}
-
-.tour-listing-details__faqs-accordion .accordion-body p {
-  margin-bottom: 12px;
-}
-
-.tour-listing-details__faqs-accordion .accordion-body p:last-child {
-  margin-bottom: 0;
-}
-
-.tour-listing-details__faqs-accordion .accordion-body ul,
-.tour-listing-details__faqs-accordion .accordion-body ol {
-  padding-left: 20px;
-  margin-bottom: 12px;
-}
-
-.tour-listing-details__faqs-accordion .accordion-body li {
-  margin-bottom: 6px;
-}
-
-.tour-listing-details__faqs-accordion .accordion-body strong {
-  color: #1a1a1a;
-  font-weight: 600;
-}
-
-.tour-listing-details__faqs-accordion .accordion-body a {
-  color: #b79c5c;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.tour-listing-details__faqs-accordion .accordion-body a:hover {
-  color: #d4af37;
-  text-decoration: underline;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .tour-listing-details__faqs-accordion .accordion-button {
-    padding: 16px 20px;
-    font-size: 15px;
-  }
-  
-  .tour-listing-details__faqs-accordion .accordion-body {
-    padding: 0 20px 16px 20px;
-    font-size: 14px;
-  }
-}
 
 /* ==========================================================================
    TOUR TOP MOSAIC  (replaces the 3-item tiny-slider carousel)
@@ -1571,25 +1483,88 @@ body {
 
 /* ==========================================================================
    TOUR FACTS STRIP
-   The info bar was a full-bleed five-item band; it is now a three-item strip
-   inside the 9-column rail. The theme's divider pseudo-elements were positioned
-   for that band and its last <li> was the price button, so both are replaced
-   with real borders. Icon / title / text typography is inherited from gotur.css.
+   The info bar was a full-bleed five-item band; it is now a strip inside the
+   9-column rail. The theme's divider pseudo-elements were positioned for that
+   band and its last <li> was the price button, so both are replaced with real
+   borders. Icon / title / text typography is inherited from gotur.css.
+
+   The column count comes from `data-cols`, which TourInfoBar computes from the
+   facts that actually have a value. A fixed `repeat(3, …)` left a dead column
+   when a tour was missing its location, and squeezed later facts into tracks
+   sized for three as pickup, availability and guide joined the strip.
    ========================================================================== */
 .tour-listing-details__info-area--rail .tour-listing-details__info-area__info {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
+  gap: 22px 0;
   margin-top: 0;
   padding: 18px 0;
 }
-.tour-listing-details__info-area--rail li { min-width: 0; padding: 0 18px; }
-.tour-listing-details__info-area--rail li:first-child { padding-left: 0; }
-.tour-listing-details__info-area--rail li:last-child { padding-right: 0; }
+.tour-listing-details__info-area__info[data-cols="1"] { grid-template-columns: minmax(0, 1fr); }
+.tour-listing-details__info-area__info[data-cols="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tour-listing-details__info-area__info[data-cols="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tour-listing-details__info-area__info[data-cols="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* The 12px gap replaces the theme's 20px: the facts share the rail now, and
+   that space is worth more to the text than to the space beside the icon. */
+.tour-listing-details__info-area--rail li {
+  min-width: 0;
+  padding: 0 18px;
+  gap: 12px;
+  border-left: 1px solid #f0f0f0;
+}
 .tour-listing-details__info-area--rail li::after { display: none !important; }
-.tour-listing-details__info-area--rail li + li { border-left: 1px solid #f0f0f0; }
+
+/* Suppress the rule — and reclaim the padding — at each end of every row. Which
+   item that is depends on the column count, hence one pair of rules per count. */
+.tour-listing-details__info-area__info[data-cols="1"] li,
+.tour-listing-details__info-area__info[data-cols="2"] li:nth-child(2n + 1),
+.tour-listing-details__info-area__info[data-cols="3"] li:nth-child(3n + 1),
+.tour-listing-details__info-area__info[data-cols="4"] li:nth-child(4n + 1) {
+  border-left: none;
+  padding-left: 0;
+}
+.tour-listing-details__info-area__info[data-cols="2"] li:nth-child(2n),
+.tour-listing-details__info-area__info[data-cols="3"] li:nth-child(3n),
+.tour-listing-details__info-area__info[data-cols="4"] li:nth-child(4n),
+.tour-listing-details__info-area--rail li:last-child {
+  padding-right: 0;
+}
+/* `line-height: 1` keeps the drawn pickup icon on the same optical centre as
+   the three font glyphs, which carry their own leading. */
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__icon {
+  flex-shrink: 0;
+  line-height: 1;
+}
+/* The label is allowed to wrap. It was clipped to one line, which reads fine at
+   three facts and turns "Pickup & Drop-off" into "Pickup & Dro…" at five — and a
+   truncated label is worse than a wrapped one, because the label is the part
+   that explains the value. */
+.tour-listing-details__info-area--rail .tour-listing-details__info-area__title {
+  overflow-wrap: break-word;
+}
+
+/* Between 992px and the wide layout the rail loses roughly a third of its width.
+   Three columns absorb that comfortably; four in one row do not, so only that
+   case gives space back from the padding, the gap and the icon. */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .tour-listing-details__info-area__info[data-cols="4"] li { padding: 0 10px; gap: 9px; }
+  .tour-listing-details__info-area__info[data-cols="4"] .tour-listing-details__info-area__icon {
+    font-size: 20px;
+  }
+  .tour-listing-details__info-area__info[data-cols="4"] .tour-listing-details__info-area__title {
+    font-size: 13px;
+  }
+}
+/* Two lines, then ellipsis. Pickup is capped at 32 characters in the admin, but
+   tours saved before that cap hold whole sentences, and one of them must not
+   set the height of the entire strip. TourInfoBar puts the full text in the
+   element's `title`. */
 .tour-listing-details__info-area--rail .tour-listing-details__info-area__text {
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .tour-info-fact-link {
@@ -1657,7 +1632,7 @@ body {
 
 .booking-card-header .tour-listing-details__sidebar__title {
   margin: 0;
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: #161616;
@@ -1961,7 +1936,7 @@ body {
   }
 
   .booking-card-header .tour-listing-details__sidebar__title {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .booking-card-header .booking-price-block {
@@ -1974,7 +1949,7 @@ body {
   }
 
   .booking-card-header .booking-price-block__value {
-    font-size: 26px;
+    font-size: 24px;
   }
 
   .booking-card-header .booking-price-block__unit {
@@ -2085,7 +2060,7 @@ body {
   }
 
   .booking-card-header .tour-listing-details__sidebar__title {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .booking-card-header .booking-price-block {
@@ -2098,7 +2073,7 @@ body {
   }
 
   .booking-card-header .booking-price-block__value {
-    font-size: 27px;
+    font-size: 25px;
   }
 
   .booking-card-header .booking-price-block__unit {
@@ -3391,6 +3366,12 @@ div[suppressHydrationWarning] {
     grid-template-columns: 1fr 1fr !important;
   }
 
+  /* Two per row leaves an odd fact stranded in the left cell, looking like a
+     layout slip rather than the last item. It takes the whole row instead. */
+  .tour-listing-details__info-area--rail li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
   .amenities-card-title {
     font-size: 18px !important;
   }
@@ -3458,36 +3439,9 @@ div[suppressHydrationWarning] {
 
 /* --- Responsive Shrinking for Pricing & Comments Mobile --- */
 @media (max-width: 991px) {
-  /* Pricing Plans Tweaks */
-  .pricing-plan-card h3 {
-    font-size: 18px !important;
-  }
-  .pricing-plan-card > div[style] {
-    padding: 15px !important;
-  }
-  .pricing-plan-card h4 {
-    font-size: 16px !important;
-  }
-  .pricing-plan-card p {
-    font-size: 12px !important;
-  }
-  
-  /* The Price Grid Wrapper in PricingPlans */
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-  }
-  
-  /* The Helper PriceCard in PricingPlans */
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div {
-    padding: 10px !important;
-  }
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div div:nth-child(2) {
-    font-size: 20px !important;
-  }
-  .pricing-plans-container .pricing-plan-card > div:nth-child(2) > div > div:nth-child(2) > div div:nth-child(1) {
-    font-size: 12px !important;
-  }
+  /* Pricing plan styles now live with the component, addressed by class
+     name. The nth-child chains that used to sit here targeted an inline-
+     styled DOM that no longer exists. */
 
   /* Tour Reviews Comments */
   .tour-reviews-testimonial-box {
@@ -4618,4 +4572,959 @@ button[data-action="stop"] {
   outline: 3px solid var(--gotur-black, #1d231f) !important;
   outline-offset: 3px;
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.9);
+}
+
+/* ==========================================================================
+   HOMEPAGE VIDEO REVIEWS
+   Managed under Content Management → Video Management. The section removes
+   itself when there is nothing active, so these rules only ever apply to a
+   populated band.
+   ========================================================================== */
+.video-reviews-two__item {
+  height: 100%;
+  overflow: hidden;
+  background: var(--gotur-white, #fff);
+  border: 1px solid #edf0f2;
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* The 16:9 box is reserved before the iframe resolves, so the cards below
+   never get pushed down once the embeds load. */
+.video-reviews-two__frame {
+  background: #0f1113;
+}
+
+.video-reviews-two__frame iframe {
+  border: 0;
+}
+
+.video-reviews-two__body {
+  padding: 18px 20px 20px;
+}
+
+.video-reviews-two__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #161616;
+}
+
+.video-reviews-two__tour {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8f7333;
+}
+
+/* The only visible label in the booking form: every other field uses its
+   placeholder as its label, but a <select> shows its value, not a placeholder,
+   so "Package" has to be stated. Matches the uppercase field labels in the
+   reference design. */
+.booking-field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6e6349;
+}
+
+/* ==========================================================================
+   BOOKING CARD — package tours
+   The Package row costs ~64px, which is what pushed the pinned card past a
+   900px-tall viewport and re-introduced the internal scrollbar. These rules
+   give that height back from the places with slack — the free-text box, the
+   row rhythm and the counter rows — and apply ONLY to tours that show the
+   row, so day tours keep the spacing they were tuned with.
+   ========================================================================== */
+@media (min-width: 992px) {
+  .booking-form-card--with-package .booking-form-inner {
+    gap: 6px;
+    /* The header already sits above a rule; the form does not need its own
+       leading gap on top of that. Worth 4px, which is what put this card back
+       inside a 864px-tall window. */
+    padding-top: 5px;
+  }
+
+  /* "Anything else?" is optional, so it is the field that gives height back.
+     But not below its own placeholder: at 60px the two-line prompt overflowed
+     and raised a scrollbar inside an empty box, which read as broken. 74px is
+     the smallest height that holds the prompt in every language. */
+  .booking-form-card--with-package .booking-textarea {
+    min-height: 74px;
+    height: 74px;
+  }
+
+  .booking-form-card--with-package .booking-counter-row {
+    min-height: 39px;
+    padding: 2px 0;
+  }
+
+  /* The label sits above its select; the select already reads as a control, so
+     the gap between them can be tighter than a standalone field's. */
+  .booking-form-card--with-package .booking-field-label {
+    margin-bottom: 4px;
+  }
+}
+
+/* ==========================================================================
+   SELECT OPTION LISTS — brand colours
+   The closed control was already branded; the open list was not, so it fell
+   back to the operating system's blue. Chromium renders these popups itself
+   and honours the colours below.
+
+   Worth knowing: `option` is only partially styleable. Background, text colour
+   and the checked row respond in Chromium; padding, radius and the hover
+   highlight are drawn by the platform and ignore CSS. Safari and Firefox on
+   macOS ignore most of it entirely. This brings the list as close to the brand
+   as the native control allows — a fully controlled list would have to stop
+   being a <select>.
+   ========================================================================== */
+.booking-select option,
+.booking-select-code option {
+  background-color: #fff;
+  color: var(--gotur-black, #1d231f);
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 15px;
+}
+
+/* The row the visitor is on, and the one already chosen. The gold is darkened
+   from the brand tone so white text on it stays legible. */
+.booking-select option:checked,
+.booking-select option:hover,
+.booking-select option:focus,
+.booking-select-code option:checked {
+  background: #8f7333 linear-gradient(#8f7333, #8f7333);
+  color: #fff;
+}
+
+/* Windows Chromium reads the control's own colour scheme when painting the
+   popup; declaring it light keeps the list white on machines set to dark mode
+   instead of inheriting a grey the rest of the form does not use. */
+.booking-select,
+.booking-select-code {
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   TOUR PRICING
+   Plan tabs + collapsible seasons. Replaces a version built entirely from
+   inline styles, whose mobile rules reached elements through chains like
+   `.pricing-plan-card > div:nth-child(2) > div > div:nth-child(2)` — any
+   change to the markup broke the phone layout silently. Everything here is
+   addressed by name.
+
+   Hiding is CSS-only by design: inactive plans and collapsed seasons stay in
+   the DOM so every price a tour offers remains in the server-rendered HTML.
+   ========================================================================== */
+.tour-pricing__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 8px;
+  border: 1px solid #eceff3;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.tour-pricing__tab {
+  flex: 1 1 auto;
+  padding: 12px 18px;
+  border: 1px solid #e6e9ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.tour-pricing__tab:hover {
+  border-color: #d9c79a;
+  background: #fdfbf5;
+}
+
+.tour-pricing__tab.is-active {
+  border-color: #8f7333;
+  background: #8f7333;
+  color: #fff;
+}
+
+.tour-pricing__panel {
+  padding: 24px;
+  border: 1px solid #eceff3;
+  border-radius: 16px;
+  background: #fff;
+}
+
+/* The panel of a tab nobody selected. Still rendered, still crawlable. */
+.tour-pricing__panel--hidden {
+  display: none;
+}
+
+.tour-pricing__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eef1f4;
+}
+
+.tour-pricing__plan-name {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #16283c;
+}
+
+.tour-pricing__from-label {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.tour-pricing__from-value {
+  margin: 2px 0 0;
+  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #8f7333;
+}
+
+.tour-pricing__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #8f7333;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tour-pricing__badge i {
+  font-size: 11px;
+  color: #ffd66b;
+}
+
+.tour-pricing__dates {
+  margin-top: 20px;
+}
+
+.tour-pricing__dates-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #16283c;
+}
+
+.tour-pricing__dates-hint {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.tour-pricing__seasons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.tour-pricing__season {
+  border: 1px solid #e8ebef;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tour-pricing__season.is-open {
+  border-color: #d9c79a;
+}
+
+.tour-pricing__season-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 18px;
+  border: 0;
+  background: transparent;
+  color: #16283c;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tour-pricing__season.is-open .tour-pricing__season-toggle {
+  background: #fdfbf5;
+}
+
+.tour-pricing__season-toggle > i:first-child {
+  color: #8f7333;
+}
+
+.tour-pricing__season-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tour-pricing__season-chevron {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Collapsed by default, and animated open. The 0fr → 1fr grid track is what
+   makes that possible without JavaScript: it resolves to the content's natural
+   height, so no season needs a measured or guessed max-height. `display: none`
+   was the earlier approach and cannot be transitioned at all. */
+.tour-pricing__season-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tour-pricing__season.is-open .tour-pricing__season-body {
+  /* Opening runs slightly longer than closing: revealing wants to feel
+     unhurried, dismissing wants to feel immediate. */
+  grid-template-rows: 1fr;
+  transition-duration: 220ms;
+}
+
+/* The grid item must clip, otherwise the rows overflow their zero-height track
+   and stay on screen while closed. It carries no padding of its own: padding on
+   a zero-height grid item is not clipped away, it survives as a visible strip,
+   so the spacing sits on the child instead. */
+.tour-pricing__season-body-inner {
+  overflow: hidden;
+  /* The fade keeps the rows from looking squeezed on the way out; it leads the
+     open and trails the close so the content is never visible at zero height. */
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.tour-pricing__season.is-open .tour-pricing__season-body-inner {
+  opacity: 1;
+  transition: opacity 160ms ease 60ms;
+}
+
+.tour-pricing__season-body-content {
+  padding: 4px 18px 18px;
+}
+
+.tour-pricing__season-chevron {
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tour-pricing__season.is-open .tour-pricing__season-chevron {
+  transform: rotate(180deg);
+}
+
+/* Honour the OS setting: the sections still open and close, they just arrive
+   rather than travel. */
+@media (prefers-reduced-motion: reduce) {
+  .tour-pricing__season-body,
+  .tour-pricing__season.is-open .tour-pricing__season-body,
+  .tour-pricing__season-body-inner,
+  .tour-pricing__season.is-open .tour-pricing__season-body-inner,
+  .tour-pricing__season-chevron {
+    transition: none;
+  }
+}
+
+.tour-pricing__group-title {
+  margin: 8px 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #16283c;
+}
+
+.tour-pricing__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.tour-pricing__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e8ebef;
+  border-radius: 10px;
+}
+
+.tour-pricing__row-label {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #16283c;
+}
+
+.tour-pricing__row-price {
+  margin: 0;
+  font-size: 15px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.tour-pricing__row-price strong {
+  font-size: 18px;
+  font-weight: 800;
+  color: #8f7333;
+}
+
+.tour-pricing__season-notes {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-inline-start: 3px solid #8f7333;
+  border-radius: 6px;
+  background: #fdfbf5;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.tour-pricing__season-notes p {
+  margin: 0 0 6px;
+}
+.tour-pricing__season-notes p:last-child {
+  margin-bottom: 0;
+}
+
+.tour-pricing__notes {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tour-pricing__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #eceff3;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.tour-pricing__note i {
+  margin-top: 3px;
+  color: #8f7333;
+}
+
+.tour-pricing__footnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f6f7f9;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.tour-pricing__footnote i {
+  margin-top: 3px;
+  color: #8f7333;
+}
+
+.tour-pricing__footnote a {
+  color: #8f7333;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tour-pricing__footnote a:hover,
+.tour-pricing__footnote a:focus-visible {
+  color: #6f571f;
+}
+
+@media (max-width: 991px) {
+  .tour-pricing__panel {
+    padding: 16px;
+  }
+
+  .tour-pricing__tab {
+    flex: 1 1 calc(50% - 8px);
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .tour-pricing__plan-name {
+    font-size: 20px;
+  }
+
+  .tour-pricing__from-value {
+    font-size: 30px;
+  }
+
+  .tour-pricing__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tour-pricing__season-toggle {
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  .tour-pricing__season-body-content {
+    padding: 4px 14px 14px;
+  }
+
+  .tour-pricing__row {
+    padding: 12px 14px;
+  }
+}
+
+/* Included accommodation — inside the plan panel, below the seasons. One row
+   per stop: icon disc + place name in a fixed left rail, the hotel text beside
+   it. Same skeleton as the competitor's, drawn in the brand gold. */
+.tour-pricing__stays {
+  margin-top: 20px;
+}
+
+.tour-pricing__stays-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #16283c;
+}
+
+.tour-pricing__stays-title i {
+  color: #8f7333;
+}
+
+.tour-pricing__stays-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.tour-pricing__stay {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #e8ebef;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tour-pricing__stay-place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 108px;
+  margin: 0;
+  padding: 14px 8px;
+  background: #fff;
+  border-inline-end: 1px dashed #e3e7ec;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #16283c;
+}
+
+/* Solid gold on white rather than gold-on-beige: the disc sat on the rail's
+   own tint and the stroked glyph nearly disappeared into it. */
+.tour-pricing__stay-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #8f7333;
+  color: #fff;
+}
+
+/* These glyphs are drawn as strokes, not filled icon-font shapes, so they need
+   a touch more weight to hold up at 20px. */
+.tour-pricing__stay-icon svg {
+  stroke-width: 1.75;
+}
+
+.tour-pricing__stay-hotels {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 14px 18px;
+  background: #f8f9fb;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #4b5563;
+}
+
+@media (max-width: 991px) {
+  .tour-pricing__stay-place {
+    flex-basis: 88px;
+    padding: 12px 6px;
+    font-size: 11px;
+  }
+
+  .tour-pricing__stay-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .tour-pricing__stay-hotels {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Article cards (BlogCard) — the shared skin.
+
+   These rules exist because the same values used to be inline styles
+   repeated in five components: image heights, the two-line excerpt
+   clamp, the compact related-post padding. Anything a card needs that
+   the theme did not already provide lives here, once.
+   ───────────────────────────────────────────────────────────── */
+
+/* The editorial gold. It is not one of the theme's --gotur-* colours:
+   this layer had been writing #b79c5c literally, dozens of times, and a
+   name is what lets the next component pick the right gold without
+   copying a hex from a neighbour. Existing literals can adopt it as
+   they are touched. */
+:root {
+  --jes-gold: #b79c5c;
+}
+
+/* Fixed media heights keep a row of cards aligned whatever the source
+   image's aspect ratio. Paired with the theme's object-fit: cover. */
+.blog-card-media img {
+  width: 100%;
+  object-fit: cover;
+}
+.blog-card-media--tall img {
+  height: 260px;
+}
+.blog-card-media--medium img {
+  height: 250px;
+}
+.blog-card-media--short img {
+  height: 200px;
+}
+
+/* Meta row: author, section, reading time. Three items no longer fit on
+   one line in a 3-up grid, so it wraps instead of overflowing — the row
+   gap is what keeps a wrapped line from touching the one above. */
+.blog-card-meta {
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+/* Reading time is text, not a link, so the theme's `.blog-card__meta a`
+   rules never reached it and it rendered unstyled beside the author. */
+.blog-card-meta__item {
+  display: flex;
+  align-items: center;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 157%;
+  color: var(--gotur-text, #595959);
+}
+.blog-card-meta__item i {
+  margin-right: 8px;
+  font-size: 18px;
+  color: var(--gotur-base, #63ab45);
+}
+
+/* Two lines of excerpt, then an ellipsis. The min-height reserves the
+   second line so a one-line excerpt does not shorten its card. */
+.blog-card-excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 48px;
+}
+
+/* The compact skin, used for related posts under an article: the same
+   bordered card at a size that reads as secondary to the article above. */
+.blog-card-two--compact .blog-card-two__content {
+  padding: 20px;
+}
+.blog-card-two--compact .blog-card-two__meta {
+  margin-bottom: 10px;
+}
+.blog-card-two--compact .blog-card-two__title {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+/* The theme styles the CTA only under its --one and --two modifiers, so
+   on every other skin "Read More" fell back to a bare anchor. */
+.blog-card__content__btn,
+.blog-card-two--compact .blog-card-two__content__btn {
+  display: inline-block;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 175%;
+  color: var(--gotur-text, #595959);
+  text-transform: capitalize;
+  transition: color 400ms ease;
+}
+.blog-card__content__btn i,
+.blog-card-two--compact .blog-card-two__content__btn i {
+  margin-left: 10px;
+}
+.blog-card__content__btn:hover,
+.blog-card-two--compact .blog-card-two__content__btn:hover {
+  color: var(--gotur-base, #63ab45);
+}
+
+/* The minimal skin: image, date, title. Used where a full card would
+   compete with the section around it. */
+.blog-card-minimal {
+  position: relative;
+  transition: all 500ms ease;
+}
+.blog-card-minimal__media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.blog-card-minimal__veil {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.05);
+  transition: background-color 400ms ease;
+}
+.group:hover .blog-card-minimal__veil {
+  background-color: transparent;
+}
+.blog-card-minimal__date {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--jes-gold, #b79c5c);
+}
+.blog-card-minimal__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--gotur-black, #1d231f);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 300ms ease;
+}
+.group:hover .blog-card-minimal__title {
+  color: var(--jes-gold, #b79c5c);
+}
+
+/* Season row: the season NAME is the scan target, the date range is the
+   detail underneath it. Reading "Summer" is instant; parsing a two-part date
+   range spanning two years is not, and that parse was the only way to know
+   which season a trip fell in. */
+.tour-pricing__season-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #f2f4f7;
+  color: #6b7280;
+}
+
+/* One tint per season, so the three rows are told apart before a word is
+   read. Warm for summer, cool for the mild months, brand gold for the
+   premium festive window. */
+.tour-pricing__season-badge.is-low {
+  background: #fdf1dc;
+  color: #a8681a;
+}
+
+.tour-pricing__season-badge.is-regular {
+  background: #e8f1f8;
+  color: #2f6690;
+}
+
+.tour-pricing__season-badge.is-peak {
+  background: #f6f1e4;
+  color: #8f7333;
+}
+
+.tour-pricing__season-name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tour-pricing__season-kind {
+  letter-spacing: -0.01em;
+  color: #16283c;
+}
+
+/* Lighter and smaller than the season name: still fully legible, but no
+   longer competing with it for the first glance. */
+.tour-pricing__season-dates {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+/* An open season gets its tint on the whole header, tying the panel to the
+   row that opened it. */
+.tour-pricing__season.is-open .tour-pricing__season-kind {
+  color: #8f7333;
+}
+
+@media (max-width: 991px) {
+  .tour-pricing__season-dates {
+    font-size: 12px;
+  }
+}
+
+/* ── Season rows, revised ────────────────────────────────────────────────
+   The price now sits on the collapsed row: comparing three seasons no longer
+   means opening all three. The row therefore has three zones — icon, name and
+   dates, price — with the chevron last. */
+.tour-pricing__season-toggle {
+  gap: 14px;
+}
+
+/* Larger tile: at 34px the glyph was decorative; at 56px it anchors the row. */
+.tour-pricing__season-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+}
+
+.tour-pricing__season-badge svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Price-tier name leads; the weather word rides beside it as a quiet aside,
+   so the row answers "what will it cost" and "what will it feel like" at once
+   without two competing headlines. */
+.tour-pricing__season-kind {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.tour-pricing__season-desc {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+/* One line per window. Two date ranges joined by a slash read as one blob;
+   stacked, they are countable at a glance. */
+.tour-pricing__season-dates {
+  display: block;
+}
+
+.tour-pricing__season-holiday {
+  font-weight: 700;
+  color: #475569;
+}
+
+/* Right-aligned and quiet: it is a preview, not the headline — the headline is
+   the season. The full per-group-size breakdown is still inside. */
+.tour-pricing__season-from {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  padding-inline-start: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.tour-pricing__season.is-open .tour-pricing__season-from {
+  color: #8f7333;
+}
+
+@media (max-width: 991px) {
+  .tour-pricing__season-toggle {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tour-pricing__season-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .tour-pricing__season-badge svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tour-pricing__season-kind {
+    font-size: 15px;
+    gap: 6px;
+  }
+
+  /* Under the name rather than beside it: at phone widths a nowrap price in
+     the same row squeezes the date lines into two words each. It shares that
+     second row with the chevron — at 100% width it pushed the chevron onto a
+     third line of its own, stranded under the icon. */
+  .tour-pricing__season-from {
+    flex: 1 1 auto;
+    margin-inline-start: 54px;
+    padding-inline-start: 0;
+    font-size: 13px;
+  }
 }

@@ -402,6 +402,19 @@ export const bookingValidation: ValidationChain[] = [
     .optional()
     .isIn(['USD', 'EUR', 'GBP'])
     .withMessage('Invalid currency'),
+
+  // Shape only. WHETHER this tour actually sells the named tier is checked in
+  // the controller, which is the only place that has the tour to compare
+  // against — a well-formed name for a plan the tour does not offer must not
+  // be stored as though it were priced.
+  body('selectedPackage')
+    .optional()
+    .isString()
+    .withMessage('Invalid package')
+    .bail()
+    .trim()
+    .isLength({ max: 60 })
+    .withMessage('Invalid package'),
 ];
 
 /** One UUID identifies one exact submission attempt. It is separate from the

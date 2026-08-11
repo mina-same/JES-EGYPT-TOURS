@@ -122,6 +122,9 @@ export interface ITour {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
+  /** Day tour or package — decides which pricing plans are allowed and
+   *  whether the booking form asks the visitor to choose one. */
+  tourKind?: 'DAY_TOUR' | 'PACKAGE';
   isFeatured: boolean;
   isActive: boolean;
   scheduledAt?: Date | string | null;
@@ -199,19 +202,43 @@ export interface IPricingSeason {
   seasonName: string;
   startDate?: string | Date; // Optional: start date of season
   endDate?: string | Date; // Optional: end date of season
+  /** Every tier is optional, matching PricesSchema on the server. A tour is
+   *  often published before sales have priced it, and an absent tier is how
+   *  "not priced yet" is expressed — the previous non-optional type forced
+   *  callers to invent a 0, which then reached visitors as "$0.00". */
   prices: {
-    solo: ICurrencyPrice;
-    pax_2_4: ICurrencyPrice;
-    pax_5_8: ICurrencyPrice;
-    pax_9_16: ICurrencyPrice;
+    solo?: ICurrencyPrice;
+    pax_2_4?: ICurrencyPrice;
+    pax_5_8?: ICurrencyPrice;
+    pax_9_16?: ICurrencyPrice;
   };
   notes: IPricingNote[];
+}
+
+export const ACCOMMODATION_ICONS = [
+  'pyramids',
+  'temple',
+  'city',
+  'cruise',
+  'sea',
+  'desert',
+  'hotel',
+] as const;
+export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
+
+/** One accommodation stop on a package tier — where guests sleep and which
+ *  hotels that tier books. Mirrors AccommodationSchema on the server. */
+export interface IAccommodation {
+  location: ILocalizedString;
+  icon: AccommodationIcon;
+  hotels: ILocalizedString;
 }
 
 export interface IPricingPlan {
   planName: string;
   seasons: IPricingSeason[];
   notes?: IPricingNote[];
+  accommodations?: IAccommodation[];
 }
 
 export interface IItineraryActivity {
@@ -261,6 +288,9 @@ export interface TourFormData {
   pickupAndDropOff?: ILocalizedString;
   tourType?: ILocalizedString;
   tourStyle?: ILocalizedString;
+  /** Day tour or package — decides which pricing plans are allowed and
+   *  whether the booking form asks the visitor to choose one. */
+  tourKind?: 'DAY_TOUR' | 'PACKAGE';
   isFeatured: boolean;
   isActive: boolean;
   scheduledAt?: Date | string | null;

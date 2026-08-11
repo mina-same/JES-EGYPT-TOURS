@@ -24,6 +24,8 @@ import { SPECIAL_OFFERS_FAQS } from "../specialOffersFaqs";
 import { CARD_FIELDS } from "../cardFields";
 import OffersCta from "./OffersCta";
 import SpecialOffersBanner from "./SpecialOffersBanner";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
+import { getTourReviewVideoIds } from "@/lib/video/youtube";
 
 /** Shown in the banner headline when no live offer carries a discount yet. */
 const FALLBACK_HEADLINE_PERCENT = 30;
@@ -55,9 +57,9 @@ function mapTour(tour: any, locale: string) {
   return {
     id: tour._id,
     slug: tourSlug,
-    image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+    image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
     imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-    allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+    allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
     title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
     link: `/${locale}/${tourSlug}`,
     price: tour.priceStartingFrom || { USD: 0 },
@@ -70,6 +72,10 @@ function mapTour(tour: any, locale: string) {
      */
     originalPrice: tour.originalPrice,
     videoId: tour.videoLink || "",
+    // Gates the card's video button. The listing payload already carries
+    // `reviews`, so this costs no extra request — without it the button
+    // showed on every card and only revealed "no videos" after a click.
+    videoIds: getTourReviewVideoIds(tour.reviews),
     discount: tour.specialOfferDiscount ? String(tour.specialOfferDiscount) : undefined,
     description:
               // Editor-written card teaser wins; the long intro is the fallback.
@@ -159,27 +165,13 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, sort]);
 
-  const getYouTubeVideoId = (url: string) => {
-    if (!url) return "";
-    const s = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (s?.[1]) return s[1];
-    const w = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (w?.[1]) return w[1];
-    const e = url.match(/\/embed\/([a-zA-Z0-9_-]{6,})/); if (e?.[1]) return e[1];
-    return "";
-  };
 
-  const openVideoReviews = async (tourSlug: string) => {
-    try {
-      const res = await tourAPI.getBySlug(tourSlug, locale);
-      if (res.success && res.data) {
-        const vids = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
-          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
-          .filter(Boolean);
-        if (vids.length > 0) { setVideoIds(vids); setOpen(true); }
-        else toast({ title: "No video", description: "No video reviews available.", variant: "info" as any });
-      }
-    } catch {
-      toast({ title: "Error", description: "Failed to load video.", variant: "destructive" });
-    }
+  // The ids are already on the card: the listing payload carries `reviews`, so
+  // opening the player needs no round-trip. This used to re-fetch the whole
+  // tour on every click just to read URLs it already had.
+  const openVideoReviewsFor = (ids: string[]) => {
+    setVideoIds(ids);
+    setOpen(true);
   };
 
   const handlePageChange = (page: number) => {
@@ -336,7 +328,7 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
                       item={item}
                       toggleWishlist={toggleWishlist}
                       isInWishlist={isInWishlist}
-                      openVideoReviews={openVideoReviews}
+                      openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined}
                       variant="special-offer"
                       offerLabels={offerLabels}
                     />

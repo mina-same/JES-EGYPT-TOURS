@@ -1,310 +1,366 @@
 "use client";
-import { useTranslation } from "react-i18next";
-import { PricingPlan } from "../types";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Trans, useTranslation } from "react-i18next";
+import { PricingPlan, Season } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { getLocalizedStaticPath } from "@/lib/url/staticSlugs";
+import StayIcon from "./StayIcon";
+import SeasonIcon from "./SeasonIcon";
+import {
+  classifySeason,
+  holidayLabelKey,
+  seasonDescriptorKey,
+  seasonLabelKey,
+  splitSeasonWindows,
+  type HolidayKind,
+  type SeasonKind,
+} from "@/lib/tours/seasonKind";
+import {
+  PRICE_TIERS,
+  isUsableAmount,
+  planHasPrices,
+  seasonHasPrices,
+  type PriceTier,
+} from "@/lib/tours/startingPrice";
 
 interface PricingPlansProps {
   pricingPlans?: PricingPlan[];
 }
 
-export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
-  const { t } = useTranslation('tours');
+/** Label key per group-size tier. Rows follow PRICE_TIERS order, smallest
+ *  party first. */
+const TIER_LABELS: Record<PriceTier, { key: string; fallback: string }> = {
+  solo: { key: "tourDetails.pricing.soloTraveler", fallback: "Solo" },
+  pax_2_4: { key: "tourDetails.pricing.pax2_4", fallback: "2-4 Pax" },
+  pax_5_8: { key: "tourDetails.pricing.pax5_8", fallback: "5-8 Pax" },
+  pax_9_16: { key: "tourDetails.pricing.pax9_16", fallback: "9-16 Pax" },
+};
 
-  if (!pricingPlans || pricingPlans.length === 0) {
-    return (
-      <div style={{
-        padding: '40px',
-        textAlign: 'center',
-        color: '#999',
-        backgroundColor: '#F9F9F9',
-        borderRadius: '8px'
-      }}>
-        <i className="fas fa-dollar-sign" style={{ fontSize: '48px', color: '#ddd', marginBottom: '15px' }}></i>
-        <p style={{ margin: 0, fontSize: '16px' }}>
-          {t("tourDetails.pricing.emptyState", "Pricing information is not available for this tour. Please contact us for details.")}
-        </p>
-      </div>
+/** English wording if a locale has not been given the key yet. */
+const SEASON_FALLBACKS: Record<SeasonKind, string> = {
+  low: "Low Season",
+  regular: "Regular Season",
+  peak: "Peak Season",
+};
+
+/** The weather word, kept as a subtitle beside the price-tier name. */
+const SEASON_DESCRIPTORS: Record<SeasonKind, string> = {
+  low: "Summer",
+  regular: "Winter",
+  peak: "Holidays",
+};
+
+const HOLIDAY_FALLBACKS: Record<HolidayKind, string> = {
+  christmas: "Christmas & New Year",
+  easter: "Easter",
+};
+
+/** The tier that visitors are steered toward. Fixed rather than an admin flag:
+ *  it is the same tier on every package, and a per-tour switch would be one
+ *  more field to keep in sync for no editorial gain. */
+const isMostChosen = (planName: string) => planName.toUpperCase().startsWith("GOLD");
+
+export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
+  const { t, i18n } = useTranslation("tours");
+  const { formatPrice, getPriceValue } = useCurrency();
+  const contactHref = getLocalizedStaticPath(
+    "contact",
+    i18n.resolvedLanguage || i18n.language
+  );
+
+  /** Only plans with something to quote. An unpriced tier gets no tab at all,
+   *  rather than a tab leading to an empty panel. */
+  const plans = useMemo(
+    () => (pricingPlans || []).filter(planHasPrices),
+    [pricingPlans]
+  );
+
+  const [activePlan, setActivePlan] = useState(0);
+  const [openSeasons, setOpenSeasons] = useState<Record<string, boolean>>({});
+
+  // The section as a whole is gated by the caller; this guards direct use.
+  if (plans.length === 0) return null;
+
+  const activeIndex = Math.min(activePlan, plans.length - 1);
+  const seasonKey = (planIdx: number, seasonIdx: number) => `${planIdx}:${seasonIdx}`;
+
+  /** Priced tiers for a season, in group-size order: Solo, 2-4, 5-8, 9-16.
+   *  Sorting by price instead would put the largest group first, which is a
+   *  ladder the visitor has to read backwards — they know their own party size
+   *  and scan for it, so the row order has to match how the sizes count up. */
+  const pricedTiers = (season: Season) =>
+    PRICE_TIERS.map((tier) => ({ tier, amounts: season.prices?.[tier] })).filter(
+      ({ amounts }) => isUsableAmount(getPriceValue(amounts as any))
     );
-  }
+
+  /** The cheapest quotable amount in a plan — its "starting from". */
+  const planFrom = (plan: PricingPlan) => {
+    const all = plan.seasons
+      .filter(seasonHasPrices)
+      .flatMap((season) => pricedTiers(season).map(({ amounts }) => getPriceValue(amounts as any)));
+    return all.length ? Math.min(...all) : 0;
+  };
 
   return (
-    <div className="pricing-plans-container">
-      {pricingPlans.map((plan, planIdx) => (
-        <div key={planIdx} className="pricing-plan-card" style={{
-          marginBottom: '40px',
-          border: '2px solid rgba(183, 156, 92, 0.2)',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          backgroundColor: '#fff',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-        }}>
-          {/* Plan Header */}
-          <div style={{
-            background: 'linear-gradient(135deg, #b79c5c 0%, #a68b4b 100%)',
-            padding: '20px 30px',
-            color: '#fff'
-          }}>
-            <h3 style={{
-              margin: 0,
-              fontSize: '24px',
-              fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
+    <div className="tour-pricing">
+      {/* Plan tabs. Rendered only when there is a choice: a tour with one tier
+          gets the panel alone, with no single-option tab bar above it. */}
+      {plans.length > 1 && (
+        <div className="tour-pricing__tabs" role="tablist" aria-label={t("tourDetails.pricingTitle")}>
+          {plans.map((plan, index) => (
+            <button
+              key={plan.planName || index}
+              type="button"
+              role="tab"
+              id={`pricing-tab-${index}`}
+              aria-selected={index === activeIndex}
+              aria-controls={`pricing-panel-${index}`}
+              className={`tour-pricing__tab${index === activeIndex ? " is-active" : ""}`}
+              onClick={() => setActivePlan(index)}
+            >
               {t(`tourDetails.pricing.${plan.planName.toLowerCase()}`, plan.planName)}
-            </h3>
-          </div>
+            </button>
+          ))}
+        </div>
+      )}
 
-          {/* Seasons */}
-          <div className="pricing-seasons-container" style={{ padding: '30px' }}>
-            {plan.seasons.map((season, seasonIdx) => (
-              <div key={seasonIdx} className="pricing-season-block" style={{
-                marginBottom: seasonIdx < plan.seasons.length - 1 ? '35px' : '0',
-                paddingBottom: seasonIdx < plan.seasons.length - 1 ? '35px' : '0',
-                borderBottom: seasonIdx < plan.seasons.length - 1 ? '1px solid #E8E8E8' : 'none'
-              }}>
-                {/* Season Header */}
-                <div className="pricing-season-header" style={{ marginBottom: '20px' }}>
-                  <h4 style={{
-                    fontSize: '20px',
-                    fontWeight: '600',
-                    color: '#1a1a1a',
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}>
-                    <i className="fas fa-calendar-alt" style={{ color: '#b79c5c' }}></i>
-                    {t(`tourDetails.pricing.${season.seasonName.toLowerCase()}`, season.seasonName)}
-                  </h4>
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#666',
-                    margin: 0,
-                    fontWeight: '500'
-                  }}>
-                    {(() => {
-                      const sDate = new Date(season.startDate);
-                      const eDate = new Date(season.endDate);
-                      if (isNaN(sDate.getTime()) || isNaN(eDate.getTime())) {
-                        // If seasonName is already a date range (contains digits), don't show "All Year"
-                        if (season.seasonName !== "All Year" && /\d/.test(season.seasonName)) {
-                          return null;
-                        }
-                        return t("tourDetails.pricing.allYear", "All Year");
-                      }
-                      return `${sDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${eDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-                    })()}
-                  </p>
-                </div>
+      {/* EVERY plan is rendered, including the inactive ones. They are hidden
+          with CSS rather than dropped from the tree so that all of a tour's
+          prices stay in the server-rendered HTML — a tabbed panel that only
+          emits the selected tier would remove the rest from search results. */}
+      {plans.map((plan, planIdx) => {
+        const isActive = planIdx === activeIndex;
+        const seasons = plan.seasons.filter(seasonHasPrices);
+        const from = planFrom(plan);
 
-                {/* Price Grid */}
-                <dl className="pricing-price-grid" style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '15px',
-                  marginBottom: season.notes && season.notes.length > 0 ? '20px' : '0'
-                }}>
-                  {season.prices.solo !== undefined && (
-                    <PriceCard 
-                      icon="fa-user"
-                      label={t("tourDetails.pricing.soloTraveler", "Solo Traveler")}
-                      price={season.prices.solo}
-                      perPersonText={t("tourDetails.pricing.perPerson", "per person")}
-                    />
-                  )}
-
-                  {season.prices.pax_2_4 !== undefined && (
-                    <PriceCard 
-                      icon="fa-users"
-                      label={t("tourDetails.pricing.pax2_4", "2-4 Travelers")}
-                      price={season.prices.pax_2_4}
-                      perPersonText={t("tourDetails.pricing.perPerson", "per person")}
-                    />
-                  )}
-
-                  {season.prices.pax_5_8 !== undefined && (
-                    <PriceCard 
-                      icon="fa-users"
-                      label={t("tourDetails.pricing.pax5_8", "5-8 Travelers")}
-                      price={season.prices.pax_5_8}
-                      perPersonText={t("tourDetails.pricing.perPerson", "per person")}
-                    />
-                  )}
-
-                  {season.prices.pax_9_16 !== undefined && (
-                    <PriceCard 
-                      icon="fa-users"
-                      label={t("tourDetails.pricing.pax9_16", "9-16 Travelers")}
-                      price={season.prices.pax_9_16}
-                      perPersonText={t("tourDetails.pricing.perPerson", "per person")}
-                    />
-                  )}
-                </dl>
-
-                {/* Season Notes */}
-                {season.notes && season.notes.length > 0 && (
-                  <div style={{
-                    marginTop: '20px',
-                    padding: '15px 20px',
-                    backgroundColor: '#FFF9F0',
-                    borderLeft: '4px solid #b79c5c',
-                    borderRadius: '4px'
-                  }}>
-                    {season.notes.map((note, noteIdx) => (
-                      <div key={noteIdx} style={{ marginBottom: noteIdx < season.notes!.length - 1 ? '12px' : '0' }}>
-                        <h5 style={{
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          color: '#1a1a1a',
-                          marginBottom: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px'
-                        }}>
-                          <i className="fas fa-info-circle" style={{ color: '#b79c5c', fontSize: '12px' }}></i>
-                          {note.title}
-                        </h5>
-                        <p style={{
-                          fontSize: '13px',
-                          color: '#666',
-                          margin: 0,
-                          lineHeight: '1.6',
-                          paddingLeft: '20px'
-                        }}>
-                          {note.text}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+        return (
+          <div
+            key={plan.planName || planIdx}
+            id={`pricing-panel-${planIdx}`}
+            role={plans.length > 1 ? "tabpanel" : undefined}
+            aria-labelledby={plans.length > 1 ? `pricing-tab-${planIdx}` : undefined}
+            className={`tour-pricing__panel${isActive ? "" : " tour-pricing__panel--hidden"}`}
+          >
+            <div className="tour-pricing__head">
+              <div>
+                <h3 className="tour-pricing__plan-name">
+                  {t(`tourDetails.pricing.${plan.planName.toLowerCase()}`, plan.planName)}
+                </h3>
+                {from > 0 && (
+                  <>
+                    <p className="tour-pricing__from-label">
+                      {t("tourDetails.pricing.startingFrom", "Starting from")}
+                    </p>
+                    <p className="tour-pricing__from-value">{formatPrice(from)}</p>
+                  </>
                 )}
               </div>
-            ))}
+              {isMostChosen(plan.planName) && (
+                <span className="tour-pricing__badge">
+                  {t("tourDetails.pricing.mostChosen", "Most Chosen")}
+                  <i className="fas fa-star" aria-hidden="true" />
+                </span>
+              )}
+            </div>
 
-            {/* Plan Level Notes */}
-            {plan.notes && plan.notes.length > 0 && (
-              <div style={{
-                marginTop: '10px',
-                padding: '20px 25px',
-                backgroundColor: '#fdfaf3',
-                borderTop: '1px solid #E8E8E8',
-                borderRadius: '0 0 12px 12px'
-              }}>
-                <h5 style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#1a1a1a',
-                  marginBottom: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px'
-                }}>
-                  <i className="fas fa-clipboard-list" style={{ color: '#b79c5c' }}></i>
-                  {t("tourDetails.pricing.planNotes", "Important Plan Notes")}
-                </h5>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  {plan.notes.map((note, noteIdx) => (
-                    <div key={noteIdx}>
-                      {note.title && (
-                        <h6 style={{
-                          fontSize: '14px',
-                          fontWeight: '700',
-                          color: '#1a1a1a',
-                          marginBottom: '4px',
-                        }}>
-                          {note.title}
-                        </h6>
+            <div className="tour-pricing__dates">
+              {/* "Available Dates" was ambiguous — available to book? to
+                  depart? This says what the rows below actually do. */}
+              <h4 className="tour-pricing__dates-title">
+                {t("tourDetails.pricing.pricesByDate", "Prices by Travel Date")}
+              </h4>
+              <p className="tour-pricing__dates-hint">
+                {t(
+                  "tourDetails.pricing.datesHint",
+                  "Choose your travel period to see the price for your group size."
+                )}
+              </p>
+            </div>
+
+            <div className="tour-pricing__seasons">
+              {seasons.map((season, seasonIdx) => {
+                const key = seasonKey(planIdx, seasonIdx);
+                const isOpen = !!openSeasons[key];
+                const tiers = pricedTiers(season);
+                const kind = classifySeason(season.seasonName);
+                const windows = splitSeasonWindows(season.seasonName, kind);
+                /** Cheapest tier IN THIS SEASON — what the collapsed row shows. */
+                const seasonFrom = tiers.length
+                  ? Math.min(...tiers.map(({ amounts }) => getPriceValue(amounts as any)))
+                  : 0;
+
+                return (
+                  <div
+                    key={key}
+                    className={`tour-pricing__season${isOpen ? " is-open" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className="tour-pricing__season-toggle"
+                      aria-expanded={isOpen}
+                      aria-controls={`pricing-season-${key.replace(":", "-")}`}
+                      onClick={() =>
+                        setOpenSeasons((prev) => ({ ...prev, [key]: !prev[key] }))
+                      }
+                    >
+                      {/* The season NAME leads and the dates follow as detail.
+                          A visitor checking whether their trip fits reads
+                          "Peak Season" in a glance; parsing a two-part range
+                          spanning two years to reach the same answer takes real
+                          effort. The dates stay in full underneath — they are
+                          the contract, and each window gets its own line so two
+                          periods read as two, not as one string with a slash. */}
+                      <span
+                        className={`tour-pricing__season-badge${kind ? ` is-${kind}` : ""}`}
+                        aria-hidden="true"
+                      >
+                        {kind ? <SeasonIcon kind={kind} /> : <i className="far fa-calendar-alt" />}
+                      </span>
+                      <span className="tour-pricing__season-name">
+                        {kind && (
+                          <span className="tour-pricing__season-kind">
+                            {t(seasonLabelKey(kind), SEASON_FALLBACKS[kind])}
+                            <span className="tour-pricing__season-desc">
+                              {t(seasonDescriptorKey(kind), SEASON_DESCRIPTORS[kind])}
+                            </span>
+                          </span>
+                        )}
+                        {windows.map((window, windowIdx) => (
+                          <span key={windowIdx} className="tour-pricing__season-dates">
+                            {window.holiday && (
+                              <strong className="tour-pricing__season-holiday">
+                                {t(holidayLabelKey(window.holiday), HOLIDAY_FALLBACKS[window.holiday])}
+                                {" · "}
+                              </strong>
+                            )}
+                            {window.dates}
+                          </span>
+                        ))}
+                      </span>
+                      {/* The price BEFORE opening: without it the only way to
+                          compare three seasons is to open all three. */}
+                      {seasonFrom > 0 && (
+                        <span className="tour-pricing__season-from">
+                          {t("tourDetails.pricing.fromPerPerson", "From {{price}} per person", {
+                            price: formatPrice(seasonFrom),
+                          })}
+                        </span>
                       )}
-                      <p style={{
-                        fontSize: '13px',
-                        color: '#666',
-                        margin: 0,
-                        lineHeight: '1.6',
-                      }}>
-                        {note.text}
-                      </p>
+                      {/* One glyph, rotated by CSS. Swapping between the up and
+                          down icons would change the class mid-transition, and a
+                          glyph swap cannot be animated. */}
+                      <i
+                        className="fas fa-chevron-down tour-pricing__season-chevron"
+                        aria-hidden="true"
+                      />
+                    </button>
+
+                    {/* Body stays mounted while collapsed — same reason as the
+                        inactive panels above: the amounts must remain in the
+                        HTML for crawlers even when nobody has opened them. */}
+                    <div
+                      id={`pricing-season-${key.replace(":", "-")}`}
+                      className="tour-pricing__season-body"
+                    >
+                      {/* Two wrappers, both load-bearing: the outer one clips
+                          the rows as the season collapses, and the inner one
+                          holds the padding. Padding on the clipping element is
+                          not clipped with it — it would survive as a strip of
+                          blank space under a closed season. */}
+                      <div className="tour-pricing__season-body-inner">
+                        <div className="tour-pricing__season-body-content">
+                        <p className="tour-pricing__group-title">
+                          {t("tourDetails.pricing.groupSizePricing", "Group Size & Pricing")}
+                        </p>
+                        <dl className="tour-pricing__rows">
+                          {tiers.map(({ tier, amounts }) => (
+                            <div key={tier} className="tour-pricing__row">
+                              <dt className="tour-pricing__row-label">
+                                {t(TIER_LABELS[tier].key, TIER_LABELS[tier].fallback)}
+                              </dt>
+                              <dd className="tour-pricing__row-price">
+                                <strong>{formatPrice(amounts as any)}</strong>
+                                <span className="tour-pricing__row-unit">
+                                  {" / "}
+                                  {t("tourDetails.pricing.person", "person")}
+                                </span>
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+
+                        {season.notes && season.notes.length > 0 && (
+                          <div className="tour-pricing__season-notes">
+                            {season.notes.map((note, noteIdx) => (
+                              <p key={noteIdx}>
+                                {note.title && <strong>{note.title}: </strong>}
+                                {note.text}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {(plan.accommodations || []).length > 0 && (
+              <div className="tour-pricing__stays">
+                <h4 className="tour-pricing__stays-title">
+                  <i className="fas fa-hotel" aria-hidden="true" />
+                  {t("tourDetails.pricing.accommodationTitle", "Included Accommodation Options:")}
+                </h4>
+                <dl className="tour-pricing__stays-list">
+                  {plan.accommodations!.map((stay, stayIdx) => (
+                    <div key={stayIdx} className="tour-pricing__stay">
+                      <dt className="tour-pricing__stay-place">
+                        <span className="tour-pricing__stay-icon">
+                          <StayIcon name={stay.icon} />
+                        </span>
+                        {stay.location}
+                      </dt>
+                      <dd className="tour-pricing__stay-hotels">{stay.hotels}</dd>
                     </div>
                   ))}
-                </div>
+                </dl>
               </div>
             )}
+
+            {plan.notes && plan.notes.length > 0 && (
+              <ul className="tour-pricing__notes">
+                {plan.notes.map((note, noteIdx) => (
+                  <li key={noteIdx} className="tour-pricing__note">
+                    <i className="fas fa-info-circle" aria-hidden="true" />
+                    <span>
+                      {note.title && <strong>{note.title}: </strong>}
+                      {note.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
 
-      {/* Pricing Info Footer */}
-      <div style={{
-        padding: '20px',
-        backgroundColor: '#F5F5F5',
-        borderRadius: '8px',
-        marginTop: '20px'
-      }}>
-        <p style={{
-          fontSize: '14px',
-          color: '#666',
-          margin: 0,
-          lineHeight: '1.6',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '10px'
-        }}>
-          <i className="fas fa-lightbulb" style={{ color: '#b79c5c', marginTop: '3px' }}></i>
-          <span>
-            <strong>{t("tourDetails.pricing.noteTitle", "Note:")}</strong> {t("tourDetails.pricing.noteSub", "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. Contact us for custom quotes or special requests.")}
-          </span>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// Helper component for price cards
-type PriceCardProps = {
-  icon: string;
-  label: string;
-  price: number;
-  perPersonText: string;
-};
-
-const PriceCard: React.FC<PriceCardProps> = ({ icon, label, price, perPersonText }) => {
-  const { formatPrice } = useCurrency();
-  return (
-    <div className="pricing-price-card-box" style={{
-      padding: '20px',
-      backgroundColor: '#F9F6F1',
-      borderRadius: '8px',
-      border: '1px solid rgba(183, 156, 92, 0.2)',
-      textAlign: 'center'
-    }}>
-      <dt className="pricing-price-label" style={{
-        fontSize: '14px',
-        color: '#666',
-        marginBottom: '8px',
-        fontWeight: '500',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '6px'
-      }}>
-        <i className={`fas ${icon}`} style={{ color: '#b79c5c', fontSize: '12px' }}></i>
-        {label}
-      </dt>
-      <dd className="pricing-price-value" style={{
-        fontSize: '28px',
-        fontWeight: '700',
-        color: '#b79c5c',
-        margin: 0
-      }}>
-        {formatPrice(price)}
-      </dd>
-      <dd className="pricing-price-note" style={{
-        fontSize: '12px',
-        color: '#999',
-        marginTop: '4px',
-        margin: '4px 0 0 0'
-      }}>
-        {perPersonText}
-      </dd>
+      <p className="tour-pricing__footnote">
+        <i className="fas fa-lightbulb" aria-hidden="true" />
+        <span>
+          <strong>{t("tourDetails.pricing.noteTitle", "Note:")}</strong>{" "}
+          <Trans
+            i18nKey="tourDetails.pricing.noteSub"
+            ns="tours"
+            defaults="Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. <contactLink>Contact us</contactLink> for custom quotes or special requests."
+            components={{
+              contactLink: <Link href={contactHref} />,
+            }}
+          />
+        </span>
+      </p>
     </div>
   );
 };

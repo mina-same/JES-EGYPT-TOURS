@@ -17,6 +17,8 @@ export interface BookingIdempotencyPayload {
   infants: number;
   requirements?: string;
   currency?: 'USD' | 'EUR' | 'GBP';
+  /** Which pricing tier the enquiry is about, or NOT_SURE. */
+  selectedPackage?: string;
   /** Spam trap only. It is sent to the API but deliberately excluded from the
    * idempotency fingerprint and is never part of a stored booking. */
   website?: string;
@@ -59,6 +61,10 @@ const canonicalPayload = (payload: BookingIdempotencyPayload): string =>
     payload.infants,
     payload.requirements || '',
     payload.currency || 'USD',
+    // Mirrors the server's fingerprint. Left out, a visitor who changed the
+    // package and resubmitted would reuse the previous attempt's key and get
+    // the earlier booking replayed back — with the old package on it.
+    payload.selectedPackage || '',
   ]);
 
 /** A synchronous, non-reversible client fingerprint used only to find the same

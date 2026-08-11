@@ -9,8 +9,8 @@ import SubcategorySelect from '@/components/admin/SubcategorySelect';
 import { ITourSubcategory } from '@/types/tour';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
-import LocalizedTextArea from '@/components/admin/LocalizedTextArea';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
+import DurationSelect from './DurationSelect';
 import { cn } from '@/lib/utils';
 import type { FormErrorItem } from '@/lib/parseApiError';
 
@@ -183,12 +183,11 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               activeLanguage={activeLanguage}
             />
 
-            <LocalizedInput
-              label="Duration"
-              value={formData.duration || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('duration', val, lang)}
-              placeholder="3 days / 2 nights"
-              activeLanguage={activeLanguage}
+            {/* No language tabs: one pick writes all four languages, so there is
+                nothing per-language left for the admin to fill in. */}
+            <DurationSelect
+              value={formData.duration}
+              onChange={(val) => handleChange('duration', val)}
             />
           </div>
 
@@ -197,7 +196,9 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               label={hasError('tourAvailability') || hasError('tourAvailability.en') ? 'Availability ⚠' : 'Availability'}
               value={formData.tourAvailability || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('tourAvailability', val, lang)}
-              placeholder="Year-round"
+              placeholder="Daily"
+              maxLength={24}
+              helperText="Best at 5–16 characters. Up to 22 still fits; 24 is the limit."
               error={hasError('tourAvailability') || hasError('tourAvailability.en')}
               activeLanguage={activeLanguage}
             />
@@ -233,17 +234,24 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           </div>
 
 
-          <div>
-            <LocalizedTextArea
-              label={hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en') ? 'Pickup & Drop-off ⚠' : 'Pickup & Drop-off'}
-              value={formData.pickupAndDropOff || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('pickupAndDropOff', val, lang)}
-              placeholder="Pickup and drop-off details..."
-              rows={3}
-              error={hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')}
-              activeLanguage={activeLanguage}
-            />
-            {(hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')) && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path?.startsWith('pickupAndDropOff'))?.message}</p>}
+          {/* A one-line field, not a paragraph box: this now heads the facts
+              strip on the tour page, where it sits beside Location and Duration
+              and has one column to fit in. The counter turns red on the tours
+              still holding the old full-sentence text. */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <LocalizedInput
+                label={hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en') ? 'Pickup & Drop-off ⚠' : 'Pickup & Drop-off'}
+                value={formData.pickupAndDropOff || { en: '', de: '', it: '', es: '' }}
+                onChange={(val, lang) => handleChange('pickupAndDropOff', val, lang)}
+                placeholder="Hotel pickup & drop-off"
+                maxLength={32}
+                helperText="Best at 12–24 characters. Up to 30 still fits; 32 is the limit."
+                error={hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')}
+                activeLanguage={activeLanguage}
+              />
+              {(hasError('pickupAndDropOff') || hasError('pickupAndDropOff.en')) && <p className="text-xs text-red-600 mt-1">{formErrors.find(e => e.path?.startsWith('pickupAndDropOff'))?.message}</p>}
+            </div>
           </div>
         </CardContent>
       </Card>

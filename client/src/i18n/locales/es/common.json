@@ -198,14 +198,38 @@
       "next": "Destino siguiente",
       "viewDestination": "Descubre {{destination}}"
     },
-    "aswan": { "title": "Asuán", "subtitle": "Tour en Feluca por el Nilo" },
-    "dahab": { "title": "Dahab", "subtitle": "Tour Mar Rojo & Montañas" },
-    "giza": { "title": "Guiza", "subtitle": "Panorama Pirámides & Esfinge" },
-    "hatshepsut": { "title": "Templo de Hatshepsut", "subtitle": "Tour Ribera Oeste de Luxor" },
-    "khanElKhalili": { "title": "Khan El Khalili", "subtitle": "Bazar de Compras de El Cairo" },
-    "luxor": { "title": "Luxor", "subtitle": "Globo Aerostático sobre el Nilo" },
-    "qaitbay": { "title": "Ciudadela de Qaitbay", "subtitle": "Tour Costero de Alejandría" },
-    "siwa": { "title": "Siwa", "subtitle": "Tour del Oasis y Lagos Salados" }
+    "aswan": {
+      "title": "Asuán",
+      "subtitle": "Tour en Feluca por el Nilo"
+    },
+    "dahab": {
+      "title": "Dahab",
+      "subtitle": "Tour Mar Rojo & Montañas"
+    },
+    "giza": {
+      "title": "Guiza",
+      "subtitle": "Panorama Pirámides & Esfinge"
+    },
+    "hatshepsut": {
+      "title": "Templo de Hatshepsut",
+      "subtitle": "Tour Ribera Oeste de Luxor"
+    },
+    "khanElKhalili": {
+      "title": "Khan El Khalili",
+      "subtitle": "Bazar de Compras de El Cairo"
+    },
+    "luxor": {
+      "title": "Luxor",
+      "subtitle": "Globo Aerostático sobre el Nilo"
+    },
+    "qaitbay": {
+      "title": "Ciudadela de Qaitbay",
+      "subtitle": "Tour Costero de Alejandría"
+    },
+    "siwa": {
+      "title": "Siwa",
+      "subtitle": "Tour del Oasis y Lagos Salados"
+    }
   },
   "tailorOffer": {
     "tagline": "A medida",
@@ -226,5 +250,9 @@
     "trust2": "Sin costes ocultos",
     "trust3": "Soporte 24/7",
     "scroll": "Desplázate"
+  },
+  "videoReviews": {
+    "tagline": "Viajeros Reales",
+    "title": "Reseñas en Vídeo"
   }
 }

@@ -19,6 +19,8 @@ import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
+import { getTourReviewVideoIds } from "@/lib/video/youtube";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -76,41 +78,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const [isOpen, setOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
 
-  const getYouTubeVideoId = (url: string): string => {
-    if (!url) return "";
-    const t = url.trim();
-    const s = t.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/); if (s?.[1]) return s[1];
-    const w = t.match(/[?&]v=([a-zA-Z0-9_-]{6,})/); if (w?.[1]) return w[1];
-    const e = t.match(/\/embed\/([a-zA-Z0-9_-]{6,})/); if (e?.[1]) return e[1];
-    const sh = t.match(/\/shorts\/([a-zA-Z0-9_-]{6,})/); if (sh?.[1]) return sh[1];
-    return "";
-  };
 
-  const openVideoReviews = async (tourSlug: string) => {
-    try {
-      const res = await tourAPI.getBySlug(tourSlug);
-      if (res.success && res.data) {
-        const vids = (Array.isArray(res.data.reviews) ? res.data.reviews : [])
-          .map((r: any) => getYouTubeVideoId(typeof r?.url === "string" ? r.url : ""))
-          .filter(Boolean);
-        if (vids.length > 0) {
-          setVideoIds(vids);
-          setOpen(true);
-        } else {
-          toast({
-            title: t('noVideoReviews'),
-            description: t('noVideoReviewsDesc'),
-            variant: "info",
-          });
-        }
-      }
-    } catch {
-      toast({
-        title: t('failedVideos'),
-        description: t('failedVideosDesc'),
-        variant: "destructive",
-      });
-    }
+  // The ids are already on the card: the listing payload carries `reviews`, so
+  // opening the player needs no round-trip. This used to re-fetch the whole
+  // tour on every click just to read URLs it already had.
+  const openVideoReviewsFor = (ids: string[]) => {
+    setVideoIds(ids);
+    setOpen(true);
   };
 
   const effectiveParams = useMemo(() => {
@@ -245,12 +219,16 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           return {
             id: tour._id,
             slug: tourSlug,
-            image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
-            allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+            image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
+            allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
             title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
             link: `/${locale}/${tourSlug}`,
             price: tour.priceStartingFrom || { USD: 0 },
             videoId: tour.videoLink || "",
+            // Gates the card's video button. The listing payload already carries
+            // `reviews`, so this costs no extra request — without it the button
+            // showed on every card and only revealed "no videos" after a click.
+            videoIds: getTourReviewVideoIds(tour.reviews),
             discount: "",
             description:
               // Editor-written card teaser wins; the long intro is the fallback.
@@ -514,7 +492,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                           item={t}
                           toggleWishlist={toggleWishlist}
                           isInWishlist={isInWishlist}
-                          openVideoReviews={openVideoReviews}
+                          openVideoReviews={t.videoIds?.length ? () => openVideoReviewsFor(t.videoIds) : undefined}
                         />
                       </Col>
                     ))}

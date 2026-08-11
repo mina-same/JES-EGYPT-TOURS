@@ -547,6 +547,23 @@ const BookingPage: React.FC = () => {
                             </span> / person
                           </p>
                         )}
+                        {/* Which tier to price. Recorded even for tours that
+                            never asked, so this is the rate to quote. */}
+                        {selectedBooking.selectedPackage && (
+                          <p className="text-xs mt-1">
+                            {selectedBooking.selectedPackage === 'NOT_SURE' ? (
+                              <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                Package: not sure — needs advice
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">
+                                Package: <span className="font-bold text-gray-700 dark:text-gray-300">
+                                  {selectedBooking.selectedPackage}
+                                </span>
+                              </span>
+                            )}
+                          </p>
+                        )}
                     </div>
                   </div>
                 )}

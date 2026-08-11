@@ -1,15 +1,24 @@
 import { Request, Response } from 'express';
 import VideoReview from '../models/VideoReview';
+import { localize } from '../utils/localize';
 
 // @desc    Get all active video reviews
 // @route   GET /api/video-reviews
 // @access  Public
-export const getVideoReviews = async (_req: Request, res: Response) => {
+export const getVideoReviews = async (req: Request, res: Response) => {
   try {
-    const reviews = await VideoReview.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
+    // `.lean()` so `localize` walks plain objects rather than Mongoose
+    // documents, whose getters would survive the transformation.
+    const reviews = await VideoReview.find({ isActive: true })
+      .sort({ order: 1, createdAt: -1 })
+      .lean();
+
     return res.status(200).json({
       success: true,
-      data: reviews
+      // Every other public endpoint resolves `{en,de,it,es}` fields against
+      // X-Locale before answering; this one was shipping all four languages
+      // raw, leaving the caller to pick one — and no caller ever did.
+      data: localize(reviews, req.locale),
     });
   } catch (error: any) {
     return res.status(500).json({

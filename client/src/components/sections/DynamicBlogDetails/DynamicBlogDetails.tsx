@@ -20,6 +20,9 @@ import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
 import BannerCTA from "@/components/sections/BannerCTA/BannerCTA";
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
+import BlogCard from "@/components/common/BlogCard/BlogCard";
+import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
 
 interface DynamicBlogDetailsProps {
@@ -486,88 +489,16 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       if (!postKey) return false;
       return posts.findIndex((item: any) => (item?._id || item?.id || getLocalizedValue(item?.slug, locale)) === postKey) === index;
     });
-    const posts = uniqueManualRelated
-      .filter((post: any) => getStrictLocalizedSlug(post?.slug, locale as SupportedLocale));
+    // Drops anything with no slug in this language — a related article that
+    // does not exist in German must not appear on the German page.
+    const posts = buildBlogCardViewModels(uniqueManualRelated, locale);
     if (posts.length === 0) return null;
 
-    const postCards = posts.map((post: any, idx: number) => {
-      const { day, month } = formatBlogDate(post.publishedAt || post.createdAt, locale);
-      const postTitle = getLocalizedValue(post.title, locale);
-      const postSlug = getStrictLocalizedSlug(post.slug, locale as SupportedLocale);
-      if (!postSlug) return null;
-      const postLink = `/${locale}/${postSlug}`;
-      const postImage = typeof post.featuredImage === 'string' ? post.featuredImage : post.featuredImage?.url || 'https://placehold.co/600x400?text=Image';
-      const postImageTitle = typeof post.featuredImage === 'object' ? getLocalizedValue(post.featuredImage?.title, locale) : '';
-      const authorName = post.author && typeof post.author === 'object' ? (post.author as any).name || 'Admin' : 'Admin';
-      const localizedTags = getLocalizedValue(post.tags, locale);
-      const category = Array.isArray(localizedTags) && localizedTags.length > 0 ? localizedTags[0] : '';
-
-      return (
-        <Col md={4} key={post._id || post.id || postLink || idx} className='related-posts-scroll__item'>
-          <div
-            className='blog-card-two wow fadeInUp'
-            data-wow-duration='1500ms'
-            data-wow-delay={`${100 * (idx + 1)}ms`}
-          >
-            <div className='blog-card-two__image'>
-              <Image
-                src={postImage}
-                alt={postTitle || "Blog post image"}
-                title={postImageTitle || undefined}
-                className="img-fluid"
-                width={600}
-                height={450}
-                style={{ width: "100%", height: "200px", objectFit: "cover" }}
-              />
-              <div className='blog-card-two__date'>
-                <span className='blog-card-two__date__day'>{day}</span>
-                <span className='blog-card-two__date__month'>{month}</span>
-              </div>
-              <Link href={postLink} className='blog-card-two__image__link'>
-                <span className='sr-only'>{postTitle}</span>
-              </Link>
-            </div>
-            <div className='blog-card-two__content' style={{ padding: '20px' }}>
-              <ul className='list-unstyled blog-card-two__meta' style={{ marginBottom: '10px' }}>
-                <li>
-                  <Link href={postLink}>
-                    <span className='blog-card-two__meta__icon'>
-                      <i className='icon-user'></i>
-                    </span>{" "}
-                    {t('by')} {authorName}
-                  </Link>
-                </li>
-                {category && (
-                  <li>
-                    <Link href={postLink}>
-                      <span className='blog-card-two__meta__icon'>
-                        <i className='icon-price-tag'></i>
-                      </span>{" "}
-                      {category}
-                    </Link>
-                  </li>
-                )}
-              </ul>
-              <h3 className='blog-card-two__title' style={{ fontSize: '18px', marginBottom: '15px' }}>
-                <Link href={postLink}>{postTitle}</Link>
-              </h3>
-              <Link
-                href={postLink}
-                className='blog-card-two__content__btn'
-              >
-                {t('readMore')}
-                {/* The article title, clipped rather than hidden, so the link
-                    reads descriptively to a crawler while the button still
-                    says just "Read More". Driven by the post, so new articles
-                    need no further work. */}
-                {postTitle && <span className='sr-only'> — {postTitle}</span>}{" "}
-                <i className='icon-arrow-right'></i>
-              </Link>
-            </div>
-          </div>
-        </Col>
-      );
-    });
+    const postCards = posts.map((post, idx) => (
+      <Col md={4} key={post.id} className='related-posts-scroll__item'>
+        <BlogCard post={post} variant='bordered' index={idx} />
+      </Col>
+    ));
 
     return (
       <div>
@@ -613,9 +544,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       const item = {
         id: tour._id,
         slug: tourSlug,
-        image: uniqueImages[0] || "/assets/images/resources/tour-1-1.jpg",
+        image: uniqueImages[0] || TOUR_IMAGE_PLACEHOLDER,
         imageAlt: getLocalizedValue(tour.images?.[0]?.alt || tour.gallery?.[0]?.alt, locale),
-        allImages: uniqueImages.length > 0 ? uniqueImages : ["/assets/images/resources/tour-1-1.jpg"],
+        allImages: uniqueImages.length > 0 ? uniqueImages : [TOUR_IMAGE_PLACEHOLDER],
         title: getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale),
         link: `/${locale}/${tourSlug}`,
         price: tour.priceStartingFrom || { USD: 0 },
@@ -633,12 +564,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         ],
       };
 
+      // This handler plays `tour.videoLink`, not the review list, so that is
+      // what decides whether the button can do anything at all.
       const card = (
         <TourCard
           item={item}
           toggleWishlist={toggleWishlist}
           isInWishlist={isInWishlist}
-          openVideoReviews={openVideoReviews}
+          openVideoReviews={tour.videoLink ? openVideoReviews : undefined}
         />
       );
 

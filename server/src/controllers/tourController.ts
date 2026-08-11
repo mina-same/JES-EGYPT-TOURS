@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import Tour from '../models/Tour';
 import { FilterQuery } from 'mongoose';
-import { ITour, completeTourSeo } from '../models/Tour';
+import { ITour, completeTourSeo, validateTourKindPlans } from '../models/Tour';
+import { deriveStartingPrice } from '../utils/startingPrice';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { localize, localizePreservingSlugs } from '../utils/localize';
 import {
@@ -311,16 +312,26 @@ export const getFeaturedTours = async (
       )
       .lean();
 
-    // Collapse reviews into a single lightweight `videoUrl` (first review that
-    // has a URL) and drop the reviews array, so the homepage card can show a
-    // working video button without receiving all reviews. Tours without a
-    // video simply have no `videoUrl` (the client then hides the button).
+    // Collapse reviews into their URLs and drop the rest of each review, so the
+    // homepage card can show a working video button without receiving titles
+    // and bodies it never renders. Tours without a video get no `videoUrls` at
+    // all, and the client then hides the button.
+    //
+    // All of them, not just the first: the listing pages open every review a
+    // tour has, and a card that plays one video here and three elsewhere is the
+    // same button behaving differently depending on which page you clicked it
+    // from. `videoUrl` is kept alongside for anything still reading the old
+    // single-value shape.
     const data = tours.map((tour: any) => {
       const { reviews, ...rest } = tour;
-      const videoUrl = Array.isArray(reviews)
-        ? reviews.find((r: any) => typeof r?.url === 'string' && r.url)?.url
-        : undefined;
-      return videoUrl ? { ...rest, videoUrl } : rest;
+      const videoUrls = Array.isArray(reviews)
+        ? reviews
+            .map((r: any) => (typeof r?.url === 'string' ? r.url : ''))
+            .filter(Boolean)
+        : [];
+      return videoUrls.length
+        ? { ...rest, videoUrl: videoUrls[0], videoUrls }
+        : rest;
     });
 
     // Localized, EXCEPT `slug`. The homepage builds per-locale URLs with
@@ -709,6 +720,13 @@ export const createTour = async (
     // ever got the chance to derive it.
     body.seo = completeTourSeo(body);
 
+    // Derived, never accepted from the client: the "from" price must be the
+    // cheapest amount in this tour's own plans, or the card can advertise a
+    // figure the pricing table below it contradicts.
+    const derivedStartingPrice = deriveStartingPrice(body.pricingPlans);
+    if (derivedStartingPrice) body.priceStartingFrom = derivedStartingPrice;
+    else delete body.priceStartingFrom;
+
     const tour = await Tour.create(body);
 
     // Populate subcategory details
@@ -809,7 +827,10 @@ export const updateTour = async (
     // fill from the stored tour for anything this request didn't resubmit.
     const existingTour = await Tour.findById(
       req.params.id,
-      'editVersion isActive scheduledAt publishedAt seo heading name Description mapSchema'
+      // `tourKind` and `pricingPlans` ride along so the kind/plan rule can be
+      // checked against the tour as it will be AFTER this update — a request
+      // may change only one of the two, and the other still has to agree.
+      'editVersion isActive scheduledAt publishedAt seo heading name Description mapSchema tourKind pricingPlans'
     ).lean();
     if (!existingTour) {
       res.status(404).json({ success: false, error: 'Tour not found' });
@@ -827,6 +848,25 @@ export const updateTour = async (
     }
 
     body.editVersion = currentVersion + 1;
+
+    // The kind/plan rule, checked against the merged result rather than the
+    // request alone: changing only the kind, or only the plans, still has to
+    // leave the tour in a legal state. Enforced here because this route uses
+    // findByIdAndUpdate, which never runs the model's pre('save') hook.
+    {
+      const nextKind = Object.prototype.hasOwnProperty.call(body, 'tourKind')
+        ? body.tourKind
+        : (existingTour as any).tourKind;
+      const nextPlans = Object.prototype.hasOwnProperty.call(body, 'pricingPlans')
+        ? body.pricingPlans
+        : (existingTour as any).pricingPlans;
+
+      const problem = validateTourKindPlans(nextKind, nextPlans);
+      if (problem) {
+        res.status(400).json({ success: false, error: problem });
+        return;
+      }
+    }
 
     // Filter out empty gallery items (items with empty fileName)
     if (body.gallery && Array.isArray(body.gallery)) {
@@ -897,6 +937,22 @@ export const updateTour = async (
       Description: pick('Description'),
       mapSchema: pick('mapSchema'),
     });
+
+    // Recomputed on every update, from whichever plans this write leaves in
+    // place: a partial update that never mentions pricingPlans must still not
+    // strand an old "from" price that the current plans no longer support.
+    const plansAfterUpdate =
+      body.pricingPlans !== undefined
+        ? body.pricingPlans
+        : (existingTour as any).pricingPlans;
+    const derivedStartingPrice = deriveStartingPrice(plansAfterUpdate);
+    if (derivedStartingPrice) {
+      body.priceStartingFrom = derivedStartingPrice;
+    } else {
+      // Nothing quotable left — remove it rather than leaving a stale figure.
+      delete body.priceStartingFrom;
+      fieldsToUnset.priceStartingFrom = 1;
+    }
 
     const update: any = { $set: body };
     if (Object.keys(fieldsToUnset).length > 0) {

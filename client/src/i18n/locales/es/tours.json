@@ -89,7 +89,7 @@
       "faqTitle": "Sin Preguntas Frecuentes",
       "faqDesc": "Actualmente no hay preguntas frecuentes para este recorrido."
     },
-    "pricingTitle": "Precios de Tours",
+    "pricingTitle": "Precios del Tour",
     "pricingSubtitle": "Encuentra el paquete perfecto que se adapte a tu presupuesto y preferencias.",
     "galleryTitle": "Galería del Tour",
     "gallerySubtitle": "Un recorrido visual por los maravillosos lugares que visitarás.",
@@ -103,15 +103,11 @@
     "openYoutube": "Abrir en YouTube",
     "relatedTours": {
       "title": "Tours Relacionados",
-      "span": "Tours",
-      "subtitle": "También podría gustarte esos tours",
       "tagline": "Selección Curada"
     },
     "relatedBlogs": {
       "title": "Blogs Relacionados",
-      "tagline": "Historias de Viaje",
-      "by": "Por",
-      "readMore": "Leer más"
+      "tagline": "Historias de Viaje"
     },
     "moreTours": {
       "title": "Más",
@@ -131,9 +127,13 @@
     "importantNotes": "Notas importantes",
     "day": "Día",
     "info": {
+      "pickup": "Recogida y regreso",
       "location": "Ubicación",
-      "activitiesType": "Tipo de actividades",
+      "tourType": "Tipo de tour",
       "activateDay": "Duración",
+      "availability": "Disponibilidad",
+      "guide": "Guía",
+      "guideLanguage": "Egiptólogo privado en español",
       "priceStartsFrom": "El precio comienza desde"
     },
     "brochure": {
@@ -162,20 +162,33 @@
       }
     },
     "pricing": {
-      "emptyState": "La información de precios no está disponible para este tour. Por favor, contáctanos para más detalles.",
-      "allYear": "Todo el año",
-      "soloTraveler": "Viajero Solo",
-      "pax2_4": "2-4 Viajeros",
-      "pax5_8": "5-8 Viajeros",
-      "pax9_16": "9-16 Viajeros",
+      "soloTraveler": "1 pax",
+      "pax2_4": "2-4 pax",
+      "pax5_8": "5-8 pax",
+      "pax9_16": "9-16 pax",
       "perPerson": "por persona",
-      "planNotes": "Notas Importantes del Plan",
       "noteTitle": "Nota:",
-      "noteSub": "Los precios son por persona y pueden variar según la disponibilidad y la fecha de reserva. Los descuentos para grupos se aplican automáticamente según el número de viajeros. Contáctanos para presupuestos personalizados o solicitudes especiales.",
+      "noteSub": "Los precios son por persona y pueden variar según la disponibilidad y la fecha de reserva. Los descuentos para grupos se aplican automáticamente según el número de viajeros. <contactLink>Contáctanos</contactLink> para presupuestos personalizados o solicitudes especiales.",
       "affordable": "Asequible",
       "gold (5 star standard)": "Oro (Estándar 5 Estrellas)",
       "diamond (5 star luxury)": "Diamante (Lujo 5 Estrellas)",
-      "tour prices": "Precios del Tour"
+      "tour prices": "Precios del Tour",
+      "startingFrom": "Desde",
+      "mostChosen": "Más elegido",
+      "datesHint": "Elige tu periodo de viaje para ver el precio según el tamaño de tu grupo.",
+      "groupSizePricing": "Tamaño del grupo y precios",
+      "person": "persona",
+      "accommodationTitle": "Alojamientos incluidos:",
+      "season_peak": "Temporada alta",
+      "pricesByDate": "Precios por fecha de viaje",
+      "fromPerPerson": "Desde {{price}} por persona",
+      "season_low": "Temporada baja",
+      "season_regular": "Temporada media",
+      "seasonDesc_low": "Verano",
+      "seasonDesc_regular": "Invierno",
+      "seasonDesc_peak": "Festivos",
+      "holiday_christmas": "Navidad y Año Nuevo",
+      "holiday_easter": "Semana Santa"
     },
     "bookingForm": {
       "title": "Reservar este Tour",
@@ -218,7 +231,9 @@
         "dateRange": "La fecha de fin no puede ser anterior a la fecha de inicio"
       },
       "decrease": "Reducir {{field}}",
-      "increase": "Aumentar {{field}}"
+      "increase": "Aumentar {{field}}",
+      "packageLabel": "Paquete",
+      "packageNotSure": "No estoy seguro — asesórenme"
     }
   },
   "pageMetaTitle": "Categorías de tours en Egipto | Tours privados y de un día | JES Egypt Tours",

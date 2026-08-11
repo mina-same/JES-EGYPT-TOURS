@@ -8,9 +8,10 @@ import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
 import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, HelpCircle } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
-import Link from "next/link";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
+import BlogCard from "@/components/common/BlogCard/BlogCard";
+import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -26,7 +27,9 @@ import { PricingPlans } from "./components/PricingPlans";
 import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
+import { planHasPrices } from "@/lib/tours/startingPrice";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
@@ -109,6 +112,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
   const params = useParams() as { locale: string };
   const { t, i18n } = useTranslation("tours");
+
+  const relatedBlogCards = React.useMemo(
+    () => buildBlogCardViewModels(relatedBlogs, i18n.language || params?.locale || "en"),
+    [relatedBlogs, i18n.language, params?.locale]
+  );
 
   useEffect(() => {
     if (params?.locale && i18n.resolvedLanguage !== params.locale) {
@@ -400,8 +408,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     overview,
     overviewTitle,
     location,
+    pickupAndDropOff,
     activitiesType,
     activateDay,
+    availability,
     price,
     relatedTours,
     sliderImages,
@@ -417,6 +427,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   } = tourData;
 
   const hasReviewVideos = (reviewVideos || []).length > 0;
+  /** Plans existing is not the same as prices existing: a plan is created the
+   *  moment a tour is set up, long before anyone fills in amounts. */
+  const hasQuotablePricing = (pricingPlans || []).some(planHasPrices);
   const includedAmenityItems = normalizeAmenityItems(amenities);
   const excludedAmenityItems = normalizeAmenityItems(amenitiesTwo);
   const whatToPackItems = normalizeAmenityItems(tourData.whatToPack);
@@ -473,9 +486,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
               {/* Info Bar Section */}
               <TourInfoBar
+                pickupAndDropOff={pickupAndDropOff}
                 location={location}
                 activitiesType={activitiesType}
                 activateDay={activateDay}
+                availability={availability}
                 mapHref={map ? '#map' : undefined}
               />
 
@@ -554,7 +569,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                     <a href="#map" className={`tour-nav-link ${activeSection === 'map' ? 'active' : ''}`}>{t("tourDetails.nav.map")}</a>
                   )}
                   <a href="#amenities" className={`tour-nav-link ${activeSection === 'amenities' ? 'active' : ''}`}>{t("tourDetails.nav.amenities")}</a>
-                  <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
+                  {/* Same guard as the map and gallery tabs: a tab that scrolls
+                      to a section which is not on the page is a dead control. */}
+                  {hasQuotablePricing && (
+                    <a href="#pricing" className={`tour-nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>{t("tourDetails.nav.pricing")}</a>
+                  )}
                   {/* Same guard as the map: tour.gallery is empty on most tours,
                       so the tab used to scroll to an EmptyState. */}
                   {images && images.length > 0 && (
@@ -592,9 +611,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       className={`tour-description-wrapper ${isDescriptionExpanded ? '' : 'collapsed'}`}
                     >
                       <div
-                        className='tour-listing-details__text'
+                        className='tour-listing-details__text html-content'
                         style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
-                        dangerouslySetInnerHTML={{ __html: overview }}
+                        dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(overview) }}
                       />
                     </div>
 
@@ -642,7 +661,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             }}>
                               <i className='icon-check-star' style={{ color: '#b79c5c', fontSize: '12px' }}></i>
                             </div>
-                            <span className="text-dark fw-medium" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: item }} />
+                            <span className="text-dark fw-medium html-content" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                           </div>
                         </li>
                       ))}
@@ -703,7 +722,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {includedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-check" aria-hidden="true" />
-                                    <span dangerouslySetInnerHTML={{ __html: item }} />
+                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                                   </li>
                                 ))}
                               </ul>
@@ -720,7 +739,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {excludedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-times text-danger" aria-hidden="true" />
-                                    <span dangerouslySetInnerHTML={{ __html: item }} />
+                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                                   </li>
                                 ))}
                               </ul>
@@ -739,9 +758,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   )}
                 </section>
 
-                {/* Pricing Section */}
-                <section id="pricing" className="tour-section">
-                  {pricingPlans && pricingPlans.length > 0 ? (
+                {/* Pricing — omitted entirely when nothing is quotable.
+                    Tours are routinely written and published before sales have
+                    priced them, and an empty "Tour Pricing" band advertises the
+                    gap. Showing nothing reads as a tour without published
+                    rates; showing an empty section reads as a broken page. */}
+                {hasQuotablePricing && (
+                  <section id="pricing" className="tour-section">
                     <div className='tour-listing-details__content__item tour-listing-details__pricing'>
                       <div className="mb-4">
                         <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.pricingTitle")}</h2>
@@ -749,15 +772,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </div>
                       <PricingPlans pricingPlans={pricingPlans} />
                     </div>
-                  ) : (
-                    <EmptyState
-                      title={t("tourDetails.empty.pricingTitle")}
-                      description={t("tourDetails.empty.pricingDesc")}
-                      icon="file"
-                      size="medium"
-                    />
-                  )}
-                </section>
+                  </section>
+                )}
                 
                 {/* Important Notes Section */}
                 {tourData.notes && tourData.notes.length > 0 && (
@@ -779,13 +795,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             </div>
                           )}
                           <div
-                            className="text-muted tour-listing-details__text"
+                            className="text-muted tour-listing-details__text html-content"
                             style={{
                               fontSize: '0.925rem',
                               lineHeight: '1.6',
                               color: '#555 !important'
                             }}
-                            dangerouslySetInnerHTML={{ __html: note.text }}
+                            dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(note.text) }}
                           />
                           {index < (tourData.notes?.length || 0) - 1 && (
                             <hr className="mt-3 mb-0 opacity-10" />
@@ -815,7 +831,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           <div key={index} className="col-md-6 col-lg-4 mb-2">
                             <div className="d-flex align-items-center gap-2">
                                <div style={{ width: '5px', height: '5px', backgroundColor: '#b79c5c', borderRadius: '50%' }}></div>
-                               <span className="text-dark" style={{ fontSize: '0.9rem' }} dangerouslySetInnerHTML={{ __html: item }} />
+                               <span className="text-dark html-content" style={{ fontSize: '0.9rem' }} dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                             </div>
                           </div>
                         ))}
@@ -858,14 +874,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </div>
 
                       <div
-                        className='tour-listing-details__text'
+                        className='tour-listing-details__text html-content'
                         style={{
                           color: '#333',
                           lineHeight: '1.9',
                           fontSize: '1rem',
                           fontWeight: '400'
                         }}
-                        dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
+                        dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(tourData.whatYouWillLoveHtml) }}
                       />
                     </div>
                   </section>
@@ -1040,7 +1056,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 <Accordion.Body>
                                   <div className="accordion-content">
                                     <div className="inner">
-                                      <div className="inner__text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                                      <div className="inner__text html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(faq.answer) }} />
                                     </div>
                                   </div>
                                 </Accordion.Body>
@@ -1160,7 +1176,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 <BookingForm
                   tourId={String(tourData.id || '')}
                   price={price}
-                  hasPricing={(pricingPlans || []).length > 0}
+                  // Gates the card's "Pricing" link. Plans existing is not
+                  // enough: an unpriced tour renders no #pricing section, so
+                  // the link would scroll to nothing.
+                  hasPricing={hasQuotablePricing}
+                  packageOptions={(pricingPlans || []).map((plan) => plan.planName)}
                   tourTitle={title}
                 />
               </div>
@@ -1184,7 +1204,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         )}
 
         {/* ── Related Blogs (max 3, curated or featured fallback) ── */}
-        {relatedBlogs.length > 0 && (
+        {relatedBlogCards.length > 0 && (
           <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
             <Container>
                 <div className="sec-title text-center mb-5">
@@ -1192,74 +1212,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
                 </div>
                 <div className="row gutter-y-30">
-                  {relatedBlogs.map((blog: any, index: number) => (
-                    <div key={blog.id} className="col-lg-4 col-md-6">
-                      <div
-                        className='blog-card-two blog-card-two--one wow fadeInUp'
-                        data-wow-duration='1500ms'
-                        data-wow-delay={`${100 * (index + 1)}ms`}
-                      >
-                        <div className='blog-card-two__image'>
-                          {blog.image ? (
-                            <Image
-                              src={blog.image}
-                              alt={blog.imageAlt || blog.title || "Blog Image"}
-                              title={blog.imageTitle || blog.title || "Blog Image"}
-                              className="img-fluid"
-                              width={600}
-                              height={450}
-                              style={{ width: "100%", height: "260px", objectFit: "cover" }}
-                            />
-                          ) : (
-                            <div style={{ width: "100%", height: "260px", background: "#eee" }} />
-                          )}
-                          <div className='blog-card-two__date'>
-                            <span className='blog-card-two__date__day'>{new Date(blog.date).getDate()}</span>
-                            <span className='blog-card-two__date__month'>
-                              {new Date(blog.date).toLocaleString('default', { month: 'short' })}
-                            </span>
-                          </div>
-                          <Link href={blog.link} className='blog-card-two__image__link'>
-                            <span className='sr-only'>{blog.title}</span>
-                          </Link>
-                        </div>
-                        <div className='blog-card-two__content'>
-                          <ul className='list-unstyled blog-card-two__meta'>
-                            <li>
-                              <Link href={blog.link}>
-                                <span className='blog-card-two__meta__icon'>
-                                  <i className='icon-user'></i>
-                                </span>{" "}
-                                {t("tourDetails.relatedBlogs.by", "By")} {blog.author}
-                              </Link>
-                            </li>
-                            {blog.category && (
-                              <li>
-                                <Link href={blog.link}>
-                                  <span className='blog-card-two__meta__icon'>
-                                    <i className='icon-price-tag'></i>
-                                  </span>{" "}
-                                  {blog.category}
-                                </Link>
-                              </li>
-                            )}
-                          </ul>
-                          <h3 className='blog-card-two__title'>
-                            <Link href={blog.link}>{blog.title}</Link>
-                          </h3>
-                          <Link
-                            href={blog.link}
-                            className='blog-card-two__content__btn'
-                          >
-                            {t("tourDetails.relatedBlogs.readMore", "Read More")}
-                            {/* Keep the compact visual CTA while giving this link
-                                a unique, descriptive name for crawlers and screen
-                                readers. The title is already localized upstream. */}
-                            {blog.title && <span className='sr-only'> — {blog.title}</span>} {" "}
-                            <i className='icon-arrow-right' aria-hidden='true'></i>
-                          </Link>
-                        </div>
-                      </div>
+                  {relatedBlogCards.map((post, index) => (
+                    <div key={post.id} className="col-lg-4 col-md-6">
+                      <BlogCard post={post} variant='feature' index={index} />
                     </div>
                   ))}
                 </div>
@@ -1292,6 +1247,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         tourId={String(tourData.id || "")}
         price={price}
         tourTitle={title}
+        packageOptions={(pricingPlans || []).map((plan) => plan.planName)}
       />
     </>
   );
