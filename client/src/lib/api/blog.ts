@@ -22,17 +22,25 @@ export interface BlogSubCategory {
   slug: ILocalizedString;
   description?: ILocalizedString;
   image?: string | ImageObject;
+  sideImage?: ImageObject;
   icon?: string; // Emoji or icon class name set by admin
   category: BlogCategory | string;
   seo?: ISEO;
   isActive: boolean;
   heroTitle?: ILocalizedString;
   heroDescription?: ILocalizedMixed;
+  features?: Array<{
+    icon: string;
+    title: ILocalizedString;
+    description: ILocalizedString;
+  }>;
   featuredBlogs?: BlogPost[];
   featuredBlogsSectionTitle?: ILocalizedString;
   blogsSectionTitle?: ILocalizedString;
   faqsSectionTitle?: ILocalizedString;
   faqs?: IFAQ[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ImageObject {

@@ -103,8 +103,11 @@
     "openYoutube": "Open on YouTube",
     "relatedTours": {
       "title": "Related Tours",
-      "span": "Tours",
-      "subtitle": "You might also like those tour"
+      "tagline": "Curated Selection"
+    },
+    "relatedBlogs": {
+      "title": "Related Blogs",
+      "tagline": "Travel Stories"
     },
     "moreTours": {
       "title": "More",
@@ -159,14 +162,11 @@
       }
     },
     "pricing": {
-      "emptyState": "Pricing information is not available for this tour. Please contact us for details.",
-      "allYear": "All Year",
       "soloTraveler": "Solo",
       "pax2_4": "2-4 Pax",
       "pax5_8": "5-8 Pax",
       "pax9_16": "9-16 Pax",
       "perPerson": "per person",
-      "planNotes": "Important Plan Notes",
       "noteTitle": "Note:",
       "noteSub": "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. <contactLink>Contact us</contactLink> for custom quotes or special requests.",
       "affordable": "Affordable",
@@ -175,14 +175,20 @@
       "tour prices": "Tour Prices",
       "startingFrom": "Starting from",
       "mostChosen": "Most Chosen",
-      "availableDates": "Available Dates:",
-      "datesHint": "Select a date range to view the prices for each group size.",
+      "datesHint": "Choose your travel period to see the price for your group size.",
       "groupSizePricing": "Group Size & Pricing",
       "person": "person",
       "accommodationTitle": "Included Accommodation Options:",
-      "season_summer": "Summer",
-      "season_winter": "Winter",
-      "season_peak": "Christmas & Easter"
+      "season_peak": "Peak Season",
+      "pricesByDate": "Prices by Travel Date",
+      "fromPerPerson": "From {{price}} per person",
+      "season_low": "Low Season",
+      "season_regular": "Regular Season",
+      "seasonDesc_low": "Summer",
+      "seasonDesc_regular": "Winter",
+      "seasonDesc_peak": "Holidays",
+      "holiday_christmas": "Christmas & New Year",
+      "holiday_easter": "Easter"
     },
     "bookingForm": {
       "title": "Book This Tour",

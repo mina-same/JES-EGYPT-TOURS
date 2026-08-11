@@ -29,6 +29,7 @@ import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { planHasPrices } from "@/lib/tours/startingPrice";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
@@ -610,9 +611,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       className={`tour-description-wrapper ${isDescriptionExpanded ? '' : 'collapsed'}`}
                     >
                       <div
-                        className='tour-listing-details__text'
+                        className='tour-listing-details__text html-content'
                         style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
-                        dangerouslySetInnerHTML={{ __html: overview }}
+                        dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(overview) }}
                       />
                     </div>
 
@@ -660,7 +661,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             }}>
                               <i className='icon-check-star' style={{ color: '#b79c5c', fontSize: '12px' }}></i>
                             </div>
-                            <span className="text-dark fw-medium" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: item }} />
+                            <span className="text-dark fw-medium html-content" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                           </div>
                         </li>
                       ))}
@@ -721,7 +722,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {includedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-check" aria-hidden="true" />
-                                    <span dangerouslySetInnerHTML={{ __html: item }} />
+                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                                   </li>
                                 ))}
                               </ul>
@@ -738,7 +739,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {excludedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-times text-danger" aria-hidden="true" />
-                                    <span dangerouslySetInnerHTML={{ __html: item }} />
+                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                                   </li>
                                 ))}
                               </ul>
@@ -794,13 +795,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             </div>
                           )}
                           <div
-                            className="text-muted tour-listing-details__text"
+                            className="text-muted tour-listing-details__text html-content"
                             style={{
                               fontSize: '0.925rem',
                               lineHeight: '1.6',
                               color: '#555 !important'
                             }}
-                            dangerouslySetInnerHTML={{ __html: note.text }}
+                            dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(note.text) }}
                           />
                           {index < (tourData.notes?.length || 0) - 1 && (
                             <hr className="mt-3 mb-0 opacity-10" />
@@ -830,7 +831,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           <div key={index} className="col-md-6 col-lg-4 mb-2">
                             <div className="d-flex align-items-center gap-2">
                                <div style={{ width: '5px', height: '5px', backgroundColor: '#b79c5c', borderRadius: '50%' }}></div>
-                               <span className="text-dark" style={{ fontSize: '0.9rem' }} dangerouslySetInnerHTML={{ __html: item }} />
+                               <span className="text-dark html-content" style={{ fontSize: '0.9rem' }} dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
                             </div>
                           </div>
                         ))}
@@ -873,14 +874,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </div>
 
                       <div
-                        className='tour-listing-details__text'
+                        className='tour-listing-details__text html-content'
                         style={{
                           color: '#333',
                           lineHeight: '1.9',
                           fontSize: '1rem',
                           fontWeight: '400'
                         }}
-                        dangerouslySetInnerHTML={{ __html: tourData.whatYouWillLoveHtml }}
+                        dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(tourData.whatYouWillLoveHtml) }}
                       />
                     </div>
                   </section>
@@ -1055,7 +1056,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 <Accordion.Body>
                                   <div className="accordion-content">
                                     <div className="inner">
-                                      <div className="inner__text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                                      <div className="inner__text html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(faq.answer) }} />
                                     </div>
                                   </div>
                                 </Accordion.Body>

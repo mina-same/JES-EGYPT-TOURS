@@ -5,13 +5,14 @@ import type { SeasonKind } from "@/lib/tours/seasonKind";
  * Season glyphs, drawn to match the accommodation set (same 24px box, same
  * stroke weight) so the pricing section reads as one family of icons.
  *
- * Winter is a sun behind cloud, NOT a snowflake: an Egyptian winter is the mild
- * high season, and a snowflake beside "Luxor in January" would misdescribe the
- * weather a traveller is buying.
+ * The regular season is a sun behind cloud, NOT a bare cloud and NOT a
+ * snowflake. September–March is Egypt's mildest, sunniest stretch and its
+ * busiest; a rain cloud beside "Luxor in January" would advertise weather the
+ * traveller is not getting, and a snowflake would be plainly wrong.
  */
 const GLYPHS: Record<SeasonKind, React.ReactNode> = {
-  // Full sun — the hot months.
-  summer: (
+  // Full sun — the hot, quiet, cheapest months.
+  low: (
     <>
       <circle cx="12" cy="12" r="4.2" />
       <path
@@ -21,7 +22,7 @@ const GLYPHS: Record<SeasonKind, React.ReactNode> = {
     </>
   ),
   // Sun behind cloud — the mild season.
-  winter: (
+  regular: (
     <>
       <circle cx="8.5" cy="8" r="3.1" />
       <path d="M8.5 2.4v1.6M3 8H1.4M4.6 4.1 3.5 3M12.9 4.1 14 3" strokeLinecap="round" opacity="0.85" />

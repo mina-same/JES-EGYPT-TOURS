@@ -1,18 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import React from "react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
-import { getBlogsBySubCategory, getSubCategoryBySlug, getSubCategoriesByCategory } from "@/lib/api/blog";
+import type { BlogResponse, BlogSubCategory } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
-import { Loader2 } from "lucide-react";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
@@ -41,70 +39,22 @@ const getImageTitle = (img: any, locale: string, fallback?: string): string => {
   return getLocalizedValue(img.title, locale) || getLocalizedValue(img.alt, locale) || fallback || '';
 };
 
-export default function BlogSubcategoryView({ slug, locale }: { slug: string; locale: string }) {
-  const searchParams = useSearchParams();
-  const page = Number(searchParams?.get("page")) || 1;
+interface BlogSubcategoryViewProps {
+  slug: string;
+  locale: string;
+  subcategory: BlogSubCategory;
+  blogsData: BlogResponse;
+  siblingSubcategories: BlogSubCategory[];
+}
+
+export default function BlogSubcategoryView({
+  slug,
+  locale,
+  subcategory,
+  blogsData,
+  siblingSubcategories,
+}: BlogSubcategoryViewProps) {
   const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
-
-  const [loading, setLoading] = useState(true);
-  const [subcategory, setSubcategory] = useState<any>(null);
-  const [blogsData, setBlogsData] = useState<any>(null);
-  const [siblingSubcategories, setSiblingSubcategories] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const sub = await getSubCategoryBySlug(slug, locale);
-        setSubcategory(sub);
-
-        // Fetch sibling subcategories if category is available
-        if (sub.category) {
-          const categoryId = typeof sub.category === 'object' ? sub.category._id : sub.category;
-          if (categoryId) {
-            const siblings = await getSubCategoriesByCategory(categoryId, locale);
-            setSiblingSubcategories(siblings);
-          }
-        }
-
-        // Use the base (English) slug for the posts API call
-        const baseSlug = typeof sub.slug === 'object' ? sub.slug.en : sub.slug;
-        const blogs = await getBlogsBySubCategory(baseSlug || slug, page, 9, locale);
-        setBlogsData(blogs);
-      } catch (err) {
-        console.error("Error fetching blog subcategory data:", err);
-        setError("Subcategory not found");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [slug, page]);
-
-  if (loading && !subcategory) {
-    return (
-      <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-10 h-10 animate-spin" />
-        </div>
-        <FooterOne />
-      </Layout>
-    );
-  }
-
-  if (error || !subcategory) {
-    return (
-      <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
-        <div className="flex items-center justify-center min-h-[400px]">
-          <h3>Subcategory Not Found</h3>
-        </div>
-        <FooterOne />
-      </Layout>
-    );
-  }
 
   const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name, locale) : '';
   const parentSlug = typeof subcategory.category === 'object' ? getStrictLocalizedSlug((subcategory.category as any).slug, locale as SupportedLocale) : null;

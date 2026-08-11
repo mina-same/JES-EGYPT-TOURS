@@ -6,6 +6,14 @@ import { useTranslation } from "react-i18next";
 import type { TourDetailsOneData, TierAmount } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { classifySeason, seasonLabelKey, type SeasonKind } from "@/lib/tours/seasonKind";
+
+/** English wording when a locale lacks the key. */
+const BROCHURE_SEASON_FALLBACKS: Record<SeasonKind, string> = {
+  low: "Low Season",
+  regular: "Regular Season",
+  peak: "Peak Season",
+};
 
 interface TourBrochureProps {
   tour: TourDetailsOneData;
@@ -491,10 +499,22 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                         marginBottom: 4,
                       }}
                     >
-                      {s.seasonName}
+                      {/* Same tier name the tour page shows. A guest comparing
+                          the PDF against the website should not meet two
+                          different names for one season. */}
+                      {(() => {
+                        const kind = classifySeason(s.seasonName);
+                        return kind
+                          ? t(seasonLabelKey(kind), BROCHURE_SEASON_FALLBACKS[kind])
+                          : s.seasonName;
+                      })()}
                     </div>
+                    {/* The date range lives in `seasonName` — the startDate /
+                        endDate fields are unused and rendered as a bare "–".
+                        Now that the heading above carries the tier name, this
+                        line is where the actual dates belong. */}
                     <div style={{ fontSize: 13, color: "#8B7355", marginBottom: 16 }}>
-                      {s.startDate} – {s.endDate}
+                      {s.seasonName}
                     </div>
                     <div
                       style={{

@@ -103,15 +103,11 @@
     "openYoutube": "Apri su YouTube",
     "relatedTours": {
       "title": "Tour Correlati",
-      "span": "Tour",
-      "subtitle": "Potresti anche apprezzare questi tour",
       "tagline": "Selezione Curata"
     },
     "relatedBlogs": {
       "title": "Blog Correlati",
-      "tagline": "Storie di Viaggio",
-      "by": "Di",
-      "readMore": "Leggi di più"
+      "tagline": "Storie di Viaggio"
     },
     "moreTours": {
       "title": "Di più",
@@ -166,14 +162,11 @@
       }
     },
     "pricing": {
-      "emptyState": "Le informazioni sui prezzi non sono disponibili per questo tour. Contattaci per i dettagli.",
-      "allYear": "Tutto l'anno",
-      "soloTraveler": "Singolo",
+      "soloTraveler": "1 pax",
       "pax2_4": "2-4 pax",
       "pax5_8": "5-8 pax",
       "pax9_16": "9-16 pax",
       "perPerson": "a persona",
-      "planNotes": "Note Importanti sul Piano",
       "noteTitle": "Nota:",
       "noteSub": "I prezzi sono per persona e possono variare in base alla disponibilità e alla data di prenotazione. Gli sconti per i gruppi si applicano automaticamente in base al numero di viaggiatori. <contactLink>Contattaci</contactLink> per preventivi personalizzati o richieste speciali.",
       "affordable": "Accessibile",
@@ -182,14 +175,20 @@
       "tour prices": "Prezzi del Tour",
       "startingFrom": "A partire da",
       "mostChosen": "Più scelto",
-      "availableDates": "Date disponibili:",
-      "datesHint": "Seleziona un periodo per vedere i prezzi per ogni dimensione del gruppo.",
-      "groupSizePricing": "Dimensione gruppo e prezzi",
+      "datesHint": "Scegli il tuo periodo di viaggio per vedere il prezzo per la tua dimensione di gruppo.",
+      "groupSizePricing": "Dimensione del gruppo e prezzi",
       "person": "persona",
       "accommodationTitle": "Sistemazioni incluse:",
-      "season_summer": "Estate",
-      "season_winter": "Inverno",
-      "season_peak": "Natale e Pasqua"
+      "season_peak": "Alta stagione",
+      "pricesByDate": "Prezzi per data di viaggio",
+      "fromPerPerson": "Da {{price}} a persona",
+      "season_low": "Bassa stagione",
+      "season_regular": "Media stagione",
+      "seasonDesc_low": "Estate",
+      "seasonDesc_regular": "Inverno",
+      "seasonDesc_peak": "Festività",
+      "holiday_christmas": "Natale e Capodanno",
+      "holiday_easter": "Pasqua"
     },
     "bookingForm": {
       "title": "Prenota questo tour",

@@ -89,7 +89,7 @@
       "faqTitle": "Sin Preguntas Frecuentes",
       "faqDesc": "Actualmente no hay preguntas frecuentes para este recorrido."
     },
-    "pricingTitle": "Precios de Tours",
+    "pricingTitle": "Precios del Tour",
     "pricingSubtitle": "Encuentra el paquete perfecto que se adapte a tu presupuesto y preferencias.",
     "galleryTitle": "Galería del Tour",
     "gallerySubtitle": "Un recorrido visual por los maravillosos lugares que visitarás.",
@@ -103,15 +103,11 @@
     "openYoutube": "Abrir en YouTube",
     "relatedTours": {
       "title": "Tours Relacionados",
-      "span": "Tours",
-      "subtitle": "También podría gustarte esos tours",
       "tagline": "Selección Curada"
     },
     "relatedBlogs": {
       "title": "Blogs Relacionados",
-      "tagline": "Historias de Viaje",
-      "by": "Por",
-      "readMore": "Leer más"
+      "tagline": "Historias de Viaje"
     },
     "moreTours": {
       "title": "Más",
@@ -166,14 +162,11 @@
       }
     },
     "pricing": {
-      "emptyState": "La información de precios no está disponible para este tour. Por favor, contáctanos para más detalles.",
-      "allYear": "Todo el año",
-      "soloTraveler": "Individual",
+      "soloTraveler": "1 pax",
       "pax2_4": "2-4 pax",
       "pax5_8": "5-8 pax",
       "pax9_16": "9-16 pax",
       "perPerson": "por persona",
-      "planNotes": "Notas Importantes del Plan",
       "noteTitle": "Nota:",
       "noteSub": "Los precios son por persona y pueden variar según la disponibilidad y la fecha de reserva. Los descuentos para grupos se aplican automáticamente según el número de viajeros. <contactLink>Contáctanos</contactLink> para presupuestos personalizados o solicitudes especiales.",
       "affordable": "Asequible",
@@ -182,14 +175,20 @@
       "tour prices": "Precios del Tour",
       "startingFrom": "Desde",
       "mostChosen": "Más elegido",
-      "availableDates": "Fechas disponibles:",
-      "datesHint": "Selecciona un rango de fechas para ver los precios por tamaño de grupo.",
+      "datesHint": "Elige tu periodo de viaje para ver el precio según el tamaño de tu grupo.",
       "groupSizePricing": "Tamaño del grupo y precios",
       "person": "persona",
-      "accommodationTitle": "Alojamiento incluido:",
-      "season_summer": "Verano",
-      "season_winter": "Invierno",
-      "season_peak": "Navidad y Semana Santa"
+      "accommodationTitle": "Alojamientos incluidos:",
+      "season_peak": "Temporada alta",
+      "pricesByDate": "Precios por fecha de viaje",
+      "fromPerPerson": "Desde {{price}} por persona",
+      "season_low": "Temporada baja",
+      "season_regular": "Temporada media",
+      "seasonDesc_low": "Verano",
+      "seasonDesc_regular": "Invierno",
+      "seasonDesc_peak": "Festivos",
+      "holiday_christmas": "Navidad y Año Nuevo",
+      "holiday_easter": "Semana Santa"
     },
     "bookingForm": {
       "title": "Reservar este Tour",

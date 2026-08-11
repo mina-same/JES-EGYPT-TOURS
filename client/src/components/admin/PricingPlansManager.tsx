@@ -36,6 +36,7 @@ import CurrencyField from './CurrencyField';
 import { plansAllowedForKind, maxPlansForKind, type TourKind } from '@/lib/tours/tourKind';
 import { createEmptyPricingPlan } from '@/lib/tours/pricingPlans';
 import AccommodationsEditor from './AccommodationsEditor';
+import { classifySeason } from '@/lib/tours/seasonKind';
 
 interface PricingPlansManagerProps {
   pricingPlans: IPricingPlan[];
@@ -60,6 +61,17 @@ const PLAN_BG_CLASSES = [
   'bg-rose-50',
   'bg-violet-50',
 ] as const;
+
+/** The visitor-facing tier name for each season, so the admin and the tour
+ *  page speak the same language. 'unknown' covers a season whose dates the
+ *  classifier cannot place — it still prices normally, it just carries no tier
+ *  name, exactly as on the public page. */
+const ADMIN_SEASON_LABELS: Record<string, string> = {
+  low: 'Low Season · Summer',
+  regular: 'Regular Season · Winter',
+  peak: 'Peak Season · Holidays',
+  unknown: 'Season',
+};
 
 const SEASON_BG_CLASSES = [
   'bg-white/70',
@@ -486,12 +498,17 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                             seasonHasError && "border-red-400 ring-1 ring-red-300 shadow-red-50"
                                           )}
                                         >
-                                          {/* Season Header */}
+                                          {/* Season Header — named with the SAME tier the visitor
+                                              sees on the tour page. The admin used to show only
+                                              the raw date string while the public page called it
+                                              "Peak Season", so staff had to translate between two
+                                              vocabularies to know which box they were pricing. */}
                                           <div className={cn("p-3 border-b", seasonHasError ? "bg-red-50/50" : "bg-muted/30")}>
                                             <div className="flex items-center gap-2 mb-1">
                                               <Calendar className={cn("w-3.5 h-3.5", seasonHasError ? "text-red-500" : "text-primary")} />
                                               <span className={cn("text-xs font-semibold uppercase tracking-wider", seasonHasError ? "text-red-600" : "text-primary")}>
-                                                Season {seasonHasError && "⚠"}
+                                                {ADMIN_SEASON_LABELS[classifySeason(season.seasonName) ?? 'unknown']}
+                                                {seasonHasError && " ⚠"}
                                               </span>
                                             </div>
                                             <p className="text-sm font-bold leading-tight min-h-[2.5rem] flex items-center">

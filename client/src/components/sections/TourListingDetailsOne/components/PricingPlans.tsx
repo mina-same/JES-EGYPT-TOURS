@@ -7,7 +7,15 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { getLocalizedStaticPath } from "@/lib/url/staticSlugs";
 import StayIcon from "./StayIcon";
 import SeasonIcon from "./SeasonIcon";
-import { classifySeason, seasonLabelKey, type SeasonKind } from "@/lib/tours/seasonKind";
+import {
+  classifySeason,
+  holidayLabelKey,
+  seasonDescriptorKey,
+  seasonLabelKey,
+  splitSeasonWindows,
+  type HolidayKind,
+  type SeasonKind,
+} from "@/lib/tours/seasonKind";
 import {
   PRICE_TIERS,
   isUsableAmount,
@@ -20,8 +28,8 @@ interface PricingPlansProps {
   pricingPlans?: PricingPlan[];
 }
 
-/** Label key per group-size tier. The order here is only the tie-breaker —
- *  rows are sorted by what they actually cost. */
+/** Label key per group-size tier. Rows follow PRICE_TIERS order, smallest
+ *  party first. */
 const TIER_LABELS: Record<PriceTier, { key: string; fallback: string }> = {
   solo: { key: "tourDetails.pricing.soloTraveler", fallback: "Solo" },
   pax_2_4: { key: "tourDetails.pricing.pax2_4", fallback: "2-4 Pax" },
@@ -31,9 +39,21 @@ const TIER_LABELS: Record<PriceTier, { key: string; fallback: string }> = {
 
 /** English wording if a locale has not been given the key yet. */
 const SEASON_FALLBACKS: Record<SeasonKind, string> = {
-  summer: "Summer",
-  winter: "Winter",
-  peak: "Christmas & Easter",
+  low: "Low Season",
+  regular: "Regular Season",
+  peak: "Peak Season",
+};
+
+/** The weather word, kept as a subtitle beside the price-tier name. */
+const SEASON_DESCRIPTORS: Record<SeasonKind, string> = {
+  low: "Summer",
+  regular: "Winter",
+  peak: "Holidays",
+};
+
+const HOLIDAY_FALLBACKS: Record<HolidayKind, string> = {
+  christmas: "Christmas & New Year",
+  easter: "Easter",
 };
 
 /** The tier that visitors are steered toward. Fixed rather than an admin flag:
@@ -65,17 +85,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
   const activeIndex = Math.min(activePlan, plans.length - 1);
   const seasonKey = (planIdx: number, seasonIdx: number) => `${planIdx}:${seasonIdx}`;
 
-  /** Priced tiers for a season, cheapest first — the order the competitor's
-   *  layout uses and the one a visitor scanning for affordability wants. */
+  /** Priced tiers for a season, in group-size order: Solo, 2-4, 5-8, 9-16.
+   *  Sorting by price instead would put the largest group first, which is a
+   *  ladder the visitor has to read backwards — they know their own party size
+   *  and scan for it, so the row order has to match how the sizes count up. */
   const pricedTiers = (season: Season) =>
-    PRICE_TIERS.map((tier) => ({ tier, amounts: season.prices?.[tier] }))
-      .filter(({ amounts }) => {
-        const value = getPriceValue(amounts as any);
-        return isUsableAmount(value);
-      })
-      .sort(
-        (a, b) => getPriceValue(a.amounts as any) - getPriceValue(b.amounts as any)
-      );
+    PRICE_TIERS.map((tier) => ({ tier, amounts: season.prices?.[tier] })).filter(
+      ({ amounts }) => isUsableAmount(getPriceValue(amounts as any))
+    );
 
   /** The cheapest quotable amount in a plan — its "starting from". */
   const planFrom = (plan: PricingPlan) => {
@@ -148,13 +165,15 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
             </div>
 
             <div className="tour-pricing__dates">
+              {/* "Available Dates" was ambiguous — available to book? to
+                  depart? This says what the rows below actually do. */}
               <h4 className="tour-pricing__dates-title">
-                {t("tourDetails.pricing.availableDates", "Available Dates:")}
+                {t("tourDetails.pricing.pricesByDate", "Prices by Travel Date")}
               </h4>
               <p className="tour-pricing__dates-hint">
                 {t(
                   "tourDetails.pricing.datesHint",
-                  "Select a date range to view the prices for each group size."
+                  "Choose your travel period to see the price for your group size."
                 )}
               </p>
             </div>
@@ -165,6 +184,11 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                 const isOpen = !!openSeasons[key];
                 const tiers = pricedTiers(season);
                 const kind = classifySeason(season.seasonName);
+                const windows = splitSeasonWindows(season.seasonName, kind);
+                /** Cheapest tier IN THIS SEASON — what the collapsed row shows. */
+                const seasonFrom = tiers.length
+                  ? Math.min(...tiers.map(({ amounts }) => getPriceValue(amounts as any)))
+                  : 0;
 
                 return (
                   <div
@@ -182,10 +206,11 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                     >
                       {/* The season NAME leads and the dates follow as detail.
                           A visitor checking whether their trip fits reads
-                          "Summer" in a glance; parsing "1 September 2026 – 19
-                          December 2026 / 6 January 2027 – 24 March 2027" to
-                          reach the same answer takes real effort. The dates
-                          stay in full underneath — they are the contract. */}
+                          "Peak Season" in a glance; parsing a two-part range
+                          spanning two years to reach the same answer takes real
+                          effort. The dates stay in full underneath — they are
+                          the contract, and each window gets its own line so two
+                          periods read as two, not as one string with a slash. */}
                       <span
                         className={`tour-pricing__season-badge${kind ? ` is-${kind}` : ""}`}
                         aria-hidden="true"
@@ -196,17 +221,37 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                         {kind && (
                           <span className="tour-pricing__season-kind">
                             {t(seasonLabelKey(kind), SEASON_FALLBACKS[kind])}
+                            <span className="tour-pricing__season-desc">
+                              {t(seasonDescriptorKey(kind), SEASON_DESCRIPTORS[kind])}
+                            </span>
                           </span>
                         )}
-                        <span className="tour-pricing__season-dates">
-                          {t(
-                            `tourDetails.pricing.${season.seasonName.toLowerCase()}`,
-                            season.seasonName
-                          )}
-                        </span>
+                        {windows.map((window, windowIdx) => (
+                          <span key={windowIdx} className="tour-pricing__season-dates">
+                            {window.holiday && (
+                              <strong className="tour-pricing__season-holiday">
+                                {t(holidayLabelKey(window.holiday), HOLIDAY_FALLBACKS[window.holiday])}
+                                {" · "}
+                              </strong>
+                            )}
+                            {window.dates}
+                          </span>
+                        ))}
                       </span>
+                      {/* The price BEFORE opening: without it the only way to
+                          compare three seasons is to open all three. */}
+                      {seasonFrom > 0 && (
+                        <span className="tour-pricing__season-from">
+                          {t("tourDetails.pricing.fromPerPerson", "From {{price}} per person", {
+                            price: formatPrice(seasonFrom),
+                          })}
+                        </span>
+                      )}
+                      {/* One glyph, rotated by CSS. Swapping between the up and
+                          down icons would change the class mid-transition, and a
+                          glyph swap cannot be animated. */}
                       <i
-                        className={`fas fa-chevron-${isOpen ? "up" : "down"} tour-pricing__season-chevron`}
+                        className="fas fa-chevron-down tour-pricing__season-chevron"
                         aria-hidden="true"
                       />
                     </button>
@@ -218,36 +263,45 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                       id={`pricing-season-${key.replace(":", "-")}`}
                       className="tour-pricing__season-body"
                     >
-                      <p className="tour-pricing__group-title">
-                        {t("tourDetails.pricing.groupSizePricing", "Group Size & Pricing")}
-                      </p>
-                      <dl className="tour-pricing__rows">
-                        {tiers.map(({ tier, amounts }) => (
-                          <div key={tier} className="tour-pricing__row">
-                            <dt className="tour-pricing__row-label">
-                              {t(TIER_LABELS[tier].key, TIER_LABELS[tier].fallback)}
-                            </dt>
-                            <dd className="tour-pricing__row-price">
-                              <strong>{formatPrice(amounts as any)}</strong>
-                              <span className="tour-pricing__row-unit">
-                                {" / "}
-                                {t("tourDetails.pricing.person", "person")}
-                              </span>
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-
-                      {season.notes && season.notes.length > 0 && (
-                        <div className="tour-pricing__season-notes">
-                          {season.notes.map((note, noteIdx) => (
-                            <p key={noteIdx}>
-                              {note.title && <strong>{note.title}: </strong>}
-                              {note.text}
-                            </p>
+                      {/* Two wrappers, both load-bearing: the outer one clips
+                          the rows as the season collapses, and the inner one
+                          holds the padding. Padding on the clipping element is
+                          not clipped with it — it would survive as a strip of
+                          blank space under a closed season. */}
+                      <div className="tour-pricing__season-body-inner">
+                        <div className="tour-pricing__season-body-content">
+                        <p className="tour-pricing__group-title">
+                          {t("tourDetails.pricing.groupSizePricing", "Group Size & Pricing")}
+                        </p>
+                        <dl className="tour-pricing__rows">
+                          {tiers.map(({ tier, amounts }) => (
+                            <div key={tier} className="tour-pricing__row">
+                              <dt className="tour-pricing__row-label">
+                                {t(TIER_LABELS[tier].key, TIER_LABELS[tier].fallback)}
+                              </dt>
+                              <dd className="tour-pricing__row-price">
+                                <strong>{formatPrice(amounts as any)}</strong>
+                                <span className="tour-pricing__row-unit">
+                                  {" / "}
+                                  {t("tourDetails.pricing.person", "person")}
+                                </span>
+                              </dd>
+                            </div>
                           ))}
+                        </dl>
+
+                        {season.notes && season.notes.length > 0 && (
+                          <div className="tour-pricing__season-notes">
+                            {season.notes.map((note, noteIdx) => (
+                              <p key={noteIdx}>
+                                {note.title && <strong>{note.title}: </strong>}
+                                {note.text}
+                              </p>
+                            ))}
+                          </div>
+                        )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 );
