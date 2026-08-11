@@ -175,7 +175,7 @@
       "perPerson": "pro Person",
       "planNotes": "Wichtige Planhinweise",
       "noteTitle": "Hinweis:",
-      "noteSub": "Die Preise verstehen sich pro Person und können je nach Verfügbarkeit und Buchungsdatum variieren. Gruppenrabatte werden automatisch basierend auf der Anzahl der Reisenden angewendet. Kontaktieren Sie uns für individuelle Angebote oder Sonderwünsche.",
+      "noteSub": "Die Preise verstehen sich pro Person und können je nach Verfügbarkeit und Buchungsdatum variieren. Gruppenrabatte werden automatisch basierend auf der Anzahl der Reisenden angewendet. <contactLink>Kontaktieren Sie uns</contactLink> für individuelle Angebote oder Sonderwünsche.",
       "affordable": "Erschwinglich",
       "gold (5 star standard)": "Gold (5 Sterne Standard)",
       "diamond (5 star luxury)": "Diamant (5 Sterne Luxus)",
@@ -186,7 +186,10 @@
       "datesHint": "Wählen Sie einen Zeitraum, um die Preise je Gruppengröße zu sehen.",
       "groupSizePricing": "Gruppengröße & Preise",
       "person": "Person",
-      "accommodationTitle": "Inbegriffene Unterkünfte:"
+      "accommodationTitle": "Inbegriffene Unterkünfte:",
+      "season_summer": "Sommer",
+      "season_winter": "Winter",
+      "season_peak": "Weihnachten & Ostern"
     },
     "bookingForm": {
       "title": "Diese Tour buchen",

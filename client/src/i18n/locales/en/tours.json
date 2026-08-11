@@ -168,7 +168,7 @@
       "perPerson": "per person",
       "planNotes": "Important Plan Notes",
       "noteTitle": "Note:",
-      "noteSub": "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. Contact us for custom quotes or special requests.",
+      "noteSub": "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. <contactLink>Contact us</contactLink> for custom quotes or special requests.",
       "affordable": "Affordable",
       "gold (5 star standard)": "Gold (5 Star Standard)",
       "diamond (5 star luxury)": "Diamond (5 Star Luxury)",
@@ -179,7 +179,10 @@
       "datesHint": "Select a date range to view the prices for each group size.",
       "groupSizePricing": "Group Size & Pricing",
       "person": "person",
-      "accommodationTitle": "Included Accommodation Options:"
+      "accommodationTitle": "Included Accommodation Options:",
+      "season_summer": "Summer",
+      "season_winter": "Winter",
+      "season_peak": "Christmas & Easter"
     },
     "bookingForm": {
       "title": "Book This Tour",

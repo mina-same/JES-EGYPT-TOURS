@@ -1,9 +1,13 @@
 "use client";
 import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import Link from "next/link";
+import { Trans, useTranslation } from "react-i18next";
 import { PricingPlan, Season } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { getLocalizedStaticPath } from "@/lib/url/staticSlugs";
 import StayIcon from "./StayIcon";
+import SeasonIcon from "./SeasonIcon";
+import { classifySeason, seasonLabelKey, type SeasonKind } from "@/lib/tours/seasonKind";
 import {
   PRICE_TIERS,
   isUsableAmount,
@@ -25,14 +29,25 @@ const TIER_LABELS: Record<PriceTier, { key: string; fallback: string }> = {
   pax_9_16: { key: "tourDetails.pricing.pax9_16", fallback: "9-16 Pax" },
 };
 
+/** English wording if a locale has not been given the key yet. */
+const SEASON_FALLBACKS: Record<SeasonKind, string> = {
+  summer: "Summer",
+  winter: "Winter",
+  peak: "Christmas & Easter",
+};
+
 /** The tier that visitors are steered toward. Fixed rather than an admin flag:
  *  it is the same tier on every package, and a per-tour switch would be one
  *  more field to keep in sync for no editorial gain. */
 const isMostChosen = (planName: string) => planName.toUpperCase().startsWith("GOLD");
 
 export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
-  const { t } = useTranslation("tours");
+  const { t, i18n } = useTranslation("tours");
   const { formatPrice, getPriceValue } = useCurrency();
+  const contactHref = getLocalizedStaticPath(
+    "contact",
+    i18n.resolvedLanguage || i18n.language
+  );
 
   /** Only plans with something to quote. An unpriced tier gets no tab at all,
    *  rather than a tab leading to an empty panel. */
@@ -149,6 +164,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                 const key = seasonKey(planIdx, seasonIdx);
                 const isOpen = !!openSeasons[key];
                 const tiers = pricedTiers(season);
+                const kind = classifySeason(season.seasonName);
 
                 return (
                   <div
@@ -164,12 +180,30 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                         setOpenSeasons((prev) => ({ ...prev, [key]: !prev[key] }))
                       }
                     >
-                      <i className="far fa-calendar-alt" aria-hidden="true" />
+                      {/* The season NAME leads and the dates follow as detail.
+                          A visitor checking whether their trip fits reads
+                          "Summer" in a glance; parsing "1 September 2026 – 19
+                          December 2026 / 6 January 2027 – 24 March 2027" to
+                          reach the same answer takes real effort. The dates
+                          stay in full underneath — they are the contract. */}
+                      <span
+                        className={`tour-pricing__season-badge${kind ? ` is-${kind}` : ""}`}
+                        aria-hidden="true"
+                      >
+                        {kind ? <SeasonIcon kind={kind} /> : <i className="far fa-calendar-alt" />}
+                      </span>
                       <span className="tour-pricing__season-name">
-                        {t(
-                          `tourDetails.pricing.${season.seasonName.toLowerCase()}`,
-                          season.seasonName
+                        {kind && (
+                          <span className="tour-pricing__season-kind">
+                            {t(seasonLabelKey(kind), SEASON_FALLBACKS[kind])}
+                          </span>
                         )}
+                        <span className="tour-pricing__season-dates">
+                          {t(
+                            `tourDetails.pricing.${season.seasonName.toLowerCase()}`,
+                            season.seasonName
+                          )}
+                        </span>
                       </span>
                       <i
                         className={`fas fa-chevron-${isOpen ? "up" : "down"} tour-pricing__season-chevron`}
@@ -263,10 +297,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
         <i className="fas fa-lightbulb" aria-hidden="true" />
         <span>
           <strong>{t("tourDetails.pricing.noteTitle", "Note:")}</strong>{" "}
-          {t(
-            "tourDetails.pricing.noteSub",
-            "Prices are per person and may vary based on availability and booking date."
-          )}
+          <Trans
+            i18nKey="tourDetails.pricing.noteSub"
+            ns="tours"
+            defaults="Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. <contactLink>Contact us</contactLink> for custom quotes or special requests."
+            components={{
+              contactLink: <Link href={contactHref} />,
+            }}
+          />
         </span>
       </p>
     </div>

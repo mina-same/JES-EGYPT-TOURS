@@ -5117,6 +5117,18 @@ button[data-action="stop"] {
   color: #8f7333;
 }
 
+.tour-pricing__footnote a {
+  color: #8f7333;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tour-pricing__footnote a:hover,
+.tour-pricing__footnote a:focus-visible {
+  color: #6f571f;
+}
+
 @media (max-width: 991px) {
   .tour-pricing__panel {
     padding: 16px;
@@ -5411,4 +5423,84 @@ button[data-action="stop"] {
 }
 .group:hover .blog-card-minimal__title {
   color: var(--jes-gold, #b79c5c);
+}
+
+/* Season row: the season NAME is the scan target, the date range is the
+   detail underneath it. Reading "Summer" is instant; parsing a two-part date
+   range spanning two years is not, and that parse was the only way to know
+   which season a trip fell in. */
+.tour-pricing__season-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #f2f4f7;
+  color: #6b7280;
+}
+
+/* One tint per season, so the three rows are told apart before a word is
+   read. Warm for summer, cool for the mild months, brand gold for the
+   premium festive window. */
+.tour-pricing__season-badge.is-summer {
+  background: #fdf1dc;
+  color: #a8681a;
+}
+
+.tour-pricing__season-badge.is-winter {
+  background: #e8f1f8;
+  color: #2f6690;
+}
+
+.tour-pricing__season-badge.is-peak {
+  background: #f6f1e4;
+  color: #8f7333;
+}
+
+.tour-pricing__season-name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tour-pricing__season-kind {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #16283c;
+}
+
+/* Lighter and smaller than the season name: still fully legible, but no
+   longer competing with it for the first glance. */
+.tour-pricing__season-dates {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+/* An open season gets its tint on the whole header, tying the panel to the
+   row that opened it. */
+.tour-pricing__season.is-open .tour-pricing__season-kind {
+  color: #8f7333;
+}
+
+@media (max-width: 991px) {
+  .tour-pricing__season-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+
+  .tour-pricing__season-kind {
+    font-size: 14px;
+  }
+
+  .tour-pricing__season-dates {
+    font-size: 12px;
+  }
 }
