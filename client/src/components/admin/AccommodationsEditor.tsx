@@ -29,7 +29,7 @@ const ICON_LABELS: Record<AccommodationIcon, string> = {
   cruise: 'Nile Cruise',
   sea: 'Red Sea / Beach',
   desert: 'Desert / Oasis',
-  nubian: 'Nubian House (Aswan)',
+  colonnade: 'Colonnade (Aswan)',
   hotel: 'Hotel (generic)',
 };
 
@@ -43,7 +43,7 @@ const ICON_LABELS: Record<AccommodationIcon, string> = {
 const ICON_HINTS: Array<[RegExp, AccommodationIcon]> = [
   [/giza|pyramid|haram/i, 'pyramids'],
   [/cruise|felucca|dahabiya|\bboat\b|\bm\/?s\b|nile/i, 'cruise'],
-  [/aswan|nubian?|elephantine|sehel/i, 'nubian'],
+  [/aswan|nubian?|elephantine|sehel/i, 'colonnade'],
   [/luxor|abu ?simbel|karnak|edfu|kom ?ombo|philae|temple|valley of/i, 'temple'],
   [/hurghada|sharm|marsa|dahab|taba|sahl|red ?sea|beach|coast|alamein|soma|gouna/i, 'sea'],
   [/siwa|oasis|desert|bahariya|farafra|safari|fayoum/i, 'desert'],

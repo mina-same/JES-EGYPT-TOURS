@@ -61,7 +61,8 @@
       "gallery": "Gallery",
       "brochure": "Brochure",
       "faq": "FAQ",
-      "map": "Map"
+      "map": "Map",
+      "whatToPack": "Packing"
     },
     "mapTitle": "Tour Location Map",
     "highlightList": "Highlight List",

@@ -28,7 +28,7 @@ import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { planHasPrices } from "@/lib/tours/startingPrice";
-import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { normalizeAmenityItems, isOrderedListContent } from "@/lib/normalizeAmenityItems";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
@@ -365,7 +365,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
          Notes, What to Pack and What You Will Love have no tab, so tracking them
          would leave every tab unlit while they are on screen. Falling through to
          the nearest preceding tracked section is the wanted behaviour. */
-      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'gallery', 'download-pdf', 'faqs', 'honest-reviews'];
+      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'what-to-pack', 'gallery', 'download-pdf', 'faqs', 'honest-reviews'];
 
       // Find the current active section
       for (const sectionId of sections) {
@@ -483,10 +483,16 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     () => normalizeAmenityItems(amenitiesTwo).map((item) => richText(item)),
     [richText, amenitiesTwo]
   );
+  const whatToPackOrdered = React.useMemo(
+    () => isOrderedListContent(tourData.whatToPack),
+    [tourData.whatToPack]
+  );
   const whatToPackItems = React.useMemo(
     () => normalizeAmenityItems(tourData.whatToPack).map((item) => richText(item)),
     [richText, tourData.whatToPack]
   );
+  const whatToPackListClass =
+    "tour-pack__list" + (whatToPackOrdered ? " tour-pack__list--ordered" : "");
   const highlightItems = React.useMemo(
     () => normalizeAmenityItems(highlightList).map((item) => richText(item)),
     [richText, highlightList]
@@ -643,6 +649,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       so the tab used to scroll to an EmptyState. */}
                   {images && images.length > 0 && (
                     <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
+                  )}
+                  {/* Guarded like the map and gallery tabs: only tours that
+                      actually carry a packing list get the tab. */}
+                  {whatToPackItems.length > 0 && (
+                    <a href="#what-to-pack" className={`tour-nav-link ${activeSection === 'what-to-pack' ? 'active' : ''}`}>{t("tourDetails.nav.whatToPack", "Packing")}</a>
                   )}
                   <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
                   <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
@@ -880,27 +891,27 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* What to Pack Section */}
                 {whatToPackItems.length > 0 && (
                   <section id="what-to-pack" className="tour-section">
-                    <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{
-                      backgroundColor: 'rgba(183, 156, 92, 0.02)',
-                      border: '1px solid rgba(183, 156, 92, 0.1)',
-                      borderRight: '4px solid #b79c5c'
-                    }}>
+                    <div className="tour-listing-details__content__item tour-pack p-3 p-md-4 rounded-3 shadow-sm">
                       <div className="mb-3 d-flex align-items-center justify-content-between">
-                        <h2 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
-                          <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }} aria-hidden="true"></i>
+                        <h2 className="tour-listing-details__title tour-pack__title m-0 d-flex align-items-center gap-2">
+                          <i className="fas fa-suitcase tour-pack__icon" aria-hidden="true"></i>
                           {t("tourDetails.whatToPack", "What to Pack")}
                         </h2>
                       </div>
-                      <div className="row g-2">
-                        {whatToPackItems.map((item, index) => (
-                          <div key={index} className="col-md-6 col-lg-4 mb-2">
-                            <div className="d-flex align-items-center gap-2">
-                               <div style={{ width: '5px', height: '5px', backgroundColor: '#b79c5c', borderRadius: '50%' }}></div>
-                               <span className="text-dark html-content" style={{ fontSize: '0.9rem' }} dangerouslySetInnerHTML={{ __html: item }} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {/* A list in the markup, not only in the styling: the
+                          content is authored as a list, so a screen reader
+                          should announce it as one. */}
+                      {React.createElement(
+                        whatToPackOrdered ? "ol" : "ul",
+                        { className: whatToPackListClass },
+                        whatToPackItems.map((item, index) => (
+                          <li
+                            key={index}
+                            className="tour-pack__item html-content"
+                            dangerouslySetInnerHTML={{ __html: item }}
+                          />
+                        ))
+                      )}
                     </div>
                   </section>
                 )}

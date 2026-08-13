@@ -32,3 +32,22 @@ export const normalizeAmenityItems = (value: unknown): string[] => {
       .filter(Boolean);
   });
 };
+
+/**
+ * True when the stored content is a numbered list rather than bullets.
+ *
+ * Quill writes both as <ol>, telling them apart only by data-list on each item,
+ * so rendering every <ol> as bullets silently drops the numbering from any list
+ * an editor deliberately numbered.
+ */
+export const isOrderedListContent = (value: unknown): boolean => {
+  const item = Array.isArray(value) ? value[0] : value;
+  const raw =
+    typeof item === "object" && item !== null && "en" in item
+      ? String((item as { en?: unknown }).en ?? "")
+      : String(item ?? "");
+
+  if (/data-list\s*=\s*["']?ordered/i.test(raw)) return true;
+  // Older content has no data-list at all: <ol> means numbered, <ul> bullets.
+  return /<ol[\s>]/i.test(raw) && !/data-list/i.test(raw);
+};

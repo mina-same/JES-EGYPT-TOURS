@@ -1,6 +1,12 @@
 const DEFAULT_SITE_URL = "https://www.jesegypttours.com";
 
 const ANCHOR_TAG_PATTERN = /<a\b([^>]*)>/gi;
+/** Quill puts an empty <span class="ql-ui"> inside every list item as an editor
+ *  affordance. It holds no content, so shipping it adds one dead element to the
+ *  DOM per bullet -- 38 of them on a single tour page -- and puts editor markup
+ *  in front of crawlers. */
+const EDITOR_UI_SPAN_PATTERN =
+  /<span\b[^>]*\bclass\s*=\s*(["'])[^"']*\bql-ui\b[^"']*\1[^>]*>\s*<\/span>/gi;
 const HREF_ATTRIBUTE_PATTERN = /\bhref\s*=\s*(["'])(.*?)\1/i;
 const TARGET_ATTRIBUTE_PATTERN = /\s+target\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const REL_ATTRIBUTE_PATTERN = /\s+rel\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
@@ -73,7 +79,7 @@ export function normalizeRichTextInternalLinks(
   html: string | null | undefined,
   siteUrl = process.env.NEXT_PUBLIC_BASE_URL || DEFAULT_SITE_URL
 ): string {
-  const value = String(html ?? "");
+  const value = String(html ?? "").replace(EDITOR_UI_SPAN_PATTERN, "");
   if (!value) return "";
 
   let site: URL;
