@@ -70,6 +70,18 @@ const GLYPHS: Record<string, React.ReactNode> = {
       <path d="M1 21.5h22" strokeLinecap="round" />
     </>
   ),
+  /* Domed Nubian house — Aswan. Every other glyph in this set names a
+     monument; this one names a dwelling, which is what the column is actually
+     about. It also keeps Aswan clear of the obelisk, which reads as Luxor, and
+     of the felucca, which the Cruise row already owns. */
+  nubian: (
+    <>
+      <path d="M5 12.5a7 7 0 0 1 14 0" />
+      <path d="M5 12.5V21M19 12.5V21" />
+      <path d="M9.8 21v-3.6a2.2 2.2 0 0 1 4.4 0V21" />
+      <path d="M2 21.5h20" strokeLinecap="round" />
+    </>
+  ),
   // Generic stay.
   hotel: (
     <>

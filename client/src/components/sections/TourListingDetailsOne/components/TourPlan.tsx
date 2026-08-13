@@ -13,6 +13,26 @@ interface TourPlanProps {
 export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
   const { t } = useTranslation("tours");
 
+  /* Same reasoning as the parent page: scrolling re-renders this tree whenever
+     the sticky bar or the active tab flips, and re-running the link pass over
+     every activity description each time is wasted work. Both memos sit above
+     the early return so the hook order stays stable when there is no itinerary. */
+  const generalDescriptionHtml = React.useMemo(
+    () => normalizeRichTextInternalLinks(itinerary?.generalDescription),
+    [itinerary?.generalDescription]
+  );
+  const days = React.useMemo(
+    () =>
+      (itinerary?.days || []).map((day) => ({
+        ...day,
+        activities: (day.activities || []).map((activity) => ({
+          ...activity,
+          description: normalizeRichTextInternalLinks(activity.description),
+        })),
+      })),
+    [itinerary?.days]
+  );
+
   if (!itinerary || !itinerary.days || itinerary.days.length === 0) {
     return null;
   }
@@ -21,18 +41,16 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
     <div className='tour-listing-details__content__item tour-listing-details__ture-plan'>
       <h2 className='tour-listing-details__title'>{t("tourDetails.nav.tourPlan", "Tour Plan")}</h2>
       
-      {itinerary.generalDescription && (
-        <div 
+      {generalDescriptionHtml && (
+        <div
           className="html-content mb-4"
-          dangerouslySetInnerHTML={{
-            __html: normalizeRichTextInternalLinks(itinerary.generalDescription),
-          }}
+          dangerouslySetInnerHTML={{ __html: generalDescriptionHtml }}
         />
       )}
 
       <div className='faq-page__accordion faq-accordion gotur-accordion'>
         <Accordion defaultActiveKey={['0']} alwaysOpen>
-          {itinerary.days.map((day, idx) => (
+          {days.map((day, idx) => (
             <Accordion.Item eventKey={idx.toString()} key={idx}>
               <Accordion.Header as="div">
                 <div className='accordion-title'>
@@ -164,9 +182,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                                 lineHeight: '1.7',
                                 margin: 0
                               }}
-                              dangerouslySetInnerHTML={{
-                                __html: normalizeRichTextInternalLinks(activity.description),
-                              }}
+                              dangerouslySetInnerHTML={{ __html: activity.description }}
                             />
                           </div>
                         </div>

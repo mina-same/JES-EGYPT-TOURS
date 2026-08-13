@@ -222,6 +222,7 @@ export const ACCOMMODATION_ICONS = [
   'cruise',
   'sea',
   'desert',
+  'nubian',
   'hotel',
 ] as const;
 export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];

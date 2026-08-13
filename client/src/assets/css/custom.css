@@ -2613,14 +2613,15 @@ body {
 .text-google-blue { color: #0a2b4b; }
 .text-tripadvisor-green { color: #34E0A1; }
 .text-feefo-gray { color: #4B5563; }
-/* What You Will Love Section */
+/* What You Will Love Section.
+   Only the margin is still live. The padding, radius, amber background, amber
+   border and amber text colour were left over from an earlier design and were
+   all being overridden anyway — padding and radius by the Bootstrap utilities
+   on the element (`.p-4`/`.p-md-5` and `.rounded-4` carry `!important`),
+   background and border by the inline gradient, and the colour by the inline
+   `#333` on the text container. */
 .tour-listing-details__what-you-love {
   margin-top: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  background-color: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #92400e;
 }
 
 /* ==========================================================================
@@ -3494,7 +3495,71 @@ div[suppressHydrationWarning] {
   outline-offset: 3px;
   border-radius: 2px;
 }
-.html-content strong, 
+/* Author-written headings and paragraphs inside rich text.
+   Tailwind's preflight resets every h1-h6 to `font-size: inherit; font-weight:
+   inherit` and strips margins from headings AND paragraphs. Loaded after both
+   Bootstrap's reboot and gotur.css, it won: a heading written in the editor
+   rendered at body size and weight, and with `line-height` around 1.9 two
+   wrapped lines of one sentence ended up further apart than a paragraph and the
+   heading following it. These rules are class-scoped (0,1,1), so they outrank
+   that element-level reset wherever the cascade puts them.
+   Sizes are in `em`, not `px`, so the same stored content reads correctly in a
+   14px itinerary entry and in a 16px description block.
+   Scoped to `.html-content` only. Blog article bodies deliberately keep their
+   own typography — `.blog-details-card__text h3/p/ul/ol` in DynamicBlogDetails'
+   `<style jsx global>` block — and styled-jsx injects that at runtime, so where
+   it lands relative to this file is not something the served HTML can settle.
+   Adding the blog wrapper here risked silently overriding that design. */
+.html-content h1,
+.html-content h2,
+.html-content h3,
+.html-content h4,
+.html-content h5,
+.html-content h6 {
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 1.75em 0 0.5em;
+}
+
+.html-content h1 {
+  font-size: 1.5em;
+}
+.html-content h2 {
+  font-size: 1.3em;
+}
+.html-content h3 {
+  font-size: 1.15em;
+}
+.html-content h4 {
+  font-size: 1.05em;
+}
+.html-content h5,
+.html-content h6 {
+  font-size: 1em;
+}
+
+/* Some tours store `<h3><strong>…</strong></h3>` and others plain `<h3>`, and
+   the German copy uses the wrapped form where the English does not. Without
+   this the two render at different weights, so the same section looks different
+   from one tour or one language to the next. */
+.html-content :is(h1, h2, h3, h4, h5, h6) :is(strong, b) {
+  font-weight: inherit !important;
+}
+
+.html-content p {
+  margin: 0 0 1em;
+}
+
+/* The container's own padding owns the outer edges; a first heading must not
+   push the block down and a last paragraph must not pad it out. */
+.html-content > :first-child {
+  margin-top: 0;
+}
+.html-content > :last-child {
+  margin-bottom: 0;
+}
+
+.html-content strong,
 .html-content b {
   font-weight: 800 !important;
 }

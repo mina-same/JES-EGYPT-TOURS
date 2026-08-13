@@ -13,9 +13,6 @@
     "reset": "Restablecer"
   },
   "listing": {
-    "showingWithFilters": "Mostrando resultados con filtros",
-    "showingAll": "Mostrando todos los tours",
-    "clear": "Borrar",
     "sortBy": "Ordenar por",
     "sortOptions": {
       "newest": "Más nuevos",
@@ -29,19 +26,13 @@
     "noToursSubcategory": "No se encontraron tours en esta subcategoría."
   },
   "status": {
-    "loading": "Cargando...",
     "notFound": "No encontrado",
     "categoryNotFound": "Categoría no encontrada",
     "subcategoryNotFound": "Subcategoría no encontrada",
-    "noVideoInfo": "Este tour aún no tiene videos de reseñas.",
-    "noVideoTitle": "Sin videos de reseñas",
-    "failedVideo": "Error de red o del servidor. Inténtelo de nuevo.",
-    "failedVideoTitle": "Error al cargar los videos",
     "errorFetching": "Se produjo un error",
     "networkError": "Error de red. Por favor, comprueba tu conexión e inténtalo de nuevo."
   },
   "breadcrumb": {
-    "destination": "Destino",
     "category": "Categoría"
   },
   "fallback": {
@@ -70,22 +61,16 @@
       "gallery": "Visita la Galería",
       "brochure": "Descargar Folleto",
       "faq": "Preguntas Frecuentes",
-      "map": "Explorar el Mapa",
-      "honestReviews": "Revisiones Reflexivas y Honestas"
+      "map": "Explorar el Mapa"
     },
     "mapTitle": "Mapa de Ubicación del Tour",
     "highlightList": "Lista de Destacados",
     "amenitiesTitle": "Servicios del Tour",
-    "amenitiesSubtitle": "Lista completa de lo que se proporciona para tu viaje cómodo.",
-    "included": "Qué no está incluido (pero se puede organizar fácilmente)",
-    "notIncluded": "Qué No Está Incluido",
+    "included": "Qué está incluido",
+    "notIncluded": "Qué no está incluido (pero se puede organizar fácilmente)",
     "empty": {
       "amenitiesTitle": "Sin Información de Servicios",
       "amenitiesDesc": "Actualmente no se enumeran servicios ni inclusiones/exclusiones para este recorrido.",
-      "pricingTitle": "No Hay Planes de Precios",
-      "pricingDesc": "Actualmente no hay planes de precios disponibles para este recorrido.",
-      "galleryTitle": "No Hay Imágenes en Galería",
-      "galleryDesc": "Este tour actualmente no tiene imágenes en la galería disponibles.",
       "faqTitle": "Sin Preguntas Frecuentes",
       "faqDesc": "Actualmente no hay preguntas frecuentes para este recorrido."
     },
@@ -114,14 +99,8 @@
       "span": "Tours",
       "subtitle": "Descubre más experiencias asombrosas"
     },
-    "partners": {
-      "title": "Nuestros Socios de Viaje",
-      "subtitle": "Colaboramos con socios de viaje locales e internacionales de confianza"
-    },
     "readMore": "Leer más",
     "readLess": "Leer menos",
-    "showAll": "Mostrar todo",
-    "showLess": "Mostrar menos",
     "whatYouWillLove": "¿Qué te encantará de este tour?",
     "whatToPack": "Qué empacar",
     "importantNotes": "Notas importantes",
@@ -159,7 +138,8 @@
         "whatsapp": "WhatsApp",
         "email": "Correo electrónico",
         "available": "Disponible"
-      }
+      },
+      "inclusionsExclusions": "Incluido y No Incluido"
     },
     "pricing": {
       "soloTraveler": "1 pax",
