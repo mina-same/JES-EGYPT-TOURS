@@ -31,7 +31,17 @@ const sanitizeHTML = (val: string | any): string => {
     .replace(/on\w+='[^']*'/gi, '')
     .replace(/javascript:/gi, '')
     .replace(/vbscript:/gi, '')
-    .replace(/data:/gi, '');
+    .replace(/data:/gi, '')
+    /* Dropping H1 from the toolbar hides the button but does not close the
+       door: Quill's clipboard converts a pasted <h1> — from Word, Google Docs,
+       another site — into header level 1 all the same, because `formats`
+       whitelists 'header' as one format and cannot single out a level. Demoting
+       here catches the paste path and, since this also runs over the incoming
+       `value`, quietly corrects records written before the toolbar changed. H2
+       rather than H3 because this editor is shared by every content type and H2
+       is the one level that is a safe body heading everywhere. */
+    .replace(/<h1(\s[^>]*)?>/gi, '<h2$1>')
+    .replace(/<\/h1\s*>/gi, '</h2>');
 
   return normalizeRichTextInternalLinks(sanitized);
 };
@@ -53,7 +63,11 @@ export default function RichTextEditor({
   const modules = useMemo(
     () => ({
       toolbar: [
-        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        /* H1 is deliberately absent. Every public page already has exactly one
+           <h1> — the page title in PageHeader, the article title on a blog —
+           and a second one written inside a body field competes with it. The
+           remaining levels are enough for any body structure. */
+        [{ header: [2, 3, 4, 5, 6, false] }],
         ['bold', 'italic', 'underline', 'strike', 'blockquote'],
         [
           { list: 'ordered' },

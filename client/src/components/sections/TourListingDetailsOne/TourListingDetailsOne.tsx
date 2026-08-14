@@ -30,6 +30,7 @@ import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { planHasPrices } from "@/lib/tours/startingPrice";
 import { normalizeAmenityItems, isOrderedListContent, bindLeadingDash } from "@/lib/normalizeAmenityItems";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
+import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
@@ -475,6 +476,15 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     () => richText(tourData.whatYouWillLoveHtml),
     [richText, tourData.whatYouWillLoveHtml]
   );
+  /* One element per benefit so the section can lay them out two across. Null
+     when the content is not a clean run of headed benefits — an intro
+     paragraph before the first heading, a wrapper element around the lot, a
+     single benefit — and the section falls back to the one-column block it has
+     always rendered. */
+  const whatYouWillLoveSections = React.useMemo(
+    () => splitRichTextByHeading(whatYouWillLoveHtml),
+    [whatYouWillLoveHtml]
+  );
   const includedAmenityItems = React.useMemo(
     () => normalizeAmenityItems(amenities).map((item) => richText(item)),
     [richText, amenities]
@@ -858,32 +868,26 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {noteItems.length > 0 && (
                   <section id="important-notes" className="tour-section">
                     <div className="mb-4 d-flex align-items-center gap-2">
-                      <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
-                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
+                      <div className="tour-note__bar" aria-hidden="true"></div>
+                      <h2 className="tour-listing-details__title tour-note__heading m-0">
                         {t("tourDetails.importantNotes", "Important Notes")}
                       </h2>
                     </div>
                     <div className="d-flex flex-column gap-3">
                       {noteItems.map((note, index) => (
                         <div key={index} className="tour-note-item">
+                          {/* A heading, not a styled span: these are the
+                              subheadings of the section and belong in the
+                              document outline. */}
                           {note.title && (
-                            <div className="mb-1">
-                              <span className="fw-bold fs-7 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.05em', color: '#b79c5c' }}>
-                                {note.title}
-                              </span>
-                            </div>
+                            <h3 className="tour-note__title">{note.title}</h3>
                           )}
                           <div
-                            className="text-muted tour-listing-details__text html-content"
-                            style={{
-                              fontSize: '0.925rem',
-                              lineHeight: '1.6',
-                              color: '#555 !important'
-                            }}
+                            className="tour-note__text tour-listing-details__text html-content"
                             dangerouslySetInnerHTML={{ __html: note.text }}
                           />
                           {index < noteItems.length - 1 && (
-                            <hr className="mt-3 mb-0 opacity-10" />
+                            <hr className="tour-note__divider" />
                           )}
                         </div>
                       ))}
@@ -971,10 +975,22 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         </div>
                       </div>
 
-                      <div
-                        className='tour-listing-details__text html-content'
-                        dangerouslySetInnerHTML={{ __html: whatYouWillLoveHtml }}
-                      />
+                      {whatYouWillLoveSections ? (
+                        <div className='tour-listing-details__text tour-listing-details__what-you-love__grid'>
+                          {whatYouWillLoveSections.map((section, index) => (
+                            <div
+                              key={index}
+                              className='html-content'
+                              dangerouslySetInnerHTML={{ __html: section }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          className='tour-listing-details__text html-content'
+                          dangerouslySetInnerHTML={{ __html: whatYouWillLoveHtml }}
+                        />
+                      )}
                     </div>
                   </section>
                 )}

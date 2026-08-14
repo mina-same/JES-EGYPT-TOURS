@@ -2659,9 +2659,10 @@ body {
      the ratio and blurs exactly the grouping this is meant to create. The
      paragraph above ends on its own 1em bottom margin; the two collapse, so
      32px is the gap, not 32px plus that.
-     Horizontal: the container is padded 52px (40px badge + 12px gap) and the
-     heading pulls back out of it, so heading text and the paragraph beneath it
-     start on the same line while the badge hangs to the left of both. The
+     Horizontal: the `.html-content` block is padded 52px (40px badge + 12px
+     gap) and the heading pulls back out of it, so its text and the paragraph
+     beneath it start on the same line while the badge hangs to the left of
+     both. The
      section previously had three left edges — badges and paragraphs at one,
      benefit headings at another, the section title at a third — and that ragged
      column was the first thing the eye caught. */
@@ -2707,20 +2708,53 @@ body {
   font-size: 17px;
   line-height: 1.68;
   color: #333;
+}
+
+/* The badge gutter. On `.html-content` rather than the wrapper because in the
+   two-column layout each cell is its own `.html-content` and needs its own
+   hanging column; in the single-column fallback both classes sit on the same
+   element, so it is applied exactly once either way. */
+.tour-listing-details__what-you-love .html-content {
   padding-left: 52px;
+}
+
+/* Two columns from 992px. The section's container is far wider than any
+   comfortable line length — over 1000px of usable width against a measure that
+   should stop somewhere near 800 — so a single column left a quarter of the
+   card empty wherever the cap was set. Splitting the benefits uses that width
+   instead of capping it away, and halves the height of the section.
+   Grid rather than CSS multi-column: the benefits arrive as a flat run of
+   heading-then-paragraph siblings, and multicol would break between a heading
+   and its own text. TourListingDetailsOne splits them into one element per
+   benefit first, which also makes `break-*` support irrelevant.
+   Grid at every width, not just desktop: the cells carry no margins of their
+   own — the headings' 32px top margin is zeroed by the `:first-child` rule
+   inside each cell — so `row-gap` is what separates one benefit from the next,
+   and 32px matches the rhythm the single-column layout had. */
+.tour-listing-details__what-you-love__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 32px;
+}
+
+@media (min-width: 992px) {
+  .tour-listing-details__what-you-love__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 40px;
+    row-gap: 36px;
+  }
 }
 
 /* Line length. The column runs the full content width here, which put these
    paragraphs past 100 characters a line — well beyond the 60-80 the eye tracks
-   without losing its place on the return sweep, and it showed most on the
-   longer benefits. 76ch and not less: the card is far wider than any readable
-   measure, so a tighter cap left a band of dead space down the right that read
-   as truncated text rather than as margin. This is the number to move if the
-   balance wants adjusting — the useful range is roughly 70ch to 82ch, below
-   which the gap reappears and above which the cap stops doing anything.
-   `ch` rather than px so the measure follows the font size through the mobile
-   step below. Lists are capped too: a long bullet has the same problem as a
-   long sentence. */
+   without losing its place on the return sweep.
+   Since the two-column layout landed this rarely binds: a column is around
+   460px of text, well inside the cap. It still earns its place as the guard for
+   the single-column fallback, which is what content that is not a clean run of
+   headed benefits renders as, and it is what holds the line on a wide tablet in
+   portrait. `ch` rather than px so the measure follows the font size through
+   the mobile step below. Lists are capped too: a long bullet has the same
+   problem as a long sentence. */
 .tour-listing-details__what-you-love .html-content :is(p, ul, ol) {
   max-width: 76ch;
 }
@@ -2741,6 +2775,9 @@ body {
 
   .tour-listing-details__what-you-love .tour-listing-details__text {
     font-size: 16px;
+  }
+
+  .tour-listing-details__what-you-love .html-content {
     padding-left: 0;
   }
 
@@ -5822,4 +5859,49 @@ button[data-action="stop"] {
   .tour-pack__list {
     columns: 1;
   }
+}
+
+/* ── Important Notes ─────────────────────────────────────────────────────
+   Was styled entirely inline, with a `fs-7` class Bootstrap does not define
+   and a `text-muted` class the inline colour had to override with !important.
+   The class carried no rules of its own at all. */
+.tour-note__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background-color: #b79c5c;
+}
+
+.tour-note__heading {
+  font-size: 1.15rem;
+}
+
+/* #b79c5c reads 2.65:1 on white. These labels are 12px, where AA asks for
+   4.5:1, so the gold is taken down to the darkest step that still belongs to
+   the brand: 4.82:1 on white, 4.70:1 on the tinted cards. */
+.tour-note__title {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8a6e30;
+}
+
+.tour-note__text {
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* The editor's last paragraph still carries a bottom margin, which stacked on
+   top of the divider's own spacing. */
+.tour-note__text > :last-child {
+  margin-bottom: 0;
+}
+
+.tour-note__divider {
+  margin: 12px 0 0;
+  opacity: 0.1;
 }
