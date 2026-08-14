@@ -2618,10 +2618,132 @@ body {
    border and amber text colour were left over from an earlier design and were
    all being overridden anyway — padding and radius by the Bootstrap utilities
    on the element (`.p-4`/`.p-md-5` and `.rounded-4` carry `!important`),
-   background and border by the inline gradient, and the colour by the inline
-   `#333` on the text container. */
+   background and border by the inline gradient, and the colour by the rule
+   below, which now owns the body typography for this section. */
 .tour-listing-details__what-you-love {
   margin-top: 1.5rem;
+}
+
+/* `margin-bottom` replaces a `mb-4` (24px). The benefits are 32px apart, so at
+   24px the first one sat closer to the section header than to its own siblings
+   — the header read as part of the list instead of above it. 36px clears them.
+   `gap` replaces a `gap-4`, also 24px, and matches the 12px between a benefit
+   badge and its heading. The two indents still differ, because the section star
+   is 58px against the badges' 40px and no gap value can close an 18px gulf in
+   icon size; at least both now derive from the same spacing step rather than
+   two unrelated numbers. Both properties live here because Bootstrap utilities
+   carry `!important` and would win from the class list. */
+.tour-listing-details__what-you-love__header {
+  margin-bottom: 36px;
+  gap: 12px;
+}
+
+/* Sparkle badge in front of every benefit heading inside the section.
+   The headings come out of the rich-text editor through
+   `dangerouslySetInnerHTML`, so there is no element to hang a React icon on —
+   the badge is a `::before` on whatever heading level the author happened to
+   use. Deliberately the same mark on every benefit rather than one icon per
+   point: it ties the list together instead of trying to label each item.
+   Sizing is the second tier of the hierarchy: 40px here against the section's
+   58px star, so the two never read as equals. The sparkle is an inline SVG data
+   URI rather than a glyph like U+2726 — that character is missing from several
+   of the fallback fonts and drops to a tofu box when it is. */
+.tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Vertical: fixed px rather than the em margins `.html-content` uses
+     everywhere else. The whole point of this pair is the contrast between them
+     — 9px binds a benefit to its own paragraph, 32px separates it from the next
+     one — and em values scale both ends with the heading size, which narrows
+     the ratio and blurs exactly the grouping this is meant to create. The
+     paragraph above ends on its own 1em bottom margin; the two collapse, so
+     32px is the gap, not 32px plus that.
+     Horizontal: the container is padded 52px (40px badge + 12px gap) and the
+     heading pulls back out of it, so heading text and the paragraph beneath it
+     start on the same line while the badge hangs to the left of both. The
+     section previously had three left edges — badges and paragraphs at one,
+     benefit headings at another, the section title at a third — and that ragged
+     column was the first thing the eye caught. */
+  margin: 32px 0 9px -52px;
+}
+
+.tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6)::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  /* The fill is gold-on-gold — the section's own gradient is already tinted, so
+     the badge had no edge of its own in the lighter areas. A hairline at 0.18
+     defines it without adding weight. */
+  background-color: rgba(183, 156, 92, 0.1);
+  border: 1px solid rgba(183, 156, 92, 0.18);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b79c5c'%3E%3Cpath d='M12 1.5c.55 5.4 4.6 9.45 10 10-5.4.55-9.45 4.6-10 10-.55-5.4-4.6-9.45-10-10 5.4-.55 9.45-4.6 10-10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 18px 18px;
+}
+
+/* `.html-content > :first-child`/`:last-child` zero the outer margins so the
+   container's padding owns the edges, but at (0,2,0) they lose to the rule
+   above. Restated here at (0,3,0) — without them a leading heading would push
+   32px away from the section's own header. */
+.tour-listing-details__what-you-love .html-content > :first-child {
+  margin-top: 0;
+}
+
+.tour-listing-details__what-you-love .html-content > :last-child {
+  margin-bottom: 0;
+}
+
+/* Body copy: 17px on a 1.68 leading. The section inherited 16px/1.9 from a
+   design that held two or three lines; tours now run five or six benefits, and
+   at that length the loose leading stopped reading as a paragraph and started
+   reading as separate lines. Overrides the theme's 16px/175% on
+   `.tour-listing-details__text` — custom.css loads after gotur.css, and the
+   descendant selector outranks it either way. */
+.tour-listing-details__what-you-love .tour-listing-details__text {
+  font-size: 17px;
+  line-height: 1.68;
+  color: #333;
+  padding-left: 52px;
+}
+
+/* Line length. The column runs the full content width here, which put these
+   paragraphs past 100 characters a line — well beyond the 60-80 the eye tracks
+   without losing its place on the return sweep, and it showed most on the
+   longer benefits. 76ch and not less: the card is far wider than any readable
+   measure, so a tighter cap left a band of dead space down the right that read
+   as truncated text rather than as margin. This is the number to move if the
+   balance wants adjusting — the useful range is roughly 70ch to 82ch, below
+   which the gap reappears and above which the cap stops doing anything.
+   `ch` rather than px so the measure follows the font size through the mobile
+   step below. Lists are capped too: a long bullet has the same problem as a
+   long sentence. */
+.tour-listing-details__what-you-love .html-content :is(p, ul, ol) {
+  max-width: 76ch;
+}
+
+/* The section drops to `p-4` below md, so the badge gives back a little width
+   on the narrowest screens where a heading is most likely to wrap. */
+@media (max-width: 575.98px) {
+  .tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6) {
+    gap: 10px;
+    margin-left: 0;
+  }
+
+  .tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6)::before {
+    width: 38px;
+    height: 38px;
+    background-size: 17px 17px;
+  }
+
+  .tour-listing-details__what-you-love .tour-listing-details__text {
+    font-size: 16px;
+    padding-left: 0;
+  }
+
 }
 
 /* ==========================================================================
@@ -5617,9 +5739,15 @@ button[data-action="stop"] {
 }
 
 /* Columns rather than a wrapping grid: a grid row is as tall as its tallest
-   item, so a one-line entry beside a three-line one left a 43px hole. */
+   item, so a one-line entry beside a three-line one left a 43px hole.
+
+   Two columns, not three. Each entry carries an explanation after its bold
+   term, and at three columns that prose ran 31 characters to the line -- well
+   under the 45-75 that reads comfortably -- which pushed entries to four lines
+   apiece. Two columns give 47, and the section comes out SHORTER despite the
+   wider measure, because far fewer entries wrap. */
 .tour-pack__list {
-  columns: 3;
+  columns: 2;
   column-gap: 28px;
   margin: 0;
   padding: 0;
@@ -5650,6 +5778,20 @@ button[data-action="stop"] {
   background-color: #b79c5c;
 }
 
+/* The term is what the reader scans for and the explanation is support, but
+   both were the same near-black and separated by weight alone. */
+.tour-pack__item strong,
+.tour-pack__item b {
+  color: #16283c;
+}
+
+/* Stops an entry ending on a single stranded word. The em dash is kept off
+   the start of a line separately -- see the non-breaking space applied when
+   the items are prepared. */
+.tour-pack__item {
+  text-wrap: pretty;
+}
+
 .tour-pack__item:last-child {
   margin-block-end: 0;
 }
@@ -5670,7 +5812,6 @@ button[data-action="stop"] {
 
 @media (max-width: 991px) {
   .tour-pack__list {
-    columns: 2;
     column-gap: 22px;
   }
 }

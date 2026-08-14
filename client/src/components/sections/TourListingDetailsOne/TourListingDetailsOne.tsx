@@ -28,7 +28,7 @@ import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { planHasPrices } from "@/lib/tours/startingPrice";
-import { normalizeAmenityItems, isOrderedListContent } from "@/lib/normalizeAmenityItems";
+import { normalizeAmenityItems, isOrderedListContent, bindLeadingDash } from "@/lib/normalizeAmenityItems";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
@@ -488,7 +488,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     [tourData.whatToPack]
   );
   const whatToPackItems = React.useMemo(
-    () => normalizeAmenityItems(tourData.whatToPack).map((item) => richText(item)),
+    () =>
+      normalizeAmenityItems(tourData.whatToPack).map((item) =>
+        bindLeadingDash(richText(item))
+      ),
     [richText, tourData.whatToPack]
   );
   const whatToPackListClass =
@@ -927,27 +930,42 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       position: 'relative',
                       overflow: 'hidden'
                     }}>
-                      {/* Premium Background Element. aria-hidden because a screen
-                          reader otherwise announces it as "gem stone" in the
-                          middle of the section heading. */}
+                      {/* Decorative watermark: the same four-pointed sparkle the
+                          benefit badges use, so the mark repeats at three scales
+                          down the section. It replaced a 💎 character, which the
+                          OS emoji font drew — grey-blue on Windows, bright blue
+                          on macOS, different again on Android — so the shape was
+                          never the one that had been signed off on. Drawing it
+                          also drops the screen-reader problem the character had:
+                          it was announced as "gem stone" mid-heading.
+                          Opacity is 0.08 against the character's 0.04 because a
+                          flat single-tone gold reads far fainter than a shaded
+                          emoji at the same value — 0.06 was tried first and all
+                          but disappeared. The intent is the presence the emoji
+                          had, not more. This is the number to turn if it wants
+                          to be quieter. */}
                       <div aria-hidden="true" style={{
                         position: 'absolute',
                         top: '-20px',
                         right: '-20px',
-                        fontSize: '160px',
-                        opacity: '0.04',
+                        width: '160px',
+                        height: '160px',
+                        opacity: 0.08,
                         transform: 'rotate(-15deg)',
-                        userSelect: 'none',
                         pointerEvents: 'none'
-                      }}>💎</div>
+                      }}>
+                        <svg viewBox="0 0 24 24" width="160" height="160" fill="#b79c5c" focusable="false">
+                          <path d="M12 1.5c.55 5.4 4.6 9.45 10 10-5.4.55-9.45 4.6-10 10-.55-5.4-4.6-9.45-10-10 5.4-.55 9.45-4.6 10-10z" />
+                        </svg>
+                      </div>
 
-                      <div className="d-flex align-items-center gap-4 mb-4">
-                        <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style={{ width: '54px', height: '54px' }}>
-                          <i className="icon-star" aria-hidden="true" style={{ fontSize: '24px', color: '#b79c5c' }}></i>
+                      <div className="tour-listing-details__what-you-love__header d-flex align-items-center">
+                        <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '58px', height: '58px' }}>
+                          <i className="icon-star" aria-hidden="true" style={{ fontSize: '26px', color: '#b79c5c' }}></i>
                         </div>
                         <div>
                           <h2 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
-                            {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
+                            {t("tourDetails.whatYouWillLove", "What You'll Love About This Tour")}
                           </h2>
                           <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
                         </div>
@@ -955,12 +973,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
                       <div
                         className='tour-listing-details__text html-content'
-                        style={{
-                          color: '#333',
-                          lineHeight: '1.9',
-                          fontSize: '1rem',
-                          fontWeight: '400'
-                        }}
                         dangerouslySetInnerHTML={{ __html: whatYouWillLoveHtml }}
                       />
                     </div>
