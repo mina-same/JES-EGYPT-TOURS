@@ -301,7 +301,7 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
           </div>
           
           <div>
-            <h4 style={{
+            <h2 style={{
               margin: 0,
               fontSize: 24,
               fontWeight: 800,
@@ -310,7 +310,7 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
               letterSpacing: '-0.3px'
             }}>
               {t("tourDetails.brochure.title", "Download Tour Brochure")}
-            </h4>
+            </h2>
             <p style={{
               margin: '8px 0 0',
               fontSize: 16,
