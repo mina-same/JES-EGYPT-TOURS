@@ -28,8 +28,9 @@ import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { planHasPrices } from "@/lib/tours/startingPrice";
-import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
+import { normalizeAmenityItems, isOrderedListContent, bindLeadingDash } from "@/lib/normalizeAmenityItems";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
+import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
@@ -332,15 +333,27 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       setIsSidebarParked(layout.canFix && layout.reachedEnd);
     };
 
-    const onScroll = () => {
+    const measure = () => {
       updateFixedState();
       updateSidebarFixed();
     };
 
-    onScroll();
+    /* Same reason as the scroll spy: both helpers read layout, so at most one
+       pass per frame rather than one per scroll event. */
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        measure();
+      });
+    };
+
+    measure();
     window.addEventListener("scroll", onScroll, { passive: true } as any);
     window.addEventListener("resize", onScroll);
     return () => {
+      if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll as any);
       window.removeEventListener("resize", onScroll);
     };
@@ -348,8 +361,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
   // Handle scroll spy and smooth scroll
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'gallery', 'download-pdf', 'faqs', 'honest-reviews'];
+    const readActiveSection = () => {
+      /* Deliberately the nav tabs, not every section on the page: Important
+         Notes, What to Pack and What You Will Love have no tab, so tracking them
+         would leave every tab unlit while they are on screen. Falling through to
+         the nearest preceding tracked section is the wanted behaviour. */
+      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'what-to-pack', 'gallery', 'download-pdf', 'faqs', 'honest-reviews'];
 
       // Find the current active section
       for (const sectionId of sections) {
@@ -394,10 +411,24 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    /* Coalesced into one animation frame and registered passive. It used to run
+       on every scroll event, and each run does up to nine getBoundingClientRect
+       reads that force synchronous layout; without `passive` a non-passive
+       listener on `scroll` can also hold up the scroll itself. */
+    let frame = 0;
+    const handleScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        readActiveSection();
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('click', handleClick);
 
     return () => {
+      if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClick);
     };
@@ -430,10 +461,63 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   /** Plans existing is not the same as prices existing: a plan is created the
    *  moment a tour is set up, long before anyone fills in amounts. */
   const hasQuotablePricing = (pricingPlans || []).some(planHasPrices);
-  const includedAmenityItems = normalizeAmenityItems(amenities);
-  const excludedAmenityItems = normalizeAmenityItems(amenitiesTwo);
-  const whatToPackItems = normalizeAmenityItems(tourData.whatToPack);
-  const highlightItems = normalizeAmenityItems(highlightList);
+  /* Link normalisation is a regex pass over every rich-text field on the page —
+     around 60 of them here. Scrolling re-renders this component whenever the
+     sticky bar, the sidebar or the active tab flips, so the passes are memoised
+     on the source strings instead of running again each time. Note the explicit
+     arrow: passing the function straight to `.map` would hand it the array index
+     as its `siteUrl` argument. */
+  const richText = React.useCallback(
+    (html: string | null | undefined) => normalizeRichTextInternalLinks(html),
+    []
+  );
+  const overviewHtml = React.useMemo(() => richText(overview), [richText, overview]);
+  const whatYouWillLoveHtml = React.useMemo(
+    () => richText(tourData.whatYouWillLoveHtml),
+    [richText, tourData.whatYouWillLoveHtml]
+  );
+  /* One element per benefit so the section can lay them out two across. Null
+     when the content is not a clean run of headed benefits — an intro
+     paragraph before the first heading, a wrapper element around the lot, a
+     single benefit — and the section falls back to the one-column block it has
+     always rendered. */
+  const whatYouWillLoveSections = React.useMemo(
+    () => splitRichTextByHeading(whatYouWillLoveHtml),
+    [whatYouWillLoveHtml]
+  );
+  const includedAmenityItems = React.useMemo(
+    () => normalizeAmenityItems(amenities).map((item) => richText(item)),
+    [richText, amenities]
+  );
+  const excludedAmenityItems = React.useMemo(
+    () => normalizeAmenityItems(amenitiesTwo).map((item) => richText(item)),
+    [richText, amenitiesTwo]
+  );
+  const whatToPackOrdered = React.useMemo(
+    () => isOrderedListContent(tourData.whatToPack),
+    [tourData.whatToPack]
+  );
+  const whatToPackItems = React.useMemo(
+    () =>
+      normalizeAmenityItems(tourData.whatToPack).map((item) =>
+        bindLeadingDash(richText(item))
+      ),
+    [richText, tourData.whatToPack]
+  );
+  const whatToPackListClass =
+    "tour-pack__list" + (whatToPackOrdered ? " tour-pack__list--ordered" : "");
+  const highlightItems = React.useMemo(
+    () => normalizeAmenityItems(highlightList).map((item) => richText(item)),
+    [richText, highlightList]
+  );
+  const noteItems = React.useMemo(
+    () => (tourData.notes || []).map((note) => ({ ...note, text: richText(note.text) })),
+    [richText, tourData.notes]
+  );
+  const faqItems = React.useMemo(
+    () => (faqs || []).map((faq) => ({ ...faq, answer: richText(faq.answer) })),
+    [richText, faqs]
+  );
 
   if (loading) {
     return <TourListingDetailsOneSkeleton />;
@@ -579,6 +663,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   {images && images.length > 0 && (
                     <a href="#gallery" className={`tour-nav-link ${activeSection === 'gallery' ? 'active' : ''}`}>{t("tourDetails.nav.gallery")}</a>
                   )}
+                  {/* Guarded like the map and gallery tabs: only tours that
+                      actually carry a packing list get the tab. */}
+                  {whatToPackItems.length > 0 && (
+                    <a href="#what-to-pack" className={`tour-nav-link ${activeSection === 'what-to-pack' ? 'active' : ''}`}>{t("tourDetails.nav.whatToPack", "Packing")}</a>
+                  )}
                   <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
                   <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
                   {/* No "Reviews" tab: the section it pointed at is gone. The video
@@ -613,7 +702,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       <div
                         className='tour-listing-details__text html-content'
                         style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
-                        dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(overview) }}
+                        dangerouslySetInnerHTML={{ __html: overviewHtml }}
                       />
                     </div>
 
@@ -661,7 +750,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             }}>
                               <i className='icon-check-star' style={{ color: '#b79c5c', fontSize: '12px' }}></i>
                             </div>
-                            <span className="text-dark fw-medium html-content" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
+                            <span className="text-dark fw-medium html-content" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: item }} />
                           </div>
                         </li>
                       ))}
@@ -722,7 +811,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {includedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-check" aria-hidden="true" />
-                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
+                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: item }} />
                                   </li>
                                 ))}
                               </ul>
@@ -739,7 +828,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {excludedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-times text-danger" aria-hidden="true" />
-                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
+                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: item }} />
                                   </li>
                                 ))}
                               </ul>
@@ -776,35 +865,29 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 )}
                 
                 {/* Important Notes Section */}
-                {tourData.notes && tourData.notes.length > 0 && (
+                {noteItems.length > 0 && (
                   <section id="important-notes" className="tour-section">
                     <div className="mb-4 d-flex align-items-center gap-2">
-                      <div style={{ width: '3px', height: '18px', backgroundColor: '#b79c5c' }}></div>
-                      <h2 className='tour-listing-details__title m-0' style={{ fontSize: '1.15rem' }}>
+                      <div className="tour-note__bar" aria-hidden="true"></div>
+                      <h2 className="tour-listing-details__title tour-note__heading m-0">
                         {t("tourDetails.importantNotes", "Important Notes")}
                       </h2>
                     </div>
                     <div className="d-flex flex-column gap-3">
-                      {tourData.notes?.map((note, index) => (
+                      {noteItems.map((note, index) => (
                         <div key={index} className="tour-note-item">
+                          {/* A heading, not a styled span: these are the
+                              subheadings of the section and belong in the
+                              document outline. */}
                           {note.title && (
-                            <div className="mb-1">
-                              <span className="fw-bold fs-7 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.05em', color: '#b79c5c' }}>
-                                {note.title}
-                              </span>
-                            </div>
+                            <h3 className="tour-note__title">{note.title}</h3>
                           )}
                           <div
-                            className="text-muted tour-listing-details__text html-content"
-                            style={{
-                              fontSize: '0.925rem',
-                              lineHeight: '1.6',
-                              color: '#555 !important'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(note.text) }}
+                            className="tour-note__text tour-listing-details__text html-content"
+                            dangerouslySetInnerHTML={{ __html: note.text }}
                           />
-                          {index < (tourData.notes?.length || 0) - 1 && (
-                            <hr className="mt-3 mb-0 opacity-10" />
+                          {index < noteItems.length - 1 && (
+                            <hr className="tour-note__divider" />
                           )}
                         </div>
                       ))}
@@ -815,27 +898,27 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* What to Pack Section */}
                 {whatToPackItems.length > 0 && (
                   <section id="what-to-pack" className="tour-section">
-                    <div className='tour-listing-details__content__item p-3 p-md-4 rounded-3 shadow-sm' style={{
-                      backgroundColor: 'rgba(183, 156, 92, 0.02)',
-                      border: '1px solid rgba(183, 156, 92, 0.1)',
-                      borderRight: '4px solid #b79c5c'
-                    }}>
+                    <div className="tour-listing-details__content__item tour-pack p-3 p-md-4 rounded-3 shadow-sm">
                       <div className="mb-3 d-flex align-items-center justify-content-between">
-                        <h2 className='tour-listing-details__title m-0 d-flex align-items-center gap-2' style={{ fontSize: '1.2rem' }}>
-                          <i className="fas fa-suitcase text-primary" style={{ color: '#b79c5c', fontSize: '1rem' }} aria-hidden="true"></i>
+                        <h2 className="tour-listing-details__title tour-pack__title m-0 d-flex align-items-center gap-2">
+                          <i className="fas fa-suitcase tour-pack__icon" aria-hidden="true"></i>
                           {t("tourDetails.whatToPack", "What to Pack")}
                         </h2>
                       </div>
-                      <div className="row g-2">
-                        {whatToPackItems.map((item, index) => (
-                          <div key={index} className="col-md-6 col-lg-4 mb-2">
-                            <div className="d-flex align-items-center gap-2">
-                               <div style={{ width: '5px', height: '5px', backgroundColor: '#b79c5c', borderRadius: '50%' }}></div>
-                               <span className="text-dark html-content" style={{ fontSize: '0.9rem' }} dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(item) }} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {/* A list in the markup, not only in the styling: the
+                          content is authored as a list, so a screen reader
+                          should announce it as one. */}
+                      {React.createElement(
+                        whatToPackOrdered ? "ol" : "ul",
+                        { className: whatToPackListClass },
+                        whatToPackItems.map((item, index) => (
+                          <li
+                            key={index}
+                            className="tour-pack__item html-content"
+                            dangerouslySetInnerHTML={{ __html: item }}
+                          />
+                        ))
+                      )}
                     </div>
                   </section>
                 )}
@@ -843,46 +926,71 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* What You Will Love — sits between What to Pack and the gallery */}
                 {tourData.whatYouWillLoveHtml && (
                   <section id="what-you-will-love" className="tour-section">
-                    <div className="tour-listing-details__what-you-love p-5 rounded-4 shadow-sm" style={{
+                    {/* p-4 up to md, p-5 above: the flat p-5 spent 96px of a
+                        360px screen on horizontal padding. */}
+                    <div className="tour-listing-details__what-you-love p-4 p-md-5 rounded-4 shadow-sm" style={{
                       background: 'linear-gradient(135deg, rgba(183, 156, 92, 0.08) 0%, rgba(183, 156, 92, 0.03) 100%)',
                       border: '1px solid rgba(183, 156, 92, 0.15)',
                       position: 'relative',
                       overflow: 'hidden'
                     }}>
-                      {/* Premium Background Element */}
-                      <div style={{
+                      {/* Decorative watermark: the same four-pointed sparkle the
+                          benefit badges use, so the mark repeats at three scales
+                          down the section. It replaced a 💎 character, which the
+                          OS emoji font drew — grey-blue on Windows, bright blue
+                          on macOS, different again on Android — so the shape was
+                          never the one that had been signed off on. Drawing it
+                          also drops the screen-reader problem the character had:
+                          it was announced as "gem stone" mid-heading.
+                          Opacity is 0.08 against the character's 0.04 because a
+                          flat single-tone gold reads far fainter than a shaded
+                          emoji at the same value — 0.06 was tried first and all
+                          but disappeared. The intent is the presence the emoji
+                          had, not more. This is the number to turn if it wants
+                          to be quieter. */}
+                      <div aria-hidden="true" style={{
                         position: 'absolute',
                         top: '-20px',
                         right: '-20px',
-                        fontSize: '160px',
-                        opacity: '0.04',
+                        width: '160px',
+                        height: '160px',
+                        opacity: 0.08,
                         transform: 'rotate(-15deg)',
-                        userSelect: 'none',
                         pointerEvents: 'none'
-                      }}>💎</div>
+                      }}>
+                        <svg viewBox="0 0 24 24" width="160" height="160" fill="#b79c5c" focusable="false">
+                          <path d="M12 1.5c.55 5.4 4.6 9.45 10 10-5.4.55-9.45 4.6-10 10-.55-5.4-4.6-9.45-10-10 5.4-.55 9.45-4.6 10-10z" />
+                        </svg>
+                      </div>
 
-                      <div className="d-flex align-items-center gap-4 mb-4">
-                        <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center" style={{ width: '54px', height: '54px' }}>
-                          <i className="icon-star" style={{ fontSize: '24px', color: '#b79c5c' }}></i>
+                      <div className="tour-listing-details__what-you-love__header d-flex align-items-center">
+                        <div className="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '58px', height: '58px' }}>
+                          <i className="icon-star" aria-hidden="true" style={{ fontSize: '26px', color: '#b79c5c' }}></i>
                         </div>
                         <div>
                           <h2 className="m-0 fs-5 fw-bold text-dark" style={{ letterSpacing: '0.01em' }}>
-                            {t("tourDetails.whatYouWillLove", "What You Will Love about this tour?")}
+                            {t("tourDetails.whatYouWillLove", "What You'll Love About This Tour")}
                           </h2>
                           <div style={{ width: '40px', height: '3px', borderRadius: '2px', backgroundColor: '#b79c5c', marginTop: '4px' }}></div>
                         </div>
                       </div>
 
-                      <div
-                        className='tour-listing-details__text html-content'
-                        style={{
-                          color: '#333',
-                          lineHeight: '1.9',
-                          fontSize: '1rem',
-                          fontWeight: '400'
-                        }}
-                        dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(tourData.whatYouWillLoveHtml) }}
-                      />
+                      {whatYouWillLoveSections ? (
+                        <div className='tour-listing-details__text tour-listing-details__what-you-love__columns'>
+                          {whatYouWillLoveSections.map((section, index) => (
+                            <div
+                              key={index}
+                              className='html-content'
+                              dangerouslySetInnerHTML={{ __html: section }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          className='tour-listing-details__text html-content'
+                          dangerouslySetInnerHTML={{ __html: whatYouWillLoveHtml }}
+                        />
+                      )}
                     </div>
                   </section>
                 )}
@@ -1001,7 +1109,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
                 {/* FAQs Section */}
                 <section id="faqs" className="tour-section">
-                  {faqs && faqs.length > 0 ? (
+                  {faqItems.length > 0 ? (
                     <div className='tour-listing-details__content__item tour-listing-details__faqs'>
                       <div className="mb-4">
                         <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.faqTitle")}</h2>
@@ -1022,7 +1130,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                               array, so the full Q&A text ships in the server HTML
                               and stays crawlable — and keeps matching the FAQPage
                               JSON-LD, which Google requires to be page-visible. */}
-                          {faqs.map((faq, index) => {
+                          {faqItems.map((faq, index) => {
                             const eventKey = String(index);
                             const isOpen = faqActiveKey === eventKey;
                             const isBeyondFold = index >= FAQ_VISIBLE_COUNT;
@@ -1056,7 +1164,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 <Accordion.Body>
                                   <div className="accordion-content">
                                     <div className="inner">
-                                      <div className="inner__text html-content" dangerouslySetInnerHTML={{ __html: normalizeRichTextInternalLinks(faq.answer) }} />
+                                      <div className="inner__text html-content" dangerouslySetInnerHTML={{ __html: faq.answer }} />
                                     </div>
                                   </div>
                                 </Accordion.Body>
@@ -1065,7 +1173,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           })}
                         </Accordion>
 
-                        {faqs.length > FAQ_VISIBLE_COUNT && (
+                        {faqItems.length > FAQ_VISIBLE_COUNT && (
                           <button
                             type="button"
                             className="faq-toggle-btn"
@@ -1076,7 +1184,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             <span>
                               {showAllFaqs
                                 ? t("tourDetails.faqShowLess")
-                                : t("tourDetails.faqShowMore", { remaining: faqs.length - FAQ_VISIBLE_COUNT })}
+                                : t("tourDetails.faqShowMore", { remaining: faqItems.length - FAQ_VISIBLE_COUNT })}
                             </span>
                             <ChevronDown
                               size={18}

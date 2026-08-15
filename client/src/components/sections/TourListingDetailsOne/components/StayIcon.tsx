@@ -70,6 +70,20 @@ const GLYPHS: Record<string, React.ReactNode> = {
       <path d="M1 21.5h22" strokeLinecap="round" />
     </>
   ),
+  /* Colonnade — Aswan. A horizontal rhythm of columns, so it separates from
+     Luxor's single vertical shaft at a glance, and it carries the same
+     monumental tone as the rest of the set. A dwelling was tried first and
+     read as budget lodging next to the four- and five-star hotels listed
+     beside it. */
+  colonnade: (
+    <>
+      <path d="M4.5 6.5h15" />
+      <path d="M3 9.5h18" strokeLinecap="round" />
+      <path d="M6.5 9.5V18.5M12 9.5V18.5M17.5 9.5V18.5" />
+      <path d="M4.5 18.5h15" strokeLinecap="round" />
+      <path d="M2 21.5h20" strokeLinecap="round" />
+    </>
+  ),
   // Generic stay.
   hotel: (
     <>
@@ -83,7 +97,7 @@ const GLYPHS: Record<string, React.ReactNode> = {
 
 /** Values stored under the earlier, coarser enum. Mapped rather than migrated:
  *  the meaning is unchanged, and old rows should keep rendering. */
-const LEGACY: Record<string, string> = { beach: "sea", resort: "hotel" };
+const LEGACY: Record<string, string> = { beach: "sea", resort: "hotel", nubian: "colonnade" };
 
 export const StayIcon: React.FC<{ name?: string }> = ({ name }) => {
   const key = LEGACY[name || ""] || name || "hotel";

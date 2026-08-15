@@ -13,9 +13,6 @@
     "reset": "Reset"
   },
   "listing": {
-    "showingWithFilters": "Showing results with filters",
-    "showingAll": "Showing all tours",
-    "clear": "Clear",
     "sortBy": "Sort by",
     "sortOptions": {
       "newest": "Newest",
@@ -29,19 +26,13 @@
     "noToursSubcategory": "No tours found in this subcategory."
   },
   "status": {
-    "loading": "Loading...",
     "notFound": "Not Found",
     "categoryNotFound": "Category not found",
     "subcategoryNotFound": "Subcategory not found",
-    "noVideoInfo": "This tour doesn’t have any reflective & honest review videos yet.",
-    "noVideoTitle": "No video reviews",
-    "failedVideo": "Network or server error. Please try again.",
-    "failedVideoTitle": "Failed to load videos",
     "errorFetching": "An error occurred",
     "networkError": "Network error. Please check your connection and try again."
   },
   "breadcrumb": {
-    "destination": "Destination",
     "category": "Category"
   },
   "fallback": {
@@ -71,21 +62,16 @@
       "brochure": "Brochure",
       "faq": "FAQ",
       "map": "Map",
-      "honestReviews": "Reflective & Honest Reviews"
+      "whatToPack": "Packing"
     },
     "mapTitle": "Tour Location Map",
     "highlightList": "Highlight List",
     "amenitiesTitle": "What’s Included & Not Included",
-    "amenitiesSubtitle": "Comprehensive list of what's provided for your comfortable journey.",
-    "included": "What’s is Included",
+    "included": "What’s Included",
     "notIncluded": "What’s Not Included (But Easily Arranged)",
     "empty": {
       "amenitiesTitle": "No Amenities Information",
       "amenitiesDesc": "There are currently no amenities or inclusions/exclusions listed for this tour.",
-      "pricingTitle": "No Pricing Plans Available",
-      "pricingDesc": "There are currently no pricing plans available for this tour.",
-      "galleryTitle": "No Gallery Images",
-      "galleryDesc": "This tour currently has no gallery images available.",
       "faqTitle": "No FAQs Available",
       "faqDesc": "There are currently no frequently asked questions for this tour."
     },
@@ -114,15 +100,9 @@
       "span": "Tours",
       "subtitle": "Discover more amazing experiences"
     },
-    "partners": {
-      "title": "Our Travel Partners",
-      "subtitle": "We collaborate with trusted local and international travel partners"
-    },
     "readMore": "Read More",
     "readLess": "Read Less",
-    "showAll": "Show All",
-    "showLess": "Show Less",
-    "whatYouWillLove": "What You Will Love about this tour?",
+    "whatYouWillLove": "What You'll Love About This Tour",
     "whatToPack": "What to Pack",
     "importantNotes": "Important Notes",
     "day": "Day",
@@ -159,7 +139,8 @@
         "whatsapp": "WhatsApp",
         "email": "Email",
         "available": "Available"
-      }
+      },
+      "inclusionsExclusions": "What’s Included & Not Included"
     },
     "pricing": {
       "soloTraveler": "Solo",

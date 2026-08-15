@@ -1,6 +1,20 @@
 const DEFAULT_SITE_URL = "https://www.jesegypttours.com";
 
 const ANCHOR_TAG_PATTERN = /<a\b([^>]*)>/gi;
+/** Quill puts an empty <span class="ql-ui"> inside every list item as an editor
+ *  affordance. It holds no content, so shipping it adds one dead element to the
+ *  DOM per bullet -- 38 of them on a single tour page -- and puts editor markup
+ *  in front of crawlers. */
+/** A paragraph holding nothing but a <br>, a non-breaking space or whitespace.
+ *  Editors leave one behind whenever a trailing blank line is typed, and it
+ *  renders as a 24px gap the author never intended -- two of them opened
+ *  visible holes in the Important Notes list. Only genuinely empty paragraphs
+ *  match; anything with text is left alone. */
+const EMPTY_PARAGRAPH_PATTERN =
+  /<p\b[^>]*>(?:\s|&nbsp;|&#160;|<br\b[^>]*\/?>)*<\/p>/gi;
+
+const EDITOR_UI_SPAN_PATTERN =
+  /<span\b[^>]*\bclass\s*=\s*(["'])[^"']*\bql-ui\b[^"']*\1[^>]*>\s*<\/span>/gi;
 const HREF_ATTRIBUTE_PATTERN = /\bhref\s*=\s*(["'])(.*?)\1/i;
 const TARGET_ATTRIBUTE_PATTERN = /\s+target\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const REL_ATTRIBUTE_PATTERN = /\s+rel\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
@@ -73,7 +87,9 @@ export function normalizeRichTextInternalLinks(
   html: string | null | undefined,
   siteUrl = process.env.NEXT_PUBLIC_BASE_URL || DEFAULT_SITE_URL
 ): string {
-  const value = String(html ?? "");
+  const value = String(html ?? "")
+    .replace(EDITOR_UI_SPAN_PATTERN, "")
+    .replace(EMPTY_PARAGRAPH_PATTERN, "");
   if (!value) return "";
 
   let site: URL;

@@ -2613,14 +2613,190 @@ body {
 .text-google-blue { color: #0a2b4b; }
 .text-tripadvisor-green { color: #34E0A1; }
 .text-feefo-gray { color: #4B5563; }
-/* What You Will Love Section */
+/* What You Will Love Section.
+   Only the margin is still live. The padding, radius, amber background, amber
+   border and amber text colour were left over from an earlier design and were
+   all being overridden anyway — padding and radius by the Bootstrap utilities
+   on the element (`.p-4`/`.p-md-5` and `.rounded-4` carry `!important`),
+   background and border by the inline gradient, and the colour by the rule
+   below, which now owns the body typography for this section. */
 .tour-listing-details__what-you-love {
   margin-top: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  background-color: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #92400e;
+}
+
+/* `margin-bottom` replaces a `mb-4` (24px). The benefits are 32px apart, so at
+   24px the first one sat closer to the section header than to its own siblings
+   — the header read as part of the list instead of above it. 36px clears them.
+   `gap` replaces a `gap-4`, also 24px, and matches the 12px between a benefit
+   badge and its heading. The two indents still differ, because the section star
+   is 58px against the badges' 40px and no gap value can close an 18px gulf in
+   icon size; at least both now derive from the same spacing step rather than
+   two unrelated numbers. Both properties live here because Bootstrap utilities
+   carry `!important` and would win from the class list. */
+.tour-listing-details__what-you-love__header {
+  margin-bottom: 36px;
+  gap: 12px;
+}
+
+/* Sparkle badge in front of every benefit heading inside the section.
+   The headings come out of the rich-text editor through
+   `dangerouslySetInnerHTML`, so there is no element to hang a React icon on —
+   the badge is a `::before` on whatever heading level the author happened to
+   use. Deliberately the same mark on every benefit rather than one icon per
+   point: it ties the list together instead of trying to label each item.
+   Sizing is the second tier of the hierarchy: 40px here against the section's
+   58px star, so the two never read as equals. The sparkle is an inline SVG data
+   URI rather than a glyph like U+2726 — that character is missing from several
+   of the fallback fonts and drops to a tofu box when it is. */
+.tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Vertical: fixed px rather than the em margins `.html-content` uses
+     everywhere else. The whole point of this pair is the contrast between them
+     — 9px binds a benefit to its own paragraph, 32px separates it from the next
+     one — and em values scale both ends with the heading size, which narrows
+     the ratio and blurs exactly the grouping this is meant to create. The
+     paragraph above ends on its own 1em bottom margin; the two collapse, so
+     32px is the gap, not 32px plus that.
+     Horizontal: the `.html-content` block is padded 52px (40px badge + 12px
+     gap) and the heading pulls back out of it, so its text and the paragraph
+     beneath it start on the same line while the badge hangs to the left of
+     both. The
+     section previously had three left edges — badges and paragraphs at one,
+     benefit headings at another, the section title at a third — and that ragged
+     column was the first thing the eye caught. */
+  margin: 32px 0 9px -52px;
+}
+
+.tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6)::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  /* The fill is gold-on-gold — the section's own gradient is already tinted, so
+     the badge had no edge of its own in the lighter areas. A hairline at 0.18
+     defines it without adding weight. */
+  background-color: rgba(183, 156, 92, 0.1);
+  border: 1px solid rgba(183, 156, 92, 0.18);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b79c5c'%3E%3Cpath d='M12 1.5c.55 5.4 4.6 9.45 10 10-5.4.55-9.45 4.6-10 10-.55-5.4-4.6-9.45-10-10 5.4-.55 9.45-4.6 10-10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 18px 18px;
+}
+
+/* `.html-content > :first-child`/`:last-child` zero the outer margins so the
+   container's padding owns the edges, but at (0,2,0) they lose to the rule
+   above. Restated here at (0,3,0) — without them a leading heading would push
+   32px away from the section's own header. */
+.tour-listing-details__what-you-love .html-content > :first-child {
+  margin-top: 0;
+}
+
+.tour-listing-details__what-you-love .html-content > :last-child {
+  margin-bottom: 0;
+}
+
+/* Body copy: 17px on a 1.68 leading. The section inherited 16px/1.9 from a
+   design that held two or three lines; tours now run five or six benefits, and
+   at that length the loose leading stopped reading as a paragraph and started
+   reading as separate lines. Overrides the theme's 16px/175% on
+   `.tour-listing-details__text` — custom.css loads after gotur.css, and the
+   descendant selector outranks it either way. */
+.tour-listing-details__what-you-love .tour-listing-details__text {
+  font-size: 17px;
+  line-height: 1.68;
+  color: #333;
+}
+
+/* The badge gutter. On `.html-content` rather than the wrapper because in the
+   two-column layout each cell is its own `.html-content` and needs its own
+   hanging column; in the single-column fallback both classes sit on the same
+   element, so it is applied exactly once either way. */
+.tour-listing-details__what-you-love .html-content {
+  padding-left: 52px;
+}
+
+/* Two columns from 992px. The section's container is far wider than any
+   comfortable line length — over 1000px of usable width against a measure that
+   should stop somewhere near 800 — so a single column left a quarter of the
+   card empty wherever the cap was set. Splitting the benefits uses that width
+   instead of capping it away, and halves the height of the section.
+   Multi-column and not Grid. Grid was the first attempt and it aligns rows: a
+   row is as tall as its tallest cell, so a five-line benefit beside a
+   seven-line one left two blank lines under the short one, in every row, and
+   an odd count left half of the final row empty. Multicol has no rows to
+   align, so each column packs tight and the browser balances their heights.
+   Grid's usual advantage here — that it cannot break an item across columns —
+   is not needed: TourListingDetailsOne already emits one element per benefit,
+   so `break-inside: avoid` has a single box to keep together, which is the case
+   every engine supports. It also reads in DOM order, straight down the first
+   column and on to the second.
+   Columns at every width, with `column-count: 1` below the breakpoint, so one
+   mechanism owns the spacing: the cells carry no margins of their own — the
+   headings' 32px top margin is zeroed by the `:first-child` rule inside each
+   cell — and the margin below each benefit is what separates it from the next.
+   The container pulls that margin back off its own bottom edge so the last
+   benefit does not pad the card. */
+.tour-listing-details__what-you-love__columns {
+  column-count: 1;
+  margin-bottom: -32px;
+}
+
+.tour-listing-details__what-you-love__columns > * {
+  break-inside: avoid;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 992px) {
+  .tour-listing-details__what-you-love__columns {
+    column-count: 2;
+    column-gap: 40px;
+    margin-bottom: -36px;
+  }
+
+  .tour-listing-details__what-you-love__columns > * {
+    margin-bottom: 36px;
+  }
+}
+
+/* Line length. The column runs the full content width here, which put these
+   paragraphs past 100 characters a line — well beyond the 60-80 the eye tracks
+   without losing its place on the return sweep.
+   Since the two-column layout landed this rarely binds: a column is around
+   460px of text, well inside the cap. It still earns its place as the guard for
+   the single-column fallback, which is what content that is not a clean run of
+   headed benefits renders as, and it is what holds the line on a wide tablet in
+   portrait. `ch` rather than px so the measure follows the font size through
+   the mobile step below. Lists are capped too: a long bullet has the same
+   problem as a long sentence. */
+.tour-listing-details__what-you-love .html-content :is(p, ul, ol) {
+  max-width: 76ch;
+}
+
+/* The section drops to `p-4` below md, so the badge gives back a little width
+   on the narrowest screens where a heading is most likely to wrap. */
+@media (max-width: 575.98px) {
+  .tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6) {
+    gap: 10px;
+    margin-left: 0;
+  }
+
+  .tour-listing-details__what-you-love .html-content :is(h1, h2, h3, h4, h5, h6)::before {
+    width: 38px;
+    height: 38px;
+    background-size: 17px 17px;
+  }
+
+  .tour-listing-details__what-you-love .tour-listing-details__text {
+    font-size: 16px;
+  }
+
+  .tour-listing-details__what-you-love .html-content {
+    padding-left: 0;
+  }
+
 }
 
 /* ==========================================================================
@@ -3494,7 +3670,71 @@ div[suppressHydrationWarning] {
   outline-offset: 3px;
   border-radius: 2px;
 }
-.html-content strong, 
+/* Author-written headings and paragraphs inside rich text.
+   Tailwind's preflight resets every h1-h6 to `font-size: inherit; font-weight:
+   inherit` and strips margins from headings AND paragraphs. Loaded after both
+   Bootstrap's reboot and gotur.css, it won: a heading written in the editor
+   rendered at body size and weight, and with `line-height` around 1.9 two
+   wrapped lines of one sentence ended up further apart than a paragraph and the
+   heading following it. These rules are class-scoped (0,1,1), so they outrank
+   that element-level reset wherever the cascade puts them.
+   Sizes are in `em`, not `px`, so the same stored content reads correctly in a
+   14px itinerary entry and in a 16px description block.
+   Scoped to `.html-content` only. Blog article bodies deliberately keep their
+   own typography — `.blog-details-card__text h3/p/ul/ol` in DynamicBlogDetails'
+   `<style jsx global>` block — and styled-jsx injects that at runtime, so where
+   it lands relative to this file is not something the served HTML can settle.
+   Adding the blog wrapper here risked silently overriding that design. */
+.html-content h1,
+.html-content h2,
+.html-content h3,
+.html-content h4,
+.html-content h5,
+.html-content h6 {
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 1.75em 0 0.5em;
+}
+
+.html-content h1 {
+  font-size: 1.5em;
+}
+.html-content h2 {
+  font-size: 1.3em;
+}
+.html-content h3 {
+  font-size: 1.15em;
+}
+.html-content h4 {
+  font-size: 1.05em;
+}
+.html-content h5,
+.html-content h6 {
+  font-size: 1em;
+}
+
+/* Some tours store `<h3><strong>…</strong></h3>` and others plain `<h3>`, and
+   the German copy uses the wrapped form where the English does not. Without
+   this the two render at different weights, so the same section looks different
+   from one tour or one language to the next. */
+.html-content :is(h1, h2, h3, h4, h5, h6) :is(strong, b) {
+  font-weight: inherit !important;
+}
+
+.html-content p {
+  margin: 0 0 1em;
+}
+
+/* The container's own padding owns the outer edges; a first heading must not
+   push the block down and a last paragraph must not pad it out. */
+.html-content > :first-child {
+  margin-top: 0;
+}
+.html-content > :last-child {
+  margin-bottom: 0;
+}
+
+.html-content strong,
 .html-content b {
   font-weight: 800 !important;
 }
@@ -5527,4 +5767,169 @@ button[data-action="stop"] {
     padding-inline-start: 0;
     font-size: 13px;
   }
+}
+
+/* ── What to Pack ────────────────────────────────────────────────────────
+   A real list. It was a grid of divs with a 5px div standing in for the
+   bullet: that div was a flex item, so it was squeezed to 2px beside longer
+   text, and `align-items: center` dropped it a whole line-height below the
+   text it belonged to. A ::before on an <li> cannot be squeezed and sits on
+   the first line by construction. */
+.tour-pack {
+  background-color: rgba(183, 156, 92, 0.02);
+  border: 1px solid rgba(183, 156, 92, 0.1);
+  /* Logical, so the accent follows the writing direction if RTL is ever added. */
+  border-inline-end: 4px solid #b79c5c;
+}
+
+.tour-pack__title {
+  font-size: 1.2rem;
+}
+
+.tour-pack__icon {
+  color: #b79c5c;
+  font-size: 1rem;
+}
+
+/* Columns rather than a wrapping grid: a grid row is as tall as its tallest
+   item, so a one-line entry beside a three-line one left a 43px hole.
+
+   Two columns, not three. Each entry carries an explanation after its bold
+   term, and at three columns that prose ran 31 characters to the line -- well
+   under the 45-75 that reads comfortably -- which pushed entries to four lines
+   apiece. Two columns give 47, and the section comes out SHORTER despite the
+   wider measure, because far fewer entries wrap. */
+.tour-pack__list {
+  columns: 2;
+  column-gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tour-pack__item {
+  /* Without this an entry can be split down the middle across two columns. */
+  break-inside: avoid;
+  position: relative;
+  padding-inline-start: 15px;
+  margin-block-end: 10px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #212529;
+}
+
+.tour-pack__item::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  /* Centred on the FIRST line, whatever the entry's height: half a line box
+     less half the dot. */
+  top: calc((1.5em - 5px) / 2);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #b79c5c;
+}
+
+/* The term is what the reader scans for and the explanation is support, but
+   both were the same near-black and separated by weight alone. */
+.tour-pack__item strong,
+.tour-pack__item b {
+  color: #16283c;
+}
+
+/* Stops an entry ending on a single stranded word. The em dash is kept off
+   the start of a line separately -- see the non-breaking space applied when
+   the items are prepared. */
+.tour-pack__item {
+  text-wrap: pretty;
+}
+
+.tour-pack__item:last-child {
+  margin-block-end: 0;
+}
+
+/* Numbered lists keep their numbers — see isOrderedListContent. */
+.tour-pack__list--ordered {
+  list-style: decimal;
+  padding-inline-start: 18px;
+}
+
+.tour-pack__list--ordered .tour-pack__item {
+  padding-inline-start: 0;
+}
+
+.tour-pack__list--ordered .tour-pack__item::before {
+  content: none;
+}
+
+@media (max-width: 991px) {
+  .tour-pack__list {
+    column-gap: 22px;
+  }
+}
+
+@media (max-width: 575px) {
+  /* One column on a phone: two columns of wrapped text at this width give
+     three or four words per line. */
+  .tour-pack__list {
+    columns: 1;
+  }
+}
+
+/* ── Important Notes ─────────────────────────────────────────────────────
+   Was styled entirely inline, with a `fs-7` class Bootstrap does not define
+   and a `text-muted` class the inline colour had to override with !important.
+   The class carried no rules of its own at all. */
+.tour-note__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background-color: #b79c5c;
+}
+
+.tour-note__heading {
+  font-size: 1.15rem;
+}
+
+/* #b79c5c reads 2.65:1 on white. These labels are 12px, where AA asks for
+   4.5:1, so the gold is taken down to the darkest step that still belongs to
+   the brand: 4.82:1 on white, 4.70:1 on the tinted cards. */
+.tour-note__title {
+  margin: 0 0 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8a6e30;
+}
+
+.tour-note__text {
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* A note is one thought, usually two sentences, and the shared 1em pushed them
+   14.8px apart -- further than the 8.9px between two lines of one paragraph, so
+   a two-sentence note read as two notes. The break is deliberately taken BELOW
+   that 8.9px line gap: the sentences then flow as a single block, which is what
+   they are. Nothing is lost by it, because the gold uppercase title and the
+   divider already mark the boundaries -- they separate by style, not by space,
+   so the gaps do not have to.
+
+   Scoped here rather than changed on `.html-content p`: that 1em is shared with
+   the blog and the tour description, where long-form copy wants it. */
+.tour-note__text > p {
+  margin-bottom: 0.45em;
+}
+
+.tour-note__text > :last-child {
+  margin-bottom: 0;
+}
+
+.tour-note__divider {
+  margin: 16px 0 0;
+  opacity: 0.1;
 }

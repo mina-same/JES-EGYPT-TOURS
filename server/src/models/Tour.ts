@@ -56,9 +56,16 @@ export const ACCOMMODATION_ICONS = [
   'cruise',
   'sea',
   'desert',
+  'colonnade',
   'hotel',
 ] as const;
 export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
+
+/** Values written under earlier versions of the list above. Still accepted on
+ *  write, because updates run validators and rejecting them would make a tour
+ *  that holds one impossible to save at all. The client maps them to current
+ *  artwork; they are never offered as choices in the admin. */
+export const LEGACY_ACCOMMODATION_ICONS = ['beach', 'resort', 'nubian'] as const;
 
 /** One stop in a package's included accommodation: where the guests sleep and
  *  which hotels that tier books. Lives on the PLAN, not the tour — the whole
@@ -392,7 +399,7 @@ const AccommodationSchema = new Schema<IAccommodation>(
     icon: {
       type: String,
       enum: {
-        values: [...ACCOMMODATION_ICONS],
+        values: [...ACCOMMODATION_ICONS, ...LEGACY_ACCOMMODATION_ICONS],
         message: '{VALUE} is not a valid accommodation icon',
       },
       default: 'city',
