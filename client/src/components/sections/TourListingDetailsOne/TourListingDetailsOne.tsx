@@ -976,7 +976,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       </div>
 
                       {whatYouWillLoveSections ? (
-                        <div className='tour-listing-details__text tour-listing-details__what-you-love__grid'>
+                        <div className='tour-listing-details__text tour-listing-details__what-you-love__columns'>
                           {whatYouWillLoveSections.map((section, index) => (
                             <div
                               key={index}

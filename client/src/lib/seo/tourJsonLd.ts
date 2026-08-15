@@ -10,6 +10,8 @@
  *   // render: <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
  */
 
+import { splitRichTextByHeading } from "@/lib/richTextSections";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
@@ -684,11 +686,57 @@ export function generateTourJsonLd({
 
   // ── 8. Product ────────────────────────────────────────────────────────────
 
+  /* "What you'll love" as machine-readable properties.
+     Everything else in this graph is specification — price, duration,
+     destination, day-by-day plan — which is to say everything a competitor
+     selling the same itinerary could state identically. What actually separates
+     one operator's version of a route from another's is written only as body
+     prose, inside a div that carries no signal about what it is.
+     `additionalProperty` on Product because that is the one place schema.org
+     offers for arbitrary named traits: `description` is already spoken for and
+     is reused verbatim by three nodes, so appending here would inflate all
+     three; `disambiguatingDescription` means telling apart two entities of the
+     same name; and `additionalProperty` is not defined on TouristTrip, which is
+     an Intangible. Product is also what WebPage points at as `mainEntity`, so
+     it is the node a consumer reads first.
+     No rich result consumes this — the return is in how answer engines
+     summarise the page, which is why it took until after the launch-critical
+     work.
+     Only heading-structured content qualifies. A tour whose field is one loose
+     block yields no pairs and contributes nothing rather than one shapeless
+     property, and the guard is the same splitter the page itself lays out
+     with, so the structured data and the visible section can never disagree
+     about where a benefit begins. */
+  const MAX_BENEFIT_PROPERTIES = 12;
+  const HEADING_BLOCK_PATTERN = /<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]\s*>/i;
+
+  const benefitProperties = (splitRichTextByHeading(
+    getLocalizedValue(tour.whatYouWillLoveHtml, loc)
+  ) ?? [])
+    .map((section) => {
+      const heading = section.match(HEADING_BLOCK_PATTERN);
+      if (!heading) return null;
+      const body = section.slice((heading.index ?? 0) + heading[0].length);
+      return { name: stripHtml(heading[1]), value: stripHtml(body) };
+    })
+    /* A heading with nothing under it describes nothing, and a PropertyValue
+       without both halves is noise in the graph. */
+    .filter((property): property is { name: string; value: string } =>
+      Boolean(property?.name && property?.value)
+    )
+    .slice(0, MAX_BENEFIT_PROPERTIES)
+    .map((property) => ({
+      "@type": "PropertyValue",
+      name: property.name,
+      value: property.value,
+    }));
+
   const productNode: Record<string, unknown> = {
     "@type": "Product",
     "@id": productId,
     name: tourName,
     ...(tourDescription ? { description: tourDescription } : {}),
+    ...(benefitProperties.length > 0 ? { additionalProperty: benefitProperties } : {}),
     ...(allImageUrls.length > 0 ? { image: allImageUrls } : {}),
     ...(tour.idExternal ? { sku: tour.idExternal } : {}),
     brand: { "@id": organizationId },
