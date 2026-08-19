@@ -11,7 +11,6 @@ import { Metadata } from "next";
 import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
 import { getLocalizedStaticSlug } from "@/lib/url";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
-import './contact.css';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -57,7 +56,7 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
       <HeaderOneCloned />
       <PageHeader title={t('pageTitle')} subTitle={t('pageSubTitle')} />
       <ContactTop />
-      <ContactPage />
+      <ContactPage locale={locale} />
       <FooterOne />
     </Layout>
   );

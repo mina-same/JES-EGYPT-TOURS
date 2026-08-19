@@ -8,7 +8,7 @@
     "addressText": "8 Alshams Building, Dr.Hanem Mohammed Hussein, Kafr Nassar, Al Haram, Giza Governorate, Egypt",
     "emailTitle": "info@jesegypttours.com",
     "emailText": "Mailen Sie uns jederzeit bei Fragen.",
-    "phoneTitle": "Hotline: +208-666-0112",
+    "phoneTitle": "+20 100 743 7271",
     "phoneText": "Rufen Sie uns an für Unterstützung.",
     "mapTitle": "JES Egypt Tours Bürostandort auf Google Maps"
   },
@@ -16,11 +16,11 @@
     "title": "Bereit loszulegen?",
     "text": "Wir würden uns freuen, von Ihnen zu hören. Bitte füllen Sie das untenstehende Formular aus.",
     "fields": {
-      "nameLabel": "Ihr Name*",
+      "nameLabel": "Ihr Name",
       "namePlaceholder": "Ihr Name",
-      "emailLabel": "Ihre E-Mail*",
+      "emailLabel": "Ihre E-Mail",
       "emailPlaceholder": "Ihre E-Mail",
-      "messageLabel": "Nachricht*",
+      "messageLabel": "Nachricht",
       "messagePlaceholder": "Nachricht schreiben . ."
     },
     "errors": {
@@ -29,7 +29,10 @@
       "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse an",
       "messageRequired": "Nachricht ist erforderlich",
       "sendFailed": "Senden fehlgeschlagen",
-      "failedMessage": "Nachricht konnte nicht gesendet werden"
+      "failedMessage": "Nachricht konnte nicht gesendet werden",
+      "nameTooShort": "Der Name muss mindestens 2 Zeichen lang sein",
+      "nameTooLong": "Der Name darf höchstens 100 Zeichen lang sein",
+      "messageTooLong": "Die Nachricht darf höchstens 5000 Zeichen lang sein"
     },
     "success": {
       "sentTitle": "Nachricht gesendet",
@@ -38,6 +41,30 @@
     "buttons": {
       "sending": "Senden...",
       "send": "Nachricht Senden"
+    },
+    "formHeading": "Schreiben Sie uns",
+    "formSubheading": "Füllen Sie die drei Felder unten aus — mehr brauchen wir nicht.",
+    "privacyNote": "Ihre Angaben verwenden wir ausschließlich zur Beantwortung Ihrer Anfrage. Siehe unsere",
+    "privacyLinkLabel": "Datenschutzerklärung",
+    "mapCta": "In Google Maps öffnen",
+    "aside": {
+      "stepsLabel": "So geht es weiter",
+      "steps": {
+        "0": {
+          "title": "Wir lesen jede Nachricht",
+          "text": "Ein echtes Mitglied unseres Teams in Kairo, keine automatische Antwort."
+        },
+        "1": {
+          "title": "Antwort innerhalb von 24 Stunden",
+          "text": "Meist deutlich schneller, sonntags bis donnerstags."
+        },
+        "2": {
+          "title": "Sie erhalten einen passenden Vorschlag",
+          "text": "Abgestimmt auf Ihre Reisedaten und Ihr Budget — unverbindlich."
+        }
+      },
+      "whatsappLabel": "Schreiben Sie uns auf WhatsApp",
+      "whatsappMessage": "Hallo JES Egypt Tours, ich möchte mich gerne über eine Reise informieren."
     }
   }
 }
