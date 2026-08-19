@@ -11,9 +11,33 @@ export const createContactSubmission = async (
 ): Promise<void> => {
   try {
     // Honeypot: the visible form ships a hidden "website" field humans never
-    // fill. A non-empty value means a bot — answer with a fake success and
-    // store nothing (silent drop keeps bots from adapting).
+    // fill. A non-empty value almost always means a bot, so the response is a
+    // fake success — telling a bot it was caught only helps it adapt.
+    //
+    // It is STORED (flagged) rather than dropped: browser autofill and password
+    // managers do ignore `autocomplete="off"`, so a silent discard throws away
+    // real enquiries and nobody ever learns it happened. Storing keeps a false
+    // positive recoverable. The write is best-effort — a bot's payload often
+    // fails schema validation, and that must not turn into a 500.
     if (typeof req.body?.website === 'string' && req.body.website.trim()) {
+      try {
+        await ContactSubmission.create({
+          name: req.body.name,
+          email: req.body.email,
+          message: req.body.message,
+          locale: req.body.locale,
+          isSpam: true,
+          // Archived, not 'new': the dashboard counts
+          // `countDocuments({ status: 'new' })`, so leaving these at the
+          // default would inflate the "new enquiries" badge with bot traffic
+          // and bury genuine messages. Still stored and still searchable, so a
+          // false positive from browser autofill remains recoverable.
+          status: 'archived',
+        });
+      } catch {
+        // Malformed bot payload — nothing worth keeping, and nothing to report.
+      }
+
       res.status(201).json({
         success: true,
         message: 'Your message has been sent successfully. We will contact you soon.',
@@ -35,24 +59,32 @@ export const createContactSubmission = async (
       name: req.body.name,
       email: req.body.email,
       message: req.body.message,
+      // Which language the enquiry was written in, so the team replies in it.
+      locale: req.body.locale,
     });
 
-    emitAdminNotification({
-      type: 'contact',
-      title: `Contact form from ${submission.name}`,
-      entityId: submission._id.toString(),
-      createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
-    });
+    // Everything past this point is internal bookkeeping. It is deliberately
+    // NOT allowed to fail the request: the visitor's message is already saved,
+    // and answering 500 here made them send it again — one enquiry, two rows.
+    try {
+      emitAdminNotification({
+        type: 'contact',
+        title: `Contact form from ${submission.name}`,
+        entityId: submission._id.toString(),
+        createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
+      });
 
-    // Save notification to database
-    await Notification.create({
-      type: 'contact',
-      title: `New Contact Form`,
-      message: `Contact form from ${submission.name} (${submission.email})`,
-      entityId: submission._id,
-    });
+      await Notification.create({
+        type: 'contact',
+        title: `New Contact Form`,
+        message: `Contact form from ${submission.name} (${submission.email})`,
+        entityId: submission._id,
+      });
 
-    void emitDashboardStatsUpdate();
+      void emitDashboardStatsUpdate();
+    } catch (notifyError) {
+      console.error('Contact submission saved but notification failed:', notifyError);
+    }
 
     // No `data` echo: the public caller only needs success + message, and
     // reflecting the stored document (ids, timestamps) serves nobody.

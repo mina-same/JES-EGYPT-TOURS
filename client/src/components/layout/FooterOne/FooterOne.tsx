@@ -26,7 +26,6 @@ interface FooterDataType {
   contact: {
     email: string;
     phone: string;
-    hours: string;
   };
   about: {
     text: string;
@@ -102,17 +101,6 @@ const FooterOne: React.FC = () => {
                   <Link href={`tel:${data.contact.phone}`}>
                     {data.contact.phone}
                   </Link>
-                </div>
-              </li>
-              <li>
-                <div className='footer-widget__list__icon'>
-                  <i className='icon-clock-1'></i>
-                </div>
-                <div className='footer-widget__list__content'>
-                  <span className='footer-widget__list__subtitle'>
-                    opening time
-                  </span>
-                  <p>{data.contact.hours}</p>
                 </div>
               </li>
             </ul>

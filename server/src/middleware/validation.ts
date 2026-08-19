@@ -137,6 +137,12 @@ export const contactSubmissionValidation: ValidationChain[] = [
     .withMessage('Message is required')
     .isLength({ max: 5000 })
     .withMessage('Message cannot exceed 5000 characters'),
+  // Which language the visitor wrote in, so the team knows how to reply.
+  // Optional: an older cached bundle may still post without it.
+  body('locale')
+    .optional()
+    .isIn(['en', 'de', 'it', 'es'])
+    .withMessage('Invalid locale'),
 ];
 
 export const travelTradeInquiryValidation: ValidationChain[] = [

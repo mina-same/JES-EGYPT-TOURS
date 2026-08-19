@@ -519,6 +519,14 @@ const ContactFormPage: React.FC = () => {
                        {selected.email}
                     </p>
                   </div>
+                  {/* Which language the visitor wrote in, so the reply goes back
+                      in the same one. Shown for EVERY submission — it used to
+                      live in the travel-trade-only block below, which meant the
+                      ordinary contact form never surfaced it. */}
+                  <div className='detail-item'>
+                    <label>Submitted Locale</label>
+                    <p>{selected.locale?.toUpperCase() || '—'}</p>
+                  </div>
                   {selected.source === 'travel-trade' && (
                     <>
                       <div className='detail-item'>
@@ -594,10 +602,6 @@ const ContactFormPage: React.FC = () => {
                       <div className='detail-item'>
                         <label>Service Level</label>
                         <p>{formatValue(selected.serviceLevel)}</p>
-                      </div>
-                      <div className='detail-item'>
-                        <label>Submitted Locale</label>
-                        <p>{selected.locale?.toUpperCase() || '—'}</p>
                       </div>
                     </div>
                   </div>

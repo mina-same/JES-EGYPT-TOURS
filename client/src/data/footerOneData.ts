@@ -13,7 +13,6 @@ export interface FooterDataType {
   contact: {
     email: string;
     phone: string;
-    hours: string;
   };
   about: {
     text: string;
@@ -46,7 +45,6 @@ export const footerOneData: FooterDataType = {
   contact: {
     email: "info@jesegypttours.com",
     phone: "+20 100 743 7271",
-    hours: "Hours: Mon-Sun: 24/7",
   },
   about: {
     text: "available, but the majority have suffered alteration in some form by injected humour, or",

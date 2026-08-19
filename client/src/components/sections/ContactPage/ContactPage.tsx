@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Link from "next/link";
 import {
@@ -43,6 +43,22 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
     message: string;
   }>({ type: null, message: "" });
   const [submittedOnce, setSubmittedOnce] = useState(false);
+
+  /** Held in a ref so a pending cooldown can be cancelled on unmount and
+   *  replaced (never stacked) when a visitor submits again. */
+  const cooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Clearing the timer on unmount is not enough on its own: a request still in
+   *  flight settles later and would schedule a fresh timer after cleanup had
+   *  already run. This lets that path opt out instead. */
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      if (cooldownTimer.current) clearTimeout(cooldownTimer.current);
+    };
+  }, []);
 
   const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     t("form.aside.whatsappMessage")
@@ -99,6 +115,14 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
     (e.nativeEvent as any)?.stopImmediatePropagation?.();
 
     if (isSubmitting || submittedOnce) return;
+
+    // Drop any cooldown still pending from a previous attempt, so it cannot
+    // fire mid-flight and clear the guard for the attempt now starting.
+    if (cooldownTimer.current) {
+      clearTimeout(cooldownTimer.current);
+      cooldownTimer.current = null;
+    }
+
     setIsSubmitting(true);
     setSubmittedOnce(true);
     setStatus({ type: null, message: "" });
@@ -112,17 +136,6 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
       data[key] = value.toString();
     });
 
-    // Honeypot: invisible to humans — bots that fill it get a silent no-op.
-    if (data.website) {
-      setStatus({ type: "success", message: t("form.success.sentMessage") });
-      form.reset();
-      setIsSubmitting(false);
-      // Previously omitted, which left `submittedOnce` true forever and
-      // permanently disabled the form for anyone who tripped the honeypot.
-      setSubmittedOnce(false);
-      return;
-    }
-
     const errors = validate(data);
     if (Object.keys(errors).length > 0) {
       // flushSync so the error nodes (and therefore the aria-describedby
@@ -133,8 +146,9 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
         (field) => errors[field]
       );
       if (firstInvalid) {
+        // NOT "send failed": nothing was sent, the visitor never left the form.
         toast({
-          title: t("form.errors.sendFailed"),
+          title: t("form.errors.checkFields"),
           description: errors[firstInvalid]!,
           variant: "destructive",
         });
@@ -145,24 +159,38 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
       return;
     }
 
-    let successOccurred = false;
     try {
       const res = await fetch(API_ENDPOINTS.CONTACT.BASE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Locale": locale,
         },
         body: JSON.stringify({
           name: data.name || "",
           email: data.email || "",
           message: data.message || "",
+          // So the team knows which language to answer in.
+          locale,
+          // The honeypot travels to the server, which owns the decision. The
+          // client used to short-circuit here and never forward it, which left
+          // the server's check unreachable AND silently binned any enquiry an
+          // over-eager password manager had filled in.
+          website: data.website || "",
         }),
       });
 
-      const json = await res.json().catch(() => null);
-
+      // The server's own strings are English-only, and the rate limiter answers
+      // with plain text rather than JSON — so the outcome is derived from the
+      // status code and always spoken in the visitor's language.
       if (!res.ok) {
-        const errMsg = json?.error || t("form.errors.failedMessage");
+        const errMsg =
+          res.status === 429
+            ? t("form.errors.tooManyRequests")
+            : res.status === 400
+            ? t("form.errors.invalidSubmission")
+            : t("form.errors.failedMessage");
+
         setStatus({ type: "error", message: errMsg });
         toast({
           title: t("form.errors.sendFailed"),
@@ -174,8 +202,7 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
         return;
       }
 
-      successOccurred = true;
-      const okMsg = json?.message || t("form.success.sentMessage");
+      const okMsg = t("form.success.sentMessage");
       setStatus({ type: "success", message: okMsg });
       toast({
         title: t("form.success.sentTitle"),
@@ -183,21 +210,29 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
       });
       // Use the stored form reference to reset
       form.reset();
+
+      // Cooldown ONLY after a message actually went through — it exists to stop
+      // a double-click sending the same enquiry twice. After a failure the
+      // visitor is meant to correct something and try again straight away, so
+      // the error paths below release the guard immediately instead.
+      if (isMounted.current) {
+        cooldownTimer.current = setTimeout(() => setSubmittedOnce(false), 2000);
+      }
     } catch (_err: any) {
       console.error("ContactPage: Catch block error:", _err);
-      if (!successOccurred) {
-        const errMsg = _err.message || t("form.errors.failedMessage");
-        setStatus({ type: "error", message: errMsg });
-        toast({
-          title: t("form.errors.sendFailed"),
-          description: errMsg,
-          variant: "destructive",
-        });
-      }
+      // `_err.message` is browser-generated English ("Failed to fetch") — never
+      // show it to a visitor reading the page in another language.
+      const errMsg = t("form.errors.failedMessage");
+      setStatus({ type: "error", message: errMsg });
+      toast({
+        title: t("form.errors.sendFailed"),
+        description: errMsg,
+        variant: "destructive",
+      });
+      // Nothing was delivered — let them retry at once.
+      setSubmittedOnce(false);
     } finally {
       setIsSubmitting(false);
-      // Reset submittedOnce after a short delay to allow re-submit if needed
-      setTimeout(() => setSubmittedOnce(false), 2000);
     }
   };
 
@@ -213,58 +248,24 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
       aria-labelledby='contact-panel-title'
     >
       <div className='container'>
+        {/* ── Panel ─────────────────────────────────────────────
+            DOM order is heading → form → steps, which is exactly the order the
+            phone layout paints. The previous markup kept both navy blocks in
+            one <aside> and reordered them with CSS, so keyboard and screen
+            reader users met the steps BEFORE the form while seeing the
+            opposite. The navy gradient now lives on `.panel` itself, so the
+            two blocks still read as one continuous column on desktop without
+            needing to be siblings inside a wrapper. */}
         <div className={styles.panel}>
-          {/* ── Reassurance aside ─────────────────────────────
-              Deliberately NOT a repeat of the address/email/phone cards in
-              ContactTop directly above: this sets expectations about what
-              happens after sending, and offers the low-friction alternative. */}
-          {/* Split into two blocks so the panel grid can reorder them below
-              992px: the heading stays above the form (it names the section),
-              while the steps and WhatsApp drop BELOW it — otherwise ~400px of
-              aside pushed the first field off a phone screen. */}
-          <aside className={styles.aside}>
-            <div className={styles.asideTop}>
-              <div className={styles.asideInner}>
-                <h2 id='contact-panel-title' className={styles.asideTitle}>
-                  {t("form.title")}
-                </h2>
-                <p className={styles.asideText}>{t("form.text")}</p>
-              </div>
+          {/* Names the section (see aria-labelledby above). */}
+          <div className={styles.asideTop}>
+            <div className={styles.asideInner}>
+              <h2 id='contact-panel-title' className={styles.asideTitle}>
+                {t("form.title")}
+              </h2>
+              <p className={styles.asideText}>{t("form.text")}</p>
             </div>
-
-            <div className={styles.asideBottom}>
-              <span className={styles.stepsLabel}>
-                {t("form.aside.stepsLabel")}
-              </span>
-              <ol className={styles.steps}>
-                {STEP_INDEXES.map((index) => (
-                  <li key={index} className={styles.step}>
-                    <span className={styles.stepNumber} aria-hidden='true'>
-                      {index + 1}
-                    </span>
-                    <span>
-                      <strong className={styles.stepTitle}>
-                        {t(`form.aside.steps.${index}.title`)}
-                      </strong>
-                      <span className={styles.stepText}>
-                        {t(`form.aside.steps.${index}.text`)}
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-
-              <a
-                className={styles.whatsapp}
-                href={whatsappHref}
-                target='_blank'
-                rel='noreferrer noopener'
-              >
-                <MessageCircle size={18} aria-hidden='true' />
-                {t("form.aside.whatsappLabel")}
-              </a>
-            </div>
-          </aside>
+          </div>
 
           {/* ── The form ─────────────────────────────────────── */}
           <div className={styles.formColumn}>
@@ -417,6 +418,66 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
               </div>
             </form>
           </div>
+
+          {/* ── Reassurance ───────────────────────────────────
+              Deliberately NOT a repeat of the email/phone cards above: this
+              sets expectations about what happens after sending, and offers the
+              low-friction alternatives for anyone not ready to write yet. */}
+          <aside className={styles.asideBottom}>
+            <span className={styles.stepsLabel}>
+              {t("form.aside.stepsLabel")}
+            </span>
+            <ol className={styles.steps}>
+              {STEP_INDEXES.map((index) => (
+                <li key={index} className={styles.step}>
+                  <span className={styles.stepNumber} aria-hidden='true'>
+                    {index + 1}
+                  </span>
+                  <span>
+                    <strong className={styles.stepTitle}>
+                      {t(`form.aside.steps.${index}.title`)}
+                    </strong>
+                    <span className={styles.stepText}>
+                      {t(`form.aside.steps.${index}.text`)}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+
+            <a
+              className={styles.whatsapp}
+              href={whatsappHref}
+              target='_blank'
+              rel='noreferrer noopener'
+            >
+              <MessageCircle size={18} aria-hidden='true' />
+              {t("form.aside.whatsappLabel")}
+              <span className={styles.srOnly}> {t("form.newTab")}</span>
+            </a>
+
+            {/* Somewhere to go for a visitor who is not ready to write yet —
+                otherwise this page is a dead end with no onward route. */}
+            <div className={styles.asideLinks}>
+              <span className={styles.asideLinksLabel}>
+                {t("form.aside.linksLabel")}
+              </span>
+              <Link
+                className={styles.asideLink}
+                href={localizeInternalUrl("/tailor-made", locale)}
+              >
+                {t("form.aside.tailorMadeLabel")}
+                <ArrowRight size={15} aria-hidden='true' />
+              </Link>
+              <Link
+                className={styles.asideLink}
+                href={localizeInternalUrl("/special-offers", locale)}
+              >
+                {t("form.aside.offersLabel")}
+                <ArrowRight size={15} aria-hidden='true' />
+              </Link>
+            </div>
+          </aside>
         </div>
 
         {/* ── Map ───────────────────────────────────────────── */}
@@ -442,6 +503,7 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
             >
               {t("form.mapCta")}
               <ExternalLink size={14} aria-hidden='true' />
+              <span className={styles.srOnly}> {t("form.newTab")}</span>
             </a>
           </div>
         </div>

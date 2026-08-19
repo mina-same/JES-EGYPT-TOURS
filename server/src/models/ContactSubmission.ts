@@ -32,6 +32,11 @@ export interface IContactSubmission extends Document {
   serviceLevel?: 'standard' | 'premium' | 'luxury' | 'mixed';
   consentGiven?: boolean;
   locale?: 'en' | 'de' | 'it' | 'es';
+  /** Set when the hidden honeypot field came back filled. The submission is
+   *  STORED rather than discarded: password managers and browser autofill do
+   *  ignore `autocomplete="off"`, so a silent drop loses real enquiries with
+   *  no trace. Flagged instead, so a false positive stays recoverable. */
+  isSpam?: boolean;
   status: 'new' | 'replied' | 'archived';
   adminNotes?: string;
   createdAt: Date;
@@ -145,6 +150,11 @@ const contactSubmissionSchema = new Schema<IContactSubmission>(
     locale: {
       type: String,
       enum: ['en', 'de', 'it', 'es'],
+    },
+    isSpam: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
     status: {
       type: String,

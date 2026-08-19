@@ -1,27 +1,33 @@
 {
-  "metaTitle": "Contact Us | JES Egypt Tours",
-  "metaDescription": "Get in touch with JES Egypt Tours. We're here to help plan your perfect Egyptian adventure.",
+  "metaTitle": "Contact JES Egypt Tours | Egypt Travel Experts",
+  "metaDescription": "Talk to our Cairo team about your Egypt trip. Use the form or WhatsApp — we reply every day, usually within a few hours.",
   "pageTitle": "Contact us",
-  "pageSubTitle": "Contact us",
+  "pageSubTitle": "Tell us what you would like to see in Egypt and our Cairo team will come back with a plan built around you.",
+  "breadcrumb": {
+    "home": "Home",
+    "current": "Contact"
+  },
   "top": {
+    "sectionTitle": "How to reach us",
     "addressTitle": "Our Address",
     "addressText": "8 Alshams Building, Dr.Hanem Mohammed Hussein, Kafr Nassar, Al Haram, Giza Governorate, Egypt",
+    "addressLinkLabel": "Open our address in Google Maps",
     "emailTitle": "info@jesegypttours.com",
-    "emailText": "Email us anytime for any kind of query.",
+    "emailText": "Write to us any time — we reply every day.",
     "phoneTitle": "+20 100 743 7271",
-    "phoneText": "Call us for any support.",
+    "phoneText": "Call us any day of the week.",
     "mapTitle": "JES Egypt Tours office location on Google Maps"
   },
   "form": {
-    "title": "Ready to Get Started?",
-    "text": "We'd love to hear from you. Please fill out the form below and we will get back to you securely.",
+    "title": "Let's plan your Egypt trip",
+    "text": "Tell us your dates and what you would like to see. Our team reads every message and replies with a real suggestion, not a brochure.",
     "fields": {
       "nameLabel": "Your Name",
-      "namePlaceholder": "Your Name",
+      "namePlaceholder": "Your full name",
       "emailLabel": "Your Email",
-      "emailPlaceholder": "Your Email",
+      "emailPlaceholder": "you@example.com",
       "messageLabel": "Message",
-      "messagePlaceholder": "Write Message . ."
+      "messagePlaceholder": "Your travel dates, how many people are travelling, and what you would like to see."
     },
     "errors": {
       "nameRequired": "Name is required",
@@ -29,14 +35,17 @@
       "invalidEmail": "Please provide a valid email",
       "messageRequired": "Message is required",
       "sendFailed": "Send failed",
+      "checkFields": "Please check the highlighted fields",
       "failedMessage": "Failed to send message",
+      "invalidSubmission": "Please check your details and try again.",
+      "tooManyRequests": "We could not accept your message right now. Please try again in a few minutes, or message us on WhatsApp.",
       "nameTooShort": "Name must be at least 2 characters",
       "nameTooLong": "Name cannot exceed 100 characters",
       "messageTooLong": "Message cannot exceed 5000 characters"
     },
     "success": {
       "sentTitle": "Message sent",
-      "sentMessage": "Your message has been sent successfully."
+      "sentMessage": "Your message has been sent successfully. We will get back to you soon."
     },
     "buttons": {
       "sending": "Sending...",
@@ -47,6 +56,7 @@
     "privacyNote": "Your details are used only to answer your enquiry. See our",
     "privacyLinkLabel": "Privacy Policy",
     "mapCta": "Open in Google Maps",
+    "newTab": "(opens in a new tab)",
     "aside": {
       "stepsLabel": "What happens next",
       "steps": {
@@ -56,7 +66,7 @@
         },
         "1": {
           "title": "You hear back within 24 hours",
-          "text": "Usually much sooner, Sunday to Thursday."
+          "text": "Usually within a few hours, any day of the week."
         },
         "2": {
           "title": "You get a tailored suggestion",
@@ -64,7 +74,10 @@
         }
       },
       "whatsappLabel": "Chat with us on WhatsApp",
-      "whatsappMessage": "Hello JES Egypt Tours, I would like to ask about a trip."
+      "whatsappMessage": "Hello JES Egypt Tours, I would like to ask about a trip.",
+      "linksLabel": "Not sure where to start?",
+      "tailorMadeLabel": "Design a tailor-made trip",
+      "offersLabel": "Browse our special offers"
     }
   }
 }

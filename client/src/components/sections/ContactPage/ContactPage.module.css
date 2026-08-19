@@ -28,11 +28,21 @@
 
 /* ── Panel shell ─────────────────────────────────────────── */
 
+/* The navy gradient is painted by the PANEL, not by the two navy blocks.
+   DOM order is heading → form → steps so that keyboard and screen-reader order
+   matches what the phone layout paints; that makes the blocks non-adjacent
+   siblings, which can no longer share one background between them. Painting it
+   once here — and letting `.formColumn` cover its own area in white — keeps the
+   desktop left column reading as a single continuous gradient with no seam to
+   line up, and survives either row growing. */
 .panel {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-areas:
+    "asideTop form"
+    "asideBottom form";
   overflow: hidden;
-  background: #fff;
+  background: linear-gradient(135deg, var(--c-navy) 0%, var(--c-navy-light) 100%);
   border: 1px solid var(--c-border);
   border-radius: 20px;
   box-shadow: 0 18px 48px rgba(29, 35, 31, 0.08);
@@ -41,36 +51,49 @@
 @media (max-width: 991px) {
   .panel {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "asideTop"
+      "form"
+      "asideBottom";
   }
 }
 
-/* ── Left: navy aside ────────────────────────────────────── */
+/* ── Navy blocks ─────────────────────────────────────────── */
 
-/* Desktop: one continuous navy column. The gradient lives here, not on the two
-   children, so there is no seam between them. */
-.aside {
-  display: flex;
-  flex-direction: column;
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-navy) 0%, var(--c-navy-light) 100%);
-}
-
-/* Padding sits on the children rather than `.aside`, because below 992px
-   `.aside` stops generating a box (`display: contents`) and the children
-   become grid items of `.panel` in their own right. `.asideText`'s 32px
-   bottom margin supplies the gap between the two on desktop. */
+/* Desktop: `.asideTop` has no bottom padding and `.asideBottom` no top padding,
+   so `.asideText`'s 32px bottom margin is the only gap between them and the two
+   rows read as one column. The phone override below restores real padding,
+   because there the form sits between them. */
 .asideTop {
+  grid-area: asideTop;
   position: relative;
   overflow: hidden;
+  color: #fff;
   padding: clamp(28px, 3.2vw, 44px) clamp(28px, 3.2vw, 44px) 0;
 }
 
 .asideBottom {
+  grid-area: asideBottom;
+  color: #fff;
   padding: 0 clamp(28px, 3.2vw, 44px) clamp(28px, 3.2vw, 44px);
 }
 
-/* Decorative gold glow — anchored to `.asideTop` rather than `.aside` so it
-   still has a box to position against once `.aside` is `display: contents`. */
+@media (max-width: 991px) {
+  .asideTop {
+    padding-bottom: clamp(28px, 3.2vw, 44px);
+  }
+
+  .asideTop .asideText {
+    margin-bottom: 0;
+  }
+
+  .asideBottom {
+    padding-top: clamp(28px, 3.2vw, 44px);
+  }
+}
+
+/* Decorative gold glow — anchored to `.asideTop`, which is `position: relative`
+   above so this has a box to position against. */
 .asideTop::after {
   content: "";
   position: absolute;
@@ -90,45 +113,6 @@
 .asideInner {
   position: relative;
   z-index: 1;
-}
-
-/* ── Mobile: heading → form → steps ──────────────────────────
-   `display: contents` dissolves `.aside`'s box so its two children become
-   direct children of the `.panel` grid, which lets `order` interleave them
-   with the form. Each then paints its own navy background, since the
-   dissolved parent no longer paints one. */
-@media (max-width: 991px) {
-  .aside {
-    display: contents;
-  }
-
-  .asideTop,
-  .asideBottom {
-    color: #fff;
-    background: linear-gradient(
-      135deg,
-      var(--c-navy) 0%,
-      var(--c-navy-light) 100%
-    );
-  }
-
-  .asideTop {
-    order: 1;
-    padding-bottom: clamp(28px, 3.2vw, 44px);
-  }
-
-  .asideTop .asideText {
-    margin-bottom: 0;
-  }
-
-  .formColumn {
-    order: 2;
-  }
-
-  .asideBottom {
-    order: 3;
-    padding-top: clamp(28px, 3.2vw, 44px);
-  }
 }
 
 .asideTitle {
@@ -234,10 +218,65 @@
   color: #25d366;
 }
 
+/* ── Onward links ────────────────────────────────────────── */
+
+.asideLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.asideLinksLabel {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.asideLink {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--c-gold-light);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.asideLink:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.asideLink:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Announced by screen readers, invisible on screen — used to warn that a link
+   opens a new tab without cluttering the visible label. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── Right: the form ─────────────────────────────────────── */
 
+/* Covers the panel's navy gradient over its own area — the gradient is painted
+   once by `.panel` so the two navy blocks stay seamless. */
 .formColumn {
+  grid-area: form;
   padding: clamp(28px, 3.2vw, 44px);
+  background: #fff;
 }
 
 .formHeading {
@@ -287,13 +326,17 @@
   color: var(--c-danger);
 }
 
+/* 16px, not 15px: iOS Safari zooms the viewport on focus for any control under
+   16px, which shunts the layout sideways mid-typing. The controls are
+   `width: 100%` inside `minmax(0, 1fr)` columns, so the extra pixel changes no
+   column width. */
 .input,
 .textarea {
   width: 100%;
   padding: 12px 14px;
   color: var(--c-navy);
   font-family: inherit;
-  font-size: 15px;
+  font-size: 16px;
   background: #fff;
   border: 1px solid #d1d5db;
   border-radius: 10px;
