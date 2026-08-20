@@ -2,11 +2,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "next/navigation";
-import { Container, Accordion } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, HelpCircle } from "lucide-react";
+import { Calendar, Headphones, Tag, Star, Zap, ChevronDown } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
@@ -1148,68 +1148,68 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* FAQs Section */}
                 <section id="faqs" className="tour-section">
                   {faqItems.length > 0 ? (
-                    <div className='tour-listing-details__content__item tour-listing-details__faqs'>
+                    <div className="tour-listing-details__content__item tour-listing-details__faqs faq-card p-3 p-md-4 rounded-3 shadow-sm">
                       <div className="mb-4">
-                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.faqTitle")}</h2>
+                        <div className="faq-card__heading mb-2">
+                          <span className="faq-card__bar" aria-hidden="true" />
+                          <h2 className='tour-listing-details__title m-0'>{t("tourDetails.faqTitle")}</h2>
+                        </div>
                         <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
                       </div>
-                      <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
-                        <Accordion
-                          id="tour-faq-list"
-                          defaultActiveKey="0"
-                          activeKey={faqActiveKey || undefined}
-                          onSelect={(k) => setFaqActiveKey(k as string)}
-                          className="wow fadeInUp"
-                          data-wow-duration="1500ms"
-                          data-wow-delay="500ms"
-                        >
+                      {/* No theme class here any more: the list carries its own
+                          styling, so nothing needs `.faq-accordion` from gotur.css. */}
+                      <div className="tour-faq">
+                        <div className="faq-list" id="tour-faq-list">
                           {/* EVERY question is rendered, always. The ones past the
                               fold are hidden in CSS rather than sliced out of the
                               array, so the full Q&A text ships in the server HTML
                               and stays crawlable — and keeps matching the FAQPage
                               JSON-LD, which Google requires to be page-visible. */}
                           {faqItems.map((faq, index) => {
-                            const eventKey = String(index);
-                            const isOpen = faqActiveKey === eventKey;
+                            const key = String(index);
+                            const isOpen = faqActiveKey === key;
                             const isBeyondFold = index >= FAQ_VISIBLE_COUNT;
+                            const questionId = `tour-faq-question-${index}`;
+                            const answerId = `tour-faq-answer-${index}`;
                             return (
-                              <Accordion.Item
-                                eventKey={eventKey}
+                              <div
                                 key={index}
-                                className={(!showAllFaqs && isBeyondFold) ? 'faq-item--collapsed' : undefined}
+                                className={
+                                  "faq-list__row" +
+                                  (isOpen ? " is-open" : "") +
+                                  (!showAllFaqs && isBeyondFold ? " faq-list__row--folded" : "")
+                                }
                               >
-                                <div className="accordion-header">
-                                  <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
-                                    <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
-                                      <div className="faq-icon-box">
-                                        <HelpCircle size={20} />
-                                      </div>
-                                      <div className="faq-question-box text-start flex-grow-1">
-                                        <h3 className="faq-question-title" style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>{faq.question}</h3>
-                                      </div>
-                                      <div 
-                                        className="faq-chevron"
-                                        style={{ 
-                                          transition: 'transform 0.3s ease',
-                                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
-                                        }}
-                                      >
-                                        <ChevronDown size={18} />
-                                      </div>
-                                    </div>
-                                  </Accordion.Button>
-                                </div>
-                                <Accordion.Body>
-                                  <div className="accordion-content">
-                                    <div className="inner">
-                                      <div className="inner__text html-content" dangerouslySetInnerHTML={{ __html: faq.answer }} />
-                                    </div>
+                                <h3 className="faq-list__heading">
+                                  <button
+                                    type="button"
+                                    id={questionId}
+                                    className="faq-list__toggle"
+                                    onClick={() => setFaqActiveKey(isOpen ? null : key)}
+                                    aria-expanded={isOpen}
+                                    aria-controls={answerId}
+                                  >
+                                    <span className="faq-list__question">{faq.question}</span>
+                                    <ChevronDown size={18} className="faq-list__chevron" />
+                                  </button>
+                                </h3>
+                                <div
+                                  className="faq-list__body"
+                                  id={answerId}
+                                  role="region"
+                                  aria-labelledby={questionId}
+                                >
+                                  <div className="faq-list__clip">
+                                    <div
+                                      className="faq-list__answer html-content"
+                                      dangerouslySetInnerHTML={{ __html: faq.answer }}
+                                    />
                                   </div>
-                                </Accordion.Body>
-                              </Accordion.Item>
+                                </div>
+                              </div>
                             );
                           })}
-                        </Accordion>
+                        </div>
 
                         {faqItems.length > FAQ_VISIBLE_COUNT && (
                           <button

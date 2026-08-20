@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { Accordion, Col, Container, Row } from "react-bootstrap";
+import { Col, Container, Row } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
-import { ChevronDown, HelpCircle, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import image from "@/assets/images/resources/faq-sidebar.png";
@@ -29,58 +29,59 @@ interface FaqTabContent {
   }[];
 }
 
+/**
+ * The question list on /faq.
+ *
+ * This markup and the tour page's were copy-paste twins: the same
+ * `faq-icon-box` / `faq-header-content` / `faq-question-title` class names,
+ * none of which any stylesheet defined, so both leaned on the purchased
+ * theme's `.faq-accordion` rules and a pile of inline styles. Both now use the
+ * shared `.faq-list` treatment instead, which is styled in custom.css and
+ * matches the rest of the site.
+ */
 const AnimatedFaqAccordion: React.FC<{ faqs: Faq[] }> = ({ faqs }) => {
   const [activeKey, setActiveKey] = useState<string | null>("0");
 
   return (
-    <Accordion
-      activeKey={activeKey ?? undefined}
-      onSelect={(eventKey) => setActiveKey(eventKey as string | null)}
-      className=' wow fadeInUp'
-      data-wow-duration='1500ms'
-      data-wow-delay='500ms'
-    >
+    <div className="faq-list wow fadeInUp" data-wow-duration="1500ms" data-wow-delay="500ms">
       {faqs.map((faq, idx) => {
-        const eventKey = idx.toString();
-        const isOpen = activeKey === eventKey;
+        const key = idx.toString();
+        const isOpen = activeKey === key;
+        const questionId = `faq-question-${idx}`;
+        const answerId = `faq-answer-${idx}`;
 
         return (
-          <Accordion.Item eventKey={eventKey} key={idx}>
-            <div className="accordion-header">
-              <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
-                <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
-                  <div className="faq-icon-box">
-                    <HelpCircle size={20} />
-                  </div>
-                  <div className="faq-question-box text-start flex-grow-1">
-                    <h3 className="faq-question-title" style={{ margin: 0 }}>{faq.question}</h3>
-                  </div>
-                  <div
-                    className="faq-chevron"
-                    style={{
-                      marginLeft: "auto",
-                      display: "flex",
-                      alignItems: "center",
-                      transition: "transform 200ms ease",
-                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                  >
-                    <ChevronDown size={18} />
-                  </div>
-                </div>
-              </Accordion.Button>
-            </div>
-            <Accordion.Body>
-              <div className='accordion-content'>
-                <div className='inner'>
-                  <div dangerouslySetInnerHTML={{ __html: faq.answer }} className='text' />
-                </div>
+          <div key={idx} className={`faq-list__row${isOpen ? " is-open" : ""}`}>
+            <h3 className="faq-list__heading">
+              <button
+                type="button"
+                id={questionId}
+                className="faq-list__toggle"
+                onClick={() => setActiveKey(isOpen ? null : key)}
+                aria-expanded={isOpen}
+                aria-controls={answerId}
+              >
+                <span className="faq-list__question">{faq.question}</span>
+                <ChevronDown size={18} className="faq-list__chevron" />
+              </button>
+            </h3>
+            <div
+              className="faq-list__body"
+              id={answerId}
+              role="region"
+              aria-labelledby={questionId}
+            >
+              <div className="faq-list__clip">
+                <div
+                  className="faq-list__answer html-content"
+                  dangerouslySetInnerHTML={{ __html: faq.answer }}
+                />
               </div>
-            </Accordion.Body>
-          </Accordion.Item>
+            </div>
+          </div>
         );
       })}
-    </Accordion>
+    </div>
   );
 };
 

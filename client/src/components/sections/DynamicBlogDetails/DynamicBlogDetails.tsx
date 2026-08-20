@@ -1376,13 +1376,16 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           flex: 1;
           font-size: 1rem;
           font-weight: 600;
-          color: #1a1a1a;
+          /* The site's navy. This was #1a1a1a, a near-black used nowhere else. */
+          color: #16283c;
           line-height: 1.5;
           transition: color 0.2s;
         }
 
         .blog-faq-item--open .blog-faq-item__question {
-          color: #1b4168;
+          /* #1b4168 is the shared link-hover colour; using it for a heading made
+             an opened question read as a link. */
+          color: #16283c;
         }
 
         .blog-faq-item__icon {
@@ -1433,7 +1436,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
         .blog-faq-item__answer strong {
           font-weight: 700;
-          color: #1a1a1a;
+          color: #16283c;
         }
 
         .blog-faq-item__answer p {

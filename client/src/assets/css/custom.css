@@ -2326,9 +2326,8 @@ body {
    accepts when the same content is present on the page. Never swap this for a
    .slice() on the array — that would drop the text from the markup entirely.
    -------------------------------------------------------------------------- */
-.faq-accordion .accordion-item.faq-item--collapsed {
-  display: none;
-}
+/* The tour page used to fold questions by hiding a theme accordion item. It
+   now folds its own rows -- see `.faq-list__row--folded` with the FAQ list. */
 
 .faq-toggle-btn,
 .tour-note-toggle {
@@ -5996,5 +5995,166 @@ button[data-action="stop"] {
 
   .tour-note-toggle {
     display: flex;
+  }
+}
+
+/* ── FAQ list ────────────────────────────────────────────────────────────
+   One look for the question lists that the tour page, /faq and the listing
+   pages all show. Each of those was styled separately before: the tour page
+   and /faq were copy-paste twins leaning on the purchased theme's
+   `.faq-accordion` rules plus inline styles, with an icon painted
+   rgb(5, 44, 101) -- a blue that appears nowhere else in the site's palette.
+
+   The look here is the one the rest of the tour page already uses: brand navy
+   questions, a gold chevron, hairline rows inside one card, and the same
+   open/close motion as the pricing seasons. */
+.faq-list__row {
+  border-top: 1px solid rgba(183, 156, 92, 0.18);
+}
+
+.faq-list__row:first-child {
+  border-top: 0;
+}
+
+/* Marks the open question without shouting: the same tint the pricing rows use. */
+.faq-list__row.is-open {
+  background-color: rgba(183, 156, 92, 0.045);
+  border-radius: 6px;
+}
+
+/* The question stays a heading for the document outline; the button inside it
+   is what the pointer and the keyboard actually operate. */
+.faq-list__heading {
+  margin: 0;
+  font: inherit;
+}
+
+.faq-list__toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 8px;
+  background: none;
+  border: 0;
+  text-align: start;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.faq-list__toggle:focus-visible {
+  outline: 2px solid #b79c5c;
+  outline-offset: -3px;
+  border-radius: 4px;
+}
+
+.faq-list__question {
+  flex: 1;
+  margin: 0;
+  font-size: 0.97rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #16283c;
+}
+
+.faq-list__chevron {
+  flex: 0 0 auto;
+  color: #8a6e30;
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-list__row.is-open .faq-list__chevron {
+  transform: rotate(180deg);
+}
+
+/* Same grid-track collapse as the pricing seasons: it animates to the answer's
+   own height, so no answer can be clipped by a guessed max-height. */
+.faq-list__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-list__row.is-open .faq-list__body {
+  grid-template-rows: 1fr;
+  transition-duration: 220ms;
+}
+
+.faq-list__clip {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.faq-list__row.is-open .faq-list__clip {
+  opacity: 1;
+  transition: opacity 160ms ease 60ms;
+}
+
+.faq-list__answer {
+  padding: 0 8px 16px;
+  color: #555;
+  font-size: 0.925rem;
+  line-height: 1.6;
+  /* Same measure as the notes: these answers are prose, and the tour page is
+     wide enough to run them past 100 characters a line unchecked. */
+  max-width: 70ch;
+}
+
+.faq-list__answer > :last-child {
+  margin-bottom: 0;
+}
+
+/* Questions past the fold on the tour page. Hidden in CSS, never dropped from
+   the markup, so the full set stays crawlable and keeps matching the FAQPage
+   JSON-LD. */
+.faq-list__row--folded {
+  display: none;
+}
+
+/* The card the tour page and /faq wrap the list in, matching the pricing,
+   notes and packing cards beside them. */
+.faq-card {
+  background-color: rgba(183, 156, 92, 0.02);
+  border: 1px solid rgba(183, 156, 92, 0.1);
+  border-inline-end: 4px solid #b79c5c;
+}
+
+.faq-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The section heading ran 30px while Important Notes and What to Pack sit at
+   18-19px, so the FAQ shouted over the sections around it. */
+.faq-card .tour-listing-details__title {
+  font-size: 1.15rem;
+}
+
+/* The subtitle was rgb(14, 58, 87) -- a blue belonging to no part of the
+   palette. Matched to the notes body instead. Scoped, because
+   `.tour-reviews-subtitle` is shared with the reviews section. */
+.faq-card .tour-reviews-subtitle {
+  font-size: 0.925rem;
+  color: #555;
+}
+
+.faq-card__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background-color: #b79c5c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-list__body,
+  .faq-list__row.is-open .faq-list__body,
+  .faq-list__clip,
+  .faq-list__row.is-open .faq-list__clip,
+  .faq-list__chevron {
+    transition: none;
   }
 }
