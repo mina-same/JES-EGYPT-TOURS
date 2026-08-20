@@ -215,7 +215,9 @@
       "increase": "Increase {{field}}",
       "packageLabel": "Package",
       "packageNotSure": "Not sure — advise me"
-    }
+    },
+    "notesShowMore": "Show all {{total}} notes",
+    "notesShowLess": "Show fewer"
   },
   "pageMetaTitle": "Egypt Tour Categories | Private Tours & Day Trips | JES Egypt Tours",
   "pageMetaDescription": "Browse every Egypt tour category — multi-day packages, Nile cruises and private day trips from Cairo, Luxor, Aswan and the Red Sea.",

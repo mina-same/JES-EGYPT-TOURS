@@ -259,12 +259,10 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
         <div className={styles.panel}>
           {/* Names the section (see aria-labelledby above). */}
           <div className={styles.asideTop}>
-            <div className={styles.asideInner}>
-              <h2 id='contact-panel-title' className={styles.asideTitle}>
-                {t("form.title")}
-              </h2>
-              <p className={styles.asideText}>{t("form.text")}</p>
-            </div>
+            <h2 id='contact-panel-title' className={styles.asideTitle}>
+              {t("form.title")}
+            </h2>
+            <p className={styles.asideText}>{t("form.text")}</p>
           </div>
 
           {/* ── The form ─────────────────────────────────────── */}

@@ -2330,7 +2330,8 @@ body {
   display: none;
 }
 
-.faq-toggle-btn {
+.faq-toggle-btn,
+.tour-note-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2349,23 +2350,27 @@ body {
   transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.faq-toggle-btn:hover {
+.faq-toggle-btn:hover,
+.tour-note-toggle:hover {
   color: #b79c5c;
   border-color: #b79c5c;
   box-shadow: 0 2px 8px rgba(183, 156, 92, 0.15);
 }
 
-.faq-toggle-btn:focus-visible {
+.faq-toggle-btn:focus-visible,
+.tour-note-toggle:focus-visible {
   outline: 2px solid #b79c5c;
   outline-offset: 2px;
 }
 
-.faq-toggle-btn__chevron {
+.faq-toggle-btn__chevron,
+.tour-note-toggle__chevron {
   transition: transform 0.3s ease;
 }
 
 @media (max-width: 768px) {
-  .faq-toggle-btn {
+  .faq-toggle-btn,
+  .tour-note-toggle {
     width: 100%;
     padding: 14px 20px;
   }
@@ -5909,6 +5914,11 @@ button[data-action="stop"] {
   font-size: 0.925rem;
   line-height: 1.6;
   color: #555;
+  /* Between roughly 1024px and 1200px the container is too narrow for two
+     columns but still 788px wide on its own, which put lines back at 118
+     characters. This cap only bites in that single-column band: a column in the
+     two-column layout is 441-486px, already well inside it. */
+  max-width: 70ch;
 }
 
 /* A note is one thought, usually two sentences, and the shared 1em pushed them
@@ -5929,7 +5939,62 @@ button[data-action="stop"] {
   margin-bottom: 0;
 }
 
-.tour-note__divider {
-  margin: 16px 0 0;
-  opacity: 0.1;
+/* Two columns, but declared as a minimum column WIDTH rather than a count, so
+   the browser drops to one by itself wherever two would not fit. A fixed count
+   with a breakpoint would guess at the container width, which varies with the
+   booking rail; this cannot guess wrong.
+
+   The section ran 91 characters to the line at 1280 and 99 at 1440 -- far past
+   the 45-75 that reads comfortably, and nearly double the 47 that What to Pack
+   runs directly beside it. Two columns bring it to 50 and cut the height from
+   605px to 439px. */
+.tour-note-list {
+  /* 25rem, not 26: the card's padding takes the available width at 1280px down
+     to 870px, and at 26rem that fell a few pixels short of fitting two columns,
+     which silently dropped the section back to one 870px column. */
+  columns: 25rem 2;
+  column-gap: 40px;
+}
+
+/* A note must not be split down the middle across two columns. */
+.tour-note-item {
+  break-inside: avoid;
+  margin-bottom: 30px;
+  /* Notes run five or six lines each, and with only a small label between them
+     the section read as one wall of text. The rule gives every note an edge the
+     eye can catch and gathers its paragraphs into one visible unit, for 12px of
+     extra height -- boxing each note cost 98px and would have added six more
+     containers to a page that is already mostly cards. Logical properties, so
+     the rule follows the writing direction. */
+  padding-inline-start: 14px;
+  border-inline-start: 2px solid rgba(183, 156, 92, 0.45);
+}
+
+.tour-note-item:last-child {
+  margin-bottom: 0;
+}
+
+/* The one section on the page that was not on a card, sitting between the
+   pricing card above it and the What to Pack card below. Same treatment. */
+.tour-notes-card {
+  background-color: rgba(183, 156, 92, 0.02);
+  border: 1px solid rgba(183, 156, 92, 0.1);
+  border-inline-end: 4px solid #b79c5c;
+}
+
+/* Folded notes are hidden by CSS, and only on a phone: the markup always holds
+   every note, so a crawler reads the whole set whatever the viewport. On a
+   desktop the section fits in 624px and nothing is folded. */
+.tour-note-toggle {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .tour-note-item--folded {
+    display: none;
+  }
+
+  .tour-note-toggle {
+    display: flex;
+  }
 }

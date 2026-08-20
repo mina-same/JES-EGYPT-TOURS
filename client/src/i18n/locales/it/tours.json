@@ -215,7 +215,9 @@
       "increase": "Aumenta {{field}}",
       "packageLabel": "Pacchetto",
       "packageNotSure": "Non sono sicuro — consigliatemi"
-    }
+    },
+    "notesShowMore": "Mostra tutte le {{total}} note",
+    "notesShowLess": "Mostra meno"
   },
   "pageMetaTitle": "Categorie di tour in Egitto | Tour privati e giornalieri | JES Egypt Tours",
   "pageMetaDescription": "Tutte le categorie di tour in Egitto — pacchetti di più giorni, crociere sul Nilo ed escursioni private da Il Cairo, Luxor, Assuan e Mar Rosso.",

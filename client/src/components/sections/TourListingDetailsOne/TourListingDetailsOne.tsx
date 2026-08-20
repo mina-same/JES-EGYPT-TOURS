@@ -39,6 +39,12 @@ import ClientCarousel from "../ClientCarousel/ClientCarousel";
  *  see the FAQ section — just hidden until the button is pressed. */
 const FAQ_VISIBLE_COUNT = 4;
 
+/** Notes shown before the button on a phone. The whole section runs past
+ *  1250px there -- more than three screens -- while on a desktop it fits in
+ *  624px and is never folded. Every note stays in the HTML either way; only CSS
+ *  hides them, so crawlers still read the full set. */
+const NOTES_VISIBLE_ON_PHONE = 3;
+
 /**
  * Lines of description TEXT shown before "Read More". The effect below turns
  * this into a pixel height; the CSS fallback only covers the first paint.
@@ -109,6 +115,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(true);
   const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
   const [showAllFaqs, setShowAllFaqs] = useState(false);
+  const [showAllNotes, setShowAllNotes] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams() as { locale: string };
@@ -867,15 +874,24 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* Important Notes Section */}
                 {noteItems.length > 0 && (
                   <section id="important-notes" className="tour-section">
+                    <div className="tour-notes-card p-3 p-md-4 rounded-3 shadow-sm">
                     <div className="mb-4 d-flex align-items-center gap-2">
                       <div className="tour-note__bar" aria-hidden="true"></div>
                       <h2 className="tour-listing-details__title tour-note__heading m-0">
                         {t("tourDetails.importantNotes", "Important Notes")}
                       </h2>
                     </div>
-                    <div className="d-flex flex-column gap-3">
+                    <div className="tour-note-list" id="tour-note-list">
                       {noteItems.map((note, index) => (
-                        <div key={index} className="tour-note-item">
+                        <div
+                          key={index}
+                          className={
+                            "tour-note-item" +
+                            (!showAllNotes && index >= NOTES_VISIBLE_ON_PHONE
+                              ? " tour-note-item--folded"
+                              : "")
+                          }
+                        >
                           {/* A heading, not a styled span: these are the
                               subheadings of the section and belong in the
                               document outline. */}
@@ -886,11 +902,33 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             className="tour-note__text tour-listing-details__text html-content"
                             dangerouslySetInnerHTML={{ __html: note.text }}
                           />
-                          {index < noteItems.length - 1 && (
-                            <hr className="tour-note__divider" />
-                          )}
                         </div>
                       ))}
+                    </div>
+                    {/* Phone only -- the stylesheet hides the button above the
+                        breakpoint, where nothing is folded. */}
+                    {noteItems.length > NOTES_VISIBLE_ON_PHONE && (
+                      <button
+                        type="button"
+                        className="tour-note-toggle"
+                        onClick={() => setShowAllNotes((prev) => !prev)}
+                        aria-expanded={showAllNotes}
+                        aria-controls="tour-note-list"
+                      >
+                        <span>
+                          {showAllNotes
+                            ? t("tourDetails.notesShowLess", "Show fewer")
+                            : t("tourDetails.notesShowMore", "Show all {{total}} notes", {
+                                total: noteItems.length,
+                              })}
+                        </span>
+                        <ChevronDown
+                          size={18}
+                          className="tour-note-toggle__chevron"
+                          style={{ transform: showAllNotes ? "rotate(180deg)" : "rotate(0deg)" }}
+                        />
+                      </button>
+                    )}
                     </div>
                   </section>
                 )}

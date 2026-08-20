@@ -66,8 +66,6 @@
    because there the form sits between them. */
 .asideTop {
   grid-area: asideTop;
-  position: relative;
-  overflow: hidden;
   color: #fff;
   padding: clamp(28px, 3.2vw, 44px) clamp(28px, 3.2vw, 44px) 0;
 }
@@ -92,28 +90,10 @@
   }
 }
 
-/* Decorative gold glow — anchored to `.asideTop`, which is `position: relative`
-   above so this has a box to position against. */
-.asideTop::after {
-  content: "";
-  position: absolute;
-  top: -40%;
-  right: -30%;
-  width: 380px;
-  height: 380px;
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(
-    circle,
-    rgba(212, 175, 55, 0.22) 0%,
-    rgba(212, 175, 55, 0) 70%
-  );
-}
-
-.asideInner {
-  position: relative;
-  z-index: 1;
-}
+/* No decorative overlay on the navy, on purpose: a translucent gold glow lived
+   here and composited grey-olive at every alpha that kept the white text
+   legible — gold over #0e3a57 loses blue and gains green. `.panel`'s own navy
+   gradient already supplies the depth it was after. */
 
 .asideTitle {
   margin: 0 0 14px;
@@ -209,11 +189,6 @@
   border-color: rgba(255, 255, 255, 0.34);
 }
 
-.whatsapp:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 3px;
-}
-
 .whatsapp svg {
   color: #25d366;
 }
@@ -250,6 +225,9 @@
   text-decoration: underline;
 }
 
+/* One ring for both controls on the navy — white, because the ink ring the
+   form's buttons use would disappear against it. */
+.whatsapp:focus-visible,
 .asideLink:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;

@@ -215,7 +215,9 @@
       "increase": "{{field}} erhöhen",
       "packageLabel": "Paket",
       "packageNotSure": "Unsicher — beraten Sie mich"
-    }
+    },
+    "notesShowMore": "Alle {{total}} Hinweise anzeigen",
+    "notesShowLess": "Weniger anzeigen"
   },
   "pageMetaTitle": "Ägypten Tour-Kategorien | Privattouren & Tagesausflüge | JES Egypt Tours",
   "pageMetaDescription": "Alle Ägypten-Tourkategorien — mehrtägige Rundreisen, Nilkreuzfahrten und private Tagesausflüge ab Kairo, Luxor, Assuan und dem Roten Meer.",
