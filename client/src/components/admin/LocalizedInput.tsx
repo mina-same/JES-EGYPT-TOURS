@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 interface LocalizedInputProps {
   value: any;
   onChange: (value: any, lang: AdminLanguage) => void;
-  label?: string;
+  label?: React.ReactNode | ((activeLang: AdminLanguage) => React.ReactNode);
   placeholder?: string;
   className?: string;
   type?: string;

@@ -10,8 +10,9 @@ interface LocalizedFieldProps {
   value: Record<AdminLanguage, any> | any;
   /** Called when the active language's value changes */
   onChange?: (lang: AdminLanguage, value: any) => void;
-  /** Label for the field */
-  label?: string;
+  /** Label for the field. A callback can keep language-specific labels in sync
+   *  with this field's own language tabs. */
+  label?: React.ReactNode | ((activeLang: AdminLanguage) => React.ReactNode);
   /** If provided, syncs the active language with the global page language */
   globalLanguage?: AdminLanguage;
   /** Additional class for the wrapper */
@@ -55,7 +56,6 @@ export function LocalizedField({
   className,
   hideLanguageTabs = false,
   children,
-  error,
 }: LocalizedFieldProps) {
   const [activeLang, setActiveLang] = useState<AdminLanguage>(
     globalLanguage || "en"
@@ -85,13 +85,16 @@ export function LocalizedField({
     if (onChange) onChange(activeLang, val);
   };
 
+  const resolvedLabel =
+    typeof label === "function" ? label(activeLang) : label;
+
   return (
     <div className={cn("space-y-1", className)}>
       {/* Language tab strip */}
       <div className="flex min-w-0 items-center gap-1">
-        {label && (
+        {resolvedLabel && (
           <span className="text-xs text-muted-foreground font-medium mr-1 flex-1">
-            {label}
+            {resolvedLabel}
           </span>
         )}
         {!hideLanguageTabs && (
