@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 
 import { tourAPI } from '@/lib/api/tour';
 import { getAllBlogs } from '@/lib/api/blog';
@@ -616,28 +617,35 @@ export default function EditTourPage() {
             <p className="text-gray-500 mt-1">Update tour package details</p>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading}
-          onClick={() => void performUpdate(true)}
-        >
-          <Save className="w-4 h-4 mr-2" />
-          Update & Continue
-        </Button>
-        <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/tour/tour">
+            <Button type="button" variant="outline" disabled={loading} className="text-gray-700 dark:text-gray-300">
+              Cancel
+            </Button>
+          </Link>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading}
+            onClick={() => void performUpdate(true)}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Update & Continue
+          </Button>
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Draft Banner */}

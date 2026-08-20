@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { tourAPI } from '@/lib/api/tour';
 import { getAllBlogs } from '@/lib/api/blog';
 import { Button } from '@/components/ui/button';
@@ -299,19 +300,26 @@ export default function NewTourPage() {
             <p className="text-gray-500 mt-1">Create a new tour package</p>
           </div>
         </div>
-        <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Create Tour
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/tour/tour">
+            <Button type="button" variant="outline" disabled={loading} className="text-gray-700 dark:text-gray-300">
+              Cancel
+            </Button>
+          </Link>
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Create Tour
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Draft Banner */}

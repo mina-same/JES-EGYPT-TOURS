@@ -127,7 +127,9 @@ export default function SubcategoryView({
 
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [initialLoading, setInitialLoading] = useState(!initialSubcategory);
-  const [pageLoading, setPageLoading] = useState(false);
+  // Mounting with server data means a tours fetch is already pending, so start
+  // in pageLoading — otherwise the first paint flashes "no tours" before it lands.
+  const [pageLoading, setPageLoading] = useState(!!initialSubcategory);
   const [subcategory, setSubcategory] = useState<any>(initialSubcategory || null);
   const [siblingSubcategories, setSiblingSubcategories] = useState<any[]>(initialSiblings || []);
   const [tours, setTours] = useState<any[]>([]);
@@ -139,7 +141,10 @@ export default function SubcategoryView({
   const [totalPages, setTotalPages] = useState(1);
   const [sort, setSort] = useState<string>("-createdAt");
   const toursPerPage = 9;
-  const prevSlugRef = useRef<string | null>(null);
+  // Seeded with the current slug when the server already resolved the
+  // subcategory: starting at null made the first effect see a "new slug" and
+  // blank the server-rendered page behind the white-on-white loading screen.
+  const prevSlugRef = useRef<string | null>(initialSubcategory ? slug : null);
   const [draftFilters, setDraftFilters] = useState({ search: "", minPrice: "", maxPrice: "", tourType: "", tourStyle: "" });
   const [appliedFilters, setAppliedFilters] = useState({ search: "", minPrice: "", maxPrice: "", tourType: "", tourStyle: "" });
   const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
@@ -336,7 +341,9 @@ export default function SubcategoryView({
   if (initialLoading) {
     return (
       <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" />
+        {/* dark links: this branch has no PageHeader, so the transparent header
+            sits on white and light links would be invisible. */}
+        <TopbarOne /><HeaderOne linkTheme="dark" />
         <div className="flex items-center justify-center min-h-[60vh]" suppressHydrationWarning>
           <Loader2 className="w-10 h-10 animate-spin" />
         </div>
@@ -561,7 +568,7 @@ export default function SubcategoryView({
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
                   tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
-                ) : (
+                ) : pageLoading ? null : (
                   <div className="flex items-center justify-center min-h-[200px] w-full"><p className="text-xl text-gray-500">{t('listing.noToursSubcategory')}</p></div>
                 )}
                 <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} /></Col>
