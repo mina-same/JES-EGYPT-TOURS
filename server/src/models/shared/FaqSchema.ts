@@ -9,6 +9,13 @@ export interface IFAQ {
 
 const FAQ_LOCALES = ['en', 'de', 'it', 'es'] as const;
 
+/**
+ * The authority for "is this FAQ usable in at least one language".
+ *
+ * `client/src/lib/faqCleanup.ts` carries the same rule so the admin can drop
+ * half-written rows before they are sent. That copy is a convenience; this one
+ * decides. Keep them in step.
+ */
 function hasMeaningfulFaqValue(value: unknown): boolean {
   if (value == null) return false;
 

@@ -8,6 +8,69 @@ import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 
+/**
+ * One question.
+ *
+ * The two columns used to carry byte-identical copies of this markup, and in
+ * both the click handler sat on the wrapper that CONTAINS the answer -- so
+ * selecting a line of the answer, or following a link inside it, collapsed the
+ * question. It was also a div with role="button" holding an <h3> and, once an
+ * answer contained a link, interactive content nested inside interactive
+ * content.
+ *
+ * The heading-wraps-button arrangement is the accessible accordion pattern: the
+ * question stays a real heading for the document outline, only the header row
+ * is clickable, and the answer is a plain region the pointer can work in.
+ */
+const HomeFaqItem: React.FC<{
+  faq: FAQ;
+  /** 1-based, shown as the 01/02 counter. */
+  number: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  language: string;
+}> = ({ faq, number, isOpen, onToggle, language }) => {
+  const panelId = `hfaq-panel-${number}`;
+  const headerId = `hfaq-header-${number}`;
+
+  return (
+    <div className={`hfaq-item${isOpen ? " hfaq-item--open" : ""}`}>
+      <h3 className="hfaq-heading">
+        <button
+          type="button"
+          id={headerId}
+          className="hfaq-item__head"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+        >
+          <span className="hfaq-num">{String(number).padStart(2, "0")}</span>
+          <span className="hfaq-question">
+            {getLocalizedValue(faq.question, language)}
+          </span>
+          <span className="hfaq-icon" aria-hidden="true">
+            {isOpen ? <Minus size={14} /> : <Plus size={14} />}
+          </span>
+        </button>
+      </h3>
+      <div
+        className="hfaq-item__body"
+        id={panelId}
+        role="region"
+        aria-labelledby={headerId}
+      >
+        <div
+          className="hfaq-answer"
+          dangerouslySetInnerHTML={{
+            __html: getLocalizedValue(faq.answer, language) || "",
+          }}
+        />
+        {faq.category && <span className="hfaq-tag">{faq.category}</span>}
+      </div>
+    </div>
+  );
+};
+
 type HomeFAQProps = {
   initialFaqs?: FAQ[];
 };
@@ -89,90 +152,29 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
         {/* Two-column FAQ grid */}
         <Row className="g-0 hfaq-grid">
           <Col lg={6} className="hfaq-col hfaq-col--left">
-            {leftFaqs.map((faq, i) => {
-              const isOpen = openIndex === i;
-              return (
-                <div
-                  key={faq._id}
-                  className={`hfaq-item${isOpen ? " hfaq-item--open" : ""}`}
-                  onClick={() => toggle(i)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) =>
-                    (e.key === "Enter" || e.key === " ") && toggle(i)
-                  }
-                  aria-expanded={isOpen}
-                >
-                  <div className="hfaq-item__head">
-                    <span className="hfaq-num">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="hfaq-question">
-                      {getLocalizedValue(faq.question, i18n.language)}
-                    </h3>
-                    <span className="hfaq-icon" aria-hidden="true">
-                      {isOpen ? <Minus size={14} /> : <Plus size={14} />}
-                    </span>
-                  </div>
-                  <div className="hfaq-item__body">
-                    <div
-                      className="hfaq-answer"
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          getLocalizedValue(faq.answer, i18n.language) || "",
-                      }}
-                    />
-                    {faq.category && (
-                      <span className="hfaq-tag">{faq.category}</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {leftFaqs.map((faq, i) => (
+              <HomeFaqItem
+                key={faq._id}
+                faq={faq}
+                number={i + 1}
+                isOpen={openIndex === i}
+                onToggle={() => toggle(i)}
+                language={i18n.language}
+              />
+            ))}
           </Col>
 
           <Col lg={6} className="hfaq-col hfaq-col--right">
-            {rightFaqs.map((faq, i) => {
-              const index = i + half;
-              const isOpen = openIndex === index;
-              return (
-                <div
-                  key={faq._id}
-                  className={`hfaq-item${isOpen ? " hfaq-item--open" : ""}`}
-                  onClick={() => toggle(index)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) =>
-                    (e.key === "Enter" || e.key === " ") && toggle(index)
-                  }
-                  aria-expanded={isOpen}
-                >
-                  <div className="hfaq-item__head">
-                    <span className="hfaq-num">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="hfaq-question">
-                      {getLocalizedValue(faq.question, i18n.language)}
-                    </h3>
-                    <span className="hfaq-icon" aria-hidden="true">
-                      {isOpen ? <Minus size={14} /> : <Plus size={14} />}
-                    </span>
-                  </div>
-                  <div className="hfaq-item__body">
-                    <div
-                      className="hfaq-answer"
-                      dangerouslySetInnerHTML={{
-                        __html:
-                          getLocalizedValue(faq.answer, i18n.language) || "",
-                      }}
-                    />
-                    {faq.category && (
-                      <span className="hfaq-tag">{faq.category}</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {rightFaqs.map((faq, i) => (
+              <HomeFaqItem
+                key={faq._id}
+                faq={faq}
+                number={i + half + 1}
+                isOpen={openIndex === i + half}
+                onToggle={() => toggle(i + half)}
+                language={i18n.language}
+              />
+            ))}
           </Col>
         </Row>
 
