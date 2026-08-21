@@ -26,11 +26,12 @@ const WHATSAPP_NUMBER = "201007437271";
  *  server's English-only message in a toast. */
 const NAME_MIN = 2;
 const NAME_MAX = 100;
+const PHONE_MAX = 40;
 const MESSAGE_MAX = 5000;
 
 const STEP_INDEXES = [0, 1, 2] as const;
 
-type FieldName = "name" | "email" | "message";
+type FieldName = "name" | "email" | "phone" | "message";
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
@@ -97,6 +98,13 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
       errors.email = t("form.errors.emailRequired");
     } else if (!emailRegex.test(email)) {
       errors.email = t("form.errors.invalidEmail");
+    }
+
+    const phone = data.phone?.trim() ?? "";
+    if (!phone) {
+      errors.phone = t("form.errors.phoneRequired");
+    } else if (phone.length > PHONE_MAX) {
+      errors.phone = t("form.errors.phoneTooLong");
     }
 
     const message = data.message?.trim() ?? "";
@@ -169,6 +177,7 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
         body: JSON.stringify({
           name: data.name || "",
           email: data.email || "",
+          phone: data.phone || "",
           message: data.message || "",
           // So the team knows which language to answer in.
           locale,
@@ -353,6 +362,33 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
                   {fieldErrors.email && (
                     <span id='email-error' className={styles.fieldError}>
                       {fieldErrors.email}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor='phone'>
+                    {t("form.fields.phoneLabel")}{" "}
+                    <span className={styles.requiredMark} aria-hidden='true'>
+                      *
+                    </span>
+                  </label>
+                  <input
+                    className={controlClass("phone", styles.input)}
+                    type='tel'
+                    name='phone'
+                    id='phone'
+                    autoComplete='tel'
+                    inputMode='tel'
+                    placeholder={t("form.fields.phonePlaceholder")}
+                    aria-invalid={Boolean(fieldErrors.phone)}
+                    aria-describedby={describedBy("phone")}
+                    onInput={() => clearFieldError("phone")}
+                    required
+                  />
+                  {fieldErrors.phone && (
+                    <span id='phone-error' className={styles.fieldError}>
+                      {fieldErrors.phone}
                     </span>
                   )}
                 </div>

@@ -69,11 +69,7 @@ const OfferTwo = () => {
                     </span>
                   </h2>
                 </div>
-                <div
-                  className='offer-two__btn wow fadeInUp'
-                  data-wow-delay='0.2s'
-                  data-wow-duration='1500ms'
-                >
+                <div className='offer-two__btn'>
                   <Link href={buttonLink} className='gotur-btn'>
                     {buttonText}{" "}
                     <span className='icon'>
@@ -85,11 +81,7 @@ const OfferTwo = () => {
             </Col>
           </Row>
 
-          <div
-            className='offer-two__thumb wow fadeInLeft'
-            data-wow-duration='1500ms'
-            data-wow-delay='400ms'
-          >
+          <div className='offer-two__thumb'>
             <div className='offer-two__thumb__item offer-two__thumb__item'>
               <Image
                 src='/images/egypt-tour-traveler-with-suitcase-jes-egypt-tour.webp'

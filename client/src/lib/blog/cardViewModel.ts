@@ -17,7 +17,7 @@
 
 import { formatBlogDate } from "@/lib/api/blog";
 import { BLOG_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
-import { getLocalizedValue } from "@/lib/localize";
+import { getLocalizedStringList, getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { resolveBlogByline } from "./author";
 
@@ -28,6 +28,7 @@ export interface BlogCardViewModel {
   link: string;
   image: string;
   imageAlt: string;
+  /** The editor's image title, or "" — callers omit the attribute when empty. */
   imageTitle: string;
   /** Date badge parts; `day`/`month` are "" when the post has no valid date. */
   day: string;
@@ -42,7 +43,13 @@ export interface BlogCardViewModel {
   /** Sub-category name when the post has one, else its first tag, else "". */
   category: string;
   categoryLink: string;
-  excerpt: string;
+  /**
+   * The editor's card teaser, or "" — there is deliberately NO fallback, so a
+   * card with nothing written for it shows no description rather than
+   * borrowing prose written to introduce the article or to rank in a search
+   * result. Callers render the paragraph only when this is non-empty.
+   */
+  cardDescription: string;
   /** Minutes, computed server-side from the word count. 0 when unknown. */
   readingTime: number;
 }
@@ -70,8 +77,13 @@ export function buildBlogCardViewModel(
     BLOG_IMAGE_PLACEHOLDER;
   const imageAlt =
     asTrimmedString(getLocalizedValue(imageObject?.alt, locale)) || title;
-  const imageTitle =
-    asTrimmedString(getLocalizedValue(imageObject?.title, locale)) || imageAlt;
+  // No fallback to the alt text on purpose. Falling back put an identical
+  // `title` on every card image, which adds a hover tooltip repeating what the
+  // alt already says and gives assistive tech the same string twice. An image
+  // gets a title only where the editor wrote one.
+  const imageTitle = asTrimmedString(
+    getLocalizedValue(imageObject?.title, locale)
+  );
 
   const { day, month, iso, label: dateLabel } = formatBlogDate(
     post?.publishedAt || post?.createdAt,
@@ -96,10 +108,13 @@ export function buildBlogCardViewModel(
     ? getStrictLocalizedSlug(subCategory.slug, locale as SupportedLocale)
     : null;
 
-  const localizedTags = getLocalizedValue(post?.tags, locale);
-  const firstTag = Array.isArray(localizedTags)
-    ? asTrimmedString(localizedTags[0])
-    : "";
+  // `tags` arrives flattened from the endpoints that localize their response
+  // and raw from the ones that do not, so it goes through the helper that
+  // reads both. Reading it with getLocalizedValue handled only the raw shape:
+  // given the flat array it returned the first tag as a string, the
+  // Array.isArray guard here rejected that, and the fallback below never ran
+  // on any localized page — a post with no sub-category showed no label at all.
+  const firstTag = getLocalizedStringList(post?.tags, locale)[0] || "";
 
   let category = "";
   let categoryLink = "";
@@ -131,7 +146,9 @@ export function buildBlogCardViewModel(
     authorLink: byline.link,
     category,
     categoryLink,
-    excerpt: asTrimmedString(getLocalizedValue(post?.excerpt, locale)),
+    cardDescription: asTrimmedString(
+      getLocalizedValue(post?.cardDescription, locale)
+    ),
     readingTime,
   };
 }

@@ -4,10 +4,11 @@ import { Col, Container, Row } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import image from "@/assets/images/resources/faq-sidebar.png";
+import FaqAccordion from "@/components/common/Faq/FaqAccordion";
 // types.ts
 interface Faq {
   question: string;
@@ -28,62 +29,6 @@ interface FaqTabContent {
     faqs: Faq[];
   }[];
 }
-
-/**
- * The question list on /faq.
- *
- * This markup and the tour page's were copy-paste twins: the same
- * `faq-icon-box` / `faq-header-content` / `faq-question-title` class names,
- * none of which any stylesheet defined, so both leaned on the purchased
- * theme's `.faq-accordion` rules and a pile of inline styles. Both now use the
- * shared `.faq-list` treatment instead, which is styled in custom.css and
- * matches the rest of the site.
- */
-const AnimatedFaqAccordion: React.FC<{ faqs: Faq[] }> = ({ faqs }) => {
-  const [activeKey, setActiveKey] = useState<string | null>("0");
-
-  return (
-    <div className="faq-list wow fadeInUp" data-wow-duration="1500ms" data-wow-delay="500ms">
-      {faqs.map((faq, idx) => {
-        const key = idx.toString();
-        const isOpen = activeKey === key;
-        const questionId = `faq-question-${idx}`;
-        const answerId = `faq-answer-${idx}`;
-
-        return (
-          <div key={idx} className={`faq-list__row${isOpen ? " is-open" : ""}`}>
-            <h3 className="faq-list__heading">
-              <button
-                type="button"
-                id={questionId}
-                className="faq-list__toggle"
-                onClick={() => setActiveKey(isOpen ? null : key)}
-                aria-expanded={isOpen}
-                aria-controls={answerId}
-              >
-                <span className="faq-list__question">{faq.question}</span>
-                <ChevronDown size={18} className="faq-list__chevron" />
-              </button>
-            </h3>
-            <div
-              className="faq-list__body"
-              id={answerId}
-              role="region"
-              aria-labelledby={questionId}
-            >
-              <div className="faq-list__clip">
-                <div
-                  className="faq-list__answer html-content"
-                  dangerouslySetInnerHTML={{ __html: faq.answer }}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
 
 export interface FaqData {
   title: string;
@@ -263,11 +208,7 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
           <Row className='gutter-y-30'>
             <Col lg={4}>
               <div className='faq-page__sidebar'>
-                <div
-                  className='faq-page__sidebar__item wow fadeInUp'
-                  data-wow-duration='1500ms'
-                  data-wow-delay='300ms'
-                >
+                <div className='faq-page__sidebar__item'>
                   <ul className='faq-page__sidebar__list list-unstyled tab-buttons'>
                     {faqData.faqTabs.map((tab) => (
                       <li
@@ -283,11 +224,7 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
                     ))}
                   </ul>
                 </div>
-                <div
-                  className='faq-page__sidebar__item wow fadeInUp'
-                  data-wow-duration='1500ms'
-                  data-wow-delay='500ms'
-                >
+                <div className='faq-page__sidebar__item'>
                   <div className='faq-page__sidebar__cta'>
                     <Image src={faqData.image} alt={faqData.title} title={faqData.title} />
                     <div className='faq-page__sidebar__cta__content'>
@@ -333,14 +270,10 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
                           className='faq-accordion gotur-accordion'
                           data-grp-name='gotur-accordion'
                         >
-                          <div
-                            className='faq-page__title wow fadeInUp'
-                            data-wow-duration='1500ms'
-                            data-wow-delay='500ms'
-                          >
+                          <div className='faq-page__title'>
                             {faq.title}
                           </div>
-                          <AnimatedFaqAccordion faqs={faq.faqs} />
+                          <FaqAccordion items={faq.faqs} idPrefix="faq" />
                         </div>
                       ))}
                     </div>

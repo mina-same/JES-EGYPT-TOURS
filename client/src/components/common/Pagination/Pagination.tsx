@@ -23,7 +23,7 @@ const Pagination: React.FC<PaginationProps> = ({
             for (let i = 1; i <= totalPages; i++) pages.push(i);
         } else {
             let start = Math.max(1, currentPage - 2);
-            let end = Math.min(totalPages, start + maxVisible - 1);
+            const end = Math.min(totalPages, start + maxVisible - 1);
             
             if (end === totalPages) {
                 start = Math.max(1, end - maxVisible + 1);
@@ -35,7 +35,7 @@ const Pagination: React.FC<PaginationProps> = ({
     };
 
     return (
-        <ul className='post-pagination justify-content-center' data-wow-duration='1500ms' data-wow-delay='500ms'>
+        <ul className='post-pagination justify-content-center'>
             <li>
                 <button 
                     type="button"

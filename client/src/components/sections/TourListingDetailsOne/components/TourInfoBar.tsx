@@ -104,11 +104,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
   const columns = facts.length <= 4 ? facts.length : 3;
 
   return (
-    <div
-      className='tour-listing-details__info-area tour-listing-details__info-area--rail wow fadeInUp'
-      data-wow-duration='1500ms'
-      data-wow-delay='500ms'
-    >
+    <div className='tour-listing-details__info-area tour-listing-details__info-area--rail'>
       {/* `data-cols` drives both the grid and the dividers: CSS cannot work out
           which item starts a row on its own, and a rule per column count is the
           only way to stop a vertical line appearing at the left edge of row two. */}

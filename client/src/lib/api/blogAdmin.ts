@@ -44,6 +44,7 @@ export interface BlogFormData {
   editorialAuthor?: string;
   featuredImage: IImage;
   excerpt?: ILocalizedString;
+  cardDescription?: ILocalizedString;
   contentBlocks: ContentBlock[];
   tags: ILocalizedMixed;
   status: 'draft' | 'published' | 'scheduled';

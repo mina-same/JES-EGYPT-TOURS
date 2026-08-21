@@ -131,6 +131,14 @@ export const contactSubmissionValidation: ValidationChain[] = [
     .isEmail()
     .withMessage('Please provide a valid email')
     .normalizeEmail(),
+  // Required, like the name and the email: the team calls people back, and an
+  // enquiry with no number costs a round trip to ask for one.
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Phone is required')
+    .isLength({ max: 40 })
+    .withMessage('Phone cannot exceed 40 characters'),
   body('message')
     .trim()
     .notEmpty()
@@ -141,6 +149,68 @@ export const contactSubmissionValidation: ValidationChain[] = [
   // Optional: an older cached bundle may still post without it.
   body('locale')
     .optional()
+    .isIn(['en', 'de', 'it', 'es'])
+    .withMessage('Invalid locale'),
+];
+
+/**
+ * The quick question asked from a tour page.
+ *
+ * Deliberately short: name, email and the question are all that is required.
+ * The full booking form already collects party size, nationality and dates, and
+ * repeating them here would turn a one-minute question into a booking flow.
+ *
+ * `tourName` and `tourSlug` are optional at this layer because the modal fills
+ * them itself -- a missing one is a bug in our own page, not a reason to reject
+ * a visitor's question.
+ */
+export const tourQuestionValidation: ValidationChain[] = [
+  body('source')
+    .equals('tour-question')
+    .withMessage('Invalid inquiry source'),
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters'),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isLength({ max: 150 })
+    .withMessage('Email cannot exceed 150 characters')
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail(),
+  body('phone')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 40 })
+    .withMessage('Phone cannot exceed 40 characters'),
+  body('message')
+    .trim()
+    .notEmpty()
+    .withMessage('Please tell us what you would like to know')
+    .isLength({ max: 5000 })
+    .withMessage('Question cannot exceed 5000 characters'),
+  body('preferredDate')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 60 })
+    .withMessage('Travel date cannot exceed 60 characters'),
+  body('tourName')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 250 })
+    .withMessage('Tour name cannot exceed 250 characters'),
+  body('tourSlug')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ max: 250 })
+    .withMessage('Tour slug cannot exceed 250 characters'),
+  body('locale')
+    .optional({ values: 'falsy' })
     .isIn(['en', 'de', 'it', 'es'])
     .withMessage('Invalid locale'),
 ];

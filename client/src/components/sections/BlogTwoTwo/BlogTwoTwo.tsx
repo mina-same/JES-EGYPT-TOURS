@@ -160,8 +160,6 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
               <BlogCard
                 post={post}
                 variant='feature'
-                index={index}
-                animate={false}
                 priority={index === 0}
                 // The carousel's own breakpoints: 1 slide, then 2, then 3.
                 sizes='(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw'

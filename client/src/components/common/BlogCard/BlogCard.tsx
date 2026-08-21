@@ -9,18 +9,40 @@
  * more" link that cost every card four tab stops — and each fix only ever
  * reached the copy someone happened to be looking at.
  *
- * Three skins exist because the site genuinely has three: the grey panel used
- * across the marketing sections (`feature`), the bordered compact card under
- * an article (`bordered`), and the white shadowed card on the blog listing
- * (`classic`, which puts the date beside the meta instead of over the image).
- * `minimal` is the image-and-title strip used where a card would shout.
+ * Three skins exist because the site genuinely has three: the card used across
+ * the marketing sections (`feature`), the compact card in the strip under an
+ * article (`bordered`), and the card on the blog listing (`classic`). They
+ * share one surface and differ only in density — media height, title size,
+ * padding. `minimal` is the image-and-title strip used where a card would
+ * shout, and keeps its own layout entirely.
  *
- * Link structure is deliberate and shared by every skin: the title is the one
- * focusable link to the article, while the image overlay and the "Read More"
- * button are aria-hidden and out of the tab order — they point at the same
- * place, and left focusable they made a nine-card listing 36 tab stops to
- * cross. "Read More" still carries the article title in a clipped span, so a
- * crawler reading the link text alone learns where it goes.
+ * ── Reading order ──
+ * Image, TITLE, description, meta rows, divider, call to action. The theme put
+ * three lines of grey metadata between the image and the headline, which made
+ * the title the fourth thing the eye reached on a card whose whole job is to
+ * sell a headline. The article's section moved onto the image as a chip: it is
+ * a real link to a real page, it was the item that made the meta row wrap, and
+ * it reads better as a label on the photo than as the middle of a list. The
+ * publication date moved into the meta rows, where it can carry its year — the
+ * theme's date badge showed "30 Jun" with no year, in the heaviest element on
+ * the card, over the photograph.
+ *
+ * ── The description has no fallback ──
+ * `cardDescription` is written for the card and nothing else. An article whose
+ * editor left it blank shows no description here, deliberately: the field it
+ * replaced, `excerpt`, is also the article page's sub-title and the fallback
+ * for the meta description, so a card could end up showing prose written to
+ * rank in a search result. A visible gap is how an editor learns to write one.
+ *
+ * ── Links ──
+ * ONE anchor to the article: the title, stretched over the whole card by a
+ * `::after` in the stylesheet, so the image, the description and the empty
+ * space all open the article. It replaced two extra anchors to the same URL —
+ * an image overlay with no text at all (the first link to the article in the
+ * document, which is the one a search engine weighs) and an aria-hidden "Read
+ * More". "Read More" is now a span: it looks like the affordance it always
+ * was, and costs no tab stop. The category chip is the only other link, lifted
+ * above the stretched layer.
  */
 
 import Image from "next/image";
@@ -34,11 +56,8 @@ export type BlogCardVariant = "feature" | "bordered" | "classic" | "minimal";
 interface BlogCardProps {
   post: BlogCardViewModel;
   variant?: BlogCardVariant;
-  showExcerpt?: boolean;
-  /** Position in the list — drives the staggered reveal only. */
-  index?: number;
-  animate?: boolean;
   sizes?: string;
+  /** Skips lazy-loading. Only for cards that can be the LCP element. */
   priority?: boolean;
 }
 
@@ -50,81 +69,63 @@ interface BlogCardProps {
 const DEFAULT_SIZES = "(max-width: 768px) 100vw, (max-width: 992px) 50vw, 33vw";
 
 /**
- * The date badge, as a real <time>. Rendered as a <div> it told a crawler and
- * a screen reader nothing: `dateTime` makes the publication date machine
- * readable, and the label supplies the year that the two-line badge omits.
+ * The article's section, as a chip on the photograph. Omitted when the post
+ * has neither a sub-category nor a tag — an always-rendered chip left an empty
+ * pill sitting on the image.
  */
-const BlogCardDate = ({
-  post,
-  block,
-}: {
-  post: BlogCardViewModel;
-  block: string;
-}) => {
-  if (!post.day || !post.month) return null;
+const BlogCardChip = ({ post }: { post: BlogCardViewModel }) => {
+  if (!post.category) return null;
 
   return (
-    <time
-      className={`${block}__date`}
-      dateTime={post.iso}
-      aria-label={post.dateLabel}
-      title={post.dateLabel}
-    >
-      <span className={`${block}__date__day`}>{post.day}</span>
-      <span className={`${block}__date__month`}>{post.month}</span>
-    </time>
+    <Link href={post.categoryLink} className="blog-card-chip">
+      {post.category}
+    </Link>
   );
 };
 
 /**
- * Author, section and reading time. Each entry is omitted when it has nothing
- * to say — an always-rendered category left a lone icon that was also a link
- * with no accessible name — and the author is plain text, not a dead link,
- * when that byline has no page of its own.
+ * Byline, date and reading time, each behind its own icon.
+ *
+ * The icons come from the site's own font — the same three the tour cards use
+ * — and they are the only gold in this row: gold text as well would make the
+ * metadata compete with the headline above it and the button below it. Each
+ * entry is omitted when it has nothing to say, and the author is plain text
+ * rather than a dead link when that byline has no page of its own.
+ *
+ * The row wraps rather than compressing, which is what lets a narrow card put
+ * the three items on two lines instead of squeezing them onto one.
  */
-const BlogCardMeta = ({
-  post,
-  block,
-}: {
-  post: BlogCardViewModel;
-  block: string;
-}) => {
+const BlogCardMeta = ({ post }: { post: BlogCardViewModel }) => {
   const { t } = useTranslation("blogs");
 
-  const authorLabel = (
-    <>
-      <span className={`${block}__meta__icon`}>
-        <i className="icon-user" aria-hidden="true"></i>
-      </span>{" "}
-      {t("by")} {post.author}
-    </>
-  );
-
   return (
-    <ul className={`list-unstyled ${block}__meta blog-card-meta`}>
-      <li>
+    <ul className="list-unstyled blog-card-meta">
+      <li className="blog-card-meta__item">
+        <i className="icon-user blog-card-meta__icon" aria-hidden="true"></i>
         {post.authorLink ? (
-          <Link href={post.authorLink}>{authorLabel}</Link>
+          <Link href={post.authorLink}>
+            {t("by")} {post.author}
+          </Link>
         ) : (
-          <span className="blog-card-meta__item">{authorLabel}</span>
+          <span>
+            {t("by")} {post.author}
+          </span>
         )}
       </li>
-      {post.category && (
-        <li>
-          <Link href={post.categoryLink}>
-            <span className={`${block}__meta__icon`}>
-              <i className="icon-price-tag" aria-hidden="true"></i>
-            </span>{" "}
-            {post.category}
-          </Link>
+      {post.iso && post.dateLabel && (
+        <li className="blog-card-meta__item">
+          <i
+            className="icon-calendar blog-card-meta__icon"
+            aria-hidden="true"
+          ></i>
+          {/* The badge this replaced showed a day and a month with no year. */}
+          <time dateTime={post.iso}>{post.dateLabel}</time>
         </li>
       )}
       {post.readingTime > 0 && (
-        <li>
-          <span className="blog-card-meta__item">
-            <span className={`${block}__meta__icon`}>
-              <i className="icon-clock" aria-hidden="true"></i>
-            </span>{" "}
+        <li className="blog-card-meta__item">
+          <i className="icon-clock blog-card-meta__icon" aria-hidden="true"></i>
+          <span>
             {t("minRead", {
               minutes: post.readingTime,
               defaultValue: "{{minutes}} min read",
@@ -136,43 +137,14 @@ const BlogCardMeta = ({
   );
 };
 
-/**
- * The visible call to action. Out of the tab order and hidden from assistive
- * tech because the title above is the same destination, but its text still
- * names the article for anything reading links in isolation.
- */
-const BlogCardReadMore = ({
-  post,
-  block,
-}: {
-  post: BlogCardViewModel;
-  block: string;
-}) => {
-  const { t } = useTranslation("blogs");
-
-  return (
-    <Link
-      href={post.link}
-      className={`${block}__content__btn`}
-      aria-hidden="true"
-      tabIndex={-1}
-    >
-      {t("readMore")}
-      {post.title && <span className="sr-only"> — {post.title}</span>}{" "}
-      <i className="icon-arrow-right" aria-hidden="true"></i>
-    </Link>
-  );
-};
-
 const BlogCard = ({
   post,
   variant = "feature",
-  showExcerpt = false,
-  index = 0,
-  animate = true,
   sizes = DEFAULT_SIZES,
   priority = false,
 }: BlogCardProps) => {
+  const { t } = useTranslation("blogs");
+
   if (variant === "minimal") {
     return (
       <Link href={post.link} className="group block no-underline">
@@ -215,11 +187,7 @@ const BlogCard = ({
     variant === "feature" ? "tall" : variant === "classic" ? "medium" : "short";
 
   return (
-    <div
-      className={`${skin}${animate ? " wow fadeInUp" : ""}`}
-      data-wow-duration="1500ms"
-      data-wow-delay={`${100 * (index + 1)}ms`}
-    >
+    <article className={skin}>
       <div
         className={`${block}__image blog-card-media blog-card-media--${mediaHeight}`}
       >
@@ -233,36 +201,37 @@ const BlogCard = ({
           sizes={sizes}
           priority={priority}
         />
-        {/* The date sits over the image on the two card skins that have room
-            for it; `classic` puts it beside the meta row instead. */}
-        {variant !== "classic" && <BlogCardDate post={post} block={block} />}
-        {/* Still clickable with a mouse, skipped by keyboard and screen
-            readers — the title link below is the same target. */}
-        <Link
-          href={post.link}
-          className={`${block}__image__link`}
-          aria-hidden="true"
-          tabIndex={-1}
-        />
+        <BlogCardChip post={post} />
       </div>
       <div className={`${block}__content`}>
-        {variant === "classic" ? (
-          <div className={`${block}__content__top`}>
-            <BlogCardDate post={post} block={block} />
-            <BlogCardMeta post={post} block={block} />
-          </div>
-        ) : (
-          <BlogCardMeta post={post} block={block} />
-        )}
+        {/* The one link to the article. The stylesheet stretches it over the
+            whole card, which is what makes the card clickable. */}
         <h3 className={`${block}__title`}>
           <Link href={post.link}>{post.title}</Link>
         </h3>
-        {showExcerpt && post.excerpt && (
-          <p className={`${block}__text blog-card-excerpt`}>{post.excerpt}</p>
+        {/* No fallback on purpose — see the note at the top of this file. */}
+        {post.cardDescription && (
+          <p className={`${block}__text blog-card-text`}>
+            {post.cardDescription}
+          </p>
         )}
-        <BlogCardReadMore post={post} block={block} />
+        <BlogCardMeta post={post} />
+        {/* The footer carries the divider so the rule spans the content width
+            while the button keeps its own. `margin-top: auto` on it is what
+            holds every card's button on one line across a row. */}
+        <div className="blog-card-foot">
+          {/* Not a link. The title above already covers the whole card, so an
+              anchor here would be a third route to one URL and a tab stop that
+              goes where the previous one went. */}
+          <span className="blog-card-cta" aria-hidden="true">
+            <span>{t("readMore")}</span>
+            <span className="blog-card-cta__icon">
+              <i className="icon-arrow-right" aria-hidden="true"></i>
+            </span>
+          </span>
+        </div>
       </div>
-    </div>
+    </article>
   );
 };
 

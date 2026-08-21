@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { Container } from "react-bootstrap";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Calendar, Headphones, Tag, Star, Zap, ChevronDown } from "lucide-react";
+import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, Plus, Minus, MessageCircle, ArrowRight } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
@@ -29,6 +29,8 @@ import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { planHasPrices } from "@/lib/tours/startingPrice";
 import { normalizeAmenityItems, isOrderedListContent, bindLeadingDash } from "@/lib/normalizeAmenityItems";
+import TourQuestionModal from "./components/TourQuestionModal";
+import FaqAccordion from "@/components/common/Faq/FaqAccordion";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
@@ -113,12 +115,20 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
    * that is short enough to fit uncut.
    */
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(true);
-  const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
   const [showAllFaqs, setShowAllFaqs] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams() as { locale: string };
+  const pathname = usePathname();
+  /* The tour's own slug, taken from the URL rather than the payload: the route
+     already resolved it for this locale, and the localized slug is what makes
+     an enquiry's tour link work when the team opens it. */
+  const tourSlug = React.useMemo(
+    () => (pathname || "").split("?")[0].split("/").filter(Boolean).pop() || "",
+    [pathname]
+  );
   const { t, i18n } = useTranslation("tours");
 
   const relatedBlogCards = React.useMemo(
@@ -917,10 +927,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       >
                         <span>
                           {showAllNotes
-                            ? t("tourDetails.notesShowLess", "Show fewer")
-                            : t("tourDetails.notesShowMore", "Show all {{total}} notes", {
-                                total: noteItems.length,
-                              })}
+                            ? t("tourDetails.notesShowLess", "View Fewer Notes")
+                            : t("tourDetails.notesShowMore", "View All Notes")}
                         </span>
                         <ChevronDown
                           size={18}
@@ -1148,10 +1156,13 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* FAQs Section */}
                 <section id="faqs" className="tour-section">
                   {faqItems.length > 0 ? (
-                    <div className="tour-listing-details__content__item tour-listing-details__faqs faq-card p-3 p-md-4 rounded-3 shadow-sm">
+                    <div className="tour-listing-details__faqs faq-section">
+                      {/* No outer card. This section used to sit inside one
+                          large bordered box, which made it read as a component
+                          dropped onto the page rather than part of it. */}
                       <div className="mb-4">
-                        <div className="faq-card__heading mb-2">
-                          <span className="faq-card__bar" aria-hidden="true" />
+                        <div className="faq-head mb-2">
+                          <span className="faq-head__bar" aria-hidden="true" />
                           <h2 className='tour-listing-details__title m-0'>{t("tourDetails.faqTitle")}</h2>
                         </div>
                         <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
@@ -1159,57 +1170,22 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       {/* No theme class here any more: the list carries its own
                           styling, so nothing needs `.faq-accordion` from gotur.css. */}
                       <div className="tour-faq">
-                        <div className="faq-list" id="tour-faq-list">
-                          {/* EVERY question is rendered, always. The ones past the
-                              fold are hidden in CSS rather than sliced out of the
-                              array, so the full Q&A text ships in the server HTML
-                              and stays crawlable — and keeps matching the FAQPage
-                              JSON-LD, which Google requires to be page-visible. */}
-                          {faqItems.map((faq, index) => {
-                            const key = String(index);
-                            const isOpen = faqActiveKey === key;
-                            const isBeyondFold = index >= FAQ_VISIBLE_COUNT;
-                            const questionId = `tour-faq-question-${index}`;
-                            const answerId = `tour-faq-answer-${index}`;
-                            return (
-                              <div
-                                key={index}
-                                className={
-                                  "faq-list__row" +
-                                  (isOpen ? " is-open" : "") +
-                                  (!showAllFaqs && isBeyondFold ? " faq-list__row--folded" : "")
-                                }
-                              >
-                                <h3 className="faq-list__heading">
-                                  <button
-                                    type="button"
-                                    id={questionId}
-                                    className="faq-list__toggle"
-                                    onClick={() => setFaqActiveKey(isOpen ? null : key)}
-                                    aria-expanded={isOpen}
-                                    aria-controls={answerId}
-                                  >
-                                    <span className="faq-list__question">{faq.question}</span>
-                                    <ChevronDown size={18} className="faq-list__chevron" />
-                                  </button>
-                                </h3>
-                                <div
-                                  className="faq-list__body"
-                                  id={answerId}
-                                  role="region"
-                                  aria-labelledby={questionId}
-                                >
-                                  <div className="faq-list__clip">
-                                    <div
-                                      className="faq-list__answer html-content"
-                                      dangerouslySetInnerHTML={{ __html: faq.answer }}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                        {/* EVERY question is rendered, always. The ones past
+                            the fold are hidden in CSS rather than sliced out of
+                            the array, so the full Q&A text ships in the server
+                            HTML and stays crawlable -- and keeps matching the
+                            FAQPage JSON-LD, which Google requires to be
+                            page-visible. */}
+                        <FaqAccordion
+                          id="tour-faq-list"
+                          idPrefix="tour-faq"
+                          items={faqItems}
+                          rowClassName={(index) =>
+                            !showAllFaqs && index >= FAQ_VISIBLE_COUNT
+                              ? "faq-list__row--folded"
+                              : undefined
+                          }
+                        />
 
                         {faqItems.length > FAQ_VISIBLE_COUNT && (
                           <button
@@ -1221,8 +1197,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           >
                             <span>
                               {showAllFaqs
-                                ? t("tourDetails.faqShowLess")
-                                : t("tourDetails.faqShowMore", { remaining: faqItems.length - FAQ_VISIBLE_COUNT })}
+                                ? t("tourDetails.faqShowLess", "View Fewer Questions")
+                                : t("tourDetails.faqShowMore", "View More Questions")}
                             </span>
                             <ChevronDown
                               size={18}
@@ -1231,6 +1207,29 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             />
                           </button>
                         )}
+                      </div>
+
+                      {/* Catches the reader who got through the questions and
+                          still has a specific one. The button does nothing yet
+                          -- where it should lead is still being decided. */}
+                      <div className="faq-ask">
+                        <span className="faq-ask__icon" aria-hidden="true">
+                          <MessageCircle size={20} />
+                        </span>
+                        <div className="faq-ask__body">
+                          <p className="faq-ask__title">{t("tourDetails.faqAskTitle", "Still have a question?")}</p>
+                          <p className="faq-ask__text">
+                            {t("tourDetails.faqAskText", "Tell us what you need and we'll help you plan the right version of this tour.")}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="faq-ask__button"
+                          onClick={() => setAskOpen(true)}
+                        >
+                          {t("tourDetails.faqAskCta", "Ask Us About This Tour")}
+                          <ArrowRight size={16} />
+                        </button>
                       </div>
                     </div>
                   ) : (
@@ -1353,14 +1352,23 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         {relatedBlogCards.length > 0 && (
           <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
             <Container>
-                <div className="sec-title text-center mb-5">
+                {/* `mb-5` gave the cards barely more air than the tagline
+                    gives the title. The extra room is what lets the row read
+                    as its own section rather than as a caption's overflow. */}
+                <div className="sec-title text-center related-blogs-head">
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedBlogs.tagline", "Travel Stories")}</h6>
                   <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
+                  <p className='related-blogs-head__text'>
+                    {t(
+                      "tourDetails.relatedBlogs.description",
+                      "More travel inspiration, guides, and stories from Egypt."
+                    )}
+                  </p>
                 </div>
                 <div className="row gutter-y-30">
-                  {relatedBlogCards.map((post, index) => (
+                  {relatedBlogCards.map((post) => (
                     <div key={post.id} className="col-lg-4 col-md-6">
-                      <BlogCard post={post} variant='feature' index={index} />
+                      <BlogCard post={post} variant='feature' />
                     </div>
                   ))}
                 </div>
@@ -1387,6 +1395,16 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
       </PhotoSwipeGallery>
       </section>
+
+      {/* Mounted at the root, not inside the FAQ section, so the overlay is not
+          trapped by any ancestor's stacking or overflow context. */}
+      <TourQuestionModal
+        open={askOpen}
+        onClose={() => setAskOpen(false)}
+        tourName={title || ""}
+        tourSlug={tourSlug}
+        locale={i18n.language || String(params?.locale || "en")}
+      />
 
       {/* Mobile Sticky Booking Bar */}
       <MobileStickyBookingBar

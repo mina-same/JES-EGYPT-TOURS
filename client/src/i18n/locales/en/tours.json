@@ -81,9 +81,9 @@
     "gallerySubtitle": "A visual journey through the amazing places you will visit.",
     "photoCount": "{{count}} photos",
     "faqTitle": "Frequently Asked Questions",
-    "faqSubtitle": "Common questions and answers to help you prepare.",
-    "faqShowMore": "Read More ({{remaining}} more)",
-    "faqShowLess": "Show Less",
+    "faqSubtitle": "Practical answers about this tour, what it includes, and the optional experiences you can add.",
+    "faqShowMore": "View More Questions",
+    "faqShowLess": "View Fewer Questions",
     "honestReviewsTitle": "Reflective & Honest Reviews",
     "honestReviewsSubtitle": "Watch real experiences from travelers on YouTube.",
     "openYoutube": "Open on YouTube",
@@ -93,7 +93,8 @@
     },
     "relatedBlogs": {
       "title": "Related Blogs",
-      "tagline": "Travel Stories"
+      "tagline": "Travel Stories",
+      "description": "More travel inspiration, guides, and stories from Egypt."
     },
     "moreTours": {
       "title": "More",
@@ -216,8 +217,36 @@
       "packageLabel": "Package",
       "packageNotSure": "Not sure — advise me"
     },
-    "notesShowMore": "Show all {{total}} notes",
-    "notesShowLess": "Show fewer"
+    "notesShowMore": "View All Notes",
+    "notesShowLess": "View Fewer Notes",
+    "faqAskTitle": "Still have a question?",
+    "faqAskText": "Tell us what you need and we'll help you plan the right version of this tour.",
+    "faqAskCta": "Ask Us About This Tour",
+    "askModal": {
+      "title": "Ask Us About This Tour",
+      "lead": "Have a question about this tour? Send it to us and our team will get back to you.",
+      "tourLabel": "Tour",
+      "name": "Name",
+      "email": "Email",
+      "phone": "WhatsApp / Phone",
+      "date": "Travel Date",
+      "optional": "optional",
+      "datePlaceholder": "e.g. March 2027",
+      "question": "Your Question",
+      "questionPlaceholder": "Tell us what you'd like to know about this tour...",
+      "submit": "Send My Question",
+      "sending": "Sending...",
+      "replyTime": "We usually reply within 24 hours.",
+      "whatsapp": "Ask on WhatsApp",
+      "close": "Close",
+      "doneCta": "Close",
+      "sentTitle": "Your question is on its way",
+      "sentText": "We usually reply within 24 hours.",
+      "errorName": "Please enter your name",
+      "errorEmail": "Please enter a valid email",
+      "errorMessage": "Please tell us what you'd like to know",
+      "failed": "Something went wrong. Please try again."
+    }
   },
   "pageMetaTitle": "Egypt Tour Categories | Private Tours & Day Trips | JES Egypt Tours",
   "pageMetaDescription": "Browse every Egypt tour category — multi-day packages, Nile cruises and private day trips from Cairo, Luxor, Aswan and the Red Sea.",

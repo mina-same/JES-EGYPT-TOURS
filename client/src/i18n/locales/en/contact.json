@@ -27,7 +27,9 @@
       "emailLabel": "Your Email",
       "emailPlaceholder": "you@example.com",
       "messageLabel": "Message",
-      "messagePlaceholder": "Your travel dates, how many people are travelling, and what you would like to see."
+      "messagePlaceholder": "Your travel dates, how many people are travelling, and what you would like to see.",
+      "phoneLabel": "Phone / WhatsApp",
+      "phonePlaceholder": "e.g. +20 100 000 0000"
     },
     "errors": {
       "nameRequired": "Name is required",
@@ -41,7 +43,9 @@
       "tooManyRequests": "We could not accept your message right now. Please try again in a few minutes, or message us on WhatsApp.",
       "nameTooShort": "Name must be at least 2 characters",
       "nameTooLong": "Name cannot exceed 100 characters",
-      "messageTooLong": "Message cannot exceed 5000 characters"
+      "messageTooLong": "Message cannot exceed 5000 characters",
+      "phoneRequired": "Phone is required",
+      "phoneTooLong": "Phone cannot exceed 40 characters"
     },
     "success": {
       "sentTitle": "Message sent",

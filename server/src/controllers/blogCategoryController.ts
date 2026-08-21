@@ -5,6 +5,7 @@ import BlogCategory, { IBlogCategory } from '../models/BlogCategory';
 import { FilterQuery } from 'mongoose';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -192,10 +193,11 @@ export const getCategoryBySlug = async (
       ]
     })
       .populate('subcategoriesCount')
-      .populate({
-        path: 'featuredBlogs',
-        select: 'title slug featuredImage excerpt readingTime publishedAt',
-      })
+      // Cards, not articles — and the same field set every other card surface
+      // populates. Spelling it out here is how this one drifted: it asked for
+      // neither `tags` nor `subCategory` nor `editorialAuthor`, so its cards
+      // could not draw a section label or a real byline at all.
+      .populate(blogCardPopulate('featuredBlogs'))
       .populate({
         path: 'featuredDestinations',
         select: 'name slug coverImage',

@@ -63,7 +63,7 @@ export default function ToursHubView({
               const catSlug = getStrictLocalizedSlug(category.slug, locale as SupportedLocale) || "";
               const catName = getDisplayName(category, locale);
               return (
-              <Col lg={4} md={6} key={category._id} className="wow fadeInUp" data-wow-delay="100ms">
+              <Col lg={4} md={6} key={category._id} className="">
                 <div className="category-card-premium">
                   <div className="category-card-premium__image-wrapper">
                     <Image

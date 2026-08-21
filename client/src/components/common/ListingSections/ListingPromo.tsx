@@ -2,7 +2,6 @@
 import React, { useState, useRef } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import Image from 'next/image';
-import Link from 'next/link';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { getLocalizedValue } from '@/lib/localize';
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
@@ -90,11 +89,7 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
       <Container>
         <Row className='gutter-y-40'>
           <Col lg={6}>
-            <div
-              className='about-one__thumb wow fadeInLeft'
-              data-wow-duration='1500ms'
-              data-wow-delay='300ms'
-              >
+            <div className='about-one__thumb'>
               <div className='about-one__thumb__item'>
                 <Image src={mainImg} alt={mainImgTitle} title={mainImgTitle} width={600} height={700} style={{ borderRadius: '12px', objectFit: 'cover' }} />
               </div>
@@ -117,9 +112,7 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
               <div className="relative group mb-4">
                 <div 
                   ref={descriptionRef}
-                  className={`about-one__top__text wow fadeInUp transition-all duration-700 ease-in-out prose max-w-none ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}
-                  data-wow-duration='1500ms'
-                  data-wow-delay='300ms'
+                  className={`about-one__top__text transition-all duration-700 ease-in-out prose max-w-none ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}
                   style={{ 
                     scrollBehavior: 'smooth'
                   }}

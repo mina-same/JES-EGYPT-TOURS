@@ -27,7 +27,9 @@
       "emailLabel": "Su Correo",
       "emailPlaceholder": "nombre@ejemplo.com",
       "messageLabel": "Mensaje",
-      "messagePlaceholder": "Sus fechas de viaje, cuántas personas viajan y qué le gustaría ver."
+      "messagePlaceholder": "Sus fechas de viaje, cuántas personas viajan y qué le gustaría ver.",
+      "phoneLabel": "Teléfono / WhatsApp",
+      "phonePlaceholder": "p. ej. +20 100 000 0000"
     },
     "errors": {
       "nameRequired": "El nombre es obligatorio",
@@ -41,7 +43,9 @@
       "tooManyRequests": "No hemos podido aceptar su mensaje en este momento. Inténtelo de nuevo en unos minutos o escríbanos por WhatsApp.",
       "nameTooShort": "El nombre debe tener al menos 2 caracteres",
       "nameTooLong": "El nombre no puede superar los 100 caracteres",
-      "messageTooLong": "El mensaje no puede superar los 5000 caracteres"
+      "messageTooLong": "El mensaje no puede superar los 5000 caracteres",
+      "phoneRequired": "El teléfono es obligatorio",
+      "phoneTooLong": "El teléfono no puede superar los 40 caracteres"
     },
     "success": {
       "sentTitle": "Mensaje enviado",

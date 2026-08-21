@@ -362,15 +362,25 @@ a {
   color: #fff;
 }
 
-/* ── Answer body (smooth slide) ── */
+/* ── Answer body (smooth slide) ──
+   The track collapses to the answer's own height. This was `max-height: 600px`,
+   a guess: it animated a 600px distance whatever the answer's real height, and
+   it silently cut anything taller. The tour, article and /faq lists use the
+   same technique -- see `.faq-list__body` in custom.css. */
 .hfaq-item__body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.38s ease;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s ease;
 }
 
 .hfaq-item--open .hfaq-item__body {
-  max-height: 600px;
+  grid-template-rows: 1fr;
+}
+
+/* Padding on a zero-height grid track is NOT clipped, so the answer's own
+   padding needs an element of its own between it and the collapsing track. */
+.hfaq-item__clip {
+  overflow: hidden;
 }
 
 .hfaq-answer {

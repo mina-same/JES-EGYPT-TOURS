@@ -81,9 +81,9 @@
     "gallerySubtitle": "Un recorrido visual por los maravillosos lugares que visitarás.",
     "photoCount": "{{count}} fotos",
     "faqTitle": "Preguntas Frecuentes",
-    "faqSubtitle": "Preguntas y respuestas comunes para ayudarte a prepararte.",
-    "faqShowMore": "Leer más ({{remaining}} más)",
-    "faqShowLess": "Mostrar menos",
+    "faqSubtitle": "Respuestas prácticas sobre este tour, lo que incluye y las experiencias opcionales.",
+    "faqShowMore": "Ver más preguntas",
+    "faqShowLess": "Ver menos preguntas",
     "honestReviewsTitle": "Revisiones Reflexivas y Honestas",
     "honestReviewsSubtitle": "Mira experiencias reales de viajeros en YouTube.",
     "openYoutube": "Abrir en YouTube",
@@ -93,7 +93,8 @@
     },
     "relatedBlogs": {
       "title": "Blogs Relacionados",
-      "tagline": "Historias de Viaje"
+      "tagline": "Historias de Viaje",
+      "description": "Más inspiración de viaje, guías e historias de Egipto."
     },
     "moreTours": {
       "title": "Más",
@@ -216,8 +217,36 @@
       "packageLabel": "Paquete",
       "packageNotSure": "No estoy seguro — asesórenme"
     },
-    "notesShowMore": "Ver las {{total}} notas",
-    "notesShowLess": "Ver menos"
+    "notesShowMore": "Ver todas las notas",
+    "notesShowLess": "Ver menos notas",
+    "faqAskTitle": "¿Todavía tienes una pregunta?",
+    "faqAskText": "Cuéntanos qué necesitas y te ayudaremos a planificar la versión adecuada de este tour.",
+    "faqAskCta": "Pregúntanos sobre este tour",
+    "askModal": {
+      "title": "Pregúntanos sobre este tour",
+      "lead": "¿Tienes una pregunta sobre este tour? Envíanosla y nuestro equipo te responderá.",
+      "tourLabel": "Tour",
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "phone": "WhatsApp / Teléfono",
+      "date": "Fecha de viaje",
+      "optional": "opcional",
+      "datePlaceholder": "p. ej. marzo de 2027",
+      "question": "Tu pregunta",
+      "questionPlaceholder": "Cuéntanos qué te gustaría saber sobre este tour...",
+      "submit": "Enviar mi pregunta",
+      "sending": "Enviando...",
+      "replyTime": "Normalmente respondemos en menos de 24 horas.",
+      "whatsapp": "Preguntar por WhatsApp",
+      "close": "Cerrar",
+      "doneCta": "Cerrar",
+      "sentTitle": "Tu pregunta va en camino",
+      "sentText": "Normalmente respondemos en menos de 24 horas.",
+      "errorName": "Introduce tu nombre",
+      "errorEmail": "Introduce un correo electrónico válido",
+      "errorMessage": "Cuéntanos qué te gustaría saber",
+      "failed": "Algo salió mal. Inténtalo de nuevo."
+    }
   },
   "pageMetaTitle": "Categorías de tours en Egipto | Tours privados y de un día | JES Egypt Tours",
   "pageMetaDescription": "Todas las categorías de tours por Egipto — paquetes de varios días, cruceros por el Nilo y excursiones privadas desde El Cairo, Luxor, Asuán y el Mar Rojo.",

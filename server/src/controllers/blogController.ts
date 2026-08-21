@@ -11,7 +11,7 @@ import {
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { localizePreservingSlugs } from '../utils/localize';
 import { narrowBlocksToLocale } from '../utils/blogBlocks';
-import { blogCardPopulate } from '../utils/blogCardPopulate';
+import { BLOG_CARD_FIELDS, blogCardPopulate } from '../utils/blogCardPopulate';
 
 const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
   const searchRegex = createSearchRegex(search);
@@ -320,9 +320,76 @@ export const getBlogBySlug = async (
 };
 
 /**
- * @desc    Get single blog by ID (public - only published)
+ * @desc    Every tag in use, for the current language, most-used first
+ * @route   GET /api/blog/tags
+ * @access  Public
+ *
+ * The blog sidebar used to build this list on the client by fetching FIFTY
+ * published posts and reducing them. That was both wasteful — fifty article
+ * records to render twenty words — and wrong: a tag that appears only on the
+ * fifty-first post could never show up, so the "all tags" widget was really
+ * "tags of the fifty most recent posts".
+ *
+ * Counting them in the database fixes both. `tags` is a localized object, so
+ * the language is part of the field path: a visitor's tag list is in their own
+ * language, and a language with no tags gets an empty list rather than
+ * English ones.
+ */
+export const getBlogTags = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+    const locale = req.locale && req.locale !== 'bypass' ? req.locale : 'en';
+    const field = `$tags.${locale}`;
+
+    const rows = await Blog.aggregate([
+      { $match: { status: 'published' } },
+      { $unwind: field },
+      // `tags` is a Mixed field, so a malformed record could hold something
+      // that is not a string — and $trim throws on those rather than skipping
+      // the row, which would take the whole endpoint down with it.
+      { $match: { $expr: { $eq: [{ $type: field }, 'string'] } } },
+      // Trailing spaces from the admin's tag input would otherwise split one
+      // tag into two entries that look identical in the widget.
+      { $group: { _id: { $trim: { input: field } }, count: { $sum: 1 } } },
+      { $match: { _id: { $nin: [null, ''] } } },
+      // Most-used first so a truncated list is the most useful twenty, not an
+      // arbitrary twenty. Alphabetical within a tie keeps the order stable.
+      { $sort: { count: -1, _id: 1 } },
+      { $limit: limit },
+      { $project: { _id: 0, tag: '$_id', count: 1 } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows,
+    });
+  } catch (error: any) {
+    console.error('Error fetching blog tags:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch blog tags',
+    });
+  }
+};
+
+/**
+ * @desc    Get one published blog by ID, in CARD shape
  * @route   GET /api/blog/posts/id/:id
  * @access  Public
+ *
+ * The article page is reached by SLUG; this route exists for the tour page's
+ * curated "related blogs", which draws cards. It used to answer with the whole
+ * document — every content block in all four languages, plus its own related
+ * posts and related tours — to render a title and a thumbnail three times per
+ * tour page. It also skipped localization entirely, which is why those cards
+ * read in English on /de, /it and /es.
+ *
+ * Both are fixed by answering with the same field set every other card
+ * endpoint uses, localized like every other public response.
  */
 export const getBlogByIdPublic = async (
   req: Request,
@@ -333,14 +400,11 @@ export const getBlogByIdPublic = async (
       _id: req.params.id,
       status: 'published' 
     })
-      .populate('author', 'name email')
+      .select(BLOG_CARD_FIELDS)
+      // The public byline (with its own author page) and the card's section
+      // label — the two references a card resolves. See blogCardPopulate.
       .populate('editorialAuthor')
-      .populate('category', 'name slug')
-      .populate('subCategory', 'name slug')
-      // Related posts are drawn with the same card as everywhere else, so they
-      // are populated with the same field set — see blogCardPopulate.
-      .populate(blogCardPopulate('relatedPosts'))
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
+      .populate('subCategory', 'name slug');
 
     if (!blog) {
       res.status(404).json({
@@ -352,7 +416,9 @@ export const getBlogByIdPublic = async (
 
     res.status(200).json({
       success: true,
-      data: blog,
+      // Localized, with `slug` kept raw so the card's per-locale article link
+      // still resolves.
+      data: localizePreservingSlugs(blog, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching blog:', error);
@@ -1046,7 +1112,10 @@ export const getBlogsByCategory = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .select('-comments')
+      // Cards, not articles. `-comments` alone still shipped every content
+      // block in four languages for every post in the listing — the same
+      // weight /blogs/all was fixed for.
+      .select('-comments -contentBlocks')
       .sort({ publishedAt: -1 })
       .skip(skip)
       .limit(Number(limit));
@@ -1056,7 +1125,8 @@ export const getBlogsByCategory = async (
     res.status(200).json({
       success: true,
       count: blogs.length,
-      data: blogs,
+      // Localized, with `slug` kept raw so the per-locale card links resolve.
+      data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
         page: Number(page),
         limit: Number(limit),
@@ -1117,7 +1187,10 @@ export const getBlogsBySubCategory = async (
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
-      .select('-comments')
+      // Cards, not articles. `-comments` alone still shipped every content
+      // block in four languages for every post in the listing — the same
+      // weight /blogs/all was fixed for.
+      .select('-comments -contentBlocks')
       .sort({ publishedAt: -1 })
       .skip(skip)
       .limit(Number(limit));
@@ -1127,7 +1200,8 @@ export const getBlogsBySubCategory = async (
     res.status(200).json({
       success: true,
       count: blogs.length,
-      data: blogs,
+      // Localized, with `slug` kept raw so the per-locale card links resolve.
+      data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
         page: Number(page),
         limit: Number(limit),

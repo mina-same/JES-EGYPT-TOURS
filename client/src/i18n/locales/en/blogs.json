@@ -22,7 +22,6 @@
   "by": "By",
   "comments": "Comments",
   "tags": "Tags:",
-  "shareFriends": "Share with friends:",
   "leaveComment": "Leave a Comment",
   "yourName": "Your Name*",
   "yourEmail": "Your Email*",
@@ -62,7 +61,7 @@
   "postArticleRelatedToursTitle": "Explore Private Tours in Egypt",
   "postArticleArticlesTitle": "Keep Exploring Egypt",
   "relatedTours": "Related Tours",
-  "faq": "F&Q",
+  "faq": "FAQ",
   "quickOverview": "Quick Overview",
   "atAGlance": "At a Glance",
   "aboutAuthor": "About the author",
@@ -70,5 +69,9 @@
   "previousArticles": "Previous articles",
   "nextArticles": "Next articles",
   "pageMetaTitle": "Egypt Travel Blog | Guides, Tips & Stories | JES Egypt Tours",
-  "pageMetaDescription": "Browse our Egypt travel guides by topic — practical tips on tickets, timing and logistics, written from trips we have actually taken."
+  "pageMetaDescription": "Browse our Egypt travel guides by topic — practical tips on tickets, timing and logistics, written from trips we have actually taken.",
+  "blogPagination": "Blog pagination",
+  "previousPage": "Previous page",
+  "nextPage": "Next page",
+  "goToPage": "Page {{page}}"
 }

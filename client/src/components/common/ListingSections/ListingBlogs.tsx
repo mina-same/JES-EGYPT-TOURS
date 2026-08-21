@@ -31,25 +31,29 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
     : (title || t('ourLatestNews'));
 
   return (
-    <section className="blog-two section-space">
+    <section className="blog-two section-space listing-blogs">
       <Container>
         <div className="sec-title text-center mb-5">
           <span className="sec-title__tagline">{t('blogTagline')}</span>
           <h2 className="sec-title__title">{displayTitle}</h2>
         </div>
         <Row className="gutter-y-30">
-          {cards.map((post, index) => (
+          {cards.map((post) => (
             <Col lg={4} md={6} key={post.id}>
-              <BlogCard post={post} variant='feature' index={index} showExcerpt />
+              <BlogCard post={post} variant='feature' />
             </Col>
           ))}
         </Row>
       </Container>
+      {/* `global` is required — the cards are rendered by BlogCard, not by this
+          component's own JSX — but every selector is scoped to this section.
+          Unscoped, simply mounting this teaser re-set `.sec-title__title` and
+          `.section-space` for EVERY other section on the page below 991px. */}
       <style jsx global>{`
         @media (max-width: 991px) {
-          .blog-card-two { margin-bottom: 20px; }
-          .sec-title__title { font-size: 28px !important; }
-          .section-space { padding: 40px 0; }
+          .listing-blogs .blog-card-two { margin-bottom: 20px; }
+          .listing-blogs .sec-title__title { font-size: 28px; }
+          .listing-blogs.section-space { padding: 40px 0; }
         }
       `}</style>
     </section>

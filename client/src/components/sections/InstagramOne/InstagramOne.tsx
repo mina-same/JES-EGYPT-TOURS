@@ -28,11 +28,7 @@ const InstagramOne: React.FC<InstragramOneProps> = ({ extraClass }) => {
   const { title, items }: InstagramOneData = instagramOneData;
 
   return (
-    <div
-      className={`instagram-one section-space ${extraClass} wow fadeInUp`}
-      data-wow-duration='1500ms'
-      data-wow-delay='300ms'
-    >
+    <div className={`instagram-one section-space ${extraClass}`}>
       <div className='instagram-one__top'>
         <Container>
           <h5 className='instagram-one__title'>{title}</h5>

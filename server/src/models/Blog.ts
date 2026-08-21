@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
-import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
+import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 
 // Content Block Types
@@ -47,6 +47,19 @@ export interface IBlog extends Document {
   editorialAuthor?: mongoose.Types.ObjectId | string;
   featuredImage: IImage;
   excerpt?: ILocalizedString;
+  /**
+   * Short teaser shown on the article CARD only. Kept separate from `excerpt`
+   * because `excerpt` was doing three incompatible jobs at once: the card
+   * teaser, the sub-title in the article page header, and the fallback for the
+   * meta description. Copy that sells a click is not copy that introduces an
+   * article, and neither is copy written for a search result.
+   *
+   * There is NO fallback. An article with no card description shows no
+   * description on its card — deliberately, so an editor sees the gap and
+   * writes for it rather than having the card silently borrow prose written
+   * for somewhere else.
+   */
+  cardDescription?: ILocalizedString;
   
   // Rich Content
   contentBlocks: IContentBlock[];
@@ -162,6 +175,10 @@ const BlogSchema: Schema = new Schema(
     },
     excerpt: {
       type: LocalizedStringSchema,
+    },
+    // Plain text (no rich text): it renders as clamped lines on the card.
+    cardDescription: {
+      type: OptionalLocalizedStringSchema,
     },
     
     // === RICH CONTENT ===

@@ -60,11 +60,7 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
     },
   };
   return (
-    <div
-      className={`client-carousel wow fadeInUp ${extraClass ? extraClass : ""}`}
-      data-wow-duration='1500ms'
-      data-wow-delay='500ms'
-    >
+    <div className={`client-carousel ${extraClass ? extraClass : ""}`}>
       <div className='container'>
         <h2 className='client-carousel__title'>{t("trustedPartners")}</h2>
 

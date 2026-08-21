@@ -140,10 +140,7 @@ const TourCard: React.FC<TourCardProps> = ({
 
   return (
     <div className="item">
-      <div
-        className={`listing-card-four ${styles.card} wow fadeInUp`}
-        data-wow-duration="1500ms"
-      >
+      <div className={`listing-card-four ${styles.card}`}>
         <div className={`listing-card-four__image ${styles.media}`}>
           <div
             className={`relative w-full${imageZoom ? " overflow-hidden" : ""}`}

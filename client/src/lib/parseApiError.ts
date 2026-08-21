@@ -111,6 +111,7 @@ const FIELD_LABELS: Record<string, string> = {
   slug: 'URL Slug',
   description: 'Description',
   excerpt: 'Intro',
+  cardDescription: 'Card description',
   author: 'Author',
   category: 'Category',
   status: 'Status',

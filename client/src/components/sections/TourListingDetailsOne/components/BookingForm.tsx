@@ -458,11 +458,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
   };
 
   return (
-    <div
-      className='tour-listing-details__sidebar__item tour-listing-details__sidebar__item-form wow fadeInUp animated'
-      data-wow-delay='0.4s'
-      data-wow-duration='1500ms'
-    >
+    <div className='tour-listing-details__sidebar__item tour-listing-details__sidebar__item-form'>
       {/* Keep price and intent together in one compact header. The form stays
           reassuringly priced without spending three full rows above Name.
           Two columns: what the card is for on the left, what it costs on the

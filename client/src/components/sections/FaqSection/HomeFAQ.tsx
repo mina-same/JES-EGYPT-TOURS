@@ -59,13 +59,15 @@ const HomeFaqItem: React.FC<{
         role="region"
         aria-labelledby={headerId}
       >
-        <div
-          className="hfaq-answer"
-          dangerouslySetInnerHTML={{
-            __html: getLocalizedValue(faq.answer, language) || "",
-          }}
-        />
-        {faq.category && <span className="hfaq-tag">{faq.category}</span>}
+        <div className="hfaq-item__clip">
+          <div
+            className="hfaq-answer"
+            dangerouslySetInnerHTML={{
+              __html: getLocalizedValue(faq.answer, language) || "",
+            }}
+          />
+          {faq.category && <span className="hfaq-tag">{faq.category}</span>}
+        </div>
       </div>
     </div>
   );

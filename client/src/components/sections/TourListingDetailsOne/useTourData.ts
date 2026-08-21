@@ -339,10 +339,11 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
               return [];
             }
           })(),
-          // Curated blog references (max 3)
+          // Curated blog references (max 3). The language travels with each
+          // request — without it these cards came back in English on /de.
           Promise.all(safeArray(tour.blogReferences).slice(0, 3).map(async (ref: any) => {
             try {
-              return await getBlogById(ref.id);
+              return await getBlogById(ref.id, currentLang);
             } catch { return null; }
           })),
         ];

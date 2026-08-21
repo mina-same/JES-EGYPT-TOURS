@@ -21,9 +21,9 @@ const Error404: React.FC = () => {
                     <Image src={shape2} alt="error image" />
                     </div>
                 </div>
-                <h3 className="error-404__sub-title wow fadeInUp animated" data-wow-duration="1500ms" data-wow-delay="300ms"><span>Oops!</span> Page not found</h3>
-                <p className="error-404__text wow fadeInUp animated" data-wow-duration="1500ms" data-wow-delay="500ms" >The page you are looking for does not exist</p>
-                <div className="error-404__btns wow fadeInUp animated" data-wow-duration="1500ms" data-wow-delay="600ms" >
+                <h3 className="error-404__sub-title"><span>Oops!</span> Page not found</h3>
+                <p className="error-404__text" >The page you are looking for does not exist</p>
+                <div className="error-404__btns" >
                     <Link href="/" className="gotur-btn gotur-btn--primary error-404__btn">Back to Home Pages <span className="icon"><i className="icon-right"></i></span></Link>
                 </div>
             </Container>

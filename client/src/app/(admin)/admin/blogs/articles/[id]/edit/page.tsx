@@ -76,6 +76,7 @@ const INITIAL_BLOG_EDIT: any = {
   editorialAuthor: '',
   featuredImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   excerpt: { en: '', de: '', it: '', es: '' },
+  cardDescription: { en: '', de: '', it: '', es: '' },
   contentBlocks: [],
   tags: { en: [], de: [], it: [], es: [] },
   status: 'draft',
@@ -180,14 +181,26 @@ export default function EditBlogPage() {
       const lang = langOverride || activeLanguage;
       
       // Handle localized fields
-      const localizedFields = ['title', 'excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
+      const localizedFields = ['title', 'excerpt', 'cardDescription', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
       const localizedMixedFields = ['tags', 'keyTakeaways', 'metaKeywords', 'summary'];
 
       if (localizedFields.includes(field)) {
-        updated[field] = {
-          ...(updated[field] || { en: '', de: '', it: '', es: '' }),
-          [lang]: value,
-        };
+        // Two caller shapes, because the admin has two kinds of localized
+        // control. `LocalizedField` hands over the STRING for one language;
+        // `LocalizedInput` and `LocalizedTextArea` hand over the WHOLE
+        // { en, de, it, es } object, already merged. Accepting only the string
+        // meant an object caller wrote `{ en: { en: '…' } }`, which rendered as
+        // "[object Object]" and could not be typed out of — every keystroke
+        // nested it one level deeper. The sibling "new article" form has
+        // always branched on this; this one had not.
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          updated[field] = value;
+        } else {
+          updated[field] = {
+            ...(updated[field] || { en: '', de: '', it: '', es: '' }),
+            [lang]: value,
+          };
+        }
       } 
       else if (localizedMixedFields.includes(field)) {
         updated[field] = value;
@@ -311,13 +324,17 @@ export default function EditBlogPage() {
         
         // Helper to normalize localized strings
         const normalizeLocalizedString = (val: any): ILocalizedString => {
+          // A localized STRING field: anything that is not a string in a
+          // language slot is not editable text, so it loads as empty rather
+          // than as "[object Object]" in a box the editor cannot type out of.
+          const text = (v: any): string => (typeof v === 'string' ? v : '');
           if (typeof val === 'string') return { en: val, de: val, it: val, es: val };
           if (typeof val === 'object' && val !== null) {
             return {
-              en: val.en || '',
-              de: val.de || '',
-              it: val.it || '',
-              es: val.es || '',
+              en: text(val.en),
+              de: text(val.de),
+              it: text(val.it),
+              es: text(val.es),
             };
           }
           return { en: '', de: '', it: '', es: '' };
@@ -361,6 +378,7 @@ export default function EditBlogPage() {
           editorialAuthor: blog.editorialAuthor?._id || blog.editorialAuthor || '',
           featuredImage: normalizeImage(blog.featuredImage),
           excerpt: normalizeLocalizedString(blog.excerpt),
+          cardDescription: normalizeLocalizedString(blog.cardDescription),
           contentBlocks: (() => {
             const usedIds = new Set<string>();
             return (blog.contentBlocks || []).map((block: any) => {
@@ -633,7 +651,7 @@ export default function EditBlogPage() {
       };
 
       // Prune empty optional localized fields to avoid backend validation on 'en' requirement
-      const optionalStringFields = ['excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
+      const optionalStringFields = ['excerpt', 'cardDescription', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
       optionalStringFields.forEach(field => {
         if (isLocalizedStringEmpty((cleanData as any)[field])) {
           delete (cleanData as any)[field];
@@ -1049,6 +1067,18 @@ export default function EditBlogPage() {
                           />
                         )}
                       </LocalizedField>
+                    </div>
+
+                    <div className="space-y-2">
+                      <LocalizedInput
+                        label="Card Description (article listings)"
+                        value={formData.cardDescription || { en: '', de: '', it: '', es: '' }}
+                        onChange={(val) => handleChange('cardDescription', val)}
+                        placeholder="One short line that makes people click"
+                        activeLanguage={activeLanguage}
+                        maxLength={200}
+                        helperText="Shown on the article card as three lines — aim for 110–140 characters. Leave it empty and the card shows no description at all."
+                      />
                     </div>
 
                     <div className="space-y-2">

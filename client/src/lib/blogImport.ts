@@ -18,7 +18,7 @@ type Lang = (typeof LANGS)[number];
 
 /** Fields the contract accepts — anything else in the file is ignored (warned). */
 const CONTRACT_FIELDS = new Set([
-  'title', 'slug', 'excerpt', 'contentBlocks',
+  'title', 'slug', 'excerpt', 'cardDescription', 'contentBlocks',
   'metaTitle', 'metaDescription', 'metaKeywords',
   'ogTitle', 'ogDescription', 'focusKeyword',
   'summary', 'keyTakeaways', 'faqs',
@@ -345,7 +345,7 @@ export function validateBlogImportItem(raw: Record<string, any>): { errors: stri
   }
 
   // Optional localized strings: English fallback is applied silently-with-warning.
-  for (const field of ['excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword']) {
+  for (const field of ['excerpt', 'cardDescription', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword']) {
     const v = raw[field];
     if (v === undefined) continue;
     if (!isPlainObject(v)) {
@@ -511,7 +511,7 @@ export function buildBlogCreatePayload(raw: Record<string, any>, authorId: strin
     contentBlocks: buildContentBlocks(raw.contentBlocks),
   };
 
-  for (const field of ['excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword']) {
+  for (const field of ['excerpt', 'cardDescription', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword']) {
     if (hasAnyLang(raw[field])) payload[field] = ensureEnglish(raw[field]);
   }
 
