@@ -137,12 +137,30 @@ export const getAllBlogsAdmin = async (
       destination,
       category,
       subCategory,
+      ids,
     } = req.query;
 
     const query: any = {};
 
     if (status) {
       query.status = status;
+    }
+
+    // Resolve a specific set of posts by id. The tour form's "Related Blogs"
+    // picker uses this to show LIVE titles for what a tour already links to,
+    // and to notice when a linked article no longer exists — the reference
+    // stores only an id, and a title frozen at the moment it was picked.
+    // Non-ObjectId values are dropped rather than passed to Mongo, which would
+    // throw a CastError and fail the whole request.
+    if (typeof ids === 'string' && ids.trim()) {
+      const validIds = ids
+        .split(',')
+        .map((value) => value.trim())
+        .filter((value) => /^[0-9a-fA-F]{24}$/.test(value));
+
+      // An `ids` filter that matched nothing must return nothing, not
+      // everything — so an all-invalid list still gets an impossible query.
+      query._id = { $in: validIds };
     }
 
     // Filter by destination (valid ObjectId only, to avoid cast errors).

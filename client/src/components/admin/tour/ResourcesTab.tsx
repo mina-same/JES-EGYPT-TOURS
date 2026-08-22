@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Search, Loader2, Plus, Trash2, X } from 'lucide-react';
+import { Search, Loader2, Plus, Trash2, X, ChevronUp, ChevronDown, AlertTriangle } from 'lucide-react';
 
 import { type AdminLanguage } from '../AdminLanguageTabs';
 import LocalizedField from '../LocalizedField';
 import FaqManager from '../FaqManager';
+import { blogAPI } from '@/lib/api/blogAdmin';
+import { BLOG_SEARCH_LIMIT, RELATED_BLOGS_LIMIT } from '@/lib/tour/relatedBlogs';
 
 interface ResourcesTabProps {
   formData: any;
@@ -32,6 +34,21 @@ function getReferenceId(value: any): string {
   return id == null ? '' : String(id);
 }
 
+/**
+ * A reference's own stored title, in the admin's active language where it has
+ * one. It is a SNAPSHOT taken when the article was picked, so it is the
+ * fallback: `useLinkedBlogs` below resolves the live title by id and this is
+ * what shows until that lands, or if the article has since been deleted.
+ */
+function getReferenceTitle(value: any, lang: AdminLanguage): string {
+  const title = value?.title;
+  if (typeof title === 'string') return title;
+  if (title && typeof title === 'object') {
+    return title[lang] || title.en || Object.values(title).find(Boolean) as string || '';
+  }
+  return '';
+}
+
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
 
@@ -50,6 +67,76 @@ function getYouTubeVideoId(url: string): string {
   if (shortsMatch?.[1]) return shortsMatch[1];
 
   return '';
+}
+
+/**
+ * Resolves what a tour's blog references actually point at, right now.
+ *
+ * A reference stores an id and a title frozen at the moment it was picked, so
+ * the list could show a headline that had since been rewritten, and it went on
+ * showing an article that had been deleted as though it were still linked —
+ * the visitor page drops those silently, so nobody saw the difference from the
+ * admin. Looking the ids up gives the list live titles, the article's current
+ * status (a draft linked here will not appear on the site), and the one thing
+ * the frozen copy can never tell you: that the article is gone.
+ */
+function useLinkedBlogs(references: any[]) {
+  const [records, setRecords] = useState<Record<string, any>>({});
+  const [isResolving, setIsResolving] = useState(false);
+  /**
+   * Whether the lookup ANSWERED, as distinct from whether it found anything.
+   * "Deleted" can only be claimed on a successful answer: a failed request
+   * also produces zero records, and so would a tour whose every reference had
+   * been deleted — the two are indistinguishable by row count alone.
+   */
+  const [isResolved, setIsResolved] = useState(false);
+
+  const ids = (references || []).map(getReferenceId).filter(Boolean);
+  // A stable dependency: the effect must re-run when the SET of ids changes,
+  // not on every render that hands over a new array with the same contents.
+  const idKey = ids.join(',');
+
+  useEffect(() => {
+    if (!idKey) {
+      setRecords({});
+      setIsResolved(false);
+      return;
+    }
+
+    let active = true;
+    setIsResolving(true);
+    setIsResolved(false);
+
+    blogAPI
+      .getAllAdmin({ ids: idKey, limit: 100 })
+      .then((response: any) => {
+        if (!active) return;
+        const next: Record<string, any> = {};
+        (response?.data || []).forEach((blog: any) => {
+          next[String(blog._id)] = blog;
+        });
+        setRecords(next);
+        setIsResolved(true);
+      })
+      .catch(() => {
+        // A failed lookup must not blank the list, and must not accuse every
+        // article of being deleted: without records each row falls back to its
+        // stored title, which is exactly what it showed before.
+        if (active) {
+          setRecords({});
+          setIsResolved(false);
+        }
+      })
+      .finally(() => {
+        if (active) setIsResolving(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [idKey]);
+
+  return { records, isResolving, isResolved };
 }
 
 export default function ResourcesTab({
@@ -84,6 +171,11 @@ export default function ResourcesTab({
   const availableBlogSearchResults = blogSearchResults.filter(
     (blog) => !selectedBlogIds.has(getReferenceId(blog))
   );
+
+  const blogReferences: any[] = formData.blogReferences || [];
+  const { records: linkedBlogRecords, isResolved: areBlogsResolved } =
+    useLinkedBlogs(blogReferences);
+  const hiddenBlogCount = Math.max(0, blogReferences.length - RELATED_BLOGS_LIMIT);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -156,7 +248,18 @@ export default function ResourcesTab({
     if (blogId && !selectedBlogIds.has(blogId)) {
       const newRefs = [
         ...(formData.blogReferences || []),
-        { id: blogId, title: typeof blog.title === 'object' ? blog.title : { en: blog.title || '', de: '', it: '' } }
+        {
+          id: blogId,
+          // The whole localized object when the API gives one. It used to be
+          // rebuilt as `{ en, de, it }` from a flattened English string — one
+          // language, and no `es` key at all — because the picker was reading
+          // the public endpoint. This title is only a label for THIS screen;
+          // the tour page always re-fetches the article by id.
+          title:
+            blog.title && typeof blog.title === 'object'
+              ? blog.title
+              : { en: blog.title || '', de: '', it: '', es: '' },
+        },
       ];
       handleChange('blogReferences', newRefs);
       setBlogSearchQuery(''); // Clear search
@@ -164,8 +267,23 @@ export default function ResourcesTab({
   };
 
   const removeBlogReference = (index: number) => {
-    const newRefs = formData.blogReferences.filter((_: any, i: number) => i !== index);
+    const newRefs = (formData.blogReferences || []).filter((_: any, i: number) => i !== index);
     handleChange('blogReferences', newRefs);
+  };
+
+  /**
+   * Order is not cosmetic here: the tour page renders the FIRST
+   * RELATED_BLOGS_LIMIT references and drops the rest, so moving a row is the
+   * only way to change which articles a visitor sees. Before this, the only
+   * way to promote the fourth article was to remove everything and re-add it
+   * in the order you wanted.
+   */
+  const moveBlogReference = (index: number, direction: -1 | 1) => {
+    const refs = [...(formData.blogReferences || [])];
+    const target = index + direction;
+    if (target < 0 || target >= refs.length) return;
+    [refs[index], refs[target]] = [refs[target], refs[index]];
+    handleChange('blogReferences', refs);
   };
 
   return (
@@ -357,26 +475,110 @@ export default function ResourcesTab({
       <Card>
         <CardHeader>
           <CardTitle>Related Blogs</CardTitle>
-          <CardDescription>Link relevant blog posts</CardDescription>
+          <CardDescription>
+            The tour page shows the first {RELATED_BLOGS_LIMIT}. Use the arrows to choose which.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Selected Blogs List */}
           <div className="space-y-2">
-            {formData.blogReferences?.map((blog: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-secondary/20 rounded-md border">
-                <span className="text-sm font-medium truncate">{typeof blog.title === 'object' ? blog.title.en || blog.title[activeLanguage] : blog.title}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeBlogReference(index)}
+            {blogReferences.map((blog: any, index: number) => {
+              const id = getReferenceId(blog);
+              const record = linkedBlogRecords[id];
+              // Live title where the lookup found the article, the stored
+              // snapshot until it lands or if the article is gone.
+              const title =
+                (record && getReferenceTitle(record, activeLanguage)) ||
+                getReferenceTitle(blog, activeLanguage) ||
+                'Untitled article';
+              // Only claimable once the lookup has actually answered.
+              const isMissing = areBlogsResolved && !record;
+              const isUnpublished = record && record.status !== 'published';
+              const isShown = index < RELATED_BLOGS_LIMIT;
+
+              return (
+                <div
+                  key={id || `ref-${index}`}
+                  className={cn(
+                    'flex items-center gap-2 p-2 rounded-md border',
+                    isShown ? 'bg-secondary/20' : 'bg-muted/40 border-dashed',
+                    isMissing && 'border-red-300 bg-red-50 dark:bg-red-950/20'
+                  )}
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            {(!formData.blogReferences || formData.blogReferences.length === 0) && (
+                  {/* Position, because position is what decides visibility. */}
+                  <span
+                    className={cn(
+                      'shrink-0 w-6 h-6 rounded-full grid place-items-center text-[11px] font-bold',
+                      isShown ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                    )}
+                  >
+                    {index + 1}
+                  </span>
+
+                  <span className="text-sm font-medium truncate flex-1">{title}</span>
+
+                  {isMissing && (
+                    <span className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-red-600">
+                      <AlertTriangle className="h-3 w-3" />
+                      Deleted
+                    </span>
+                  )}
+                  {!isMissing && isUnpublished && (
+                    <span className="shrink-0 text-[11px] font-semibold uppercase text-amber-600">
+                      {record.status}
+                    </span>
+                  )}
+                  {!isShown && !isMissing && (
+                    <span className="shrink-0 text-[11px] text-muted-foreground">Not shown</span>
+                  )}
+
+                  <div className="shrink-0 flex items-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="px-1.5"
+                      disabled={index === 0}
+                      aria-label={`Move ${title} up`}
+                      onClick={() => moveBlogReference(index, -1)}
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="px-1.5"
+                      disabled={index === blogReferences.length - 1}
+                      aria-label={`Move ${title} down`}
+                      onClick={() => moveBlogReference(index, 1)}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="px-1.5"
+                      aria-label={`Remove ${title}`}
+                      onClick={() => removeBlogReference(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {blogReferences.length === 0 && (
               <p className="text-sm text-muted-foreground italic">No related blogs selected.</p>
+            )}
+
+            {hiddenBlogCount > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {hiddenBlogCount} {hiddenBlogCount === 1 ? 'article is' : 'articles are'} stored but
+                will not appear on the tour page. Move one up to show it instead.
+              </p>
             )}
           </div>
 
@@ -418,11 +620,24 @@ export default function ResourcesTab({
                           }}
                         >
                           <Plus className="h-3 w-3 text-primary" />
-                          <span className="truncate">
-                            {typeof blog.title === 'object' ? blog.title?.en : blog.title}
+                          <span className="truncate flex-1">
+                            {getReferenceTitle(blog, activeLanguage) || 'Untitled article'}
                           </span>
+                          {/* The admin listing returns drafts too, which the
+                              public one never did. Linking one is allowed —
+                              it simply will not show until it is published. */}
+                          {blog.status && blog.status !== 'published' && (
+                            <span className="shrink-0 text-[10px] font-semibold uppercase text-amber-600">
+                              {blog.status}
+                            </span>
+                          )}
                         </button>
                       ))}
+                      {blogSearchResults.length >= BLOG_SEARCH_LIMIT && (
+                        <p className="px-3 py-2 text-[11px] text-muted-foreground border-t">
+                          Showing the first {BLOG_SEARCH_LIMIT} matches — refine the search to narrow it.
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="p-4 text-sm text-muted-foreground text-center">

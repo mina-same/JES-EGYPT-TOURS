@@ -380,25 +380,45 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   // Handle scroll spy and smooth scroll
   useEffect(() => {
     const readActiveSection = () => {
-      /* Deliberately the nav tabs, not every section on the page: Important
-         Notes, What to Pack and What You Will Love have no tab, so tracking them
-         would leave every tab unlit while they are on screen. Falling through to
-         the nearest preceding tracked section is the wanted behaviour. */
-      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'what-to-pack', 'gallery', 'download-pdf', 'faqs', 'honest-reviews'];
+      /*
+       * The tabs ARE the list of tracked sections, read from the DOM instead of
+       * repeated here.
+       *
+       * A hand-written copy is what broke the bar: `honest-reviews` was left in
+       * it after its tab was removed, so the spy kept marking a section active
+       * that no tab could match and the whole nav went dark for the 520px the
+       * reviews occupy. The tabs are conditional too -- map, pricing, gallery
+       * and packing render only for tours that have them -- so a literal list
+       * has four more conditions to stay in step with. Deriving it means the
+       * two cannot disagree, whatever sections are added later.
+       *
+       * Sections with no tab of their own (Important Notes, What You Will Love)
+       * are simply not tracked, so the nearest preceding tracked section stays
+       * lit while they are read. That fall-through is deliberate; a blank bar
+       * is not.
+       */
+      const trackedIds = Array.from(
+        new Set(
+          Array.from(document.querySelectorAll<HTMLAnchorElement>('.tour-nav-link'))
+            .map((link) => link.getAttribute('href') || '')
+            .filter((href) => href.startsWith('#') && href.length > 1)
+            .map((href) => href.slice(1))
+        )
+      );
 
-      // Find the current active section
-      for (const sectionId of sections) {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          // Check if section is in viewport (considering header offset)
-          const y = (isNavFixed ? (navHeight || 0) : 0) + 20;
-          if (rect.top <= y && rect.bottom >= y) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
+      /* Sorted by where the sections actually sit, not by tab order -- the two
+         differ (the gallery tab comes before the packing tab while the sections
+         run the other way round), and at a boundary two neighbours can both
+         straddle the probe line, so the first match has to be the higher one. */
+      const y = (isNavFixed ? (navHeight || 0) : 0) + 20;
+      const boxes = trackedIds
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => el !== null)
+        .map((el) => ({ id: el.id, rect: el.getBoundingClientRect() }))
+        .sort((a, b) => a.rect.top - b.rect.top);
+
+      const current = boxes.find(({ rect }) => rect.top <= y && rect.bottom >= y);
+      if (current) setActiveSection(current.id);
     };
 
     const handleClick = (e: MouseEvent) => {
@@ -688,8 +708,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   )}
                   <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
                   <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
-                  {/* No "Reviews" tab: the section it pointed at is gone. The video
-                      reviews keep their own tab above. */}
+                  {/* No "Reviews" tab on purpose. The `#honest-reviews` section
+                      IS still on the page -- an earlier note here said it was
+                      gone, and that is what let the section linger in the scroll
+                      spy's list with no tab to light. The spy now reads these
+                      links, so an untabbed section can no longer blank the bar. */}
                 </nav>
               </div>
 
