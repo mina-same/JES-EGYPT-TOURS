@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { TEL_HREF, PHONE_DISPLAY } from "@/config/contact";
 import { Mail, MapPin, Phone, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { googleMapDirectionsUrl } from "@/data/contactData";
@@ -44,9 +45,9 @@ const ContactTop: React.FC = () => {
     {
       key: "phone",
       Icon: Phone,
-      title: t("top.phoneTitle"),
+      title: PHONE_DISPLAY,
       text: t("top.phoneText"),
-      href: "tel:+201007437271",
+      href: TEL_HREF,
     },
   ];
 

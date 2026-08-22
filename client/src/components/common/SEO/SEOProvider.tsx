@@ -1,4 +1,5 @@
 import React from 'react';
+import { PHONE_DISPLAY } from '@/config/contact';
 
 interface SEOProviderProps {
   locale: string;
@@ -30,7 +31,7 @@ const SEOProvider: React.FC<SEOProviderProps> = ({ locale }) => {
     },
     'contactPoint': {
       '@type': 'ContactPoint',
-      'telephone': '+20 100 743 7271',
+      'telephone': PHONE_DISPLAY,
       'contactType': 'customer service',
       'email': 'info@jesegypttours.com',
       'availableLanguage': ['English', 'German', 'Italian', 'Spanish']

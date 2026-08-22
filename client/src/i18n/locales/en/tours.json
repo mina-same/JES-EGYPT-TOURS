@@ -238,6 +238,7 @@
       "sending": "Sending...",
       "replyTime": "We usually reply within 24 hours.",
       "whatsapp": "Ask on WhatsApp",
+      "whatsappMessage": "Hello JES Egypt Tours, I have a question about {{tour}}.",
       "close": "Close",
       "doneCta": "Close",
       "sentTitle": "Your question is on its way",

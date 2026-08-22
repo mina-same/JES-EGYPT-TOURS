@@ -47,6 +47,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { BlogCardViewModel } from "@/lib/blog/cardViewModel";
@@ -92,8 +93,13 @@ const BlogCardChip = ({ post }: { post: BlogCardViewModel }) => {
  * entry is omitted when it has nothing to say, and the author is plain text
  * rather than a dead link when that byline has no page of its own.
  *
- * The row wraps rather than compressing, which is what lets a narrow card put
- * the three items on two lines instead of squeezing them onto one.
+ * The row's wrap is STRUCTURAL, not incidental. Measured in a 3-up column the
+ * three items want 375px of a 310px box, so they always wrapped — and plain
+ * `flex-wrap` broke them after the second item, leaving "9 min read" stranded
+ * on a line of its own as if by accident. The stylesheet instead puts the
+ * byline on its own row and keeps the date and the reading time together
+ * underneath, which reads as a decision: who wrote it, then when and how long.
+ * A card wide enough for all three takes them back onto one line.
  */
 const BlogCardMeta = ({ post }: { post: BlogCardViewModel }) => {
   const { t } = useTranslation("blogs");
@@ -226,7 +232,10 @@ const BlogCard = ({
           <span className="blog-card-cta" aria-hidden="true">
             <span>{t("readMore")}</span>
             <span className="blog-card-cta__icon">
-              <i className="icon-arrow-right" aria-hidden="true"></i>
+              {/* An SVG rather than the icon font's arrow: the font's glyph
+                  has one fixed weight, and at this size a lighter stroke is
+                  what keeps the button from reading as a booking CTA. */}
+              <ArrowRight size={13} strokeWidth={1.75} aria-hidden="true" />
             </span>
           </span>
         </div>

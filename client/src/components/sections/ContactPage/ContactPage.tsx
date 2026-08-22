@@ -17,9 +17,7 @@ import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { localizeInternalUrl } from "@/lib/url";
 import styles from "./ContactPage.module.css";
-
-/** Same number as the floating button, the drawer, tailor-made and OffersCta. */
-const WHATSAPP_NUMBER = "201007437271";
+import { waHref } from "@/config/contact";
 
 /** Mirrors `contactSubmissionValidation` in server/src/middleware/validation.ts
  *  so length rejections surface as localized inline errors instead of the
@@ -61,9 +59,7 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
     };
   }, []);
 
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    t("form.aside.whatsappMessage")
-  )}`;
+  const whatsappHref = waHref(t("form.aside.whatsappMessage"));
 
   /** Clear a field's error as soon as the visitor starts fixing it. */
   const clearFieldError = (field: FieldName) => {

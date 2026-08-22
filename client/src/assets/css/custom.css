@@ -5471,17 +5471,21 @@ button[data-action="stop"] {
    `object-fit: cover` (with the theme) is what keeps a portrait source
    from distorting into the box. */
 .blog-card-media {
-  aspect-ratio: 3 / 2;
+  /* 16:10, not 3:2. At a 370px column 3:2 drew a 247px photograph — close to
+     half the card's height, which is what made an article teaser read with the
+     weight of a product tile. 16:10 lands at ~231px, a little under 40% of the
+     card, so the picture still leads and the words still win. */
+  aspect-ratio: 16 / 10;
 }
 .blog-card-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-/* The compact strip is shorter than it is wide by more, so its cards
-   read as secondary without shrinking the photograph's width. */
+/* The compact strip is shorter again, so its cards read as secondary to the
+   article they sit under without shrinking the photograph's width. */
 .blog-card-media--short {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
 }
 
 /* ── The card surface ──────────────────────────────────────────
@@ -5520,6 +5524,21 @@ button[data-action="stop"] {
   box-shadow: 0 1px 2px rgba(var(--jes-ink), 0.04);
   transition: transform 250ms ease, box-shadow 250ms ease,
     border-color 250ms ease;
+}
+
+/* An article card never grows past a card's width.
+   A section holding ONE article used to hand that article a half- or
+   full-width column, and the card took all of it — a single blog teaser
+   rendering at the scale of a hero, which is the opposite of what a
+   supporting section should do. Capped, it keeps its own size and simply
+   sits at the start of the grid.
+   Below `md` the column is already narrower than this, so the cap never
+   bites on a phone. */
+@media (min-width: 768px) {
+  .blog-card,
+  .blog-card-two {
+    max-width: 380px;
+  }
 }
 
 .blog-card:hover,
@@ -5603,7 +5622,9 @@ button[data-action="stop"] {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 26px;
+  /* Lighter at the foot than at the head: the button already carries its own
+     4px of inner padding, so an equal amount underneath read as a gap. */
+  padding: 22px 22px 16px;
   background-color: transparent;
   box-shadow: none;
 }
@@ -5624,17 +5645,20 @@ button[data-action="stop"] {
 .blog-card__title,
 .blog-card-two__title,
 .blog-card-two--one .blog-card-two__title {
-  margin: 0 0 13px;
-  font-size: 20px;
+  margin: 0 0 12px;
+  /* A step under the tour card's 20px title. The two cards sit on the same
+     pages and the article is the supporting one; matching its headline size
+     was most of why they read as equals. */
+  font-size: 19px;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--gotur-black, #1d231f);
   text-transform: none;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: calc(3 * 1.4em);
+  min-height: calc(3 * 1.35em);
 }
 
 /* What makes the whole card clickable, from the single anchor that
@@ -5669,15 +5693,18 @@ button[data-action="stop"] {
    than a card quietly showing the article's SEO copy. Clamped and
    reserved at three lines for the same reason as the title. */
 .blog-card-text {
-  margin: 0 0 22px;
+  margin: 0 0 16px;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.55;
   color: rgba(var(--jes-ink), 0.72);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: calc(3 * 1.6em);
+  /* Capped at three lines, NOT held open at three. Reserving them cost every
+     card 72px whether it used them or not, which is most of what made the card
+     tall. The button still lines up across a row — `margin-top: auto` on the
+     footer does that — and the title above still reserves its three. */
 }
 
 /* ── Meta rows ─────────────────────────────────────────────────
@@ -5692,17 +5719,34 @@ button[data-action="stop"] {
    and gold text as well would put the metadata in competition with the
    headline above it and the button below. */
 .blog-card-meta {
-  display: flex;
-  flex-wrap: wrap;
+  /* A GRID, not a wrapping flex row. Measured in a 3-up column the three
+     items want 375px of a 310px box, so they always wrapped — and flex broke
+     them after the second, stranding "9 min read" alone as if by accident.
+     The byline (the long, variable one) takes the first row to itself; the
+     date and the reading time sit together on the second. That reads as a
+     decision, and it holds for any author name and any language. */
+  display: grid;
+  grid-template-columns: max-content max-content;
+  justify-content: start;
   align-items: center;
-  gap: 8px 20px;
-  margin: 0;
+  gap: 7px 18px;
+  /* The gap to the divider belongs HERE, not on the footer's padding: that
+     padding sits below the rule and only moved the button, leaving the line
+     drawn flush against the reading time. */
+  margin: 0 0 16px;
   padding: 0;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.6;
   color: rgba(var(--jes-ink), 0.68);
 }
+.blog-card-meta > li:first-child {
+  grid-column: 1 / -1;
+}
+
+/* There is no single-line variant any more: capping the card at 380px leaves
+   336px of content, and the three items measure 375px. The two rows above are
+   the layout, at every width. */
 .blog-card-meta__item {
   display: inline-flex;
   align-items: center;
@@ -5735,7 +5779,7 @@ button[data-action="stop"] {
    its own — as a border on the button it was a dash under two words. */
 .blog-card-foot {
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 14px;
   border-top: 1px solid rgba(var(--jes-ink), 0.07);
 }
 
@@ -5746,9 +5790,9 @@ button[data-action="stop"] {
 .blog-card-cta {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  min-height: 40px;
-  padding: 4px 4px 4px 18px;
+  gap: 10px;
+  min-height: 34px;
+  padding: 4px 4px 4px 16px;
   border: 1px solid rgba(183, 156, 92, 0.55);
   border-radius: 999px;
   background-color: #fff;
@@ -5762,17 +5806,19 @@ button[data-action="stop"] {
   transition: border-color 250ms ease, background-color 250ms ease,
     color 250ms ease;
 }
+/* 26px, not 30. At the larger size the disc was most of the button's height
+   and read as the filled circle on a booking CTA; the arrow inside it is an
+   SVG at 1.75 stroke for the same reason. */
 .blog-card-cta__icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background-color: var(--jes-gold, #b79c5c);
   color: #fff;
-  font-size: 12px;
   transition: transform 250ms ease, background-color 250ms ease;
 }
 .blog-card:hover .blog-card-cta,
@@ -5789,22 +5835,21 @@ button[data-action="stop"] {
    Related posts under an article: the same card at a size that reads as
    secondary to the article above it. */
 .blog-card-two--compact .blog-card-two__content {
-  padding: 20px;
+  padding: 18px 18px 15px;
 }
 .blog-card-two--compact .blog-card-two__title {
-  font-size: 17px;
+  font-size: 16px;
   margin-bottom: 10px;
   /* Two, not three. This strip is secondary to the article above it, and
      its narrower cards would spend the third line as blank more often
      than they would fill it. */
   -webkit-line-clamp: 2;
-  min-height: calc(2 * 1.4em);
+  min-height: calc(2 * 1.35em);
 }
 .blog-card-two--compact .blog-card-text {
   font-size: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   -webkit-line-clamp: 2;
-  min-height: calc(2 * 1.6em);
 }
 .blog-card-two--compact .blog-card-chip {
   left: 12px;
@@ -5812,17 +5857,20 @@ button[data-action="stop"] {
   padding: 5px 11px;
   font-size: 11px;
 }
+.blog-card-two--compact .blog-card-meta {
+  margin-bottom: 15px;
+}
 .blog-card-two--compact .blog-card-foot {
-  padding-top: 14px;
+  padding-top: 13px;
 }
 .blog-card-two--compact .blog-card-cta {
-  min-height: 36px;
-  padding-left: 15px;
+  min-height: 33px;
+  padding-left: 14px;
   font-size: 12px;
 }
 .blog-card-two--compact .blog-card-cta__icon {
-  width: 27px;
-  height: 27px;
+  width: 24px;
+  height: 24px;
 }
 
 /* ── Narrow columns and mobile ─────────────────────────────────
@@ -5838,10 +5886,11 @@ button[data-action="stop"] {
   .blog-card__content,
   .blog-card-two__content,
   .blog-card-two--one .blog-card-two__content {
-    padding: 20px;
+    padding: 20px 20px 16px;
   }
   .blog-card-meta {
-    gap: 8px 16px;
+    gap: 7px 16px;
+    margin-bottom: 16px;
   }
 }
 
@@ -5875,8 +5924,10 @@ button[data-action="stop"] {
    row. The section was a tagline, a title and then the cards almost
    immediately: a heading with nothing under it reads as a label on the
    row rather than as an invitation into it. */
+/* 56px pushed the row so far down that the card below read as a separate,
+   heavier thing rather than as the section's content. */
 .related-blogs-head {
-  margin-bottom: 56px;
+  margin-bottom: 32px;
 }
 .related-blogs-head__text {
   max-width: 560px;
@@ -5887,7 +5938,7 @@ button[data-action="stop"] {
 }
 @media (max-width: 767px) {
   .related-blogs-head {
-    margin-bottom: 36px;
+    margin-bottom: 24px;
   }
   .related-blogs-head__text {
     font-size: 15px;
@@ -6643,16 +6694,40 @@ button[data-action="stop"] {
    the contact page: the visitor is already inside a specific tour, and sending
    them to a blank form throws that context away and asks them to describe the
    tour from memory. */
+/* The dialog appears rather than being cut in. Short and small on purpose:
+   long enough to read as a movement, short enough that it never sits between
+   the click and the first field. */
+@keyframes tour-ask-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes tour-ask-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .tour-ask-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1080;
+  /* Above every piece of page chrome that stays fixed while the dialog is
+     open: the sticky tour tab bar (1100), the scroll-to-top (1190) and
+     WhatsApp (1200) buttons, and the mobile booking bar (1300). Below that,
+     the tab bar punched through the backdrop and read as part of the form. */
+  z-index: 1400;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   background-color: rgba(16, 24, 32, 0.55);
   overflow-y: auto;
+  animation: tour-ask-fade 180ms ease-out both;
 }
 
 .tour-ask {
@@ -6663,6 +6738,9 @@ button[data-action="stop"] {
   background-color: #fff;
   border-radius: 16px;
   box-shadow: 0 18px 60px rgba(16, 24, 32, 0.22);
+  /* Slightly slower than the backdrop and eased out hard, so the panel settles
+     as the dim finishes rather than the two stopping together. */
+  animation: tour-ask-rise 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .tour-ask__close {
@@ -6931,5 +7009,15 @@ button[data-action="stop"] {
 @media (prefers-reduced-motion: reduce) {
   .tour-ask__spin {
     animation: none;
+  }
+
+  /* The dialog still fades so it does not blink into place, but it no longer
+     travels. */
+  .tour-ask-overlay {
+    animation-duration: 1ms;
+  }
+
+  .tour-ask {
+    animation: tour-ask-fade 120ms ease-out both;
   }
 }

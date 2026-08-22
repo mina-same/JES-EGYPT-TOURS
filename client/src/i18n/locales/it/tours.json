@@ -238,6 +238,7 @@
       "sending": "Invio in corso...",
       "replyTime": "Di solito rispondiamo entro 24 ore.",
       "whatsapp": "Chiedi su WhatsApp",
+      "whatsappMessage": "Salve JES Egypt Tours, ho una domanda su {{tour}}.",
       "close": "Chiudi",
       "doneCta": "Chiudi",
       "sentTitle": "La tua domanda è stata inviata",

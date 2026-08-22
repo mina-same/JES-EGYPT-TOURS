@@ -31,6 +31,7 @@ import { planHasPrices } from "@/lib/tours/startingPrice";
 import { normalizeAmenityItems, isOrderedListContent, bindLeadingDash } from "@/lib/normalizeAmenityItems";
 import TourQuestionModal from "./components/TourQuestionModal";
 import FaqAccordion from "@/components/common/Faq/FaqAccordion";
+import { waHref } from "@/config/contact";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
@@ -1404,6 +1405,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         tourName={title || ""}
         tourSlug={tourSlug}
         locale={i18n.language || String(params?.locale || "en")}
+        /* A second route for the visitor who would rather not fill in a form.
+           Omitted when the tour has no title, since the message names it --
+           the modal hides the button when this is undefined. */
+        whatsappHref={
+          title
+            ? waHref(t("tourDetails.askModal.whatsappMessage", { tour: title }))
+            : undefined
+        }
       />
 
       {/* Mobile Sticky Booking Bar */}

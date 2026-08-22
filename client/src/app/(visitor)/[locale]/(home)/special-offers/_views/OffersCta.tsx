@@ -5,13 +5,11 @@ import Link from "next/link";
 import { ArrowRight, MessageCircle, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getLocalizedStaticSlug } from "@/lib/url";
+import { waHref } from "@/config/contact";
 
 const GOLD = "#b79c5c";
 const DARK = "#1d231f";
 const WHATSAPP = "#25D366";
-
-/** Same number used by the floating button, the drawer and the tailor-made page. */
-const WHATSAPP_NUMBER = "201007437271";
 
 /**
  * Alternative path for visitors who liked the discount idea but whose dates or
@@ -25,9 +23,7 @@ export default function OffersCta({ locale }: { locale: string }) {
   const { t } = useTranslation("specialOffers");
 
   const tailorMadeHref = `/${locale}/${getLocalizedStaticSlug("tailor-made", locale)}`;
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    t("cta.whatsappMessage")
-  )}`;
+  const whatsappHref = waHref(t("cta.whatsappMessage"));
 
   return (
     <section aria-labelledby="offers-cta-title" style={{ padding: "8px 0 64px" }}>

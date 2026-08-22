@@ -6,6 +6,7 @@ import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { footerOneData } from "@/data/footerOneData";
+import { TEL_HREF } from "@/config/contact";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import MailchimpSubscribe from "react-mailchimp-subscribe";
 import { useTranslation } from "react-i18next";
@@ -94,9 +95,10 @@ const FooterOne: React.FC = () => {
                   <span className='footer-widget__list__subtitle'>
                     call agent
                   </span>
-                  <Link href={`tel:${data.contact.phone}`}>
-                    {data.contact.phone}
-                  </Link>
+                  {/* The label is the grouped form; the href has to be the
+                      dialable one. Building `tel:` from the label shipped
+                      `tel:+20 100 743 7271`, spaces and all. */}
+                  <Link href={TEL_HREF}>{data.contact.phone}</Link>
                 </div>
               </li>
             </ul>
