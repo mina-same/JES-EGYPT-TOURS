@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, Plus, Edit2, Trash2, Eye,
-  Search, Filter, RefreshCw, FileText, Clock,
+  Search, RefreshCw, FileText, Clock,
   Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
 import { blogAPI, destinationAPI, blogCategoryAPI, blogSubcategoryAPI } from '@/lib/api/blogAdmin';
@@ -18,6 +18,14 @@ import { PaginationControls } from '@/components/admin/PaginationControls';
 import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import type { RequiredLocalizedField } from '@/lib/localeCompleteness';
+
+const ARTICLE_REQUIRED_LOCALIZED_FIELDS: readonly RequiredLocalizedField[] = [
+  {
+    path: 'cardDescription',
+    label: 'Card Description (article listings)',
+  },
+];
 
 interface BlogPost {
   _id: string;
@@ -36,6 +44,7 @@ interface BlogPost {
   } | string;
   featuredImageAlt?: ILocalizedString;
   excerpt?: ILocalizedString;
+  cardDescription?: ILocalizedString;
   status: 'draft' | 'published' | 'scheduled';
   isFeatured: boolean;
   publishedAt?: string;
@@ -240,7 +249,11 @@ function BlogsPageContent() {
           <div className="ml-4">
             <div className="flex items-start gap-2">
               <div className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{getLocalizedValue(blog.title)}</div>
-              <LanguageBadges entity={blog} className="mt-0.5 flex-shrink-0" />
+              <LanguageBadges
+                entity={blog}
+                className="mt-0.5 flex-shrink-0"
+                requiredLocalizedFields={ARTICLE_REQUIRED_LOCALIZED_FIELDS}
+              />
               {blog.isFeatured && (
                 <span
                   className="mt-0.5 inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500"

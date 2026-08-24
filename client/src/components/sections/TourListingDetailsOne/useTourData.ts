@@ -9,6 +9,10 @@ import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug } from "@/lib/url";
+import {
+  isEmptyAccommodation,
+  resolveAccommodationIcon,
+} from "@/lib/accommodationIcon";
 
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
@@ -230,11 +234,18 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         })),
         // getLocalizedValue is a no-op on the already-flat strings the API
         // sends, and resolves the object shape when raw data slips through.
-        accommodations: safeArray(p?.accommodations).map((a: any) => ({
-          location: getLocalizedValue(a?.location),
-          icon: typeof a?.icon === 'string' ? a.icon : 'city',
-          hotels: getLocalizedValue(a?.hotels),
-        })),
+        //
+        // Rows with neither a place nor a hotel are dropped: they used to reach
+        // the page as an icon with two blank lines beside it. The icon goes
+        // through the shared resolver so a legacy or oddly-cased value lands on
+        // the same glyph the renderer would have picked anyway.
+        accommodations: safeArray(p?.accommodations)
+          .map((a: any) => ({
+            location: getLocalizedValue(a?.location),
+            icon: resolveAccommodationIcon(a?.icon),
+            hotels: getLocalizedValue(a?.hotels),
+          }))
+          .filter((a) => !isEmptyAccommodation(a)),
       })),
       whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
       reviewVideos,

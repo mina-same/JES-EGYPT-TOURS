@@ -11,10 +11,12 @@ import {
   CONTENT_LANGS,
   getLocaleCompleteness,
   type LangCompleteness,
+  type RequiredLocalizedField,
 } from '@/lib/localeCompleteness';
 import { cn } from '@/lib/utils';
 
 const MAX_LISTED_FIELDS = 6;
+const NO_REQUIRED_FIELDS: readonly RequiredLocalizedField[] = [];
 
 const STATE_CLASSES = {
   complete: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
@@ -44,8 +46,19 @@ function tooltipLines(info: LangCompleteness): string[] {
  * amber = partially translated (hover to see exactly what's missing);
  * gray = not started. SEO fields never affect the color.
  */
-export default function LanguageBadges({ entity, className }: { entity: unknown; className?: string }) {
-  const report = useMemo(() => getLocaleCompleteness(entity), [entity]);
+export default function LanguageBadges({
+  entity,
+  className,
+  requiredLocalizedFields = NO_REQUIRED_FIELDS,
+}: {
+  entity: unknown;
+  className?: string;
+  requiredLocalizedFields?: readonly RequiredLocalizedField[];
+}) {
+  const report = useMemo(
+    () => getLocaleCompleteness(entity, { requiredLocalizedFields }),
+    [entity, requiredLocalizedFields]
+  );
 
   return (
     <TooltipProvider delayDuration={150}>

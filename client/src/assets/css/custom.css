@@ -5645,7 +5645,9 @@ button[data-action="stop"] {
 .blog-card__title,
 .blog-card-two__title,
 .blog-card-two--one .blog-card-two__title {
-  margin: 0 0 12px;
+  /* 15px, not 12: a darker description sits closer in weight to the headline,
+     so it needs a little more air to stay clearly the second thing read. */
+  margin: 0 0 15px;
   /* A step under the tour card's 20px title. The two cards sit on the same
      pages and the article is the supporting one; matching its headline size
      was most of why they read as equals. */
@@ -5694,9 +5696,22 @@ button[data-action="stop"] {
    reserved at three lines for the same reason as the title. */
 .blog-card-text {
   margin: 0 0 16px;
-  font-size: 15px;
+  /* The body face, said out loud. It is what the card inherits anyway, but the
+     display face (Playfair) is one token away and belongs to section headings,
+     never to card copy. */
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 15.5px;
+  font-weight: 400;
   line-height: 1.55;
-  color: rgba(var(--jes-ink), 0.72);
+  /* #355B73. The teaser and the metadata were 0.72 and 0.68 of the same ink —
+     #517186 against #5B798D, ten units apart per channel — so the sentence
+     that sells the article and the line naming its author read as the same
+     level of importance. This is that ink at ~0.835 and the metadata below is
+     the same ink at ~0.61, which is the gap the hierarchy needed: clearly
+     readable, clearly under the title, clearly above the byline. Written as a
+     hex because it is a designed value, not an opacity that happens to land
+     there. */
+  color: #355b73;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -5736,9 +5751,14 @@ button[data-action="stop"] {
   margin: 0 0 16px;
   padding: 0;
   font-size: 13px;
-  font-weight: 500;
+  /* 400, not 500: the byline was carrying a semibold weight AND nearly the
+     description's colour, which is two reasons for the eye to stop on it. */
+  font-weight: 400;
   line-height: 1.6;
-  color: rgba(var(--jes-ink), 0.68);
+  /* #6C8798 — the same ink as the description above at ~0.61 instead of ~0.68.
+     Deliberately NOT darkened alongside it: the whole point is the distance
+     between the two. */
+  color: #6c8798;
 }
 .blog-card-meta > li:first-child {
   grid-column: 1 / -1;

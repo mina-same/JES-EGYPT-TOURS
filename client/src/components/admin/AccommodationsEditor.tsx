@@ -21,42 +21,22 @@ import {
   type IAccommodation,
   type IPricingPlan,
 } from '@/types/tour';
+import {
+  guessAccommodationIcon,
+  resolveAccommodationIcon,
+} from '@/lib/accommodationIcon';
 
+/** Named by DESTINATION, matching what the glyphs mean on the tour page. */
 const ICON_LABELS: Record<AccommodationIcon, string> = {
-  pyramids: 'Pyramids (Giza)',
-  temple: 'Temple / Obelisk',
-  city: 'City',
+  pyramids: 'Giza / Pyramids',
+  // Also Abu Simbel, Karnak, Edfu, Kom Ombo — the Nile temple towns.
+  temple: 'Luxor / temple towns',
+  city: 'Cairo / Alexandria',
   cruise: 'Nile Cruise',
   sea: 'Red Sea / Beach',
   desert: 'Desert / Oasis',
-  colonnade: 'Colonnade (Aswan)',
-  hotel: 'Hotel (generic)',
-};
-
-/**
- * Guesses the icon from the place that was typed.
- *
- * Without it every stop kept the default, so Cairo, Luxor and Aswan all drew
- * the same glyph and the icon column said nothing. Ordered most-specific
- * first: "Nile Cruise" must match the boat before "Nile" reaches anything else.
- */
-const ICON_HINTS: Array<[RegExp, AccommodationIcon]> = [
-  [/giza|pyramid|haram/i, 'pyramids'],
-  [/cruise|felucca|dahabiya|\bboat\b|\bm\/?s\b|nile/i, 'cruise'],
-  [/aswan|nubian?|elephantine|sehel/i, 'colonnade'],
-  [/luxor|abu ?simbel|karnak|edfu|kom ?ombo|philae|temple|valley of/i, 'temple'],
-  [/hurghada|sharm|marsa|dahab|taba|sahl|red ?sea|beach|coast|alamein|soma|gouna/i, 'sea'],
-  [/siwa|oasis|desert|bahariya|farafra|safari|fayoum/i, 'desert'],
-  [/cairo|alexandria|city|downtown|zamalek|heliopolis|maadi/i, 'city'],
-];
-
-export const guessAccommodationIcon = (
-  location: string | undefined
-): AccommodationIcon | null => {
-  const text = (location || '').trim();
-  if (!text) return null;
-  for (const [pattern, icon] of ICON_HINTS) if (pattern.test(text)) return icon;
-  return null;
+  colonnade: 'Aswan',
+  hotel: 'Generic (no place)',
 };
 
 const EMPTY_LOCALIZED = { en: '', de: '', it: '', es: '' };
@@ -69,6 +49,12 @@ interface AccommodationsEditorProps {
    *  list repeats across tiers with only the hotel names changing, so copying
    *  a sibling and editing beats typing three near-identical lists. */
   siblingPlans?: IPricingPlan[];
+  /**
+   * Where this list sits in the form, e.g. `pricingPlans.0.accommodations`.
+   * Used for the `data-field` attributes the error panel scrolls to — without
+   * it the validation messages exist but nothing can jump to them.
+   */
+  fieldPathPrefix?: string;
 }
 
 export default function AccommodationsEditor({
@@ -76,14 +62,25 @@ export default function AccommodationsEditor({
   onChange,
   activeLanguage,
   siblingPlans = [],
+  fieldPathPrefix,
 }: AccommodationsEditorProps) {
   const rows = accommodations || [];
 
-  /** Rows whose icon was chosen by hand. Component state, not a stored field:
-   *  it describes this editing session, and persisting it would put UI
-   *  bookkeeping into the tour document. */
-  const [pinnedIcons, setPinnedIcons] = React.useState<Set<number>>(new Set());
-
+  /*
+   * There is deliberately no "which icons were chosen by hand" state here.
+   *
+   * There used to be: a Set of row INDICES, used to decide whether typing in a
+   * location should silently overwrite the icon. Indices are not identity, and
+   * the set went wrong three ways — deleting a row shifted every pin above it
+   * onto the wrong row, collapsing the plan unmounted this component and lost
+   * them all, and reordering plans handed one plan's pins to another. Rows have
+   * `_id: false` and `update()` replaces the row object on every keystroke, so
+   * there is no stable identity to pin to either.
+   *
+   * Nothing silently overwrites an icon now. The guess is shown as a
+   * suggestion the editor can take with one click, which is the behaviour the
+   * pinning was trying to approximate and needs no bookkeeping at all.
+   */
   const update = (index: number, patch: Partial<IAccommodation>) => {
     onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   };
@@ -98,9 +95,10 @@ export default function AccommodationsEditor({
         <div>
           <Label className="text-base font-semibold">Included Accommodation Options</Label>
           <p className="text-xs text-muted-foreground">
-            Where this tier sleeps, stop by stop. The icon is chosen from the
-            place name — change it if the guess is wrong. Leave the list empty
-            and the section does not appear on the tour page.
+            Where this tier sleeps, stop by stop. The icon names the place, so
+            the same city looks the same across every tour — a suggestion
+            appears when the place name implies one. Leave the list empty and
+            the section does not appear on the tour page.
           </p>
         </div>
         <div className="flex gap-2">
@@ -111,8 +109,6 @@ export default function AccommodationsEditor({
                 if (!source) return;
                 // Deep copy: the tiers stay independently editable.
                 onChange(JSON.parse(JSON.stringify(source.accommodations)));
-                // Copied icons were already decided — do not re-guess over them.
-                setPinnedIcons(new Set((source.accommodations || []).map((_, i) => i)));
               }}
             >
               <SelectTrigger className="w-[190px]">
@@ -143,17 +139,30 @@ export default function AccommodationsEditor({
         </div>
       </div>
 
-      {rows.map((row, index) => (
-        <div key={index} className="rounded-lg border bg-muted/20 p-3 space-y-3">
+      {rows.map((row, index) => {
+        /* English drives the suggestion: every stop is written in English
+           first, and one icon is shared across all four locales. */
+        const suggestion = guessAccommodationIcon(row.location?.en);
+        const current = resolveAccommodationIcon(row.icon);
+        const suggestionDiffers = !!suggestion && suggestion !== current;
+        const missingLocation = !row.location?.en?.trim();
+        const missingHotels = !row.hotels?.en?.trim();
+
+        const rowPath = fieldPathPrefix ? `${fieldPathPrefix}.${index}` : undefined;
+
+        return (
+        <div
+          key={index}
+          className="rounded-lg border bg-muted/20 p-3 space-y-3"
+          data-field={rowPath}
+          tabIndex={-1}
+        >
           <div className="flex items-end gap-2">
             <div className="w-[190px] space-y-1">
               <Label className="text-xs">Icon</Label>
               <Select
-                value={row.icon || 'hotel'}
-                onValueChange={(value) => {
-                  setPinnedIcons((prev) => new Set(prev).add(index));
-                  update(index, { icon: value as AccommodationIcon });
-                }}
+                value={current}
+                onValueChange={(value) => update(index, { icon: value as AccommodationIcon })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -170,16 +179,11 @@ export default function AccommodationsEditor({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex-1">
+            <div className="flex-1" data-field={rowPath && `${rowPath}.location`} tabIndex={-1}>
               <LocalizedInput
                 label="Location"
                 value={row.location || EMPTY_LOCALIZED}
-                onChange={(val) => {
-                  // English drives the guess: it is the language every stop is
-                  // written in first, and the icon is shared across locales.
-                  const guess = pinnedIcons.has(index) ? null : guessAccommodationIcon(val?.en);
-                  update(index, guess ? { location: val, icon: guess } : { location: val });
-                }}
+                onChange={(val) => update(index, { location: val })}
                 placeholder="e.g., Cairo"
                 activeLanguage={activeLanguage}
               />
@@ -196,16 +200,46 @@ export default function AccommodationsEditor({
             </Button>
           </div>
 
-          <LocalizedTextArea
-            label="Hotels"
-            value={row.hotels || EMPTY_LOCALIZED}
-            onChange={(val) => update(index, { hotels: val })}
-            placeholder='e.g., "Hyatt Regency / Triumph Luxury or similar."'
-            rows={2}
-            activeLanguage={activeLanguage}
-          />
+          {/* Offered, never applied behind the editor's back. */}
+          {suggestionDiffers && (
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => update(index, { icon: suggestion })}
+            >
+              <StayIcon name={suggestion} />
+              <span>
+                &ldquo;{row.location?.en?.trim()}&rdquo; looks like{' '}
+                <strong className="font-semibold">{ICON_LABELS[suggestion]}</strong> — use it
+              </span>
+            </button>
+          )}
+
+          {missingLocation && (
+            <p className="text-xs text-red-600">
+              Location (English) is required — the tour cannot be saved with a blank stop.
+            </p>
+          )}
+
+          <div data-field={rowPath && `${rowPath}.hotels`} tabIndex={-1}>
+            <LocalizedTextArea
+              label="Hotels"
+              value={row.hotels || EMPTY_LOCALIZED}
+              onChange={(val) => update(index, { hotels: val })}
+              placeholder='e.g., "Hyatt Regency / Triumph Luxury or similar."'
+              rows={2}
+              activeLanguage={activeLanguage}
+            />
+          </div>
+
+          {missingHotels && (
+            <p className="text-xs text-red-600">
+              Hotels (English) is required — the tour cannot be saved with a blank stop.
+            </p>
+          )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import React from "react";
+import { resolveAccommodationIcon } from "@/lib/accommodationIcon";
+import type { AccommodationIcon } from "@/types/tour";
 
 /**
  * Destination glyphs for the accommodation list.
@@ -10,8 +12,12 @@ import React from "react";
  * One hand-tuned set at a shared 24px viewBox keeps them consistent.
  *
  * `currentColor` throughout, so the colour is decided by CSS.
+ *
+ * Each glyph names a DESTINATION, not a kind of building — see the note on
+ * `ACCOMMODATION_ICONS`. Typed against the enum, so adding a value there
+ * without drawing it is a compile error rather than a silent fallback.
  */
-const GLYPHS: Record<string, React.ReactNode> = {
+const GLYPHS: Record<AccommodationIcon, React.ReactNode> = {
   // Two pyramids and a ground line — the Giza silhouette.
   //
   // Three were drawn at first, but at 20px the flanking pair collided with the
@@ -24,7 +30,11 @@ const GLYPHS: Record<string, React.ReactNode> = {
       <path d="M1.5 20.5h21" strokeLinecap="round" />
     </>
   ),
-  // Obelisk with a temple base — Luxor, Aswan, Abu Simbel.
+  /* Obelisk with a temple base — the Nile temple towns: Luxor, Abu Simbel,
+     Karnak, Edfu, Kom Ombo.
+     NOT Aswan: this comment used to claim Aswan too, while `colonnade` below
+     also claimed it. That contradiction is why the same city ended up drawn
+     two different ways on two tours. Aswan is the colonnade. */
   temple: (
     <>
       <path d="M12 2.5 9.8 7.5h4.4L12 2.5Z" />
@@ -95,13 +105,10 @@ const GLYPHS: Record<string, React.ReactNode> = {
   ),
 };
 
-/** Values stored under the earlier, coarser enum. Mapped rather than migrated:
- *  the meaning is unchanged, and old rows should keep rendering. */
-const LEGACY: Record<string, string> = { beach: "sea", resort: "hotel", nubian: "colonnade" };
-
 export const StayIcon: React.FC<{ name?: string }> = ({ name }) => {
-  const key = LEGACY[name || ""] || name || "hotel";
-  const glyph = GLYPHS[key] || GLYPHS.hotel;
+  // Legacy names, casing and stray whitespace are all settled in one place, so
+  // the glyph drawn here always matches the value the rest of the app resolved.
+  const glyph = GLYPHS[resolveAccommodationIcon(name)];
 
   return (
     <svg

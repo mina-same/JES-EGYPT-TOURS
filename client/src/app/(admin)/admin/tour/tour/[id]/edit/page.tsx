@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { validateTourForm } from '@/lib/validations/tourValidation';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { normalizeTourMapSchemaForSave } from '@/lib/tourMapSchema';
+import { resolveAccommodationIcon } from '@/lib/accommodationIcon';
 import FormErrorPanel from '@/components/admin/FormErrorPanel';
 import DraftBanner from '@/components/admin/DraftBanner';
 import { useToast } from '@/hooks/use-toast';
@@ -256,7 +257,19 @@ export default function EditTourPage() {
               tourHighlights: toLocalizedHtml(tour.tourHighlights),
               inclusion: toLocalizedHtml(tour.inclusion),
               exclusion: toLocalizedHtml(tour.exclusion),
-              pricingPlans: tour.pricingPlans || [],
+              /* Accommodation icons are settled as the form loads, not merely
+                 as it renders. The editor shows the resolved glyph either way,
+                 but a legacy or oddly-cased value left in form state would be
+                 submitted verbatim — and the server enum rejects anything it
+                 does not recognise, so the save failed over a field that looked
+                 perfectly correct on screen. */
+              pricingPlans: (tour.pricingPlans || []).map((plan: any) => ({
+                ...plan,
+                accommodations: (plan?.accommodations || []).map((stay: any) => ({
+                  ...stay,
+                  icon: resolveAccommodationIcon(stay?.icon),
+                })),
+              })),
               notes: (tour.notes || []).map((n: any) => ({
                 title: toLocalized(n.title),
                 text: toLocalized(n.text),
