@@ -7,6 +7,7 @@ import FooterOne from '@/components/layout/FooterOne/FooterOne';
 import PageHeader from '@/components/sections/PageHeader/PageHeader';
 import Toast, { ToastType } from '@/components/common/Toast/Toast';
 import { API_ENDPOINTS } from '@/config/api';
+import { waHref, PHONE_DISPLAY } from '@/config/contact';
 import { 
   MapPin, Calendar, Users, Heart, Star, Clock, 
   CheckCircle, Sparkles, Award, Phone, Mail, User, Loader2, type LucideIcon
@@ -715,9 +716,9 @@ const TailorMadePage: React.FC = () => {
               </h3>
               <p className="sidebar-card__subtitle">{t('sidebar.needHelp.subtitle')}</p>
               <div className="sidebar-contact">
-                <a href="https://wa.me/201007437271" className="sidebar-contact__item">
+                <a href={waHref()} className="sidebar-contact__item">
                   <Phone size={18} />
-                  <span>+20 100 743 7271</span>
+                  <span>{PHONE_DISPLAY}</span>
                 </a>
                 <a href="mailto:info@jesegypttours.com" className="sidebar-contact__item">
                   <Mail size={18} />

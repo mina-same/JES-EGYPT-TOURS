@@ -3,3 +3,9 @@
 // The template's original embed pointed at a Costco in California.
 export const googleMapUrl =
   "https://maps.google.com/maps?q=8%20Alshams%20Building%2C%20Dr.%20Hanem%20Mohammed%20Hussein%2C%20Kafr%20Nassar%2C%20Al%20Haram%2C%20Giza%2C%20Egypt&z=15&output=embed";
+
+// User-facing destination for the "open in Google Maps" link under the embed.
+// The embed URL above cannot be reused for this: `output=embed` renders a
+// bare chromeless map with no directions, search box, or place card.
+export const googleMapDirectionsUrl =
+  "https://www.google.com/maps/search/?api=1&query=8%20Alshams%20Building%2C%20Dr.%20Hanem%20Mohammed%20Hussein%2C%20Kafr%20Nassar%2C%20Al%20Haram%2C%20Giza%2C%20Egypt";

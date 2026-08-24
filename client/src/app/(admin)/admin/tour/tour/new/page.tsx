@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { tourAPI } from '@/lib/api/tour';
-import { getAllBlogs } from '@/lib/api/blog';
 import { Button } from '@/components/ui/button';
 import { 
   Loader2, Save,
@@ -34,6 +34,8 @@ import {
 } from '@/components/admin/tour';
 
 import AdminLanguageTabs, { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
+import { blogAPI } from '@/lib/api/blogAdmin';
+import { BLOG_SEARCH_LIMIT } from '@/lib/tour/relatedBlogs';
 
 // Tab definitions
 const TABS = [
@@ -99,7 +101,17 @@ export default function NewTourPage() {
     const searchBlogs = async () => {
       setIsSearchingBlogs(true);
       try {
-        const response = await getAllBlogs({ search: blogSearchQuery.trim() || undefined, limit: 5 });
+        // The ADMIN listing, not the public one. The public endpoint answers
+        // in a single language (English, with no X-Locale header) and only
+        // ever returns published posts — so every reference picked here was
+        // stored with an English-only title, and a scheduled article could not
+        // be linked to a tour before it went live. This one is authenticated,
+        // carries `X-Locale: bypass` through the axios interceptor so titles
+        // arrive in all four languages, and can see drafts.
+        const response = await blogAPI.getAllAdmin({
+          search: blogSearchQuery.trim() || undefined,
+          limit: BLOG_SEARCH_LIMIT,
+        });
         if (response.success && response.data) {
           setBlogSearchResults(response.data);
         }
@@ -246,17 +258,13 @@ export default function NewTourPage() {
         cleanData.subcategory = (cleanData.subcategory as any)._id || cleanData.subcategory;
       }
       
-      if (cleanData.blogReferences) {
-        cleanData.blogReferences = cleanData.blogReferences.map((ref: any) => 
-          typeof ref === 'object' ? (ref as any)._id || ref : ref
-        );
-      }
-      
-      if (cleanData.relatedTours) {
-        cleanData.relatedTours = cleanData.relatedTours.map((ref: any) => 
-          typeof ref === 'object' ? (ref as any)._id || ref : ref
-        );
-      }
+      // `blogReferences` and `relatedTours` are already the shape the schema
+      // wants: { id, title }, both required, and no `_id` (their sub-schemas
+      // declare `_id: false`). There used to be a `ref._id || ref` map here
+      // that did nothing for that shape — and would have flattened a reference
+      // to a bare id string the moment one ever carried an `_id`, failing
+      // validation on the required `title` with a message pointing nowhere
+      // near the cause.
       
       // Map lowercase 'description' to uppercase 'Description' (required by Schema)
       if (cleanData.description) {
@@ -299,19 +307,26 @@ export default function NewTourPage() {
             <p className="text-gray-500 mt-1">Create a new tour package</p>
           </div>
         </div>
-        <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Create Tour
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/tour/tour">
+            <Button type="button" variant="outline" disabled={loading} className="text-gray-700 dark:text-gray-300">
+              Cancel
+            </Button>
+          </Link>
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Create Tour
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Draft Banner */}

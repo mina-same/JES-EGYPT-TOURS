@@ -70,6 +70,8 @@ export interface BlogPost {
   };
   featuredImage: string | ImageObject;
   excerpt?: string | ILocalizedString;
+  /** The card teaser. Empty means the card shows no description — no fallback. */
+  cardDescription?: string | ILocalizedString;
   contentBlocks: ContentBlock[];
   tags: ILocalizedMixed;
 
@@ -387,10 +389,48 @@ export async function getBlogBySlug(slug: string, locale?: string): Promise<Blog
   return json.data;
 }
 
-// Fetch single blog by ID (public - only published blogs)
-export async function getBlogById(id: string): Promise<BlogPost> {
+export interface BlogTagCount {
+  tag: string;
+  /** How many published articles carry this tag in the requested language. */
+  count: number;
+}
+
+/**
+ * Every tag in use for a language, most-used first.
+ *
+ * Replaces the sidebar's old approach of fetching fifty posts and reducing
+ * them in the browser: that shipped fifty article records to draw twenty
+ * words, and a tag used only on an older post could never appear.
+ */
+export async function getBlogTags(
+  limit: number = 20,
+  locale?: string
+): Promise<BlogTagCount[]> {
+  const res = await fetch(`${API_URL}/blog/tags?limit=${limit}`, {
+    next: { revalidate: 300 },
+    headers: locale ? { 'X-Locale': locale } : undefined,
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch blog tags');
+  }
+
+  const json: { success: boolean; data: BlogTagCount[] } = await res.json();
+  return json.data || [];
+}
+
+/**
+ * A published post by id, in CARD shape — the tour page's curated "related
+ * blogs" are its only caller.
+ *
+ * The locale has to travel with the request. Without it the API answered in
+ * its default language, so a German tour page listed its related articles
+ * under English titles and excerpts.
+ */
+export async function getBlogById(id: string, locale?: string): Promise<BlogPost> {
   const res = await fetch(`${API_URL}/blog/posts/id/${id}`, {
     next: { revalidate: 60 },
+    headers: locale ? { 'X-Locale': locale } : undefined,
   });
   
   if (!res.ok) {

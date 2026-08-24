@@ -73,6 +73,7 @@ const INITIAL_BLOG_POST = {
   editorialAuthor: '',
   featuredImage: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   excerpt: { en: '', de: '', it: '', es: '' },
+  cardDescription: { en: '', de: '', it: '', es: '' },
   contentBlocks: [{ id: 'initial-block', type: 'html', content: { en: '', de: '', it: '', es: '' } }],
   tags: { en: [], de: [], it: [], es: [] },
   status: 'draft',
@@ -178,7 +179,7 @@ export default function NewBlogPage() {
       const lang = langOverride || activeLanguage;
 
       // Handle localized fields
-      const localizedFields = ['title', 'excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
+      const localizedFields = ['title', 'excerpt', 'cardDescription', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
       const localizedMixedFields = ['tags', 'keyTakeaways', 'metaKeywords', 'summary'];
 
       if (localizedFields.includes(field)) {
@@ -470,7 +471,7 @@ export default function NewBlogPage() {
       };
 
       // Prune empty optional localized fields to avoid backend validation on 'en' requirement
-      const optionalStringFields = ['excerpt', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
+      const optionalStringFields = ['excerpt', 'cardDescription', 'metaTitle', 'metaDescription', 'ogTitle', 'ogDescription', 'focusKeyword'];
       optionalStringFields.forEach(field => {
         if (isLocalizedStringEmpty((cleanData as any)[field])) {
           delete (cleanData as any)[field];
@@ -518,6 +519,14 @@ export default function NewBlogPage() {
         delete cleanData.excerpt;
       } else {
         ensureEnglish(cleanData.excerpt);
+      }
+
+      // Dropped rather than stored as blanks: the card reads "no description"
+      // from an ABSENT field, and there is no fallback behind it.
+      if (isLocalizedStringEmpty(cleanData.cardDescription)) {
+        delete cleanData.cardDescription;
+      } else {
+        ensureEnglish(cleanData.cardDescription);
       }
 
       // Note: summary is now handled via processLocalizedMixed as an array.
@@ -850,6 +859,18 @@ export default function NewBlogPage() {
                         placeholder="Brief description of the blog post..."
                         rows={3}
                         activeLanguage={activeLanguage}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <LocalizedInput
+                        label="Card Description (article listings)"
+                        value={formData.cardDescription || { en: '', de: '', it: '', es: '' }}
+                        onChange={(val) => handleChange('cardDescription', val)}
+                        placeholder="One short line that makes people click"
+                        activeLanguage={activeLanguage}
+                        maxLength={200}
+                        helperText="Shown on the article card as three lines — aim for 110–140 characters. Leave it empty and the card shows no description at all."
                       />
                     </div>
 

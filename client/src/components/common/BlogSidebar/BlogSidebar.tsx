@@ -1,59 +1,37 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
-import { BlogPost, BlogResponse } from "@/lib/api/blog";
-import { API_URL } from "@/config/api";
-import { getLocalizedValue } from "@/lib/localize";
+import React, { useEffect, useState } from "react";
+import { getBlogTags } from "@/lib/api/blog";
 import { useTranslation } from "react-i18next";
 
 
-import { tourAPI } from "@/lib/api/tour";
+/** As many tags as the widget can show without becoming a wall of buttons. */
+const TAG_LIMIT = 20;
 
-interface BlogSidebarProps {
-  currentBlog?: BlogPost;
-}
-
-const BlogSidebar: React.FC<BlogSidebarProps> = ({ currentBlog }) => {
+const BlogSidebar: React.FC = () => {
   const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
   const blogsPath = `/${currentLocale}/blogs`;
   const [tags, setTags] = useState<string[]>([]);
+  // The tag list comes from the API already counted and ordered. This widget
+  // used to fetch fifty published posts and reduce them in the browser, which
+  // shipped fifty article records to draw twenty words AND could not see a tag
+  // that appears only on an older post.
   useEffect(() => {
     let isMounted = true;
 
-    const loadSidebarData = async () => {
+    const loadTags = async () => {
       try {
-        const queryParams = new URLSearchParams({
-          page: "1",
-          limit: "50",
-        });
-
-        // The API localizes this response, so without the locale the tag list
-        // would come back in English on /de, /it and /es.
-        const blogsRes = await fetch(`${API_URL}/blog/posts?${queryParams.toString()}`, {
-          headers: { "X-Locale": currentLocale },
-        });
-
-        if (blogsRes.ok) {
-          const blogsResponse: BlogResponse = await blogsRes.json();
-          if (isMounted) {
-            const posts = blogsResponse.data || [];
-            
-            const allLocalizedTags = posts.flatMap((p) => {
-              const localizedTags = getLocalizedValue(p.tags, currentLocale);
-              return Array.isArray(localizedTags) ? localizedTags : [];
-            });
-            const uniqueTags = Array.from(new Set(allLocalizedTags)).slice(0, 20);
-            setTags(uniqueTags);
-          }
+        const rows = await getBlogTags(TAG_LIMIT, currentLocale);
+        if (isMounted) {
+          setTags(rows.map((row) => row.tag));
         }
       } catch (error) {
         console.error("Failed to load blog sidebar tags:", error);
       }
     };
 
-    loadSidebarData();
+    loadTags();
 
     return () => {
       isMounted = false;

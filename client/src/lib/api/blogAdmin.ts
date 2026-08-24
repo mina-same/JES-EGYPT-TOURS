@@ -15,6 +15,14 @@ export interface QueryParams {
   sort?: string;
   fields?: string;
   isActive?: boolean;
+  /**
+   * Comma-separated post ids, for resolving a known set rather than searching.
+   * The tour form's "Related Blogs" picker uses it to show live titles for the
+   * articles a tour already links to — a reference stores only an id and a
+   * title frozen when it was picked. Server-side, ids that are not ObjectIds
+   * are dropped, and a filter that matches nothing returns nothing.
+   */
+  ids?: string;
 }
 
 export interface ApiResponse<T> {
@@ -44,6 +52,7 @@ export interface BlogFormData {
   editorialAuthor?: string;
   featuredImage: IImage;
   excerpt?: ILocalizedString;
+  cardDescription?: ILocalizedString;
   contentBlocks: ContentBlock[];
   tags: ILocalizedMixed;
   status: 'draft' | 'published' | 'scheduled';

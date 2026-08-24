@@ -47,9 +47,24 @@
 # listing Sidebar
 --------------------------------------------------------------*/
 :root {
-  --gotur-font: "Plus Jakarta Sans", sans-serif;
-  --gotur-heading-font: "Plus Jakarta Sans", sans-serif;
-  --gotur-font2: "Caveat", cursive;
+  /* The real faces are loaded by next/font in the route layouts and exposed as
+     --font-body / --font-display on <html>. Swapping the site typeface is a
+     change to those two layouts plus these three lines - nothing else.
+
+     The inner var() MUST carry its own fallback. If a nested var() resolves to
+     nothing, the whole custom property becomes invalid-at-computed-value-time
+     and the trailing family names do NOT rescue it (CSS Custom Properties
+     spec), which would leave every consumer with an inherited/unset font. */
+  --gotur-font: var(--font-body, "Segoe UI"), system-ui, -apple-system, sans-serif;
+  /* Deliberately the BODY face, not the display face. This token also drives
+     prices, buttons, nav links and chips (see .booking-price-block__value,
+     .tour-read-more-btn, .booking-bar-chip), so pointing it at a serif would
+     turn the tour prices into Playfair. Large editorial headings opt in to the
+     serif explicitly via --gotur-display-font instead. */
+  --gotur-heading-font: var(--font-body, "Segoe UI"), system-ui, -apple-system, sans-serif;
+  /* Opt-in display face for large editorial headings and the decorative
+     italic accents that used to be Caveat. */
+  --gotur-display-font: var(--font-display, Georgia), "Times New Roman", serif;
   --gotur-text: #0E3A57;
   --gotur-text-rgb: 14, 58, 87;
   --gotur-base: #d4af37;
@@ -493,8 +508,10 @@
 }
 .sec-title__tagline {
   color: var(--gotur-primary, #f7921e);
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
-  font-style: normal;
+  /* Decorative eyebrow, formerly Caveat. font-style must flip to italic - the
+     family swap alone would render upright Playfair. */
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
+  font-style: italic;
   font-weight: 400;
   font-size: 20px;
   line-height: 117%;
@@ -524,17 +541,48 @@
 .sec-title__title {
   margin: 0;
   color: var(--gotur-black, #1d231f);
+  /* Main editorial section heading - opts in to the display serif. 700 rather
+     than the old 800: Playfair at 800 is heavier than this layout wants. */
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 120%;
   font-size: 50px;
   text-shadow: 0 0 0.1px currentColor;
 }
 .sec-title__title span {
-  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
+  /* The gold highlight word. It must stay on the display face: Manrope ships
+     no italic at all, so leaving this on the body token would render a
+     synthesised (faux) oblique at 50px. */
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   color: var(--gotur-base, #63ab45);
   font-style: italic;
   font-weight: 600;
+}
+
+/* The reveal animation (.text-animation) rebuilds the heading as one <span>
+   per character, so the accent rule above matched every letter and rendered
+   whole headings gold + italic - "Featured Tours", "Frequently Asked
+   Questions" and "Why Travel with JES Egypt Tours?" all read as decorative
+   script rather than section titles.
+
+   The accent is meant for an AUTHORED highlight span (as in "Private Egypt
+   Tours, <span>Planned Around You</span>", which is unaffected here because it
+   carries no .text-animation wrapper). Animation spans are markup, not
+   emphasis, so they inherit the heading's own treatment instead.
+
+   Deliberately NOT reverting `color`: the brand gold is wanted on these
+   headings. Only the italic/weight/family are reverted, which is what made
+   animated headings read as decorative script rather than section titles.
+
+   Specificity: two classes plus a type beats `.sec-title__title span`, so this
+   wins without !important. Note that an authored highlight nested INSIDE an
+   animated heading would also be reverted - no such case exists today. */
+.sec-title__title .text-animation,
+.sec-title__title .text-animation span {
+  font-family: inherit;
+  font-style: inherit;
+  font-weight: inherit;
 }
 @media (max-width: 991px) {
   .sec-title__title {
@@ -4286,10 +4334,14 @@ body.megamenu-popup-active .mobile-nav__content {
 }
 .page-header__title {
   margin-top: -5px;
+  /* Hero H1 for tour/blog/page headers. Display serif at 700; `line-height:
+     normal` (~1.2 here) left the two-line tour titles looking loose, so it is
+     pinned to 1.08 for a tighter, more deliberate hero block. */
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 60px;
-  line-height: normal;
+  line-height: 1.08;
   color: var(--gotur-white, #fff);
   text-transform: capitalize;
   margin-bottom: 12px;
@@ -5151,7 +5203,7 @@ body.megamenu-popup-active .mobile-nav__content {
   line-height: 56%;
   margin-bottom: 20px;
   padding-bottom: 0;
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   color: var(--gotur-primary, #f7921e);
 }
 .main-slider-one__title {
@@ -5559,7 +5611,7 @@ body.megamenu-popup-active .mobile-nav__content {
   line-height: 56%;
   margin-bottom: 10px;
   position: relative;
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   color: var(--gotur-primary, #f7921e);
   text-transform: capitalize;
   opacity: 0;
@@ -5903,7 +5955,7 @@ body.megamenu-popup-active .mobile-nav__content {
   line-height: 56%;
   margin-bottom: 20px;
   padding-bottom: 0;
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   color: var(--gotur-primary, #f7921e);
 }
 @media (max-width: 767px) {
@@ -6257,9 +6309,10 @@ body.megamenu-popup-active .mobile-nav__content {
   opacity: 0;
   transform: translateY(-120px);
   transition: transform 1500ms ease, opacity 1500ms ease;
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  /* Decorative hero eyebrow, formerly Caveat - needs the explicit italic. */
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   color: var(--gotur-white, #fff);
-  font-style: normal;
+  font-style: italic;
   font-weight: 400;
   font-size: clamp(1.875rem, 2.8vw, 3.125rem);
   line-height: 1.2;
@@ -6267,11 +6320,17 @@ body.megamenu-popup-active .mobile-nav__content {
 .main-slider-four__title {
   margin-bottom: 0px;
   color: var(--gotur-white, #fff);
+  /* The hero title renders as a <p>, not an h1-h6, so it never matched the
+     heading rule and silently inherited the <body> font. It is the single
+     largest piece of type on the site, so it takes the display serif
+     explicitly - not --gotur-heading-font, which stays on the body face. */
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   /* No forced Title Case: the hero renders the admin's sentence exactly as
      written — sentence case reads more editorial/premium. */
   text-transform: none;
   font-style: normal;
-  font-weight: 800;
+  /* 700, not 800: Playfair's heaviest weights overpower the hero image. */
+  font-weight: 700;
   /* Fluid size: scales smoothly with the viewport. Replaces the old ladder
      that REVERSED at <=1850px (jumped to 100px) and clipped long CMS titles.
      Caps at 72px so even long, admin-entered headings fit the hero. */
@@ -10513,7 +10572,7 @@ a + .listing-card-four__btns__hover {
   line-height: 70%;
   text-transform: capitalize;
   color: var(--gotur-primary, #f7921e);
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   position: relative;
 }
 .destination-card-one__title a {
@@ -10632,7 +10691,7 @@ a + .listing-card-four__btns__hover {
   line-height: 70%;
   text-transform: capitalize;
   color: var(--gotur-white, #fff);
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   position: relative;
   padding-bottom: 36px;
   margin-bottom: 0;
@@ -10761,7 +10820,7 @@ a + .listing-card-four__btns__hover {
   background-color: var(--gotur-base, #63ab45);
 }
 .destinations-card__title {
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   font-style: normal;
   font-weight: 400;
   font-size: 40px;
@@ -10828,7 +10887,7 @@ a + .listing-card-four__btns__hover {
   }
 }
 .destinations-card-two__title {
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   font-style: normal;
   font-weight: 400;
   font-size: 40px;
@@ -17535,10 +17594,11 @@ a + .listing-card-four__btns__hover {
   transform: scale(1.1);
 }
 .faq-page__sidebar__sub-title {
-  font-family: var(--gotur-font2, "Just Another Hand", serif);
+  /* Decorative eyebrow above the CTA card title, formerly Caveat. */
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   text-transform: capitalize;
   color: var(--gotur-white, #fff);
-  font-style: normal;
+  font-style: italic;
   font-weight: 400;
   font-size: 30px;
   line-height: 93%;

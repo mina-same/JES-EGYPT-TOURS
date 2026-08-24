@@ -4,7 +4,17 @@ export interface IContactSubmission extends Document {
   name: string;
   email: string;
   message: string;
-  source: 'contact' | 'travel-trade';
+  source: 'contact' | 'travel-trade' | 'tour-question';
+  /** Set only on `tour-question`: which tour the visitor was reading when they
+   *  asked. The name is stored as a copy rather than looked up through the
+   *  slug, so the enquiry still says what it was about after the tour is
+   *  renamed or removed. */
+  tourName?: string;
+  tourSlug?: string;
+  /** The one optional date field on the quick-question form. Travel-trade
+   *  submissions use `travelDates` for the same idea; kept separate so the two
+   *  forms never overwrite each other's meaning. */
+  preferredDate?: string;
   inquiryType?: 'b2b-rates' | 'client-request' | 'general-partnership';
   phone?: string;
   companyName?: string;
@@ -32,6 +42,11 @@ export interface IContactSubmission extends Document {
   serviceLevel?: 'standard' | 'premium' | 'luxury' | 'mixed';
   consentGiven?: boolean;
   locale?: 'en' | 'de' | 'it' | 'es';
+  /** Set when the hidden honeypot field came back filled. The submission is
+   *  STORED rather than discarded: password managers and browser autofill do
+   *  ignore `autocomplete="off"`, so a silent drop loses real enquiries with
+   *  no trace. Flagged instead, so a false positive stays recoverable. */
+  isSpam?: boolean;
   status: 'new' | 'replied' | 'archived';
   adminNotes?: string;
   createdAt: Date;
@@ -65,7 +80,7 @@ const contactSubmissionSchema = new Schema<IContactSubmission>(
     },
     source: {
       type: String,
-      enum: ['contact', 'travel-trade'],
+      enum: ['contact', 'travel-trade', 'tour-question'],
       default: 'contact',
       index: true,
     },
@@ -138,6 +153,21 @@ const contactSubmissionSchema = new Schema<IContactSubmission>(
       type: String,
       enum: ['standard', 'premium', 'luxury', 'mixed'],
     },
+    tourName: {
+      type: String,
+      trim: true,
+      maxlength: [250, 'Tour name cannot exceed 250 characters'],
+    },
+    tourSlug: {
+      type: String,
+      trim: true,
+      maxlength: [250, 'Tour slug cannot exceed 250 characters'],
+    },
+    preferredDate: {
+      type: String,
+      trim: true,
+      maxlength: [60, 'Preferred date cannot exceed 60 characters'],
+    },
     consentGiven: {
       type: Boolean,
       default: false,
@@ -145,6 +175,11 @@ const contactSubmissionSchema = new Schema<IContactSubmission>(
     locale: {
       type: String,
       enum: ['en', 'de', 'it', 'es'],
+    },
+    isSpam: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
     status: {
       type: String,

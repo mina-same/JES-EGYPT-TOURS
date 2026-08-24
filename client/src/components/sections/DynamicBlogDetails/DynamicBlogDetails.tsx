@@ -10,7 +10,8 @@ import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import BlogTOC from "@/components/common/BlogTOC/BlogTOC";
-import { CheckCircle, List, HelpCircle, Facebook, Twitter, Linkedin, Share2, Plus, Minus } from "lucide-react";
+import { CheckCircle, List, HelpCircle, Plus, Minus } from "lucide-react";
+import FaqAccordion from "@/components/common/Faq/FaqAccordion";
 import ReviewAvatar from "@/components/common/ReviewAvatar";
 import { API_URL } from "@/config/api";
 import TourCard from "@/components/common/TourCard/TourCard";
@@ -66,13 +67,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [isVideoOpen, setVideoOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
-  const [activeFaqKey, setActiveFaqKey] = useState<string | null>("0");
-  const [shareUrl, setShareUrl] = useState('');
-
-  useEffect(() => {
-    setShareUrl(window.location.href);
-  }, []);
-
   useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollTop;
@@ -167,7 +161,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               .replace(/\s+data-list="[^"]*"/gi, '')
           : content;
         return (
-          <div key={index} className='blog-details-card__text wow fadeInUp' data-wow-delay='300ms' data-wow-duration='1500ms'>
+          <div key={index} className='blog-details-card__text'>
             {block.title && <h2 className="blog-details-card__title">{getLocalizedValue(block.title, locale)}</h2>}
             <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
           </div>
@@ -189,8 +183,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
                 return (
                   <div
-                    className={`${colClass} wow fadeInLeft`}
-                    data-wow-delay={`${100 * imgIndex}ms`}
+                    className={colClass}
                     key={imgIndex}
                   >
                     <BlogImage
@@ -209,9 +202,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
             {content && (
               <div className='blog-details__inner__content'>
                 <p
-                  className='blog-details__inner__text wow fadeInUp animated'
-                  data-wow-delay='300ms'
-                  data-wow-duration='1500ms'
+                  className='blog-details__inner__text'
                   dangerouslySetInnerHTML={{ __html: content }}
                 />
               </div>
@@ -229,11 +220,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         if (isAfterImageRow) {
           return (
             <div key={index} className='blog-details__inner__content'>
-              <blockquote
-                className='blog-details__inner__text-one wow fadeInUp animated'
-                data-wow-delay='300ms'
-                data-wow-duration='1500ms'
-              >
+              <blockquote className='blog-details__inner__text-one'>
                 {content}
                 {block.image && (
                   <Image
@@ -252,11 +239,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         return (
           <div key={index} className="blockquote-wrapper">
             {block.title && <h3 className="blog-details-card__content-title">{getLocalizedValue(block.title, locale)}</h3>}
-            <blockquote
-              className='blog-details__inner__text-one wow fadeInUp animated'
-              data-wow-delay='300ms'
-              data-wow-duration='1500ms'
-            >
+            <blockquote className='blog-details__inner__text-one'>
               {content}
               {block.image && (
                 <Image
@@ -274,7 +257,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       
       case 'image':
         return (
-          <div key={index} className='blog-details__inner__image wow fadeInUp'>
+          <div key={index} className='blog-details__inner__image'>
             <BlogImage
               src={block.url || ''}
               alt={getLocalizedValue(block.alt, locale) || 'Blog image'}
@@ -363,50 +346,15 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           <div className="blog-faq-divider" />
         </div>
 
-        <div className="blog-faq-list">
-          {faqs.map((faq: any, index: number) => {
-            const isOpen = activeFaqKey === index.toString();
-            const questionId = `blog-faq-question-${index}`;
-            const answerId = `blog-faq-answer-${index}`;
-            return (
-              <div
-                key={index}
-                className={`blog-faq-item${isOpen ? ' blog-faq-item--open' : ''}`}
-              >
-                <h3 className="blog-faq-item__heading">
-                  <button
-                    id={questionId}
-                    type="button"
-                    className="blog-faq-item__trigger"
-                    onClick={() => setActiveFaqKey(isOpen ? null : index.toString())}
-                    aria-expanded={isOpen}
-                    aria-controls={answerId}
-                  >
-                    <span className="blog-faq-item__num">
-                      Q{String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="blog-faq-item__question">
-                      {faq.question?.[locale]}
-                    </span>
-                    <span className="blog-faq-item__icon" aria-hidden="true">
-                      {isOpen ? <Minus size={15} /> : <Plus size={15} />}
-                    </span>
-                  </button>
-                </h3>
-                <div
-                  id={answerId}
-                  className="blog-faq-item__body"
-                  aria-labelledby={questionId}
-                >
-                  <div
-                    className="blog-faq-item__answer"
-                    dangerouslySetInnerHTML={{ __html: faq.answer?.[locale] || '' }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/* The same list the tour page uses: one look for a question and its
+            answer everywhere on the site, and one place to change it. */}
+        <FaqAccordion
+          idPrefix="blog-faq"
+          items={faqs.map((faq: any) => ({
+            question: faq.question?.[locale],
+            answer: faq.answer?.[locale] || '',
+          }))}
+        />
       </div>
     );
   };
@@ -435,53 +383,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     );
   };
 
-  const SocialShareFloating = () => {
-    const shareTitle = title || '';
-
-    return (
-      <div className="social-share-floating d-none d-xl-flex flex-column gap-3 position-fixed" style={{ left: '40px', top: '50%', transform: 'translateY(-50%)', zIndex: 100 }}>
-        <Link 
-          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
-          target="_blank"
-          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-primary hover:text-white transition-all"
-          style={{ width: '45px', height: '45px', color: '#3b5998' }}
-        >
-          <Facebook size={18} />
-        </Link>
-        <Link 
-          href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`}
-          target="_blank"
-          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-info hover:text-white transition-all"
-          style={{ width: '45px', height: '45px', color: '#1da1f2' }}
-        >
-          <Twitter size={18} />
-        </Link>
-        <Link 
-          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
-          target="_blank"
-          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-secondary hover:text-white transition-all"
-          style={{ width: '45px', height: '45px', color: '#0077b5' }}
-        >
-          <Linkedin size={18} />
-        </Link>
-        <button 
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({ title: shareTitle, url: shareUrl });
-            } else {
-              navigator.clipboard.writeText(shareUrl);
-              alert('Link copied to clipboard!');
-            }
-          }}
-          className="d-flex align-items-center justify-content-center bg-white border rounded-circle shadow-sm hover:bg-dark hover:text-white transition-all"
-          style={{ width: '45px', height: '45px', color: '#555' }}
-        >
-          <Share2 size={18} />
-        </button>
-      </div>
-    );
-  };
-
   const RelatedPosts = () => {
     const manualRelated = Array.isArray(blog.relatedPosts) ? blog.relatedPosts : [];
     const uniqueManualRelated = manualRelated.filter((post: any, index: number, posts: any[]) => {
@@ -494,10 +395,20 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
     const posts = buildBlogCardViewModels(uniqueManualRelated, locale);
     if (posts.length === 0) return null;
 
-    const postCards = posts.map((post, idx) => (
-      <Col md={4} key={post.id} className='related-posts-scroll__item'>
-        <BlogCard post={post} variant='bordered' index={idx} />
-      </Col>
+    // A plain div, not a Bootstrap <Col>. The scroller below is its own flex
+    // container with its own track sizing, so `.col-md-4` only added a
+    // competing `width: 33.33%` that happened to be overridden by whichever
+    // stylesheet the bundler injected last.
+    const postCards = posts.map((post) => (
+      <div key={post.id} className='related-posts-scroll__item'>
+        <BlogCard
+          post={post}
+          variant='bordered'
+          // The track caps each card at 360px; the grid default asked the
+          // browser for a third of the viewport.
+          sizes='(max-width: 991px) 82vw, 360px'
+        />
+      </div>
     ));
 
     return (
@@ -604,7 +515,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
   return (
     <section className='blog-details-page section-space' style={{ backgroundColor: '#fff' }}>
-      <SocialShareFloating />
       {/* Reading Progress Bar */}
       <div 
         className="reading-progress-bar" 
@@ -630,11 +540,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           <Col lg={8}>
             <div className='blog-details'>
               {/* Blog Image */}
-              <div
-                className='blog-details-card wow fadeInUp'
-                data-wow-delay='300ms'
-                data-wow-duration='1500ms'
-              >
+              <div className='blog-details-card'>
                 <div className='blog-details-card__image'>
                   <Image 
                     src={featuredImageUrl || "https://placehold.co/1200x600?text=Image"} 
@@ -729,11 +635,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               {/* Blog Tags */}
               {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
                 <div className='blog-details__meta'>
-                  <div
-                    className='blog-details__categories wow fadeInUp'
-                    data-wow-delay='300ms'
-                    data-wow-duration='1500ms'
-                  >
+                  <div className='blog-details__categories'>
                     <h4 className='blog-details__meta__title'>{t('tags')}</h4>
                     <div className='blog-details__categories__box'>
                       {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
@@ -749,31 +651,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     </div>
                   </div>
 
-
-                  {/* Social Share Links */}
-                  <div
-                    className='blog-details__social wow fadeInUp'
-                    data-wow-delay='300ms'
-                    data-wow-duration='1500ms'
-                  >
-                    <h4 className='blog-details__meta__title'>
-                      {t('shareFriends')}
-                    </h4>
-                    <div className='blog-details__social__box'>
-                      <Link href='https://facebook.com'>
-                        <i className='icon-facebook' aria-hidden='true'></i>
-                      </Link>
-                      <Link href='https://twitter.com'>
-                        <i className='icon-twitter' aria-hidden='true'></i>
-                      </Link>
-                      <Link href='https://instagram.com'>
-                        <i className='icon-linkedin' aria-hidden='true'></i>
-                      </Link>
-                      <Link href='https://youtube.com'>
-                        <i className='icon-youtube' aria-hidden='true'></i>
-                      </Link>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -785,9 +662,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                     {approvedComments.map((comment) => (
                       <li
                         key={comment._id}
-                        className='comments-one__card wow fadeInUp'
-                        data-wow-delay='100ms'
-                        data-wow-duration='1500ms'
+                        className='comments-one__card'
                       >
                         <div className='comments-one__card__image'>
                           <ReviewAvatar 
@@ -834,7 +709,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 <div className="blog-toc-sticky">
                   <BlogTOC contentSelector="#blog-content" />
                   <div className="mt-4">
-                    <BlogSidebar currentBlog={blog} />
+                    <BlogSidebar />
                   </div>
                 </div>
               </div>
@@ -855,7 +730,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
       <style jsx global>{`
         .blog-details-page {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          /* Was hardcoded to Inter, which bypassed the theme tokens entirely -
+             blog articles rendered in a font the rest of the site never used. */
+          font-family: var(--gotur-font, "Segoe UI"), system-ui, -apple-system, sans-serif;
         }
 
         .blog-author-box {
@@ -1175,7 +1052,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           left: 15px;
           font-size: 6rem;
           color: rgba(183, 156, 92, 0.15);
-          font-family: "Georgia", serif;
+          font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
         }
 
         /* Section Header Polish */
@@ -1304,150 +1181,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           border-radius: 2px;
           margin-top: 10px;
           margin-left: 54px;
-        }
-
-        .blog-faq-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .blog-faq-item {
-          background: #fff;
-          border: 1px solid #e8e4db;
-          border-radius: 12px;
-          overflow: hidden;
-          transition: border-color 0.25s ease, box-shadow 0.25s ease;
-        }
-
-        .blog-faq-item:hover {
-          border-color: rgba(183,156,92,0.4);
-          box-shadow: 0 4px 20px rgba(183,156,92,0.07);
-        }
-
-        .blog-faq-item--open {
-          border-color: #b79c5c;
-          box-shadow: 0 6px 25px rgba(183,156,92,0.11);
-        }
-
-        .blog-faq-item__heading {
-          margin: 0;
-          padding: 0;
-        }
-
-        .blog-faq-item__trigger {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 18px 20px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          text-align: left;
-          transition: background 0.2s ease;
-        }
-
-        .blog-faq-item--open .blog-faq-item__trigger {
-          background: linear-gradient(135deg, #fdfaf3, #faf6ec);
-          border-bottom: 1px solid #e8e4db;
-        }
-
-        .blog-faq-item__num {
-          font-size: 0.72rem;
-          font-weight: 700;
-          color: #b79c5c;
-          background: rgba(183,156,92,0.1);
-          border-radius: 6px;
-          padding: 4px 9px;
-          letter-spacing: 0.06em;
-          flex-shrink: 0;
-          min-width: 44px;
-          text-align: center;
-          transition: background 0.2s, color 0.2s;
-        }
-
-        .blog-faq-item--open .blog-faq-item__num {
-          background: #b79c5c;
-          color: #fff;
-        }
-
-        .blog-faq-item__question {
-          flex: 1;
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1a1a1a;
-          line-height: 1.5;
-          transition: color 0.2s;
-        }
-
-        .blog-faq-item--open .blog-faq-item__question {
-          color: #1b4168;
-        }
-
-        .blog-faq-item__icon {
-          width: 30px;
-          height: 30px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          background: #f0ede8;
-          color: #888;
-          flex-shrink: 0;
-          transition: background 0.2s, color 0.2s;
-        }
-
-        .blog-faq-item--open .blog-faq-item__icon {
-          background: #b79c5c;
-          color: #fff;
-        }
-
-        .blog-faq-item__body {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.35s ease, padding 0.25s ease;
-          padding: 0 20px;
-        }
-
-        .blog-faq-item--open .blog-faq-item__body {
-          max-height: 1200px;
-          padding: 20px 20px 22px;
-        }
-
-        .blog-faq-item__answer {
-          font-size: 0.975rem;
-          color: #555;
-          line-height: 1.8;
-        }
-
-        .blog-faq-item__answer a {
-          color: #b79c5c;
-          text-decoration: underline;
-          transition: color 0.2s;
-        }
-
-        .blog-faq-item__answer a:hover {
-          color: #1b4168;
-        }
-
-        .blog-faq-item__answer strong {
-          font-weight: 700;
-          color: #1a1a1a;
-        }
-
-        .blog-faq-item__answer p {
-          margin-bottom: 0.8rem;
-        }
-
-        .blog-faq-item__answer p:last-child {
-          margin-bottom: 0;
-        }
-
-        .blog-faq-item__answer ul,
-        .blog-faq-item__answer ol {
-          padding-left: 1.4rem;
-          margin-bottom: 0.8rem;
         }
 
         /* Wider container — scoped only to the blog detail page */

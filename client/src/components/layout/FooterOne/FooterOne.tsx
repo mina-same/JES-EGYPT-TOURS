@@ -6,6 +6,7 @@ import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { footerOneData } from "@/data/footerOneData";
+import { TEL_HREF } from "@/config/contact";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import MailchimpSubscribe from "react-mailchimp-subscribe";
 import { useTranslation } from "react-i18next";
@@ -26,7 +27,6 @@ interface FooterDataType {
   contact: {
     email: string;
     phone: string;
-    hours: string;
   };
   about: {
     text: string;
@@ -60,11 +60,7 @@ const FooterOne: React.FC = () => {
     <footer className='main-footer'>
       <div className='main-footer__top'>
         <Container>
-          <div
-            className='main-footer__top__inner wow fadeInUp'
-            data-wow-duration='1500ms'
-            data-wow-delay='200ms'
-          >
+          <div className='main-footer__top__inner'>
             <div className='footer-widget__logo logo-retina'>
               <Link href={`/${locale}`}>
                 <Image
@@ -99,20 +95,10 @@ const FooterOne: React.FC = () => {
                   <span className='footer-widget__list__subtitle'>
                     call agent
                   </span>
-                  <Link href={`tel:${data.contact.phone}`}>
-                    {data.contact.phone}
-                  </Link>
-                </div>
-              </li>
-              <li>
-                <div className='footer-widget__list__icon'>
-                  <i className='icon-clock-1'></i>
-                </div>
-                <div className='footer-widget__list__content'>
-                  <span className='footer-widget__list__subtitle'>
-                    opening time
-                  </span>
-                  <p>{data.contact.hours}</p>
+                  {/* The label is the grouped form; the href has to be the
+                      dialable one. Building `tel:` from the label shipped
+                      `tel:+20 100 743 7271`, spaces and all. */}
+                  <Link href={TEL_HREF}>{data.contact.phone}</Link>
                 </div>
               </li>
             </ul>
@@ -124,11 +110,7 @@ const FooterOne: React.FC = () => {
         <Container>
           <Row className='gutter-y-40'>
             <Col md={6} lg={4} xl={3}>
-              <div
-                className='footer-widget footer-widget--about wow fadeInUp'
-                data-wow-duration='1500ms'
-                data-wow-delay='00ms'
-              >
+              <div className='footer-widget footer-widget--about'>
                 <h2 className='footer-widget__title'>about JES Egypt Tours</h2>
                 <p className='footer-widget__about-text'>{data.about.text}</p>
                 <div className='footer-widget__social'>
@@ -143,11 +125,7 @@ const FooterOne: React.FC = () => {
             </Col>
 
             <Col md={6} lg={4} xl={3}>
-              <div
-                className='footer-widget footer-widget--links wow fadeInUp'
-                data-wow-duration='1500ms'
-                data-wow-delay='200ms'
-              >
+              <div className='footer-widget footer-widget--links'>
                 <h2 className='footer-widget__title'>Destinations</h2>
                 <ul className='list-unstyled footer-widget__links'>
                   {data.destinations.map((item, idx) => (
@@ -160,11 +138,7 @@ const FooterOne: React.FC = () => {
             </Col>
 
             <Col md={6} lg={4} xl={3}>
-              <div
-                className='footer-widget footer-widget--post wow fadeInUp'
-                data-wow-duration='1500ms'
-                data-wow-delay='400ms'
-              >
+              <div className='footer-widget footer-widget--post'>
                 <h2 className='footer-widget__title'>useful links</h2>
                 <ul className='list-unstyled footer-widget__links'>
                   {data.usefulLinks.map((item, idx) => (
@@ -179,11 +153,7 @@ const FooterOne: React.FC = () => {
             </Col>
 
             <Col md={6} lg={5} xl={3}>
-              <div
-                className='footer-widget footer-widget--contact wow fadeInUp'
-                data-wow-duration='1500ms'
-                data-wow-delay='600ms'
-              >
+              <div className='footer-widget footer-widget--contact'>
                 <h2 className='footer-widget__title'>Newsletter</h2>
                 <p className='footer-widget__contact-text'>
                   {data.newsletter.text}

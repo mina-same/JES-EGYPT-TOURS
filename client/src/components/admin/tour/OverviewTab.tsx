@@ -2,9 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import LocalizedRichText from '../LocalizedRichText';
-import TagInput from '@/components/admin/TagInput';
 import SubcategorySelect from '@/components/admin/SubcategorySelect';
 import { ITourSubcategory } from '@/types/tour';
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
@@ -21,6 +19,13 @@ interface OverviewTabProps {
   activeLanguage: AdminLanguage;
   formErrors?: FormErrorItem[];
 }
+
+const LANGUAGE_NAMES: Record<AdminLanguage, string> = {
+  en: 'English',
+  de: 'German',
+  it: 'Italian',
+  es: 'Spanish',
+};
 
 export default function OverviewTab({ formData, subcategories, handleChange, activeLanguage, formErrors = [] }: OverviewTabProps) {
   const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
@@ -49,7 +54,9 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               {hasError('name') && <p className="text-xs text-red-600">{formErrors.find(e => e.path === 'name')?.message}</p>}
             </div>
             <LocalizedInput
-              label={hasError('slug') || hasError('slug.en') ? 'English Slug * ⚠' : 'English Slug *'}
+              label={(language) =>
+                `${LANGUAGE_NAMES[language]} Slug *${hasError('slug') || hasError('slug.en') ? ' ⚠' : ''}`
+              }
               data-field="slug.en"
               value={formData.slug || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('slug', val, lang)}

@@ -12,24 +12,29 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import '@/app/(visitor)/[locale]/(home)/globals.css';
 import './admin-ui.css';
 
-import { Plus_Jakarta_Sans, Just_Another_Hand } from "next/font/google";
+import { Manrope, Playfair_Display } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 
-const jakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-jakarta-sans",
+// The dashboard itself stays fully sans-serif - admin headings are functional,
+// not editorial, so Playfair is never applied to dashboard chrome.
+const bodyFont = Manrope({
+  variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
 });
 
-const justAnotherHand = Just_Another_Hand({
-  variable: "--font-just-another-hand",
+// Loaded solely so the slider previews render in the same faces the published
+// visitor slide uses (title -> display, subtitle -> display italic). Without it
+// the editor would preview a font the live site never shows.
+const displayFont = Playfair_Display({
+  variable: "--font-display",
   subsets: ["latin"],
   display: "swap",
-  weight: "400",
+  style: ["normal", "italic"],
 });
 
 interface AdminLayoutProps {
@@ -48,8 +53,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   return (
-    <html lang='en' suppressHydrationWarning>
-      <body className={`${jakartaSans.variable} ${justAnotherHand.variable}`} suppressHydrationWarning>
+    // Font variables belong on <html> (:root) so :root-scoped theme tokens can
+    // read them. See the matching comment in the visitor layout.
+    <html
+      lang='en'
+      className={`${bodyFont.variable} ${displayFont.variable}`}
+      suppressHydrationWarning
+    >
+      <body suppressHydrationWarning>
         <Script
           id="strip-bis-attributes"
           strategy="beforeInteractive"

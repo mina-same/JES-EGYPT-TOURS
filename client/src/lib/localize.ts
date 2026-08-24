@@ -43,6 +43,37 @@ export function getLocalizedList(
 }
 
 /**
+ * A list field, read whichever of its two shapes arrived.
+ *
+ * The API produces both. An endpoint that localizes its response ships the
+ * active language's array already flattened (`["Aswan", "Nile"]`); one that
+ * returns documents untouched ships the whole `{ en: [...], de: [...] }`
+ * object. Callers used to pass either through `getLocalizedValue`, which only
+ * ever handled the second: handed an ARRAY it falls through to
+ * `Object.values(field)[0]` and returns the FIRST TAG AS A STRING, so the
+ * `Array.isArray` guard every caller wrote next rejected it and the list came
+ * out empty. That silently emptied the card's tag label and the whole sidebar
+ * tag widget on every page whose endpoint localizes.
+ *
+ * Empty entries are dropped, and there is no cross-locale fallback: a language
+ * with no tags shows none rather than borrowing another language's.
+ */
+export function getLocalizedStringList(field: unknown, locale: string = 'en'): string[] {
+  if (!field) return [];
+
+  const raw = Array.isArray(field)
+    ? field
+    : (field as Record<string, unknown>)[locale];
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+/**
  * Extracts the correct localized string based on the current locale.
  * Falls back to English if the translation is missing.
  */

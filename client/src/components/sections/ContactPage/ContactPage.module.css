@@ -1,0 +1,553 @@
+/* ─────────────────────────────────────────────────────────────
+   Contact panel
+
+   Replaces the purchased template's bare `form-one` / `comments-form__form`
+   markup, which rendered as an unframed heading plus naked inputs and read as
+   dead space next to the map. Styled as a CSS Module rather than a global
+   sheet so nothing here can collide with the vendor `gotur.css` or with the
+   global class names the tailor-made page introduced (`.required` etc.).
+
+   Palette is the site's own, shared with tailor-made / travel-trade / offers:
+   gold #d4af37 → #f4d03f, navy #0E3A57, 1px #e5e7eb borders.
+   ───────────────────────────────────────────────────────────── */
+
+.section {
+  --c-gold: #d4af37;
+  --c-gold-light: #f4d03f;
+  --c-navy: #0e3a57;
+  --c-navy-light: #1a4d6d;
+  --c-ink: #1d231f;
+  --c-border: #e5e7eb;
+  --c-muted: #6b7280;
+  --c-danger: #c81e1e;
+  /* Focus ring && link gold, darkened from #d4af37: SC 1.4.11 needs 3:1 for a
+     focus indicator and 4.5:1 for link text. #d4af37 measures only 2.10:1. */
+  --c-gold-focus: #a8862a;
+  --c-gold-text: #8a6d1f;
+}
+
+/* ── Panel shell ─────────────────────────────────────────── */
+
+/* The navy gradient is painted by the PANEL, not by the two navy blocks.
+   DOM order is heading → form → steps so that keyboard and screen-reader order
+   matches what the phone layout paints; that makes the blocks non-adjacent
+   siblings, which can no longer share one background between them. Painting it
+   once here — and letting `.formColumn` cover its own area in white — keeps the
+   desktop left column reading as a single continuous gradient with no seam to
+   line up, and survives either row growing. */
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-areas:
+    "asideTop form"
+    "asideBottom form";
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--c-navy) 0%, var(--c-navy-light) 100%);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 48px rgba(29, 35, 31, 0.08);
+}
+
+@media (max-width: 991px) {
+  .panel {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "asideTop"
+      "form"
+      "asideBottom";
+  }
+}
+
+/* ── Navy blocks ─────────────────────────────────────────── */
+
+/* Desktop: `.asideTop` has no bottom padding and `.asideBottom` no top padding,
+   so `.asideText`'s 32px bottom margin is the only gap between them and the two
+   rows read as one column. The phone override below restores real padding,
+   because there the form sits between them. */
+.asideTop {
+  grid-area: asideTop;
+  color: #fff;
+  padding: clamp(28px, 3.2vw, 44px) clamp(28px, 3.2vw, 44px) 0;
+}
+
+.asideBottom {
+  grid-area: asideBottom;
+  color: #fff;
+  padding: 0 clamp(28px, 3.2vw, 44px) clamp(28px, 3.2vw, 44px);
+}
+
+@media (max-width: 991px) {
+  .asideTop {
+    padding-bottom: clamp(28px, 3.2vw, 44px);
+  }
+
+  .asideTop .asideText {
+    margin-bottom: 0;
+  }
+
+  .asideBottom {
+    padding-top: clamp(28px, 3.2vw, 44px);
+  }
+}
+
+/* No decorative overlay on the navy, on purpose: a translucent gold glow lived
+   here and composited grey-olive at every alpha that kept the white text
+   legible — gold over #0e3a57 loses blue and gains green. `.panel`'s own navy
+   gradient already supplies the depth it was after. */
+
+.asideTitle {
+  margin: 0 0 14px;
+  color: #fff;
+  font-size: clamp(26px, 2.6vw, 34px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.6px;
+}
+
+.asideText {
+  margin: 0 0 32px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.stepsLabel {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--c-gold-light);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0 0 32px;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.stepNumber {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--c-navy);
+  font-size: 14px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--c-gold) 0%, var(--c-gold-light) 100%);
+  border-radius: 9px;
+}
+
+.stepTitle {
+  display: block;
+  margin-bottom: 3px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.stepText {
+  display: block;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.whatsapp {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 13px 18px;
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.whatsapp:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.whatsapp svg {
+  color: #25d366;
+}
+
+/* ── Onward links ────────────────────────────────────────── */
+
+.asideLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.asideLinksLabel {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.asideLink {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--c-gold-light);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.asideLink:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* One ring for both controls on the navy — white, because the ink ring the
+   form's buttons use would disappear against it. */
+.whatsapp:focus-visible,
+.asideLink:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Announced by screen readers, invisible on screen — used to warn that a link
+   opens a new tab without cluttering the visible label. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Right: the form ─────────────────────────────────────── */
+
+/* Covers the panel's navy gradient over its own area — the gradient is painted
+   once by `.panel` so the two navy blocks stay seamless. */
+.formColumn {
+  grid-area: form;
+  padding: clamp(28px, 3.2vw, 44px);
+  background: #fff;
+}
+
+.formHeading {
+  margin: 0 0 4px;
+  color: var(--c-navy);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.formSubheading {
+  margin: 0 0 26px;
+  color: var(--c-muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+@media (max-width: 575px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.label {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.requiredMark {
+  color: var(--c-danger);
+}
+
+/* 16px, not 15px: iOS Safari zooms the viewport on focus for any control under
+   16px, which shunts the layout sideways mid-typing. The controls are
+   `width: 100%` inside `minmax(0, 1fr)` columns, so the extra pixel changes no
+   column width. */
+.input,
+.textarea {
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--c-navy);
+  font-family: inherit;
+  font-size: 16px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--c-muted);
+  opacity: 1;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--c-gold-focus);
+  box-shadow: 0 0 0 3px rgba(168, 134, 42, 0.22);
+}
+
+.textarea {
+  min-height: 158px;
+  resize: vertical;
+}
+
+.inputInvalid {
+  border-color: var(--c-danger);
+}
+
+.inputInvalid:focus {
+  border-color: var(--c-danger);
+  box-shadow: 0 0 0 3px rgba(200, 30, 30, 0.14);
+}
+
+.fieldError {
+  color: var(--c-danger);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 13px 15px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  border: 1px solid;
+  border-radius: 10px;
+}
+
+.alertSuccess {
+  color: #14532d;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.alertError {
+  color: #7f1d1d;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.alert svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+/* Dark ink on gold, NOT white: white on #d4af37 measures 2.10:1 and fails AA.
+   Ink on gold is 7.61:1. The disabled/sending state keeps 0.8 opacity rather
+   than dimming further, because "Sending..." is text people actually read
+   (0.65 dropped it to 3.14:1; 0.8 holds 4.65:1). */
+.submit {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+  padding: 15px 28px;
+  color: var(--c-ink);
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--c-gold) 0%, var(--c-gold-light) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.32);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(212, 175, 55, 0.42);
+}
+
+.submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* The template's only keyboard ring lives on `.gotur-btn`, which this button
+   deliberately no longer uses — so it carries its own two-ring equivalent. */
+.submit:focus-visible {
+  outline: 3px solid var(--c-ink);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.9);
+}
+
+.submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+  transform: none;
+}
+
+.spinner {
+  animation: contactSpin 1s linear infinite;
+}
+
+@keyframes contactSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submit,
+  .whatsapp {
+    transition: none;
+  }
+
+  .submit:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}
+
+.privacy {
+  margin: 16px 0 0;
+  color: var(--c-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.privacyLink {
+  color: var(--c-gold-text);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.privacyLink:hover {
+  color: var(--c-navy);
+}
+
+/* ── Map band ────────────────────────────────────────────── */
+
+.mapCard {
+  overflow: hidden;
+  margin-top: 30px;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(29, 35, 31, 0.06);
+}
+
+.mapFrame {
+  display: block;
+  width: 100%;
+  height: 320px;
+  border: 0;
+}
+
+@media (max-width: 767px) {
+  .mapFrame {
+    height: 240px;
+  }
+}
+
+.mapBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-top: 1px solid var(--c-border);
+}
+
+.mapAddress {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin: 0;
+  color: var(--c-muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.mapAddress svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--c-gold);
+}
+
+.mapLink {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  flex: 0 0 auto;
+  color: var(--c-gold-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mapLink:hover {
+  color: var(--c-navy);
+  text-decoration: underline;
+}
+
+.mapLink:focus-visible {
+  outline: 3px solid var(--c-ink);
+  outline-offset: 3px;
+}
+
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}

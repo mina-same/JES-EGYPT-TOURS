@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "next/navigation";
-import { Container, Accordion } from "react-bootstrap";
+import { useParams, usePathname } from "next/navigation";
+import { Container } from "react-bootstrap";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, HelpCircle } from "lucide-react";
+import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, Plus, Minus, MessageCircle, ArrowRight } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
@@ -29,6 +29,9 @@ import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
 import { planHasPrices } from "@/lib/tours/startingPrice";
 import { normalizeAmenityItems, isOrderedListContent, bindLeadingDash } from "@/lib/normalizeAmenityItems";
+import TourQuestionModal from "./components/TourQuestionModal";
+import FaqAccordion from "@/components/common/Faq/FaqAccordion";
+import { waHref } from "@/config/contact";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
@@ -38,6 +41,12 @@ import ClientCarousel from "../ClientCarousel/ClientCarousel";
 /** Questions shown before the "Read More" button. The rest are rendered too —
  *  see the FAQ section — just hidden until the button is pressed. */
 const FAQ_VISIBLE_COUNT = 4;
+
+/** Notes shown before the button on a phone. The whole section runs past
+ *  1250px there -- more than three screens -- while on a desktop it fits in
+ *  624px and is never folded. Every note stays in the HTML either way; only CSS
+ *  hides them, so crawlers still read the full set. */
+const NOTES_VISIBLE_ON_PHONE = 3;
 
 /**
  * Lines of description TEXT shown before "Read More". The effect below turns
@@ -107,11 +116,20 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
    * that is short enough to fit uncut.
    */
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(true);
-  const [faqActiveKey, setFaqActiveKey] = useState<string | null>("0");
   const [showAllFaqs, setShowAllFaqs] = useState(false);
+  const [showAllNotes, setShowAllNotes] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams() as { locale: string };
+  const pathname = usePathname();
+  /* The tour's own slug, taken from the URL rather than the payload: the route
+     already resolved it for this locale, and the localized slug is what makes
+     an enquiry's tour link work when the team opens it. */
+  const tourSlug = React.useMemo(
+    () => (pathname || "").split("?")[0].split("/").filter(Boolean).pop() || "",
+    [pathname]
+  );
   const { t, i18n } = useTranslation("tours");
 
   const relatedBlogCards = React.useMemo(
@@ -362,25 +380,45 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   // Handle scroll spy and smooth scroll
   useEffect(() => {
     const readActiveSection = () => {
-      /* Deliberately the nav tabs, not every section on the page: Important
-         Notes, What to Pack and What You Will Love have no tab, so tracking them
-         would leave every tab unlit while they are on screen. Falling through to
-         the nearest preceding tracked section is the wanted behaviour. */
-      const sections = ['description', 'tour-plan', 'map', 'amenities', 'pricing', 'what-to-pack', 'gallery', 'download-pdf', 'faqs', 'honest-reviews'];
+      /*
+       * The tabs ARE the list of tracked sections, read from the DOM instead of
+       * repeated here.
+       *
+       * A hand-written copy is what broke the bar: `honest-reviews` was left in
+       * it after its tab was removed, so the spy kept marking a section active
+       * that no tab could match and the whole nav went dark for the 520px the
+       * reviews occupy. The tabs are conditional too -- map, pricing, gallery
+       * and packing render only for tours that have them -- so a literal list
+       * has four more conditions to stay in step with. Deriving it means the
+       * two cannot disagree, whatever sections are added later.
+       *
+       * Sections with no tab of their own (Important Notes, What You Will Love)
+       * are simply not tracked, so the nearest preceding tracked section stays
+       * lit while they are read. That fall-through is deliberate; a blank bar
+       * is not.
+       */
+      const trackedIds = Array.from(
+        new Set(
+          Array.from(document.querySelectorAll<HTMLAnchorElement>('.tour-nav-link'))
+            .map((link) => link.getAttribute('href') || '')
+            .filter((href) => href.startsWith('#') && href.length > 1)
+            .map((href) => href.slice(1))
+        )
+      );
 
-      // Find the current active section
-      for (const sectionId of sections) {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          // Check if section is in viewport (considering header offset)
-          const y = (isNavFixed ? (navHeight || 0) : 0) + 20;
-          if (rect.top <= y && rect.bottom >= y) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
+      /* Sorted by where the sections actually sit, not by tab order -- the two
+         differ (the gallery tab comes before the packing tab while the sections
+         run the other way round), and at a boundary two neighbours can both
+         straddle the probe line, so the first match has to be the higher one. */
+      const y = (isNavFixed ? (navHeight || 0) : 0) + 20;
+      const boxes = trackedIds
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => el !== null)
+        .map((el) => ({ id: el.id, rect: el.getBoundingClientRect() }))
+        .sort((a, b) => a.rect.top - b.rect.top);
+
+      const current = boxes.find(({ rect }) => rect.top <= y && rect.bottom >= y);
+      if (current) setActiveSection(current.id);
     };
 
     const handleClick = (e: MouseEvent) => {
@@ -670,8 +708,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   )}
                   <a href="#download-pdf" className={`tour-nav-link ${activeSection === 'download-pdf' ? 'active' : ''}`}>{t("tourDetails.nav.brochure")}</a>
                   <a href="#faqs" className={`tour-nav-link ${activeSection === 'faqs' ? 'active' : ''}`}>{t("tourDetails.nav.faq")}</a>
-                  {/* No "Reviews" tab: the section it pointed at is gone. The video
-                      reviews keep their own tab above. */}
+                  {/* No "Reviews" tab on purpose. The `#honest-reviews` section
+                      IS still on the page -- an earlier note here said it was
+                      gone, and that is what let the section linger in the scroll
+                      spy's list with no tab to light. The spy now reads these
+                      links, so an untabbed section can no longer blank the bar. */}
                 </nav>
               </div>
 
@@ -867,15 +908,24 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* Important Notes Section */}
                 {noteItems.length > 0 && (
                   <section id="important-notes" className="tour-section">
+                    <div className="tour-notes-card p-3 p-md-4 rounded-3 shadow-sm">
                     <div className="mb-4 d-flex align-items-center gap-2">
                       <div className="tour-note__bar" aria-hidden="true"></div>
                       <h2 className="tour-listing-details__title tour-note__heading m-0">
                         {t("tourDetails.importantNotes", "Important Notes")}
                       </h2>
                     </div>
-                    <div className="d-flex flex-column gap-3">
+                    <div className="tour-note-list" id="tour-note-list">
                       {noteItems.map((note, index) => (
-                        <div key={index} className="tour-note-item">
+                        <div
+                          key={index}
+                          className={
+                            "tour-note-item" +
+                            (!showAllNotes && index >= NOTES_VISIBLE_ON_PHONE
+                              ? " tour-note-item--folded"
+                              : "")
+                          }
+                        >
                           {/* A heading, not a styled span: these are the
                               subheadings of the section and belong in the
                               document outline. */}
@@ -886,11 +936,31 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             className="tour-note__text tour-listing-details__text html-content"
                             dangerouslySetInnerHTML={{ __html: note.text }}
                           />
-                          {index < noteItems.length - 1 && (
-                            <hr className="tour-note__divider" />
-                          )}
                         </div>
                       ))}
+                    </div>
+                    {/* Phone only -- the stylesheet hides the button above the
+                        breakpoint, where nothing is folded. */}
+                    {noteItems.length > NOTES_VISIBLE_ON_PHONE && (
+                      <button
+                        type="button"
+                        className="tour-note-toggle"
+                        onClick={() => setShowAllNotes((prev) => !prev)}
+                        aria-expanded={showAllNotes}
+                        aria-controls="tour-note-list"
+                      >
+                        <span>
+                          {showAllNotes
+                            ? t("tourDetails.notesShowLess", "View Fewer Notes")
+                            : t("tourDetails.notesShowMore", "View All Notes")}
+                        </span>
+                        <ChevronDown
+                          size={18}
+                          className="tour-note-toggle__chevron"
+                          style={{ transform: showAllNotes ? "rotate(180deg)" : "rotate(0deg)" }}
+                        />
+                      </button>
+                    )}
                     </div>
                   </section>
                 )}
@@ -1110,68 +1180,36 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 {/* FAQs Section */}
                 <section id="faqs" className="tour-section">
                   {faqItems.length > 0 ? (
-                    <div className='tour-listing-details__content__item tour-listing-details__faqs'>
+                    <div className="tour-listing-details__faqs faq-section">
+                      {/* No outer card. This section used to sit inside one
+                          large bordered box, which made it read as a component
+                          dropped onto the page rather than part of it. */}
                       <div className="mb-4">
-                        <h2 className='tour-listing-details__title mb-2'>{t("tourDetails.faqTitle")}</h2>
+                        <div className="faq-head mb-2">
+                          <span className="faq-head__bar" aria-hidden="true" />
+                          <h2 className='tour-listing-details__title m-0'>{t("tourDetails.faqTitle")}</h2>
+                        </div>
                         <p className="tour-reviews-subtitle">{t("tourDetails.faqSubtitle")}</p>
                       </div>
-                      <div className="faq-accordion gotur-accordion" data-grp-name="gotur-accordion">
-                        <Accordion
+                      {/* No theme class here any more: the list carries its own
+                          styling, so nothing needs `.faq-accordion` from gotur.css. */}
+                      <div className="tour-faq">
+                        {/* EVERY question is rendered, always. The ones past
+                            the fold are hidden in CSS rather than sliced out of
+                            the array, so the full Q&A text ships in the server
+                            HTML and stays crawlable -- and keeps matching the
+                            FAQPage JSON-LD, which Google requires to be
+                            page-visible. */}
+                        <FaqAccordion
                           id="tour-faq-list"
-                          defaultActiveKey="0"
-                          activeKey={faqActiveKey || undefined}
-                          onSelect={(k) => setFaqActiveKey(k as string)}
-                          className="wow fadeInUp"
-                          data-wow-duration="1500ms"
-                          data-wow-delay="500ms"
-                        >
-                          {/* EVERY question is rendered, always. The ones past the
-                              fold are hidden in CSS rather than sliced out of the
-                              array, so the full Q&A text ships in the server HTML
-                              and stays crawlable — and keeps matching the FAQPage
-                              JSON-LD, which Google requires to be page-visible. */}
-                          {faqItems.map((faq, index) => {
-                            const eventKey = String(index);
-                            const isOpen = faqActiveKey === eventKey;
-                            const isBeyondFold = index >= FAQ_VISIBLE_COUNT;
-                            return (
-                              <Accordion.Item
-                                eventKey={eventKey}
-                                key={index}
-                                className={(!showAllFaqs && isBeyondFold) ? 'faq-item--collapsed' : undefined}
-                              >
-                                <div className="accordion-header">
-                                  <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
-                                    <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
-                                      <div className="faq-icon-box">
-                                        <HelpCircle size={20} />
-                                      </div>
-                                      <div className="faq-question-box text-start flex-grow-1">
-                                        <h3 className="faq-question-title" style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>{faq.question}</h3>
-                                      </div>
-                                      <div 
-                                        className="faq-chevron"
-                                        style={{ 
-                                          transition: 'transform 0.3s ease',
-                                          transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
-                                        }}
-                                      >
-                                        <ChevronDown size={18} />
-                                      </div>
-                                    </div>
-                                  </Accordion.Button>
-                                </div>
-                                <Accordion.Body>
-                                  <div className="accordion-content">
-                                    <div className="inner">
-                                      <div className="inner__text html-content" dangerouslySetInnerHTML={{ __html: faq.answer }} />
-                                    </div>
-                                  </div>
-                                </Accordion.Body>
-                              </Accordion.Item>
-                            );
-                          })}
-                        </Accordion>
+                          idPrefix="tour-faq"
+                          items={faqItems}
+                          rowClassName={(index) =>
+                            !showAllFaqs && index >= FAQ_VISIBLE_COUNT
+                              ? "faq-list__row--folded"
+                              : undefined
+                          }
+                        />
 
                         {faqItems.length > FAQ_VISIBLE_COUNT && (
                           <button
@@ -1183,8 +1221,8 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           >
                             <span>
                               {showAllFaqs
-                                ? t("tourDetails.faqShowLess")
-                                : t("tourDetails.faqShowMore", { remaining: faqItems.length - FAQ_VISIBLE_COUNT })}
+                                ? t("tourDetails.faqShowLess", "View Fewer Questions")
+                                : t("tourDetails.faqShowMore", "View More Questions")}
                             </span>
                             <ChevronDown
                               size={18}
@@ -1193,6 +1231,29 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                             />
                           </button>
                         )}
+                      </div>
+
+                      {/* Catches the reader who got through the questions and
+                          still has a specific one. The button does nothing yet
+                          -- where it should lead is still being decided. */}
+                      <div className="faq-ask">
+                        <span className="faq-ask__icon" aria-hidden="true">
+                          <MessageCircle size={20} />
+                        </span>
+                        <div className="faq-ask__body">
+                          <p className="faq-ask__title">{t("tourDetails.faqAskTitle", "Still have a question?")}</p>
+                          <p className="faq-ask__text">
+                            {t("tourDetails.faqAskText", "Tell us what you need and we'll help you plan the right version of this tour.")}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="faq-ask__button"
+                          onClick={() => setAskOpen(true)}
+                        >
+                          {t("tourDetails.faqAskCta", "Ask Us About This Tour")}
+                          <ArrowRight size={16} />
+                        </button>
                       </div>
                     </div>
                   ) : (
@@ -1315,14 +1376,23 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
         {relatedBlogCards.length > 0 && (
           <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
             <Container>
-                <div className="sec-title text-center mb-5">
+                {/* `mb-5` gave the cards barely more air than the tagline
+                    gives the title. The extra room is what lets the row read
+                    as its own section rather than as a caption's overflow. */}
+                <div className="sec-title text-center related-blogs-head">
                   <h6 className='sec-title__tagline'>{t("tourDetails.relatedBlogs.tagline", "Travel Stories")}</h6>
                   <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
+                  <p className='related-blogs-head__text'>
+                    {t(
+                      "tourDetails.relatedBlogs.description",
+                      "More travel inspiration, guides, and stories from Egypt."
+                    )}
+                  </p>
                 </div>
                 <div className="row gutter-y-30">
-                  {relatedBlogCards.map((post, index) => (
+                  {relatedBlogCards.map((post) => (
                     <div key={post.id} className="col-lg-4 col-md-6">
-                      <BlogCard post={post} variant='feature' index={index} />
+                      <BlogCard post={post} variant='feature' />
                     </div>
                   ))}
                 </div>
@@ -1349,6 +1419,24 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
       </PhotoSwipeGallery>
       </section>
+
+      {/* Mounted at the root, not inside the FAQ section, so the overlay is not
+          trapped by any ancestor's stacking or overflow context. */}
+      <TourQuestionModal
+        open={askOpen}
+        onClose={() => setAskOpen(false)}
+        tourName={title || ""}
+        tourSlug={tourSlug}
+        locale={i18n.language || String(params?.locale || "en")}
+        /* A second route for the visitor who would rather not fill in a form.
+           Omitted when the tour has no title, since the message names it --
+           the modal hides the button when this is undefined. */
+        whatsappHref={
+          title
+            ? waHref(t("tourDetails.askModal.whatsappMessage", { tour: title }))
+            : undefined
+        }
+      />
 
       {/* Mobile Sticky Booking Bar */}
       <MobileStickyBookingBar

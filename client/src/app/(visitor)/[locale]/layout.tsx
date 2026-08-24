@@ -1,4 +1,4 @@
-import { Plus_Jakarta_Sans, Caveat } from "next/font/google";
+import { Manrope, Playfair_Display } from "next/font/google";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider } from "@/contexts/I18nProvider";
@@ -42,17 +42,24 @@ export async function generateMetadata({
   };
 }
 
-const jakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-jakarta-sans",
+// Body/UI face for ~90% of the site: copy, nav, forms, cards, prices, buttons.
+// No `weight` key on purpose - that keeps it a variable font (one file covering
+// 200-800) instead of pulling several static instances.
+const bodyFont = Manrope({
+  variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
 });
 
-const caveat = Caveat({
-  variable: "--font-caveat",
-  subsets: ["latin", "latin-ext"],
+// Display face. Reached only through --gotur-display-font, never through
+// --gotur-heading-font (that token also drives prices and buttons). The italic
+// style replaces Caveat as the decorative accent, so the site needs two
+// families total rather than three. `latin` covers de/it/es diacritics.
+const displayFont = Playfair_Display({
+  variable: "--font-display",
+  subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export default async function RootLayout({
@@ -80,12 +87,17 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang={locale || "en"} suppressHydrationWarning>
+    // The font variables live on <html> (:root), not <body>. gotur.css defines
+    // --gotur-font/--gotur-heading-font/--gotur-display-font in a :root block, and a
+    // custom property computed on :root cannot read a variable declared only on
+    // a descendant. On <body> those tokens silently resolved to their fallbacks.
+    <html
+      lang={locale || "en"}
+      className={`${bodyFont.variable} ${displayFont.variable}`}
+      suppressHydrationWarning
+    >
       <head></head>
-      <body
-        className={`${jakartaSans.variable} ${caveat.variable}`}
-        suppressHydrationWarning
-      >
+      <body suppressHydrationWarning>
         <ErrorBoundary>
           <WishlistProvider>
             <SlugProvider>

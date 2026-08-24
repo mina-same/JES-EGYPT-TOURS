@@ -2326,11 +2326,11 @@ body {
    accepts when the same content is present on the page. Never swap this for a
    .slice() on the array — that would drop the text from the markup entirely.
    -------------------------------------------------------------------------- */
-.faq-accordion .accordion-item.faq-item--collapsed {
-  display: none;
-}
+/* The tour page used to fold questions by hiding a theme accordion item. It
+   now folds its own rows -- see `.faq-list__row--folded` with the FAQ list. */
 
-.faq-toggle-btn {
+.faq-toggle-btn,
+.tour-note-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2349,23 +2349,27 @@ body {
   transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.faq-toggle-btn:hover {
+.faq-toggle-btn:hover,
+.tour-note-toggle:hover {
   color: #b79c5c;
   border-color: #b79c5c;
   box-shadow: 0 2px 8px rgba(183, 156, 92, 0.15);
 }
 
-.faq-toggle-btn:focus-visible {
+.faq-toggle-btn:focus-visible,
+.tour-note-toggle:focus-visible {
   outline: 2px solid #b79c5c;
   outline-offset: 2px;
 }
 
-.faq-toggle-btn__chevron {
+.faq-toggle-btn__chevron,
+.tour-note-toggle__chevron {
   transition: transform 0.3s ease;
 }
 
 @media (max-width: 768px) {
-  .faq-toggle-btn {
+  .faq-toggle-btn,
+  .tour-note-toggle {
     width: 100%;
     padding: 14px 20px;
   }
@@ -3831,15 +3835,15 @@ button[data-action="stop"] {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Section taglines (eyebrows), SITE-WIDE: keep the template's
-   handwritten style exactly as designed, but in the deeper brand
-   gold for readability and without the washed-out translucent
-   pill background.
+   Section taglines (eyebrows), SITE-WIDE: decorative accent text in the
+   deeper brand gold for readability, without the washed-out translucent
+   pill background. The face is the display serif in italic (set in
+   gotur.css); this was the template's handwritten Caveat until Phase 2.
    ───────────────────────────────────────────────────────────── */
 .sec-title__tagline {
   color: #b79c5c;
   padding: 0;
-  font-weight: 500; /* the weight approved in the Caveat preview */
+  font-weight: 500; /* deliberately above the 400 in gotur.css */
 }
 .sec-title__tagline::after {
   display: none;
@@ -4425,31 +4429,9 @@ button[data-action="stop"] {
 .blog-two__carousel .swiper-slide {
   height: auto;
 }
-/* The slide above stretches to the row height, but the card inside kept its
-   own natural height, so a two-line title left its grey panel ending short of
-   its neighbours'. Make the card fill the slide and push the CTA to the floor
-   so the panels line up whatever the title length. */
-.blog-two__carousel .blog-card-two--one {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.blog-two__carousel .blog-card-two--one .blog-card-two__content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.blog-two__carousel .blog-card-two--one .blog-card-two__content__btn {
-  margin-top: auto;
-  align-self: flex-start;
-}
-/* The theme capitalises every word, which turns "Valley of the Kings" into
-   "Valley Of The Kings" and is plainly wrong in German, where only nouns take
-   a capital. Titles arrive correctly cased from the CMS — leave them alone. */
-.blog-card-two__title,
-.blog-card-two--one .blog-card-two__title {
-  text-transform: none;
-}
+/* The card skin itself — equal heights included — lives with the rest of the
+   BlogCard rules further down. It was scoped to `.blog-two__carousel` here and
+   so only ever reached the homepage. */
 @media (prefers-reduced-motion: reduce) {
   .blog-two__nav__btn {
     transition: none;
@@ -5455,102 +5437,512 @@ button[data-action="stop"] {
    repeated in five components: image heights, the two-line excerpt
    clamp, the compact related-post padding. Anything a card needs that
    the theme did not already provide lives here, once.
+
+   The theme's own card is largely overridden below rather than edited
+   in gotur.css: a flat square with no radius, a mint-grey panel that
+   belongs to no other part of the palette, a solid gold date block
+   stamped over the photograph, and no hover state on the card itself —
+   only a dark veil with a "+" on the image, which is the affordance for
+   opening a lightbox, not for reading an article.
    ───────────────────────────────────────────────────────────── */
 
-/* The editorial gold. It is not one of the theme's --gotur-* colours:
-   this layer had been writing #b79c5c literally, dozens of times, and a
-   name is what lets the next component pick the right gold without
-   copying a hex from a neighbour. Existing literals can adopt it as
-   they are touched. */
+/* The editorial gold, and the ink it sits against.
+
+   There were two golds doing one job: --gotur-base (#d4af37, brassy)
+   on the theme's date badge and meta icons, and this one, written as a
+   literal in dozens of places. One accent colour per system; --jes-gold
+   is the quieter of the two and the one the cards now use. --jes-ink is
+   the theme's --gotur-text, named here so the translucent greys below
+   are visibly derived from it rather than being arbitrary. */
 :root {
   --jes-gold: #b79c5c;
+  --jes-ink: 14, 58, 87;
 }
 
-/* Fixed media heights keep a row of cards aligned whatever the source
-   image's aspect ratio. Paired with the theme's object-fit: cover. */
+/* ── Media ratio ───────────────────────────────────────────────
+
+   A fixed ASPECT RATIO rather than a pixel height. The height was fixed
+   at 260 / 250 / 200px per skin, which kept a row aligned but meant the
+   crop changed shape with the column width — the same photograph was
+   letterbox on a wide screen and nearly square on a narrow one. A ratio
+   crops identically at every width, and it reserves the box before the
+   image decodes, so a row does not reflow as the photographs arrive.
+
+   `object-fit: cover` (with the theme) is what keeps a portrait source
+   from distorting into the box. */
+.blog-card-media {
+  /* 16:10, not 3:2. At a 370px column 3:2 drew a 247px photograph — close to
+     half the card's height, which is what made an article teaser read with the
+     weight of a product tile. 16:10 lands at ~231px, a little under 40% of the
+     card, so the picture still leads and the words still win. */
+  aspect-ratio: 16 / 10;
+}
 .blog-card-media img {
   width: 100%;
+  height: 100%;
   object-fit: cover;
 }
-.blog-card-media--tall img {
-  height: 260px;
-}
-.blog-card-media--medium img {
-  height: 250px;
-}
-.blog-card-media--short img {
-  height: 200px;
+/* The compact strip is shorter again, so its cards read as secondary to the
+   article they sit under without shrinking the photograph's width. */
+.blog-card-media--short {
+  aspect-ratio: 16 / 9;
 }
 
-/* Meta row: author, section, reading time. Three items no longer fit on
-   one line in a 3-up grid, so it wraps instead of overflowing — the row
-   gap is what keeps a wrapped line from touching the one above. */
-.blog-card-meta {
-  flex-wrap: wrap;
-  gap: 8px 22px;
-}
+/* ── The card surface ──────────────────────────────────────────
 
-/* Reading time is text, not a link, so the theme's `.blog-card__meta a`
-   rules never reached it and it rendered unstyled beside the author. */
-.blog-card-meta__item {
+   White with a hairline rather than a filled panel: --gotur-gray is
+   #f3f8f6, a mint that pulls the card away from a palette built on
+   gold and navy.
+
+   `padding: 0` is the fix for a misalignment you could see without
+   being able to name it. The theme padded the card 16px and then padded
+   the content a further 15px, so the text started 31px from the card's
+   edge while the image started at 16px — a broken vertical. The image
+   now runs edge to edge and the content carries all the padding, so
+   there is one left edge to align to.
+
+   Every context these cards sit in (a Bootstrap column, a Swiper slide,
+   the related-posts scroller) is a flex item that already stretches to
+   the tallest in its row, so `height: 100%` is what makes a row of
+   cards end on one line. Titles are NOT clamped — an article whose
+   title needs three lines still gets them; the CTA is pushed to the
+   floor instead, and the divider above it makes the resulting gap read
+   as intentional. */
+.blog-card,
+.blog-card-two,
+.blog-card-two--one {
+  position: relative;
+  height: 100%;
   display: flex;
-  align-items: center;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 157%;
-  color: var(--gotur-text, #595959);
-}
-.blog-card-meta__item i {
-  margin-right: 8px;
-  font-size: 18px;
-  color: var(--gotur-base, #63ab45);
+  flex-direction: column;
+  padding: 0;
+  background-color: #fff;
+  border: 1px solid rgba(var(--jes-ink), 0.08);
+  border-radius: 14px;
+  /* Clips the photograph into the card's top corners. */
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(var(--jes-ink), 0.04);
+  transition: transform 250ms ease, box-shadow 250ms ease,
+    border-color 250ms ease;
 }
 
-/* Two lines of excerpt, then an ellipsis. The min-height reserves the
-   second line so a one-line excerpt does not shorten its card. */
-.blog-card-excerpt {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+/* An article card never grows past a card's width.
+   A section holding ONE article used to hand that article a half- or
+   full-width column, and the card took all of it — a single blog teaser
+   rendering at the scale of a hero, which is the opposite of what a
+   supporting section should do. Capped, it keeps its own size and simply
+   sits at the start of the grid.
+   Below `md` the column is already narrower than this, so the cap never
+   bites on a phone. */
+@media (min-width: 768px) {
+  .blog-card,
+  .blog-card-two {
+    max-width: 380px;
+  }
+}
+
+.blog-card:hover,
+.blog-card-two:hover {
+  transform: translateY(-4px);
+  border-color: rgba(183, 156, 92, 0.35);
+  box-shadow: 0 12px 32px rgba(var(--jes-ink), 0.1);
+}
+
+/* ── Media ─────────────────────────────────────────────────────
+
+   The theme rendered the image at scale(1.1) and returned it to
+   scale(1) on hover — a zoom OUT, which reads as the picture retreating
+   from the pointer. Neutral at rest, a slight push in on hover. */
+.blog-card__image,
+.blog-card-two__image,
+.blog-card-two--one .blog-card-two__image {
+  position: relative;
+  margin-bottom: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+.blog-card__image img,
+.blog-card-two__image img,
+.blog-card-two--one .blog-card-two__image img {
+  border-radius: 0;
+  transform: none;
+  transition: transform 450ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.blog-card:hover .blog-card__image img,
+.blog-card-two:hover .blog-card-two__image img {
+  transform: scale(1.03);
+}
+
+/* ── The section chip ──────────────────────────────────────────
+
+   White and blurred rather than filled gold: every photograph on this
+   site is a warm sand or sunset, and gold on gold disappears. The pill
+   guarantees its own contrast whatever the image behind it.
+
+   z-index lifts it above the stretched title link — it is the one thing
+   inside a card that leads somewhere else. */
+.blog-card-chip {
+  position: absolute;
+  z-index: 2;
+  left: 16px;
+  bottom: 16px;
+  max-width: calc(100% - 32px);
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(var(--jes-ink), 0.12);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: var(--jes-gold, #b79c5c);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: 48px;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+.blog-card-chip:hover {
+  background-color: var(--jes-gold, #b79c5c);
+  color: #fff;
 }
 
-/* The compact skin, used for related posts under an article: the same
-   bordered card at a size that reads as secondary to the article above. */
-.blog-card-two--compact .blog-card-two__content {
-  padding: 20px;
+/* ── Content ───────────────────────────────────────────────────
+
+   All of the card's padding lives here now. The theme also gave
+   .blog-card__content its own drop shadow, which was the listing card's
+   whole identity; the card itself carries the elevation instead, so the
+   inner shadow would only draw a second edge inside the first. */
+.blog-card__content,
+.blog-card-two__content,
+.blog-card-two--one .blog-card-two__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* Lighter at the foot than at the head: the button already carries its own
+     4px of inner padding, so an equal amount underneath read as a gap. */
+  padding: 22px 22px 16px;
+  background-color: transparent;
+  box-shadow: none;
 }
-.blog-card-two--compact .blog-card-two__meta {
-  margin-bottom: 10px;
+
+/* ── Title ─────────────────────────────────────────────────────
+
+   Clamped AND reserved at three lines, so the title block is exactly
+   the same height on every card whatever the headline: a two-line title
+   no longer floats its metadata a line high, and a five-line one no
+   longer pushes its card past its neighbours.
+
+   `text-transform: none` because the theme capitalises every word,
+   which turns "Valley of the Kings" into "Valley Of The Kings" and is
+   plainly wrong in German, where only nouns take a capital. Titles
+   arrive correctly cased from the CMS — leave them alone. This used to
+   be patched for the two `blog-card-two` skins only; the listing card
+   was capitalising its headlines all along. */
+.blog-card__title,
+.blog-card-two__title,
+.blog-card-two--one .blog-card-two__title {
+  margin: 0 0 12px;
+  /* A step under the tour card's 20px title. The two cards sit on the same
+     pages and the article is the supporting one; matching its headline size
+     was most of why they read as equals. */
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--gotur-black, #1d231f);
+  text-transform: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(3 * 1.35em);
+}
+
+/* What makes the whole card clickable, from the single anchor that
+   already names the article. */
+.blog-card__title a::after,
+.blog-card-two__title a::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+}
+
+/* The title deliberately does NOT change colour on hover. The card
+   already answers the pointer four ways — it lifts, its shadow deepens,
+   its border warms and the image pushes in — and recolouring three
+   lines of headline on top of that made the whole card flicker. The
+   theme's underline sweep goes for the same reason. */
+.blog-card__title a,
+.blog-card-two__title a {
+  color: inherit;
+}
+.blog-card:hover .blog-card__title a,
+.blog-card-two:hover .blog-card-two__title a {
+  color: inherit;
+  background-size: 0 1px;
+}
+
+/* ── Card description ──────────────────────────────────────────
+
+   Rendered only when the editor wrote one: `cardDescription` has no
+   fallback, so a blank field means a card with no description rather
+   than a card quietly showing the article's SEO copy. Clamped and
+   reserved at three lines for the same reason as the title. */
+.blog-card-text {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(var(--jes-ink), 0.72);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* Capped at three lines, NOT held open at three. Reserving them cost every
+     card 72px whether it used them or not, which is most of what made the card
+     tall. The button still lines up across a row — `margin-top: auto` on the
+     footer does that — and the title above still reserves its three. */
+}
+
+/* ── Meta rows ─────────────────────────────────────────────────
+
+   Icon plus text, three times, wrapping rather than compressing. The
+   dot separators are gone: the icons already mark where one item ends
+   and the next begins, and a wrapped row used to start a line with a
+   dangling bullet.
+
+   Gold is the ICON only. The theme had 18px gold glyphs beside 14px
+   text, next to a gold date block — four accents with no focal point —
+   and gold text as well would put the metadata in competition with the
+   headline above it and the button below. */
+.blog-card-meta {
+  /* A GRID, not a wrapping flex row. Measured in a 3-up column the three
+     items want 375px of a 310px box, so they always wrapped — and flex broke
+     them after the second, stranding "9 min read" alone as if by accident.
+     The byline (the long, variable one) takes the first row to itself; the
+     date and the reading time sit together on the second. That reads as a
+     decision, and it holds for any author name and any language. */
+  display: grid;
+  grid-template-columns: max-content max-content;
+  justify-content: start;
+  align-items: center;
+  gap: 7px 18px;
+  /* The gap to the divider belongs HERE, not on the footer's padding: that
+     padding sits below the rule and only moved the button, leaving the line
+     drawn flush against the reading time. */
+  margin: 0 0 16px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: rgba(var(--jes-ink), 0.68);
+}
+.blog-card-meta > li:first-child {
+  grid-column: 1 / -1;
+}
+
+/* There is no single-line variant any more: capping the card at 380px leaves
+   336px of content, and the three items measure 375px. The two rows above are
+   the layout, at every width. */
+.blog-card-meta__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+}
+.blog-card-meta__icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--jes-gold, #b79c5c);
+}
+.blog-card-meta a,
+.blog-card-meta time,
+.blog-card-meta span {
+  color: inherit;
+  transition: color 250ms ease;
+}
+.blog-card-meta a:hover {
+  color: var(--jes-gold, #b79c5c);
+}
+
+/* ── Footer: the divider and the call to action ────────────────
+
+   `margin-top: auto` here is what holds the button of every card in a
+   row on one horizontal line, however long the title or description
+   above it turned out. The divider lives on this wrapper rather than on
+   the button so the rule spans the content width while the button keeps
+   its own — as a border on the button it was a dash under two words. */
+.blog-card-foot {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid rgba(var(--jes-ink), 0.07);
+}
+
+/* An outline button, quieter than the tour card's. That one is a filled
+   dark pill at 48px with 15px bold text, because booking a tour is the
+   site's conversion; reading an article is not, and a card that shouts
+   the same volume for both flattens the difference. */
+.blog-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 4px 4px 4px 16px;
+  border: 1px solid rgba(183, 156, 92, 0.55);
+  border-radius: 999px;
+  background-color: #fff;
+  color: var(--jes-gold, #b79c5c);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: border-color 250ms ease, background-color 250ms ease,
+    color 250ms ease;
+}
+/* 26px, not 30. At the larger size the disc was most of the button's height
+   and read as the filled circle on a booking CTA; the arrow inside it is an
+   SVG at 1.75 stroke for the same reason. */
+.blog-card-cta__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--jes-gold, #b79c5c);
+  color: #fff;
+  transition: transform 250ms ease, background-color 250ms ease;
+}
+.blog-card:hover .blog-card-cta,
+.blog-card-two:hover .blog-card-cta {
+  border-color: var(--jes-gold, #b79c5c);
+  background-color: rgba(183, 156, 92, 0.06);
+}
+.blog-card:hover .blog-card-cta__icon,
+.blog-card-two:hover .blog-card-cta__icon {
+  transform: translateX(3px);
+}
+
+/* ── The compact skin ──────────────────────────────────────────
+   Related posts under an article: the same card at a size that reads as
+   secondary to the article above it. */
+.blog-card-two--compact .blog-card-two__content {
+  padding: 18px 18px 15px;
 }
 .blog-card-two--compact .blog-card-two__title {
-  font-size: 18px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  /* Two, not three. This strip is secondary to the article above it, and
+     its narrower cards would spend the third line as blank more often
+     than they would fill it. */
+  -webkit-line-clamp: 2;
+  min-height: calc(2 * 1.35em);
+}
+.blog-card-two--compact .blog-card-text {
+  font-size: 14px;
+  margin-bottom: 12px;
+  -webkit-line-clamp: 2;
+}
+.blog-card-two--compact .blog-card-chip {
+  left: 12px;
+  bottom: 12px;
+  padding: 5px 11px;
+  font-size: 11px;
+}
+.blog-card-two--compact .blog-card-meta {
   margin-bottom: 15px;
 }
+.blog-card-two--compact .blog-card-foot {
+  padding-top: 13px;
+}
+.blog-card-two--compact .blog-card-cta {
+  min-height: 33px;
+  padding-left: 14px;
+  font-size: 12px;
+}
+.blog-card-two--compact .blog-card-cta__icon {
+  width: 24px;
+  height: 24px;
+}
 
-/* The theme styles the CTA only under its --one and --two modifiers, so
-   on every other skin "Read More" fell back to a bare anchor. */
-.blog-card__content__btn,
-.blog-card-two--compact .blog-card-two__content__btn {
-  display: inline-block;
-  font-style: normal;
-  font-weight: 500;
+/* ── Narrow columns and mobile ─────────────────────────────────
+   One card per row below `md`. The description stays — it is the line
+   that sells the article and it is short by design — and the meta row
+   is allowed the two lines it needs rather than being squeezed. */
+@media (max-width: 767px) {
+  .blog-card__title,
+  .blog-card-two__title,
+  .blog-card-two--one .blog-card-two__title {
+    font-size: 18px;
+  }
+  .blog-card__content,
+  .blog-card-two__content,
+  .blog-card-two--one .blog-card-two__content {
+    padding: 20px 20px 16px;
+  }
+  .blog-card-meta {
+    gap: 7px 16px;
+    margin-bottom: 16px;
+  }
+}
+
+/* A card that lifts on hover is decoration; a card that lifts for
+   someone who asked the system to stop moving things is a problem. */
+@media (prefers-reduced-motion: reduce) {
+  .blog-card,
+  .blog-card-two,
+  .blog-card__image img,
+  .blog-card-two__image img,
+  .blog-card-cta,
+  .blog-card-cta__icon,
+  .blog-card-chip {
+    transition: none;
+  }
+  .blog-card:hover,
+  .blog-card-two:hover {
+    transform: none;
+  }
+  .blog-card:hover .blog-card__image img,
+  .blog-card-two:hover .blog-card-two__image img,
+  .blog-card:hover .blog-card-cta__icon,
+  .blog-card-two:hover .blog-card-cta__icon {
+    transform: none;
+  }
+}
+
+/* ── "Related Blogs" section head (tour page) ──────────────────
+
+   A line of copy under the title, and real air between the head and the
+   row. The section was a tagline, a title and then the cards almost
+   immediately: a heading with nothing under it reads as a label on the
+   row rather than as an invitation into it. */
+/* 56px pushed the row so far down that the card below read as a separate,
+   heavier thing rather than as the section's content. */
+.related-blogs-head {
+  margin-bottom: 32px;
+}
+.related-blogs-head__text {
+  max-width: 560px;
+  margin: 14px auto 0;
   font-size: 16px;
-  line-height: 175%;
-  color: var(--gotur-text, #595959);
-  text-transform: capitalize;
-  transition: color 400ms ease;
+  line-height: 1.7;
+  color: rgba(var(--jes-ink), 0.66);
 }
-.blog-card__content__btn i,
-.blog-card-two--compact .blog-card-two__content__btn i {
-  margin-left: 10px;
-}
-.blog-card__content__btn:hover,
-.blog-card-two--compact .blog-card-two__content__btn:hover {
-  color: var(--gotur-base, #63ab45);
+@media (max-width: 767px) {
+  .related-blogs-head {
+    margin-bottom: 24px;
+  }
+  .related-blogs-head__text {
+    font-size: 15px;
+  }
 }
 
 /* The minimal skin: image, date, title. Used where a full card would
@@ -5909,6 +6301,11 @@ button[data-action="stop"] {
   font-size: 0.925rem;
   line-height: 1.6;
   color: #555;
+  /* Between roughly 1024px and 1200px the container is too narrow for two
+     columns but still 788px wide on its own, which put lines back at 118
+     characters. This cap only bites in that single-column band: a column in the
+     two-column layout is 441-486px, already well inside it. */
+  max-width: 70ch;
 }
 
 /* A note is one thought, usually two sentences, and the shared 1em pushed them
@@ -5929,7 +6326,712 @@ button[data-action="stop"] {
   margin-bottom: 0;
 }
 
-.tour-note__divider {
-  margin: 16px 0 0;
-  opacity: 0.1;
+/* Two columns, but declared as a minimum column WIDTH rather than a count, so
+   the browser drops to one by itself wherever two would not fit. A fixed count
+   with a breakpoint would guess at the container width, which varies with the
+   booking rail; this cannot guess wrong.
+
+   The section ran 91 characters to the line at 1280 and 99 at 1440 -- far past
+   the 45-75 that reads comfortably, and nearly double the 47 that What to Pack
+   runs directly beside it. Two columns bring it to 50 and cut the height from
+   605px to 439px. */
+.tour-note-list {
+  /* 25rem, not 26: the card's padding takes the available width at 1280px down
+     to 870px, and at 26rem that fell a few pixels short of fitting two columns,
+     which silently dropped the section back to one 870px column. */
+  columns: 25rem 2;
+  column-gap: 40px;
+}
+
+/* A note must not be split down the middle across two columns. */
+.tour-note-item {
+  break-inside: avoid;
+  margin-bottom: 30px;
+  /* Notes run five or six lines each, and with only a small label between them
+     the section read as one wall of text. The rule gives every note an edge the
+     eye can catch and gathers its paragraphs into one visible unit, for 12px of
+     extra height -- boxing each note cost 98px and would have added six more
+     containers to a page that is already mostly cards. Logical properties, so
+     the rule follows the writing direction. */
+  padding-inline-start: 14px;
+  border-inline-start: 2px solid rgba(183, 156, 92, 0.45);
+}
+
+.tour-note-item:last-child {
+  margin-bottom: 0;
+}
+
+/* The one section on the page that was not on a card, sitting between the
+   pricing card above it and the What to Pack card below. Same treatment. */
+.tour-notes-card {
+  background-color: rgba(183, 156, 92, 0.02);
+  border: 1px solid rgba(183, 156, 92, 0.1);
+  border-inline-end: 4px solid #b79c5c;
+}
+
+/* Folded notes are hidden by CSS, and only on a phone: the markup always holds
+   every note, so a crawler reads the whole set whatever the viewport. On a
+   desktop the section fits in 624px and nothing is folded. */
+.tour-note-toggle {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .tour-note-item--folded {
+    display: none;
+  }
+
+  .tour-note-toggle {
+    display: flex;
+  }
+}
+
+/* ── FAQ ─────────────────────────────────────────────────────────────────
+   Shared by the tour page, /faq and the listing pages.
+
+   Each question is its own card rather than a row inside one big bordered box.
+   That outer box made the section read as a component bolted onto the page; the
+   cards let the heading and the questions sit in the page itself.
+
+   Everything here is deliberate about weight: hairline borders, no resting
+   shadow, and colour used only to mark the card that is open. */
+.faq-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.faq-head__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background-color: #b79c5c;
+}
+
+/* The heading ran 30px while Important Notes and What to Pack sit at 18-19px,
+   so the FAQ shouted over the sections around it. */
+.faq-section .tour-listing-details__title {
+  font-size: 1.15rem;
+}
+
+/* The subtitle was rgb(14, 58, 87) -- a blue belonging to no part of the
+   palette. Scoped, because `.tour-reviews-subtitle` is shared with reviews. */
+.faq-section .tour-reviews-subtitle {
+  max-width: 620px;
+  font-size: 0.925rem;
+  font-weight: 400;
+  line-height: 1.55;
+  color: #555;
+}
+
+.faq-list {
+  /* Long answers are hard to track across a full-width page. This holds the
+     measure of the whole list rather than capping the answer text, which is
+     what made it look truncated. */
+  max-width: 1000px;
+}
+
+.faq-list__row {
+  margin-bottom: 12px;
+  background-color: #fff;
+  border: 1px solid #ebe7dd;
+  border-radius: 12px;
+  transition: border-color 180ms ease, background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.faq-list__row:last-child {
+  margin-bottom: 0;
+}
+
+/* Closed and hovered: enough lift to read as clickable, no more. */
+.faq-list__row:not(.is-open):hover {
+  background-color: #fdfcf9;
+  border-color: rgba(183, 156, 92, 0.45);
+  box-shadow: 0 2px 10px rgba(183, 156, 92, 0.08);
+}
+
+/* Open: cream ground, a gold edge, a firmer border. The edge is an inset
+   shadow rather than a border so the card's own border stays even and the text
+   does not shift when it appears. */
+.faq-list__row.is-open {
+  background-color: #fdfbf6;
+  border-color: rgba(183, 156, 92, 0.5);
+  box-shadow: inset 3px 0 0 #b79c5c;
+}
+
+/* The question stays a heading for the document outline; the button inside it
+   is what the pointer and the keyboard operate. */
+.faq-list__heading {
+  margin: 0;
+  font: inherit;
+}
+
+/* The whole header is the control -- question, the space beside it, and the
+   icon -- not just the icon. */
+.faq-list__toggle {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 24px;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  text-align: start;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.faq-list__toggle:focus-visible {
+  outline: 2px solid #b79c5c;
+  outline-offset: -3px;
+}
+
+/* Open, the header's lower padding and the answer's upper padding were doing
+   the same job and stacking to a 37px band of nothing between a question and
+   its own answer. */
+.faq-list__row.is-open .faq-list__toggle {
+  padding-bottom: 12px;
+}
+
+.faq-list__question {
+  flex: 1;
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #16283c;
+}
+
+/* A thin gold ring holding + when closed and - when open: clearer than a bare
+   chevron about the card being openable. */
+.faq-list__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(183, 156, 92, 0.55);
+  border-radius: 50%;
+  color: #8a6e30;
+  transition: background-color 180ms ease, border-color 180ms ease,
+    color 180ms ease;
+}
+
+.faq-list__row.is-open .faq-list__icon {
+  background-color: #b79c5c;
+  border-color: #b79c5c;
+  color: #fff;
+}
+
+/* Same grid-track collapse as the pricing seasons: it animates to the answer's
+   own height, so no answer can be clipped by a guessed max-height. */
+.faq-list__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-list__row.is-open .faq-list__body {
+  grid-template-rows: 1fr;
+  transition-duration: 240ms;
+}
+
+.faq-list__clip {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.faq-list__row.is-open .faq-list__clip {
+  opacity: 1;
+  transition: opacity 180ms ease 60ms;
+}
+
+.faq-list__answer {
+  /* Spacing separates the answer from its question; no rule is needed. The top
+     is 0 because the header above already carries 12px when open. */
+  padding: 0 24px 22px;
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.7;
+  /* The card may be 1000px wide; the prose inside it should not be. */
+  max-width: 880px;
+}
+
+.faq-list__answer > :last-child {
+  margin-bottom: 0;
+}
+
+/* Questions past the fold on the tour page. Hidden in CSS, never dropped from
+   the markup, so the full set stays crawlable and keeps matching the FAQPage
+   JSON-LD. */
+.faq-list__row--folded {
+  display: none;
+}
+
+/* ── Still have a question? ───────────────────────────────────────────────
+   Closes the section instead of letting the page stop dead after the last
+   answer. An outline button, not a filled one, so it cannot compete with the
+   booking form's own call to action. */
+.faq-ask {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 1000px;
+  margin-top: 22px;
+  padding: 22px 24px;
+  background-color: #fdfbf6;
+  border: 1px solid rgba(183, 156, 92, 0.35);
+  border-radius: 12px;
+}
+
+.faq-ask__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(183, 156, 92, 0.12);
+  color: #8a6e30;
+}
+
+.faq-ask__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.faq-ask__title {
+  margin: 0 0 3px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #16283c;
+}
+
+.faq-ask__text {
+  margin: 0;
+  font-size: 0.925rem;
+  line-height: 1.55;
+  color: #555;
+}
+
+.faq-ask__button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  background: none;
+  border: 1px solid #b79c5c;
+  border-radius: 999px;
+  color: #8a6e30;
+  font-size: 0.925rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.faq-ask__button:hover {
+  background-color: #b79c5c;
+  color: #fff;
+}
+
+.faq-ask__button:focus-visible {
+  outline: 2px solid #b79c5c;
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .faq-list__toggle {
+    gap: 12px;
+    padding: 17px 18px;
+  }
+
+  .faq-list__question {
+    font-size: 1rem;
+  }
+
+  .faq-list__row {
+    margin-bottom: 8px;
+  }
+
+  .faq-list__answer {
+    padding: 0 18px 18px;
+    /* The screen is the measure here. */
+    max-width: none;
+  }
+
+  /* Stacked, so the button is not squeezed against the text. */
+  .faq-ask {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .faq-ask__button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-list__row,
+  .faq-list__body,
+  .faq-list__row.is-open .faq-list__body,
+  .faq-list__clip,
+  .faq-list__row.is-open .faq-list__clip,
+  .faq-list__icon {
+    transition: none;
+  }
+}
+/* ── Ask about this tour (modal) ──────────────────────────────────────────
+   Opened from the closing block under the FAQ. A dialog rather than a link to
+   the contact page: the visitor is already inside a specific tour, and sending
+   them to a blank form throws that context away and asks them to describe the
+   tour from memory. */
+/* The dialog appears rather than being cut in. Short and small on purpose:
+   long enough to read as a movement, short enough that it never sits between
+   the click and the first field. */
+@keyframes tour-ask-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes tour-ask-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tour-ask-overlay {
+  position: fixed;
+  inset: 0;
+  /* Above every piece of page chrome that stays fixed while the dialog is
+     open: the sticky tour tab bar (1100), the scroll-to-top (1190) and
+     WhatsApp (1200) buttons, and the mobile booking bar (1300). Below that,
+     the tab bar punched through the backdrop and read as part of the form. */
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(16, 24, 32, 0.55);
+  overflow-y: auto;
+  animation: tour-ask-fade 180ms ease-out both;
+}
+
+.tour-ask {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 18px 60px rgba(16, 24, 32, 0.22);
+  /* Slightly slower than the backdrop and eased out hard, so the panel settles
+     as the dim finishes rather than the two stopping together. */
+  animation: tour-ask-rise 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tour-ask__close {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px solid #e8e4db;
+  border-radius: 50%;
+  color: #16283c;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.tour-ask__close:hover {
+  background-color: #faf7f0;
+  border-color: #b79c5c;
+}
+
+.tour-ask__close:focus-visible {
+  outline: 2px solid #b79c5c;
+  outline-offset: 2px;
+}
+
+.tour-ask__title {
+  margin: 0 0 6px;
+  padding-inline-end: 34px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #16283c;
+}
+
+.tour-ask__lead {
+  margin: 0 0 16px;
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* Names the tour, so the visitor can see the question arrives attached to it. */
+.tour-ask__tour {
+  margin: 0 0 18px;
+  padding: 11px 14px;
+  background-color: #fdfbf6;
+  border: 1px solid rgba(183, 156, 92, 0.3);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #16283c;
+}
+
+.tour-ask__tour-label {
+  margin-inline-end: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a6e30;
+}
+
+.tour-ask__form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.tour-ask__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+
+.tour-ask__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.tour-ask__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #16283c;
+}
+
+.tour-ask__optional {
+  margin-inline-start: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #8d8d8d;
+}
+
+.tour-ask__field input,
+.tour-ask__field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: #fff;
+  border: 1px solid #ddd8cc;
+  border-radius: 9px;
+  color: #16283c;
+  font-family: inherit;
+  font-size: 0.925rem;
+  line-height: 1.5;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.tour-ask__field textarea {
+  resize: vertical;
+  min-height: 108px;
+}
+
+.tour-ask__field input:focus,
+.tour-ask__field textarea:focus {
+  outline: none;
+  border-color: #b79c5c;
+  box-shadow: 0 0 0 3px rgba(183, 156, 92, 0.16);
+}
+
+.tour-ask__field input[aria-invalid="true"],
+.tour-ask__field textarea[aria-invalid="true"] {
+  border-color: #c0392b;
+}
+
+.tour-ask__error {
+  font-size: 0.78rem;
+  color: #c0392b;
+}
+
+.tour-ask__failure {
+  margin: 0;
+  padding: 10px 12px;
+  background-color: #fdf0ee;
+  border: 1px solid #f0c7c0;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  color: #a4321f;
+}
+
+/* Hidden from people, left in place for bots. Not `display: none`, which some
+   bots skip over. */
+.tour-ask__honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The only filled button in the dialog: the primary action. */
+.tour-ask__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 3px;
+  padding: 13px 22px;
+  background-color: #b79c5c;
+  border: 1px solid #b79c5c;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.tour-ask__submit:hover:not(:disabled) {
+  background-color: #a2884b;
+  border-color: #a2884b;
+}
+
+.tour-ask__submit:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.tour-ask__submit:focus-visible {
+  outline: 2px solid #16283c;
+  outline-offset: 2px;
+}
+
+.tour-ask__spin {
+  animation: tour-ask-spin 900ms linear infinite;
+}
+
+@keyframes tour-ask-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tour-ask__reply {
+  margin: 0;
+  font-size: 0.8rem;
+  text-align: center;
+  color: #8d8d8d;
+}
+
+/* Secondary on purpose: a quieter route, not a rival to the send button. */
+.tour-ask__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8a6e30;
+  text-decoration: none;
+}
+
+.tour-ask__whatsapp:hover {
+  text-decoration: underline;
+}
+
+.tour-ask__done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 4px;
+  text-align: center;
+}
+
+.tour-ask__done-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background-color: rgba(183, 156, 92, 0.14);
+  color: #8a6e30;
+}
+
+.tour-ask__done .tour-ask__title {
+  padding-inline-end: 0;
+}
+
+@media (max-width: 575px) {
+  .tour-ask-overlay {
+    padding: 12px;
+    /* Near the top rather than centred: a centred tall form fights the
+       on-screen keyboard. */
+    align-items: flex-start;
+  }
+
+  .tour-ask {
+    padding: 22px 18px;
+  }
+
+  /* One field per row. Two side by side at this width leaves each too narrow
+     to read its own label. */
+  .tour-ask__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-ask__spin {
+    animation: none;
+  }
+
+  /* The dialog still fades so it does not blink into place, but it no longer
+     travels. */
+  .tour-ask-overlay {
+    animation-duration: 1ms;
+  }
+
+  .tour-ask {
+    animation: tour-ask-fade 120ms ease-out both;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Editorial section heading (author pages, tours/blogs hub views).
+   These <h2>s previously had no rule of their own and simply inherited the
+   h1-h6 body face. They are marketing headings, so they opt in to the display
+   serif - unlike .subcategory-header__title and .tour-listing-details__title,
+   which are functional headings and stay on the body face.
+   Typography only: no size, colour or spacing is set here, so the existing
+   layout is untouched.
+--------------------------------------------------------------------------- */
+.section-title__title {
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
+  font-weight: 700;
 }

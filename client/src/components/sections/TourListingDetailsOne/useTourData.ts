@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
 import { getBlogById } from "@/lib/api/blog";
+import { RELATED_BLOGS_LIMIT } from "@/lib/tour/relatedBlogs";
 import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
@@ -339,10 +340,13 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
               return [];
             }
           })(),
-          // Curated blog references (max 3)
-          Promise.all(safeArray(tour.blogReferences).slice(0, 3).map(async (ref: any) => {
+          // Curated blog references. The cap is shared with the admin picker,
+          // which shows the editor which of their selections survive it. The
+          // language travels with each request — without it these cards came
+          // back in English on /de.
+          Promise.all(safeArray(tour.blogReferences).slice(0, RELATED_BLOGS_LIMIT).map(async (ref: any) => {
             try {
-              return await getBlogById(ref.id);
+              return await getBlogById(ref.id, currentLang);
             } catch { return null; }
           })),
         ];
@@ -400,7 +404,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         let fetchedRelatedBlogs = safeArray<any>(blogDataRaw).filter(Boolean);
         if (fetchedRelatedBlogs.length === 0) {
           try {
-             const res = await axiosInstance.get('/blog/posts/featured?limit=3');
+             const res = await axiosInstance.get(`/blog/posts/featured?limit=${RELATED_BLOGS_LIMIT}`);
              if (res.data?.success) {
                fetchedRelatedBlogs = safeArray(res.data.data);
              }

@@ -431,7 +431,7 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                     className='h-0.5 rounded'
                     style={{ width: 'clamp(22px, 6vw, 72px)', background: 'linear-gradient(90deg, transparent, #d4af37)' }}
                   />
-                  <span style={{ fontFamily: 'var(--font-just-another-hand), cursive' }}>{pvSubtitle}</span>
+                  <span style={{ fontFamily: 'var(--gotur-display-font, Georgia), "Times New Roman", serif' }}>{pvSubtitle}</span>
                   <span
                     aria-hidden
                     className='h-0.5 rounded'
@@ -453,8 +453,10 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                     textWrap: 'balance',
                     // Same family as the homepage title — glyph widths decide
                     // where lines wrap, so the font must match for the preview
-                    // to break at the same points.
-                    fontFamily: 'var(--font-jakarta-sans), "Plus Jakarta Sans", sans-serif',
+                    // to break at the same points. The live hero title now uses
+                    // the display face via --gotur-display-font, so the preview
+                    // follows that token rather than the body one.
+                    fontFamily: 'var(--gotur-display-font, Georgia), "Times New Roman", serif',
                   } as React.CSSProperties
                 }
               >
@@ -495,7 +497,7 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                       padding: '16px 32px',
                       fontSize: '16px',
                       lineHeight: 1,
-                      fontFamily: 'var(--font-jakarta-sans), "Plus Jakarta Sans", sans-serif',
+                      fontFamily: 'var(--font-body, "Segoe UI"), system-ui, sans-serif',
                     }}
                   >
                     {pvButtonText} →
@@ -509,7 +511,7 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                     lineHeight: 1,
                     border: '2px solid rgba(255, 255, 255, 0.55)',
                     background: 'rgba(255, 255, 255, 0.08)',
-                    fontFamily: 'var(--font-jakarta-sans), "Plus Jakarta Sans", sans-serif',
+                    fontFamily: 'var(--font-body, "Segoe UI"), system-ui, sans-serif',
                   }}
                 >
                   {pvButton2Text} →

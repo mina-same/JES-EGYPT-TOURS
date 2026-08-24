@@ -123,6 +123,15 @@ export const narrowFaqsToLocale = (faqs: any, locale: string): any => {
   if (!locale || locale === 'bypass') return faqs;
 
   return faqs
+    // A question switched off in the admin. The Active toggle has always
+    // written `isActive: false` and nothing ever read it, so turning a
+    // question off left it on the page AND in the FAQPage JSON-LD. This is
+    // the single point every FAQ passes through: the standalone /faq and
+    // home lists call it directly, and localizePreservingSlugs routes every
+    // embedded `faqs` array through it. Admin requests use the `bypass`
+    // locale and return earlier, which is what still lets an editor see and
+    // re-enable a switched-off question.
+    .filter((row) => row?.isActive !== false)
     .filter((row) => localeText(row?.question, locale) && localeText(row?.answer, locale))
     .map((row) => {
       const plain = row?.toObject ? row.toObject() : row;

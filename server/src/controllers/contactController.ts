@@ -11,9 +11,33 @@ export const createContactSubmission = async (
 ): Promise<void> => {
   try {
     // Honeypot: the visible form ships a hidden "website" field humans never
-    // fill. A non-empty value means a bot — answer with a fake success and
-    // store nothing (silent drop keeps bots from adapting).
+    // fill. A non-empty value almost always means a bot, so the response is a
+    // fake success — telling a bot it was caught only helps it adapt.
+    //
+    // It is STORED (flagged) rather than dropped: browser autofill and password
+    // managers do ignore `autocomplete="off"`, so a silent discard throws away
+    // real enquiries and nobody ever learns it happened. Storing keeps a false
+    // positive recoverable. The write is best-effort — a bot's payload often
+    // fails schema validation, and that must not turn into a 500.
     if (typeof req.body?.website === 'string' && req.body.website.trim()) {
+      try {
+        await ContactSubmission.create({
+          name: req.body.name,
+          email: req.body.email,
+          message: req.body.message,
+          locale: req.body.locale,
+          isSpam: true,
+          // Archived, not 'new': the dashboard counts
+          // `countDocuments({ status: 'new' })`, so leaving these at the
+          // default would inflate the "new enquiries" badge with bot traffic
+          // and bury genuine messages. Still stored and still searchable, so a
+          // false positive from browser autofill remains recoverable.
+          status: 'archived',
+        });
+      } catch {
+        // Malformed bot payload — nothing worth keeping, and nothing to report.
+      }
+
       res.status(201).json({
         success: true,
         message: 'Your message has been sent successfully. We will contact you soon.',
@@ -34,25 +58,34 @@ export const createContactSubmission = async (
     const submission = await ContactSubmission.create({
       name: req.body.name,
       email: req.body.email,
+      phone: req.body.phone,
       message: req.body.message,
+      // Which language the enquiry was written in, so the team replies in it.
+      locale: req.body.locale,
     });
 
-    emitAdminNotification({
-      type: 'contact',
-      title: `Contact form from ${submission.name}`,
-      entityId: submission._id.toString(),
-      createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
-    });
+    // Everything past this point is internal bookkeeping. It is deliberately
+    // NOT allowed to fail the request: the visitor's message is already saved,
+    // and answering 500 here made them send it again — one enquiry, two rows.
+    try {
+      emitAdminNotification({
+        type: 'contact',
+        title: `Contact form from ${submission.name}`,
+        entityId: submission._id.toString(),
+        createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
+      });
 
-    // Save notification to database
-    await Notification.create({
-      type: 'contact',
-      title: `New Contact Form`,
-      message: `Contact form from ${submission.name} (${submission.email})`,
-      entityId: submission._id,
-    });
+      await Notification.create({
+        type: 'contact',
+        title: `New Contact Form`,
+        message: `Contact form from ${submission.name} (${submission.email})`,
+        entityId: submission._id,
+      });
 
-    void emitDashboardStatsUpdate();
+      void emitDashboardStatsUpdate();
+    } catch (notifyError) {
+      console.error('Contact submission saved but notification failed:', notifyError);
+    }
 
     // No `data` echo: the public caller only needs success + message, and
     // reflecting the stored document (ids, timestamps) serves nobody.
@@ -77,6 +110,101 @@ export const createContactSubmission = async (
     res.status(500).json({
       success: false,
       error: 'Failed to send your message. Please try again later.',
+    });
+  }
+};
+
+/**
+ * A question asked from a tour page.
+ *
+ * Lands in the same collection as every other enquiry so the team works one
+ * inbox, tagged `tour-question` and carrying the tour it came from. The tour
+ * NAME is copied in rather than referenced: an enquiry has to keep saying what
+ * it was about even after that tour is renamed, unpublished or deleted.
+ */
+export const createTourQuestionSubmission = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // Same honeypot rule as the contact form: flagged and archived rather than
+    // dropped, because autofill does fill hidden fields and a silent discard
+    // would throw away real questions with no trace.
+    if (typeof req.body?.website === 'string' && req.body.website.trim()) {
+      try {
+        await ContactSubmission.create({
+          source: 'tour-question',
+          name: req.body.name,
+          email: req.body.email,
+          message: req.body.message,
+          tourName: req.body.tourName,
+          tourSlug: req.body.tourSlug,
+          locale: req.body.locale,
+          isSpam: true,
+          status: 'archived',
+        });
+      } catch {
+        // Malformed bot payload: nothing worth keeping.
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Your question has been sent. We usually reply within 24 hours.',
+      });
+      return;
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        error: errors.array()[0].msg,
+        errors: errors.array(),
+      });
+      return;
+    }
+
+    const submission = await ContactSubmission.create({
+      source: 'tour-question',
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      message: req.body.message,
+      preferredDate: req.body.preferredDate,
+      tourName: req.body.tourName,
+      tourSlug: req.body.tourSlug,
+      locale: req.body.locale,
+    });
+
+    // Bookkeeping only. The visitor's question is already saved, so none of
+    // this is allowed to fail the request.
+    emitAdminNotification({
+      type: 'contact',
+      title: `Tour question from ${submission.name}`,
+      entityId: submission._id.toString(),
+      createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
+    });
+
+    await Notification.create({
+      type: 'contact',
+      title: 'New Tour Question',
+      message: submission.tourName
+        ? `${submission.name} asked about ${submission.tourName}`
+        : `Tour question from ${submission.name}`,
+      entityId: submission._id,
+    });
+
+    void emitDashboardStatsUpdate();
+
+    res.status(201).json({
+      success: true,
+      message: 'Your question has been sent. We usually reply within 24 hours.',
+    });
+  } catch (error) {
+    console.error('Error creating tour question submission:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Something went wrong. Please try again.',
     });
   }
 };

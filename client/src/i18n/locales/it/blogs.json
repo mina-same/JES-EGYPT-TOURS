@@ -22,7 +22,6 @@
   "by": "Da",
   "comments": "Commenti",
   "tags": "Tag:",
-  "shareFriends": "Condividi con gli amici:",
   "leaveComment": "Lascia un commento",
   "yourName": "Il tuo Nome*",
   "yourEmail": "La tua Email*",
@@ -70,5 +69,9 @@
   "previousArticles": "Articoli precedenti",
   "nextArticles": "Articoli successivi",
   "pageMetaTitle": "Blog di viaggio Egitto | Guide, consigli e racconti | JES Egypt Tours",
-  "pageMetaDescription": "Le nostre guide di viaggio sull'Egitto per argomento — consigli pratici su biglietti, periodi e organizzazione, nati da viaggi realmente vissuti."
+  "pageMetaDescription": "Le nostre guide di viaggio sull'Egitto per argomento — consigli pratici su biglietti, periodi e organizzazione, nati da viaggi realmente vissuti.",
+  "blogPagination": "Paginazione del blog",
+  "previousPage": "Pagina precedente",
+  "nextPage": "Pagina successiva",
+  "goToPage": "Pagina {{page}}"
 }

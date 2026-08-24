@@ -43,11 +43,7 @@ const AboutTestimonials: React.FC = () => {
       <Container>
         <Row className=' align-items-center gutter-y-40'>
           <Col lg={4}>
-            <div
-              className='about-testimonials__left wow fadeInLeft'
-              data-wow-duration='1500ms'
-              data-wow-delay='300ms'
-            >
+            <div className='about-testimonials__left'>
               <div className='about-testimonials__thumb'>
                 <div className='about-testimonials__thumb__item'>
                   <Image src={testiThumb} alt='man' />
@@ -65,7 +61,7 @@ const AboutTestimonials: React.FC = () => {
                   <TextAnimation text={sectionTitle} animationType='left' />
                 </h3>
               </div>
-              <div className='gotur-owl__carousel--basic-nav owl-carousel about-testimonials__carousel gotur-owl__carousel  owl-theme wow fadeInUp'>
+              <div className='gotur-owl__carousel--basic-nav owl-carousel about-testimonials__carousel gotur-owl__carousel owl-theme'>
                 <TinySlider
                   ref={sliderRef}
                   settings={{

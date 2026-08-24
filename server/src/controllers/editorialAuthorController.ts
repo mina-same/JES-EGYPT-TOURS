@@ -2,6 +2,7 @@ import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import EditorialAuthor from '../models/EditorialAuthor';
 import Blog from '../models/Blog';
+import { BLOG_CARD_FIELDS } from '../utils/blogCardPopulate';
 
 const DEFAULT_AUTHOR_SLUG = 'madonna-roshdey';
 
@@ -78,11 +79,14 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
       editorialAuthor: author._id,
       status: 'published',
     })
-      .select(
-        'title slug featuredImage excerpt tags publishedAt createdAt author editorialAuthor readingTime'
-      )
+      // The shared card field set, plus the admin `author` this page resolves
+      // its byline through. `subCategory` was the omission: without it an
+      // author's articles were the one place a card could not show the
+      // section it belongs to.
+      .select(`${BLOG_CARD_FIELDS} author`)
       .populate('author', 'name')
       .populate('editorialAuthor', 'name slug')
+      .populate('subCategory', 'name slug')
       .sort({ publishedAt: -1, createdAt: -1 })
       .lean();
 

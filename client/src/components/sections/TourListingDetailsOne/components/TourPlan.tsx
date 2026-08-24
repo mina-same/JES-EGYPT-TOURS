@@ -159,7 +159,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                             flex: 1,
                             paddingTop: '4px',
                           }}>
-                            <h5 
+                            <h3
                               style={{ 
                                 fontSize: '17px', 
                                 fontWeight: '700', 
@@ -169,7 +169,7 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                               }}
                             >
                               {activity.heading}
-                            </h5>
+                            </h3>
                             {/* `html-content` is what gives editorial links their
                                 gold + underline treatment. Without it anchors fall
                                 back to the theme's `a` rule (#d4af37, no underline)

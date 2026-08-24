@@ -46,7 +46,17 @@ export default async function AllBlogsPage({
       <DynamicBlogGrid 
         blogs={blogsData.data} 
         pagination={blogsData.pagination}
-        basePath={tag ? `/blogs/all?tag=${encodeURIComponent(tag)}` : "/blogs/all"}
+        // This grid IS the page — its first row is the LCP candidate.
+        prioritizeFirstRow
+        // Locale-prefixed, like every other listing. Without it the pager
+        // pushed to /blogs/all?page=2 and the middleware resolved the language
+        // from the NEXT_LOCALE cookie instead of the page being read — a
+        // visitor on /de/blogs/all with no cookie landed on the English page.
+        basePath={
+          tag
+            ? `/${locale}/blogs/all?tag=${encodeURIComponent(tag)}`
+            : `/${locale}/blogs/all`
+        }
       />
       <FooterOne />
     </Layout>

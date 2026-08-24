@@ -11,12 +11,17 @@ import type { PopulateOptions } from 'mongoose';
  * some populated nothing at all and printed it anyway, and none of them asked
  * for `readingTime`.
  *
+ * The teaser here is `cardDescription`, not `excerpt`. `excerpt` still exists
+ * and still does its other two jobs — the article page's sub-title and the
+ * meta-description fallback — but it is not what a card shows, and a card that
+ * has no `cardDescription` shows no description at all.
+ *
  * The select list is also a payload guard. `.populate('featuredBlogs')` with
  * no projection ships whole articles — every content block, in four languages —
  * to draw a title and a thumbnail. Naming the fields keeps a card a card.
  */
 export const BLOG_CARD_FIELDS =
-  'title slug featuredImage excerpt publishedAt createdAt tags readingTime editorialAuthor subCategory';
+  'title slug featuredImage cardDescription publishedAt createdAt tags readingTime editorialAuthor subCategory';
 
 export const blogCardPopulate = (path: string): PopulateOptions => ({
   path,

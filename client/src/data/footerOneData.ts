@@ -1,3 +1,4 @@
+import { PHONE_DISPLAY } from "@/config/contact";
 import { StaticImageData } from 'next/image';
 
 import logo from "@/assets/images/logo-light.png";
@@ -13,7 +14,6 @@ export interface FooterDataType {
   contact: {
     email: string;
     phone: string;
-    hours: string;
   };
   about: {
     text: string;
@@ -45,8 +45,7 @@ export const footerOneData: FooterDataType = {
   shape2,
   contact: {
     email: "info@jesegypttours.com",
-    phone: "+20 100 743 7271",
-    hours: "Hours: Mon-Sun: 24/7",
+    phone: PHONE_DISPLAY,
   },
   about: {
     text: "available, but the majority have suffered alteration in some form by injected humour, or",

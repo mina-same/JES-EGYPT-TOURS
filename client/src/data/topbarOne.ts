@@ -1,12 +1,13 @@
 // app/data/topbarOne.ts
+import { waHref, TEL_HREF, PHONE_DISPLAY } from "@/config/contact";
 
 export const topbarOne = {
     contactInfo: [
       {
         type: "phone",
         iconClass: "icon-telephone",
-        label: "+6108-666-0112",
-        href: "tel:+6108-666-0112",
+        label: PHONE_DISPLAY,
+        href: TEL_HREF,
       },
       {
         type: "email",
@@ -25,15 +26,15 @@ export const topbarOne = {
       {
         type: "whatsapp",
         iconClass: "fab fa-whatsapp",
-        label: "+20 100 743 7271",
-        href: "https://wa.me/201007437271",
+        label: PHONE_DISPLAY,
+        href: waHref(),
       },
       
     ],
     address: {
       iconClass: "fab fa-whatsapp",
-      label: "+20 100 743 7271",
-      href: "https://wa.me/201007437271",
+      label: PHONE_DISPLAY,
+      href: waHref(),
     },
     socialLinks: [
       {

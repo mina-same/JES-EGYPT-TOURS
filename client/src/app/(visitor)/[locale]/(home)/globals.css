@@ -92,7 +92,17 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* This file is imported AFTER gotur.css, so this rule beats gotur.css's own
+     `body` rule on order. It used to hardcode Arial, which overrode the theme
+     font for <body> and everything inheriting from it - including the homepage
+     hero title.
+
+     Prefer --gotur-font so the theme token still governs <body> on the visitor
+     side (this rule wins the cascade, so reading --font-body directly would
+     quietly take <body> out of the token's control). The admin panel imports
+     this file WITHOUT gotur.css, where --gotur-font is undefined - hence the
+     nested fallback chain, which is what admin resolves through. */
+  font-family: var(--gotur-font, var(--font-body, "Segoe UI"), system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -250,9 +260,7 @@ a {
 /* ── FAQ Item ── */
 .hfaq-item {
   border-bottom: 1px solid #e8e0d0;
-  cursor: pointer;
   position: relative;
-  outline: none;
   transition: background 0.2s ease;
 }
 
@@ -283,13 +291,36 @@ a {
   background: rgba(212, 175, 55, 0.04);
 }
 
+/* The question is a real heading wrapping a real button -- the accessible
+   accordion pattern. The heading carries no visual weight of its own. */
+.hfaq-heading {
+  margin: 0;
+  font: inherit;
+}
+
 /* ── Header row ── */
 .hfaq-item__head {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  width: 100%;
   padding: 22px 16px 22px 14px;
+  /* It is a <button> now, so its user-agent chrome has to be cleared. */
+  background: none;
+  border: 0;
+  text-align: start;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   user-select: none;
+}
+
+/* `.hfaq-item` set `outline: none` with nothing in its place, which left
+   keyboard users with no visible focus at all. */
+.hfaq-item__head:focus-visible {
+  outline: 2px solid var(--gotur-base, #d4af37);
+  outline-offset: -3px;
+  border-radius: 4px;
 }
 
 /* Number */
@@ -308,6 +339,7 @@ a {
 .hfaq-question {
   flex: 1;
   margin: 0;
+  /* A span inside the flex button rather than the h3 it used to be. */
   font-size: 16px;
   font-weight: 700;
   color: var(--gotur-black, #1d231f);
@@ -340,15 +372,25 @@ a {
   color: #fff;
 }
 
-/* ── Answer body (smooth slide) ── */
+/* ── Answer body (smooth slide) ──
+   The track collapses to the answer's own height. This was `max-height: 600px`,
+   a guess: it animated a 600px distance whatever the answer's real height, and
+   it silently cut anything taller. The tour, article and /faq lists use the
+   same technique -- see `.faq-list__body` in custom.css. */
 .hfaq-item__body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.38s ease;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s ease;
 }
 
 .hfaq-item--open .hfaq-item__body {
-  max-height: 600px;
+  grid-template-rows: 1fr;
+}
+
+/* Padding on a zero-height grid track is NOT clipped, so the answer's own
+   padding needs an element of its own between it and the collapsing track. */
+.hfaq-item__clip {
+  overflow: hidden;
 }
 
 .hfaq-answer {

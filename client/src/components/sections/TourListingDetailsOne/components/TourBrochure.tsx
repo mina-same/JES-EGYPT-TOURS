@@ -59,7 +59,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
       ref={ref}
       style={{
         width: 1200,
-        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontFamily: "var(--gotur-font, 'Segoe UI'), system-ui, -apple-system, sans-serif",
         backgroundColor: "#FDFAF6",
         color: "#2D1F0E",
       }}
@@ -120,7 +120,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
           </div>
           <h1
             style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
               fontSize: 48,
               fontWeight: 700,
               lineHeight: 1.15,
@@ -423,7 +423,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
               <div style={{ backgroundColor: "#E8F5E9", borderRadius: 16, padding: 28 }}>
                 <h4
                   style={{
-                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
                     fontSize: 20,
                     fontWeight: 600,
                     color: "#2E7D32",
@@ -441,7 +441,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
               <div style={{ backgroundColor: "#FFF3E0", borderRadius: 16, padding: 28 }}>
                 <h4
                   style={{
-                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
                     fontSize: 20,
                     fontWeight: 600,
                     color: "#E65100",
@@ -469,7 +469,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
             <div key={i} style={{ marginTop: 24 }}>
               <h4
                 style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
                   fontSize: 22,
                   fontWeight: 600,
                   marginBottom: 16,
@@ -574,7 +574,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                       justifyContent: "center",
                       fontWeight: 700,
                       fontSize: 16,
-                      fontFamily: "'Playfair Display', serif",
+                      fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
                     }}
                   >
                     {d.day}
@@ -593,7 +593,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                 <div style={{ flex: 1 }}>
                   <h4
                     style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
                       fontSize: 20,
                       fontWeight: 600,
                       margin: "8px 0 12px",
@@ -653,7 +653,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
       >
         <div
           style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
+            fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
             fontSize: 26,
             fontWeight: 700,
             color: "#F5A623",
@@ -696,7 +696,7 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
       </div>
       <h2
         style={{
-          fontFamily: "'Playfair Display', Georgia, serif",
+          fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
           fontSize: 32,
           fontWeight: 700,
           margin: 0,

@@ -49,9 +49,7 @@ const CtaTwo = () => {
   return (
     <section className='cta-two position-relative'>
       <div
-        className='cta-two__bg wow fadeInUp'
-        data-wow-duration='1500ms'
-        data-wow-delay='300ms'
+        className='cta-two__bg'
         style={{
           backgroundImage: `url(${bgImage.src})`,
         }}
@@ -61,11 +59,7 @@ const CtaTwo = () => {
         <div className='row justify-content-between align-items-center'>
           <div className='col-lg-6'></div>
           <div className='col-lg-6'>
-            <div
-              className='cta-two__content wow fadeInRight'
-              data-wow-duration='1500ms'
-              data-wow-delay='400ms'
-            >
+            <div className='cta-two__content'>
               <div className='cta-two__content__inner text-center'>
                 <div className='sec-title'>
                   <h6 className='sec-title__tagline bw-split-in-right'>
@@ -111,11 +105,7 @@ const CtaTwo = () => {
       </div>
 
       {/* CTA Images */}
-      <div
-        className='cta-two__thumb wow fadeInLeft'
-        data-wow-duration='1500ms'
-        data-wow-delay='400ms'
-      >
+      <div className='cta-two__thumb'>
         <div className='cta-two__thumb__item'>
           <Image src={ctaMan} alt='cta man' />
         </div>

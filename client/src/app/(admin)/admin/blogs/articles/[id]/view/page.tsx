@@ -55,6 +55,7 @@ export default function BlogViewPage() {
   const matrixRows: MatrixRow[] = [
     { label: 'Title', has: (l) => localeHasField(blog.title, l) },
     { label: 'Excerpt', has: (l) => localeHasField(blog.excerpt, l) },
+    { label: 'Card description', has: (l) => localeHasField(blog.cardDescription, l) },
     { label: 'Summary', has: (l) => localeHasField(blog.summary, l) },
     { label: 'Key Takeaways', has: (l) => localeHasField(blog.keyTakeaways, l) },
     { label: 'Content blocks', has: (l) => blocksHaveLocale(blog.contentBlocks, l) },
@@ -62,6 +63,7 @@ export default function BlogViewPage() {
   ];
 
   const excerptText = strictText(blog.excerpt, previewLocale);
+  const cardDescriptionText = strictText(blog.cardDescription, previewLocale);
   const summaryItems = normalizeAmenityItems(rawLocale(blog.summary, previewLocale));
   const takeawayItems = normalizeAmenityItems(rawLocale(blog.keyTakeaways, previewLocale));
 
@@ -147,6 +149,18 @@ export default function BlogViewPage() {
               <p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{excerptText}</p>
             </div>
           )}
+
+          {/* Shown even when empty: a blank card description is a real state
+              with a visible consequence — that article's cards carry no
+              description — and it should not look like the field is missing. */}
+          <div>
+            <label className="text-[11px] uppercase font-bold text-gray-400">Card description</label>
+            {cardDescriptionText ? (
+              <p className="text-[15px] text-gray-700 dark:text-gray-200 m-0">{cardDescriptionText}</p>
+            ) : (
+              <p className="text-[13px] italic text-gray-400 m-0">Not set — cards for this article show no description.</p>
+            )}
+          </div>
 
           {summaryItems.length > 0 && (
             <div>

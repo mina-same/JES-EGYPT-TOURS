@@ -92,7 +92,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
           lineHeight: 1,
           color: '#b79c5c',
           opacity: 0.08,
-          fontFamily: 'Georgia, serif',
+          fontFamily: 'var(--gotur-display-font, Georgia), "Times New Roman", serif',
           fontWeight: 900,
           zIndex: 1,
           userSelect: 'none',

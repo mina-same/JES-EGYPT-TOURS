@@ -4,7 +4,6 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { Form } from "react-bootstrap";
 import image from "@/assets/images/resources/login-1-1.jpg";
 import Image from "next/image";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginFormData {
@@ -70,7 +69,7 @@ const LoginSection: React.FC = () => {
                 )}
 
                 <div className='tabs-content'>
-                  <div className='tabs-content__item tab wow fadeInUp active-tab'>
+                  <div className='tabs-content__item tab active-tab'>
                     <Form onSubmit={handleSubmit(onLoginSubmit)}>
                       <div className='login-page__group'>
                         <div className='login-page__input-box'>

@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
   CONTACT: {
     BASE: `${API_URL}/contact`,
     TRAVEL_TRADE: `${API_URL}/contact/travel-trade`,
+    TOUR_QUESTION: `${API_URL}/contact/tour-question`,
     BY_ID: (id: string) => `${API_URL}/contact/${id}`,
   },
 

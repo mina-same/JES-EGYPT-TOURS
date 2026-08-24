@@ -1,13 +1,13 @@
 'use client';
-import React, { useState } from 'react';
-import { Row, Col, Container, Accordion } from 'react-bootstrap';
-import { HelpCircle, ChevronDown } from 'lucide-react';
+import React from 'react';
+import { Row, Col, Container } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedStaticSlug } from '@/lib/url';
 import { getLocalizedValue } from '@/lib/localize';
 import Image from 'next/image';
 import Link from 'next/link';
 import faqSidebarImage from "@/assets/images/resources/faq-sidebar.png";
+import FaqAccordion from '@/components/common/Faq/FaqAccordion';
 
 interface FAQ {
   question: any;
@@ -24,7 +24,6 @@ interface ListingFaqsProps {
 
 const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, locale, style }) => {
   const { t } = useTranslation('faq');
-  const [activeKey, setActiveKey] = useState<string | null>("0");
 
   if (!faqs || faqs.length === 0) return null;
 
@@ -43,11 +42,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
         <Row className='gutter-y-30'>
           <Col lg={4}>
             <div className='faq-page__sidebar'>
-              <div
-                className='faq-page__sidebar__item wow fadeInUp'
-                data-wow-duration='1500ms'
-                data-wow-delay='300ms'
-              >
+              <div className='faq-page__sidebar__item'>
                 <div className='faq-page__sidebar__cta'>
                   <Image src={faqSidebarImage} alt={sidebarImageLabel} title={sidebarImageLabel} />
                   <div className='faq-page__sidebar__cta__content'>
@@ -71,59 +66,21 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
 
           <Col lg={8}>
             <div className="faq-accordion mx-auto">
-              <Accordion
-                activeKey={activeKey ?? undefined}
-                onSelect={(eventKey) => setActiveKey(eventKey as string | null)}
-                className="wow fadeInUp"
-                data-wow-duration="1500ms"
-              >
-                {faqs.map((faq, idx) => {
-                  const eventKey = idx.toString();
-                  const isOpen = activeKey === eventKey;
-                  // Strict locale lookup — no fallback to English.
-                  // A German-only FAQ must not appear on the English or Italian page.
-                  const question = faq.question?.[locale] || '';
-                  const answer   = faq.answer?.[locale]   || '';
-
-                  if (!question || !answer) return null;
-
-                  return (
-                    <Accordion.Item eventKey={eventKey} key={idx}>
-                      <div className="accordion-header">
-                        <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
-                          <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: "20px" }}>
-                            <div className="faq-icon-box">
-                              <HelpCircle size={20} />
-                            </div>
-                            <div className="faq-question-box text-start flex-grow-1">
-                              <h3 className="faq-question-title" style={{ margin: 0 }}>{question}</h3>
-                            </div>
-                            <div
-                              className="faq-chevron"
-                              style={{
-                                marginLeft: "auto",
-                                display: "flex",
-                                alignItems: "center",
-                                transition: "transform 200ms ease",
-                                transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                              }}
-                            >
-                              <ChevronDown size={18} />
-                            </div>
-                          </div>
-                        </Accordion.Button>
-                      </div>
-                      <Accordion.Body>
-                        <div className='accordion-content'>
-                          <div className='inner'>
-                            <div dangerouslySetInnerHTML={{ __html: answer }} className='inner__text prose max-w-none text-gray-600' />
-                          </div>
-                        </div>
-                      </Accordion.Body>
-                    </Accordion.Item>
-                  );
-                })}
-              </Accordion>
+              {/* The shared `.faq-list` treatment -- the same one the tour page
+                  and /faq use. All three carried identical copies of a theme
+                  accordion wrapped in inline styles before. */}
+              {/* One shared list, styled in custom.css. */}
+              <FaqAccordion
+                idPrefix="listing-faq"
+                items={faqs
+                  .map((faq) => ({
+                    // Strict locale lookup -- no fallback to English. A
+                    // German-only FAQ must not appear on the English page.
+                    question: faq.question?.[locale] || '',
+                    answer: faq.answer?.[locale] || '',
+                  }))
+                  .filter((faq) => faq.question && faq.answer)}
+              />
             </div>
           </Col>
         </Row>

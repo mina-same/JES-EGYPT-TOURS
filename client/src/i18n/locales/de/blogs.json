@@ -22,7 +22,6 @@
   "by": "Von",
   "comments": "Kommentare",
   "tags": "Tags:",
-  "shareFriends": "Mit Freunden teilen:",
   "leaveComment": "Schreibe einen Kommentar",
   "yourName": "Ihr Name*",
   "yourEmail": "Ihre E-Mail*",
@@ -70,5 +69,9 @@
   "previousArticles": "Vorherige Artikel",
   "nextArticles": "Nächste Artikel",
   "pageMetaTitle": "Ägypten Reiseblog | Reiseführer, Tipps & Geschichten | JES Egypt Tours",
-  "pageMetaDescription": "Unsere Ägypten-Reiseführer nach Themen — praktische Tipps zu Tickets, Reisezeit und Planung, aus Reisen, die wir selbst gemacht haben."
+  "pageMetaDescription": "Unsere Ägypten-Reiseführer nach Themen — praktische Tipps zu Tickets, Reisezeit und Planung, aus Reisen, die wir selbst gemacht haben.",
+  "blogPagination": "Blog-Seitennavigation",
+  "previousPage": "Vorherige Seite",
+  "nextPage": "Nächste Seite",
+  "goToPage": "Seite {{page}}"
 }

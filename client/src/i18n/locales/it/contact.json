@@ -1,27 +1,34 @@
 {
-  "metaTitle": "Contattaci | JES Egypt Tours",
-  "metaDescription": "Mettiti in contatto con JES Egypt Tours. Siamo qui per aiutarti a pianificare la tua avventura egiziana.",
+  "metaTitle": "Contatti | JES Egypt Tours, esperti dell'Egitto",
+  "metaDescription": "Parla con il nostro team al Cairo del tuo viaggio in Egitto. Scrivici tramite il modulo o su WhatsApp: rispondiamo ogni giorno, in poche ore.",
   "pageTitle": "Contattaci",
-  "pageSubTitle": "Contattaci",
+  "pageSubTitle": "Raccontaci cosa vorresti vedere in Egitto e il nostro team al Cairo ti risponderà con un piano su misura.",
+  "breadcrumb": {
+    "home": "Home",
+    "current": "Contatti"
+  },
   "top": {
+    "sectionTitle": "Come raggiungerci",
     "addressTitle": "Il nostro Indirizzo",
     "addressText": "8 Alshams Building, Dr.Hanem Mohammed Hussein, Kafr Nassar, Al Haram, Giza Governorate, Egypt",
+    "addressLinkLabel": "su Google Maps",
     "emailTitle": "info@jesegypttours.com",
-    "emailText": "Scrivici in qualsiasi momento per ogni richiesta.",
-    "phoneTitle": "Numero Verde: +208-666-0112",
-    "phoneText": "Chiamaci per qualsiasi supporto.",
+    "emailText": "Scrivici quando vuoi: rispondiamo ogni giorno.",
+    "phoneText": "Chiamaci in qualsiasi giorno della settimana.",
     "mapTitle": "Sede di JES Egypt Tours su Google Maps"
   },
   "form": {
-    "title": "Pronto per iniziare?",
-    "text": "Ci piacerebbe sentirti. Ti preghiamo di compilare il modulo sottostante.",
+    "title": "Pianifichiamo il tuo viaggio in Egitto",
+    "text": "Dicci le tue date e cosa vorresti vedere. Il nostro team legge ogni messaggio e risponde con una proposta concreta, non con un depliant.",
     "fields": {
-      "nameLabel": "Il tuo Nome*",
-      "namePlaceholder": "Il tuo Nome",
-      "emailLabel": "La tua Email*",
-      "emailPlaceholder": "La tua Email",
-      "messageLabel": "Messaggio*",
-      "messagePlaceholder": "Scrivi messaggio . ."
+      "nameLabel": "Il tuo Nome",
+      "namePlaceholder": "Il tuo nome completo",
+      "emailLabel": "La tua Email",
+      "emailPlaceholder": "nome@esempio.it",
+      "messageLabel": "Messaggio",
+      "messagePlaceholder": "Le tue date di viaggio, quante persone viaggiano e cosa vorresti vedere.",
+      "phoneLabel": "Telefono / WhatsApp",
+      "phonePlaceholder": "es. +20 100 000 0000"
     },
     "errors": {
       "nameRequired": "Il nome è obbligatorio",
@@ -29,15 +36,51 @@
       "invalidEmail": "Si prega di fornire un'email valida",
       "messageRequired": "Il messaggio è obbligatorio",
       "sendFailed": "Invio fallito",
-      "failedMessage": "Impossibile inviare il messaggio"
+      "checkFields": "Controlla i campi evidenziati",
+      "failedMessage": "Impossibile inviare il messaggio",
+      "invalidSubmission": "Controlla i tuoi dati e riprova.",
+      "tooManyRequests": "Non è stato possibile accettare il tuo messaggio in questo momento. Riprova tra qualche minuto oppure scrivici su WhatsApp.",
+      "nameTooShort": "Il nome deve contenere almeno 2 caratteri",
+      "nameTooLong": "Il nome non può superare i 100 caratteri",
+      "messageTooLong": "Il messaggio non può superare i 5000 caratteri",
+      "phoneRequired": "Il telefono è obbligatorio",
+      "phoneTooLong": "Il telefono non può superare i 40 caratteri"
     },
     "success": {
       "sentTitle": "Messaggio inviato",
-      "sentMessage": "Il tuo messaggio è stato inviato con successo."
+      "sentMessage": "Il tuo messaggio è stato inviato con successo. Ti risponderemo a breve."
     },
     "buttons": {
       "sending": "Invio in corso...",
       "send": "Invia Messaggio"
+    },
+    "formHeading": "Scrivici un messaggio",
+    "formSubheading": "Compila i tre campi qui sotto: è tutto ciò che ci serve per iniziare.",
+    "privacyNote": "I tuoi dati vengono usati solo per rispondere alla tua richiesta. Consulta la nostra",
+    "privacyLinkLabel": "Informativa sulla Privacy",
+    "mapCta": "Apri in Google Maps",
+    "newTab": "(si apre in una nuova scheda)",
+    "aside": {
+      "stepsLabel": "Cosa succede dopo",
+      "steps": {
+        "0": {
+          "title": "Leggiamo ogni messaggio",
+          "text": "Una persona reale del nostro team al Cairo, mai una risposta automatica."
+        },
+        "1": {
+          "title": "Ti rispondiamo entro 24 ore",
+          "text": "Di solito in poche ore, in qualsiasi giorno della settimana."
+        },
+        "2": {
+          "title": "Ricevi una proposta su misura",
+          "text": "Un piano costruito sulle tue date e sul tuo budget, senza impegno."
+        }
+      },
+      "whatsappLabel": "Scrivici su WhatsApp",
+      "whatsappMessage": "Ciao JES Egypt Tours, vorrei informazioni su un viaggio.",
+      "linksLabel": "Non sai da dove iniziare?",
+      "tailorMadeLabel": "Crea un viaggio su misura",
+      "offersLabel": "Scopri le nostre offerte speciali"
     }
   }
 }

@@ -33,11 +33,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
           {/* Content — left */}
           <Col lg={6}>
             <div className="about-one__right">
-              <div
-                className="sec-title wow fadeInUp"
-                data-wow-duration="1200ms"
-                data-wow-delay="100ms"
-              >
+              <div className="sec-title">
                 <p className="sec-title__tagline bw-split-in-right">
                   <TextAnimation
                     text={t("tailorOffer.tagline")}
@@ -47,33 +43,20 @@ const OfferOne: React.FC<OfferOneProps> = () => {
                 </p>
                 <h2 className="sec-title__title bw-split-in-left">
                   <TextAnimation
-                    text={t("tailorOffer.titleLine1")}
+                    text={`${t("tailorOffer.titleLine1")} ${t(
+                      "tailorOffer.titleLine2"
+                    )}`}
                     animationType="left"
                     semantic
-                  />{" "}
-                  <span>
-                    <TextAnimation
-                      text={t("tailorOffer.titleLine2")}
-                      animationType="left"
-                      semantic
-                    />
-                  </span>
+                  />
                 </h2>
               </div>
 
-              <p
-                className="about-one__top__text wow fadeInUp"
-                data-wow-duration="1200ms"
-                data-wow-delay="200ms"
-              >
+              <p className="about-one__top__text">
                 {t("tailorOffer.desc")}
               </p>
 
-              <div
-                className="about-one__feature wow fadeInUp"
-                data-wow-duration="1200ms"
-                data-wow-delay="300ms"
-              >
+              <div className="about-one__feature">
                 <ul className="about-one__feature-list">
                   {features.map((feature, i) => (
                     <li key={i}>
@@ -83,11 +66,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
                 </ul>
               </div>
 
-              <div
-                className="offer-one__btn wow fadeInUp"
-                data-wow-duration="1200ms"
-                data-wow-delay="400ms"
-              >
+              <div className="offer-one__btn">
                 <Link
                   href={localizeInternalUrl("/tailor-made", locale)}
                   className="gotur-btn gotur-btn--primary"
@@ -103,11 +82,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
 
           {/* Image — right */}
           <Col lg={6}>
-            <div
-              className="offer-one__thumb wow fadeInLeft"
-              data-wow-duration="1500ms"
-              data-wow-delay="300ms"
-            >
+            <div className="offer-one__thumb">
               <div className="offer-one__thumb__item">
                 <Image
                   src="/images/jes-egypt-tours-giza-pyramids-family-group-photo.webp"

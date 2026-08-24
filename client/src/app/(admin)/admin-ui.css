@@ -1256,6 +1256,24 @@
   color: #3730a3;
 }
 
+/* Which form a submission came from -- a different question from what state it
+   is in, so it gets its own colour rather than borrowing a status one. Gold,
+   because that is the site's own colour and it reads as a label rather than as
+   a stage in the workflow. */
+.admin-scope .source-badge-tour-question {
+  background: #f6efdf;
+  color: #7a6029;
+}
+
+/* The plain contact form. It was the only source with no tag at all, which
+   made it the odd one out once the other two were labelled -- an untagged row
+   read as "something is missing" rather than "this is the general form".
+   Deliberately the quietest of the three: it is the default. */
+.admin-scope .source-badge-contact {
+  background: #eef1f4;
+  color: #47535f;
+}
+
 .admin-scope .status-completed,
 .admin-scope .status-badge-completed {
   background: #d1fae5;

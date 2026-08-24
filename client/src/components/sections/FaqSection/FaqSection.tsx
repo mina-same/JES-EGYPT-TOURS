@@ -1,13 +1,14 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { Accordion, Col, Container, Row } from "react-bootstrap";
+import { Col, Container, Row } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
-import { ChevronDown, HelpCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import image from "@/assets/images/resources/faq-sidebar.png";
+import FaqAccordion from "@/components/common/Faq/FaqAccordion";
 // types.ts
 interface Faq {
   question: string;
@@ -28,61 +29,6 @@ interface FaqTabContent {
     faqs: Faq[];
   }[];
 }
-
-const AnimatedFaqAccordion: React.FC<{ faqs: Faq[] }> = ({ faqs }) => {
-  const [activeKey, setActiveKey] = useState<string | null>("0");
-
-  return (
-    <Accordion
-      activeKey={activeKey ?? undefined}
-      onSelect={(eventKey) => setActiveKey(eventKey as string | null)}
-      className=' wow fadeInUp'
-      data-wow-duration='1500ms'
-      data-wow-delay='500ms'
-    >
-      {faqs.map((faq, idx) => {
-        const eventKey = idx.toString();
-        const isOpen = activeKey === eventKey;
-
-        return (
-          <Accordion.Item eventKey={eventKey} key={idx}>
-            <div className="accordion-header">
-              <Accordion.Button className="bg-transparent border-0 w-100 shadow-none p-0">
-                <div className="faq-header-content d-flex align-items-center gap-3 w-100" style={{ padding: '20px' }}>
-                  <div className="faq-icon-box">
-                    <HelpCircle size={20} />
-                  </div>
-                  <div className="faq-question-box text-start flex-grow-1">
-                    <h3 className="faq-question-title" style={{ margin: 0 }}>{faq.question}</h3>
-                  </div>
-                  <div
-                    className="faq-chevron"
-                    style={{
-                      marginLeft: "auto",
-                      display: "flex",
-                      alignItems: "center",
-                      transition: "transform 200ms ease",
-                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                  >
-                    <ChevronDown size={18} />
-                  </div>
-                </div>
-              </Accordion.Button>
-            </div>
-            <Accordion.Body>
-              <div className='accordion-content'>
-                <div className='inner'>
-                  <div dangerouslySetInnerHTML={{ __html: faq.answer }} className='text' />
-                </div>
-              </div>
-            </Accordion.Body>
-          </Accordion.Item>
-        );
-      })}
-    </Accordion>
-  );
-};
 
 export interface FaqData {
   title: string;
@@ -262,11 +208,7 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
           <Row className='gutter-y-30'>
             <Col lg={4}>
               <div className='faq-page__sidebar'>
-                <div
-                  className='faq-page__sidebar__item wow fadeInUp'
-                  data-wow-duration='1500ms'
-                  data-wow-delay='300ms'
-                >
+                <div className='faq-page__sidebar__item'>
                   <ul className='faq-page__sidebar__list list-unstyled tab-buttons'>
                     {faqData.faqTabs.map((tab) => (
                       <li
@@ -282,11 +224,7 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
                     ))}
                   </ul>
                 </div>
-                <div
-                  className='faq-page__sidebar__item wow fadeInUp'
-                  data-wow-duration='1500ms'
-                  data-wow-delay='500ms'
-                >
+                <div className='faq-page__sidebar__item'>
                   <div className='faq-page__sidebar__cta'>
                     <Image src={faqData.image} alt={faqData.title} title={faqData.title} />
                     <div className='faq-page__sidebar__cta__content'>
@@ -332,14 +270,10 @@ const FaqSection: React.FC<{ initialData?: FAQ[] }> = ({ initialData }) => {
                           className='faq-accordion gotur-accordion'
                           data-grp-name='gotur-accordion'
                         >
-                          <div
-                            className='faq-page__title wow fadeInUp'
-                            data-wow-duration='1500ms'
-                            data-wow-delay='500ms'
-                          >
+                          <div className='faq-page__title'>
                             {faq.title}
                           </div>
-                          <AnimatedFaqAccordion faqs={faq.faqs} />
+                          <FaqAccordion items={faq.faqs} idPrefix="faq" />
                         </div>
                       ))}
                     </div>

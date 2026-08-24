@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { waHref, PHONE_DISPLAY } from "@/config/contact";
 import useStore from "@/store/useStore";
 import Link from "next/link";
 import Image, { StaticImageData } from "next/image";
@@ -242,7 +243,7 @@ const Drawer: React.FC = () => {
             <span className='mobile-nav__contact__icon'>
               <i className='fab fa-whatsapp'></i>
             </span>
-            <Link href='https://wa.me/201007437271'>+20 100 743 7271</Link>
+            <Link href={waHref()}>{PHONE_DISPLAY}</Link>
           </li>
         </ul>
 

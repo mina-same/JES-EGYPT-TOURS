@@ -138,7 +138,9 @@ export default function CategoryView({
 
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [initialLoading, setInitialLoading] = useState(!initialCategory);
-  const [pageLoading, setPageLoading] = useState(false);
+  // Mounting with server data means a tours fetch is already pending, so start
+  // in pageLoading — otherwise the first paint flashes "no tours" before it lands.
+  const [pageLoading, setPageLoading] = useState(!!initialCategory);
   const [category, setCategory] = useState<any>(initialCategory || null);
   const [subcategories, setSubcategories] = useState<any[]>(initialSubcategories || []);
   const [tours, setTours] = useState<any[]>([]);
@@ -166,7 +168,10 @@ export default function CategoryView({
     tourStyle: "",
   });
   const toursPerPage = 9;
-  const prevSlugRef = useRef<string | null>(null);
+  // Seeded with the current slug when the server already resolved the category:
+  // starting at null made the first effect see a "new slug" and blank the
+  // server-rendered page behind the white-on-white loading screen.
+  const prevSlugRef = useRef<string | null>(initialCategory ? slug : null);
   const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<string[]>([]);
 
@@ -356,7 +361,9 @@ export default function CategoryView({
   if (initialLoading) {
     return (
       <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" />
+        {/* dark links: this branch has no PageHeader, so the transparent header
+            sits on white and light links would be invisible. */}
+        <TopbarOne /><HeaderOne linkTheme="dark" />
         <div className="flex items-center justify-center min-h-[60vh]" suppressHydrationWarning>
           <Loader2 className="w-10 h-10 animate-spin" />
         </div>
@@ -578,7 +585,7 @@ export default function CategoryView({
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
                   tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
-                ) : (
+                ) : pageLoading ? null : (
                   <div className="flex items-center justify-center min-h-[200px] w-full"><p className="text-xl text-gray-500">{t('listing.noToursCategory')}</p></div>
                 )}
                 <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} /></Col>

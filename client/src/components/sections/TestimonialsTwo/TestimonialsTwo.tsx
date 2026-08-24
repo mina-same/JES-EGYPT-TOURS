@@ -90,11 +90,7 @@ const TestimonialsTwo = () => {
                 const text = testimonial.text[lang] ?? testimonial.text.en;
                 return (
                   <div key={testimonial.id}>
-                    <div
-                      className='testimonials-two-card wow fadeInUp'
-                      data-wow-duration='1500ms'
-                      data-wow-delay='00ms'
-                    >
+                    <div className='testimonials-two-card'>
                       <div className='testimonials-two-card__inner' style={{ paddingTop: 30 }}>
                         {/* Quote mark sits in normal flow ABOVE the content
                             (the theme's absolute top/left placement made it

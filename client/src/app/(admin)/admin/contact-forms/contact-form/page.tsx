@@ -17,7 +17,13 @@ interface ContactSubmission {
   name: string;
   email: string;
   message: string;
-  source?: 'contact' | 'travel-trade';
+  source?: 'contact' | 'travel-trade' | 'tour-question';
+  /** Set on `tour-question` only: which tour the visitor was reading. Stored as
+   *  a copy of the name, so an enquiry still says what it was about after the
+   *  tour is renamed or removed. */
+  tourName?: string;
+  tourSlug?: string;
+  preferredDate?: string;
   inquiryType?: 'b2b-rates' | 'client-request' | 'general-partnership';
   phone?: string;
   companyName?: string;
@@ -303,8 +309,24 @@ const ContactFormPage: React.FC = () => {
           <div className='customer-details'>
             <Mail size={14} /> {item.email}
           </div>
+          {/* Every submission says which form it came from; before, only two
+              of the three did and the general form showed nothing. */}
+          {(!item.source || item.source === 'contact') && (
+            <span className='status-badge source-badge-contact'>Contact Form</span>
+          )}
           {item.source === 'travel-trade' && (
             <span className='status-badge status-in-progress'>Travel Trade</span>
+          )}
+          {item.source === 'tour-question' && (
+            <>
+              <span className='status-badge source-badge-tour-question'>Tour Question</span>
+              {/* Which tour it was asked from -- the whole point of the tag. */}
+              {item.tourName && (
+                <div className='customer-details' title={item.tourName}>
+                  <MapPin size={14} /> {item.tourName}
+                </div>
+              )}
+            </>
           )}
         </div>
       ),
@@ -489,6 +511,18 @@ const ContactFormPage: React.FC = () => {
                     >
                       {STATUS_LABELS[selected.status]}
                     </span>
+                    {/* Which form this came from. The list shows it; without it
+                        here an opened submission gave no clue until you read
+                        the fields below. */}
+                    {selected.source === 'tour-question' && (
+                      <span className='status-badge source-badge-tour-question'>Tour Question</span>
+                    )}
+                    {(!selected.source || selected.source === 'contact') && (
+                      <span className='status-badge source-badge-contact'>Contact Form</span>
+                    )}
+                    {selected.source === 'travel-trade' && (
+                      <span className='status-badge status-in-progress'>Travel Trade</span>
+                    )}
                   </div>
                   <p className='submission-received-at'>
                     Received {formatReceivedAt(selected.createdAt)}
@@ -519,6 +553,62 @@ const ContactFormPage: React.FC = () => {
                        {selected.email}
                     </p>
                   </div>
+                  {/* Which language the visitor wrote in, so the reply goes back
+                      in the same one. Shown for EVERY submission — it used to
+                      live in the travel-trade-only block below, which meant the
+                      ordinary contact form never surfaced it. */}
+                  <div className='detail-item'>
+                    <label>Submitted Locale</label>
+                    <p>{selected.locale?.toUpperCase() || '—'}</p>
+                  </div>
+                  {/* The general form takes an optional phone now. The other two
+                      sources show theirs in their own blocks below. */}
+                  {(!selected.source || selected.source === 'contact') && (
+                    <div className='detail-item'>
+                      <label>Phone / WhatsApp</label>
+                      <p className="flex items-center gap-2">
+                        <Phone size={14} className="text-[#b79c5c]" />
+                        {selected.phone || '—'}
+                      </p>
+                    </div>
+                  )}
+                  {selected.source === 'tour-question' && (
+                    <>
+                      <div className='detail-item'>
+                        <label>Asked About</label>
+                        <p className="flex items-center gap-2">
+                          <MapPin size={14} className="text-[#b79c5c]" />
+                          {selected.tourName || '—'}
+                        </p>
+                      </div>
+                      {selected.tourSlug && (
+                        <div className='detail-item'>
+                          <label>Tour Page</label>
+                          <p>
+                            <a
+                              href={`/${selected.locale || 'en'}/${selected.tourSlug}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[#b79c5c] underline"
+                            >
+                              {selected.tourSlug}
+                            </a>
+                          </p>
+                        </div>
+                      )}
+                      <div className='detail-item'>
+                        <label>Phone / WhatsApp</label>
+                        <p className="flex items-center gap-2">
+                          <Phone size={14} className="text-[#b79c5c]" />
+                          {selected.phone || '—'}
+                        </p>
+                      </div>
+                      <div className='detail-item'>
+                        <label>Travel Date</label>
+                        <p>{selected.preferredDate || '—'}</p>
+                      </div>
+                    </>
+                  )}
                   {selected.source === 'travel-trade' && (
                     <>
                       <div className='detail-item'>
@@ -594,10 +684,6 @@ const ContactFormPage: React.FC = () => {
                       <div className='detail-item'>
                         <label>Service Level</label>
                         <p>{formatValue(selected.serviceLevel)}</p>
-                      </div>
-                      <div className='detail-item'>
-                        <label>Submitted Locale</label>
-                        <p>{selected.locale?.toUpperCase() || '—'}</p>
                       </div>
                     </div>
                   </div>

@@ -109,7 +109,9 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
     return (
       <Layout>
         <TopbarOne />
-        <HeaderOne linkTheme="light" />
+        {/* dark links: this branch has no PageHeader, so the transparent header
+            sits on white and light links would be invisible. */}
+        <HeaderOne linkTheme="dark" />
         <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
           <Loader2 className="animate-spin" style={{ color: '#b79c5c', width: 48, height: 48 }} />
         </div>

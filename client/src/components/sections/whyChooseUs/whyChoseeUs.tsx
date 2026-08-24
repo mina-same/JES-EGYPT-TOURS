@@ -97,11 +97,7 @@ const WhyChooseUs = () => {
           {cards.map((card, index) => (
             <div key={index}>
               <div className='item'>
-                <div
-                  className='destinations-card-two wow fadeInUp'
-                  data-wow-duration='1500ms'
-                  data-wow-delay='100ms'
-                >
+                <div className='destinations-card-two'>
                   <div className='destinations-card-two__thumb'>
                     <Image
                       src={CARD_IMAGES[index]}

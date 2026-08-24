@@ -1,3 +1,13 @@
+/**
+ * "Does this FAQ have a usable question and answer in at least one language?"
+ *
+ * This is deliberately a COPY of the same rule in the server's
+ * `models/shared/FaqSchema.ts`, which is the authority: the schema rejects the
+ * save, and this runs first so the admin can drop half-written rows instead of
+ * showing the editor a validation error. The two must agree -- if they drift,
+ * the admin either strips rows the server would have accepted or sends rows the
+ * server refuses. Change one, change the other.
+ */
 const FAQ_LOCALES = ['en', 'de', 'it', 'es'] as const;
 
 function hasMeaningfulFaqValue(value: unknown): boolean {
