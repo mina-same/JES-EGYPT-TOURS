@@ -47,9 +47,17 @@
 # listing Sidebar
 --------------------------------------------------------------*/
 :root {
-  --gotur-font: "Plus Jakarta Sans", sans-serif;
-  --gotur-heading-font: "Plus Jakarta Sans", sans-serif;
-  --gotur-font2: "Caveat", cursive;
+  /* The real faces are loaded by next/font in the route layouts and exposed as
+     --font-body / --font-accent on <html>. Swapping the site typeface is a
+     change to those two layouts plus these three lines - nothing else.
+
+     The inner var() MUST carry its own fallback. If a nested var() resolves to
+     nothing, the whole custom property becomes invalid-at-computed-value-time
+     and the trailing family names do NOT rescue it (CSS Custom Properties
+     spec), which would leave every consumer with an inherited/unset font. */
+  --gotur-font: var(--font-body, "Segoe UI"), system-ui, -apple-system, sans-serif;
+  --gotur-heading-font: var(--font-body, "Segoe UI"), system-ui, -apple-system, sans-serif;
+  --gotur-font2: var(--font-accent, cursive), cursive;
   --gotur-text: #0E3A57;
   --gotur-text-rgb: 14, 58, 87;
   --gotur-base: #d4af37;
@@ -6267,6 +6275,11 @@ body.megamenu-popup-active .mobile-nav__content {
 .main-slider-four__title {
   margin-bottom: 0px;
   color: var(--gotur-white, #fff);
+  /* The hero title renders as a <p>, not an h1-h6, so it never matched the
+     heading rule and silently inherited the <body> font. Assign the heading
+     token explicitly so the largest text on the site follows the site's
+     heading typeface instead of whatever body happens to be. */
+  font-family: var(--gotur-heading-font, "Segoe UI"), system-ui, -apple-system, sans-serif;
   /* No forced Title Case: the hero renders the admin's sentence exactly as
      written — sentence case reads more editorial/premium. */
   text-transform: none;

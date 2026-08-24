@@ -12,7 +12,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import '@/app/(visitor)/[locale]/(home)/globals.css';
 import './admin-ui.css';
 
-import { Plus_Jakarta_Sans, Just_Another_Hand } from "next/font/google";
+import { Plus_Jakarta_Sans, Caveat } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -20,14 +20,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 
 const jakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-jakarta-sans",
+  variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
 });
 
-const justAnotherHand = Just_Another_Hand({
-  variable: "--font-just-another-hand",
-  subsets: ["latin"],
+// The visitor site renders slider subtitles in Caveat (--gotur-font2), so the
+// admin preview loads the same face - otherwise the editor previews a font the
+// published slide never uses.
+const caveat = Caveat({
+  variable: "--font-accent",
+  subsets: ["latin", "latin-ext"],
   display: "swap",
   weight: "400",
 });
@@ -48,8 +51,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   return (
-    <html lang='en' suppressHydrationWarning>
-      <body className={`${jakartaSans.variable} ${justAnotherHand.variable}`} suppressHydrationWarning>
+    // Font variables belong on <html> (:root) so :root-scoped theme tokens can
+    // read them. See the matching comment in the visitor layout.
+    <html
+      lang='en'
+      className={`${jakartaSans.variable} ${caveat.variable}`}
+      suppressHydrationWarning
+    >
+      <body suppressHydrationWarning>
         <Script
           id="strip-bis-attributes"
           strategy="beforeInteractive"

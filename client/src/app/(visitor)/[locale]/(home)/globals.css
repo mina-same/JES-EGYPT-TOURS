@@ -92,7 +92,17 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* This file is imported AFTER gotur.css, so this rule beats gotur.css's own
+     `body` rule on order. It used to hardcode Arial, which overrode the theme
+     font for <body> and everything inheriting from it - including the homepage
+     hero title.
+
+     Prefer --gotur-font so the theme token still governs <body> on the visitor
+     side (this rule wins the cascade, so reading --font-body directly would
+     quietly take <body> out of the token's control). The admin panel imports
+     this file WITHOUT gotur.css, where --gotur-font is undefined - hence the
+     nested fallback chain, which is what admin resolves through. */
+  font-family: var(--gotur-font, var(--font-body, "Segoe UI"), system-ui, -apple-system, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -43,13 +43,13 @@ export async function generateMetadata({
 }
 
 const jakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-jakarta-sans",
+  variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
 });
 
 const caveat = Caveat({
-  variable: "--font-caveat",
+  variable: "--font-accent",
   subsets: ["latin", "latin-ext"],
   display: "swap",
   weight: ["400", "500", "600", "700"],
@@ -80,12 +80,17 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang={locale || "en"} suppressHydrationWarning>
+    // The font variables live on <html> (:root), not <body>. gotur.css defines
+    // --gotur-font/--gotur-heading-font/--gotur-font2 in a :root block, and a
+    // custom property computed on :root cannot read a variable declared only on
+    // a descendant. On <body> those tokens silently resolved to their fallbacks.
+    <html
+      lang={locale || "en"}
+      className={`${jakartaSans.variable} ${caveat.variable}`}
+      suppressHydrationWarning
+    >
       <head></head>
-      <body
-        className={`${jakartaSans.variable} ${caveat.variable}`}
-        suppressHydrationWarning
-      >
+      <body suppressHydrationWarning>
         <ErrorBoundary>
           <WishlistProvider>
             <SlugProvider>

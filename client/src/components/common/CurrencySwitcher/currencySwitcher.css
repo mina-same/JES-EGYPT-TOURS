@@ -1,7 +1,7 @@
 .currency-switcher {
   position: relative;
   display: inline-block;
-  font-family: var(--font-jakarta-sans, sans-serif);
+  font-family: var(--font-body, "Segoe UI"), system-ui, -apple-system, sans-serif;
 }
 
 .currency-switcher__btn {
