@@ -559,6 +559,31 @@
   font-style: italic;
   font-weight: 600;
 }
+
+/* The reveal animation (.text-animation) rebuilds the heading as one <span>
+   per character, so the accent rule above matched every letter and rendered
+   whole headings gold + italic - "Featured Tours", "Frequently Asked
+   Questions" and "Why Travel with JES Egypt Tours?" all read as decorative
+   script rather than section titles.
+
+   The accent is meant for an AUTHORED highlight span (as in "Private Egypt
+   Tours, <span>Planned Around You</span>", which is unaffected here because it
+   carries no .text-animation wrapper). Animation spans are markup, not
+   emphasis, so they inherit the heading's own treatment instead.
+
+   Deliberately NOT reverting `color`: the brand gold is wanted on these
+   headings. Only the italic/weight/family are reverted, which is what made
+   animated headings read as decorative script rather than section titles.
+
+   Specificity: two classes plus a type beats `.sec-title__title span`, so this
+   wins without !important. Note that an authored highlight nested INSIDE an
+   animated heading would also be reverted - no such case exists today. */
+.sec-title__title .text-animation,
+.sec-title__title .text-animation span {
+  font-family: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+}
 @media (max-width: 991px) {
   .sec-title__title {
     font-size: 45px;

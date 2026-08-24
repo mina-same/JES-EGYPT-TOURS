@@ -137,11 +137,13 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
           </p>
           <h2 className="sec-title__title">
             <TextAnimation
-              text={t("frequentlyAsked", "Frequently Asked")}
+              text={`${t("frequentlyAsked", "Frequently Asked")} ${t(
+                "questions",
+                "Questions"
+              )}`}
               animationType="left"
               semantic
             />
-            {" "}<span>{t("questions", "Questions")}</span>
           </h2>
           <p className="hfaq-subtitle">
             {t(

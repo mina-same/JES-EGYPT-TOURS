@@ -62,11 +62,11 @@ const OfferTwo = () => {
                     <TextAnimation text={tagline} animationType='right' semantic />
                   </p>{" "}
                   <h2 className='sec-title__title bw-split-in-left'>
-                    <TextAnimation text={title} animationType='left' semantic />
-                    {" "}
-                    <span>
-                      <TextAnimation text={subtitle} animationType='left' semantic />
-                    </span>
+                    <TextAnimation
+                      text={`${title} ${subtitle}`}
+                      animationType='left'
+                      semantic
+                    />
                   </h2>
                 </div>
                 <div className='offer-two__btn'>

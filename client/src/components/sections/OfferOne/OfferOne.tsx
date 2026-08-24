@@ -43,17 +43,12 @@ const OfferOne: React.FC<OfferOneProps> = () => {
                 </p>
                 <h2 className="sec-title__title bw-split-in-left">
                   <TextAnimation
-                    text={t("tailorOffer.titleLine1")}
+                    text={`${t("tailorOffer.titleLine1")} ${t(
+                      "tailorOffer.titleLine2"
+                    )}`}
                     animationType="left"
                     semantic
-                  />{" "}
-                  <span>
-                    <TextAnimation
-                      text={t("tailorOffer.titleLine2")}
-                      animationType="left"
-                      semantic
-                    />
-                  </span>
+                  />
                 </h2>
               </div>
 
