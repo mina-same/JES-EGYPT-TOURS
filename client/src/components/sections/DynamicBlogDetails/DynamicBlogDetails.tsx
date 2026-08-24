@@ -730,7 +730,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
       <style jsx global>{`
         .blog-details-page {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          /* Was hardcoded to Inter, which bypassed the theme tokens entirely -
+             blog articles rendered in a font the rest of the site never used. */
+          font-family: var(--gotur-font, "Segoe UI"), system-ui, -apple-system, sans-serif;
         }
 
         .blog-author-box {
@@ -1050,7 +1052,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           left: 15px;
           font-size: 6rem;
           color: rgba(183, 156, 92, 0.15);
-          font-family: "Georgia", serif;
+          font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
         }
 
         /* Section Header Polish */

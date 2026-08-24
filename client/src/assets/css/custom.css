@@ -3835,15 +3835,15 @@ button[data-action="stop"] {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Section taglines (eyebrows), SITE-WIDE: keep the template's
-   handwritten style exactly as designed, but in the deeper brand
-   gold for readability and without the washed-out translucent
-   pill background.
+   Section taglines (eyebrows), SITE-WIDE: decorative accent text in the
+   deeper brand gold for readability, without the washed-out translucent
+   pill background. The face is the display serif in italic (set in
+   gotur.css); this was the template's handwritten Caveat until Phase 2.
    ───────────────────────────────────────────────────────────── */
 .sec-title__tagline {
   color: #b79c5c;
   padding: 0;
-  font-weight: 500; /* the weight approved in the Caveat preview */
+  font-weight: 500; /* deliberately above the 400 in gotur.css */
 }
 .sec-title__tagline::after {
   display: none;
@@ -7020,4 +7020,18 @@ button[data-action="stop"] {
   .tour-ask {
     animation: tour-ask-fade 120ms ease-out both;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Editorial section heading (author pages, tours/blogs hub views).
+   These <h2>s previously had no rule of their own and simply inherited the
+   h1-h6 body face. They are marketing headings, so they opt in to the display
+   serif - unlike .subcategory-header__title and .tour-listing-details__title,
+   which are functional headings and stay on the body face.
+   Typography only: no size, colour or spacing is set here, so the existing
+   layout is untouched.
+--------------------------------------------------------------------------- */
+.section-title__title {
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
+  font-weight: 700;
 }

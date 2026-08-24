@@ -54,13 +54,24 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
    * Needed twice over: the markup is mounted on demand now, and the QR/logo data
    * URLs are set inside onDownload — React commits those asynchronously, so
    * capturing straight after setState could snapshot the brochure before the
-   * assets landed in it. Two frames plus the images' own load events remove both
+   * assets landed in it. The brochure also depends on webfonts. Two frames, the
+   * fonts' ready promise, and the images' own load events remove all three
    * races.
    */
   const waitForBrochurePaint = async () => {
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
     );
+    // The brochure renders in Manrope/Playfair via the theme tokens. html2canvas
+    // rasterises whatever is painted at that instant, so without this the PDF
+    // could capture fallback glyphs on a cold cache and silently differ from the
+    // site. Guarded because document.fonts is absent in some environments, and
+    // never fatal: a font that fails to load should not block the download.
+    try {
+      await document.fonts?.ready;
+    } catch {
+      /* fall through - capture with whatever is available */
+    }
     const el = pdfRef.current;
     if (!el) return;
     await Promise.all(
@@ -306,7 +317,7 @@ export const DownloadPdfBrochure: React.FC<DownloadPdfBrochureProps> = ({ tour }
               fontSize: 24,
               fontWeight: 800,
               color: '#1a1a1a',
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "var(--gotur-display-font, Georgia), 'Times New Roman', serif",
               letterSpacing: '-0.3px'
             }}>
               {t("tourDetails.brochure.title", "Download Tour Brochure")}

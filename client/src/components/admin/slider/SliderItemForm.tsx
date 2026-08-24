@@ -431,7 +431,7 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                     className='h-0.5 rounded'
                     style={{ width: 'clamp(22px, 6vw, 72px)', background: 'linear-gradient(90deg, transparent, #d4af37)' }}
                   />
-                  <span style={{ fontFamily: 'var(--font-accent, cursive), cursive' }}>{pvSubtitle}</span>
+                  <span style={{ fontFamily: 'var(--gotur-display-font, Georgia), "Times New Roman", serif' }}>{pvSubtitle}</span>
                   <span
                     aria-hidden
                     className='h-0.5 rounded'
@@ -453,11 +453,10 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                     textWrap: 'balance',
                     // Same family as the homepage title — glyph widths decide
                     // where lines wrap, so the font must match for the preview
-                    // to break at the same points. The live hero title resolves
-                    // --gotur-heading-font, which currently maps to --font-body;
-                    // if the site ever gets a separate display face, this needs
-                    // to follow it or the preview will wrap at the wrong points.
-                    fontFamily: 'var(--font-body, "Segoe UI"), system-ui, sans-serif',
+                    // to break at the same points. The live hero title now uses
+                    // the display face via --gotur-display-font, so the preview
+                    // follows that token rather than the body one.
+                    fontFamily: 'var(--gotur-display-font, Georgia), "Times New Roman", serif',
                   } as React.CSSProperties
                 }
               >

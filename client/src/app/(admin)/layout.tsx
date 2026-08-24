@@ -12,27 +12,29 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import '@/app/(visitor)/[locale]/(home)/globals.css';
 import './admin-ui.css';
 
-import { Plus_Jakarta_Sans, Caveat } from "next/font/google";
+import { Manrope, Playfair_Display } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 
-const jakartaSans = Plus_Jakarta_Sans({
+// The dashboard itself stays fully sans-serif - admin headings are functional,
+// not editorial, so Playfair is never applied to dashboard chrome.
+const bodyFont = Manrope({
   variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
 });
 
-// The visitor site renders slider subtitles in Caveat (--gotur-font2), so the
-// admin preview loads the same face - otherwise the editor previews a font the
-// published slide never uses.
-const caveat = Caveat({
-  variable: "--font-accent",
-  subsets: ["latin", "latin-ext"],
+// Loaded solely so the slider previews render in the same faces the published
+// visitor slide uses (title -> display, subtitle -> display italic). Without it
+// the editor would preview a font the live site never shows.
+const displayFont = Playfair_Display({
+  variable: "--font-display",
+  subsets: ["latin"],
   display: "swap",
-  weight: "400",
+  style: ["normal", "italic"],
 });
 
 interface AdminLayoutProps {
@@ -55,7 +57,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     // read them. See the matching comment in the visitor layout.
     <html
       lang='en'
-      className={`${jakartaSans.variable} ${caveat.variable}`}
+      className={`${bodyFont.variable} ${displayFont.variable}`}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>
