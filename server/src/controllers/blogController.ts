@@ -50,10 +50,22 @@ export const getAllBlogs = async (
       tags,
       isFeatured,
       search,
-      subCategory
+      subCategory,
+      ids,
     } = req.query;
 
     const query: any = { status: 'published' };
+
+    // Resolve a tour's complete curated article set in one public card-list
+    // request. Invalid ids are ignored; an all-invalid filter must match
+    // nothing rather than accidentally returning every published article.
+    if (typeof ids === 'string' && ids.trim()) {
+      const validIds = ids
+        .split(',')
+        .map((value) => value.trim())
+        .filter((value) => /^[0-9a-fA-F]{24}$/.test(value));
+      query._id = { $in: validIds };
+    }
 
     // Filter by subCategory
     if (subCategory) {

@@ -43,11 +43,16 @@ export const LOCALIZED_STATIC_SLUGS: Record<string, Record<SupportedLocale, stri
   },
 };
 
-/**
- * Static pages whose English canonical URL intentionally omits the default
- * locale prefix. Other English static pages continue to use `/en/...`.
+/*
+ * There is no longer an "unprefixed English" exception.
+ *
+ * Egypt DMC used to be it: its English URL was `/egypt-dmc` while German,
+ * Italian and Spanish sat under `/de/…`, `/it/…`, `/es/…`. That made it the
+ * only page on the site outside the locale scheme — the only sitemap entry
+ * without a locale, and a URL whose language nothing in the path declared.
+ * `/en/egypt-dmc` now serves it, like every other page, and the old
+ * locale-less URL redirects there permanently.
  */
-const UNPREFIXED_ENGLISH_STATIC_PAGES = new Set(["travel-trade"]);
 
 /** Any-locale slug → its canonical (English) key, or null if not a known
  *  static slug ("sonderangebote" → "special-offers"). */
@@ -77,10 +82,6 @@ export function getLocalizedStaticPath(
     ? (locale as SupportedLocale)
     : DEFAULT_LOCALE;
   const slug = getLocalizedStaticSlug(canonical, l);
-
-  if (l === DEFAULT_LOCALE && UNPREFIXED_ENGLISH_STATIC_PAGES.has(canonical)) {
-    return `/${slug}`;
-  }
 
   return `/${l}/${slug}`;
 }

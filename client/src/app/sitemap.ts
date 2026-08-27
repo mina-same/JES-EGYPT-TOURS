@@ -43,6 +43,36 @@ async function getTourSlugs() {
   }
 }
 
+/**
+ * Active editorial authors, with the languages each one actually serves.
+ *
+ * `X-Locale: bypass` returns the raw `{ en, de, it, es }` bio, because only
+ * `en` is required by the schema: an author with no German bio has no German
+ * page (app/…/authors/[slug] 404s for that locale), and a sitemap must not
+ * advertise a URL that answers 404.
+ */
+async function getAuthors(): Promise<{ slug: string; locales: string[] }[]> {
+  try {
+    const res = await fetch(`${API_URL}/blog/authors`, { headers: { 'X-Locale': 'bypass' } });
+    const data = await res.json();
+    if (!data.success || !Array.isArray(data.data)) return [];
+
+    return data.data
+      .filter((author: any) => typeof author?.slug === 'string' && author.slug)
+      .map((author: any) => ({
+        slug: author.slug,
+        locales: SUPPORTED_LOCALES.filter(
+          (locale) =>
+            typeof author?.bio?.[locale] === 'string' && author.bio[locale].trim().length > 0
+        ),
+      }))
+      .filter((author: { locales: string[] }) => author.locales.length > 0);
+  } catch (error) {
+    console.error('Sitemap: Failed to fetch authors', error);
+    return [];
+  }
+}
+
 // Fetch all blog slugs
 async function getBlogSlugs() {
   try {
@@ -60,6 +90,7 @@ async function getBlogSlugs() {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tourSlugs = await getTourSlugs();
   const blogSlugs = await getBlogSlugs();
+  const authors = await getAuthors();
 
   // NOTE: pages with a per-locale slug are NOT listed here — they go through
   // the localized block below so the sitemap emits the final (non-redirecting)
@@ -118,6 +149,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     addLocalizedUrls(entries, slug, {
       changeFrequency: 'monthly',
       priority: 0.7,
+    });
+  });
+
+  // 4. Author pages — the entity behind every article byline. The slug is a
+  // person's name and is the same in every language, so these are not routed
+  // through addLocalizedUrls (which expects a per-locale slug map).
+  authors.forEach(({ slug, locales }) => {
+    locales.forEach((locale) => {
+      entries.push({
+        url: `${baseUrl}/${locale}/authors/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      });
     });
   });
 

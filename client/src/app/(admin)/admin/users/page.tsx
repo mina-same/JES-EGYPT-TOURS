@@ -73,6 +73,12 @@ const UsersPage: React.FC = () => {
     return filteredUsers.slice(start, end);
   }, [filteredUsers, page, limit]);
 
+  const userTotalPages = Math.max(1, Math.ceil(filteredUsers.length / limit));
+
+  useEffect(() => {
+    if (page > userTotalPages) setPage(userTotalPages);
+  }, [page, userTotalPages]);
+
   // Handle delete user
   const handleDelete = async (userId: string) => {
     setDeleteIds([userId]);
@@ -363,7 +369,7 @@ const UsersPage: React.FC = () => {
         {/* Pagination */}
         <PaginationControls
           currentPage={page}
-          totalPages={Math.ceil(stats.filtered / limit)}
+          totalPages={userTotalPages}
           totalItems={stats.filtered}
           itemsPerPage={limit}
           onPageChange={setPage}

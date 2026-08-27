@@ -121,8 +121,14 @@ const AdminFAQManagement: React.FC = () => {
       
       if (response.success && response.data) {
         setFaqs(response.data);
-        setTotalPages(response.pagination?.pages || 1);
-        setTotalItems(response.pagination?.total || response.data.length);
+        const responseTotal = response.pagination?.total ?? response.data.length;
+        const normalizedTotalPages = Math.max(
+          1,
+          response.pagination?.pages ?? Math.ceil(responseTotal / limit)
+        );
+        setTotalPages(normalizedTotalPages);
+        setTotalItems(responseTotal);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
         setFaqs([]);
         setTotalPages(1);

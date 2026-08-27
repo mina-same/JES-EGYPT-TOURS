@@ -3,10 +3,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, usePathname } from "next/navigation";
 import { Container } from "react-bootstrap";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass } from "swiper";
+import "swiper/css";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, Plus, Minus, MessageCircle, ArrowRight } from "lucide-react";
+import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, MessageCircle, ArrowRight } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
@@ -120,6 +123,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const relatedBlogsSliderRef = useRef<SwiperClass | null>(null);
 
   const params = useParams() as { locale: string };
   const pathname = usePathname();
@@ -1372,7 +1376,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
           />
         )}
 
-        {/* ── Related Blogs (max 3, curated or featured fallback) ── */}
+        {/* Related Blogs carousel: curated set, or a featured fallback. */}
         {relatedBlogCards.length > 0 && (
           <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
             <Container>
@@ -1388,14 +1392,53 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       "More travel inspiration, guides, and stories from Egypt."
                     )}
                   </p>
-                </div>
-                <div className="row gutter-y-30">
-                  {relatedBlogCards.map((post) => (
-                    <div key={post.id} className="col-lg-4 col-md-6">
-                      <BlogCard post={post} variant='feature' />
+                  {relatedBlogCards.length > 1 && (
+                    <div className='related-blogs-nav feature-package__bottom__nav owl-nav'>
+                      <button
+                        type='button'
+                        className='owl-prev'
+                        aria-label={t(
+                          "tourDetails.relatedBlogs.previous",
+                          "Previous related articles"
+                        )}
+                        onClick={() => relatedBlogsSliderRef.current?.slidePrev()}
+                      >
+                        <span className='icon-arrow-left' aria-hidden='true'></span>
+                      </button>
+                      <button
+                        type='button'
+                        className='owl-next'
+                        aria-label={t(
+                          "tourDetails.relatedBlogs.next",
+                          "Next related articles"
+                        )}
+                        onClick={() => relatedBlogsSliderRef.current?.slideNext()}
+                      >
+                        <span className='icon-arrow-right' aria-hidden='true'></span>
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
+                <Swiper
+                  onSwiper={(instance) => {
+                    relatedBlogsSliderRef.current = instance;
+                  }}
+                  className='related-blogs-carousel'
+                  spaceBetween={30}
+                  rewind
+                  speed={700}
+                  breakpoints={{
+                    0: { slidesPerView: 1 },
+                    576: { slidesPerView: 2 },
+                    992: { slidesPerView: 3 },
+                  }}
+                >
+                  {relatedBlogCards.map((post) => (
+                    <SwiperSlide key={post.id}>
+                      <BlogCard post={post} variant='feature' />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
             </Container>
           </div>
         )}

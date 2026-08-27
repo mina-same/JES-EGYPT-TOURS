@@ -1,0 +1,36 @@
+{
+  "breadcrumb": "Autoren",
+  "meta": {
+    "titleSuffix": "Jes Egypt Tours"
+  },
+  "intro": {
+    "cta": "Reiseartikel durchstöbern"
+  },
+  "facts": {
+    "roleLabel": "Funktion",
+    "organisationLabel": "Organisation",
+    "focusLabel": "Inhaltlicher Schwerpunkt",
+    "languagesLabel": "Sprachen"
+  },
+  "about": {
+    "tagline": "Über"
+  },
+  "focus": {
+    "tagline": "Redaktioneller Schwerpunkt",
+    "title": "Worum es in den Inhalten geht"
+  },
+  "standards": {
+    "tagline": "Inhaltliche Standards",
+    "title": "Wie diese Inhalte entstehen",
+    "p1": "Artikel werden vor der Veröffentlichung auf Klarheit und sachliche Stimmigkeit geprüft. Ziel ist es, wiederzugeben, was Reisende in Ägypten tatsächlich vorfinden — keine idealisierten Fassungen von Stätten oder Erlebnissen. Wo echte Unsicherheit besteht (etwa, ob ein bestimmtes Grab an einem bestimmten Tag zugänglich ist), wird diese Unsicherheit benannt statt überspielt.",
+    "p2": "Inhalte werden aktualisiert, wenn es wesentliche Änderungen gibt — neue Einreisebestimmungen, größere Schließungen von Stätten oder erhebliche Veränderungen der Infrastruktur. Ältere Artikel tragen einen Hinweis, wenn die Informationen nicht kürzlich überprüft wurden. Die Website erhebt keinen Anspruch auf lokale Expertise über die redaktionelle Arbeit hinaus: Die Inhalte informieren, sie ersetzen nicht den Rat eines lizenzierten Guides oder einer offiziellen Tourismusbehörde.",
+    "publishedByLabel": "Herausgegeben von",
+    "publishedByValue": "Jes Egypt Tours — Ägypten-Reisespezialisten seit 2009"
+  },
+  "related": {
+    "tagline": "Verwandte Inhalte",
+    "title": "Ägypten-Reiseartikel",
+    "articlesByPrefix": "Artikel von",
+    "cta": "Alle Reiseartikel durchstöbern"
+  }
+}

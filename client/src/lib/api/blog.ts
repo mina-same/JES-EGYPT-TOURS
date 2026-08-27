@@ -420,25 +420,34 @@ export async function getBlogTags(
 }
 
 /**
- * A published post by id, in CARD shape — the tour page's curated "related
- * blogs" are its only caller.
+ * Published posts by id, in the tour editor's chosen order.
  *
- * The locale has to travel with the request. Without it the API answered in
- * its default language, so a German tour page listed its related articles
- * under English titles and excerpts.
+ * Related Blogs is a carousel rather than a three-card cap, so resolving the
+ * complete set in one request avoids one HTTP request per article. MongoDB's
+ * `$in` does not preserve input order; rebuild the response against the ids.
  */
-export async function getBlogById(id: string, locale?: string): Promise<BlogPost> {
-  const res = await fetch(`${API_URL}/blog/posts/id/${id}`, {
+export async function getBlogsByIds(ids: string[], locale?: string): Promise<BlogPost[]> {
+  const uniqueIds = Array.from(new Set(ids.map(String).filter(Boolean)));
+  if (uniqueIds.length === 0) return [];
+
+  const params = new URLSearchParams({
+    ids: uniqueIds.join(','),
+    limit: String(uniqueIds.length),
+  });
+  const res = await fetch(`${API_URL}/blog/posts?${params.toString()}`, {
     next: { revalidate: 60 },
     headers: locale ? { 'X-Locale': locale } : undefined,
   });
   
   if (!res.ok) {
-    throw new Error('Failed to fetch blog');
+    throw new Error('Failed to fetch blogs');
   }
   
-  const json: SingleBlogResponse = await res.json();
-  return json.data;
+  const json: BlogResponse = await res.json();
+  const postsById = new Map(json.data.map((post) => [String(post._id), post]));
+  return uniqueIds
+    .map((id) => postsById.get(id))
+    .filter((post): post is BlogPost => Boolean(post));
 }
 
 /**

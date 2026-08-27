@@ -205,3 +205,18 @@
     padding: 60px 0;
   }
 }
+
+/* ── Portrait ────────────────────────────────────────────────────────── */
+.authorPortrait {
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+}
+
+/* The fact card sits under the portrait in the same column, so it needs the
+   gap the grid row used to provide when the two were side by side. */
+.authorBioCardUnderPortrait {
+  margin-top: 28px;
+}

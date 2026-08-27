@@ -5,6 +5,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -90,6 +91,19 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
+
+/**
+ * Gzip every response.
+ *
+ * Nothing compressed API output before this: the tours listing left the server
+ * as 203 KB of raw JSON. JSON is highly repetitive — the same keys once per
+ * document — so it shrinks by about 75% for free, independently of any work to
+ * send fewer fields.
+ *
+ * Mounted before the routes so it wraps them, and after the rate limiter so a
+ * throttled request is rejected without doing the work of compressing a reply.
+ */
+app.use(compression());
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));

@@ -1,0 +1,36 @@
+{
+  "breadcrumb": "Autori",
+  "meta": {
+    "titleSuffix": "Jes Egypt Tours"
+  },
+  "intro": {
+    "cta": "Sfoglia gli articoli di viaggio"
+  },
+  "facts": {
+    "roleLabel": "Ruolo",
+    "organisationLabel": "Organizzazione",
+    "focusLabel": "Ambito dei contenuti",
+    "languagesLabel": "Lingue"
+  },
+  "about": {
+    "tagline": "Chi è"
+  },
+  "focus": {
+    "tagline": "Linea editoriale",
+    "title": "Di cosa parlano i contenuti"
+  },
+  "standards": {
+    "tagline": "Standard dei contenuti",
+    "title": "Come nascono questi contenuti",
+    "p1": "Gli articoli vengono rivisti per chiarezza e coerenza dei fatti prima della pubblicazione. L'obiettivo è restituire ciò che i viaggiatori incontrano davvero in Egitto, non versioni idealizzate di luoghi ed esperienze. Dove esiste un'incertezza reale (per esempio se una certa tomba sia accessibile in un dato giorno), quell'incertezza viene dichiarata anziché aggirata.",
+    "p2": "I contenuti vengono aggiornati quando si verificano cambiamenti significativi: nuovi requisiti d'ingresso, chiusure importanti di siti o modifiche sostanziali alle infrastrutture. Gli articoli meno recenti riportano una nota se le informazioni non sono state verificate di recente. Il sito non rivendica competenze locali oltre l'ambito del lavoro editoriale: i contenuti servono a informare, non a sostituire il parere di una guida autorizzata o di un ente turistico ufficiale.",
+    "publishedByLabel": "Pubblicato da",
+    "publishedByValue": "Jes Egypt Tours — specialisti di viaggi in Egitto dal 2009"
+  },
+  "related": {
+    "tagline": "Contenuti correlati",
+    "title": "Articoli di viaggio sull'Egitto",
+    "articlesByPrefix": "Articoli di",
+    "cta": "Sfoglia tutti gli articoli di viaggio"
+  }
+}

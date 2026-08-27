@@ -16,8 +16,13 @@ interface DynamicBlogGridProps {
    * Where the pager navigates. MUST carry the locale prefix — a locale-less
    * path sends the visitor through the middleware, which resolves the language
    * from the NEXT_LOCALE cookie rather than the page they are reading.
+   *
+   * Only the paged (`standard`) grid has a pager, so `variant="featured"`
+   * callers omit it. It used to be required, which made every such caller
+   * invent a path the component never navigated to — the author page passed
+   * its own URL, which would have paged to nothing had the pager existed.
    */
-  basePath: string;
+  basePath?: string;
   variant?: 'standard' | 'featured';
   /**
    * Eager-loads the first row's images. Only for a grid that is the page's
@@ -86,6 +91,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
    * opened in a new tab or shared.
    */
   const pageHref = (page: number) => {
+    if (!basePath) return "#";
     const separator = basePath.includes("?") ? "&" : "?";
     return `${basePath}${separator}page=${page}`;
   };
@@ -121,8 +127,9 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
             </Col>
           ))}
 
-          {/* Pagination */}
-          {pagination && pagination.pages > 1 && (
+          {/* Pagination — needs somewhere to page TO, so a listing that passed
+              no basePath renders none rather than a row of dead links. */}
+          {pagination && pagination.pages > 1 && basePath && (
             <Col lg={12}>
               {/* The landmark goes on a <nav>, not on the <ul>: role="navigation"
                   there would strip the list semantics its <li> children need. */}

@@ -36,6 +36,12 @@ export interface ApiResponse<T> {
   totalPages?: number;
   hasNextPage?: boolean;
   hasPrevPage?: boolean;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 import { ILocalizedString, ILocalizedMixed, IImage } from '@/types/shared';

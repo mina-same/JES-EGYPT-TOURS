@@ -94,7 +94,9 @@
     "relatedBlogs": {
       "title": "Blogs Relacionados",
       "tagline": "Historias de Viaje",
-      "description": "Más inspiración de viaje, guías e historias de Egipto."
+      "description": "Más inspiración de viaje, guías e historias de Egipto.",
+      "previous": "Artículos relacionados anteriores",
+      "next": "Artículos relacionados siguientes"
     },
     "moreTours": {
       "title": "Más",

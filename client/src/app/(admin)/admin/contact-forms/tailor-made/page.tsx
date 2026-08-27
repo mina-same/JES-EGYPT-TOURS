@@ -113,8 +113,11 @@ const TailorMadePage: React.FC = () => {
         const data = await response.json();
         console.log('Fetched requests:', data);
         setRequests(data.data || []);
-        setTotalPages(data.pagination?.pages || 1);
-        setTotalItems(data.pagination?.total || 0);
+        const responseTotal = data.pagination?.total ?? 0;
+        const normalizedTotalPages = Math.max(1, data.pagination?.pages ?? 1);
+        setTotalPages(normalizedTotalPages);
+        setTotalItems(responseTotal);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
         console.error('Failed to fetch requests:', response.status, await response.text());
       }

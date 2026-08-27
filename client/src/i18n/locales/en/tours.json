@@ -94,7 +94,9 @@
     "relatedBlogs": {
       "title": "Related Blogs",
       "tagline": "Travel Stories",
-      "description": "More travel inspiration, guides, and stories from Egypt."
+      "description": "More travel inspiration, guides, and stories from Egypt.",
+      "previous": "Previous related articles",
+      "next": "Next related articles"
     },
     "moreTours": {
       "title": "More",

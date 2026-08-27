@@ -40,6 +40,7 @@ const BookingPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -51,7 +52,7 @@ const BookingPage: React.FC = () => {
   useEffect(() => {
     fetchBookings();
     fetchStats();
-  }, [statusFilter, page, searchTerm]);
+  }, [statusFilter, page, limit, searchTerm]);
 
   // Open a specific record when arriving from a notification deep-link
   // (/admin/tour/booking?id=<id>). Fires once, after the list has loaded.
@@ -88,7 +89,10 @@ const BookingPage: React.FC = () => {
       const response = await getAllBookings(params);
       if (response.success) {
         setBookings(response.data);
-        setTotalPages(response.pagination.pages);
+        const normalizedTotalPages = Math.max(1, response.pagination.pages);
+        setTotalPages(normalizedTotalPages);
+        setTotalItems(response.pagination.total);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -198,19 +202,6 @@ const BookingPage: React.FC = () => {
         return <XCircle className="status-icon status-cancelled" size={16} />;
       default:
         return <Clock className="status-icon status-pending" size={16} />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'status-badge-confirmed';
-      case 'completed':
-        return 'status-badge-completed';
-      case 'cancelled':
-        return 'status-badge-cancelled';
-      default:
-        return 'status-badge-pending';
     }
   };
 
@@ -475,7 +466,7 @@ const BookingPage: React.FC = () => {
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}
-          totalItems={stats.total} // Need verify if this total matches current filter
+          totalItems={totalItems}
           itemsPerPage={limit}
           onPageChange={setPage}
           onItemsPerPageChange={(newLimit) => {

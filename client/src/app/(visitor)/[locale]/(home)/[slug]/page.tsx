@@ -679,10 +679,14 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
         "@type": "BlogPosting",
         "headline": blogTitle,
         ...(blogFeaturedImageUrl ? { "image": [blogFeaturedImageUrl] } : {}),
+        // `@id` matches the Person the author page publishes, so every article
+        // by the same byline resolves to ONE person in the graph instead of a
+        // fresh anonymous Person per article. Only emitted when there IS an
+        // author page — an id pointing at nothing is worse than no id.
         "author": {
           "@type": "Person",
           "name": publicAuthorName,
-          ...(publicAuthorUrl ? { "url": publicAuthorUrl } : {}),
+          ...(publicAuthorUrl ? { "@id": `${publicAuthorUrl}#person`, "url": publicAuthorUrl } : {}),
         },
         ...(blogDescription ? { "description": blogDescription } : {}),
         "datePublished": blogData.publishedAt || blogData.createdAt,

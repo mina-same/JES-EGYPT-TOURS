@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { tourSubcategoryAPI, tourCategoryAPI } from '@/lib/api/tour';
 import { ITourSubcategory, ITourCategory } from '@/types/tour';
@@ -10,7 +9,6 @@ import { ScanEye,
   Search, Filter, RefreshCw, Layers, CheckCircle,
   XCircle, FolderTree, Tag
 } from 'lucide-react';
-import Image from 'next/image';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -19,8 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import LanguageBadges from '@/components/admin/LanguageBadges';
 
+const SUBCATEGORIES_PER_PAGE = 10;
+
 export default function TourSubcategoriesPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [subcategories, setSubcategories] = useState<ITourSubcategory[]>([]);
   const [categories, setCategories] = useState<ITourCategory[]>([]);
@@ -29,6 +28,7 @@ export default function TourSubcategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function TourSubcategoriesPage() {
       
       const params: any = {
         page,
-        limit: 10,
+        limit: SUBCATEGORIES_PER_PAGE,
         search: searchTerm.trim() || undefined,
         category: categoryFilter !== 'all' ? categoryFilter : undefined,
       };
@@ -70,7 +70,14 @@ export default function TourSubcategoriesPage() {
       
       if (response.success && response.data) {
         setSubcategories(response.data);
-        setTotalPages(response.totalPages || 1);
+        const responseTotal = response.total ?? response.data.length;
+        const normalizedTotalPages = Math.max(
+          1,
+          response.totalPages ?? Math.ceil(responseTotal / SUBCATEGORIES_PER_PAGE)
+        );
+        setTotalItems(responseTotal);
+        setTotalPages(normalizedTotalPages);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
         setError(response.error || 'Failed to fetch subcategories');
       }
@@ -158,7 +165,7 @@ export default function TourSubcategoriesPage() {
 
   // Calculate stats
   const stats = {
-    total: subcategories.length,
+    total: totalItems,
     active: subcategories.filter(s => s.isActive).length,
     inactive: subcategories.filter(s => !s.isActive).length,
     totalTours: subcategories.reduce((sum, s) => sum + (s.toursCount || 0), 0),
@@ -411,8 +418,8 @@ export default function TourSubcategoriesPage() {
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}
-          totalItems={stats.total}
-          itemsPerPage={10}
+          totalItems={totalItems}
+          itemsPerPage={SUBCATEGORIES_PER_PAGE}
           onPageChange={setPage}
           onItemsPerPageChange={() => {}}
           disableLimitChange={true}

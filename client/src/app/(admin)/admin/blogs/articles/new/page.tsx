@@ -646,7 +646,10 @@ export default function NewBlogPage() {
           blogAPI.getEditorialAuthors(),
           destinationAPI.getAll({ isActive: true }),
           blogAPI.getAll({ limit: 100, status: 'published' }),
-          tourAPI.getAll({ limit: 100, isActive: true })
+          // Only what the "Related tour" dropdown renders. Without `fields`
+          // this asked for a hundred WHOLE tours — itineraries, FAQs and all —
+          // to print a list of names.
+          tourAPI.getAll({ limit: 100, isActive: true, fields: 'heading name' })
         ]);
 
         if (catRes.success && catRes.data) {

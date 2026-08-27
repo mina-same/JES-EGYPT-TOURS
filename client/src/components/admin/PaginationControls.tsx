@@ -32,8 +32,14 @@ export function PaginationControls({
   onItemsPerPageChange,
   disableLimitChange = false,
 }: PaginationControlsProps) {
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  const normalizedItemsPerPage = Math.max(1, itemsPerPage);
+  const pagesFromTotal = Math.max(1, Math.ceil(totalItems / normalizedItemsPerPage));
+  const normalizedServerPages = Math.max(1, totalPages);
+  const effectiveTotalPages =
+    normalizedServerPages === pagesFromTotal ? normalizedServerPages : pagesFromTotal;
+  const effectiveCurrentPage = Math.min(Math.max(1, currentPage), effectiveTotalPages);
+  const startItem = (effectiveCurrentPage - 1) * normalizedItemsPerPage + 1;
+  const endItem = Math.min(effectiveCurrentPage * normalizedItemsPerPage, totalItems);
 
   return (
     <div className="flex items-center justify-between px-6 py-3 border-t bg-gray-50/50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-800">
@@ -68,7 +74,7 @@ export function PaginationControls({
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
             onClick={() => onPageChange(1)}
-            disabled={currentPage === 1}
+            disabled={effectiveCurrentPage === 1}
             title="First page"
           >
             <ChevronsLeft className="h-4 w-4" />
@@ -76,8 +82,8 @@ export function PaginationControls({
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
+            onClick={() => onPageChange(effectiveCurrentPage - 1)}
+            disabled={effectiveCurrentPage === 1}
             title="Previous page"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -85,15 +91,15 @@ export function PaginationControls({
           
           <div className="flex items-center gap-1 text-sm font-medium">
             <span className="px-2">
-              Page {currentPage} of {Math.max(1, totalPages)}
+              Page {effectiveCurrentPage} of {effectiveTotalPages}
             </span>
           </div>
 
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => onPageChange(effectiveCurrentPage + 1)}
+            disabled={effectiveCurrentPage >= effectiveTotalPages}
             title="Next page"
           >
             <ChevronRight className="h-4 w-4" />
@@ -101,8 +107,8 @@ export function PaginationControls({
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => onPageChange(totalPages)}
-            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => onPageChange(effectiveTotalPages)}
+            disabled={effectiveCurrentPage >= effectiveTotalPages}
             title="Last page"
           >
             <ChevronsRight className="h-4 w-4" />

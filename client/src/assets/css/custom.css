@@ -5695,7 +5695,10 @@ button[data-action="stop"] {
    than a card quietly showing the article's SEO copy. Clamped and
    reserved at three lines for the same reason as the title. */
 .blog-card-text {
-  margin: 0 0 16px;
+  /* 11px, down from 16. The teaser and the metadata are one group — the
+     article's own voice, then who wrote it and how long it takes — and at 16px
+     they read as two separate blocks stacked in the card. */
+  margin: 0 0 11px;
   /* The body face, said out loud. It is what the card inherits anyway, but the
      display face (Playfair) is one token away and belongs to section headings,
      never to card copy. */
@@ -5868,7 +5871,8 @@ button[data-action="stop"] {
 }
 .blog-card-two--compact .blog-card-text {
   font-size: 14px;
-  margin-bottom: 12px;
+  /* Kept proportionally under the full-size card's 11px. */
+  margin-bottom: 9px;
   -webkit-line-clamp: 2;
 }
 .blog-card-two--compact .blog-card-chip {
@@ -5955,6 +5959,24 @@ button[data-action="stop"] {
   font-size: 16px;
   line-height: 1.7;
   color: rgba(var(--jes-ink), 0.66);
+}
+.related-blogs-nav.feature-package__bottom__nav {
+  justify-content: center;
+  margin-top: 22px;
+}
+.related-blogs-carousel {
+  padding: 6px 2px 16px;
+}
+.related-blogs-carousel .swiper-wrapper {
+  align-items: stretch;
+}
+.related-blogs-carousel .swiper-slide {
+  display: flex;
+  height: auto;
+}
+.related-blogs-carousel .blog-card-two {
+  width: 100%;
+  max-width: none;
 }
 @media (max-width: 767px) {
   .related-blogs-head {

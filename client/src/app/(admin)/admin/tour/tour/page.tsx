@@ -8,7 +8,7 @@ import { ITour, ITourSubcategory } from '@/types/tour';
 import { ScanEye, 
   Loader2, Plus, Edit2, Trash2,
   Search, Filter, RefreshCw, MapPin, Clock, 
-  Star, CheckCircle, XCircle, Tag, MessageSquare, Calendar
+  Star, CheckCircle, XCircle, Tag, Calendar
 } from 'lucide-react';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
@@ -35,6 +35,7 @@ function ToursPageContent() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || 'all');
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>(searchParams.get('subcategory') || 'all');
@@ -87,7 +88,14 @@ function ToursPageContent() {
       
       if (response.success && response.data) {
         setTours(response.data);
-        setTotalPages(response.totalPages || 1);
+        const responseTotal = response.total ?? response.data.length;
+        const normalizedTotalPages = Math.max(
+          1,
+          response.totalPages ?? Math.ceil(responseTotal / limit)
+        );
+        setTotalItems(responseTotal);
+        setTotalPages(normalizedTotalPages);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
         setError(response.error || 'Failed to fetch tours');
       }
@@ -181,7 +189,7 @@ function ToursPageContent() {
 
   // Calculate stats
   const stats = {
-    total: tours.length,
+    total: totalItems,
     active: tours.filter(t => t.isActive).length,
     inactive: tours.filter(t => !t.isActive && !t.scheduledAt).length,
     scheduled: tours.filter(t => !t.isActive && !!t.scheduledAt).length,
@@ -345,7 +353,7 @@ function ToursPageContent() {
 
   useEffect(() => {
     fetchTours();
-  }, [page, searchTerm, statusFilter, categoryFilter, subcategoryFilter, featuredFilter]);
+  }, [page, limit, searchTerm, statusFilter, categoryFilter, subcategoryFilter, featuredFilter]);
 
   useEffect(() => {
     tourCategoryAPI.getAll().then((res) => {
@@ -537,7 +545,7 @@ function ToursPageContent() {
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}
-          totalItems={stats.total}
+          totalItems={totalItems}
           itemsPerPage={limit}
           onPageChange={setPage}
           onItemsPerPageChange={(newLimit) => {

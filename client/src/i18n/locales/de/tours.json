@@ -94,7 +94,9 @@
     "relatedBlogs": {
       "title": "Ähnliche Blogs",
       "tagline": "Reisegeschichten",
-      "description": "Mehr Reiseinspiration, Reiseführer und Geschichten aus Ägypten."
+      "description": "Mehr Reiseinspiration, Reiseführer und Geschichten aus Ägypten.",
+      "previous": "Vorherige verwandte Artikel",
+      "next": "Nächste verwandte Artikel"
     },
     "moreTours": {
       "title": "Mehr",
