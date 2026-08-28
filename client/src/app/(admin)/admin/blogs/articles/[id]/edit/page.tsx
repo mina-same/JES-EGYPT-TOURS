@@ -814,7 +814,9 @@ export default function EditBlogPage() {
           blogAPI.getEditorialAuthors(),
           destinationAPI.getAll({ isActive: true }),
           blogAPI.getAll({ limit: 100, status: 'published' }),
-          tourAPI.getAll({ limit: 100, isActive: true })
+          // Only what the "Related tour" dropdown renders — see the same call
+          // on the new-article page.
+          tourAPI.getAll({ limit: 100, isActive: true, fields: 'heading name' })
         ]);
         
         if (catRes.success && catRes.data) {

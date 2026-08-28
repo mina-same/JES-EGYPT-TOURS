@@ -52,6 +52,28 @@ export function validateTourForm(formData: TourFormData): FormErrorItem[] {
       if (!plan.planName) {
         errors.push({ field: `Pricing Plan ${pIdx + 1}`, message: 'Plan name is required', path: `pricingPlans.${pIdx}.planName` });
       }
+      /* The server requires English location AND hotels on every accommodation
+         row. Without this check, clicking "Add Location" and saving produced a
+         server rejection the editor could not point at, so the blank row that
+         caused it was invisible. */
+      (plan.accommodations || []).forEach((stay, aIdx) => {
+        const at = `pricingPlans.${pIdx}.accommodations.${aIdx}`;
+        if (!stay?.location?.en?.trim()) {
+          errors.push({
+            field: `Plan ${pIdx + 1} — accommodation ${aIdx + 1}`,
+            message: 'Location (English) is required',
+            path: `${at}.location`,
+          });
+        }
+        if (!stay?.hotels?.en?.trim()) {
+          errors.push({
+            field: `Plan ${pIdx + 1} — accommodation ${aIdx + 1}`,
+            message: 'Hotels (English) is required',
+            path: `${at}.hotels`,
+          });
+        }
+      });
+
       if (!plan.seasons || plan.seasons.length === 0) {
         errors.push({ field: `Pricing Plan ${pIdx + 1}`, message: 'At least one season is required', path: `pricingPlans.${pIdx}.seasons` });
       } else {
@@ -68,6 +90,26 @@ export function validateTourForm(formData: TourFormData): FormErrorItem[] {
           // pages then showed as "$0.00". An unpriced season is a valid state:
           // the tour page hides its pricing section and the cards hide their
           // "Start from" line until real amounts exist.
+        });
+      }
+    });
+  }
+
+  /* Every day states its meals. Unlike the prices above, this is not a number
+     sales has yet to decide — it is a fact the person writing the day already
+     knows, and leaving it out is what makes a traveller ask. "None" is one of
+     the choices, so there is always a correct answer to give.
+
+     Enforced here rather than in the Mongoose schema: the seeders and every
+     tour written before this field existed carry no meals, and a schema-level
+     `required` would stop all of them from saving. */
+  if (Array.isArray(formData.itinerary?.days)) {
+    formData.itinerary.days.forEach((day: any, dayIdx: number) => {
+      if (!Array.isArray(day?.meals) || day.meals.length === 0) {
+        errors.push({
+          field: `Itinerary — Day ${day?.day ?? dayIdx + 1}`,
+          message: 'Select the meals included, or None',
+          path: `itinerary.days.${dayIdx}.meals`,
         });
       }
     });

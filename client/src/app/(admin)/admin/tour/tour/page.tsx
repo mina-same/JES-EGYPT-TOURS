@@ -8,7 +8,7 @@ import { ITour, ITourSubcategory } from '@/types/tour';
 import { ScanEye, 
   Loader2, Plus, Edit2, Trash2,
   Search, Filter, RefreshCw, MapPin, Clock, 
-  Star, CheckCircle, XCircle, Tag, MessageSquare, Calendar
+  Star, CheckCircle, XCircle, Tag, Calendar
 } from 'lucide-react';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
@@ -20,6 +20,7 @@ import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import { getDisplayName } from '@/lib/displayName';
 
 function ToursPageContent() {
   const router = useRouter();
@@ -35,6 +36,7 @@ function ToursPageContent() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || 'all');
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>(searchParams.get('subcategory') || 'all');
@@ -87,7 +89,14 @@ function ToursPageContent() {
       
       if (response.success && response.data) {
         setTours(response.data);
-        setTotalPages(response.totalPages || 1);
+        const responseTotal = response.total ?? response.data.length;
+        const normalizedTotalPages = Math.max(
+          1,
+          response.totalPages ?? Math.ceil(responseTotal / limit)
+        );
+        setTotalItems(responseTotal);
+        setTotalPages(normalizedTotalPages);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
         setError(response.error || 'Failed to fetch tours');
       }
@@ -167,21 +176,22 @@ function ToursPageContent() {
   };
 
   // Get subcategory name
-  const getSubcategoryName = (subcategory: any) => {
+  const getSubcategoryName = (subcategory: ITour['subcategory']) => {
     // Handle both populated object and ID string
-    if (typeof subcategory === 'object' && subcategory?.name) {
-      return typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name;
+    if (typeof subcategory === 'object' && subcategory) {
+      const fullSubcategory = subcategories.find(s => s._id === subcategory._id) || subcategory;
+      return getDisplayName(fullSubcategory, 'en') || 'Unknown';
     }
     if (typeof subcategory === 'string') {
       const found = subcategories.find(s => s._id === subcategory);
-      return found ? (typeof found.name === 'object' ? found.name.en : found.name) : 'Unknown';
+      return found ? getDisplayName(found, 'en') || 'Unknown' : 'Unknown';
     }
     return 'Unknown';
   };
 
   // Calculate stats
   const stats = {
-    total: tours.length,
+    total: totalItems,
     active: tours.filter(t => t.isActive).length,
     inactive: tours.filter(t => !t.isActive && !t.scheduledAt).length,
     scheduled: tours.filter(t => !t.isActive && !!t.scheduledAt).length,
@@ -239,9 +249,11 @@ function ToursPageContent() {
       headerClassName: 'duration-column',
       cellClassName: 'duration-column',
       render: (tour) => (
-        <div className="tour-meta-item">
+        <div className="tour-meta-item duration-display">
           <Clock size={14} />
-          {(typeof tour.duration === 'object' ? (tour.duration as any).en : tour.duration) || 'N/A'}
+          <span>
+            {(typeof tour.duration === 'object' ? (tour.duration as any).en : tour.duration) || 'N/A'}
+          </span>
         </div>
       ),
     },
@@ -250,14 +262,16 @@ function ToursPageContent() {
       headerClassName: 'price-column',
       cellClassName: 'price-column',
       render: (tour) => (
-        <div className="price-display">
+        <div className={`price-display ${tour.priceStartingFrom ? '' : 'is-empty'}`}>
           {tour.priceStartingFrom ? (
             <>
-              <span style={{ fontSize: '12px', color: '#6b7280' }}>From </span>
-              ${typeof tour.priceStartingFrom === 'object' ? (tour.priceStartingFrom as any).USD : tour.priceStartingFrom}
+              <span className="price-prefix">From</span>
+              <span className="price-amount">
+                ${typeof tour.priceStartingFrom === 'object' ? (tour.priceStartingFrom as any).USD : tour.priceStartingFrom}
+              </span>
             </>
           ) : (
-            'N/A'
+            <span className="empty-value">N/A</span>
           )}
         </div>
       ),
@@ -345,7 +359,7 @@ function ToursPageContent() {
 
   useEffect(() => {
     fetchTours();
-  }, [page, searchTerm, statusFilter, categoryFilter, subcategoryFilter, featuredFilter]);
+  }, [page, limit, searchTerm, statusFilter, categoryFilter, subcategoryFilter, featuredFilter]);
 
   useEffect(() => {
     tourCategoryAPI.getAll().then((res) => {
@@ -537,7 +551,7 @@ function ToursPageContent() {
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}
-          totalItems={stats.total}
+          totalItems={totalItems}
           itemsPerPage={limit}
           onPageChange={setPage}
           onItemsPerPageChange={(newLimit) => {

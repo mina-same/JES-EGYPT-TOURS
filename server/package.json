@@ -22,7 +22,8 @@
     "migrate:remove-views": "ts-node src/scripts/removeContentViews.ts",
     "migrate:reset-tour-social-images": "ts-node src/scripts/resetTourSocialImages.ts",
     "migrate:tour-kind": "ts-node src/scripts/backfillTourKind.ts",
-    "migrate:clear-placeholder-prices": "ts-node src/scripts/clearPlaceholderPrices.ts"
+    "migrate:clear-placeholder-prices": "ts-node src/scripts/clearPlaceholderPrices.ts",
+    "migrate:author-role": "ts-node src/scripts/correctAuthorRole.ts"
   },
   "keywords": [
     "express",
@@ -33,8 +34,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/compression": "^1.8.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.8.0",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

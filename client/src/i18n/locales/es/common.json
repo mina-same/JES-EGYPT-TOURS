@@ -254,5 +254,6 @@
   "videoReviews": {
     "tagline": "Viajeros Reales",
     "title": "Reseñas en Vídeo"
-  }
+  },
+  "breadcrumb": "Ruta de navegación"
 }

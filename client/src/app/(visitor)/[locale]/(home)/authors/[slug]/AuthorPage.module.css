@@ -1,0 +1,506 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Author profile page.
+
+   Every colour here resolves to a token the rest of the site already
+   defines — --jes-gold (#b79c5c, the editorial gold the blog cards and
+   section eyebrows use), --jes-ink (14 58 87, the navy behind --gotur-text)
+   and --gotur-* for surfaces and borders. The previous version of this file
+   wrote #b79c5c, #0f2433, #f8f6f2 and #ede9e0 as literals, which happened to
+   be near the brand but drifted from it — a second navy, a second warm
+   neutral, and no way to restyle the page with the site.
+
+   The surface recipe (faint gold tint, 1px gold border at 0.15, 20px radius)
+   is lifted from .tour-trust-band in custom.css rather than invented, so the
+   panels here read as the same component family as the tour page's.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+
+/* Replaces the site's stock page-header banner ON THIS PAGE ONLY.
+
+   That banner is a full-bleed photograph of a temple with the name over it.
+   On a page whose subject is a person, it made the largest thing on screen a
+   picture of somewhere she is not, and pushed her own portrait below the
+   fold. This keeps the space for the author — but keeps the BRAND's opening,
+   which is dark.
+
+   A pale hero was tried and it was wrong twice over. Visually it made this the
+   only page on the site that opens light, and the page beyond it is already
+   mostly white, so it read as a blank sheet. Functionally it broke the header:
+   the site's navigation lays over the top of the page in light-coloured links,
+   so on white they vanished.
+
+   Navy, gold and white only — the same three the "How she works" band further
+   down already uses. The navy is --gotur-text, the site's own ink; the depth
+   comes from a gold glow behind the portrait and a darkening toward the fold,
+   both derived from existing tokens rather than from new colours.
+
+   The top padding is CLEARANCE, not taste: the header is laid over the page
+   rather than above it, which is why the theme's own banner carries
+   `padding: 220px 0 130px`. Measured, the header block is 108px tall (plus the
+   60px topbar on desktop). */
+.authorHero {
+  position: relative;
+  padding: 168px 0 76px;
+  background-color: var(--gotur-text, #0e3a57);
+  background-image:
+    /* Gold light behind the portrait, on the right. */
+    radial-gradient(900px 560px at 78% 38%, rgba(183, 156, 92, 0.2), transparent 62%),
+    /* A quiet vignette toward the bottom edge, so the section resolves into
+       the pale band that follows instead of stopping dead. */
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.22) 100%);
+}
+
+/* The one hairline of brand gold along the bottom edge — the same trick the
+   topbar uses to separate itself from the header. */
+.authorHero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(183, 156, 92, 0.55) 50%,
+    transparent 100%
+  );
+}
+
+/* The breadcrumb needs NO colour overrides here any more.
+
+   It is white-on-dark by default in gotur.css, because it has only ever sat on
+   the dark banner — which is exactly the situation again. Only the alignment
+   is changed: centred under a banner, flush left at the top of a page.
+
+   The margin has to clear the row BELOW it: `.gutter-y-40` gives the hero row
+   `margin-top: -40px` (that is how Bootstrap's vertical gutters work), which
+   pulled the row up over the breadcrumb until the portrait sat on top of the
+   word "Home" on mobile. */
+.authorHeroCrumb {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 68px;
+}
+
+.authorHeroCrumb :global(.gotur-breadcrumb) {
+  justify-content: flex-start;
+  margin-bottom: 0;
+}
+
+.authorHeroCrumb :global(.gotur-breadcrumb li),
+.authorHeroCrumb :global(.gotur-breadcrumb li a) {
+  font-size: 14px;
+}
+
+.authorHeroCrumb :global(.gotur-breadcrumb li a:hover) {
+  color: var(--jes-gold, #b79c5c);
+}
+
+/* Everything in the hero sits above the background layers. */
+.authorHeroBody {
+  position: relative;
+  z-index: 1;
+}
+
+.authorHeroRole {
+  display: inline-block;
+  color: var(--jes-gold, #b79c5c);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+/* The page's only h1. Opts in to the display serif the way the site's other
+   editorial headings do (see .section-title__title in custom.css). */
+.authorHeroName {
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
+  font-size: clamp(2.1rem, 4.4vw, 3.2rem);
+  font-weight: 700;
+  color: var(--gotur-white, #fff);
+  line-height: 1.15;
+  margin: 0 0 18px;
+}
+
+.authorHeroLead {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.8;
+  max-width: 34em;
+  margin: 0 0 26px;
+}
+
+/* ── Topic chips ───────────────────────────────────────────────────────── */
+
+/* Same pill as .blog-card-chip: 999px radius, 12px/700 text, gold on a light
+   ground. That chip is a link on a photograph; these are labels on a page, so
+   they take the tint as a background instead of white-with-a-shadow. */
+.authorTopics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.authorTopic {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(183, 156, 92, 0.12);
+  border: 1px solid rgba(183, 156, 92, 0.42);
+  color: #d7bd85;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+/* ── Photo slots ───────────────────────────────────────────────────────── */
+
+/* Ratios are declared here, once, so a slot reserves its box before any file
+   exists and the real photographs drop in without moving anything. */
+:global(.author-photo) {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  background: rgba(183, 156, 92, 0.04);
+}
+
+/* 3:4 — the ratio the author's photographs are actually supplied in
+   (1086x1448). Matching the source exactly means `object-fit: cover` has
+   nothing to crop, so nobody loses the top of their head to a frame chosen
+   before the pictures existed. */
+:global(.author-photo--portrait) {
+  aspect-ratio: 3 / 4;
+}
+
+:global(.author-photo--landscape) {
+  /* 16:10, the ratio .blog-card-media already crops to. */
+  aspect-ratio: 16 / 10;
+}
+
+:global(.author-photo--square) {
+  aspect-ratio: 1 / 1;
+}
+
+:global(.author-photo__img) {
+  object-fit: cover;
+}
+
+/* The empty state: the tour trust band's panel, not a grey box. */
+:global(.author-photo--empty) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(183, 156, 92, 0.15);
+}
+
+:global(.author-photo__glyph) {
+  width: 26px;
+  height: 26px;
+  color: rgba(183, 156, 92, 0.4);
+}
+
+/* The portrait is CAPPED, and hugs the right edge of its column.
+
+   Uncapped it simply took the column: at 1440px that is a 539px-wide frame,
+   which at 3:4 is 719px tall — a hero over 1000px high built around 260px of
+   text. Because the row is vertically centred, the text then floated in the
+   middle with roughly 300px of dead space above it, and the picture ran past
+   the fold. 400px keeps the portrait the largest thing in the hero without
+   letting it set the section's height.
+
+   360 rather than 400: the row is vertically centred, so every pixel the
+   portrait is taller than the text block becomes half that much dead space
+   above the eyebrow. At 360 the picture is 480 tall against 261 of text,
+   which leaves a normal ~110px of breathing room instead of a hole. */
+.authorHeroPortrait {
+  max-width: 360px;
+  margin-left: auto;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
+}
+
+/* ── About ─────────────────────────────────────────────────────────────── */
+
+.authorAbout {
+  background: var(--gotur-gray, #f3f8f6);
+  padding: 80px 0;
+}
+
+.authorAboutText {
+  font-size: 16px;
+  color: rgba(var(--jes-ink), 0.75);
+  line-height: 1.85;
+  margin-bottom: 22px;
+}
+
+.authorAboutText:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Quick profile card ────────────────────────────────────────────────── */
+
+.authorFactsCard {
+  background: var(--gotur-white, #fff);
+  border-radius: 20px;
+  padding: 30px 32px;
+  border: 1px solid rgba(183, 156, 92, 0.18);
+}
+
+.authorFactsHeading {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gotur-text, #0e3a57);
+  margin: 0 0 6px;
+}
+
+.authorFactsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(var(--jes-ink), 0.08);
+}
+
+.authorFactsRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.authorFactsLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--jes-gold, #b79c5c);
+}
+
+.authorFactsValue {
+  font-size: 15px;
+  color: var(--gotur-text, #0e3a57);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* ── Context figures ───────────────────────────────────────────────────── */
+
+.contextFigure {
+  margin: 0;
+}
+
+.contextCaption {
+  margin: 14px 2px 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(var(--jes-ink), 0.62);
+}
+
+/* ── Expertise cards ───────────────────────────────────────────────────── */
+
+.expertiseCard {
+  background: var(--gotur-white, #fff);
+  border-radius: 20px;
+  padding: 30px 28px;
+  height: 100%;
+  border: 1px solid rgba(var(--jes-ink), 0.08);
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+
+.expertiseCard:hover {
+  border-color: rgba(183, 156, 92, 0.28);
+  box-shadow: 0 12px 30px rgba(var(--jes-ink), 0.07);
+  transform: translateY(-4px);
+}
+
+/* The small rounded square from .tour-trust-band__icon, at the same 34px. */
+.expertiseCardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(183, 156, 92, 0.1);
+  color: var(--jes-gold, #b79c5c);
+  margin-bottom: 18px;
+}
+
+.expertiseCardIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.expertiseCardHeading {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--gotur-text, #0e3a57);
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+.expertiseCardBody {
+  font-size: 14px;
+  color: rgba(var(--jes-ink), 0.62);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── Approach (dark section) ───────────────────────────────────────────── */
+
+/* The navy block the page already had, kept because it is on-brand and gives
+   the page its one dark beat. Its CONTENT changed from site editorial policy
+   to how this author works; the surface did not. */
+.authorApproach {
+  background: var(--gotur-text, #0e3a57);
+  padding: 80px 0;
+}
+
+.authorApproachTagline {
+  color: var(--jes-gold, #b79c5c) !important;
+}
+
+.authorApproachHeading {
+  font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: var(--gotur-white, #fff);
+  margin-bottom: 14px;
+  line-height: 1.3;
+}
+
+.authorApproachLead {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.8;
+  margin-bottom: 44px;
+  max-width: 46em;
+}
+
+.approachItem {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 22px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  height: 100%;
+}
+
+.approachItemIcon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(183, 156, 92, 0.16);
+  color: var(--jes-gold, #b79c5c);
+}
+
+.approachItemIcon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.approachItemHeading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gotur-white, #fff);
+  margin: 0 0 8px;
+  line-height: 1.35;
+}
+
+.approachItemBody {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── Publisher line ────────────────────────────────────────────────────── */
+
+/* Understated by design: one sentence and a link, not the panel with the
+   gold label and the company strapline that used to close the page. */
+.authorPublisher {
+  padding: 44px 0;
+  border-top: 1px solid rgba(var(--jes-ink), 0.08);
+  text-align: center;
+}
+
+.authorPublisherText {
+  font-size: 14px;
+  color: rgba(var(--jes-ink), 0.6);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.authorPublisherText a {
+  color: var(--jes-gold, #b79c5c);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 991px) {
+  /* The portrait leads on desktop as the second column; on a narrow screen it
+     goes ABOVE the text (source order puts the text first for reading and
+     for a crawler, `order` puts the picture first visually) and stops being
+     full-bleed tall — a 4:5 portrait at 100vw would fill the whole screen
+     before a single word appeared. */
+  .authorHeroMedia {
+    order: -1;
+    max-width: 320px;
+    margin: 0 auto 32px;
+  }
+
+  /* Centred in its own column below the desktop breakpoint, where the column
+     is already the narrow one. */
+  .authorHeroPortrait {
+    max-width: none;
+    margin-left: 0;
+  }
+
+  .authorHero {
+    padding: 140px 0 48px;
+  }
+
+  .authorHeroCrumb {
+    margin-bottom: 60px;
+  }
+}
+
+@media (max-width: 767px) {
+  .authorAbout,
+  .authorApproach {
+    padding: 56px 0;
+  }
+
+  .authorFactsCard {
+    padding: 24px 22px;
+  }
+
+  .expertiseCard {
+    padding: 26px 22px;
+  }
+
+  /* German compounds ("Besucherinformationen", "Reiseplanung in Ägypten") do
+     not break, so a narrow column has to be allowed to break inside them
+     rather than letting one word set the card's minimum width. */
+  .expertiseCardHeading,
+  .authorHeroName,
+  .approachItemHeading {
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}

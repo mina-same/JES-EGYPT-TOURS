@@ -286,7 +286,10 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
           {
             day: (prev.itinerary?.days?.length || 0) + 1,
             title: { en: '', de: '', it: '', es: '' },
-            activities: []
+            activities: [],
+            // Present but empty, so the day shows its Meals requirement from
+            // the moment it is added rather than at save time.
+            meals: []
           }
         ],
       },

@@ -1,3 +1,4 @@
+import { revalidateTags } from '../services/revalidate';
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
 import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
@@ -534,5 +535,27 @@ BlogSchema.methods.incrementShareCount = function() {
   this.shareCount += 1;
   return this.save();
 };
+
+/*
+ * Clear the front end's cache whenever an article changes.
+ *
+ * On the MODEL rather than in the controllers on purpose: articles are written
+ * from create, update, publish, delete, the importer and a couple of
+ * migrations, and a hook per write path is a hook someone forgets on the next
+ * one. Every path ends up here.
+ *
+ * The tag is coarse — `blog`, not this article's own id — because a single
+ * article changing affects the listings, the category pages, the related-post
+ * strips and its author's page. Invalidating them together is both correct and
+ * cheaper to reason about than a graph of per-entity tags.
+ */
+const revalidateBlogCaches = () => revalidateTags(['blog']);
+
+BlogSchema.post('save', revalidateBlogCaches);
+BlogSchema.post('findOneAndUpdate', revalidateBlogCaches);
+BlogSchema.post('findOneAndDelete', revalidateBlogCaches);
+BlogSchema.post('deleteOne', revalidateBlogCaches);
+BlogSchema.post('updateOne', revalidateBlogCaches);
+BlogSchema.post('updateMany', revalidateBlogCaches);
 
 export default mongoose.model<IBlog>('Blog', BlogSchema);

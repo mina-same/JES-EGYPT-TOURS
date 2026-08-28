@@ -1583,25 +1583,569 @@ body {
 }
 
 /* ==========================================================================
-   "BOOK WITH CONFIDENCE" — in-rail band
-   Same markup, same seven i18n keys, same five icons. The col-lg-4/col-lg-8
-   split is forced to full width so the five 120px items get the whole rail.
+   "BOOK WITH CONFIDENCE" — in-rail trust panel
+
+   The panel is unchanged: same gold-tinted surface, 20px radius and hairline
+   border it always had, so it still reads as one of this page's cards. What
+   changed is the inside.
+
+   It was a Bootstrap row of five 70px circled icons, and the icons WERE the
+   section — 35px glyphs over 13px labels, in a block taller than the itinerary
+   card for four words of content, under claims any operator can print.
+
+   It is now cut to the measurements of .tour-listing-details__info-area--rail
+   directly above it: 14px/600 title, 12px muted line, hairline column dividers
+   at the lightest accent tint, so they order the row without competing with it.
+   The two sections carry the same shape of information and were saying it in
+   two different visual languages. The icon drops to a 34px rounded square in
+   accent tints already used across the page, which puts the words first and
+   takes roughly 80px of height out of the rail.
    ========================================================================== */
 .tour-trust-band {
   margin: 4px 0 24px;
-  padding: 22px 24px;
+  padding: 20px 24px 22px;
   border-radius: 20px;
   background: rgba(183, 156, 92, 0.04);
   border: 1px solid rgba(183, 156, 92, 0.15);
 }
-.tour-trust-band > .row > [class*="col-lg-"] {
-  flex: 0 0 100%;
-  max-width: 100%;
+
+/* Inherits the page's section-heading face, weight and colour from
+   .tour-listing-details__title; only scale and margins are re-set, the way the
+   description and pricing headings do it inline. */
+.tour-trust-band__title {
+  margin: 0 0 6px;
+  font-size: 20px;
+  /* The inherited `text-transform: capitalize` is English title case. It also
+     hit every other word of the translations, so German read "Buchen Sie Mit
+     Vertrauen" — capitalising a preposition mid-sentence, which is simply an
+     error to a native reader. The four headings are already cased correctly in
+     the locale files, so the transform is switched off here rather than
+     globally. */
+  text-transform: none;
 }
-.tour-trust-band .col-lg-8 { margin-top: 18px; }
+.tour-trust-band__lead {
+  margin: 0;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #595959;
+}
+
+.tour-trust-band__list {
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px 0;
+}
+/* Top-aligned, not centred. Centring each item independently meant that the
+   moment one supporting line wrapped to two — "Personalize your Egypt
+   experience" in English, "Reisebetreuung rund um die Uhr" in German — that
+   column re-centred and its title floated ABOVE the other three, breaking the
+   one horizontal line the eye reads across the row. Aligning to the top pins
+   every title to the same baseline and lets the extra line grow downward,
+   which holds in any language and at any column width. */
+.tour-trust-band__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  /* Logical, like .tour-pack's accent border, so the columns and their rules
+     follow the writing direction if RTL is ever added. nth-child already means
+     "first in row" independently of direction, so the pair works unchanged. */
+  padding-inline: var(--tb-col-pad, 0);
+}
+.tour-trust-band__body { min-width: 0; }
+
+/* A small rounded square, not the old 70px circle. The tints are accent values
+   already in use on the page, so it introduces no second gold. */
+.tour-trust-band__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #b79c5c;
+  background: rgba(183, 156, 92, 0.1);
+  border: 1px solid rgba(183, 156, 92, 0.18);
+}
+.tour-trust-band__item-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--gotur-black, #1d231f);
+}
+.tour-trust-band__item-text {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #595959;
+}
+
+/* Two columns as soon as a title fits beside its icon without breaking into
+   three lines; one column below that, where a 2-up grid stops being readable.
+
+   Column padding comes from --tb-col-pad rather than literal values, so the
+   narrow-desktop band below only has to change the number. It previously had to
+   restate all four "which item starts a row" selectors just to swap 18px for
+   12px, which is the kind of duplication that goes stale silently. */
+@media (min-width: 576px) {
+  .tour-trust-band__list {
+    --tb-col-pad: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 0;
+  }
+  .tour-trust-band__item { border-inline-start: 1px solid rgba(183, 156, 92, 0.12); }
+  .tour-trust-band__item:nth-child(2n + 1) {
+    padding-inline-start: 0;
+    border-inline-start: none;
+  }
+  .tour-trust-band__item:nth-child(2n) { padding-inline-end: 0; }
+}
+
+/* Four across. Items 2 and 3 are no longer a row end and a row start, so the
+   2n / 2n+1 rules above are given their padding and rule back before 4n / 4n+1
+   take them off the real edges. */
+@media (min-width: 992px) {
+  .tour-trust-band__list { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  .tour-trust-band__item:nth-child(2n + 1) {
+    padding-inline-start: var(--tb-col-pad);
+    border-inline-start: 1px solid rgba(183, 156, 92, 0.12);
+  }
+  .tour-trust-band__item:nth-child(2n) { padding-inline-end: var(--tb-col-pad); }
+  .tour-trust-band__item:nth-child(4n + 1) {
+    padding-inline-start: 0;
+    border-inline-start: none;
+  }
+  .tour-trust-band__item:nth-child(4n) { padding-inline-end: 0; }
+}
+
+/* The rail narrows by about a third here while still holding four columns. */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .tour-trust-band__list { --tb-col-pad: 12px; }
+  .tour-trust-band__item { gap: 10px; }
+}
 
 @media (max-width: 991px) {
-  .tour-trust-band { padding: 18px 16px; }
+  .tour-trust-band { padding: 18px 16px 20px; }
+  .tour-trust-band__title { font-size: 18px; }
+}
+
+/* ==========================================================================
+   TOUR PLAN — activity timeline
+
+   Lifted out of the JSX, which carried fifteen inline style objects rebuilt on
+   every render, four of them per activity.
+
+   The move is also what fixes the connector. The timeline is built from three
+   numbers — marker size, the gap between stops, and the connector's own length —
+   and the third has to be derived from the first two. In the JSX they were
+   independent literals and the derivation was done by hand as
+   `calc(100% + 40px)`, which overshot by exactly one marker height. It stayed
+   invisible for as long as the next stop had an opaque photo to hide the tail
+   behind, and showed as a line dangling under the last marker the moment one
+   did not. Here the first two are variables and the third is computed from them.
+   ========================================================================== */
+.tour-plan__timeline {
+  --tp-marker: 60px;
+  --tp-gap: 40px;
+  margin-top: 24px;
+}
+.tour-plan__stop {
+  position: relative;
+  display: flex;
+  gap: 24px;
+}
+.tour-plan__stop + .tour-plan__stop { margin-top: var(--tp-gap); }
+
+.tour-plan__marker {
+  position: relative;
+  flex-shrink: 0;
+  width: var(--tp-marker);
+  min-width: var(--tp-marker);
+}
+.tour-plan__photo {
+  width: var(--tp-marker);
+  height: var(--tp-marker);
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #b79c5c;
+  background-color: #fff;
+  position: relative;
+  z-index: 2;
+}
+.tour-plan__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Same footprint as a photo, so a stop without one does not move the point the
+   connector starts from. */
+.tour-plan__dot {
+  width: var(--tp-marker);
+  height: var(--tp-marker);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+.tour-plan__dot::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #b79c5c;
+  background-color: #fff;
+}
+/* Bottom of this marker to the top of the next: the stop's height, plus the gap
+   below it, less the marker already drawn above. */
+.tour-plan__connector {
+  position: absolute;
+  left: 50%;
+  top: var(--tp-marker);
+  transform: translateX(-50%);
+  width: 2px;
+  height: calc(100% + var(--tp-gap) - var(--tp-marker));
+  background-color: var(--gotur-border-color, #e5e5e5);
+  z-index: 1;
+}
+
+.tour-plan__body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
+}
+.tour-plan__heading {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+/* The itinerary's own intro, under the "Tour Plan" heading.
+
+   It had no colour of its own, so it inherited <body>'s — and <body>'s colour
+   is broken: globals.css sets `color: var(--foreground)`, but --foreground
+   holds a bare shadcn HSL triplet (222.2 84% 4.9%) that has to be wrapped in
+   hsl() to be a colour. Unwrapped it is invalid, the declaration drops, and the
+   property falls back to the initial value: pure black. Measured, not guessed —
+   getComputedStyle reports rgb(0, 0, 0).
+
+   That is a site-wide bug and not this section's to fix; what belongs here is
+   the section stating its own typography. Body size, since it introduces the
+   whole plan. Same #484848 as the day copy below it, so the section reads as
+   one body of text rather than two tones. */
+.tour-plan__intro {
+  font-size: 1rem;
+  color: #484848;
+  line-height: 1.8;
+}
+
+/* On a seven-day package this is by far the longest read on the page, yet it
+   was set at the smallest size AND the lightest grey of any body copy here —
+   two steps down at once. Now at full body size and a step darker than the
+   page's #595959, because length of read is what this text is judged on.
+   Weight stays inherited at 400: the contrast with the 700 step title above is
+   what keeps it secondary, not a lighter colour. */
+.tour-plan__text {
+  font-size: 16px;
+  color: #484848;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   TOUR PLAN — optional stop
+
+   A soft gold status label, sized and weighted to sit UNDER the stop title
+   rather than beside it in importance. It replaced a filled charcoal pill in
+   caps with a plus glyph, which read as a button to press rather than a fact
+   about the stop, and carried more weight than the heading it annotated.
+
+   On the text colour: the brand gold #b79c5c on this pale tint measures 2.44:1,
+   well under the 4.5:1 that 11px text needs to stay readable. #7a6537 is the
+   same hue taken down until it measures 5.15:1 — the "muted gold-brown" of the
+   same family, not a second accent.
+
+   The badge is the only marker: the timeline ring stays solid, so an optional
+   stop reads as part of the same chain as everything around it.
+   -------------------------------------------------------------------------- */
+.tour-plan__optional {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 10px;
+  padding: 2px 9px;
+  border: 1px solid rgba(183, 156, 92, 0.22);
+  border-radius: 999px;
+  background-color: rgba(183, 156, 92, 0.1);
+  color: #7a6537;
+  font-size: 11px;
+  /* Medium at most: the heading beside it is 700, and the gap in weight is what
+     keeps the label secondary. */
+  font-weight: 500;
+  line-height: 1.5;
+  /* Neither is inherited from the 700/17px heading. */
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   TOUR PLAN — day logistics chips
+
+   The pattern is the competitor's — a row of pills closing the day, each an
+   icon, a micro label and a value. The palette is not: theirs colours each pill
+   separately (blue plane, red cutlery, teal bed), which would put three foreign
+   accents on a page whose every accent is one gold. These use the same tint,
+   chip and hairline the trust band and the highlight checks already use, so the
+   row reads as part of this page rather than an import.
+
+   Separated from the timeline by a rule, because they summarise the day rather
+   than continue it. The rule is on the list, so a day with no logistics has no
+   stray line under its last stop.
+   -------------------------------------------------------------------------- */
+.tour-plan__logistics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 26px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(183, 156, 92, 0.15);
+}
+.tour-plan__logistic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 16px 9px 10px;
+  border: 1px solid rgba(183, 156, 92, 0.18);
+  border-radius: 999px;
+  background-color: rgba(183, 156, 92, 0.04);
+}
+.tour-plan__logistic-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #b79c5c;
+  background-color: rgba(183, 156, 92, 0.1);
+}
+.tour-plan__logistic-body {
+  min-width: 0;
+}
+.tour-plan__logistic-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+  line-height: 1.2;
+}
+.tour-plan__logistic-value {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--gotur-black, #1d231f);
+}
+
+@media (max-width: 575px) {
+  .tour-plan__logistics {
+    margin-top: 20px;
+    padding-top: 18px;
+    gap: 8px;
+  }
+  .tour-plan__logistic { flex: 1 1 100%; }
+}
+
+/* --------------------------------------------------------------------------
+   TOUR PLAN — the day header
+
+   Everything here is scoped to the itinerary. `.faq-accordion` is shared with
+   the FAQ section, which must keep the theme's look.
+
+   Three problems it answers:
+
+   1. The day had no anchor. "Day 1:" was gold text on the same line, at the
+      same size, as the title it introduced — so a seven-day package gave the
+      eye nothing to jump between. The number is now a chip of fixed width
+      running down the left edge, in the tint the trust band and the highlight
+      checks already use, so a reader can move day to day without reading.
+
+   2. Open and closed looked identical. Every state rule in the theme targets
+      `.accordion-title h4`, and this accordion has never rendered an h4 there,
+      so the only thing separating an open day from a closed one was the
+      arrow's rotation. An open day now fills its chip, lights a gold rule down
+      its inside edge and takes a faint wash — the same devices already used by
+      the section headings and .tour-pack.
+
+   3. The toggle was the icomoon double chevron rotated 90deg, in near-black.
+      Doubled arrows read as "skip", not "expand", and black is off-palette for
+      an affordance on a page where everything interactive is gold. It is now
+      the same lucide ChevronDown the "Read More" button uses, in a chip that
+      gives it a real hit target.
+   -------------------------------------------------------------------------- */
+.tour-listing-details__ture-plan .accordion-item {
+  overflow: hidden;
+}
+.tour-listing-details__ture-plan .accordion-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  /* Held steady on open: the theme drops it to 24px, which nudged the whole
+     header up 3px at the moment of the click. */
+  padding: 22px 26px;
+  transition: background-color 0.3s ease;
+}
+.tour-listing-details__ture-plan .faq-accordion .active .accordion-title {
+  padding: 22px 26px;
+}
+/* A pseudo-element, not a border: a border would push the row 3px sideways on
+   every open and close. */
+.tour-listing-details__ture-plan .accordion-title::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+.tour-listing-details__ture-plan .accordion-button:hover .accordion-title {
+  background-color: rgba(183, 156, 92, 0.03);
+}
+.tour-listing-details__ture-plan .accordion-button:not(.collapsed) .accordion-title {
+  background-color: rgba(183, 156, 92, 0.05);
+}
+.tour-listing-details__ture-plan .accordion-button:not(.collapsed) .accordion-title::before {
+  background-color: #b79c5c;
+}
+.tour-listing-details__ture-plan .accordion-button:focus-visible .accordion-title {
+  outline: 2px solid #b79c5c;
+  outline-offset: -2px;
+}
+
+/* The day chip. min-width keeps "Day 1" and "Day 10" on one vertical edge. */
+.tour-plan__day-badge {
+  flex-shrink: 0;
+  min-width: 64px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background-color: rgba(183, 156, 92, 0.1);
+  border: 1px solid rgba(183, 156, 92, 0.18);
+  color: #b79c5c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+.tour-listing-details__ture-plan .accordion-button:not(.collapsed) .tour-plan__day-badge {
+  background-color: #b79c5c;
+  border-color: #b79c5c;
+  color: #fff;
+}
+
+.tour-plan__day-text {
+  flex: 1;
+  min-width: 0;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+/* Laid out in the flex row rather than absolutely positioned. The theme pinned
+   the old glyph with `position:absolute; right:0` against whichever ancestor
+   happened to be positioned, which is why it sat hard against the card edge. */
+.tour-plan__toggle {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #b79c5c;
+  background-color: rgba(183, 156, 92, 0.08);
+  transition: background-color 0.3s ease;
+}
+.tour-listing-details__ture-plan .accordion-button:not(.collapsed) .tour-plan__toggle {
+  background-color: rgba(183, 156, 92, 0.16);
+}
+.tour-plan__toggle svg {
+  transition: transform 0.3s ease;
+}
+.tour-listing-details__ture-plan .accordion-button:not(.collapsed) .tour-plan__toggle svg {
+  transform: rotate(180deg);
+}
+
+/* Was an inline style on every accordion body. */
+.tour-listing-details__ture-plan .accordion-content {
+  padding: 20px 35px;
+}
+
+@media (max-width: 575px) {
+  .tour-listing-details__ture-plan .accordion-title {
+    gap: 10px;
+    padding: 16px 16px;
+  }
+  .tour-listing-details__ture-plan .faq-accordion .active .accordion-title {
+    padding: 16px 16px;
+  }
+  .tour-plan__day-badge { min-width: 56px; padding: 4px 8px; font-size: 11px; }
+  .tour-plan__day-text { font-size: 15px; }
+  .tour-listing-details__ture-plan .accordion-content { padding: 16px 16px 20px; }
+}
+
+/* The header is an <h3> now, for the outline. Its type scale must not reach the
+   button, whose text is sized by .tour-plan__day-text. */
+.tour-listing-details__ture-plan .accordion-header {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+/* ==========================================================================
+   HIGHLIGHT LIST — check chip
+
+   Lifted out of the JSX, where the chip was an inline style object rebuilt for
+   every item on every render and repeating the gold twice per highlight. The
+   values are unchanged; only their home is.
+   ========================================================================== */
+.tour-highlight__check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(183, 156, 92, 0.1);
+  /* The row is top-aligned so a highlight that wraps keeps its chip beside the
+     FIRST line rather than drifting to the middle of the block. That leaves the
+     chip a hair high against a single line, which this corrects. */
+  margin-block-start: 2px;
+}
+.tour-highlight__check i {
+  font-size: 12px;
+  color: #b79c5c;
+}
+.tour-highlight__text {
+  font-size: 0.93rem;
 }
 
 /* ==========================================================================
@@ -2249,31 +2793,28 @@ body {
   padding: 20px 0px;
 }
 
-/* --------------------------------------------------------------------------
-   Tour description "Read More"
-   --------------------------------------------------------------------------
-   Applies at EVERY width (it used to be mobile-only, which meant the desktop
-   page printed the whole description). The clamp is a pure max-height clip, so
-   the full text — and every link inside it — stays in the DOM and crawlable.
-
-   The real height comes from --desc-clamp, which the component measures from
-   the rendered line boxes so exactly five lines OF TEXT show regardless of how
-   the paragraph breaks fall. A fixed height cannot do that: it spends the same
-   budget on the gaps between paragraphs, which cost a visible line and made the
-   count differ from tour to tour. The literal below is only the first-paint
-   fallback — five lines plus one paragraph gap — so the server HTML already
-   renders collapsed and nothing jumps on hydration.
-   -------------------------------------------------------------------------- */
 .tour-description-wrapper {
   position: relative;
+  /* Both ends of the animation are lengths: the clamp when collapsed, the
+     measured content height when open. See --desc-full in useLineClamp. */
+  transition: max-height 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Clipping is now permanent rather than collapsed-only, because the box is
+     still shorter than its text WHILE it grows — released early, the paragraphs
+     below the fold would paint over the button and the accordion for the length
+     of the transition.
+
+     The reason it was collapsed-only still stands: gotur.css gives
+     .tour-listing-details__text a margin-bottom of -4px, and clipping to the
+     exact measured height shaves that much off the last line's leading. The
+     slack on the open state below covers it, with room for sub-pixel rounding. */
+  overflow: hidden;
 }
 
-/* Clipping belongs to the collapsed state only. Left on permanently it also
-   trimmed the expanded text, because the theme gives .tour-listing-details__text
-   a margin-bottom of -4px and the hidden overflow cut that much off the last
-   line's leading. */
+.tour-description-wrapper:not(.collapsed) {
+  max-height: calc(var(--desc-full, 200rem) + 8px);
+}
+
 .tour-description-wrapper.collapsed {
-  overflow: hidden;
   /* Narrow screens: five lines. A line holds far fewer words here, so matching
      the desktop count would leave barely a sentence showing. */
   max-height: var(--desc-clamp, calc(1.8rem * 5));
@@ -2282,6 +2823,29 @@ body {
 @media (min-width: 992px) {
   .tour-description-wrapper.collapsed {
     max-height: var(--desc-clamp, calc(1.8rem * 3));
+  }
+}
+
+/* Readers who ask for less motion get the same states, instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .tour-description-wrapper {
+    transition: none;
+  }
+}
+
+/* The itinerary intro shares the wrapper above but clamps to TWO desktop lines,
+   not three. This is the value used before the measurement lands — without it
+   first paint renders three lines and the effect then snaps the block up by one,
+   which is a visible jump on the exact element the reader is looking at.
+   Placed after the rules it overrides: the specificity is identical (0,2,0), so
+   source order is what decides. */
+.tour-plan__intro-clamp.collapsed {
+  max-height: var(--desc-clamp, calc(1.8rem * 5));
+}
+
+@media (min-width: 992px) {
+  .tour-plan__intro-clamp.collapsed {
+    max-height: var(--desc-clamp, calc(1.8rem * 2));
   }
 }
 
@@ -3764,6 +4328,58 @@ div[suppressHydrationWarning] {
   margin-bottom: 8px !important;
   line-height: 1.6;
 }
+
+/* --------------------------------------------------------------------------
+   RICH TEXT — the formats the editor offers but the site never styled
+
+   The toolbar in RichTextEditor.tsx exposes blockquote and indent, and both are
+   whitelisted in its `formats` array, so staff can and do use them. Neither had
+   a single rule on the public side. Quill's own styling for them lives in
+   `quill.snow.css`, which is imported ONLY by the editor — so the admin saw the
+   formatting, the visitor did not, and a quote came out as an ordinary
+   paragraph. The global `* { margin: 0; padding: 0 }` in globals.css removes
+   even the browser's default blockquote indent, so nothing at all survived.
+
+   The geometry below mirrors quill.snow.css exactly — 3em per indent level,
+   4.5em for a list item at level 1 — so a paragraph sits in the same place in
+   the editor and on the page. Only the quote's rule changes colour: #ccc is a
+   grey belonging to no part of this palette, and the accent is the tint the
+   rest of the page uses.
+   -------------------------------------------------------------------------- */
+.html-content blockquote {
+  margin: 1.25em 0;
+  padding-inline-start: 16px;
+  border-inline-start: 4px solid rgba(183, 156, 92, 0.35);
+}
+
+/* `:not(li)` matters: a list item carries the same ql-indent-N class, so
+   without it an indented <li> collected this padding on top of its own margin
+   below — double the indent, and a bullet left stranded 3em from its text. */
+.html-content .ql-indent-1:not(.ql-direction-rtl):not(li) { padding-inline-start: 3em; }
+.html-content .ql-indent-2:not(.ql-direction-rtl):not(li) { padding-inline-start: 6em; }
+.html-content .ql-indent-3:not(.ql-direction-rtl):not(li) { padding-inline-start: 9em; }
+.html-content .ql-indent-4:not(.ql-direction-rtl):not(li) { padding-inline-start: 12em; }
+.html-content .ql-indent-5:not(.ql-direction-rtl):not(li) { padding-inline-start: 15em; }
+.html-content .ql-indent-6:not(.ql-direction-rtl):not(li) { padding-inline-start: 18em; }
+.html-content .ql-indent-7:not(.ql-direction-rtl):not(li) { padding-inline-start: 21em; }
+.html-content .ql-indent-8:not(.ql-direction-rtl):not(li) { padding-inline-start: 24em; }
+.html-content .ql-indent-9:not(.ql-direction-rtl):not(li) { padding-inline-start: 27em; }
+
+/* Margin, not padding, and 3em per level rather than Quill's 4.5em+.
+   `list-style-position` is `outside` here, so a marker hangs off the li's
+   BORDER box: padding would push the text right and leave the bullet behind at
+   the old column. Margin moves the box and the marker together. Quill's 4.5em
+   also folds in the 1.5em its editor uses for the marker gutter, which
+   `.html-content ul` already provides with its own padding. */
+.html-content li.ql-indent-1:not(.ql-direction-rtl) { margin-inline-start: 3em; }
+.html-content li.ql-indent-2:not(.ql-direction-rtl) { margin-inline-start: 6em; }
+.html-content li.ql-indent-3:not(.ql-direction-rtl) { margin-inline-start: 9em; }
+.html-content li.ql-indent-4:not(.ql-direction-rtl) { margin-inline-start: 12em; }
+.html-content li.ql-indent-5:not(.ql-direction-rtl) { margin-inline-start: 15em; }
+.html-content li.ql-indent-6:not(.ql-direction-rtl) { margin-inline-start: 18em; }
+.html-content li.ql-indent-7:not(.ql-direction-rtl) { margin-inline-start: 21em; }
+.html-content li.ql-indent-8:not(.ql-direction-rtl) { margin-inline-start: 24em; }
+.html-content li.ql-indent-9:not(.ql-direction-rtl) { margin-inline-start: 27em; }
 
 /* Hide TinySlider autoplay buttons */
 button[data-action="start"],
@@ -5645,7 +6261,9 @@ button[data-action="stop"] {
 .blog-card__title,
 .blog-card-two__title,
 .blog-card-two--one .blog-card-two__title {
-  margin: 0 0 12px;
+  /* 15px, not 12: a darker description sits closer in weight to the headline,
+     so it needs a little more air to stay clearly the second thing read. */
+  margin: 0 0 15px;
   /* A step under the tour card's 20px title. The two cards sit on the same
      pages and the article is the supporting one; matching its headline size
      was most of why they read as equals. */
@@ -5693,10 +6311,26 @@ button[data-action="stop"] {
    than a card quietly showing the article's SEO copy. Clamped and
    reserved at three lines for the same reason as the title. */
 .blog-card-text {
-  margin: 0 0 16px;
-  font-size: 15px;
+  /* 11px, down from 16. The teaser and the metadata are one group — the
+     article's own voice, then who wrote it and how long it takes — and at 16px
+     they read as two separate blocks stacked in the card. */
+  margin: 0 0 11px;
+  /* The body face, said out loud. It is what the card inherits anyway, but the
+     display face (Playfair) is one token away and belongs to section headings,
+     never to card copy. */
+  font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
+  font-size: 15.5px;
+  font-weight: 400;
   line-height: 1.55;
-  color: rgba(var(--jes-ink), 0.72);
+  /* #355B73. The teaser and the metadata were 0.72 and 0.68 of the same ink —
+     #517186 against #5B798D, ten units apart per channel — so the sentence
+     that sells the article and the line naming its author read as the same
+     level of importance. This is that ink at ~0.835 and the metadata below is
+     the same ink at ~0.61, which is the gap the hierarchy needed: clearly
+     readable, clearly under the title, clearly above the byline. Written as a
+     hex because it is a designed value, not an opacity that happens to land
+     there. */
+  color: #355b73;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -5736,9 +6370,14 @@ button[data-action="stop"] {
   margin: 0 0 16px;
   padding: 0;
   font-size: 13px;
-  font-weight: 500;
+  /* 400, not 500: the byline was carrying a semibold weight AND nearly the
+     description's colour, which is two reasons for the eye to stop on it. */
+  font-weight: 400;
   line-height: 1.6;
-  color: rgba(var(--jes-ink), 0.68);
+  /* #6C8798 — the same ink as the description above at ~0.61 instead of ~0.68.
+     Deliberately NOT darkened alongside it: the whole point is the distance
+     between the two. */
+  color: #6c8798;
 }
 .blog-card-meta > li:first-child {
   grid-column: 1 / -1;
@@ -5848,7 +6487,8 @@ button[data-action="stop"] {
 }
 .blog-card-two--compact .blog-card-text {
   font-size: 14px;
-  margin-bottom: 12px;
+  /* Kept proportionally under the full-size card's 11px. */
+  margin-bottom: 9px;
   -webkit-line-clamp: 2;
 }
 .blog-card-two--compact .blog-card-chip {
@@ -5935,6 +6575,24 @@ button[data-action="stop"] {
   font-size: 16px;
   line-height: 1.7;
   color: rgba(var(--jes-ink), 0.66);
+}
+.related-blogs-nav.feature-package__bottom__nav {
+  justify-content: center;
+  margin-top: 22px;
+}
+.related-blogs-carousel {
+  padding: 6px 2px 16px;
+}
+.related-blogs-carousel .swiper-wrapper {
+  align-items: stretch;
+}
+.related-blogs-carousel .swiper-slide {
+  display: flex;
+  height: auto;
+}
+.related-blogs-carousel .blog-card-two {
+  width: 100%;
+  max-width: none;
 }
 @media (max-width: 767px) {
   .related-blogs-head {
@@ -6571,6 +7229,68 @@ button[data-action="stop"] {
    JSON-LD. */
 .faq-list__row--folded {
   display: none;
+}
+
+/* Rows revealed by "View More Questions".
+
+   The card's HEIGHT is what animates, via a 0fr -> 1fr grid track. Fading the
+   cards in alone was not enough: the rows took their full height the instant
+   they stopped being `display: none`, so the button below them jumped straight
+   to its new position and read as disappearing and reappearing lower down.
+   Growing the track makes the list push the button down gradually, so it
+   travels instead of teleporting.
+
+   A grid track rather than max-height because 0fr -> 1fr resolves to the card's
+   INTRINSIC height. max-height has to guess a number, and any guess above the
+   real height finishes the growth early — which is the teleport again, just
+   shorter.
+
+   `display: grid` here only replaces block stacking with a single-column grid,
+   which lays the question button and its answer out identically.
+
+   margin-bottom is set at 0% and deliberately absent at 100%: an omitted
+   property animates to the element's own computed value, which keeps
+   .faq-list__row:last-child at 0 instead of forcing 12px onto it. Without this
+   every collapsed row would still contribute its 12px, so the button would
+   start the animation already pushed most of the way down. */
+@keyframes faqRowReveal {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-bottom: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+.faq-list__row--revealed {
+  display: grid;
+  grid-template-rows: 1fr;
+  /* The track can only shrink below the content if the child lets it. */
+  overflow: hidden;
+  animation: faqRowReveal 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.faq-list__row--revealed > * {
+  min-height: 0;
+}
+
+/* A short cascade rather than every card arriving together. The offsets assume
+   the fold sits after four questions (FAQ_VISIBLE_COUNT); if that count changes
+   the rows still animate, they just share a delay. Capped so a tour with twenty
+   questions does not spend a second finishing. */
+.faq-list__row--revealed:nth-child(6) { animation-delay: 45ms; }
+.faq-list__row--revealed:nth-child(7) { animation-delay: 90ms; }
+.faq-list__row--revealed:nth-child(8) { animation-delay: 135ms; }
+.faq-list__row--revealed:nth-child(9) { animation-delay: 180ms; }
+.faq-list__row--revealed:nth-child(n + 10) { animation-delay: 215ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-list__row--revealed {
+    animation: none;
+  }
 }
 
 /* ── Still have a question? ───────────────────────────────────────────────

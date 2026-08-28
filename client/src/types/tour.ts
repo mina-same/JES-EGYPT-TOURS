@@ -77,6 +77,8 @@ export interface ITourSubcategory {
   _id: string;
   category: string; // ObjectId as string
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed; // Plain text or HTML for page header
   images: IImage[];
@@ -215,6 +217,19 @@ export interface IPricingSeason {
   notes: IPricingNote[];
 }
 
+/**
+ * The icon shown beside an accommodation stop.
+ *
+ * An icon names the DESTINATION, not the kind of building or landmark: it sits
+ * next to a place name and its job is to let a reader tell one stop from
+ * another at a glance. So every "Aswan" row on the site draws the same glyph,
+ * whichever hotel the tier books.
+ *
+ * MUST stay in step with `ACCOMMODATION_ICONS` in `server/src/models/Tour.ts`,
+ * which is the enum the write path validates against. There is no shared
+ * package between client and server; `scripts/checkIconParity.mjs` compares the
+ * two files and fails if they drift.
+ */
 export const ACCOMMODATION_ICONS = [
   'pyramids',
   'temple',
@@ -227,11 +242,38 @@ export const ACCOMMODATION_ICONS = [
 ] as const;
 export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
 
+/**
+ * Values written under earlier, coarser versions of the list above, each mapped
+ * to the artwork that replaced it.
+ *
+ * A map rather than a list, because the mapping is the whole point — knowing
+ * that `nubian` exists says nothing about which glyph should be drawn for it.
+ * The server keeps the same key set (as a plain list) so it can keep accepting
+ * these on write; the parity script checks both directions.
+ */
+export const LEGACY_ACCOMMODATION_ICONS = {
+  beach: 'sea',
+  resort: 'hotel',
+  nubian: 'colonnade',
+} as const satisfies Record<string, AccommodationIcon>;
+
+export type LegacyAccommodationIcon = keyof typeof LEGACY_ACCOMMODATION_ICONS;
+
+/** What a row loaded from the API may actually hold. The admin form ingests
+ *  server rows directly, and the server's enum still accepts legacy names, so
+ *  narrowing this to `AccommodationIcon` would have been a lie. Resolve with
+ *  `resolveAccommodationIcon` before drawing or comparing. */
+export type StoredAccommodationIcon = AccommodationIcon | LegacyAccommodationIcon;
+
+/** The one value used when nothing better is known. `hotel` is the honest
+ *  unknown — it says "somewhere to sleep" and claims nothing about where. */
+export const DEFAULT_ACCOMMODATION_ICON: AccommodationIcon = 'hotel';
+
 /** One accommodation stop on a package tier — where guests sleep and which
  *  hotels that tier books. Mirrors AccommodationSchema on the server. */
 export interface IAccommodation {
   location: ILocalizedString;
-  icon: AccommodationIcon;
+  icon: StoredAccommodationIcon;
   hotels: ILocalizedString;
 }
 
@@ -247,12 +289,21 @@ export interface IItineraryActivity {
   heading: ILocalizedString;
   description: ILocalizedMixed;
   image?: IImage;
+  /** An add-on the traveller may take or skip; marked as such on the tour page. */
+  isOptional?: boolean;
 }
 
 export interface IItineraryDay {
   day: number;
   title: ILocalizedString;
   activities: IItineraryActivity[];
+  /** Optional day logistics — each shown on the tour page only when filled. */
+  /** A key from DAY_FLIGHT_OPTIONS, or absent. */
+  flight?: string;
+  /** Meal keys — 'breakfast' | 'lunch' | 'dinner', or the lone entry 'none'. */
+  meals?: string[];
+  /** A key from DAY_ACCOMMODATION_OPTIONS, or absent. */
+  accommodation?: string;
 }
 
 export interface IItinerary {

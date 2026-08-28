@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogSubcategoryAPI } from '@/lib/api/blogAdmin';
 import { BlogSubCategory, BlogCategory } from '@/lib/api/blog';
 import { ScanEye, 
   Loader2, Plus, Edit2, Trash2,
   Search, Filter, RefreshCw, FolderOpen, CheckCircle, 
-  XCircle, Layers, ArrowRight
+  XCircle, Layers
 } from 'lucide-react';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
@@ -18,6 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import { getLocalizedValue } from '@/lib/localize';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+
+const SUBCATEGORIES_PER_PAGE = 10;
 
 const getImageUrl = (image: any) => {
   if (!image) return '';
@@ -30,7 +31,6 @@ const getImageTitle = (image: any, fallback: any) => {
 };
 
 export default function BlogSubCategoriesPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [subcategories, setSubcategories] = useState<BlogSubCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +38,7 @@ export default function BlogSubCategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
@@ -53,7 +54,7 @@ export default function BlogSubCategoriesPage() {
       
       const params: any = {
         page,
-        limit: 10,
+        limit: SUBCATEGORIES_PER_PAGE,
         search: searchTerm.trim() || undefined,
       };
       
@@ -65,7 +66,14 @@ export default function BlogSubCategoriesPage() {
       
       if (response.success && response.data) {
         setSubcategories(response.data);
-        setTotalPages(response.totalPages || 1);
+        const responseTotal = response.total ?? response.data.length;
+        const normalizedTotalPages = Math.max(
+          1,
+          response.totalPages ?? Math.ceil(responseTotal / SUBCATEGORIES_PER_PAGE)
+        );
+        setTotalItems(responseTotal);
+        setTotalPages(normalizedTotalPages);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
         setError(response.error || 'Failed to fetch subcategories');
       }
@@ -145,7 +153,7 @@ export default function BlogSubCategoriesPage() {
 
   // Calculate stats
   const stats = {
-    total: subcategories.length,
+    total: totalItems,
     active: subcategories.filter(c => c.isActive).length,
     inactive: subcategories.filter(c => !c.isActive).length,
   };
@@ -337,8 +345,8 @@ export default function BlogSubCategoriesPage() {
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}
-          totalItems={stats.total}
-          itemsPerPage={10}
+          totalItems={totalItems}
+          itemsPerPage={SUBCATEGORIES_PER_PAGE}
           onPageChange={setPage}
           onItemsPerPageChange={() => {}}
           disableLimitChange={true}

@@ -132,8 +132,11 @@ const ContactFormPage: React.FC = () => {
 
       const json = await response.json().catch(() => null);
       setSubmissions(json?.data || []);
-      setTotalPages(json?.pagination?.pages || 1);
-      setTotalItems(json?.pagination?.total || 0);
+      const responseTotal = json?.pagination?.total ?? 0;
+      const normalizedTotalPages = Math.max(1, json?.pagination?.pages ?? 1);
+      setTotalPages(normalizedTotalPages);
+      setTotalItems(responseTotal);
+      if (page > normalizedTotalPages) setPage(normalizedTotalPages);
     } catch {
       setSubmissions([]);
     } finally {

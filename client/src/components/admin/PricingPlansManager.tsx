@@ -49,6 +49,24 @@ interface PricingPlansManagerProps {
   tourKind?: TourKind;
 }
 
+/**
+ * A plan's identity for React keys, collapse state and drag-and-drop.
+ *
+ * Positional, and knowingly so. Because the list is sortable, dragging a plan
+ * hands its collapse state to whichever plan lands on that index — a cosmetic
+ * annoyance that only shows after a reorder.
+ *
+ * Keying on `planName` instead was tried and reverted: the name is chosen AFTER
+ * the plan is created, so the id changed the moment an admin picked one, which
+ * gave the plan a new React key mid-edit — remounting the whole subtree and
+ * snapping the plan shut while they were working in it. That is a worse bug,
+ * and it fires on every new plan rather than only after a drag.
+ *
+ * A real fix needs an identity that exists before the name and survives the
+ * array being rebuilt on every keystroke — i.e. an editor-only id carried on
+ * the plan object and stripped before save. Worth doing; too broad to smuggle
+ * into an accommodation change.
+ */
 function getPlanId(plan: any, index: number) {
   return `plan-${index}`;
 }
@@ -638,6 +656,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                        onChange={(next) => updatePricingPlan(planIndex, 'accommodations', next)}
                                        activeLanguage={activeLanguage}
                                        siblingPlans={pricingPlans.filter((_, i) => i !== planIndex)}
+                                       fieldPathPrefix={`pricingPlans.${planIndex}.accommodations`}
                                      />
                                    </div>
                                  )}

@@ -10,7 +10,7 @@ import { type AdminLanguage } from '../AdminLanguageTabs';
 import LocalizedField from '../LocalizedField';
 import FaqManager from '../FaqManager';
 import { blogAPI } from '@/lib/api/blogAdmin';
-import { BLOG_SEARCH_LIMIT, RELATED_BLOGS_LIMIT } from '@/lib/tour/relatedBlogs';
+import { BLOG_SEARCH_LIMIT } from '@/lib/tour/relatedBlogs';
 
 interface ResourcesTabProps {
   formData: any;
@@ -108,7 +108,7 @@ function useLinkedBlogs(references: any[]) {
     setIsResolved(false);
 
     blogAPI
-      .getAllAdmin({ ids: idKey, limit: 100 })
+      .getAllAdmin({ ids: idKey, limit: ids.length })
       .then((response: any) => {
         if (!active) return;
         const next: Record<string, any> = {};
@@ -134,7 +134,7 @@ function useLinkedBlogs(references: any[]) {
     return () => {
       active = false;
     };
-  }, [idKey]);
+  }, [idKey, ids.length]);
 
   return { records, isResolving, isResolved };
 }
@@ -175,7 +175,6 @@ export default function ResourcesTab({
   const blogReferences: any[] = formData.blogReferences || [];
   const { records: linkedBlogRecords, isResolved: areBlogsResolved } =
     useLinkedBlogs(blogReferences);
-  const hiddenBlogCount = Math.max(0, blogReferences.length - RELATED_BLOGS_LIMIT);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -271,13 +270,7 @@ export default function ResourcesTab({
     handleChange('blogReferences', newRefs);
   };
 
-  /**
-   * Order is not cosmetic here: the tour page renders the FIRST
-   * RELATED_BLOGS_LIMIT references and drops the rest, so moving a row is the
-   * only way to change which articles a visitor sees. Before this, the only
-   * way to promote the fourth article was to remove everything and re-add it
-   * in the order you wanted.
-   */
+  /** Ordering here is the ordering visitors see in the carousel. */
   const moveBlogReference = (index: number, direction: -1 | 1) => {
     const refs = [...(formData.blogReferences || [])];
     const target = index + direction;
@@ -476,7 +469,7 @@ export default function ResourcesTab({
         <CardHeader>
           <CardTitle>Related Blogs</CardTitle>
           <CardDescription>
-            The tour page shows the first {RELATED_BLOGS_LIMIT}. Use the arrows to choose which.
+            All linked published articles appear in this order in the tour-page carousel.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -494,14 +487,12 @@ export default function ResourcesTab({
               // Only claimable once the lookup has actually answered.
               const isMissing = areBlogsResolved && !record;
               const isUnpublished = record && record.status !== 'published';
-              const isShown = index < RELATED_BLOGS_LIMIT;
-
               return (
                 <div
                   key={id || `ref-${index}`}
                   className={cn(
                     'flex items-center gap-2 p-2 rounded-md border',
-                    isShown ? 'bg-secondary/20' : 'bg-muted/40 border-dashed',
+                    'bg-secondary/20',
                     isMissing && 'border-red-300 bg-red-50 dark:bg-red-950/20'
                   )}
                 >
@@ -509,7 +500,7 @@ export default function ResourcesTab({
                   <span
                     className={cn(
                       'shrink-0 w-6 h-6 rounded-full grid place-items-center text-[11px] font-bold',
-                      isShown ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                      'bg-primary/10 text-primary'
                     )}
                   >
                     {index + 1}
@@ -528,10 +519,6 @@ export default function ResourcesTab({
                       {record.status}
                     </span>
                   )}
-                  {!isShown && !isMissing && (
-                    <span className="shrink-0 text-[11px] text-muted-foreground">Not shown</span>
-                  )}
-
                   <div className="shrink-0 flex items-center">
                     <Button
                       type="button"
@@ -574,12 +561,6 @@ export default function ResourcesTab({
               <p className="text-sm text-muted-foreground italic">No related blogs selected.</p>
             )}
 
-            {hiddenBlogCount > 0 && (
-              <p className="text-xs text-muted-foreground">
-                {hiddenBlogCount} {hiddenBlogCount === 1 ? 'article is' : 'articles are'} stored but
-                will not appear on the tour page. Move one up to show it instead.
-              </p>
-            )}
           </div>
 
           {/* Search Input */}

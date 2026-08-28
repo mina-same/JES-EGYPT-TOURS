@@ -2,13 +2,17 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
-import { getBlogById } from "@/lib/api/blog";
-import { RELATED_BLOGS_LIMIT } from "@/lib/tour/relatedBlogs";
+import { getBlogsByIds } from "@/lib/api/blog";
+import { RELATED_BLOGS_FALLBACK_LIMIT } from "@/lib/tour/relatedBlogs";
 import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug } from "@/lib/url";
+import {
+  isEmptyAccommodation,
+  resolveAccommodationIcon,
+} from "@/lib/accommodationIcon";
 
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
@@ -201,9 +205,15 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         days: safeArray(tour.itinerary?.days).map((d: any) => ({
           day: d?.day || 0,
           title: getLocalizedValue(d?.title),
+          // Optional per-day logistics. Absent on most days; the section that
+          // renders them drops any that come back empty.
+          flight: typeof d?.flight === 'string' ? d.flight : '',
+          meals: safeArray<string>(d?.meals).filter(Boolean),
+          accommodation: typeof d?.accommodation === 'string' ? d.accommodation : '',
           activities: safeArray(d?.activities).map((a: any) => ({
             heading: getLocalizedValue(a?.heading),
             description: getLocalizedValue(a?.description),
+            isOptional: !!a?.isOptional,
             image: a?.image?.url && imgAllows(a.image) ? {
               url: a.image.url,
               alt: getLocalizedValue(a.image.alt),
@@ -230,11 +240,18 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         })),
         // getLocalizedValue is a no-op on the already-flat strings the API
         // sends, and resolves the object shape when raw data slips through.
-        accommodations: safeArray(p?.accommodations).map((a: any) => ({
-          location: getLocalizedValue(a?.location),
-          icon: typeof a?.icon === 'string' ? a.icon : 'city',
-          hotels: getLocalizedValue(a?.hotels),
-        })),
+        //
+        // Rows with neither a place nor a hotel are dropped: they used to reach
+        // the page as an icon with two blank lines beside it. The icon goes
+        // through the shared resolver so a legacy or oddly-cased value lands on
+        // the same glyph the renderer would have picked anyway.
+        accommodations: safeArray(p?.accommodations)
+          .map((a: any) => ({
+            location: getLocalizedValue(a?.location),
+            icon: resolveAccommodationIcon(a?.icon),
+            hotels: getLocalizedValue(a?.hotels),
+          }))
+          .filter((a) => !isEmptyAccommodation(a)),
       })),
       whatYouWillLoveHtml: getLocalizedValue(tour.whatYouWillLoveHtml),
       reviewVideos,
@@ -340,15 +357,19 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
               return [];
             }
           })(),
-          // Curated blog references. The cap is shared with the admin picker,
-          // which shows the editor which of their selections survive it. The
-          // language travels with each request — without it these cards came
-          // back in English on /de.
-          Promise.all(safeArray(tour.blogReferences).slice(0, RELATED_BLOGS_LIMIT).map(async (ref: any) => {
+          // Resolve every curated article in one request, in the editor's
+          // order. The language travels with the request so /de, /it and /es
+          // receive localized cards rather than English ones.
+          (async () => {
+            const selectedBlogIds = safeArray<any>(tour.blogReferences)
+              .map((ref) => String(ref?.id || ''))
+              .filter(Boolean);
             try {
-              return await getBlogById(ref.id, currentLang);
-            } catch { return null; }
-          })),
+              return await getBlogsByIds(selectedBlogIds, currentLang);
+            } catch {
+              return [];
+            }
+          })(),
         ];
 
         // 3. Fallback "More Tours" (try subcategory, then category, then anything)
@@ -404,7 +425,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         let fetchedRelatedBlogs = safeArray<any>(blogDataRaw).filter(Boolean);
         if (fetchedRelatedBlogs.length === 0) {
           try {
-             const res = await axiosInstance.get(`/blog/posts/featured?limit=${RELATED_BLOGS_LIMIT}`);
+             const res = await axiosInstance.get(`/blog/posts/featured?limit=${RELATED_BLOGS_FALLBACK_LIMIT}`);
              if (res.data?.success) {
                fetchedRelatedBlogs = safeArray(res.data.data);
              }

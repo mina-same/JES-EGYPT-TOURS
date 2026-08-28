@@ -3,10 +3,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, usePathname } from "next/navigation";
 import { Container } from "react-bootstrap";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperClass } from "swiper";
+import "swiper/css";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, Plus, Minus, MessageCircle, ArrowRight } from "lucide-react";
+import { ChevronDown, MessageCircle, ArrowRight } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
@@ -21,6 +24,7 @@ import { useTourData } from "./useTourData";
 
 // Import sub-components
 import { TourInfoBar } from "./components/TourInfoBar";
+import { TrustBand } from "./components/TrustBand";
 import { BookingForm } from "./components/BookingForm";
 import { TourPlan } from "./components/TourPlan";
 import { PricingPlans } from "./components/PricingPlans";
@@ -35,6 +39,7 @@ import { waHref } from "@/config/contact";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
+import { useLineClamp } from "@/hooks/useLineClamp";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
@@ -60,8 +65,6 @@ const NOTES_VISIBLE_ON_PHONE = 3;
  */
 const DESCRIPTION_VISIBLE_LINES_DESKTOP = 3;
 const DESCRIPTION_VISIBLE_LINES_MOBILE = 5;
-/** Same breakpoint the rest of this page treats as desktop (CSS: max-width 991px). */
-const DESKTOP_MIN_WIDTH = 992;
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, moreTours, relatedBlogs, hasTourContent } = useTourData(id, initialRawTour);
@@ -108,18 +111,17 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
    * away. Storing the node in state re-runs the effect on every remount.
    */
   const [descriptionEl, setDescriptionEl] = useState<HTMLDivElement | null>(null);
-  /**
-   * Starts true so the button is part of the SERVER-rendered markup — the clamp
-   * is CSS-only and therefore already active on first paint, so a button that
-   * only appeared after hydration would leave the control missing exactly when
-   * the text is cut. The effect below switches it off for the rare description
-   * that is short enough to fit uncut.
-   */
-  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(true);
+  /* Measurement, the CSS variable it writes and the overflow flag all live in
+     useLineClamp — the Tour Plan intro runs the identical routine. */
+  const isDescriptionOverflowing = useLineClamp(descriptionEl, tourData.overview, {
+    desktop: DESCRIPTION_VISIBLE_LINES_DESKTOP,
+    mobile: DESCRIPTION_VISIBLE_LINES_MOBILE,
+  });
   const [showAllFaqs, setShowAllFaqs] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const relatedBlogsSliderRef = useRef<SwiperClass | null>(null);
 
   const params = useParams() as { locale: string };
   const pathname = usePathname();
@@ -143,97 +145,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     }
   }, [params?.locale, i18n]);
 
-  /**
-   * Sizes the clamp to exactly the wanted number of lines OF TEXT.
-   *
-   * A plain max-height cannot do this: the budget is shared with the gaps
-   * between paragraphs, so a height worth five lines renders four lines plus a
-   * blank one, and how many lines survive changes with where the paragraph
-   * breaks happen to fall — one tour showed a single orphaned line. Measuring
-   * the real line boxes and clamping to the last wanted line's box makes the
-   * count identical on every tour, whatever the paragraph rhythm.
-   *
-   * Overflowing content is still laid out under `overflow: hidden`, so the rects
-   * for the clipped lines are available and the element can be measured without
-   * expanding it first.
-   */
-  useEffect(() => {
-    const el = descriptionEl;
-    if (!el) return;
-
-    const measure = () => {
-      const inner = el.firstElementChild as HTMLElement | null;
-      if (!inner) return;
-
-      const visibleLines =
-        window.innerWidth >= DESKTOP_MIN_WIDTH
-          ? DESCRIPTION_VISIBLE_LINES_DESKTOP
-          : DESCRIPTION_VISIBLE_LINES_MOBILE;
-
-      // Collect the elements that actually own line boxes: descend until a node
-      // whose children are all inline. Ranging the whole description at once
-      // reports the paragraph boxes ALONGSIDE the line boxes, which inflated the
-      // count and clamped some tours to fewer lines than asked for.
-      const isBlock = (node: Element) => {
-        const display = getComputedStyle(node).display;
-        return display === "block" || display === "list-item" || display === "flex" || display === "grid" || display === "table";
-      };
-      const leafBlocks: Element[] = [];
-      const collect = (node: Element) => {
-        const children = Array.from(node.children);
-        if (children.length === 0 || !children.some(isBlock)) {
-          leafBlocks.push(node);
-          return;
-        }
-        children.forEach(collect);
-      };
-      collect(inner);
-
-      // Blocks stack vertically, so de-duplicating by top WITHIN a block folds
-      // the several rects of one line (split by inline tags) into a single line.
-      const lines: DOMRect[] = [];
-      const range = document.createRange();
-      for (const block of leafBlocks) {
-        range.selectNodeContents(block);
-        const seen = new Set<number>();
-        for (const rect of Array.from(range.getClientRects())) {
-          if (rect.height <= 0 || rect.width <= 0) continue;
-          const key = Math.round(rect.top * 10);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          lines.push(rect);
-        }
-      }
-      lines.sort((a, b) => a.top - b.top);
-
-      if (lines.length <= visibleLines) {
-        el.style.removeProperty("--desc-clamp");
-        setIsDescriptionOverflowing(false);
-        return;
-      }
-
-      const lastVisible = lines[visibleLines - 1];
-      const lineHeight = parseFloat(getComputedStyle(inner).lineHeight);
-      // getClientRects returns the glyph box, which is shorter than the line
-      // box. Adding the half-leading back puts the cut on the line boundary
-      // instead of shaving the descenders.
-      const halfLeading = Number.isFinite(lineHeight)
-        ? Math.max(0, (lineHeight - lastVisible.height) / 2)
-        : 0;
-      const clamp = Math.ceil(lastVisible.bottom - el.getBoundingClientRect().top + halfLeading);
-
-      el.style.setProperty("--desc-clamp", `${clamp}px`);
-      setIsDescriptionOverflowing(true);
-    };
-
-    measure();
-    window.addEventListener("resize", measure);
-    // Web fonts land after first paint and change where the lines break.
-    document.fonts?.ready.then(measure).catch(() => {});
-    return () => window.removeEventListener("resize", measure);
-    // `tourData.overview` rather than the destructured `overview`, which is
-    // declared further down and would be in its temporal dead zone here.
-  }, [descriptionEl, tourData.overview]);
 
   useEffect(() => {
     const updateNavHeight = () => {
@@ -616,47 +527,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 mapHref={map ? '#map' : undefined}
               />
 
-              {/* Trust band — same content and icons as before, moved into the
-                  rail so it sits level with the price instead of below the
-                  twelfth section where almost nobody reached it. */}
-              <div className="info-area info-bg tour-trust-band">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="section-heading" style={{ marginBottom: '0' }}>
-                      <p className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>{t("tourDetails.bookConfidence")}</p>
-                      <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>{t("tourDetails.bookConfidenceDesc")}</p>
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="d-flex justify-content-center align-items-center flex-wrap" style={{ gap: '20px' }}>
-                      {[
-                        { title: t("tourDetails.features.monthly"), icon: Calendar },
-                        { title: t("tourDetails.features.support"), icon: Headphones },
-                        { title: t("tourDetails.features.prices"), icon: Tag },
-                        { title: t("tourDetails.features.rating"), icon: Star },
-                        { title: t("tourDetails.features.fast"), icon: Zap }
-                      ].map((item, idx) => (
-                        <div key={idx} className="text-center" style={{ minWidth: '120px' }}>
-                          <div className="info-icon flex-shrink-0 bg-white shadow-sm mx-auto mb-2" style={{
-                            width: '70px',
-                            height: '70px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '50%',
-                            border: '1.5px solid #b79c5c',
-                            transition: 'transform 0.3s ease',
-                            boxShadow: '0 8px 16px rgba(183, 156, 92, 0.15)'
-                          }}>
-                            <item.icon size={35} color="#b79c5c" />
-                          </div>
-                          <span className="info__title d-block" style={{ fontSize: '13px', color: '#1a1a1a', fontWeight: '600', margin: '0' }}>{item.title}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Trust band — sits in the rail so it lands level with the price
+                  instead of below the twelfth section, where almost nobody
+                  reached it. Its own component now, like every other section
+                  of this page. */}
+              <TrustBand />
 
               {/* Navigation Bar */}
               <div ref={navPlaceholderRef} />
@@ -742,7 +617,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                     >
                       <div
                         className='tour-listing-details__text html-content'
-                        style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
+                        /* #595959 is the page's one secondary-text tone. This
+                           block was #444, the itinerary #666 and the fact strips
+                           #595959 — three greys a few percent apart, all meaning
+                           the same thing. Contrast here goes 9.74:1 -> 7.00:1,
+                           still well clear of AA. */
+                        style={{ color: '#595959', fontSize: '1rem', lineHeight: '1.8' }}
                         dangerouslySetInnerHTML={{ __html: overviewHtml }}
                       />
                     </div>
@@ -770,7 +650,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
                   </div>
 
-                  {/* Tour Highlights Section */}
+                  {/* Tour Highlights — omitted entirely when the tour has none,
+                      as every other list section on this page already does.
+                      `tourHighlights` is optional in the admin (it is deleted on
+                      save when blank), so without this guard such a tour printed
+                      the gold rule and the "Highlight List" heading over nothing. */}
+                  {highlightItems.length > 0 && (
                   <div className='tour-listing-details__content__item border-0 p-0'>
                     <div className="d-flex align-items-center gap-2 mb-4">
                       <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
@@ -778,25 +663,29 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         {t("tourDetails.highlightList")}
                       </h2>
                     </div>
-                    <ul className="list-unstyled row gutter-y-20" style={{ paddingLeft: 0 }}>
+                    {/* Row spacing is gutter-y-20 alone. Each item also carried mb-3, so
+                        two spacing systems stacked into a 36px gap between rows and
+                        left a stray 16px under the last one. paddingLeft:0 went too
+                        — list-unstyled already sets it. */}
+                    <ul className="list-unstyled row gutter-y-20">
                       {highlightItems.map((item, index) => (
-                        <li key={index} className="col-md-6 col-lg-4 mb-3">
+                        <li key={index} className="col-md-6 col-lg-4">
                           <div className="d-flex align-items-start gap-3">
-                            <div className="d-flex align-items-center justify-content-center rounded-circle" style={{
-                              width: '26px',
-                              height: '26px',
-                              backgroundColor: 'rgba(183, 156, 92, 0.1)',
-                              flexShrink: 0,
-                              marginTop: '2px'
-                            }}>
-                              <i className='icon-check-star' style={{ color: '#b79c5c', fontSize: '12px' }}></i>
+                            <div className="tour-highlight__check">
+                              {/* Decorative: the check repeats before every
+                                  highlight and names none of them. */}
+                              <i className='icon-check-star' aria-hidden="true"></i>
                             </div>
-                            <span className="text-dark fw-medium html-content" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: item }} />
+                            <span
+                              className="text-dark fw-medium html-content tour-highlight__text"
+                              dangerouslySetInnerHTML={{ __html: item }}
+                            />
                           </div>
                         </li>
                       ))}
                     </ul>
                   </div>
+                  )}
                 </section>
 
                 <section id="tour-plan" className="tour-section">
@@ -1204,11 +1093,17 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           id="tour-faq-list"
                           idPrefix="tour-faq"
                           items={faqItems}
-                          rowClassName={(index) =>
-                            !showAllFaqs && index >= FAQ_VISIBLE_COUNT
-                              ? "faq-list__row--folded"
-                              : undefined
-                          }
+                          /* Rows past the fold are marked either way: folded
+                             while hidden, revealed once shown, so the ones that
+                             appear can be animated in. Rows inside the fold are
+                             never touched — they must not re-animate every time
+                             the button is pressed. */
+                          rowClassName={(index) => {
+                            if (index < FAQ_VISIBLE_COUNT) return undefined;
+                            return showAllFaqs
+                              ? "faq-list__row--revealed"
+                              : "faq-list__row--folded";
+                          }}
                         />
 
                         {faqItems.length > FAQ_VISIBLE_COUNT && (
@@ -1372,7 +1267,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
           />
         )}
 
-        {/* ── Related Blogs (max 3, curated or featured fallback) ── */}
+        {/* Related Blogs carousel: curated set, or a featured fallback. */}
         {relatedBlogCards.length > 0 && (
           <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
             <Container>
@@ -1388,14 +1283,53 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       "More travel inspiration, guides, and stories from Egypt."
                     )}
                   </p>
-                </div>
-                <div className="row gutter-y-30">
-                  {relatedBlogCards.map((post) => (
-                    <div key={post.id} className="col-lg-4 col-md-6">
-                      <BlogCard post={post} variant='feature' />
+                  {relatedBlogCards.length > 1 && (
+                    <div className='related-blogs-nav feature-package__bottom__nav owl-nav'>
+                      <button
+                        type='button'
+                        className='owl-prev'
+                        aria-label={t(
+                          "tourDetails.relatedBlogs.previous",
+                          "Previous related articles"
+                        )}
+                        onClick={() => relatedBlogsSliderRef.current?.slidePrev()}
+                      >
+                        <span className='icon-arrow-left' aria-hidden='true'></span>
+                      </button>
+                      <button
+                        type='button'
+                        className='owl-next'
+                        aria-label={t(
+                          "tourDetails.relatedBlogs.next",
+                          "Next related articles"
+                        )}
+                        onClick={() => relatedBlogsSliderRef.current?.slideNext()}
+                      >
+                        <span className='icon-arrow-right' aria-hidden='true'></span>
+                      </button>
                     </div>
-                  ))}
+                  )}
                 </div>
+                <Swiper
+                  onSwiper={(instance) => {
+                    relatedBlogsSliderRef.current = instance;
+                  }}
+                  className='related-blogs-carousel'
+                  spaceBetween={30}
+                  rewind
+                  speed={700}
+                  breakpoints={{
+                    0: { slidesPerView: 1 },
+                    576: { slidesPerView: 2 },
+                    992: { slidesPerView: 3 },
+                  }}
+                >
+                  {relatedBlogCards.map((post) => (
+                    <SwiperSlide key={post.id}>
+                      <BlogCard post={post} variant='feature' />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
             </Container>
           </div>
         )}

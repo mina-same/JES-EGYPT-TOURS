@@ -7,7 +7,6 @@ import { ScanEye,
   Loader2, Plus, Edit2, Trash2, Search, Filter, 
   RefreshCw, MapPin, CheckCircle, XCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
@@ -22,30 +21,46 @@ export default function DestinationsListPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   const fetchDestinations = useCallback(async () => {
     setLoading(true);
     try {
       const params: any = {
+        page,
         search: searchTerm.trim() || undefined,
-        limit: 100
+        limit,
       };
       if (statusFilter !== 'all') {
         params.isActive = statusFilter === 'active';
       }
       const res = await destinationAPI.getAll(params);
-      setDestinations(res.data || []);
+      const rows = res.data || [];
+      const responseTotal = res.total ?? rows.length;
+      const normalizedTotalPages = Math.max(
+        1,
+        res.totalPages ?? Math.ceil(responseTotal / limit)
+      );
+      setDestinations(rows);
+      setTotalItems(responseTotal);
+      setTotalPages(normalizedTotalPages);
+      if (page > normalizedTotalPages) setPage(normalizedTotalPages);
     } catch {
+      setDestinations([]);
+      setTotalItems(0);
+      setTotalPages(1);
       toast({ title: 'Error', description: 'Failed to load destinations', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, statusFilter, toast]);
+  }, [page, limit, searchTerm, statusFilter, toast]);
 
   useEffect(() => {
     const timer = setTimeout(fetchDestinations, 300);
@@ -84,7 +99,7 @@ export default function DestinationsListPage() {
   };
 
   const stats = {
-    total: destinations.length,
+    total: totalItems,
     active: destinations.filter(d => d.isActive).length,
     inactive: destinations.filter(d => !d.isActive).length,
   };
@@ -144,7 +159,7 @@ export default function DestinationsListPage() {
           <button
             className="btn-icon btn-delete"
             onClick={() => handleDelete(dest._id)}
-            disabled={deletingId === dest._id}
+            disabled={deleteBusy && deleteIds.includes(dest._id)}
             title="Delete"
           >
             <Trash2 size={16} />
@@ -189,12 +204,21 @@ export default function DestinationsListPage() {
             type="text"
             placeholder="Search by name or region..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
         <div className="filter-group">
           <Filter size={18} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -237,6 +261,18 @@ export default function DestinationsListPage() {
             </div>
           }
           tableClassName="tours-table"
+        />
+
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={limit}
+          onPageChange={setPage}
+          onItemsPerPageChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
         />
       </div>
 

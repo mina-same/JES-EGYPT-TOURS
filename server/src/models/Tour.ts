@@ -66,13 +66,20 @@ export type AccommodationIcon = (typeof ACCOMMODATION_ICONS)[number];
  *  that holds one impossible to save at all. The client maps them to current
  *  artwork; they are never offered as choices in the admin. */
 export const LEGACY_ACCOMMODATION_ICONS = ['beach', 'resort', 'nubian'] as const;
+export type LegacyAccommodationIcon = (typeof LEGACY_ACCOMMODATION_ICONS)[number];
+
+/** What a stored row may actually hold. The schema accepts legacy values on
+ *  write, so typing the field as `AccommodationIcon` alone was a lie that made
+ *  a legacy row look impossible to TypeScript while being perfectly valid to
+ *  mongoose. The client maps them to current artwork before drawing. */
+export type StoredAccommodationIcon = AccommodationIcon | LegacyAccommodationIcon;
 
 /** One stop in a package's included accommodation: where the guests sleep and
  *  which hotels that tier books. Lives on the PLAN, not the tour — the whole
  *  point of tiers is that Affordable and Diamond sleep in different hotels. */
 export interface IAccommodation {
   location: ILocalizedString;
-  icon: AccommodationIcon;
+  icon: StoredAccommodationIcon;
   /** Editorial text, deliberately one field — "Hyatt Regency / Triumph Luxury
    *  or similar." is written prose, not a queryable hotel list. */
   hotels: ILocalizedString;
@@ -89,12 +96,27 @@ export interface IActivity {
   heading: ILocalizedString;
   description: ILocalizedMixed;
   image?: IImage;
+  /** An add-on the traveller may take or skip, not part of the base programme.
+   *  The tour page marks it so nobody reads it as included. */
+  isOptional?: boolean;
 }
 
 export interface IItineraryDay {
   day: number;
   title: ILocalizedString;
   activities: IActivity[];
+  /** Day logistics. All optional and independent: a day may carry none, one or
+   *  all three, and only the ones with text are shown on the tour page. */
+  /** A destination key from the fixed flight list — mirrored in
+   *  `client/src/lib/tours/dayLogistics.ts`. Absent when the day has no flight. */
+  flight?: string;
+  /** Meal keys, not prose: 'breakfast' | 'lunch' | 'dinner' | 'welcomeDrink',
+   *  or the single entry 'none'. Keys mean one admin choice covers all four
+   *  locales. */
+  meals?: string[];
+  /** A key from the fixed list of stays — mirrored in
+   *  `client/src/lib/tours/dayLogistics.ts`. Absent when the day has none. */
+  accommodation?: string;
 }
 
 export interface IItinerary {
@@ -402,7 +424,11 @@ const AccommodationSchema = new Schema<IAccommodation>(
         values: [...ACCOMMODATION_ICONS, ...LEGACY_ACCOMMODATION_ICONS],
         message: '{VALUE} is not a valid accommodation icon',
       },
-      default: 'city',
+      /* `hotel`, not `city`: a row that arrives without an icon tells us
+         nothing about where it is, and `city` invents that. `hotel` is the
+         honest unknown, and it is what the renderer falls back to as well, so
+         a missing value looks the same wherever it is resolved. */
+      default: 'hotel',
     },
     hotels: {
       type: LocalizedStringSchema,
@@ -450,9 +476,54 @@ const ActivitySchema = new Schema<IActivity>(
       required: [true, 'Activity description is required'],
     },
     image: ImageSchema,
+    isOptional: {
+      type: Boolean,
+      default: false,
+    },
   },
   { _id: false }
 );
+
+/** Both mirror `client/src/lib/tours/dayLogistics.ts`. */
+const DAY_FLIGHT_KEYS = [
+  // Egypt
+  'cairo',
+  'luxor',
+  'aswan',
+  'hurghada',
+  'sharmElSheikh',
+  'marsaAlam',
+  'alexandria',
+  // Abroad
+  'amman',
+  'aqaba',
+  'dubai',
+  'riyadh',
+  'jeddah',
+  'medina',
+  'casablanca',
+  'marrakech',
+  'fez',
+  'muscat',
+  'salalah',
+  'istanbul',
+  'antalya',
+  'cappadocia',
+  'beirut',
+];
+
+const DAY_ACCOMMODATION_KEYS = [
+  'cairoHotel',
+  'luxorHotel',
+  'aswanHotel',
+  'alexandriaHotel',
+  'hurghadaHotel',
+  'sharmElSheikhHotel',
+  'marsaAlamHotel',
+  'siwaOasisHotel',
+  'bahariyaOasisHotel',
+  'nileCruise',
+];
 
 const ItineraryDaySchema = new Schema<IItineraryDay>(
   {
@@ -470,6 +541,39 @@ const ItineraryDaySchema = new Schema<IItineraryDay>(
     activities: {
       type: [ActivitySchema],
       default: [],
+    },
+    // Optional per-day logistics: flights, meals and where the night is spent.
+    // Not every day has them, so each is stored only when the admin fills it in.
+    // A validator rather than `enum`: the field is optional, and Mongoose's enum
+    // rejects the empty string a cleared picker can send.
+    flight: {
+      type: String,
+      validate: {
+        validator: (value: unknown) =>
+          value == null || value === '' || DAY_FLIGHT_KEYS.includes(String(value)),
+        message: '{VALUE} is not a valid flight destination',
+      },
+    },
+    // Not `required` at this level on purpose: the seeders and any tour written
+    // before this field existed would stop saving. The admin form is where it is
+    // required — see validateTourForm.
+    meals: {
+      type: [String],
+      enum: {
+        values: ['breakfast', 'lunch', 'dinner', 'welcomeDrink', 'none'],
+        message: '{VALUE} is not a valid meal',
+      },
+      default: [],
+    },
+    // A validator rather than `enum`: the field is optional, and Mongoose's enum
+    // rejects the empty string a cleared picker can send.
+    accommodation: {
+      type: String,
+      validate: {
+        validator: (value: unknown) =>
+          value == null || value === '' || DAY_ACCOMMODATION_KEYS.includes(String(value)),
+        message: '{VALUE} is not a valid accommodation',
+      },
     },
   },
   { _id: false }

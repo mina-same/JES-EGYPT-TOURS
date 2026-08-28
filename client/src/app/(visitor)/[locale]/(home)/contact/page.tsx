@@ -109,6 +109,8 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <PageHeader
+        /* This page publishes its own BreadcrumbList below. */
+        breadcrumbJsonLd={false}
         title={t('pageTitle')}
         subTitle={t('pageSubTitle')}
         breadcrumbs={[{ label: t('breadcrumb.current') }]}

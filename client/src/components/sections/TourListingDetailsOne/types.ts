@@ -80,12 +80,21 @@ export interface Activity {
   heading: string;
   description: string;
   image?: ImageObject;
+  /** True for an add-on stop, which the timeline marks and draws differently. */
+  isOptional: boolean;
 }
 
 export interface ItineraryDay {
   day: number;
   title: string;
   activities: Activity[];
+  /** Localized already. Empty string when the admin left the field blank. */
+  /** A flight-destination key; TourPlan resolves it to the locale's words. */
+  flight: string;
+  /** Meal keys; TourPlan turns them into the locale's own words. */
+  meals: string[];
+  /** An accommodation key, likewise resolved to words by TourPlan. */
+  accommodation: string;
 }
 
 export interface Itinerary {

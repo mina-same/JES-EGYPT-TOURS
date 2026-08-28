@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, Plus, Edit2, Trash2, Eye,
-  Search, Filter, RefreshCw, FileText, Clock,
+  Search, RefreshCw, FileText, Clock,
   Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
 import { blogAPI, destinationAPI, blogCategoryAPI, blogSubcategoryAPI } from '@/lib/api/blogAdmin';
@@ -18,6 +18,16 @@ import { PaginationControls } from '@/components/admin/PaginationControls';
 import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import type { RequiredLocalizedField } from '@/lib/localeCompleteness';
+
+const ARTICLE_REQUIRED_LOCALIZED_FIELDS: readonly RequiredLocalizedField[] = [
+  {
+    path: 'cardDescription',
+    label: 'Card Description (article listings)',
+  },
+];
+
+const ARTICLES_PER_PAGE = 10;
 
 interface BlogPost {
   _id: string;
@@ -36,6 +46,7 @@ interface BlogPost {
   } | string;
   featuredImageAlt?: ILocalizedString;
   excerpt?: ILocalizedString;
+  cardDescription?: ILocalizedString;
   status: 'draft' | 'published' | 'scheduled';
   isFeatured: boolean;
   publishedAt?: string;
@@ -60,6 +71,7 @@ function BlogsPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [destinationFilter, setDestinationFilter] = useState<string>('all');
@@ -83,7 +95,7 @@ function BlogsPageContent() {
       
       const params: any = {
         page,
-        limit: 100,
+        limit: ARTICLES_PER_PAGE,
         search: searchTerm.trim() || undefined,
       };
       
@@ -115,7 +127,18 @@ function BlogsPageContent() {
       
       if (response.success && response.data) {
         setBlogs(response.data);
-        setTotalPages((response as any).totalPages || (response as any).pagination?.pages || 1);
+        const responseTotal = response.pagination?.total ?? response.total ?? response.data.length;
+        const responsePages =
+          response.pagination?.pages ??
+          response.totalPages ??
+          Math.ceil(responseTotal / ARTICLES_PER_PAGE);
+        const normalizedTotalPages = Math.max(1, responsePages);
+
+        setTotalItems(responseTotal);
+        setTotalPages(normalizedTotalPages);
+        if (page > normalizedTotalPages) {
+          setPage(normalizedTotalPages);
+        }
         
         // Extract unique tags from all blogs (using English as default for filters)
         const tagsSet = new Set<string>();
@@ -240,7 +263,11 @@ function BlogsPageContent() {
           <div className="ml-4">
             <div className="flex items-start gap-2">
               <div className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">{getLocalizedValue(blog.title)}</div>
-              <LanguageBadges entity={blog} className="mt-0.5 flex-shrink-0" />
+              <LanguageBadges
+                entity={blog}
+                className="mt-0.5 flex-shrink-0"
+                requiredLocalizedFields={ARTICLE_REQUIRED_LOCALIZED_FIELDS}
+              />
               {blog.isFeatured && (
                 <span
                   className="mt-0.5 inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500"
@@ -372,14 +399,12 @@ function BlogsPageContent() {
 
   // Calculate stats
   const stats = {
-    total: blogs.length,
+    total: totalItems,
     published: blogs.filter(b => b.status === 'published').length,
     drafts: blogs.filter(b => b.status === 'draft').length,
     scheduled: blogs.filter(b => b.status === 'scheduled').length,
     featured: blogs.filter(b => b.isFeatured).length,
   };
-
-  const totalItems = blogs.length;
 
   useEffect(() => {
     fetchBlogs();
@@ -619,7 +644,7 @@ function BlogsPageContent() {
           currentPage={page}
           totalPages={totalPages}
           totalItems={totalItems}
-          itemsPerPage={10}
+          itemsPerPage={ARTICLES_PER_PAGE}
           onPageChange={setPage}
           onItemsPerPageChange={() => {}}
           disableLimitChange={true}

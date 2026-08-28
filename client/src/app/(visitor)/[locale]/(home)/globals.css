@@ -90,8 +90,25 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  /* hsl(), because --foreground and --background hold BARE shadcn triplets
+     ("222.2 84% 4.9%"), not colours. Used raw they are invalid at
+     computed-value time, the declaration is dropped, and the property falls
+     back to its initial value — measured as rgb(0, 0, 0) for the text and a
+     transparent background. Two consequences it hid:
+
+       - every element on the site that does not set its own colour inherited
+         pure black rather than any token, and gotur.css's own
+         `body { color: var(--gotur-text) }` never applied, this file being
+         imported after it;
+       - the admin's dark theme never reached <body> at all — .dark swaps both
+         variables, but a broken declaration cannot read them, so dark mode was
+         black text on no background.
+
+     The rest of the app reads these through Tailwind, which wraps them
+     correctly (tailwind.config: 'hsl(var(--background))'), which is why only
+     the handful of raw var() call sites were affected. */
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
   /* This file is imported AFTER gotur.css, so this rule beats gotur.css's own
      `body` rule on order. It used to hardcode Arial, which overrode the theme
      font for <body> and everything inheriting from it - including the homepage

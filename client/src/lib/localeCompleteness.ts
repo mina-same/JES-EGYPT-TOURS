@@ -19,6 +19,22 @@ export interface LangCompleteness {
 
 export type CompletenessReport = Record<ContentLang, LangCompleteness>;
 
+export interface RequiredLocalizedField {
+  /** Dot-separated path to a localized value, for example `cardDescription`. */
+  path: string;
+  /** Optional admin-facing label used in the Missing tooltip. */
+  label?: string;
+}
+
+export interface LocaleCompletenessOptions {
+  /**
+   * Fields that must count even when they are absent or blank in every
+   * language. Ordinary optional fields still enter the comparison only after
+   * at least one language has a value.
+   */
+  requiredLocalizedFields?: readonly RequiredLocalizedField[];
+}
+
 // Relations / metadata that must not count toward THIS entity's content.
 // `faqs` is excluded on purpose: each language may legitimately have its own
 // FAQ set (8 questions in EN, 4 in DE…), so an untranslated FAQ is not a gap —
@@ -63,13 +79,18 @@ interface WalkContext {
   report: CompletenessReport;
   totals: { content: number };
   filled: Record<ContentLang, number>;
+  requiredLocalizedFields: Map<string, string | undefined>;
+  visitedRequiredFields: Set<string>;
 }
 
 const visitLeaf = (leaf: Record<string, unknown>, path: string[], isSeo: boolean, ctx: WalkContext) => {
+  const pathKey = path.join('.');
+  const isRequired = ctx.requiredLocalizedFields.has(pathKey);
   const presentIn = CONTENT_LANGS.filter((lang) => hasValue(leaf[lang]));
-  if (presentIn.length === 0) return; // nothing anywhere → field doesn't exist yet
+  if (presentIn.length === 0 && !isRequired) return; // blank optional field does not exist yet
 
-  const label = prettifyPath(path);
+  if (isRequired) ctx.visitedRequiredFields.add(pathKey);
+  const label = ctx.requiredLocalizedFields.get(pathKey) || prettifyPath(path);
   for (const lang of CONTENT_LANGS) {
     const has = hasValue(leaf[lang]);
     if (isSeo) {
@@ -101,7 +122,10 @@ const walk = (node: unknown, path: string[], inSeo: boolean, ctx: WalkContext) =
   }
 };
 
-export function getLocaleCompleteness(entity: unknown): CompletenessReport {
+export function getLocaleCompleteness(
+  entity: unknown,
+  options: LocaleCompletenessOptions = {}
+): CompletenessReport {
   const report: CompletenessReport = {
     en: { state: 'empty', missing: [], missingSeo: [] },
     de: { state: 'empty', missing: [], missingSeo: [] },
@@ -109,13 +133,27 @@ export function getLocaleCompleteness(entity: unknown): CompletenessReport {
     es: { state: 'empty', missing: [], missingSeo: [] },
   };
 
+  const requiredLocalizedFields = new Map<string, string | undefined>(
+    (options.requiredLocalizedFields || []).map(({ path, label }) => [path, label])
+  );
+
   const ctx: WalkContext = {
     report,
     totals: { content: 0 },
     filled: { en: 0, de: 0, it: 0, es: 0 },
+    requiredLocalizedFields,
+    visitedRequiredFields: new Set(),
   };
 
   walk(entity, [], false, ctx);
+
+  // The API may omit a completely blank optional field. Required fields still
+  // need to appear as missing for every language in that case.
+  for (const path of requiredLocalizedFields.keys()) {
+    if (!ctx.visitedRequiredFields.has(path)) {
+      visitLeaf({}, path.split('.'), false, ctx);
+    }
+  }
 
   for (const lang of CONTENT_LANGS) {
     const filled = ctx.filled[lang];

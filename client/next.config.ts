@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
      on non-English locales so each language has ONE indexable URL. */
   async rewrites() {
     return [
-      { source: "/egypt-dmc", destination: "/en/travel-trade" },
+      { source: "/en/egypt-dmc", destination: "/en/travel-trade" },
       { source: "/de/aegypten-dmc", destination: "/de/travel-trade" },
       { source: "/it/egitto-dmc", destination: "/it/travel-trade" },
       { source: "/es/egipto-dmc", destination: "/es/travel-trade" },
@@ -44,9 +44,15 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/travel-trade", destination: "/egypt-dmc", permanent: true },
-      { source: "/en/travel-trade", destination: "/egypt-dmc", permanent: true },
-      { source: "/en/egypt-dmc", destination: "/egypt-dmc", permanent: true },
+      /* Egypt DMC now lives at /en/egypt-dmc like every other page. The old
+         locale-less URL and the raw route-folder path both retire into it, so
+         each language keeps exactly ONE indexable URL. `/en/travel-trade`
+         cannot simply be deleted: the route folder IS `travel-trade`, so with
+         no rule it would quietly serve the page a second time under a
+         non-canonical URL — the duplicate this list exists to prevent. */
+      { source: "/egypt-dmc", destination: "/en/egypt-dmc", permanent: true },
+      { source: "/travel-trade", destination: "/en/egypt-dmc", permanent: true },
+      { source: "/en/travel-trade", destination: "/en/egypt-dmc", permanent: true },
       { source: "/de/travel-trade", destination: "/de/aegypten-dmc", permanent: true },
       { source: "/it/travel-trade", destination: "/it/egitto-dmc", permanent: true },
       { source: "/es/travel-trade", destination: "/es/egipto-dmc", permanent: true },

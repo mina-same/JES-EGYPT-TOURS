@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { tourCategoryAPI } from '@/lib/api/tour';
 import { ITourCategory } from '@/types/tour';
@@ -10,7 +9,6 @@ import { ScanEye,
   Search, Filter, RefreshCw, Layers, CheckCircle,
   XCircle, FolderTree
 } from 'lucide-react';
-import Image from 'next/image';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -20,8 +18,9 @@ import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import LanguageBadges from '@/components/admin/LanguageBadges';
 
+const CATEGORIES_PER_PAGE = 10;
+
 export default function TourCategoriesPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [categories, setCategories] = useState<ITourCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +29,7 @@ export default function TourCategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
@@ -45,7 +45,7 @@ export default function TourCategoriesPage() {
 
       const params: any = {
         page,
-        limit: 10,
+        limit: CATEGORIES_PER_PAGE,
         search: searchTerm.trim() || undefined,
       };
 
@@ -57,7 +57,14 @@ export default function TourCategoriesPage() {
 
       if (response.success && response.data) {
         setCategories(response.data);
-        setTotalPages(response.totalPages || 1);
+        const responseTotal = response.total ?? response.data.length;
+        const normalizedTotalPages = Math.max(
+          1,
+          response.totalPages ?? Math.ceil(responseTotal / CATEGORIES_PER_PAGE)
+        );
+        setTotalItems(responseTotal);
+        setTotalPages(normalizedTotalPages);
+        if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
         setError(response.error || 'Failed to fetch categories');
       }
@@ -143,7 +150,7 @@ export default function TourCategoriesPage() {
 
   // Calculate stats
   const stats = {
-    total: categories.length,
+    total: totalItems,
     active: categories.filter(c => c.isActive).length,
     inactive: categories.filter(c => !c.isActive).length,
     filtered: filteredCategories.length,
@@ -363,8 +370,8 @@ export default function TourCategoriesPage() {
         <PaginationControls
           currentPage={page}
           totalPages={totalPages}
-          totalItems={stats.total}
-          itemsPerPage={10}
+          totalItems={totalItems}
+          itemsPerPage={CATEGORIES_PER_PAGE}
           onPageChange={setPage}
           onItemsPerPageChange={() => { }}
           disableLimitChange={true}

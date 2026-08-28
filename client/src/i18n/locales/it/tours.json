@@ -40,18 +40,29 @@
     "location": "Posizione"
   },
   "tourDetails": {
-    "bookConfidence": "Prenota con Fiducia",
-    "bookConfidenceDesc": "Il tuo partner di fiducia per indimenticabili avventure egiziane",
+    "bookConfidence": "Prenota con fiducia",
+    "bookConfidenceDesc": "Tour privati, guide esperte e assistenza diretta per tutto il viaggio.",
     "bestSeller": "Pronto per la prenotazione",
     "from": "da",
     "bookThisTour": "Prenota questo tour",
     "bookNow": "Prenota ora",
     "features": {
-      "monthly": "Pagamento Mensile",
-      "support": "Supporto 24/7",
-      "prices": "Migliori Prezzi",
-      "rating": "Votato 5 Stelle",
-      "fast": "Prenotazione Rapida"
+      "private": {
+        "title": "Solo tour privati",
+        "text": "Il tuo gruppo, il tuo ritmo"
+      },
+      "guides": {
+        "title": "Egittologi esperti",
+        "text": "Guida professionale locale"
+      },
+      "support": {
+        "title": "Assistenza viaggio 24/7",
+        "text": "Aiuto diretto quando serve"
+      },
+      "flexible": {
+        "title": "Pianificazione flessibile",
+        "text": "Personalizza il tuo viaggio"
+      }
     },
     "nav": {
       "description": "Descrizione",
@@ -65,6 +76,56 @@
       "whatToPack": "Valigia"
     },
     "mapTitle": "Mappa del Tour",
+    "tourPlanTitle": "Piano del Tour",
+    "optional": "Opzionale",
+    "logistics": {
+      "flight": "Volo per",
+      "meals": "Pasti",
+      "accommodation": "Sistemazione",
+      "mealOptions": {
+        "breakfast": "Colazione",
+        "lunch": "Pranzo",
+        "dinner": "Cena",
+        "welcomeDrink": "Drink di benvenuto",
+        "none": "Nessuno"
+      },
+      "stayOptions": {
+        "cairoHotel": "Hotel al Cairo",
+        "luxorHotel": "Hotel a Luxor",
+        "aswanHotel": "Hotel ad Assuan",
+        "alexandriaHotel": "Hotel ad Alessandria",
+        "hurghadaHotel": "Hotel a Hurghada",
+        "sharmElSheikhHotel": "Hotel a Sharm el-Sheikh",
+        "marsaAlamHotel": "Hotel a Marsa Alam",
+        "siwaOasisHotel": "Hotel nell'oasi di Siwa",
+        "bahariyaOasisHotel": "Hotel nell'oasi di Bahariya",
+        "nileCruise": "Crociera sul Nilo"
+      },
+      "flyToOptions": {
+        "cairo": "Il Cairo",
+        "luxor": "Luxor",
+        "aswan": "Assuan",
+        "hurghada": "Hurghada",
+        "sharmElSheikh": "Sharm el-Sheikh",
+        "marsaAlam": "Marsa Alam",
+        "alexandria": "Alessandria",
+        "amman": "Amman",
+        "aqaba": "Aqaba",
+        "dubai": "Dubai",
+        "riyadh": "Riad",
+        "jeddah": "Gedda",
+        "medina": "Medina",
+        "casablanca": "Casablanca",
+        "marrakech": "Marrakech",
+        "fez": "Fez",
+        "muscat": "Mascate",
+        "salalah": "Salalah",
+        "istanbul": "Istanbul",
+        "antalya": "Antalya",
+        "cappadocia": "Cappadocia",
+        "beirut": "Beirut"
+      }
+    },
     "highlightList": "Elenco dei Punti Salienti",
     "amenitiesTitle": "Servizi del Tour",
     "included": "Cosa è incluso",
@@ -94,7 +155,9 @@
     "relatedBlogs": {
       "title": "Blog Correlati",
       "tagline": "Storie di Viaggio",
-      "description": "Altre ispirazioni di viaggio, guide e storie dall'Egitto."
+      "description": "Altre ispirazioni di viaggio, guide e storie dall'Egitto.",
+      "previous": "Articoli correlati precedenti",
+      "next": "Articoli correlati successivi"
     },
     "moreTours": {
       "title": "Di più",

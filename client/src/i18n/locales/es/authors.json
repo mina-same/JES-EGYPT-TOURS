@@ -1,0 +1,45 @@
+{
+  "breadcrumb": "Autores",
+  "meta": {
+    "titleSuffix": "Jes Egypt Tours"
+  },
+  "hero": {
+    "portraitPending": "Retrato de la autora, próximamente"
+  },
+  "about": {
+    "headingPrefix": "Sobre"
+  },
+  "facts": {
+    "heading": "Perfil breve",
+    "roleLabel": "Función",
+    "organisationLabel": "Organización",
+    "focusLabel": "Temas que trata",
+    "languagesLabel": "Escribe en"
+  },
+  "expertise": {
+    "tagline": "Especialidad",
+    "title": "De qué se ocupa"
+  },
+  "approach": {
+    "tagline": "Método de trabajo",
+    "headingPrefix": "Cómo trabaja",
+    "headingSuffix": "",
+    "lead": "En pocas líneas, cómo se preparan estos artículos y qué implica eso para los datos que contienen."
+  },
+  "context": {
+    "tagline": "Detrás de los contenidos",
+    "title": "Sobre el terreno en Egipto"
+  },
+  "articles": {
+    "featuredTagline": "Trabajos seleccionados",
+    "featuredTitle": "Artículos destacados",
+    "latestTagline": "El resto",
+    "latestPrefix": "Más artículos de",
+    "allPrefix": "Artículos de",
+    "empty": "Todavía no hay artículos en este idioma."
+  },
+  "publisher": {
+    "text": "Publicado por",
+    "aboutLink": "Sobre Jes Egypt Tours"
+  }
+}

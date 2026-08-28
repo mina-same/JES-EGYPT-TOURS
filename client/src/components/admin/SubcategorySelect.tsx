@@ -82,7 +82,8 @@ const SubcategorySelect: React.FC<SubcategorySelectProps> = ({
     control: (provided, state) => ({
       ...provided,
       minHeight: '44px', // Match standard input height
-      backgroundColor: 'var(--background)',
+      // hsl(): the token is a bare shadcn triplet, invalid unwrapped.
+      backgroundColor: 'hsl(var(--background))',
       paddingLeft: '4px',
       paddingRight: '4px',
       fontSize: '14px',
