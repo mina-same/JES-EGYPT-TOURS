@@ -254,5 +254,6 @@
   "videoReviews": {
     "tagline": "Echte Reisende",
     "title": "Video-Bewertungen"
-  }
+  },
+  "breadcrumb": "Brotkrümelnavigation"
 }

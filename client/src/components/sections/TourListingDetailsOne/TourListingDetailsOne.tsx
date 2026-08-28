@@ -39,6 +39,7 @@ import { waHref } from "@/config/contact";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
+import { useLineClamp } from "@/hooks/useLineClamp";
 import FeatureTwo from "../FeatureTwo/FeatureTwo";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
@@ -64,8 +65,6 @@ const NOTES_VISIBLE_ON_PHONE = 3;
  */
 const DESCRIPTION_VISIBLE_LINES_DESKTOP = 3;
 const DESCRIPTION_VISIBLE_LINES_MOBILE = 5;
-/** Same breakpoint the rest of this page treats as desktop (CSS: max-width 991px). */
-const DESKTOP_MIN_WIDTH = 992;
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, moreTours, relatedBlogs, hasTourContent } = useTourData(id, initialRawTour);
@@ -112,14 +111,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
    * away. Storing the node in state re-runs the effect on every remount.
    */
   const [descriptionEl, setDescriptionEl] = useState<HTMLDivElement | null>(null);
-  /**
-   * Starts true so the button is part of the SERVER-rendered markup — the clamp
-   * is CSS-only and therefore already active on first paint, so a button that
-   * only appeared after hydration would leave the control missing exactly when
-   * the text is cut. The effect below switches it off for the rare description
-   * that is short enough to fit uncut.
-   */
-  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(true);
+  /* Measurement, the CSS variable it writes and the overflow flag all live in
+     useLineClamp — the Tour Plan intro runs the identical routine. */
+  const isDescriptionOverflowing = useLineClamp(descriptionEl, tourData.overview, {
+    desktop: DESCRIPTION_VISIBLE_LINES_DESKTOP,
+    mobile: DESCRIPTION_VISIBLE_LINES_MOBILE,
+  });
   const [showAllFaqs, setShowAllFaqs] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
@@ -148,97 +145,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     }
   }, [params?.locale, i18n]);
 
-  /**
-   * Sizes the clamp to exactly the wanted number of lines OF TEXT.
-   *
-   * A plain max-height cannot do this: the budget is shared with the gaps
-   * between paragraphs, so a height worth five lines renders four lines plus a
-   * blank one, and how many lines survive changes with where the paragraph
-   * breaks happen to fall — one tour showed a single orphaned line. Measuring
-   * the real line boxes and clamping to the last wanted line's box makes the
-   * count identical on every tour, whatever the paragraph rhythm.
-   *
-   * Overflowing content is still laid out under `overflow: hidden`, so the rects
-   * for the clipped lines are available and the element can be measured without
-   * expanding it first.
-   */
-  useEffect(() => {
-    const el = descriptionEl;
-    if (!el) return;
-
-    const measure = () => {
-      const inner = el.firstElementChild as HTMLElement | null;
-      if (!inner) return;
-
-      const visibleLines =
-        window.innerWidth >= DESKTOP_MIN_WIDTH
-          ? DESCRIPTION_VISIBLE_LINES_DESKTOP
-          : DESCRIPTION_VISIBLE_LINES_MOBILE;
-
-      // Collect the elements that actually own line boxes: descend until a node
-      // whose children are all inline. Ranging the whole description at once
-      // reports the paragraph boxes ALONGSIDE the line boxes, which inflated the
-      // count and clamped some tours to fewer lines than asked for.
-      const isBlock = (node: Element) => {
-        const display = getComputedStyle(node).display;
-        return display === "block" || display === "list-item" || display === "flex" || display === "grid" || display === "table";
-      };
-      const leafBlocks: Element[] = [];
-      const collect = (node: Element) => {
-        const children = Array.from(node.children);
-        if (children.length === 0 || !children.some(isBlock)) {
-          leafBlocks.push(node);
-          return;
-        }
-        children.forEach(collect);
-      };
-      collect(inner);
-
-      // Blocks stack vertically, so de-duplicating by top WITHIN a block folds
-      // the several rects of one line (split by inline tags) into a single line.
-      const lines: DOMRect[] = [];
-      const range = document.createRange();
-      for (const block of leafBlocks) {
-        range.selectNodeContents(block);
-        const seen = new Set<number>();
-        for (const rect of Array.from(range.getClientRects())) {
-          if (rect.height <= 0 || rect.width <= 0) continue;
-          const key = Math.round(rect.top * 10);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          lines.push(rect);
-        }
-      }
-      lines.sort((a, b) => a.top - b.top);
-
-      if (lines.length <= visibleLines) {
-        el.style.removeProperty("--desc-clamp");
-        setIsDescriptionOverflowing(false);
-        return;
-      }
-
-      const lastVisible = lines[visibleLines - 1];
-      const lineHeight = parseFloat(getComputedStyle(inner).lineHeight);
-      // getClientRects returns the glyph box, which is shorter than the line
-      // box. Adding the half-leading back puts the cut on the line boundary
-      // instead of shaving the descenders.
-      const halfLeading = Number.isFinite(lineHeight)
-        ? Math.max(0, (lineHeight - lastVisible.height) / 2)
-        : 0;
-      const clamp = Math.ceil(lastVisible.bottom - el.getBoundingClientRect().top + halfLeading);
-
-      el.style.setProperty("--desc-clamp", `${clamp}px`);
-      setIsDescriptionOverflowing(true);
-    };
-
-    measure();
-    window.addEventListener("resize", measure);
-    // Web fonts land after first paint and change where the lines break.
-    document.fonts?.ready.then(measure).catch(() => {});
-    return () => window.removeEventListener("resize", measure);
-    // `tourData.overview` rather than the destructured `overview`, which is
-    // declared further down and would be in its temporal dead zone here.
-  }, [descriptionEl, tourData.overview]);
 
   useEffect(() => {
     const updateNavHeight = () => {
@@ -1187,11 +1093,17 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           id="tour-faq-list"
                           idPrefix="tour-faq"
                           items={faqItems}
-                          rowClassName={(index) =>
-                            !showAllFaqs && index >= FAQ_VISIBLE_COUNT
-                              ? "faq-list__row--folded"
-                              : undefined
-                          }
+                          /* Rows past the fold are marked either way: folded
+                             while hidden, revealed once shown, so the ones that
+                             appear can be animated in. Rows inside the fold are
+                             never touched — they must not re-animate every time
+                             the button is pressed. */
+                          rowClassName={(index) => {
+                            if (index < FAQ_VISIBLE_COUNT) return undefined;
+                            return showAllFaqs
+                              ? "faq-list__row--revealed"
+                              : "faq-list__row--folded";
+                          }}
                         />
 
                         {faqItems.length > FAQ_VISIBLE_COUNT && (

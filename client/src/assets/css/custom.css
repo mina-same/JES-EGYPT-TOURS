@@ -1838,20 +1838,23 @@ body {
 
    That is a site-wide bug and not this section's to fix; what belongs here is
    the section stating its own typography. Body size, since it introduces the
-   whole plan, one step above the day copy inside the timeline. */
+   whole plan. Same #484848 as the day copy below it, so the section reads as
+   one body of text rather than two tones. */
 .tour-plan__intro {
   font-size: 1rem;
-  color: #595959;
+  color: #484848;
   line-height: 1.8;
 }
 
 /* On a seven-day package this is by far the longest read on the page, yet it
    was set at the smallest size AND the lightest grey of any body copy here —
-   two steps down at once. One step back on each: 15px, and the same #595959
-   the rest of the page's secondary text now uses. */
+   two steps down at once. Now at full body size and a step darker than the
+   page's #595959, because length of read is what this text is judged on.
+   Weight stays inherited at 400: the contrast with the 700 step title above is
+   what keeps it secondary, not a lighter colour. */
 .tour-plan__text {
-  font-size: 15px;
-  color: #595959;
+  font-size: 16px;
+  color: #484848;
   line-height: 1.7;
   margin: 0;
 }
@@ -2790,31 +2793,28 @@ body {
   padding: 20px 0px;
 }
 
-/* --------------------------------------------------------------------------
-   Tour description "Read More"
-   --------------------------------------------------------------------------
-   Applies at EVERY width (it used to be mobile-only, which meant the desktop
-   page printed the whole description). The clamp is a pure max-height clip, so
-   the full text — and every link inside it — stays in the DOM and crawlable.
-
-   The real height comes from --desc-clamp, which the component measures from
-   the rendered line boxes so exactly five lines OF TEXT show regardless of how
-   the paragraph breaks fall. A fixed height cannot do that: it spends the same
-   budget on the gaps between paragraphs, which cost a visible line and made the
-   count differ from tour to tour. The literal below is only the first-paint
-   fallback — five lines plus one paragraph gap — so the server HTML already
-   renders collapsed and nothing jumps on hydration.
-   -------------------------------------------------------------------------- */
 .tour-description-wrapper {
   position: relative;
+  /* Both ends of the animation are lengths: the clamp when collapsed, the
+     measured content height when open. See --desc-full in useLineClamp. */
+  transition: max-height 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Clipping is now permanent rather than collapsed-only, because the box is
+     still shorter than its text WHILE it grows — released early, the paragraphs
+     below the fold would paint over the button and the accordion for the length
+     of the transition.
+
+     The reason it was collapsed-only still stands: gotur.css gives
+     .tour-listing-details__text a margin-bottom of -4px, and clipping to the
+     exact measured height shaves that much off the last line's leading. The
+     slack on the open state below covers it, with room for sub-pixel rounding. */
+  overflow: hidden;
 }
 
-/* Clipping belongs to the collapsed state only. Left on permanently it also
-   trimmed the expanded text, because the theme gives .tour-listing-details__text
-   a margin-bottom of -4px and the hidden overflow cut that much off the last
-   line's leading. */
+.tour-description-wrapper:not(.collapsed) {
+  max-height: calc(var(--desc-full, 200rem) + 8px);
+}
+
 .tour-description-wrapper.collapsed {
-  overflow: hidden;
   /* Narrow screens: five lines. A line holds far fewer words here, so matching
      the desktop count would leave barely a sentence showing. */
   max-height: var(--desc-clamp, calc(1.8rem * 5));
@@ -2823,6 +2823,29 @@ body {
 @media (min-width: 992px) {
   .tour-description-wrapper.collapsed {
     max-height: var(--desc-clamp, calc(1.8rem * 3));
+  }
+}
+
+/* Readers who ask for less motion get the same states, instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .tour-description-wrapper {
+    transition: none;
+  }
+}
+
+/* The itinerary intro shares the wrapper above but clamps to TWO desktop lines,
+   not three. This is the value used before the measurement lands — without it
+   first paint renders three lines and the effect then snaps the block up by one,
+   which is a visible jump on the exact element the reader is looking at.
+   Placed after the rules it overrides: the specificity is identical (0,2,0), so
+   source order is what decides. */
+.tour-plan__intro-clamp.collapsed {
+  max-height: var(--desc-clamp, calc(1.8rem * 5));
+}
+
+@media (min-width: 992px) {
+  .tour-plan__intro-clamp.collapsed {
+    max-height: var(--desc-clamp, calc(1.8rem * 2));
   }
 }
 
@@ -7206,6 +7229,68 @@ button[data-action="stop"] {
    JSON-LD. */
 .faq-list__row--folded {
   display: none;
+}
+
+/* Rows revealed by "View More Questions".
+
+   The card's HEIGHT is what animates, via a 0fr -> 1fr grid track. Fading the
+   cards in alone was not enough: the rows took their full height the instant
+   they stopped being `display: none`, so the button below them jumped straight
+   to its new position and read as disappearing and reappearing lower down.
+   Growing the track makes the list push the button down gradually, so it
+   travels instead of teleporting.
+
+   A grid track rather than max-height because 0fr -> 1fr resolves to the card's
+   INTRINSIC height. max-height has to guess a number, and any guess above the
+   real height finishes the growth early — which is the teleport again, just
+   shorter.
+
+   `display: grid` here only replaces block stacking with a single-column grid,
+   which lays the question button and its answer out identically.
+
+   margin-bottom is set at 0% and deliberately absent at 100%: an omitted
+   property animates to the element's own computed value, which keeps
+   .faq-list__row:last-child at 0 instead of forcing 12px onto it. Without this
+   every collapsed row would still contribute its 12px, so the button would
+   start the animation already pushed most of the way down. */
+@keyframes faqRowReveal {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-bottom: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+.faq-list__row--revealed {
+  display: grid;
+  grid-template-rows: 1fr;
+  /* The track can only shrink below the content if the child lets it. */
+  overflow: hidden;
+  animation: faqRowReveal 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.faq-list__row--revealed > * {
+  min-height: 0;
+}
+
+/* A short cascade rather than every card arriving together. The offsets assume
+   the fold sits after four questions (FAQ_VISIBLE_COUNT); if that count changes
+   the rows still animate, they just share a delay. Capped so a tour with twenty
+   questions does not spend a second finishing. */
+.faq-list__row--revealed:nth-child(6) { animation-delay: 45ms; }
+.faq-list__row--revealed:nth-child(7) { animation-delay: 90ms; }
+.faq-list__row--revealed:nth-child(8) { animation-delay: 135ms; }
+.faq-list__row--revealed:nth-child(9) { animation-delay: 180ms; }
+.faq-list__row--revealed:nth-child(n + 10) { animation-delay: 215ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-list__row--revealed {
+    animation: none;
+  }
 }
 
 /* ── Still have a question? ───────────────────────────────────────────────

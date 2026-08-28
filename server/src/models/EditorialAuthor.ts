@@ -1,3 +1,4 @@
+import { revalidateTags } from '../services/revalidate';
 import mongoose, { Document, Schema } from 'mongoose';
 import {
   ILocalizedString,
@@ -109,5 +110,18 @@ const EditorialAuthorSchema = new Schema<IEditorialAuthor>({
 
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
+
+/*
+ * An author's own page is tagged with their slug; their articles' cards appear
+ * under `blog`, so both are cleared when the author record changes.
+ */
+const revalidateAuthorCaches = function (this: unknown, doc: any) {
+  const slug = doc?.slug ?? (doc as any)?._update?.$set?.slug;
+  revalidateTags([...(slug ? [`author:${slug}`] : []), 'blog']);
+};
+
+EditorialAuthorSchema.post('save', revalidateAuthorCaches);
+EditorialAuthorSchema.post('findOneAndUpdate', revalidateAuthorCaches);
+EditorialAuthorSchema.post('updateOne', revalidateAuthorCaches);
 
 export default mongoose.models.EditorialAuthor || mongoose.model<IEditorialAuthor>('EditorialAuthor', EditorialAuthorSchema);

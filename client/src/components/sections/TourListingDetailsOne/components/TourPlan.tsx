@@ -1,11 +1,12 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Accordion } from "react-bootstrap";
 import Image from "next/image";
 import { BedDouble, ChevronDown, Plane, Sparkle, Utensils } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Itinerary } from "../types";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
+import { useLineClamp } from "@/hooks/useLineClamp";
 import {
   DAY_ACCOMMODATION_FALLBACKS,
   DAY_FLIGHT_FALLBACKS,
@@ -45,8 +46,19 @@ const MEAL_FALLBACKS: Record<string, string> = {
   none: "None",
 };
 
+/** Two lines on desktop, five on a phone. Not a mismatch: a desktop line here
+ *  runs to roughly 110 characters and a phone line to about 45, so both settings
+ *  reveal a comparable amount of text before the fold. */
+const INTRO_VISIBLE_LINES = { desktop: 2, mobile: 5 };
+
 export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
   const { t } = useTranslation("tours");
+
+  const [isIntroExpanded, setIsIntroExpanded] = useState(false);
+  /* A callback ref, not useRef: the tour arrives asynchronously, so this node is
+     mounted, discarded and remounted, and a plain ref would leave the hook
+     measuring a node React had already thrown away. */
+  const [introEl, setIntroEl] = useState<HTMLDivElement | null>(null);
 
   /* Same reasoning as the parent page: scrolling re-renders this tree whenever
      the sticky bar or the active tab flips, and re-running the link pass over
@@ -56,6 +68,12 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
     () => normalizeRichTextInternalLinks(itinerary?.generalDescription),
     [itinerary?.generalDescription]
   );
+  const isIntroOverflowing = useLineClamp(
+    introEl,
+    generalDescriptionHtml,
+    INTRO_VISIBLE_LINES
+  );
+
   const days = React.useMemo(
     () =>
       (itinerary?.days || []).map((day) => ({
@@ -102,15 +120,45 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
     <div className='tour-listing-details__content__item tour-listing-details__ture-plan'>
       <h2 className='tour-listing-details__title'>{t("tourDetails.tourPlanTitle", "Tour Plan")}</h2>
 
-      {/* Carries its own colour and size. Without them it inherited <body>'s,
-          which is pure black — see .tour-plan__intro — so the section intro and
-          the day descriptions below it were two different colours despite being
-          the same kind of copy. */}
+      {/* Clamped exactly as the page's main description is, through the same
+          hook and the same .tour-description-wrapper CSS. The clip is CSS-only:
+          every paragraph, and every internal link inside it, stays in the served
+          HTML and is merely hidden. Never shorten `generalDescriptionHtml`
+          itself — that would take the copy out of the markup a crawler reads. */}
       {generalDescriptionHtml && (
-        <div
-          className="html-content tour-plan__intro mb-4"
-          dangerouslySetInnerHTML={{ __html: generalDescriptionHtml }}
-        />
+        <div className="mb-4">
+          <div
+            id="tour-plan-intro-body"
+            ref={setIntroEl}
+            className={`tour-description-wrapper tour-plan__intro-clamp ${isIntroExpanded ? '' : 'collapsed'}`}
+          >
+            <div
+              className="html-content tour-plan__intro"
+              dangerouslySetInnerHTML={{ __html: generalDescriptionHtml }}
+            />
+          </div>
+
+          {isIntroOverflowing && (
+            <button
+              type="button"
+              className="tour-read-more-btn"
+              onClick={() => setIsIntroExpanded((prev) => !prev)}
+              aria-expanded={isIntroExpanded}
+              aria-controls="tour-plan-intro-body"
+            >
+              <span>
+                {isIntroExpanded
+                  ? t("tourDetails.readLess", "Read Less")
+                  : t("tourDetails.readMore", "Read More")}
+              </span>
+              <ChevronDown
+                size={16}
+                className="tour-read-more-btn__chevron"
+                style={{ transform: isIntroExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+            </button>
+          )}
+        </div>
       )}
 
       <div className='faq-page__accordion faq-accordion gotur-accordion'>

@@ -1,22 +1,23 @@
 "use client";
 import React from 'react';
 import bg from '@/assets/images/backgrounds/page-header-bg-1-1.jpg'
-import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 
 import { useTranslation } from 'react-i18next';
 import { normalizeLocale } from '@/lib/url';
+import Breadcrumb, { type BreadcrumbItem } from '@/components/common/Breadcrumb/Breadcrumb';
 
-type BreadcrumbItem = {
-  label: string;
-  href?: string;
-};
 interface PageHeaderProps {
   title?: string;
   subTitle?: string;
   bgImage?: string;
   breadcrumbs?: BreadcrumbItem[];
+  /**
+   * Set false on a page that already publishes its own BreadcrumbList, so the
+   * document does not carry two competing trails.
+   */
+  breadcrumbJsonLd?: boolean;
   alt?: string;
   imageTitle?: string;
   /**
@@ -33,7 +34,7 @@ interface PageHeaderProps {
    */
   decorativeBackground?: boolean;
 }
-const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt, imageTitle, decorativeBackground }) => {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt, imageTitle, decorativeBackground, breadcrumbJsonLd = true }) => {
   const { t } = useTranslation('common');
   const params = useParams();
   const locale = normalizeLocale(params?.locale);
@@ -57,17 +58,17 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
       </div>
       <div className="container relative z-10">
         <div className="page-header__content" style={{ textAlign: 'center' }}>
-          <ul className="gotur-breadcrumb list-unstyled mb-3">
-            {/* locale-prefixed: bare "/" 307s to /en and leaks non-EN visitors out of their language */}
-            <li><Link href={`/${locale}`}>{t('home')}</Link></li>
-            {Array.isArray(breadcrumbs) && breadcrumbs.length > 0 ? (
-              breadcrumbs.map((item, idx) => (
-                <li key={`${item.label}-${idx}`}>
-                  {item.href ? <Link href={item.href}>{item.label}</Link> : <span>{item.label}</span>}
-                </li>
-              ))
-            ) : null}
-          </ul>
+          {/* The shared trail. It used to be written out here, which is why the
+              author page ended up with a second copy of the same markup when it
+              needed the breadcrumb without this component's banner. */}
+          <Breadcrumb
+            locale={locale}
+            homeLabel={t('home')}
+            items={breadcrumbs}
+            ariaLabel={t('breadcrumb')}
+            jsonLd={breadcrumbJsonLd}
+            className="mb-3"
+          />
           <h1 className="page-header__title bw-split-in-right">{title}</h1>
           {subTitle && (
             <div

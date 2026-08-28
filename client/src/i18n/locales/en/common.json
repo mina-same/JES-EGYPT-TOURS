@@ -255,5 +255,6 @@
   "videoReviews": {
     "tagline": "Real Travellers",
     "title": "Video Reviews"
-  }
+  },
+  "breadcrumb": "Breadcrumb"
 }

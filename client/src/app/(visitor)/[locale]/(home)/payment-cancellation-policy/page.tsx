@@ -252,6 +252,8 @@ export default async function PaymentCancellationPolicyPage({
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <PageHeader
+        /* This page publishes its own BreadcrumbList below. */
+        breadcrumbJsonLd={false}
         title={PAGE_TITLE}
         subTitle="How we confirm bookings and handle deposits, final payments, changes, cancellations, and eligible refunds."
         bgImage="/images/backgrounds/jes-egypt-tours-payment-cancellation-policy.webp"

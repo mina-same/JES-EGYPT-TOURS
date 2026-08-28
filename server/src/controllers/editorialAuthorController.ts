@@ -10,6 +10,14 @@ import {
   DEFAULT_AUTHOR_SLUG,
 } from '../seeds/defaultEditorialAuthor';
 
+/** The languages the site publishes in. `bypass` is a transport flag, not a language. */
+const SITE_LOCALES = ['en', 'de', 'it', 'es'] as const;
+
+/** How many editor-flagged articles the author page promotes above the rest. */
+const DEFAULT_FEATURED_LIMIT = 3;
+/** Cards per page in the paginated remainder. */
+const DEFAULT_PAGE_SIZE = 8;
+
 const assignUnattributedBlogsToDefaultAuthor = async (authorId: unknown) => {
   await Blog.updateMany(
     { $or: [{ editorialAuthor: { $exists: false } }, { editorialAuthor: null }] },
@@ -175,18 +183,70 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
         return card;
       });
 
+    /*
+     * The split and the paging happen HERE, not on the client.
+     *
+     * The page used to receive every article this author has — all 23 of them,
+     * with their card fields — and then show three plus a page of eight. The
+     * rest crossed the network to be thrown away. Sending only what is asked
+     * for keeps the payload flat as the archive grows.
+     *
+     * `featured` is the editor's own isFeatured flag, and those articles are
+     * removed from the paged remainder so nothing appears twice.
+     */
+    const featuredLimit = Math.max(0, Number.parseInt(String(req.query.featuredLimit ?? DEFAULT_FEATURED_LIMIT), 10) || 0);
+    const limit = Math.min(
+      48,
+      Math.max(1, Number.parseInt(String(req.query.limit ?? DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE)
+    );
+
+    const featured = localizedArticles.filter((a: any) => a.isFeatured === true).slice(0, featuredLimit);
+    const featuredIds = new Set(featured.map((a: any) => String(a._id)));
+    const remainder = localizedArticles.filter((a: any) => !featuredIds.has(String(a._id)));
+
+    const totalPages = Math.max(1, Math.ceil(remainder.length / limit));
+    const page = Math.min(
+      Math.max(1, Number.parseInt(String(req.query.page ?? 1), 10) || 1),
+      totalPages
+    );
+    const pageItems = remainder.slice((page - 1) * limit, page * limit);
+
+    /*
+     * Which languages this author actually has a biography in.
+     *
+     * The client used to answer this by fetching the WHOLE document a second
+     * time with `X-Locale: bypass` — 61 KB of raw four-language data, every
+     * article included, to read four keys. It is computed here, where the
+     * document is already in hand, and rides along with the response the page
+     * was fetching anyway.
+     */
+    const rawAuthor = author.toObject();
+    const availableLocales = SITE_LOCALES.filter(
+      (locale) => typeof rawAuthor.bio?.[locale] === 'string' && rawAuthor.bio[locale].trim().length > 0
+    );
+
     res.json({
       success: true,
       // Localized, with every `slug` kept raw so the article links still resolve
       // per language. This response used to carry all four languages of the bio,
       // role and every article title — 86 KB on a single page.
-      data: localizePreservingSlugs(
-        {
-          ...author.toObject(),
-          articles: localizedArticles,
+      data: {
+        ...localizePreservingSlugs(
+          {
+            ...rawAuthor,
+            featured,
+            articles: pageItems,
+          },
+          req.locale
+        ),
+        availableLocales,
+        pagination: {
+          page,
+          limit,
+          total: remainder.length,
+          pages: totalPages,
         },
-        req.locale
-      ),
+      },
     });
   } catch (error) {
     console.error('Error loading editorial author:', error);

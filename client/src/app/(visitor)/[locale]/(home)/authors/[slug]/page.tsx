@@ -12,6 +12,7 @@ import Layout from '@/components/layout/Layout/Layout';
 import FooterOne from '@/components/layout/FooterOne/FooterOne';
 import DynamicBlogGrid from '@/components/sections/DynamicBlogGrid/DynamicBlogGrid';
 import AuthorPhoto from '@/components/common/AuthorPhoto/AuthorPhoto';
+import Breadcrumb from '@/components/common/Breadcrumb/Breadcrumb';
 import type { BlogPost } from '@/lib/api/blog';
 import {
   getLocalizedStaticPath,
@@ -109,53 +110,69 @@ function givenName(fullName: string): string {
   return typeof fullName === 'string' ? fullName.trim().split(/\s+/)[0] : '';
 }
 
-async function getAuthor(slug: string, locale: string) {
-  const response = await fetch(`${API_URL}/blog/authors/${encodeURIComponent(slug)}`, {
-    // Uncached, like every other visitor route here: there is no revalidation
-    // hook on publish, so a timed cache would keep serving a deactivated author
-    // or an unpublished article's card until the window expired.
-    cache: 'no-store',
-    headers: { 'X-Locale': locale },
-  });
+/**
+ * The author, their promoted articles, and ONE page of the rest.
+ *
+ * `page` is part of the request because the server does the paging now. Both
+ * `generateMetadata` and the component call this with the same arguments, so
+ * React's fetch memoisation collapses them into a single round trip per
+ * request rather than two.
+ */
+async function getAuthor(slug: string, locale: string, page: number) {
+  const response = await fetch(
+    `${API_URL}/blog/authors/${encodeURIComponent(slug)}?page=${page}&limit=${PAGE_SIZE}&featuredLimit=${FEATURED_COUNT}`,
+    {
+      // Cached until something invalidates the tag. The admin calls the
+      // revalidation route on every publish, so this is fresh AND cached —
+      // where `no-store` was fresh at the cost of a database read on every
+      // single visit, and a plain timer was cached at the cost of serving a
+      // deleted article for the length of the window.
+      next: { tags: [`author:${slug}`, 'blog'] },
+      headers: { 'X-Locale': locale },
+    }
+  );
   if (!response.ok) return null;
   const payload = await response.json();
   return payload?.data ?? null;
 }
 
 /**
- * The languages this author actually has a bio in.
+ * The languages this author has a biography in, as the API reports them.
  *
  * Only `en` is required by LocalizedStringSchema, so an author added with no
  * German translation has no German page to offer. This gates BOTH the hreflang
  * map and the route itself — a locale that is not served 404s rather than
  * quietly rendering the English bio under a German URL with a German canonical,
  * the same rule /faq already follows for a language with no questions.
+ *
+ * It used to be answered by fetching the whole document a SECOND time with
+ * `X-Locale: bypass` — 61 KB of raw four-language data, every article
+ * included, to read four keys. The server computes it now and sends it with
+ * the response the page was already fetching.
  */
-async function getServedLocales(slug: string): Promise<SupportedLocale[]> {
-  try {
-    const response = await fetch(`${API_URL}/blog/authors/${encodeURIComponent(slug)}`, {
-      cache: 'no-store',
-      headers: { 'X-Locale': 'bypass' },
-    });
-    if (!response.ok) return ['en'];
-    const payload = await response.json();
-    const bio = payload?.data?.bio;
-    const served = SUPPORTED_LOCALES.filter(
-      (locale) => typeof bio?.[locale] === 'string' && bio[locale].trim().length > 0
-    );
-    return served.length > 0 ? served : ['en'];
-  } catch {
-    return ['en'];
-  }
+function servedLocalesOf(author: any): SupportedLocale[] {
+  const listed = Array.isArray(author?.availableLocales) ? author.availableLocales : [];
+  const served = SUPPORTED_LOCALES.filter((locale) => listed.includes(locale));
+  return served.length > 0 ? served : ['en'];
+}
+
+/** `?page=` as a positive integer, defaulting to the first page. */
+function pageParam(value: string | undefined): number {
+  const parsed = Number.parseInt(value ?? '1', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const author = await getAuthor(slug, locale);
+  const { page } = await searchParams;
+  // The SAME arguments the component uses, so the two share one fetch.
+  const author = await getAuthor(slug, locale, pageParam(page));
   if (!author) return {};
 
   const { t } = await getServerTranslation(locale, 'authors');
@@ -169,7 +186,7 @@ export async function generateMetadata({
   const authorPath = `authors/${canonicalSlug}`;
   const pageUrl = `${getSeoBaseUrl()}/${normalizeLocale(locale)}/${authorPath}`;
 
-  const servedLocales = await getServedLocales(canonicalSlug);
+  const servedLocales = servedLocalesOf(author);
   // The page itself 404s for a locale it does not serve, so its metadata must
   // not describe one either.
   if (!servedLocales.includes(normalizeLocale(locale))) return {};
@@ -218,14 +235,19 @@ export default async function EditorialAuthorPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { locale, slug } = await params;
-  const author = await getAuthor(slug, locale);
+  const { page } = await searchParams;
+  const currentPage = pageParam(page);
+  const author = await getAuthor(slug, locale, currentPage);
   if (!author) notFound();
 
   const canonicalSlug = typeof author.slug === 'string' ? author.slug : slug;
-  const servedLocales = await getServedLocales(canonicalSlug);
+  const servedLocales = servedLocalesOf(author);
   if (!servedLocales.includes(normalizeLocale(locale))) notFound();
 
   const { t } = await getServerTranslation(locale, 'authors');
+  // The breadcrumb's own labels ("Home", the landmark name) belong to the
+  // site-wide namespace, not to this page's.
+  const { t: tCommon } = await getServerTranslation(locale, 'common');
   const first = givenName(author.name);
 
   const role = localizedText(author.role, locale);
@@ -261,7 +283,7 @@ export default async function EditorialAuthorPage({
   ].filter((fact) => Boolean(fact.value));
 
   /*
-   * Articles, split into the promoted ones and a paginated remainder.
+   * Articles, as the API split them.
    *
    * The page showed four cards and a link to the whole blog, which sent the
    * reader away from the author's own work — the opposite of what an author
@@ -270,28 +292,26 @@ export default async function EditorialAuthorPage({
    * articles" escape hatch to add.
    *
    * "Featured" is the editor's own `isFeatured` flag, not the newest three
-   * dressed up as a selection. If nothing is flagged, the section does not
-   * render and everything falls into one list — which is honest, where
-   * promoting three arbitrary articles under a "selected work" heading would
-   * be a small editorial lie.
+   * dressed up as a selection. If nothing is flagged the section does not
+   * render at all — honest, where promoting three arbitrary articles under a
+   * "selected work" heading would be a small editorial lie.
+   *
+   * The splitting and paging moved to the server: this page used to receive
+   * every article the author has and discard all but eleven of them. The
+   * localized-slug filter stays here as a last guard, because a link the page
+   * cannot build is a link it must not draw.
    */
-  const allArticles: BlogPost[] = (Array.isArray(author.articles) ? author.articles : []).filter(
-    (article: BlogPost) => getStrictLocalizedSlug(article.slug, locale as SupportedLocale)
-  );
-  const featured = allArticles
-    .filter((article: any) => article?.isFeatured === true)
-    .slice(0, FEATURED_COUNT);
-  const featuredIds = new Set(featured.map((article: any) => article._id));
-  const remainder = allArticles.filter((article: any) => !featuredIds.has(article._id));
+  const hasLocalizedSlug = (article: BlogPost) =>
+    Boolean(getStrictLocalizedSlug(article.slug, locale as SupportedLocale));
 
-  const { page: pageParam } = await searchParams;
-  const totalPages = Math.max(1, Math.ceil(remainder.length / PAGE_SIZE));
-  const requestedPage = Number.parseInt(pageParam ?? '1', 10);
-  const currentPage = Math.min(
-    Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1),
-    totalPages
+  const featured: BlogPost[] = (Array.isArray(author.featured) ? author.featured : []).filter(
+    hasLocalizedSlug
   );
-  const pagedRemainder = remainder.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pagedRemainder: BlogPost[] = (
+    Array.isArray(author.articles) ? author.articles : []
+  ).filter(hasLocalizedSlug);
+
+  const pagination = author.pagination ?? { page: currentPage, limit: PAGE_SIZE, total: 0, pages: 1 };
 
   const baseUrl = getSeoBaseUrl();
   const currentLocale = normalizeLocale(locale);
@@ -332,20 +352,19 @@ export default async function EditorialAuthorPage({
     },
   };
 
-  const breadcrumbJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: `${baseUrl}/${currentLocale}` },
-      { '@type': 'ListItem', position: 2, name: author.name, item: pageUrl },
-    ],
-  };
+  // BreadcrumbList is not written here any more: <Breadcrumb> emits it from
+  // the very items it renders, so the trail and its markup cannot disagree.
 
   return (
     <Layout>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <TopbarOne />
+      {/* `light` — light-COLOURED links, for a dark area behind them.
+
+          The header lays over the top of the page, so this prop has to match
+          whatever the page opens with. It was briefly switched to "dark"
+          because the hero was pale and white links vanished into it; the hero
+          is navy again, which is the case this prop was written for. */}
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
 
@@ -356,20 +375,19 @@ export default async function EditorialAuthorPage({
           somewhere she is not — and pushed her portrait below the fold. */}
       <section className={styles.authorHero}>
         <Container>
-          <nav className={styles.authorHeroCrumb} aria-label="Breadcrumb">
-            <ul className="gotur-breadcrumb list-unstyled">
-              <li>
-                <Link href={`/${currentLocale}`}>Home</Link>
-              </li>
-              <li>
-                <span>{t('breadcrumb')}</span>
-              </li>
-              <li>
-                <span>{author.name}</span>
-              </li>
-            </ul>
-          </nav>
-          <Row className="align-items-center gutter-y-40">
+          {/* The site's shared trail, not a copy of it. The copy that used to
+              live here hard-coded the English "Home" and printed it on the
+              German and Spanish pages, where the site says "Startseite" and
+              "Inicio". */}
+          <Breadcrumb
+            locale={currentLocale}
+            homeLabel={tCommon('home')}
+            ariaLabel={tCommon('breadcrumb')}
+            items={[{ label: t('breadcrumb') }, { label: author.name }]}
+            currentUrl={pageUrl}
+            className={styles.authorHeroCrumb}
+          />
+          <Row className={`align-items-center gutter-y-40 ${styles.authorHeroBody}`}>
             <Col lg={7}>
               {role && <span className={styles.authorHeroRole}>{role}</span>}
               <h1 className={styles.authorHeroName}>{author.name}</h1>
@@ -575,7 +593,7 @@ export default async function EditorialAuthorPage({
       {/* ── Everything else, paginated ─────────────────────────────────
           The site's own listing component and its own `?page=` pager, so this
           page IS the author's archive. */}
-      {remainder.length > 0 && (
+      {pagedRemainder.length > 0 && (
         <section className="section-space pt-0">
           <Container>
             <div className="section-title text-center mb-5">
@@ -589,12 +607,7 @@ export default async function EditorialAuthorPage({
             blogs={pagedRemainder}
             variant="standard"
             basePath={`/${currentLocale}/authors/${canonicalSlug}`}
-            pagination={{
-              page: currentPage,
-              limit: PAGE_SIZE,
-              total: remainder.length,
-              pages: totalPages,
-            }}
+            pagination={pagination}
           />
         </section>
       )}

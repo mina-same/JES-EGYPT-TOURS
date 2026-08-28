@@ -5,9 +5,11 @@ import { Col, Container, Row } from "react-bootstrap";
 import Link from "next/link";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import BlogCard from "@/components/common/BlogCard/BlogCard";
 import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
+import styles from "./DynamicBlogGrid.module.css";
 
 interface DynamicBlogGridProps {
   blogs: BlogPost[];
@@ -130,26 +132,38 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
           {/* Pagination — needs somewhere to page TO, so a listing that passed
               no basePath renders none rather than a row of dead links. */}
           {pagination && pagination.pages > 1 && basePath && (
-            <Col lg={12}>
+            <Col lg={12} className={styles.paginationColumn}>
               {/* The landmark goes on a <nav>, not on the <ul>: role="navigation"
                   there would strip the list semantics its <li> children need. */}
-              <nav aria-label={t('blogPagination', { defaultValue: 'Blog pagination' })}>
-                <ul className='list-unstyled pagination justify-content-center'>
+              <nav
+                className={styles.paginationNav}
+                aria-label={t('blogPagination', { defaultValue: 'Blog pagination' })}
+              >
+                <ul className={styles.paginationList}>
                   {/* Previous Button */}
-                  <li className={pagination.page === 1 ? 'disabled' : ''}>
+                  <li className={styles.directionItem}>
                     {pagination.page === 1 ? (
-                      <span className='page-link' aria-hidden='true'>
-                        <i className='icon-arrow-left'></i>
+                      <span
+                        className={`${styles.directionLink} ${styles.isDisabled}`}
+                        aria-disabled='true'
+                      >
+                        <ChevronLeft size={18} aria-hidden='true' />
+                        <span className={styles.directionLabel}>
+                          {t('previousPage', { defaultValue: 'Previous page' })}
+                        </span>
                       </span>
                     ) : (
                       <Link
                         href={pageHref(pagination.page - 1)}
                         prefetch={false}
                         rel='prev'
-                        className='page-link'
+                        className={styles.directionLink}
                         aria-label={t('previousPage', { defaultValue: 'Previous page' })}
                       >
-                        <i className='icon-arrow-left' aria-hidden='true'></i>
+                        <ChevronLeft size={18} aria-hidden='true' />
+                        <span className={styles.directionLabel}>
+                          {t('previousPage', { defaultValue: 'Previous page' })}
+                        </span>
                       </Link>
                     )}
                   </li>
@@ -157,21 +171,28 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
                   {/* Page Numbers */}
                   {buildPageList(pagination.page, pagination.pages).map((pageNum, index) =>
                     pageNum === 'gap' ? (
-                      <li key={`gap-${index}`} className='disabled' aria-hidden='true'>
-                        <span className='page-link'>…</span>
+                      <li key={`gap-${index}`} className={styles.gapItem} aria-hidden='true'>
+                        <span className={styles.gap}>…</span>
                       </li>
                     ) : (
-                      <li key={pageNum} className={pagination.page === pageNum ? 'active' : ''}>
+                      <li
+                        key={pageNum}
+                        className={`${styles.pageItem} ${
+                          pagination.page === pageNum ? styles.isCurrent : ''
+                        } ${
+                          Math.abs(pagination.page - pageNum) > 1 ? styles.isDistant : ''
+                        }`}
+                      >
                         {pagination.page === pageNum ? (
                           // The page you are on is not a link to itself.
-                          <span className='page-link' aria-current='page'>
+                          <span className={styles.pageLink} aria-current='page'>
                             {pageNum}
                           </span>
                         ) : (
                           <Link
                             href={pageHref(pageNum)}
                             prefetch={false}
-                            className='page-link'
+                            className={styles.pageLink}
                             aria-label={t('goToPage', { page: pageNum, defaultValue: 'Page {{page}}' })}
                           >
                             {pageNum}
@@ -182,20 +203,29 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
                   )}
 
                   {/* Next Button */}
-                  <li className={pagination.page === pagination.pages ? 'disabled' : ''}>
+                  <li className={styles.directionItem}>
                     {pagination.page === pagination.pages ? (
-                      <span className='page-link' aria-hidden='true'>
-                        <i className='icon-arrow-right'></i>
+                      <span
+                        className={`${styles.directionLink} ${styles.isDisabled}`}
+                        aria-disabled='true'
+                      >
+                        <span className={styles.directionLabel}>
+                          {t('nextPage', { defaultValue: 'Next page' })}
+                        </span>
+                        <ChevronRight size={18} aria-hidden='true' />
                       </span>
                     ) : (
                       <Link
                         href={pageHref(pagination.page + 1)}
                         prefetch={false}
                         rel='next'
-                        className='page-link'
+                        className={`${styles.directionLink} ${styles.nextLink}`}
                         aria-label={t('nextPage', { defaultValue: 'Next page' })}
                       >
-                        <i className='icon-arrow-right' aria-hidden='true'></i>
+                        <span className={styles.directionLabel}>
+                          {t('nextPage', { defaultValue: 'Next page' })}
+                        </span>
+                        <ChevronRight size={18} aria-hidden='true' />
                       </Link>
                     )}
                   </li>

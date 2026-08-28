@@ -57,7 +57,10 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
        <TopbarOne/>
         <HeaderOne linkTheme="light" />
         <HeaderOneCloned />
-        <PageHeader 
+        <PageHeader
+          /* FaqBreadcrumbStructuredData publishes this page's trail. */
+          breadcrumbJsonLd={false}
+          
           title={t('sectionTitle')}
           subTitle={t('sectionSubTitle')}
         />

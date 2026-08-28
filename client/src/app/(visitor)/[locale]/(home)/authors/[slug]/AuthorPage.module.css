@@ -21,38 +21,66 @@
    That banner is a full-bleed photograph of a temple with the name over it.
    On a page whose subject is a person, it made the largest thing on screen a
    picture of somewhere she is not, and pushed her own portrait below the
-   fold. This keeps the page's rhythm and typography and gives the space to
-   the author. Nothing global changes: PageHeader is untouched and every
-   other page still uses it. */
-/* The top padding is CLEARANCE, not taste.
+   fold. This keeps the space for the author — but keeps the BRAND's opening,
+   which is dark.
 
-   The site header is laid out over the top of the page rather than above it —
-   which is why the theme's own banner carries `padding: 220px 0 130px`. A
-   hero that simply starts at the top of the document therefore renders its
-   first line underneath the logo. Measured, the header block is 108px tall
-   (plus the 60px topbar on desktop), so these values clear it and leave the
-   breadcrumb a little air. */
+   A pale hero was tried and it was wrong twice over. Visually it made this the
+   only page on the site that opens light, and the page beyond it is already
+   mostly white, so it read as a blank sheet. Functionally it broke the header:
+   the site's navigation lays over the top of the page in light-coloured links,
+   so on white they vanished.
+
+   Navy, gold and white only — the same three the "How she works" band further
+   down already uses. The navy is --gotur-text, the site's own ink; the depth
+   comes from a gold glow behind the portrait and a darkening toward the fold,
+   both derived from existing tokens rather than from new colours.
+
+   The top padding is CLEARANCE, not taste: the header is laid over the page
+   rather than above it, which is why the theme's own banner carries
+   `padding: 220px 0 130px`. Measured, the header block is 108px tall (plus the
+   60px topbar on desktop). */
 .authorHero {
-  padding: 168px 0 64px;
-  background: linear-gradient(
-    180deg,
-    rgba(var(--jes-ink), 0.04) 0%,
-    rgba(var(--jes-ink), 0) 100%
-  );
-  border-bottom: 1px solid rgba(var(--jes-ink), 0.08);
+  position: relative;
+  padding: 168px 0 76px;
+  background-color: var(--gotur-text, #0e3a57);
+  background-image:
+    /* Gold light behind the portrait, on the right. */
+    radial-gradient(900px 560px at 78% 38%, rgba(183, 156, 92, 0.2), transparent 62%),
+    /* A quiet vignette toward the bottom edge, so the section resolves into
+       the pale band that follows instead of stopping dead. */
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.22) 100%);
 }
 
-/* The site breadcrumb is white-on-photograph and centred, because it has only
-   ever sat on the dark banner. Here it sits on a light surface at the top of
-   the page, so it is re-coloured and left-aligned — scoped to this module, so
-   the global rule is untouched. */
-/* The margin has to clear the row BELOW it, not just look like a gap.
+/* The one hairline of brand gold along the bottom edge — the same trick the
+   topbar uses to separate itself from the header. */
+.authorHero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(183, 156, 92, 0.55) 50%,
+    transparent 100%
+  );
+}
 
-   `.gutter-y-40` gives the hero row `margin-top: -40px` (that is how
-   Bootstrap's vertical gutters work), which pulled the row up over the
-   breadcrumb until the portrait was sitting on top of the word "Home" on
-   mobile. This absorbs the negative margin and leaves the intended space. */
+/* The breadcrumb needs NO colour overrides here any more.
+
+   It is white-on-dark by default in gotur.css, because it has only ever sat on
+   the dark banner — which is exactly the situation again. Only the alignment
+   is changed: centred under a banner, flush left at the top of a page.
+
+   The margin has to clear the row BELOW it: `.gutter-y-40` gives the hero row
+   `margin-top: -40px` (that is how Bootstrap's vertical gutters work), which
+   pulled the row up over the breadcrumb until the portrait sat on top of the
+   word "Home" on mobile. */
 .authorHeroCrumb {
+  position: relative;
+  z-index: 1;
   margin-bottom: 68px;
 }
 
@@ -63,7 +91,6 @@
 
 .authorHeroCrumb :global(.gotur-breadcrumb li),
 .authorHeroCrumb :global(.gotur-breadcrumb li a) {
-  color: rgba(var(--jes-ink), 0.62);
   font-size: 14px;
 }
 
@@ -71,9 +98,10 @@
   color: var(--jes-gold, #b79c5c);
 }
 
-.authorHeroCrumb :global(.gotur-breadcrumb li:last-of-type) {
-  color: rgba(var(--jes-ink), 0.9);
-  font-weight: 600;
+/* Everything in the hero sits above the background layers. */
+.authorHeroBody {
+  position: relative;
+  z-index: 1;
 }
 
 .authorHeroRole {
@@ -92,14 +120,14 @@
   font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   font-size: clamp(2.1rem, 4.4vw, 3.2rem);
   font-weight: 700;
-  color: var(--gotur-text, #0e3a57);
+  color: var(--gotur-white, #fff);
   line-height: 1.15;
   margin: 0 0 18px;
 }
 
 .authorHeroLead {
   font-size: 1.05rem;
-  color: rgba(var(--jes-ink), 0.75);
+  color: rgba(255, 255, 255, 0.78);
   line-height: 1.8;
   max-width: 34em;
   margin: 0 0 26px;
@@ -124,9 +152,9 @@
   align-items: center;
   padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(183, 156, 92, 0.09);
-  border: 1px solid rgba(183, 156, 92, 0.2);
-  color: var(--jes-gold, #b79c5c);
+  background: rgba(183, 156, 92, 0.12);
+  border: 1px solid rgba(183, 156, 92, 0.42);
+  color: #d7bd85;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -187,11 +215,16 @@
    text. Because the row is vertically centred, the text then floated in the
    middle with roughly 300px of dead space above it, and the picture ran past
    the fold. 400px keeps the portrait the largest thing in the hero without
-   letting it set the section's height. */
+   letting it set the section's height.
+
+   360 rather than 400: the row is vertically centred, so every pixel the
+   portrait is taller than the text block becomes half that much dead space
+   above the eyebrow. At 360 the picture is 480 tall against 261 of text,
+   which leaves a normal ~110px of breathing room instead of a hole. */
 .authorHeroPortrait {
-  max-width: 400px;
+  max-width: 360px;
   margin-left: auto;
-  box-shadow: 0 18px 40px rgba(var(--jes-ink), 0.1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
 }
 
 /* ── About ─────────────────────────────────────────────────────────────── */
