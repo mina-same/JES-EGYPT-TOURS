@@ -1,0 +1,60 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   AuthorPhoto — the component's own styles.
+
+   These lived in the author page's module as `:global(.author-photo…)`,
+   which is a contradiction: global class names declared inside a file whose
+   whole purpose is to be scoped to one page. Nothing else used them, so it
+   caused no bug — but it meant a shared component could not be rendered
+   anywhere else without dragging that page's stylesheet along.
+
+   They belong here, scoped, next to the markup that uses them.
+
+   Only the FRAME is styled. Placement — how wide the slot is, where it sits,
+   whether it casts a shadow — stays with the page, passed in through
+   `className`, because that is a layout decision and differs per context.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* The box is reserved by aspect-ratio before any file exists, so dropping the
+   real photograph in later moves nothing around it. */
+.frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  background: rgba(183, 156, 92, 0.04);
+}
+
+/* 3:4 — the ratio the author's photographs are actually supplied in
+   (1086x1448). Matching the source exactly means `object-fit: cover` has
+   nothing to crop, so nobody loses the top of their head to a frame chosen
+   before the pictures existed. */
+.portrait {
+  aspect-ratio: 3 / 4;
+}
+
+.landscape {
+  /* 16:10, the ratio .blog-card-media already crops to. */
+  aspect-ratio: 16 / 10;
+}
+
+.square {
+  aspect-ratio: 1 / 1;
+}
+
+.img {
+  object-fit: cover;
+}
+
+/* The empty state: the tour trust band's panel, not a grey developer box. */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(183, 156, 92, 0.15);
+}
+
+.glyph {
+  width: 26px;
+  height: 26px;
+  color: rgba(183, 156, 92, 0.4);
+}

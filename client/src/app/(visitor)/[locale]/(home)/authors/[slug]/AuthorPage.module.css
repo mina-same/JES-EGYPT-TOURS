@@ -68,13 +68,11 @@
   );
 }
 
-/* The breadcrumb needs NO colour overrides here any more.
+/* The trail is the shared component's `pill` skin — the glass capsule from
+   the article hero — so it brings its own colours and spacing. Nothing is
+   restyled here: the only thing this page decides is where it sits.
 
-   It is white-on-dark by default in gotur.css, because it has only ever sat on
-   the dark banner — which is exactly the situation again. Only the alignment
-   is changed: centred under a banner, flush left at the top of a page.
-
-   The margin has to clear the row BELOW it: `.gutter-y-40` gives the hero row
+   The margin has to clear the row BELOW it. `.gutter-y-40` gives the hero row
    `margin-top: -40px` (that is how Bootstrap's vertical gutters work), which
    pulled the row up over the breadcrumb until the portrait sat on top of the
    word "Home" on mobile. */
@@ -82,20 +80,6 @@
   position: relative;
   z-index: 1;
   margin-bottom: 68px;
-}
-
-.authorHeroCrumb :global(.gotur-breadcrumb) {
-  justify-content: flex-start;
-  margin-bottom: 0;
-}
-
-.authorHeroCrumb :global(.gotur-breadcrumb li),
-.authorHeroCrumb :global(.gotur-breadcrumb li a) {
-  font-size: 14px;
-}
-
-.authorHeroCrumb :global(.gotur-breadcrumb li a:hover) {
-  color: var(--jes-gold, #b79c5c);
 }
 
 /* Everything in the hero sits above the background layers. */
@@ -161,52 +145,13 @@
   line-height: 1.4;
 }
 
-/* ── Photo slots ───────────────────────────────────────────────────────── */
+/* ── Photo placement ───────────────────────────────────────────────────
 
-/* Ratios are declared here, once, so a slot reserves its box before any file
-   exists and the real photographs drop in without moving anything. */
-:global(.author-photo) {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 20px;
-  background: rgba(183, 156, 92, 0.04);
-}
-
-/* 3:4 — the ratio the author's photographs are actually supplied in
-   (1086x1448). Matching the source exactly means `object-fit: cover` has
-   nothing to crop, so nobody loses the top of their head to a frame chosen
-   before the pictures existed. */
-:global(.author-photo--portrait) {
-  aspect-ratio: 3 / 4;
-}
-
-:global(.author-photo--landscape) {
-  /* 16:10, the ratio .blog-card-media already crops to. */
-  aspect-ratio: 16 / 10;
-}
-
-:global(.author-photo--square) {
-  aspect-ratio: 1 / 1;
-}
-
-:global(.author-photo__img) {
-  object-fit: cover;
-}
-
-/* The empty state: the tour trust band's panel, not a grey box. */
-:global(.author-photo--empty) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(183, 156, 92, 0.15);
-}
-
-:global(.author-photo__glyph) {
-  width: 26px;
-  height: 26px;
-  color: rgba(183, 156, 92, 0.4);
-}
+   The photo FRAME (its ratio, radius, empty state) belongs to the AuthorPhoto
+   component and lives in AuthorPhoto.module.css. What is left here is only
+   where each slot sits on THIS page — which is a layout decision, and the one
+   thing that genuinely differs per context.
+   ───────────────────────────────────────────────────────────────────────── */
 
 /* The portrait is CAPPED, and hugs the right edge of its column.
 

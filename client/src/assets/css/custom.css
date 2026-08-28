@@ -827,9 +827,13 @@ html, body {
   margin-bottom: 10px;
 }
 
+/* min-width:0 lets the label wrap instead of forcing the row wider than the
+   card; without it a long translation pushes against the stepper, which then
+   shrinks because a flex item's default is to give way. */
 .counter-label {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .counter-title {
@@ -847,6 +851,9 @@ html, body {
 .counter-controls {
   display: flex;
   align-items: center;
+  /* Never squeezed: the two 28px buttons and the value are a fixed object, and
+     letting them compress deforms the pill on the longest translations. */
+  flex-shrink: 0;
   gap: 12px;
   background-color: #fff;
   border: 1px solid #eee;
@@ -7224,72 +7231,85 @@ button[data-action="stop"] {
   margin-bottom: 0;
 }
 
-/* Questions past the fold on the tour page. Hidden in CSS, never dropped from
-   the markup, so the full set stays crawlable and keeps matching the FAQPage
-   JSON-LD. */
-.faq-list__row--folded {
-  display: none;
-}
+/* Questions past the fold on the tour page. Never dropped from the markup, so
+   the full set stays crawlable and keeps matching the FAQPage JSON-LD.
 
-/* Rows revealed by "View More Questions".
+   A transition, not `display: none` and not a keyframe animation. Both of those
+   only move one way: `display` cannot be animated at all, and an animation runs
+   when its class ARRIVES — so opening was smooth and closing was instant.
 
-   The card's HEIGHT is what animates, via a 0fr -> 1fr grid track. Fading the
-   cards in alone was not enough: the rows took their full height the instant
-   they stopped being `display: none`, so the button below them jumped straight
-   to its new position and read as disappearing and reappearing lower down.
-   Growing the track makes the list push the button down gradually, so it
-   travels instead of teleporting.
+   The card's HEIGHT is what moves, via a 0fr -> 1fr grid track, the same device
+   .faq-list__body already uses for the answers. A track rather than max-height
+   because 1fr resolves to the card's real height, while any guessed pixel value
+   finishes the growth early and the button below jumps the rest of the way.
 
-   A grid track rather than max-height because 0fr -> 1fr resolves to the card's
-   INTRINSIC height. max-height has to guess a number, and any guess above the
-   real height finishes the growth early — which is the teleport again, just
-   shorter.
+   Collapsing the track alone is not enough. It zeroes the row's CONTENT, but a
+   grid item's padding and the card's border sit outside it: measured, a folded
+   row still stood 42px tall — 20px of toggle padding top and bottom plus 2px of
+   border — so five folded questions left over 200px of blank card behind and
+   the button never came back up. Those are driven to zero as well.
 
-   `display: grid` here only replaces block stacking with a single-column grid,
-   which lays the question button and its answer out identically.
+   The hover transitions .faq-list__row declares are repeated here on purpose:
+   `transition` is a shorthand, so redeclaring it would otherwise drop them.
 
-   margin-bottom is set at 0% and deliberately absent at 100%: an omitted
-   property animates to the element's own computed value, which keeps
-   .faq-list__row:last-child at 0 instead of forcing 12px onto it. Without this
-   every collapsed row would still contribute its 12px, so the button would
-   start the animation already pushed most of the way down. */
-@keyframes faqRowReveal {
-  from {
-    grid-template-rows: 0fr;
-    opacity: 0;
-    margin-bottom: 0;
-  }
-  to {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
-}
-
-.faq-list__row--revealed {
+   `visibility` is last and the only one with a delay, so it flips to hidden
+   after the collapse finishes and back to visible immediately on the way in.
+   That keeps a folded question out of the keyboard's tab order — a row at zero
+   height is still focusable, which `display: none` used to prevent. */
+.faq-list__row--foldable {
   display: grid;
   grid-template-rows: 1fr;
   /* The track can only shrink below the content if the child lets it. */
   overflow: hidden;
-  animation: faqRowReveal 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+  transition:
+    grid-template-rows 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-bottom 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+    border-width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    visibility 0s;
 }
 
-.faq-list__row--revealed > * {
+.faq-list__row--foldable > * {
   min-height: 0;
 }
 
-/* A short cascade rather than every card arriving together. The offsets assume
-   the fold sits after four questions (FAQ_VISIBLE_COUNT); if that count changes
-   the rows still animate, they just share a delay. Capped so a tour with twenty
-   questions does not spend a second finishing. */
-.faq-list__row--revealed:nth-child(6) { animation-delay: 45ms; }
-.faq-list__row--revealed:nth-child(7) { animation-delay: 90ms; }
-.faq-list__row--revealed:nth-child(8) { animation-delay: 135ms; }
-.faq-list__row--revealed:nth-child(9) { animation-delay: 180ms; }
-.faq-list__row--revealed:nth-child(n + 10) { animation-delay: 215ms; }
+.faq-list__row--foldable .faq-list__toggle {
+  transition: padding 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-list__row--folded {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-bottom: 0;
+  border-width: 0;
+  visibility: hidden;
+  /* One delay per property above, in the same order: only visibility waits. */
+  transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s, 0.42s;
+}
+
+.faq-list__row--folded .faq-list__toggle {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* A short cascade on the way in. Scoped to the open state so collapsing stays
+   one movement: staggering the exit too made the list unravel slowly, which
+   reads as hesitation rather than polish. The offsets assume the fold sits after
+   four questions (FAQ_VISIBLE_COUNT); if that count changes the rows still
+   animate, they just share a delay. */
+.faq-list__row--foldable:not(.faq-list__row--folded):nth-child(6) { transition-delay: 45ms; }
+.faq-list__row--foldable:not(.faq-list__row--folded):nth-child(7) { transition-delay: 90ms; }
+.faq-list__row--foldable:not(.faq-list__row--folded):nth-child(8) { transition-delay: 135ms; }
+.faq-list__row--foldable:not(.faq-list__row--folded):nth-child(9) { transition-delay: 180ms; }
+.faq-list__row--foldable:not(.faq-list__row--folded):nth-child(n + 10) { transition-delay: 215ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .faq-list__row--revealed {
-    animation: none;
+  .faq-list__row--foldable,
+  .faq-list__row--foldable .faq-list__toggle {
+    transition: none;
   }
 }
 

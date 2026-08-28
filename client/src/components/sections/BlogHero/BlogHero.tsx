@@ -1,10 +1,12 @@
 'use client';
 import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Calendar, BookOpen, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'next/navigation';
+import { normalizeLocale } from '@/lib/url';
+import Breadcrumb from '@/components/common/Breadcrumb/Breadcrumb';
 
 interface BlogHeroProps {
   title: string;
@@ -21,6 +23,8 @@ interface BlogHeroProps {
 
 const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt, imageTitle, breadcrumbs, stats }) => {
   const { t } = useTranslation('common');
+  const params = useParams();
+  const locale = normalizeLocale(params?.locale);
 
   return (
     <section className="relative min-h-[500px] flex items-center overflow-hidden py-36 md:py-40">
@@ -46,30 +50,34 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
 
       <div className="container relative z-10">
         <div className="max-w-4xl">
-          {/* Glassmorphism Breadcrumbs */}
-          <motion.nav 
+          {/* The shared trail, in its `pill` skin.
+
+              This markup used to live here — a third hand-written breadcrumb
+              after PageHeader's and the author page's — and it carried a bug
+              the others had already been fixed for: Home linked to a bare "/",
+              which 307s through the middleware and resolves the language from
+              a cookie, so a German reader clicking Home could land on the
+              English homepage. The shared component builds `/${locale}`.
+
+              `jsonLd={false}` because the route above publishes the page's
+              BreadcrumbList already; this keeps the document at exactly one.
+
+              The motion wrapper is a <div>, not the <nav>, so the landmark
+              stays inside the component that owns it. */}
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            aria-label="Breadcrumb"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 max-w-full overflow-hidden whitespace-nowrap"
+            className="mb-6"
           >
-            <Link href="/" className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0">{t('home')}</Link>
-            {breadcrumbs.map((item, idx) => (
-              <React.Fragment key={idx}>
-                <span className="text-white/40 flex-shrink-0">/</span>
-                {item.href ? (
-                  <Link href={item.href} className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0">{item.label}</Link>
-                ) : (
-                  <span 
-                    className="text-[#b79c5c] text-sm font-bold truncate block max-w-[150px] md:max-w-[350px]"
-                    title={item.label}
-                  >
-                    {item.label}
-                  </span>
-                )}
-              </React.Fragment>
-            ))}
-          </motion.nav>
+            <Breadcrumb
+              locale={locale}
+              homeLabel={t('home')}
+              ariaLabel={t('breadcrumb')}
+              items={breadcrumbs}
+              variant="pill"
+              jsonLd={false}
+            />
+          </motion.div>
 
           <motion.h1 
             initial={{ opacity: 0, x: -30 }}
