@@ -276,7 +276,7 @@ export const getAllTours = async (
     let query = Tour.find(filter)
       .populate({
         path: 'subcategory',
-        select: 'name slug category',
+        select: 'name shortName slug category',
         populate: {
           path: 'category',
           select: 'name slug',

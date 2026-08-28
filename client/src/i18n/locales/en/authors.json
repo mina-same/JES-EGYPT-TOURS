@@ -3,34 +3,43 @@
   "meta": {
     "titleSuffix": "Jes Egypt Tours"
   },
-  "intro": {
-    "cta": "Browse travel articles"
+  "hero": {
+    "portraitPending": "Portrait of the author, coming soon"
+  },
+  "about": {
+    "headingPrefix": "About"
   },
   "facts": {
+    "heading": "Quick profile",
     "roleLabel": "Role",
     "organisationLabel": "Organisation",
     "focusLabel": "Content focus",
-    "languagesLabel": "Languages"
+    "languagesLabel": "Writes in"
   },
-  "about": {
-    "tagline": "About"
+  "expertise": {
+    "tagline": "Expertise",
+    "title": "Areas she covers"
   },
-  "focus": {
-    "tagline": "Editorial focus",
-    "title": "What the content covers"
+  "approach": {
+    "tagline": "Editorial approach",
+    "headingPrefix": "How",
+    "headingSuffix": "works",
+    "lead": "A short account of how these articles are put together, and what that means for the information in them."
   },
-  "standards": {
-    "tagline": "Content standards",
-    "title": "How this content is written",
-    "p1": "Articles are reviewed for clarity and factual consistency before publication. The aim is to reflect what travelers actually encounter in Egypt — not idealized versions of sites or experiences. Where there is genuine uncertainty (for example, whether a specific tomb is accessible on a given day), that uncertainty is named rather than glossed over.",
-    "p2": "Content is updated when significant changes occur — new entry requirements, major site closures, or substantial changes to infrastructure. Older articles carry a note if the information has not been recently verified. The site does not make claims about local expertise beyond the scope of editorial work: the content is written to inform, not to replace the advice of a licensed guide or official tourism authority.",
-    "publishedByLabel": "Published by",
-    "publishedByValue": "Jes Egypt Tours — Egypt travel specialists since 2009"
+  "context": {
+    "tagline": "Behind the content",
+    "title": "On the ground in Egypt"
   },
-  "related": {
-    "tagline": "Related content",
-    "title": "Egypt travel articles",
-    "articlesByPrefix": "Articles by",
-    "cta": "Browse all travel articles"
+  "articles": {
+    "featuredTagline": "Selected work",
+    "featuredTitle": "Featured articles",
+    "latestTagline": "Everything else",
+    "latestPrefix": "More articles by",
+    "allPrefix": "Articles by",
+    "empty": "No articles in this language yet."
+  },
+  "publisher": {
+    "text": "Published by",
+    "aboutLink": "About Jes Egypt Tours"
   }
 }

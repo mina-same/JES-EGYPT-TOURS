@@ -95,5 +95,25 @@ export function validateTourForm(formData: TourFormData): FormErrorItem[] {
     });
   }
 
+  /* Every day states its meals. Unlike the prices above, this is not a number
+     sales has yet to decide — it is a fact the person writing the day already
+     knows, and leaving it out is what makes a traveller ask. "None" is one of
+     the choices, so there is always a correct answer to give.
+
+     Enforced here rather than in the Mongoose schema: the seeders and every
+     tour written before this field existed carry no meals, and a schema-level
+     `required` would stop all of them from saving. */
+  if (Array.isArray(formData.itinerary?.days)) {
+    formData.itinerary.days.forEach((day: any, dayIdx: number) => {
+      if (!Array.isArray(day?.meals) || day.meals.length === 0) {
+        errors.push({
+          field: `Itinerary — Day ${day?.day ?? dayIdx + 1}`,
+          message: 'Select the meals included, or None',
+          path: `itinerary.days.${dayIdx}.meals`,
+        });
+      }
+    });
+  }
+
   return errors;
 }

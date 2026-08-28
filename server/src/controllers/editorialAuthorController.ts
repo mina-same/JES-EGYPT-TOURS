@@ -140,8 +140,12 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
       // author's articles were the one place a card could not show the
       // section it belongs to.
       //
+      // `isFeatured` lets the author page promote the articles an editor
+      // actually marked, rather than inventing a "featured" set out of
+      // whichever three happen to be newest.
+      //
       // `contentBlocks` is fetched but never returned — see the filter below.
-      .select(`${BLOG_CARD_FIELDS} author contentBlocks`)
+      .select(`${BLOG_CARD_FIELDS} author isFeatured contentBlocks`)
       .populate('author', 'name')
       .populate('editorialAuthor', 'name slug')
       .populate('subCategory', 'name slug')

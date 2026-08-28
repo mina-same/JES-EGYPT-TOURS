@@ -205,9 +205,15 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         days: safeArray(tour.itinerary?.days).map((d: any) => ({
           day: d?.day || 0,
           title: getLocalizedValue(d?.title),
+          // Optional per-day logistics. Absent on most days; the section that
+          // renders them drops any that come back empty.
+          flight: typeof d?.flight === 'string' ? d.flight : '',
+          meals: safeArray<string>(d?.meals).filter(Boolean),
+          accommodation: typeof d?.accommodation === 'string' ? d.accommodation : '',
           activities: safeArray(d?.activities).map((a: any) => ({
             heading: getLocalizedValue(a?.heading),
             description: getLocalizedValue(a?.description),
+            isOptional: !!a?.isOptional,
             image: a?.image?.url && imgAllows(a.image) ? {
               url: a.image.url,
               alt: getLocalizedValue(a.image.alt),

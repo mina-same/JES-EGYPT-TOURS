@@ -41,17 +41,28 @@
   },
   "tourDetails": {
     "bookConfidence": "Buchen Sie mit Vertrauen",
-    "bookConfidenceDesc": "Ihr vertrauenswürdiger Partner für unvergessliche ägyptische Abenteuer",
+    "bookConfidenceDesc": "Private Touren, fachkundige Führung und direkte Unterstützung während Ihrer gesamten Reise.",
     "bestSeller": "Bereit zur Buchung",
     "from": "ab",
     "bookThisTour": "Diese Tour buchen",
     "bookNow": "Jetzt buchen",
     "features": {
-      "monthly": "Monatliche Zahlung",
-      "support": "24/7 Support",
-      "prices": "Beste Preise",
-      "rating": "5-Sterne-Bewertung",
-      "fast": "Schnelle Buchung"
+      "private": {
+        "title": "Nur private Touren",
+        "text": "Ihre Gruppe, Ihr Tempo"
+      },
+      "guides": {
+        "title": "Erfahrene Ägyptologen",
+        "text": "Professionelle Führung vor Ort"
+      },
+      "support": {
+        "title": "24/7 Reisebetreuung",
+        "text": "Direkte Hilfe, wenn es nötig ist"
+      },
+      "flexible": {
+        "title": "Flexible Reiseplanung",
+        "text": "Ganz nach Ihren Wünschen"
+      }
     },
     "nav": {
       "description": "Beschreibung",
@@ -65,6 +76,56 @@
       "whatToPack": "Packliste"
     },
     "mapTitle": "Tour Standort Karte",
+    "tourPlanTitle": "Reiseplan",
+    "optional": "Optional",
+    "logistics": {
+      "flight": "Flug nach",
+      "meals": "Mahlzeiten",
+      "accommodation": "Unterkunft",
+      "mealOptions": {
+        "breakfast": "Frühstück",
+        "lunch": "Mittagessen",
+        "dinner": "Abendessen",
+        "welcomeDrink": "Willkommensgetränk",
+        "none": "Keine"
+      },
+      "stayOptions": {
+        "cairoHotel": "Hotel in Kairo",
+        "luxorHotel": "Hotel in Luxor",
+        "aswanHotel": "Hotel in Assuan",
+        "alexandriaHotel": "Hotel in Alexandria",
+        "hurghadaHotel": "Hotel in Hurghada",
+        "sharmElSheikhHotel": "Hotel in Sharm El-Sheikh",
+        "marsaAlamHotel": "Hotel in Marsa Alam",
+        "siwaOasisHotel": "Hotel in der Oase Siwa",
+        "bahariyaOasisHotel": "Hotel in der Oase Bahariya",
+        "nileCruise": "Nilkreuzfahrt"
+      },
+      "flyToOptions": {
+        "cairo": "Kairo",
+        "luxor": "Luxor",
+        "aswan": "Assuan",
+        "hurghada": "Hurghada",
+        "sharmElSheikh": "Sharm El-Sheikh",
+        "marsaAlam": "Marsa Alam",
+        "alexandria": "Alexandria",
+        "amman": "Amman",
+        "aqaba": "Akaba",
+        "dubai": "Dubai",
+        "riyadh": "Riad",
+        "jeddah": "Dschidda",
+        "medina": "Medina",
+        "casablanca": "Casablanca",
+        "marrakech": "Marrakesch",
+        "fez": "Fès",
+        "muscat": "Maskat",
+        "salalah": "Salalah",
+        "istanbul": "Istanbul",
+        "antalya": "Antalya",
+        "cappadocia": "Kappadokien",
+        "beirut": "Beirut"
+      }
+    },
     "highlightList": "Highlight-Liste",
     "amenitiesTitle": "Ausstattung der Tour",
     "included": "Was ist inbegriffen",

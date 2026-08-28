@@ -20,6 +20,7 @@ import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import { getDisplayName } from '@/lib/displayName';
 
 function ToursPageContent() {
   const router = useRouter();
@@ -175,14 +176,15 @@ function ToursPageContent() {
   };
 
   // Get subcategory name
-  const getSubcategoryName = (subcategory: any) => {
+  const getSubcategoryName = (subcategory: ITour['subcategory']) => {
     // Handle both populated object and ID string
-    if (typeof subcategory === 'object' && subcategory?.name) {
-      return typeof subcategory.name === 'object' ? subcategory.name.en : subcategory.name;
+    if (typeof subcategory === 'object' && subcategory) {
+      const fullSubcategory = subcategories.find(s => s._id === subcategory._id) || subcategory;
+      return getDisplayName(fullSubcategory, 'en') || 'Unknown';
     }
     if (typeof subcategory === 'string') {
       const found = subcategories.find(s => s._id === subcategory);
-      return found ? (typeof found.name === 'object' ? found.name.en : found.name) : 'Unknown';
+      return found ? getDisplayName(found, 'en') || 'Unknown' : 'Unknown';
     }
     return 'Unknown';
   };
@@ -247,9 +249,11 @@ function ToursPageContent() {
       headerClassName: 'duration-column',
       cellClassName: 'duration-column',
       render: (tour) => (
-        <div className="tour-meta-item">
+        <div className="tour-meta-item duration-display">
           <Clock size={14} />
-          {(typeof tour.duration === 'object' ? (tour.duration as any).en : tour.duration) || 'N/A'}
+          <span>
+            {(typeof tour.duration === 'object' ? (tour.duration as any).en : tour.duration) || 'N/A'}
+          </span>
         </div>
       ),
     },
@@ -258,14 +262,16 @@ function ToursPageContent() {
       headerClassName: 'price-column',
       cellClassName: 'price-column',
       render: (tour) => (
-        <div className="price-display">
+        <div className={`price-display ${tour.priceStartingFrom ? '' : 'is-empty'}`}>
           {tour.priceStartingFrom ? (
             <>
-              <span style={{ fontSize: '12px', color: '#6b7280' }}>From </span>
-              ${typeof tour.priceStartingFrom === 'object' ? (tour.priceStartingFrom as any).USD : tour.priceStartingFrom}
+              <span className="price-prefix">From</span>
+              <span className="price-amount">
+                ${typeof tour.priceStartingFrom === 'object' ? (tour.priceStartingFrom as any).USD : tour.priceStartingFrom}
+              </span>
             </>
           ) : (
-            'N/A'
+            <span className="empty-value">N/A</span>
           )}
         </div>
       ),

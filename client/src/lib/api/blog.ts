@@ -66,7 +66,10 @@ export interface BlogPost {
     slug: string;
     role: ILocalizedString;
     bio: ILocalizedString;
+    /** The author page's hero portrait. */
     image: { url: string; alt: ILocalizedString };
+    /** The tight, circle-safe crop the article byline box uses. */
+    avatar?: { url: string; alt: ILocalizedString };
   };
   featuredImage: string | ImageObject;
   excerpt?: string | ILocalizedString;

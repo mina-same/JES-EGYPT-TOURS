@@ -16,6 +16,7 @@ import ReviewAvatar from "@/components/common/ReviewAvatar";
 import { API_URL } from "@/config/api";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { visibleBlocksFor } from "@/lib/blogBlocks";
+import { EDITORIAL_AUTHOR_SLUG, resolveBlogByline } from "@/lib/blog/author";
 import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
@@ -30,29 +31,6 @@ interface DynamicBlogDetailsProps {
   blog: BlogPost;
   showSidebar?: 'left' | 'right' | 'none';
 }
-
-const EDITORIAL_AUTHOR = {
-  name: 'Madonna Roshdey',
-  role: {
-    en: 'Travel Specialist at Jes Egypt Tours',
-    de: 'Reisespezialistin bei Jes Egypt Tours',
-    it: 'Travel Specialist di Jes Egypt Tours',
-    es: 'Especialista en viajes en Jes Egypt Tours',
-  },
-  image: '/images/authors/madonna-roshdey-author.jpg',
-  alt: {
-    en: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
-    de: 'Madonna Roshdey, Reisespezialistin bei Jes Egypt Tours',
-    it: 'Madonna Roshdey, Travel Specialist di Jes Egypt Tours',
-    es: 'Madonna Roshdey, Especialista en viajes en Jes Egypt Tours',
-  },
-  bio: {
-    en: "Madonna Roshdey is a travel specialist at Jes Egypt Tours, where she helps international travelers plan private tours across Egypt. The tips she shares come from trips she's actually taken, not just research she's done.",
-    de: 'Madonna Roshdey ist Reisespezialistin bei Jes Egypt Tours und hilft internationalen Reisenden dabei, private Touren durch Ägypten zu planen. Die Tipps, die sie teilt, stammen aus Reisen, die sie selbst gemacht hat – nicht nur aus Recherchen am Schreibtisch.',
-    it: "Madonna Roshdey è una travel specialist di Jes Egypt Tours e aiuta viaggiatori internazionali a organizzare tour privati in tutto l'Egitto. I consigli che condivide nascono da viaggi che ha realmente vissuto, non da semplici ricerche.",
-    es: 'Madonna Roshdey es especialista en viajes en Jes Egypt Tours y ayuda a viajeros internacionales a planificar tours privados por todo Egipto. Los consejos que comparte vienen de viajes que ella misma ha vivido, no solo de investigaciones de escritorio.',
-  },
-};
 
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
   blog, 
@@ -103,24 +81,43 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
 
   const { day, month } = formatBlogDate(blog.publishedAt || blog.createdAt, locale);
+
+  /*
+   * The byline box, read from the DATABASE — no hard-coded copy.
+   *
+   * This component used to carry its own EDITORIAL_AUTHOR constant: the house
+   * author's name, role, bio and portrait alt, in all four languages, written
+   * into the file. It was preferred over the API value for the default author,
+   * so editing her in the database changed her author page and left every
+   * article byline saying the old thing. That is exactly what happened when
+   * her title was corrected: the profile page read "Travel Content Editor"
+   * while all 23 articles still read "Travel Specialist", three clicks apart.
+   *
+   * One source now. `resolveBlogByline` already handles the name (including
+   * the "Admin" account fallback), and the rest comes off the populated
+   * author. An article whose author is not populated simply shows no box —
+   * better than a box asserting details for a person the data does not name.
+   */
   const selectedAuthor = blog.editorialAuthor;
-  const author = selectedAuthor?.name || EDITORIAL_AUTHOR.name;
-  const editorialAuthorHref = `/${locale}/authors/${selectedAuthor?.slug || 'madonna-roshdey'}`;
-  const isDefaultEditorialAuthor = !selectedAuthor || selectedAuthor.slug === 'madonna-roshdey';
-  const authorRole = getLocalizedValue(
-    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.role : selectedAuthor.role,
-    locale
-  );
-  const authorBio = getLocalizedValue(
-    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.bio : selectedAuthor.bio,
-    locale
-  );
-  const authorImage = selectedAuthor?.image?.url || EDITORIAL_AUTHOR.image;
-  const authorImageAlt = getLocalizedValue(
-    isDefaultEditorialAuthor ? EDITORIAL_AUTHOR.alt : selectedAuthor.image?.alt,
-    locale
-  ) || author;
-  
+  const byline = resolveBlogByline(blog, locale);
+  const author = byline.name;
+  const editorialAuthorHref = byline.link || `/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`;
+  const authorRole = getLocalizedValue(selectedAuthor?.role, locale);
+  const authorBio = getLocalizedValue(selectedAuthor?.bio, locale);
+
+  /*
+   * The byline avatar is `avatar`, NOT `image`.
+   *
+   * This box masks the picture to an 84px circle. `image` is the author page's
+   * hero portrait — a 3:4 half-length shot — and a circle cut from the middle
+   * of one leaves the subject small and off to the side. `avatar` is the tight
+   * head-and-shoulders crop that reads at this size. The fallback chain still
+   * ends at `image` so an author with a single photograph is not left blank.
+   */
+  const authorImage = selectedAuthor?.avatar?.url || selectedAuthor?.image?.url;
+  const authorImageAlt =
+    getLocalizedValue(selectedAuthor?.avatar?.alt || selectedAuthor?.image?.alt, locale) || author;
+
   const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === 'string' ? blog.featuredImage : blog.featuredImage?.url;
   const featuredImageAlt = getLocalizedValue(typeof blog.featuredImage === 'object' ? blog.featuredImage?.alt : undefined, locale) || title;
@@ -360,15 +357,20 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   };
 
   const AboutAuthorSection = () => {
+    // Nothing to say about the author: no box, rather than an empty shell.
+    if (!authorBio && !authorRole) return null;
+
     return (
       <section className="blog-author-box mt-5" aria-labelledby="blog-author-title">
-        <Image
-          src={authorImage}
-          alt={authorImageAlt}
-          width={84}
-          height={84}
-          className="blog-author-box__avatar"
-        />
+        {authorImage && (
+          <Image
+            src={authorImage}
+            alt={authorImageAlt}
+            width={84}
+            height={84}
+            className="blog-author-box__avatar"
+          />
+        )}
         <div className="blog-author-box__content">
           <h2 id="blog-author-title" className="blog-author-box__title">{t('aboutAuthor')}</h2>
           <h3 className="blog-author-box__name">
@@ -376,8 +378,8 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               {author}
             </Link>
           </h3>
-          <p className="blog-author-box__role">{authorRole}</p>
-          <p className="blog-author-box__text">{authorBio}</p>
+          {authorRole && <p className="blog-author-box__role">{authorRole}</p>}
+          {authorBio && <p className="blog-author-box__text">{authorBio}</p>}
         </div>
       </section>
     );

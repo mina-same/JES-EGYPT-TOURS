@@ -22,7 +22,8 @@
     "migrate:remove-views": "ts-node src/scripts/removeContentViews.ts",
     "migrate:reset-tour-social-images": "ts-node src/scripts/resetTourSocialImages.ts",
     "migrate:tour-kind": "ts-node src/scripts/backfillTourKind.ts",
-    "migrate:clear-placeholder-prices": "ts-node src/scripts/clearPlaceholderPrices.ts"
+    "migrate:clear-placeholder-prices": "ts-node src/scripts/clearPlaceholderPrices.ts",
+    "migrate:author-role": "ts-node src/scripts/correctAuthorRole.ts"
   },
   "keywords": [
     "express",

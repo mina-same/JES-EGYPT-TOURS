@@ -3,34 +3,43 @@
   "meta": {
     "titleSuffix": "Jes Egypt Tours"
   },
-  "intro": {
-    "cta": "Ver artículos de viaje"
-  },
-  "facts": {
-    "roleLabel": "Función",
-    "organisationLabel": "Organización",
-    "focusLabel": "Ámbito de los contenidos",
-    "languagesLabel": "Idiomas"
+  "hero": {
+    "portraitPending": "Retrato de la autora, próximamente"
   },
   "about": {
-    "tagline": "Perfil"
+    "headingPrefix": "Sobre"
   },
-  "focus": {
-    "tagline": "Línea editorial",
-    "title": "De qué tratan los contenidos"
+  "facts": {
+    "heading": "Perfil breve",
+    "roleLabel": "Función",
+    "organisationLabel": "Organización",
+    "focusLabel": "Temas que trata",
+    "languagesLabel": "Escribe en"
   },
-  "standards": {
-    "tagline": "Criterios editoriales",
-    "title": "Cómo se elaboran estos contenidos",
-    "p1": "Los artículos se revisan para comprobar su claridad y coherencia factual antes de publicarse. La intención es reflejar lo que los viajeros encuentran realmente en Egipto, no versiones idealizadas de los lugares o las experiencias. Cuando existe una incertidumbre real (por ejemplo, si una tumba concreta está accesible un día determinado), esa incertidumbre se dice, no se disimula.",
-    "p2": "Los contenidos se actualizan cuando se producen cambios relevantes: nuevos requisitos de entrada, cierres importantes de sitios o cambios sustanciales en las infraestructuras. Los artículos más antiguos llevan una nota si la información no se ha verificado recientemente. El sitio no reivindica conocimientos locales más allá del alcance del trabajo editorial: los contenidos informan, no sustituyen el consejo de un guía autorizado ni de una autoridad turística oficial.",
-    "publishedByLabel": "Publicado por",
-    "publishedByValue": "Jes Egypt Tours — especialistas en viajes a Egipto desde 2009"
+  "expertise": {
+    "tagline": "Especialidad",
+    "title": "De qué se ocupa"
   },
-  "related": {
-    "tagline": "Contenido relacionado",
-    "title": "Artículos de viaje sobre Egipto",
-    "articlesByPrefix": "Artículos de",
-    "cta": "Ver todos los artículos de viaje"
+  "approach": {
+    "tagline": "Método de trabajo",
+    "headingPrefix": "Cómo trabaja",
+    "headingSuffix": "",
+    "lead": "En pocas líneas, cómo se preparan estos artículos y qué implica eso para los datos que contienen."
+  },
+  "context": {
+    "tagline": "Detrás de los contenidos",
+    "title": "Sobre el terreno en Egipto"
+  },
+  "articles": {
+    "featuredTagline": "Trabajos seleccionados",
+    "featuredTitle": "Artículos destacados",
+    "latestTagline": "El resto",
+    "latestPrefix": "Más artículos de",
+    "allPrefix": "Artículos de",
+    "empty": "Todavía no hay artículos en este idioma."
+  },
+  "publisher": {
+    "text": "Publicado por",
+    "aboutLink": "Sobre Jes Egypt Tours"
   }
 }

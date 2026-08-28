@@ -283,6 +283,11 @@ export default function EditTourPage() {
                 days: (tour.itinerary?.days || []).map((d: any) => ({
                   day: d.day,
                   title: toLocalized(d.title),
+                  // Named explicitly: this mapping picks fields rather than
+                  // spreading, so anything omitted here is dropped on save.
+                  flight: typeof d.flight === 'string' ? d.flight : '',
+                  meals: Array.isArray(d.meals) ? d.meals : [],
+                  accommodation: typeof d.accommodation === 'string' ? d.accommodation : '',
                   activities: (d.activities || []).map((a: any) => ({
                     ...a,
                     heading: toLocalized(a.heading),

@@ -1,17 +1,22 @@
 /**
  * The house author's profile content.
  *
- * This is SEED data, not the source of truth. It creates the document on a
- * fresh database and fills in fields that are still missing on an existing one;
- * it never overwrites a value that is already there. Edit the author in the
+ * SEED data, not the source of truth. It creates the document on a fresh
+ * database and fills in fields that are still missing on an existing one; it
+ * never overwrites a value that is already there. Edit the author in the
  * database and the edit sticks.
  *
- * Everything here used to be hard-coded English JSX in
- * client/src/app/(visitor)/[locale]/(home)/authors/madonna-roshdey/page.tsx —
- * one bespoke page for one author, in one language. It lives here now so that
- * app/(visitor)/[locale]/(home)/authors/[slug] can render ANY author from data:
- * adding a second author is a matter of writing this content for them, with no
- * new route and no new component.
+ * ── What is and is not asserted here ──
+ * Every claim below is one the project already supports: the role, the
+ * employer, the subjects of the 23 articles actually attributed to her, and
+ * the editorial handling the site already described. There are deliberately no
+ * years of experience, no degrees, no guide licence, no city of residence, no
+ * awards and no social profiles — none of that exists anywhere in this
+ * project, and an author page is the last place to start inventing it.
+ *
+ * The copy is written per language, not translated. The German, Italian and
+ * Spanish are not sentence-for-sentence renderings of the English; each is
+ * phrased the way that language would put it.
  */
 export const DEFAULT_AUTHOR_SLUG = 'madonna-roshdey';
 
@@ -20,6 +25,15 @@ export const DEFAULT_AUTHOR_SEED = {
   slug: DEFAULT_AUTHOR_SLUG,
   isActive: true,
 
+  /*
+   * Restored to the wording the site shipped with, at the owner's direction.
+   *
+   * This was briefly changed to "Travel Content Editor" to resolve a clash
+   * between the author page and the article bylines. The clash was real, but
+   * the resolution went the wrong way: "Travel Specialist" is the correct
+   * title. The two surfaces agree on it now because both read this field —
+   * the hard-coded copy in DynamicBlogDetails that caused the split is gone.
+   */
   role: {
     en: 'Travel Specialist at Jes Egypt Tours',
     de: 'Reisespezialistin bei Jes Egypt Tours',
@@ -27,14 +41,52 @@ export const DEFAULT_AUTHOR_SEED = {
     es: 'Especialista en viajes en Jes Egypt Tours',
   },
 
+  /**
+   * The hero introduction — the original text, restored at the owner's
+   * direction. The first-hand-travel claim it makes is the author's own to
+   * stand behind, and the photographs further down the page show her at the
+   * sites she writes about.
+   */
   bio: {
-    en: 'Madonna works on Egypt travel content for Jes Egypt Tours, with a focus on helping international visitors plan their trips with realistic expectations and practical information. Her aim is to make Egypt more accessible to first-time and returning travelers alike — without overselling or underselling the experience.',
-    de: 'Madonna betreut die Ägypten-Reiseinhalte von Jes Egypt Tours. Ihr Schwerpunkt liegt darauf, internationalen Besuchern bei der Reiseplanung mit realistischen Erwartungen und praktischen Informationen zu helfen. Ihr Ziel ist es, Ägypten für Erstreisende wie für Wiederkehrende zugänglicher zu machen — ohne das Erlebnis zu beschönigen oder kleinzureden.',
-    it: "Madonna cura i contenuti di viaggio sull'Egitto per Jes Egypt Tours, con l'obiettivo di aiutare i visitatori internazionali a organizzare il viaggio con aspettative realistiche e informazioni concrete. Il suo scopo è rendere l'Egitto più accessibile sia a chi ci va per la prima volta sia a chi ritorna — senza esagerare né sminuire l'esperienza.",
-    es: 'Madonna se ocupa de los contenidos de viaje sobre Egipto en Jes Egypt Tours, con el objetivo de ayudar a los visitantes internacionales a planificar su viaje con expectativas realistas e información práctica. Su propósito es hacer Egipto más accesible tanto para quienes viajan por primera vez como para quienes regresan, sin exagerar ni minimizar la experiencia.',
+    en: "Madonna Roshdey is a travel specialist at Jes Egypt Tours, where she helps international travelers plan private tours across Egypt. The tips she shares come from trips she's actually taken, not just research she's done.",
+    de: 'Madonna Roshdey ist Reisespezialistin bei Jes Egypt Tours und hilft internationalen Reisenden dabei, private Touren durch Ägypten zu planen. Die Tipps, die sie teilt, stammen aus Reisen, die sie selbst gemacht hat – nicht nur aus Recherchen am Schreibtisch.',
+    it: "Madonna Roshdey è una travel specialist di Jes Egypt Tours e aiuta viaggiatori internazionali a organizzare tour privati in tutto l'Egitto. I consigli che condivide nascono da viaggi che ha realmente vissuto, non da semplici ricerche.",
+    es: 'Madonna Roshdey es especialista en viajes en Jes Egypt Tours y ayuda a viajeros internacionales a planificar tours privados por todo Egipto. Los consejos que comparte vienen de viajes que ella misma ha vivido, no solo de investigaciones de escritorio.',
   },
 
+  /*
+   * The portrait that leads the hero.
+   *
+   * Alt text names WHO, WHAT THEY DO and WHERE — the three things a screen
+   * reader user and an image crawler both need — and stops there. It is not a
+   * keyword list: "Egypt tours travel expert guide Luxor Cairo" would rank no
+   * better and would read as gibberish aloud.
+   */
   image: {
+    url: '/images/authors/madonna-roshdey-portrait-egypt-temple.webp',
+    alt: {
+      en: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours, at an ancient Egyptian temple',
+      de: 'Madonna Roshdey, Reisespezialistin bei Jes Egypt Tours, an einem altägyptischen Tempel',
+      it: 'Madonna Roshdey, Travel Specialist di Jes Egypt Tours, in un antico tempio egizio',
+      es: 'Madonna Roshdey, Especialista en viajes en Jes Egypt Tours, en un antiguo templo egipcio',
+    },
+    caption: {
+      en: 'Madonna Roshdey at an ancient Egyptian temple',
+      de: 'Madonna Roshdey an einem altägyptischen Tempel',
+      it: 'Madonna Roshdey in un antico tempio egizio',
+      es: 'Madonna Roshdey en un antiguo templo egipcio',
+    },
+  },
+
+  /*
+   * The byline headshot under every article — a tight, circle-safe crop.
+   *
+   * The article box reads this rather than `image`: when the hero portrait was
+   * swapped for the new half-length photograph, the circular byline avatar
+   * inherited it and the subject came out small and off-centre inside the
+   * mask. Two slots, two crops.
+   */
+  avatar: {
     url: '/images/authors/madonna-roshdey-author.jpg',
     alt: {
       en: 'Madonna Roshdey, Travel Specialist at Jes Egypt Tours',
@@ -43,6 +95,60 @@ export const DEFAULT_AUTHOR_SEED = {
       es: 'Madonna Roshdey, Especialista en viajes en Jes Egypt Tours',
     },
   },
+
+  /*
+   * The two contextual photographs, in reading order.
+   *
+   * The captions do a job the alt text cannot: they say why the picture is on
+   * the page. Each one ties the photograph to the work — the sites the guides
+   * describe, the river the itineraries follow — rather than captioning the
+   * obvious ("Madonna smiling at a temple").
+   */
+  contextImages: [
+    {
+      /*
+       * The Valley of the Kings, confirmed by the author.
+       *
+       * Naming the actual site is worth far more than "an ancient Egyptian
+       * tomb" — to a reader, to an image search, and to an assistant
+       * summarising the page. It is only here because it was confirmed: the
+       * photograph alone does not identify which tomb, so the alt text stops
+       * at the valley and does not guess a KV number.
+       *
+       * It also lands next to something real: "Valley of the Kings Visitor
+       * Guide" is one of her published articles, so the picture shows her at
+       * a site her own guide covers.
+       */
+      url: '/images/authors/madonna-roshdey-valley-of-the-kings-tomb-luxor.webp',
+      alt: {
+        en: 'Madonna Roshdey beside a wall of carved hieroglyphs in a tomb in the Valley of the Kings, Luxor',
+        de: 'Madonna Roshdey vor einer Wand mit gemeißelten Hieroglyphen in einem Grab im Tal der Könige, Luxor',
+        it: "Madonna Roshdey accanto a una parete di geroglifici incisi in una tomba della Valle dei Re, a Luxor",
+        es: 'Madonna Roshdey junto a un muro de jeroglíficos tallados en una tumba del Valle de los Reyes, en Luxor',
+      },
+      caption: {
+        en: 'In the Valley of the Kings, one of the sites her visitor guides cover.',
+        de: 'Im Tal der Könige – einer der Orte, die ihre Besucherinformationen behandeln.',
+        it: 'Nella Valle dei Re, uno dei luoghi di cui parlano le sue guide pratiche.',
+        es: 'En el Valle de los Reyes, uno de los lugares que tratan sus guías prácticas.',
+      },
+    },
+    {
+      url: '/images/authors/madonna-roshdey-luxor-nile-bridge.webp',
+      alt: {
+        en: 'Madonna Roshdey on the Nile bridge in Luxor, Egypt',
+        de: 'Madonna Roshdey auf der Nilbrücke in Luxor, Ägypten',
+        it: 'Madonna Roshdey sul ponte sul Nilo a Luxor, in Egitto',
+        es: 'Madonna Roshdey en el puente sobre el Nilo en Luxor, Egipto',
+      },
+      caption: {
+        en: 'On the Nile at Luxor, the stretch most cruise itineraries are built around.',
+        de: 'Am Nil bei Luxor – dem Abschnitt, um den herum die meisten Kreuzfahrtrouten aufgebaut sind.',
+        it: 'Sul Nilo a Luxor, il tratto attorno a cui è costruita la maggior parte degli itinerari in crociera.',
+        es: 'En el Nilo a su paso por Luxor, el tramo sobre el que se arma la mayoría de los itinerarios de crucero.',
+      },
+    },
+  ],
 
   organisation: {
     en: 'Jes Egypt Tours',
@@ -53,9 +159,9 @@ export const DEFAULT_AUTHOR_SEED = {
 
   contentFocus: {
     en: 'Egypt travel planning, visitor guides, cultural sites',
-    de: 'Ägypten-Reiseplanung, Besucherführer, Kulturstätten',
-    it: 'Pianificazione di viaggi in Egitto, guide per visitatori, siti culturali',
-    es: 'Planificación de viajes a Egipto, guías para visitantes, sitios culturales',
+    de: 'Reiseplanung Ägypten, Besucherinformationen, Kulturstätten',
+    it: 'Organizzazione di viaggi in Egitto, guide pratiche, siti culturali',
+    es: 'Planificación de viajes a Egipto, guías prácticas, sitios culturales',
   },
 
   languages: {
@@ -65,118 +171,173 @@ export const DEFAULT_AUTHOR_SEED = {
     es: 'Inglés',
   },
 
-  aboutTitle: {
-    en: 'Egypt travel content for real visitors',
-    de: 'Ägypten-Reiseinhalte für echte Besucher',
-    it: 'Contenuti di viaggio sull\'Egitto per veri visitatori',
-    es: 'Contenidos de viaje sobre Egipto para visitantes reales',
-  },
+  /** Short subject chips under the hero intro. Kept to four. */
+  topics: [
+    { en: 'Egypt travel', de: 'Ägypten-Reisen', it: 'Viaggi in Egitto', es: 'Viajes a Egipto' },
+    { en: 'Trip planning', de: 'Reiseplanung', it: 'Organizzazione del viaggio', es: 'Planificación del viaje' },
+    { en: 'Visitor guides', de: 'Besucherinformationen', it: 'Guide pratiche', es: 'Guías prácticas' },
+    { en: 'Cultural sites', de: 'Kulturstätten', it: 'Siti culturali', es: 'Sitios culturales' },
+  ],
 
   about: [
     {
-      en: 'Madonna contributes visitor-focused travel guides, destination overviews, and practical planning articles for Jes Egypt Tours. The content is written for international travelers — people planning a first trip to Egypt or returning visitors who want more detail on specific sites, regions, or logistics.',
-      de: 'Madonna schreibt besucherorientierte Reiseführer, Zielgebietsüberblicke und praktische Planungsartikel für Jes Egypt Tours. Die Inhalte richten sich an internationale Reisende — an Menschen, die ihre erste Ägyptenreise planen, und an Wiederkehrende, die mehr Details zu bestimmten Stätten, Regionen oder zur Logistik suchen.',
-      it: 'Madonna scrive guide di viaggio pensate per i visitatori, panoramiche sulle destinazioni e articoli pratici di pianificazione per Jes Egypt Tours. I contenuti si rivolgono a viaggiatori internazionali: chi sta preparando il primo viaggio in Egitto e chi ritorna cercando maggiori dettagli su siti, regioni o aspetti logistici specifici.',
-      es: 'Madonna escribe guías de viaje pensadas para el visitante, panorámicas de destinos y artículos prácticos de planificación para Jes Egypt Tours. Los contenidos están dirigidos a viajeros internacionales: quienes preparan su primer viaje a Egipto y quienes vuelven buscando más detalle sobre sitios, regiones o aspectos logísticos concretos.',
+      en: 'Her work sits between a brochure and a guidebook. An article on the Valley of the Kings explains which tombs the standard ticket covers and which cost extra; one on the Nile starts with what the river means to the places along it and only then gets to cruise itineraries. The point is that a reader finishes knowing what to expect.',
+      de: 'Ihre Arbeit liegt zwischen Prospekt und Reiseführer. Ein Text über das Tal der Könige erklärt, welche Gräber im Standardticket enthalten sind und für welche man extra zahlt; ein Text über den Nil beginnt damit, was der Fluss für die Orte an seinen Ufern bedeutet, und kommt erst dann zu den Kreuzfahrtrouten. Am Ende soll der Leser wissen, was ihn erwartet.',
+      it: "Il suo lavoro sta tra la brochure e la guida. Un articolo sulla Valle dei Re spiega quali tombe rientrano nel biglietto ordinario e per quali serve un supplemento; uno sul Nilo parte da che cosa rappresenta il fiume per i luoghi che attraversa e solo dopo arriva agli itinerari delle crociere. Il senso è che chi legge finisca sapendo che cosa aspettarsi.",
+      es: 'Su trabajo está entre el folleto y la guía. Un artículo sobre el Valle de los Reyes explica qué tumbas cubre la entrada general y cuáles llevan suplemento; uno sobre el Nilo empieza por lo que significa el río para los lugares por los que pasa y solo después llega a los itinerarios de crucero. La idea es que quien lo lea termine sabiendo qué va a encontrarse.',
     },
     {
-      en: 'The articles cover a range of topics: how to plan a Nile cruise, what to see in Luxor in two days, how to visit the Valley of the Kings, entry requirements, common questions about safety, and destination comparisons that help travelers make informed choices. The tone is direct and informative — the goal is usefulness, not enthusiasm for its own sake.',
-      de: 'Die Artikel decken ein breites Themenfeld ab: wie man eine Nilkreuzfahrt plant, was man in zwei Tagen in Luxor sehen sollte, wie man das Tal der Könige besucht, Einreisebestimmungen, häufige Fragen zur Sicherheit und Vergleiche von Reisezielen, die eine fundierte Entscheidung erleichtern. Der Ton ist direkt und sachlich — es geht um Nützlichkeit, nicht um Begeisterung um ihrer selbst willen.',
-      it: "Gli articoli coprono temi diversi: come organizzare una crociera sul Nilo, cosa vedere a Luxor in due giorni, come visitare la Valle dei Re, i requisiti d'ingresso, le domande frequenti sulla sicurezza e i confronti tra destinazioni che aiutano a scegliere con cognizione di causa. Il tono è diretto e informativo — l'obiettivo è l'utilità, non l'entusiasmo fine a se stesso.",
-      es: 'Los artículos abarcan temas variados: cómo planificar un crucero por el Nilo, qué ver en Luxor en dos días, cómo visitar el Valle de los Reyes, los requisitos de entrada, las dudas habituales sobre seguridad y comparativas de destinos que ayudan a decidir con criterio. El tono es directo e informativo: el objetivo es la utilidad, no el entusiasmo por sí mismo.',
-    },
-    {
-      en: "Where details like prices, opening hours, or permit requirements are included, the articles note that these are variable and should be confirmed before travel. Egypt's tourism landscape changes frequently enough that current accuracy matters more than publishing a specific number.",
-      de: 'Wo Angaben wie Preise, Öffnungszeiten oder Genehmigungspflichten genannt werden, weisen die Artikel darauf hin, dass diese sich ändern können und vor der Reise bestätigt werden sollten. Ägyptens Tourismuslandschaft verändert sich häufig genug, dass Aktualität wichtiger ist als das Veröffentlichen einer konkreten Zahl.',
-      it: 'Quando vengono indicati dettagli come prezzi, orari di apertura o permessi necessari, gli articoli segnalano che si tratta di informazioni variabili, da verificare prima di partire. Il panorama turistico egiziano cambia abbastanza spesso da rendere l\'attualità del dato più importante della pubblicazione di una cifra precisa.',
-      es: 'Cuando se incluyen datos como precios, horarios de apertura o permisos necesarios, los artículos advierten de que son variables y conviene confirmarlos antes de viajar. El panorama turístico egipcio cambia con la frecuencia suficiente como para que la vigencia del dato importe más que publicar una cifra concreta.',
+      en: 'Most of what she edits is written for international visitors: people planning a first trip to Egypt, and returning travellers after detail on a particular site or region. Prices, opening hours and access rules change often enough in Egypt that she treats them as provisional and says so in the text, rather than publishing a number that reads as settled.',
+      de: 'Das meiste richtet sich an internationale Besucher – an Menschen, die zum ersten Mal nach Ägypten fahren, und an Wiederkehrende, die Details zu einem bestimmten Ort oder einer Region suchen. Preise, Öffnungszeiten und Zutrittsregeln ändern sich in Ägypten so häufig, dass sie diese Angaben als vorläufig behandelt und das im Text auch kenntlich macht, statt eine Zahl zu veröffentlichen, die endgültig wirkt.',
+      it: 'Quasi tutto è pensato per visitatori stranieri: chi organizza il primo viaggio in Egitto e chi torna cercando dettagli su un sito o una regione. Prezzi, orari e regole di accesso cambiano abbastanza spesso da indurla a trattarli come dati provvisori e a dirlo nel testo, invece di pubblicare una cifra che sembri definitiva.',
+      es: 'Casi todo se dirige a visitantes internacionales: quienes preparan su primer viaje a Egipto y quienes vuelven buscando detalle sobre un sitio o una región. Los precios, los horarios y las condiciones de acceso cambian con la frecuencia suficiente como para tratarlos como datos provisionales y decirlo en el texto, en lugar de publicar una cifra que parezca firme.',
     },
   ],
 
-  editorialFocus: [
+  /*
+   * Areas of expertise — SUBJECTS, not principles.
+   *
+   * There are four, which is also what makes the grid balance: the previous
+   * five cards left a hole in the last row. The fifth card was "People-first
+   * content", which is an editorial stance rather than a subject anyone can
+   * be expert in; it belongs in `approach` below, and that is where it went.
+   *
+   * `icon` names a lucide glyph — the icon set the tour pages already use.
+   */
+  expertise: [
     {
-      icon: '🗺️',
+      icon: 'map',
       heading: {
-        en: 'Clear travel planning',
-        de: 'Klare Reiseplanung',
-        it: 'Pianificazione chiara del viaggio',
-        es: 'Planificación clara del viaje',
+        en: 'Egypt trip planning',
+        de: 'Reiseplanung in Ägypten',
+        it: 'Organizzare un viaggio in Egitto',
+        es: 'Planificar un viaje a Egipto',
       },
       body: {
-        en: 'Step-by-step guidance on how to plan an Egypt trip — from entry logistics to day-by-day itinerary structure.',
-        de: 'Schritt-für-Schritt-Anleitungen zur Planung einer Ägyptenreise — von der Einreise bis zum Aufbau des Tagesprogramms.',
-        it: "Indicazioni passo dopo passo per organizzare un viaggio in Egitto — dalla logistica d'ingresso alla struttura giorno per giorno dell'itinerario.",
-        es: 'Orientación paso a paso para organizar un viaje a Egipto, desde los trámites de entrada hasta la estructura del itinerario día a día.',
+        en: 'How a trip fits together: how many days each region needs, what to see first, and how to order Cairo, Luxor and Aswan without spending the trip in transit.',
+        de: 'Wie eine Reise zusammenpasst: wie viele Tage jede Region braucht, was zuerst kommt und in welcher Reihenfolge Kairo, Luxor und Assuan sinnvoll sind, ohne die halbe Reise unterwegs zu verbringen.',
+        it: 'Come si tiene insieme un viaggio: quanti giorni chiede ogni regione, da dove conviene cominciare e in che ordine mettere Il Cairo, Luxor e Assuan senza passare la vacanza in trasferimento.',
+        es: 'Cómo encaja un viaje: cuántos días pide cada región, por dónde conviene empezar y en qué orden colocar El Cairo, Luxor y Asuán sin pasarse el viaje en desplazamientos.',
       },
     },
     {
-      icon: '🧭',
+      icon: 'compass',
       heading: {
         en: 'Practical visitor guidance',
-        de: 'Praktische Hinweise für Besucher',
-        it: 'Consigli pratici per i visitatori',
-        es: 'Consejos prácticos para el visitante',
+        de: 'Praktische Hinweise vor Ort',
+        it: 'Indicazioni pratiche sul posto',
+        es: 'Orientación práctica sobre el terreno',
       },
       body: {
-        en: 'Honest information about what to expect on the ground: transport, dress codes, tipping, crowds, and timing.',
-        de: 'Ehrliche Informationen darüber, was vor Ort zu erwarten ist: Transport, Kleiderordnung, Trinkgeld, Andrang und Timing.',
-        it: 'Informazioni oneste su cosa aspettarsi sul posto: trasporti, abbigliamento, mance, affollamento e tempistiche.',
-        es: 'Información honesta sobre qué esperar sobre el terreno: transporte, código de vestimenta, propinas, aglomeraciones y horarios.',
+        en: 'What to expect once you are there: getting between sites, what to wear, tipping, and when the crowds arrive and thin out again.',
+        de: 'Was vor Ort auf einen zukommt: die Wege zwischen den Stätten, passende Kleidung, Trinkgeld und die Tageszeiten, zu denen es voll wird und wieder leerer.',
+        it: 'Che cosa aspettarsi una volta lì: gli spostamenti tra un sito e l\'altro, come vestirsi, le mance e le ore in cui la folla arriva e poi si dirada.',
+        es: 'Qué esperar una vez allí: cómo moverse entre sitios, cómo vestir, las propinas y a qué horas se llena y se vacía cada lugar.',
       },
     },
     {
-      icon: '🏛️',
+      icon: 'landmark',
       heading: {
-        en: 'Egyptian destinations and cultural sites',
-        de: 'Ägyptische Reiseziele und Kulturstätten',
-        it: 'Destinazioni egiziane e siti culturali',
-        es: 'Destinos egipcios y sitios culturales',
+        en: 'Cultural sites and museums',
+        de: 'Kulturstätten und Museen',
+        it: 'Siti culturali e musei',
+        es: 'Sitios culturales y museos',
       },
       body: {
-        en: 'Coverage of temples, tombs, museums, and lesser-known sites across Upper and Lower Egypt.',
-        de: 'Tempel, Gräber, Museen und weniger bekannte Stätten in Ober- und Unterägypten.',
-        it: "Templi, tombe, musei e luoghi meno noti dell'Alto e del Basso Egitto.",
-        es: 'Templos, tumbas, museos y lugares menos conocidos del Alto y el Bajo Egipto.',
+        en: 'Temples, tombs and museums across Upper and Lower Egypt, including what earns a detour and what a rushed visit tends to miss.',
+        de: 'Tempel, Gräber und Museen in Ober- und Unterägypten – auch, wofür sich ein Umweg lohnt und was bei einem eiligen Besuch meist untergeht.',
+        it: "Templi, tombe e musei dell'Alto e del Basso Egitto, compreso ciò che vale una deviazione e ciò che una visita di corsa si lascia sfuggire.",
+        es: 'Templos, tumbas y museos del Alto y el Bajo Egipto, incluido lo que merece un desvío y lo que suele perderse en una visita apresurada.',
       },
     },
     {
-      icon: '🎟️',
+      icon: 'ticket',
       heading: {
-        en: 'Tickets, timing, and logistics',
-        de: 'Tickets, Zeiten und Logistik',
+        en: 'Tickets, timing and logistics',
+        de: 'Tickets, Zeiten und Abläufe',
         it: 'Biglietti, orari e logistica',
         es: 'Entradas, horarios y logística',
       },
       body: {
-        en: 'Ticket prices, opening hours, and booking details — with a note that these details change and should be verified before travel.',
-        de: 'Eintrittspreise, Öffnungszeiten und Buchungsdetails — mit dem Hinweis, dass sich diese Angaben ändern und vor der Reise geprüft werden sollten.',
-        it: "Prezzi dei biglietti, orari di apertura e dettagli di prenotazione — con l'avvertenza che questi dati cambiano e vanno verificati prima di partire.",
-        es: 'Precios de entradas, horarios de apertura y detalles de reserva, con la advertencia de que estos datos cambian y conviene verificarlos antes de viajar.',
-      },
-    },
-    {
-      icon: '🤝',
-      heading: {
-        en: 'People-first content',
-        de: 'Inhalte für Menschen zuerst',
-        it: 'Contenuti pensati per le persone',
-        es: 'Contenidos centrados en las personas',
-      },
-      body: {
-        en: 'Writing aimed at real travelers with real questions, not generic marketing copy or inflated superlatives.',
-        de: 'Texte für echte Reisende mit echten Fragen — keine allgemeinen Werbetexte und keine aufgeblasenen Superlative.',
-        it: 'Testi rivolti a viaggiatori reali con domande reali, non testi promozionali generici o superlativi gonfiati.',
-        es: 'Textos dirigidos a viajeros reales con preguntas reales, no textos publicitarios genéricos ni superlativos inflados.',
+        en: 'What a ticket actually covers, when sites open, and which extras are paid for separately — always with the caveat that these details move.',
+        de: 'Was ein Ticket wirklich abdeckt, wann die Stätten öffnen und welche Extras separat bezahlt werden – stets mit dem Hinweis, dass sich diese Angaben ändern.',
+        it: 'Che cosa copre davvero un biglietto, gli orari di apertura e quali supplementi si pagano a parte, sempre con l\'avvertenza che sono dati che cambiano.',
+        es: 'Qué cubre realmente una entrada, cuándo abren los sitios y qué suplementos se pagan aparte, siempre con la advertencia de que son datos que cambian.',
       },
     },
   ],
 
-  articlesNote: {
-    en: 'Articles written and edited by Madonna Roshdey are published in the Jes Egypt Tours travel blog. The blog covers destinations, itineraries, cultural guidance, and practical planning topics for travelers visiting Egypt.',
-    de: 'Von Madonna Roshdey verfasste und redigierte Artikel erscheinen im Reiseblog von Jes Egypt Tours. Der Blog behandelt Reiseziele, Routen, kulturelle Hinweise und praktische Planungsthemen für Reisende nach Ägypten.',
-    it: 'Gli articoli scritti e curati da Madonna Roshdey vengono pubblicati sul blog di viaggio di Jes Egypt Tours. Il blog tratta destinazioni, itinerari, indicazioni culturali e temi pratici di pianificazione per chi visita l\'Egitto.',
-    es: 'Los artículos escritos y editados por Madonna Roshdey se publican en el blog de viajes de Jes Egypt Tours. El blog trata destinos, itinerarios, orientación cultural y temas prácticos de planificación para quienes visitan Egipto.',
-  },
+  /*
+   * How she works — the dark section.
+   *
+   * This replaces a block of general editorial policy that described the SITE
+   * rather than the author, on the one page whose subject is a person. Nothing
+   * here claims a process the project has not already described: research
+   * before drafting, a traveller's order of questions, time-sensitive details
+   * flagged as such, and a clarity/consistency check before publishing.
+   */
+  approach: [
+    {
+      icon: 'search',
+      heading: {
+        en: 'Research first',
+        de: 'Erst recherchieren',
+        it: 'Prima la ricerca',
+        es: 'Primero documentarse',
+      },
+      body: {
+        en: 'Information is gathered and ordered before anything is drafted, so an article follows the questions a traveller actually asks rather than the order the research happened to arrive in.',
+        de: 'Erst wird recherchiert und sortiert, dann geschrieben. So folgt ein Artikel den Fragen, die Reisende tatsächlich stellen, und nicht der Reihenfolge, in der die Informationen zusammenkamen.',
+        it: "Prima si raccolgono e si ordinano le informazioni, poi si scrive: così l'articolo segue le domande che si pone davvero chi viaggia, non l'ordine in cui è arrivata la documentazione.",
+        es: 'Primero se reúne y se ordena la información, y después se escribe. Así el artículo sigue las preguntas que se hace quien viaja y no el orden en que apareció la documentación.',
+      },
+    },
+    {
+      icon: 'users',
+      heading: {
+        en: 'Written for the visitor',
+        de: 'Aus Sicht der Besucher',
+        it: 'Dal punto di vista di chi visita',
+        es: 'Desde el punto de vista del visitante',
+      },
+      body: {
+        en: 'The starting point is what someone has to decide — how long to stay, what to book ahead, what a ticket includes — not whatever is easiest to write about.',
+        de: 'Ausgangspunkt ist, was jemand entscheiden muss: wie lange bleiben, was vorab buchen, was im Ticket enthalten ist. Nicht das, worüber sich am leichtesten schreiben lässt.',
+        it: 'Il punto di partenza è quello che una persona deve decidere: quanto fermarsi, che cosa prenotare in anticipo, che cosa comprende il biglietto. Non ciò di cui è più comodo scrivere.',
+        es: 'El punto de partida es lo que alguien tiene que decidir: cuánto quedarse, qué reservar con antelación, qué incluye la entrada. No aquello sobre lo que resulta más cómodo escribir.',
+      },
+    },
+    {
+      icon: 'clock',
+      heading: {
+        en: 'Details that move',
+        de: 'Angaben, die sich ändern',
+        it: 'I dati che cambiano',
+        es: 'Los datos que cambian',
+      },
+      body: {
+        en: 'Opening hours, prices and access conditions are treated as time-sensitive. Where a detail is likely to have shifted, the article says so instead of presenting it as fixed.',
+        de: 'Öffnungszeiten, Preise und Zutrittsregeln gelten als kurzlebige Angaben. Wo sich etwas geändert haben dürfte, steht das im Text, statt die Zahl als feststehend auszugeben.',
+        it: 'Orari, prezzi e condizioni di accesso sono considerati dati deperibili. Dove è probabile che qualcosa sia cambiato, il testo lo dice invece di presentarlo come definitivo.',
+        es: 'Los horarios, los precios y las condiciones de acceso se tratan como datos perecederos. Cuando es probable que algo haya cambiado, el texto lo indica en lugar de darlo por fijo.',
+      },
+    },
+    {
+      icon: 'check-circle',
+      heading: {
+        en: 'Checked before publishing',
+        de: 'Vor der Veröffentlichung geprüft',
+        it: 'Verificato prima di pubblicare',
+        es: 'Revisado antes de publicar',
+      },
+      body: {
+        en: 'Every article is read through for clarity and factual consistency before it goes live, and revisited when something significant changes.',
+        de: 'Jeder Artikel wird vor der Veröffentlichung auf Verständlichkeit und sachliche Stimmigkeit gelesen und überarbeitet, wenn sich Wesentliches ändert.',
+        it: 'Ogni articolo viene riletto per chiarezza e coerenza dei fatti prima di andare online, e ripreso quando cambia qualcosa di rilevante.',
+        es: 'Cada artículo se relee para comprobar su claridad y su coherencia factual antes de publicarse, y se retoma cuando cambia algo relevante.',
+      },
+    },
+  ],
 };
 
 /** The seed fields that may be filled in on an EXISTING document when absent. */
@@ -184,8 +345,28 @@ export const BACKFILLABLE_AUTHOR_FIELDS = [
   'organisation',
   'contentFocus',
   'languages',
-  'aboutTitle',
+  'topics',
   'about',
+  'expertise',
+  'approach',
+] as const;
+
+/**
+ * Fields from an earlier shape of this page, removed once.
+ *
+ * `editorialFocus` became `expertise` (and lost its fifth, non-subject card);
+ * `aboutTitle` is composed in the page from the author's name now; the
+ * `articlesNote` paragraph under the article grid said only that the author
+ * writes articles and the site publishes them, which the section around it
+ * already made obvious.
+ */
+export const RETIRED_AUTHOR_FIELDS = [
   'editorialFocus',
+  'aboutTitle',
   'articlesNote',
+  'gallery',
+  // The biography column holds the profile card, not a photograph: with three
+  // real pictures there was no honest use for a fourth slot, and reserving one
+  // would have left an empty frame on a finished page.
+  'aboutImage',
 ] as const;

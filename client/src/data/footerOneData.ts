@@ -54,6 +54,11 @@ export const footerOneData: FooterDataType = {
       { icon: "fab fa-twitter", link: "https://twitter.com", label: "Twitter" },
       { icon: "fab fa-instagram", link: "https://instagram.com", label: "Instagram" },
       { icon: "icon-youtube", link: "https://youtube.com", label: "Youtube" },
+      {
+        icon: "fab fa-tripadvisor",
+        link: "https://www.tripadvisor.com/Attraction_Review-g294201-d32893109-Reviews-Jes_Egypt_Tour-Cairo_Cairo_Governorate.html",
+        label: "Tripadvisor",
+      },
     ],
   },
   // Internal hrefs are locale-prefixed at render time in FooterOne.

@@ -9,7 +9,7 @@ import "swiper/css";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
 import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
-import { Calendar, Headphones, Tag, Star, Zap, ChevronDown, MessageCircle, ArrowRight } from "lucide-react";
+import { ChevronDown, MessageCircle, ArrowRight } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
@@ -24,6 +24,7 @@ import { useTourData } from "./useTourData";
 
 // Import sub-components
 import { TourInfoBar } from "./components/TourInfoBar";
+import { TrustBand } from "./components/TrustBand";
 import { BookingForm } from "./components/BookingForm";
 import { TourPlan } from "./components/TourPlan";
 import { PricingPlans } from "./components/PricingPlans";
@@ -620,47 +621,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 mapHref={map ? '#map' : undefined}
               />
 
-              {/* Trust band — same content and icons as before, moved into the
-                  rail so it sits level with the price instead of below the
-                  twelfth section where almost nobody reached it. */}
-              <div className="info-area info-bg tour-trust-band">
-                <div className="row align-items-center">
-                  <div className="col-lg-4">
-                    <div className="section-heading" style={{ marginBottom: '0' }}>
-                      <p className="sec__title" style={{ color: '#1a1a1a', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '10px' }}>{t("tourDetails.bookConfidence")}</p>
-                      <p className="sec__desc" style={{ color: '#666', fontWeight: '400', letterSpacing: '0px', marginBottom: '0' }}>{t("tourDetails.bookConfidenceDesc")}</p>
-                    </div>
-                  </div>
-                  <div className="col-lg-8">
-                    <div className="d-flex justify-content-center align-items-center flex-wrap" style={{ gap: '20px' }}>
-                      {[
-                        { title: t("tourDetails.features.monthly"), icon: Calendar },
-                        { title: t("tourDetails.features.support"), icon: Headphones },
-                        { title: t("tourDetails.features.prices"), icon: Tag },
-                        { title: t("tourDetails.features.rating"), icon: Star },
-                        { title: t("tourDetails.features.fast"), icon: Zap }
-                      ].map((item, idx) => (
-                        <div key={idx} className="text-center" style={{ minWidth: '120px' }}>
-                          <div className="info-icon flex-shrink-0 bg-white shadow-sm mx-auto mb-2" style={{
-                            width: '70px',
-                            height: '70px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '50%',
-                            border: '1.5px solid #b79c5c',
-                            transition: 'transform 0.3s ease',
-                            boxShadow: '0 8px 16px rgba(183, 156, 92, 0.15)'
-                          }}>
-                            <item.icon size={35} color="#b79c5c" />
-                          </div>
-                          <span className="info__title d-block" style={{ fontSize: '13px', color: '#1a1a1a', fontWeight: '600', margin: '0' }}>{item.title}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Trust band — sits in the rail so it lands level with the price
+                  instead of below the twelfth section, where almost nobody
+                  reached it. Its own component now, like every other section
+                  of this page. */}
+              <TrustBand />
 
               {/* Navigation Bar */}
               <div ref={navPlaceholderRef} />
@@ -746,7 +711,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                     >
                       <div
                         className='tour-listing-details__text html-content'
-                        style={{ color: '#444', fontSize: '1rem', lineHeight: '1.8' }}
+                        /* #595959 is the page's one secondary-text tone. This
+                           block was #444, the itinerary #666 and the fact strips
+                           #595959 — three greys a few percent apart, all meaning
+                           the same thing. Contrast here goes 9.74:1 -> 7.00:1,
+                           still well clear of AA. */
+                        style={{ color: '#595959', fontSize: '1rem', lineHeight: '1.8' }}
                         dangerouslySetInnerHTML={{ __html: overviewHtml }}
                       />
                     </div>
@@ -774,7 +744,12 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
                   </div>
 
-                  {/* Tour Highlights Section */}
+                  {/* Tour Highlights — omitted entirely when the tour has none,
+                      as every other list section on this page already does.
+                      `tourHighlights` is optional in the admin (it is deleted on
+                      save when blank), so without this guard such a tour printed
+                      the gold rule and the "Highlight List" heading over nothing. */}
+                  {highlightItems.length > 0 && (
                   <div className='tour-listing-details__content__item border-0 p-0'>
                     <div className="d-flex align-items-center gap-2 mb-4">
                       <div style={{ width: '4px', height: '24px', backgroundColor: '#b79c5c' }}></div>
@@ -782,25 +757,29 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         {t("tourDetails.highlightList")}
                       </h2>
                     </div>
-                    <ul className="list-unstyled row gutter-y-20" style={{ paddingLeft: 0 }}>
+                    {/* Row spacing is gutter-y-20 alone. Each item also carried mb-3, so
+                        two spacing systems stacked into a 36px gap between rows and
+                        left a stray 16px under the last one. paddingLeft:0 went too
+                        — list-unstyled already sets it. */}
+                    <ul className="list-unstyled row gutter-y-20">
                       {highlightItems.map((item, index) => (
-                        <li key={index} className="col-md-6 col-lg-4 mb-3">
+                        <li key={index} className="col-md-6 col-lg-4">
                           <div className="d-flex align-items-start gap-3">
-                            <div className="d-flex align-items-center justify-content-center rounded-circle" style={{
-                              width: '26px',
-                              height: '26px',
-                              backgroundColor: 'rgba(183, 156, 92, 0.1)',
-                              flexShrink: 0,
-                              marginTop: '2px'
-                            }}>
-                              <i className='icon-check-star' style={{ color: '#b79c5c', fontSize: '12px' }}></i>
+                            <div className="tour-highlight__check">
+                              {/* Decorative: the check repeats before every
+                                  highlight and names none of them. */}
+                              <i className='icon-check-star' aria-hidden="true"></i>
                             </div>
-                            <span className="text-dark fw-medium html-content" style={{ fontSize: '0.93rem' }} dangerouslySetInnerHTML={{ __html: item }} />
+                            <span
+                              className="text-dark fw-medium html-content tour-highlight__text"
+                              dangerouslySetInnerHTML={{ __html: item }}
+                            />
                           </div>
                         </li>
                       ))}
                     </ul>
                   </div>
+                  )}
                 </section>
 
                 <section id="tour-plan" className="tour-section">

@@ -41,17 +41,28 @@
   },
   "tourDetails": {
     "bookConfidence": "Book With Confidence",
-    "bookConfidenceDesc": "Your trusted partner for unforgettable Egyptian adventures",
+    "bookConfidenceDesc": "Private tours, expert guidance, and direct support throughout your journey.",
     "bestSeller": "Ready to book",
     "from": "from",
     "bookThisTour": "Book This Tour",
     "bookNow": "Book Now",
     "features": {
-      "monthly": "Pay Monthly",
-      "support": "24/7 Support",
-      "prices": "Best Prices",
-      "rating": "Rated 5* Stars",
-      "fast": "Fast Booking"
+      "private": {
+        "title": "Private Tours Only",
+        "text": "Your party, your pace"
+      },
+      "guides": {
+        "title": "Expert Egyptologists",
+        "text": "Professional local guidance"
+      },
+      "support": {
+        "title": "24/7 Travel Support",
+        "text": "Direct help when you need it"
+      },
+      "flexible": {
+        "title": "Flexible Trip Planning",
+        "text": "Personalize your Egypt experience"
+      }
     },
     "nav": {
       "description": "Description",
@@ -65,6 +76,56 @@
       "whatToPack": "Packing"
     },
     "mapTitle": "Tour Location Map",
+    "tourPlanTitle": "Tour Plan",
+    "optional": "Optional",
+    "logistics": {
+      "flight": "Fly to",
+      "meals": "Meals",
+      "accommodation": "Accommodation",
+      "mealOptions": {
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "welcomeDrink": "Welcome Drink",
+        "none": "None"
+      },
+      "stayOptions": {
+        "cairoHotel": "Cairo Hotel",
+        "luxorHotel": "Luxor Hotel",
+        "aswanHotel": "Aswan Hotel",
+        "alexandriaHotel": "Alexandria Hotel",
+        "hurghadaHotel": "Hurghada Hotel",
+        "sharmElSheikhHotel": "Sharm El-Sheikh Hotel",
+        "marsaAlamHotel": "Marsa Alam Hotel",
+        "siwaOasisHotel": "Siwa Oasis Hotel",
+        "bahariyaOasisHotel": "Bahariya Oasis Hotel",
+        "nileCruise": "Nile Cruise"
+      },
+      "flyToOptions": {
+        "cairo": "Cairo",
+        "luxor": "Luxor",
+        "aswan": "Aswan",
+        "hurghada": "Hurghada",
+        "sharmElSheikh": "Sharm El-Sheikh",
+        "marsaAlam": "Marsa Alam",
+        "alexandria": "Alexandria",
+        "amman": "Amman",
+        "aqaba": "Aqaba",
+        "dubai": "Dubai",
+        "riyadh": "Riyadh",
+        "jeddah": "Jeddah",
+        "medina": "Medina",
+        "casablanca": "Casablanca",
+        "marrakech": "Marrakech",
+        "fez": "Fez",
+        "muscat": "Muscat",
+        "salalah": "Salalah",
+        "istanbul": "Istanbul",
+        "antalya": "Antalya",
+        "cappadocia": "Cappadocia",
+        "beirut": "Beirut"
+      }
+    },
     "highlightList": "Highlight List",
     "amenitiesTitle": "What’s Included & Not Included",
     "included": "What’s Included",

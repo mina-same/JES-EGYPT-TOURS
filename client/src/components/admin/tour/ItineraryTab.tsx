@@ -28,6 +28,13 @@
 
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  DAY_ACCOMMODATION_OPTIONS,
+  DAY_LOGISTICS_UNSET,
+} from '@/lib/tours/dayLogistics';
+import FlightSelect from '@/components/admin/tour/FlightSelect';
 
 interface ItineraryTabProps {
   formData: any;
@@ -38,6 +45,25 @@ interface ItineraryTabProps {
   handleImageUpload: (file: File) => Promise<{ url: string, fileName: string } | null>;
   activeLanguage: AdminLanguage;
 }
+
+/**
+ * The meal options, and the order they are always stored and shown in — the
+ * employee may click them in any order, the value keeps this one.
+ *
+ * "None" is exclusive: a day either has meals or it does not, so picking it
+ * clears the rest and picking a meal clears it. Storing keys rather than the
+ * typed-out "Breakfast, Lunch" means one choice covers all four languages, the
+ * way the duration picker does.
+ */
+// The three meals in the order of a day, then the extra.
+const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'welcomeDrink'] as const;
+const MEAL_OPTIONS = [
+  { key: 'breakfast', label: 'Breakfast' },
+  { key: 'lunch', label: 'Lunch' },
+  { key: 'dinner', label: 'Dinner' },
+  { key: 'welcomeDrink', label: 'Welcome Drink' },
+  { key: 'none', label: 'None' },
+] as const;
 
 function normalizeDays(days: any[]) {
   return days.map((d, i) => ({ ...d, day: i + 1 }));
@@ -337,6 +363,23 @@ export default function ItineraryTab({
                     updateItineraryDay(dayIndex, 'activities', next);
                   };
 
+                  const meals: string[] = Array.isArray(day.meals) ? day.meals : [];
+                  const toggleMeal = (key: string) => {
+                    if (key === 'none') {
+                      updateItineraryDay(dayIndex, 'meals', meals.includes('none') ? [] : ['none']);
+                      return;
+                    }
+                    const withoutNone = meals.filter((m) => m !== 'none');
+                    const next = withoutNone.includes(key)
+                      ? withoutNone.filter((m) => m !== key)
+                      : [...withoutNone, key];
+                    updateItineraryDay(
+                      dayIndex,
+                      'meals',
+                      MEAL_ORDER.filter((m) => next.includes(m))
+                    );
+                  };
+
                   const dayBg = DAY_BG_CLASSES[dayIndex % DAY_BG_CLASSES.length];
 
                   return (
@@ -529,6 +572,25 @@ export default function ItineraryTab({
                                                       activeLanguage={activeLanguage}
                                                     />
 
+                                                    {/* Optional add-on. Off by
+                                                        default: a stop is part
+                                                        of the programme unless
+                                                        someone says otherwise. */}
+                                                    <div className="flex items-center justify-between rounded-md border bg-muted/20 px-3 py-2">
+                                                      <div>
+                                                        <Label className="text-sm">Optional activity</Label>
+                                                        <p className="text-[11px] text-muted-foreground">
+                                                          Marks it on the tour page as an add-on, not part of the base programme.
+                                                        </p>
+                                                      </div>
+                                                      <Switch
+                                                        checked={!!activity.isOptional}
+                                                        onCheckedChange={(checked) =>
+                                                          updateActivity(actIndex, 'isOptional', checked)
+                                                        }
+                                                      />
+                                                    </div>
+
                                                     <LocalizedRichText
                                                       label="Activity Description"
                                                       value={activity.description || { en: '', de: '', it: '', es: '' }}
@@ -653,6 +715,95 @@ export default function ItineraryTab({
                                   <Plus className="h-4 w-4 mr-2" />
                                   Add Activity
                                 </Button>
+                              </div>
+
+                              {/* Day logistics — deliberately AFTER the
+                                  activities: the employee decides flights,
+                                  meals and where the night is spent once the
+                                  day is written, not before. */}
+                              <div className="rounded-lg border bg-muted/20 p-3 space-y-4">
+                                <div className="flex items-center justify-between gap-2">
+                                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                                    Day Logistics
+                                  </Label>
+                                  <span className="text-[11px] text-muted-foreground">
+                                    Fly to and Accommodation are optional
+                                  </span>
+                                </div>
+
+                                <div>
+                                  <Label className={cn('text-xs', meals.length === 0 && 'text-red-600')}>
+                                    Meals *
+                                  </Label>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {MEAL_OPTIONS.map((option) => {
+                                      const active = meals.includes(option.key);
+                                      return (
+                                        <button
+                                          key={option.key}
+                                          type="button"
+                                          onClick={() => toggleMeal(option.key)}
+                                          aria-pressed={active}
+                                          className={cn(
+                                            'rounded-full border px-3 py-1.5 text-xs font-medium transition',
+                                            active
+                                              ? 'border-primary bg-primary/10 text-primary'
+                                              : 'border-input text-muted-foreground hover:border-primary/50 hover:bg-muted/50 hover:text-foreground',
+                                            meals.length === 0 && 'border-red-300'
+                                          )}
+                                        >
+                                          {option.label}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <p className={cn('mt-1.5 text-[11px]', meals.length === 0 ? 'text-red-600' : 'text-muted-foreground')}>
+                                    {meals.length === 0
+                                      ? 'Pick at least one meal, or None if the day includes no meals.'
+                                      : 'Pick every meal included. None means the day includes no meals.'}
+                                  </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                  <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Fly to</Label>
+                                    <FlightSelect
+                                      value={day.flight}
+                                      onChange={(val) => updateItineraryDay(dayIndex, 'flight', val)}
+                                    />
+                                    <p className="text-[11px] text-muted-foreground">
+                                      Egypt first; hover “Other destinations” for flights abroad.
+                                    </p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-xs text-muted-foreground">Accommodation</Label>
+                                    <Select
+                                      value={day.accommodation || DAY_LOGISTICS_UNSET}
+                                      onValueChange={(value) =>
+                                        updateItineraryDay(
+                                          dayIndex,
+                                          'accommodation',
+                                          value === DAY_LOGISTICS_UNSET ? '' : value
+                                        )
+                                      }
+                                    >
+                                      <SelectTrigger className="h-10">
+                                        <SelectValue placeholder="Not set" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value={DAY_LOGISTICS_UNSET}>Not set</SelectItem>
+                                        {DAY_ACCOMMODATION_OPTIONS.map((option) => (
+                                          <SelectItem key={option.key} value={option.key}>
+                                            {option.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <p className="text-[11px] text-muted-foreground">
+                                      Picked once — shown in all four languages automatically.
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )}

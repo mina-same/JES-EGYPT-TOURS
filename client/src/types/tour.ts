@@ -77,6 +77,8 @@ export interface ITourSubcategory {
   _id: string;
   category: string; // ObjectId as string
   name: ILocalizedString;
+  /** Short label for cards/menus/filters; empty falls back to a shortened name. */
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   description?: ILocalizedMixed; // Plain text or HTML for page header
   images: IImage[];
@@ -287,12 +289,21 @@ export interface IItineraryActivity {
   heading: ILocalizedString;
   description: ILocalizedMixed;
   image?: IImage;
+  /** An add-on the traveller may take or skip; marked as such on the tour page. */
+  isOptional?: boolean;
 }
 
 export interface IItineraryDay {
   day: number;
   title: ILocalizedString;
   activities: IItineraryActivity[];
+  /** Optional day logistics — each shown on the tour page only when filled. */
+  /** A key from DAY_FLIGHT_OPTIONS, or absent. */
+  flight?: string;
+  /** Meal keys — 'breakfast' | 'lunch' | 'dinner', or the lone entry 'none'. */
+  meals?: string[];
+  /** A key from DAY_ACCOMMODATION_OPTIONS, or absent. */
+  accommodation?: string;
 }
 
 export interface IItinerary {

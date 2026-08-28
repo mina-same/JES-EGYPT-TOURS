@@ -385,7 +385,7 @@
 }
 
 .admin-scope .tours-table {
-  min-width: 1120px;
+  min-width: 1200px;
   table-layout: fixed;
 }
 
@@ -504,27 +504,27 @@
 }
 
 .admin-scope .tours-table .tour-column {
-  width: 42%;
+  width: auto;
 }
 
 .admin-scope .tours-table .subcategory-column {
-  width: 15%;
+  width: 190px;
 }
 
 .admin-scope .tours-table .duration-column {
-  width: 10%;
+  width: 200px;
 }
 
 .admin-scope .tours-table .price-column {
-  width: 8%;
+  width: 110px;
 }
 
 .admin-scope .tours-table .status-column {
-  width: 10%;
+  width: 130px;
 }
 
 .admin-scope .tours-table .actions-column {
-  width: 15%;
+  width: 230px;
 }
 
 .admin-scope .requests-table thead,
@@ -773,7 +773,19 @@
 }
 
 .admin-scope .tours-table .duration-column .tour-meta-item {
+  box-sizing: border-box;
+  max-width: 100%;
   white-space: nowrap;
+}
+
+.admin-scope .tours-table .duration-display svg {
+  flex-shrink: 0;
+}
+
+.admin-scope .tours-table .duration-display span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-scope .category-info,
@@ -1330,9 +1342,53 @@
 }
 
 .admin-scope .price-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
   font-size: 16px;
   font-weight: 600;
+  line-height: 1.2;
   color: #059669;
+}
+
+.admin-scope .price-prefix {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.admin-scope .price-amount {
+  white-space: nowrap;
+}
+
+.admin-scope .price-display.is-empty {
+  color: #6b7280;
+}
+
+.admin-scope .empty-value {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dark .admin-scope .price-prefix,
+.dark .admin-scope .price-display.is-empty {
+  color: #9ca3af;
+}
+
+.dark .admin-scope .empty-value {
+  border-color: #374151;
+  background: #111827;
+  color: #9ca3af;
 }
 
 .admin-scope .pagination {
@@ -2018,7 +2074,7 @@
   }
 
   .admin-scope .tours-table {
-    min-width: 1000px;
+    min-width: 1200px;
   }
 
   .admin-scope .categories-table {
