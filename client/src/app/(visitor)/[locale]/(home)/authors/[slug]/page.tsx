@@ -255,7 +255,6 @@ export default async function EditorialAuthorPage({
   const portraitAlt = localizedText(author.image?.alt, locale) || author.name;
   const organisation = localizedText(author.organisation, locale);
   const contentFocus = localizedText(author.contentFocus, locale);
-  const languages = localizedText(author.languages, locale);
   const topics = localizedList(author.topics, locale);
   const aboutParagraphs = localizedList(author.about, locale);
   const expertise = localizedCards(author.expertise, locale);
@@ -279,7 +278,6 @@ export default async function EditorialAuthorPage({
     { label: t('facts.roleLabel'), value: role },
     { label: t('facts.organisationLabel'), value: organisation },
     { label: t('facts.focusLabel'), value: contentFocus },
-    { label: t('facts.languagesLabel'), value: languages },
   ].filter((fact) => Boolean(fact.value));
 
   /*

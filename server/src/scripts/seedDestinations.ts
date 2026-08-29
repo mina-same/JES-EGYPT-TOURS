@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import Destination from '../models/Destination';
 import Blog from '../models/Blog';
+import { SEED_IMAGE_PLACEHOLDER } from '../seeds/seedImages';
 
 // Load environment variables
 dotenv.config();
@@ -38,7 +39,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Lower Egypt', de: 'Unterägypten', it: 'Basso Egitto', es: 'Bajo Egipto' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1541165995349-4293442a1c61?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'cairo-skyline.jpg',
           alt: { en: 'Skyline of Cairo at night with the Nile River' }
         },
@@ -81,7 +82,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Greater Cairo', de: 'Großraum Kairo', it: 'Grande Cairo', es: 'Gran Cairo' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'giza-pyramids.jpg',
           alt: { en: 'The Great Pyramids of Giza under a blue sky' }
         },
@@ -115,7 +116,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Upper Egypt', de: 'Oberägypten', it: 'Alto Egitto', es: 'Alto Egipto' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1544274411-a7af6d1211fe?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'luxor-temple.jpg',
           alt: { en: 'Luxor Temple pillars at sunset' }
         },
@@ -149,7 +150,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Upper Egypt', de: 'Oberägypten', it: 'Alto Egitto', es: 'Alto Egipto' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'aswan-nile.jpg',
           alt: { en: 'Felucca sailboats on the Nile in Aswan' }
         },
@@ -183,7 +184,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Mediterranean Coast', de: 'Mittelmeerküste', it: 'Costa Mediterranea', es: 'Costa del Mediterráneo' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1568283046733-49bf77e46702?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'alexandria-citadel.jpg',
           alt: { en: 'Citadel of Qaitbay in Alexandria' }
         },
@@ -217,7 +218,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'South Sinai', de: 'Süd-Sinai', it: 'Sinai del Sud', es: 'Sinaí del Sur' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'sharm-red-sea.jpg',
           alt: { en: 'Coral reefs and turquoise water in Sharm El Sheikh' }
         },
@@ -251,7 +252,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Red Sea Coast', de: 'Rotmeerküste', it: 'Costa del Mar Rosso', es: 'Costa del Mar Rojo' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'hurghada-beach.jpg',
           alt: { en: 'White sand beach in Hurghada' }
         },
@@ -285,7 +286,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Western Desert', de: 'Westliche Wüste', it: 'Deserto Occidentale', es: 'Desierto Occidental' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1590059002624-6593096a74c1?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'siwa-oasis.jpg',
           alt: { en: 'Ancient fortress of Shali in Siwa Oasis' }
         },
@@ -319,7 +320,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Red Sea Coast', de: 'Rotmeerküste', it: 'Costa del Mar Rosso', es: 'Costa del Mar Rojo' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1544274411-a7af6d1211fe?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'marsa-alam-sea.jpg',
           alt: { en: 'Crystal clear water in Marsa Alam' }
         },
@@ -353,7 +354,7 @@ const seedDestinations = async () => {
         },
         region: { en: 'Middle Egypt', de: 'Mittelägypten', it: 'Medio Egitto', es: 'Egipto Medio' },
         coverImage: {
-          url: 'https://images.unsplash.com/photo-1541165995349-4293442a1c61?w=1600&q=80',
+          url: SEED_IMAGE_PLACEHOLDER,
           fileName: 'fayoum-lake.jpg',
           alt: { en: 'Magic Lake in Fayoum desert' }
         },

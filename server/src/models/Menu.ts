@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { LocalizedStringSchema, ILocalizedString } from './shared/LocalizedSchema';
+import { revalidateTags } from '../services/revalidate';
 
 export type MenuDisplayVariant = 'default' | 'promotion';
 
@@ -81,6 +82,23 @@ const MenuSchema = new Schema<IMenu>(
   },
   { timestamps: true }
 );
+
+
+/**
+ * The header navigation, rendered on EVERY page.
+ *
+ * Mirrors what Blog.ts does: the visitor fetch is tagged and served from cache
+ * until an editor actually changes the menu, at which point the tag is cleared
+ * and the change is live immediately.
+ */
+const revalidateMenuCaches = () => revalidateTags(['menu']);
+
+MenuSchema.post('save', revalidateMenuCaches);
+MenuSchema.post('findOneAndUpdate', revalidateMenuCaches);
+MenuSchema.post('findOneAndDelete', revalidateMenuCaches);
+MenuSchema.post('deleteOne', revalidateMenuCaches);
+MenuSchema.post('updateOne', revalidateMenuCaches);
+MenuSchema.post('updateMany', revalidateMenuCaches);
 
 const Menu = mongoose.model<IMenu>('Menu', MenuSchema);
 

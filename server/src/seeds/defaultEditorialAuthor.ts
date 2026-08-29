@@ -164,12 +164,6 @@ export const DEFAULT_AUTHOR_SEED = {
     es: 'Planificación de viajes a Egipto, guías prácticas, sitios culturales',
   },
 
-  languages: {
-    en: 'English',
-    de: 'Englisch',
-    it: 'Inglese',
-    es: 'Inglés',
-  },
 
   /** Short subject chips under the hero intro. Kept to four. */
   topics: [
@@ -344,7 +338,6 @@ export const DEFAULT_AUTHOR_SEED = {
 export const BACKFILLABLE_AUTHOR_FIELDS = [
   'organisation',
   'contentFocus',
-  'languages',
   'topics',
   'about',
   'expertise',
@@ -369,4 +362,8 @@ export const RETIRED_AUTHOR_FIELDS = [
   // real pictures there was no honest use for a fourth slot, and reserving one
   // would have left an empty frame on a finished page.
   'aboutImage',
+  // The "Writes in" row was removed from the profile card: for an author whose
+  // articles are published in four languages it stated a fact about her
+  // drafting language that read, on the German page, as a limitation.
+  'languages',
 ] as const;

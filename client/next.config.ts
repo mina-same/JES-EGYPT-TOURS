@@ -1,22 +1,47 @@
 import type { NextConfig } from "next";
 
+/**
+ * Hosts the image optimizer is allowed to fetch from.
+ *
+ * This used to be `hostname: '**'` over BOTH https and http, which is an open
+ * image proxy: anyone could call
+ * `/_next/image?url=<any URL on the internet>&w=3840&q=100` and have this
+ * server fetch, transcode and serve it from our domain, on our bandwidth bill.
+ * The `http` entry additionally meant the optimizer would make plaintext
+ * requests to attacker-chosen hosts.
+ *
+ * Only three sources actually exist:
+ *   - Cloudinary — every image the admin uploads comes back as
+ *     `result.secure_url` (server/src/routes/uploadRoutes.ts).
+ *   - img.youtube.com — video thumbnails in the admin's video manager.
+ *   - The API host in development, when it serves an image directly.
+ *
+ * Everything else on the site is a local file under `public/`, which needs no
+ * entry here at all. Adding a host is deliberate: put it in this list.
+ */
+const apiHost = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_URL || "").hostname || null;
+  } catch {
+    return null;
+  }
+})();
+
+const remotePatterns: NonNullable<NextConfig["images"]>["remotePatterns"] = [
+  { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
+  { protocol: "https", hostname: "img.youtube.com", pathname: "/**" },
+  { protocol: "https", hostname: "i.ytimg.com", pathname: "/**" },
+];
+
+// Local API in development only — never a wildcard, and never in production.
+if (apiHost && process.env.NODE_ENV !== "production") {
+  remotePatterns.push({ protocol: "http", hostname: apiHost, pathname: "/**" });
+}
+
 const nextConfig: NextConfig = {
   /* i18n configuration removed since we're using the App Router and middleware.ts */
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: '**',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    remotePatterns,
   },
   /* Localized slugs for static pages (keep in sync with
      src/lib/url/staticSlugs.ts). Rewrites serve the localized URL from the

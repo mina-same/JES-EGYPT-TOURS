@@ -12,7 +12,8 @@
     "viewPhotos": "Ver fotos del tour",
     "playVideo": "Reproducir vídeo del tour",
     "addToWishlist": "Añadir a favoritos",
-    "removeFromWishlist": "Quitar de favoritos"
+    "removeFromWishlist": "Quitar de favoritos",
+    "discountBadge": "{{percent}}% DTO."
   },
   "updatedRecently": "Actualizado recientemente",
   "links": {
@@ -21,7 +22,31 @@
     "contact": "Contacto"
   },
   "footer": {
-    "travelTrade": "Profesionales de Viajes"
+    "travelTrade": "Profesionales de Viajes",
+    "about": {
+      "title": "Sobre JES Egypt Tours",
+      "text": "JES Egypt Tours es una agencia de viajes egipcia autorizada con sede en Guiza. Diseñamos viajes privados y guiados por Egipto — desde las Pirámides y el valle del Nilo hasta Siwa y el mar Rojo — acompañados por egiptólogos titulados y planificados en torno a quienes viajan, no a un horario fijo."
+    },
+    "sendEmail": "Enviar correo",
+    "callAgent": "Llamar a un asesor",
+    "destinationsTitle": "Destinos",
+    "usefulLinksTitle": "Enlaces útiles",
+    "copyright": "© {{year}} JES Egypt Tours. Todos los derechos reservados.",
+    "paymentMethodsAlt": "Métodos de pago aceptados",
+    "destinations": {
+      "tours": "Tours",
+      "specialOffers": "Ofertas especiales",
+      "tailorMade": "Viajes a medida",
+      "blog": "Blog de viajes",
+      "faq": "Preguntas frecuentes"
+    },
+    "usefulLinks": {
+      "about": "Sobre nosotros",
+      "contact": "Contacto",
+      "paymentPolicy": "Pagos y cancelaciones",
+      "wishlist": "Favoritos",
+      "search": "Buscar"
+    }
   },
   "language": {
     "english": "Inglés",
@@ -188,7 +213,8 @@
     "heritageExperts": "Expertos en patrimonio local",
     "fallbackSubtitle": "El viaje definitivo a Egipto",
     "readMore": "Leer historia completa",
-    "readLess": "Mostrar menos"
+    "readLess": "Mostrar menos",
+    "imageAlt": "Un grupo privado de JES Egypt Tours en las Pirámides de Guiza"
   },
   "destinations": {
     "carousel": {
@@ -255,5 +281,46 @@
     "tagline": "Viajeros Reales",
     "title": "Reseñas en Vídeo"
   },
-  "breadcrumb": "Ruta de navegación"
+  "breadcrumb": "Ruta de navegación",
+  "nav": {
+    "home": "Inicio",
+    "tailorMade": "A medida",
+    "label": "Navegación principal"
+  },
+  "menu": {
+    "open": "Abrir menú",
+    "close": "Cerrar menú"
+  },
+  "search": {
+    "open": "Abrir búsqueda",
+    "close": "Cerrar búsqueda",
+    "submit": "Buscar",
+    "placeholder": "Buscar aquí..."
+  },
+  "wishlistLink": "Favoritos",
+  "instagram": {
+    "title": "Síguenos en Instagram"
+  },
+  "testimonials": {
+    "tagline": "Testimonios de clientes",
+    "title": "Lo que dicen",
+    "highlighted": "nuestros viajeros",
+    "previous": "Testimonio anterior",
+    "next": "Testimonio siguiente"
+  },
+  "specialOffer": {
+    "tagline": "Ahorra un 30% en tours por Egipto",
+    "title": "Descubre Egipto — reserva el viaje de tus sueños en",
+    "subtitle": "un clic",
+    "cta": "Consigue tu oferta",
+    "limitedTime": "Oferta por tiempo limitado",
+    "off": "de descuento",
+    "upTo": "hasta el",
+    "travellerImageAlt": "Viajera con maleta descubriendo Egipto"
+  },
+  "homeMeta": {
+    "title": "Tours privados y cruceros por el Nilo | JES Egypt Tours",
+    "description": "Operador con sede en El Cairo: viajes privados por Egipto — Guiza, Luxor, Asuán, Abu Simbel y cruceros por el Nilo. Guías titulados, sin costes ocultos.",
+    "imageAlt": "Las Pirámides de Guiza y la Esfinge al atardecer, Egipto"
+  }
 }

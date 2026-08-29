@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import Preloader from "@/components/common/Preloader/Preloader";
 import useStore from "@/store/useStore";
 
 const LayoutObserver = dynamic(
@@ -16,13 +15,32 @@ const Search = dynamic(() => import("@/components/common/Search/Search"), {
   ssr: false,
 });
 
+/**
+ * The full-screen preloader was REMOVED.
+ *
+ * It initialised to `true`, so the server-rendered HTML opened with a fixed
+ * #0A2B40 overlay at z-index 9991 covering the whole page — and it was only
+ * taken down by a `setTimeout` inside an effect, which never runs unless the
+ * client bundle downloads, parses and hydrates. On a slow connection, a failed
+ * chunk, or with JavaScript off, the homepage was a solid navy rectangle.
+ * custom.css had already grown an 8-second CSS fade and `pointer-events: none`
+ * as a "if it gets stuck" escape hatch, which is what that failure looks like
+ * when someone hits it.
+ *
+ * Nothing was being masked. Every section is server-rendered, the hero
+ * reserves an explicit 895px/660px, and the carousels reserve their own space
+ * through placeholderClassName — so the first paint is the real page. The
+ * timer was 50ms besides: shorter than a single frame on most devices, long
+ * enough to guarantee a navy paint before the content paint, which turned a
+ * fast First Contentful Paint into a meaningless one and pushed LCP out behind
+ * an overlay.
+ */
 export default function HomeClientShell({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const { mobileDrawerStatus, searchPopupStatus } = useStore();
-  const [showPreloader, setShowPreloader] = useState(true);
   const [enableNonCriticalUi, setEnableNonCriticalUi] = useState(false);
   const [shouldMountDrawer, setShouldMountDrawer] = useState(false);
   const [shouldMountSearch, setShouldMountSearch] = useState(false);
@@ -40,8 +58,6 @@ export default function HomeClientShell({
       : null;
     const enableUiTimer = setTimeout(enableUi, 1200);
 
-    const timer = setTimeout(() => setShowPreloader(false), 50); // Reduced from 150ms for faster loading
-
     const onFirstInteraction = () => {
       enableUi();
       window.removeEventListener("pointerdown", onFirstInteraction, true);
@@ -53,7 +69,6 @@ export default function HomeClientShell({
     window.addEventListener("scroll", onFirstInteraction, true);
 
     return () => {
-      clearTimeout(timer);
       clearTimeout(enableUiTimer);
       if (idleId && (window as any).cancelIdleCallback) {
         (window as any).cancelIdleCallback(idleId);
@@ -75,7 +90,6 @@ export default function HomeClientShell({
 
   return (
     <>
-      {showPreloader && <Preloader />}
       {children}
       {enableNonCriticalUi && <LayoutObserver />}
       {enableNonCriticalUi && shouldMountDrawer ? <Drawer /> : null}

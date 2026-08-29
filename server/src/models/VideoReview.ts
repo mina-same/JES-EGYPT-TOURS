@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { LocalizedStringSchema, ILocalizedString } from './shared/LocalizedSchema';
+import { revalidateTags } from '../services/revalidate';
 
 export interface IVideoReview extends Document {
   title: ILocalizedString;
@@ -47,5 +48,23 @@ const VideoReviewSchema: Schema = new Schema({
 }, {
   timestamps: true,
 });
+
+
+/**
+ * The traveller video band on the homepage.
+ *
+ * Mirrors what Blog.ts does: the visitor fetch is tagged and served from
+ * cache until an editor actually changes something here, at which point the
+ * tag is cleared and the change is live immediately. Without this hook the
+ * only safe option is an uncached fetch on every page view.
+ */
+const revalidateVideoReviewCaches = () => revalidateTags(['video-reviews']);
+
+VideoReviewSchema.post('save', revalidateVideoReviewCaches);
+VideoReviewSchema.post('findOneAndUpdate', revalidateVideoReviewCaches);
+VideoReviewSchema.post('findOneAndDelete', revalidateVideoReviewCaches);
+VideoReviewSchema.post('deleteOne', revalidateVideoReviewCaches);
+VideoReviewSchema.post('updateOne', revalidateVideoReviewCaches);
+VideoReviewSchema.post('updateMany', revalidateVideoReviewCaches);
 
 export default mongoose.model<IVideoReview>('VideoReview', VideoReviewSchema);

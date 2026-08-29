@@ -4,8 +4,10 @@ import useStore from "@/store/useStore";
 import React, { useEffect, useState, FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPath } from "@/lib/url";
+import { useTranslation } from "react-i18next";
 
 const Search: React.FC = () => {
+  const { t } = useTranslation("common");
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -45,17 +47,18 @@ const Search: React.FC = () => {
       <div className='search-popup__content'>
         <form onSubmit={handleSearch} className='search-popup__form' action='#'>
           <input
-            type='text'
+            type='search'
             id='search'
             name='search'
-            placeholder='Search Here...'
+            aria-label={t("search.submit")}
+            placeholder={t("search.placeholder")}
           />
           <button
             type='submit'
-            aria-label='search submit'
+            aria-label={t("search.submit")}
             className='gotur-btn'
           >
-            <i className='icon-search'></i>
+            <i className='icon-search' aria-hidden='true'></i>
 
             <span></span>
           </button>

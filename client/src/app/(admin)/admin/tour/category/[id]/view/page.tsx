@@ -8,6 +8,7 @@ import { tourCategoryAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
@@ -79,6 +80,8 @@ export default function TourCategoryViewPage() {
       <LiveUrlPreview slug={entity.slug} live={isActive} warning={<>This category is <b>inactive</b> — its live URLs return 404 until it is activated.</>} />
 
       <TranslationMatrix rows={matrixRows} />
+
+      <InternalLinksAudit entity={entity} />
 
       <Section title="At a glance" icon={<Info size={14} />}>
         <div className="detail-grid">

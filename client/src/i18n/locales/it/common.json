@@ -12,7 +12,8 @@
     "viewPhotos": "Vedi le foto del tour",
     "playVideo": "Riproduci il video del tour",
     "addToWishlist": "Aggiungi ai preferiti",
-    "removeFromWishlist": "Rimuovi dai preferiti"
+    "removeFromWishlist": "Rimuovi dai preferiti",
+    "discountBadge": "{{percent}}% DI SCONTO"
   },
   "updatedRecently": "Aggiornato di recente",
   "links": {
@@ -21,7 +22,31 @@
     "contact": "Contatti"
   },
   "footer": {
-    "travelTrade": "Partner B2B"
+    "travelTrade": "Partner B2B",
+    "about": {
+      "title": "Chi è JES Egypt Tours",
+      "text": "JES Egypt Tours è un'agenzia di viaggi egiziana autorizzata con sede a Giza. Progettiamo viaggi privati e guidati attraverso l'Egitto — dalle Piramidi e dalla Valle del Nilo fino a Siwa e al Mar Rosso — accompagnati da egittologi qualificati e costruiti su chi viaggia, non su un programma fisso."
+    },
+    "sendEmail": "Invia un'email",
+    "callAgent": "Chiama un consulente",
+    "destinationsTitle": "Destinazioni",
+    "usefulLinksTitle": "Link utili",
+    "copyright": "© {{year}} JES Egypt Tours. Tutti i diritti riservati.",
+    "paymentMethodsAlt": "Metodi di pagamento accettati",
+    "destinations": {
+      "tours": "Tour",
+      "specialOffers": "Offerte speciali",
+      "tailorMade": "Viaggi su misura",
+      "blog": "Blog di viaggio",
+      "faq": "FAQ"
+    },
+    "usefulLinks": {
+      "about": "Chi siamo",
+      "contact": "Contatti",
+      "paymentPolicy": "Pagamenti e cancellazioni",
+      "wishlist": "Preferiti",
+      "search": "Cerca"
+    }
   },
   "language": {
     "english": "English",
@@ -188,7 +213,8 @@
     "heritageExperts": "Esperti del patrimonio locale",
     "fallbackSubtitle": "Il viaggio definitivo in Egitto",
     "readMore": "Leggi la storia completa",
-    "readLess": "Mostra meno"
+    "readLess": "Mostra meno",
+    "imageAlt": "Un gruppo privato di JES Egypt Tours alle Piramidi di Giza"
   },
   "destinations": {
     "carousel": {
@@ -255,5 +281,46 @@
     "tagline": "Viaggiatori Reali",
     "title": "Recensioni Video"
   },
-  "breadcrumb": "Percorso di navigazione"
+  "breadcrumb": "Percorso di navigazione",
+  "nav": {
+    "home": "Home",
+    "tailorMade": "Su misura",
+    "label": "Navigazione principale"
+  },
+  "menu": {
+    "open": "Apri il menu",
+    "close": "Chiudi il menu"
+  },
+  "search": {
+    "open": "Apri la ricerca",
+    "close": "Chiudi la ricerca",
+    "submit": "Cerca",
+    "placeholder": "Cerca qui..."
+  },
+  "wishlistLink": "Preferiti",
+  "instagram": {
+    "title": "Seguici su Instagram"
+  },
+  "testimonials": {
+    "tagline": "Testimonianze dei clienti",
+    "title": "I nostri",
+    "highlighted": "viaggiatori",
+    "previous": "Testimonianza precedente",
+    "next": "Testimonianza successiva"
+  },
+  "specialOffer": {
+    "tagline": "Risparmia il 30% sui tour in Egitto",
+    "title": "Scopri l'Egitto — prenota il viaggio dei tuoi sogni in",
+    "subtitle": "un clic",
+    "cta": "Richiedi l'offerta",
+    "limitedTime": "Offerta a tempo limitato",
+    "off": "di sconto",
+    "upTo": "fino al",
+    "travellerImageAlt": "Viaggiatrice con valigia alla scoperta dell'Egitto"
+  },
+  "homeMeta": {
+    "title": "Tour privati in Egitto e crociere sul Nilo | JES Egypt Tours",
+    "description": "Tour operator del Cairo: viaggi privati e guidati in Egitto — Giza, Luxor, Assuan, Abu Simbel e crociere sul Nilo. Guide qualificate, nessun costo nascosto.",
+    "imageAlt": "Le Piramidi di Giza e la Sfinge al tramonto, Egitto"
+  }
 }

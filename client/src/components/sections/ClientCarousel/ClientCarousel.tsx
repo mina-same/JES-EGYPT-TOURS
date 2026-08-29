@@ -67,6 +67,7 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
         <TinySlider
           settings={settings}
           rebuildKey={i18n.language}
+          placeholderClassName="client-carousel__one tns-placeholder-single"
           className='client-carousel__one gotur-owl__carousel owl-theme owl-carousel'
         >
           {clientCarouselData.items.map((item, index) => (

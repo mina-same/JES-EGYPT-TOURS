@@ -8,6 +8,7 @@ import {
   OptionalLocalizedStringSchema,
   LocalizedMixedSchema 
 } from './shared/LocalizedSchema';
+import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 // ==================== INTERFACES ====================
 
@@ -298,5 +299,21 @@ TourCategorySchema.pre('deleteOne', { document: true, query: false }, async func
 });
 
 // ==================== EXPORT ====================
+
+
+/**
+ * Editor HTML is cleaned on the way IN, so the database never holds a payload
+ * and the ~30 dangerouslySetInnerHTML call sites on the visitor pages are
+ * rendering content that was already sanitized. See utils/sanitizeRichText.ts.
+ *
+ * Both hooks are needed: document hooks never run for findOneAndUpdate and
+ * friends, which the admin uses for edits.
+ */
+const RICH_TEXT_PATHS = ['description', 'toursSectionSubTitle'] as const;
+
+TourCategorySchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
+TourCategorySchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+TourCategorySchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+TourCategorySchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 
 export default mongoose.model<ITourCategory>('TourCategory', TourCategorySchema);

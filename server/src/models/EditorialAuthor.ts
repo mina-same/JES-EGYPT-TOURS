@@ -57,7 +57,6 @@ export interface IEditorialAuthor extends Document {
    */
   organisation?: ILocalizedString;
   contentFocus?: ILocalizedString;
-  languages?: ILocalizedString;
   /** Short subject chips under the hero intro. */
   topics?: ILocalizedString[];
   aboutTitle?: ILocalizedString;
@@ -101,7 +100,6 @@ const EditorialAuthorSchema = new Schema<IEditorialAuthor>({
 
   organisation: { type: OptionalLocalizedStringSchema },
   contentFocus: { type: OptionalLocalizedStringSchema },
-  languages: { type: OptionalLocalizedStringSchema },
   topics: { type: [OptionalLocalizedStringSchema], default: undefined },
   aboutTitle: { type: OptionalLocalizedStringSchema },
   about: { type: [OptionalLocalizedStringSchema], default: undefined },

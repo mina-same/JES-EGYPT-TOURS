@@ -3,7 +3,6 @@
 import React from "react";
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
-import PhotoSwipe from "photoswipe";
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { stripHtml } from "@/lib/seo/tourJsonLd";
@@ -80,20 +79,33 @@ const measureImage = (src: string) =>
   });
 
 /**
- * Opens a PhotoSwipe lightbox with this tour's images. Built on click, so no
- * gallery DOM is rendered and no image is downloaded until the button is used.
+ * Opens a PhotoSwipe lightbox with this tour's images.
+ *
+ * The library is imported HERE, on click, not at module scope. TourCard is on
+ * the homepage (the Featured Tours carousel), on every listing and on search,
+ * so a static `import PhotoSwipe from "photoswipe"` put the whole lightbox in
+ * the initial bundle of all of them — for a control most visitors never press.
+ * No gallery DOM is built and no image is downloaded until this runs either.
  */
 const openTourImages = async (images: string[]) => {
   if (!images.length) return;
-  const dataSource = await Promise.all(images.map(measureImage));
-  const pswp = new PhotoSwipe({
-    dataSource,
-    showHideAnimationType: "fade",
-    // PhotoSwipe re-focuses the clicked button on close; inside a carousel that
-    // scrolls the slide into view and shifts the whole track.
-    returnFocus: false,
-  });
-  pswp.init();
+  try {
+    const [{ default: PhotoSwipe }, dataSource] = await Promise.all([
+      import("photoswipe"),
+      Promise.all(images.map(measureImage)),
+    ]);
+    const pswp = new PhotoSwipe({
+      dataSource,
+      showHideAnimationType: "fade",
+      // PhotoSwipe re-focuses the clicked button on close; inside a carousel that
+      // scrolls the slide into view and shifts the whole track.
+      returnFocus: false,
+    });
+    pswp.init();
+  } catch {
+    // A failed chunk must not take the card down with it — the gallery button
+    // simply does nothing, and every other control keeps working.
+  }
 };
 
 /**
@@ -158,7 +170,7 @@ const TourCard: React.FC<TourCardProps> = ({
           {showBadges && item.discount && (
             <div className="listing-card-four__btn-group">
               <div className={`listing-card-four__discount ${styles.discountBadge}`}>
-                {item.discount}% OFF
+                {t("tourCard.discountBadge", { percent: item.discount })}
               </div>
             </div>
           )}

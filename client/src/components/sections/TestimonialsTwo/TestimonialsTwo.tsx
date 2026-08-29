@@ -14,10 +14,13 @@ type SupportedLang = "en" | "de" | "it" | "es";
 
 const TestimonialsTwo = () => {
   const sliderRef = useRef<TinySliderHandle>(null);
-  const { i18n } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const lang = (i18n.language?.split("-")[0] as SupportedLang) ?? "en";
 
-  const { tagline, title, highlighted, testimonials } = testimonialsTwoData;
+  // Only the quotes come from the data file; the section header used to sit
+  // there as English literals, so a German visitor read localized testimonials
+  // under an English heading.
+  const { testimonials } = testimonialsTwoData;
 
   if (!testimonials || testimonials.length === 0) return null;
 
@@ -45,13 +48,13 @@ const TestimonialsTwo = () => {
             <div className='mb-4'>
               <div className='sec-title'>
                 <p className='sec-title__tagline'>
-                  <TextAnimation text={tagline} animationType='right' semantic />
+                  <TextAnimation text={t("testimonials.tagline")} animationType='right' semantic />
                 </p>
                 <h2 className='sec-title__title'>
-                  <TextAnimation text={title} animationType='left' semantic />
+                  <TextAnimation text={t("testimonials.title")} animationType='left' semantic />
                   {" "}
                   <span>
-                    <TextAnimation text={highlighted} animationType='left' semantic />
+                    <TextAnimation text={t("testimonials.highlighted")} animationType='left' semantic />
                   </span>
                 </h2>
               </div>
@@ -60,18 +63,18 @@ const TestimonialsTwo = () => {
                   <button
                     type="button"
                     className='testimonials-two__carousel__nav--left'
-                    aria-label="Previous testimonial"
+                    aria-label={t("testimonials.previous")}
                     onClick={() => sliderRef.current?.slider?.goTo("prev")}
                   >
-                    <span className='icon-arrow-left'></span>
+                    <span className='icon-arrow-left' aria-hidden='true'></span>
                   </button>
                   <button
                     type="button"
                     className='testimonials-two__carousel__nav--right'
-                    aria-label="Next testimonial"
+                    aria-label={t("testimonials.next")}
                     onClick={() => sliderRef.current?.slider?.goTo("next")}
                   >
-                    <span className='icon-arrow-right'></span>
+                    <span className='icon-arrow-right' aria-hidden='true'></span>
                   </button>
                 </div>
               )}
@@ -83,6 +86,7 @@ const TestimonialsTwo = () => {
               ref={sliderRef}
               settings={settings}
               rebuildKey={lang}
+              placeholderClassName="testimonials-two__carousel tns-placeholder-single"
               className='testimonials-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme'
             >
               {testimonials.map((testimonial: TestimonialItem) => {

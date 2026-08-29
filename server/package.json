@@ -23,7 +23,8 @@
     "migrate:reset-tour-social-images": "ts-node src/scripts/resetTourSocialImages.ts",
     "migrate:tour-kind": "ts-node src/scripts/backfillTourKind.ts",
     "migrate:clear-placeholder-prices": "ts-node src/scripts/clearPlaceholderPrices.ts",
-    "migrate:author-role": "ts-node src/scripts/correctAuthorRole.ts"
+    "migrate:author-role": "ts-node src/scripts/correctAuthorRole.ts",
+    "sanitize:existing": "ts-node src/scripts/sanitizeExistingContent.ts"
   },
   "keywords": [
     "express",
@@ -35,6 +36,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/compression": "^1.8.1",
+    "@types/sanitize-html": "^2.16.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.8.0",
     "compression": "^1.8.1",
@@ -49,6 +51,7 @@
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
+    "sanitize-html": "^2.17.7",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

@@ -9,6 +9,8 @@ import {
   LocalizedMixedSchema,
   OptionalLocalizedMixedSchema,
 } from './shared/LocalizedSchema';
+import { revalidateTags } from '../services/revalidate';
+import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 // ==================== INTERFACES ====================
 
@@ -1121,5 +1123,39 @@ TourSchema.pre<ITour>('save', function (next) {
 });
 
 // ==================== EXPORT ====================
+
+
+/**
+ * Tour content, prices and featured flags — read by the homepage carousel and every listing.
+ *
+ * Mirrors what Blog.ts does: the visitor fetch is tagged and served from
+ * cache until an editor actually changes something here, at which point the
+ * tag is cleared and the change is live immediately. Without this hook the
+ * only safe option is an uncached fetch on every page view.
+ */
+const revalidateTourCaches = () => revalidateTags(['tours']);
+
+TourSchema.post('save', revalidateTourCaches);
+TourSchema.post('findOneAndUpdate', revalidateTourCaches);
+TourSchema.post('findOneAndDelete', revalidateTourCaches);
+TourSchema.post('deleteOne', revalidateTourCaches);
+TourSchema.post('updateOne', revalidateTourCaches);
+TourSchema.post('updateMany', revalidateTourCaches);
+
+
+/**
+ * Editor HTML is cleaned on the way IN, so the database never holds a payload
+ * and the ~30 dangerouslySetInnerHTML call sites on the visitor pages are
+ * rendering content that was already sanitized. See utils/sanitizeRichText.ts.
+ *
+ * Both hooks are needed: document hooks never run for findOneAndUpdate and
+ * friends, which the admin uses for edits.
+ */
+const RICH_TEXT_PATHS = ['description', 'generalDescription', 'whatYouWillLoveHtml', 'Description.text', 'notes[].text'] as const;
+
+TourSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
+TourSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+TourSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+TourSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 
 export default mongoose.model<ITour>('Tour', TourSchema);

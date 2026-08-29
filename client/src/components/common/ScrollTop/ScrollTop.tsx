@@ -49,21 +49,41 @@ const ScrollTop = () => {
     };
   }, []);
 
+  /**
+   * The progress ring, updated at most once per frame.
+   *
+   * This used to call setPercentage on EVERY scroll event — a React render per
+   * event on a page this long — and read document.body.scrollHeight each time,
+   * which forces a synchronous layout. It also divided by a bodyHeight that is
+   * 0 when the page is shorter than the viewport, producing Infinity and then
+   * a `conic-gradient(... NaN%)` the browser discards.
+   */
   useEffect(() => {
     if (!shouldMount) return;
 
-    const handleScroll = () => {
+    let ticking = false;
+
+    const update = () => {
+      ticking = false;
       const bodyHeight = document.body.scrollHeight - window.innerHeight;
-      const scrollPos = window.scrollY;
-      let percentage = (scrollPos / bodyHeight) * 100;
-      if (percentage > 100) {
-        percentage = 100;
-      }
-      setPercentage(percentage);
+      // Nothing to scroll: leave the ring where it is rather than dividing by 0.
+      if (bodyHeight <= 0) return;
+
+      const next = Math.min(100, (window.scrollY / bodyHeight) * 100);
+      // A sub-1% move is invisible on the ring, so it is not worth a render.
+      setPercentage((prev) => (Math.abs(prev - next) < 1 ? prev : next));
     };
 
-    handleScroll();
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    };
+
+    update();
+    // `passive`: the handler never calls preventDefault, and saying so lets the
+    // browser scroll without waiting on it.
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };

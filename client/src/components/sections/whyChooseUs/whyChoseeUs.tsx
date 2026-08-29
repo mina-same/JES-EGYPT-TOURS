@@ -93,6 +93,8 @@ const WhyChooseUs = () => {
           className='destinations-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'
           settings={carouselOptions}
           rebuildKey={i18n.language}
+          // Pre-hydration the six cards stacked vertically; see custom.css.
+          placeholderClassName="destinations-two__carousel tns-placeholder-single"
         >
           {cards.map((card, index) => (
             <div key={index}>

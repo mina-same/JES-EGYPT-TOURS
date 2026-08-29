@@ -1,34 +1,6 @@
 /* ==========================================================================
-   1. PRELOADER & GLOBAL UTILS
+   1. GLOBAL UTILS
    ========================================================================== */
-.preloader {
-  position: fixed;
-  background-color: var(--gotur-black, #1d231f);
-  background-position: center center;
-  background-repeat: no-repeat;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9991;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-.preloader__image {
-  animation: flipInY 2s infinite;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 60px auto;
-  width: 100%;
-  height: 100%;
-}
-
-.preloader-hidden {
-  display: none !important;
-}
 
 /* Global Overflow Fixes */
 html, body {
@@ -60,18 +32,6 @@ html, body {
 .destination-carousel-two,
 .client-carousel {
   overflow: hidden;
-}
-
-/* Preloader Safety Fallback - if it gets stuck, allow interaction after 10s */
-@keyframes preloader-fade-out {
-  0% { opacity: 1; visibility: visible; }
-  90% { opacity: 1; visibility: visible; }
-  100% { opacity: 0; visibility: hidden; }
-}
-
-.preloader {
-  animation: preloader-fade-out 8s forwards;
-  pointer-events: none; /* Allow clicking through if it gets stuck */
 }
 
 /* Ensure HomeIntro card design works even if Tailwind is missing */
@@ -2968,27 +2928,48 @@ body {
 
 /* A desktop booking card is taller than many laptop viewports. Once pinned,
    scroll the CARD rather than forcing the reader away from the itinerary.
-   `scrollbar-gutter` prevents the form width changing when the bar appears. */
+   `scrollbar-gutter` prevents the form width changing when the bar appears.
+
+   The same rail .booking-textarea already uses inside this card, for one
+   treatment rather than two. Three things it fixes:
+
+   - the platform's arrow buttons, which Chrome still draws on a custom-width
+     bar unless they are explicitly removed, and which were the hardest edges
+     anywhere in an otherwise soft card;
+   - the visible track. Italian and Spanish overflow the viewport by only about
+     twenty pixels, so the thumb covers almost the whole rail — against a tinted
+     track that reads as a solid gold stripe down the card rather than a
+     scrollbar. Transparent leaves nothing to fill;
+   - the width, down to the 6px the textarea uses. */
 .tour-listing-details__sidebar--scrollable {
   background-color: var(--gotur-white, #fff);
   border-radius: 10px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: rgba(183, 156, 92, 0.7) rgba(15, 23, 42, 0.06);
+  scrollbar-color: #cfc4a6 transparent;
 }
 
 .tour-listing-details__sidebar--scrollable::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .tour-listing-details__sidebar--scrollable::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.06);
-  border-radius: 999px;
+  background: transparent;
 }
 
 .tour-listing-details__sidebar--scrollable::-webkit-scrollbar-thumb {
-  background: rgba(183, 156, 92, 0.75);
+  background-color: #cfc4a6;
   border-radius: 999px;
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+.tour-listing-details__sidebar--scrollable::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .tour-listing-details__sidebar > * {
@@ -4334,6 +4315,61 @@ div[suppressHydrationWarning] {
 .html-content li {
   margin-bottom: 8px !important;
   line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   QUILL LIST MARKERS
+
+   Quill 2 (react-quill-new) writes BOTH kinds of list as <ol>, telling them
+   apart only by `data-list` on each item, and draws the marker itself:
+
+       <ol><li data-list="bullet"><span class="ql-ui"></span>Text</li></ol>
+
+   The rules that do that drawing live in quill.snow.css and are scoped to
+   `.ql-editor`, so they exist inside the admin's editor and nowhere else. The
+   public side never imports that stylesheet and has no element with that
+   class, so what reached a visitor was a bare <ol> — which every browser
+   numbers. Every bullet list an editor wrote came out numbered (695 items in
+   the database at the time of writing, against zero deliberately ordered
+   ones), and in .hfaq-answer / .narrative-html, where the global
+   `* { padding: 0 }` leaves no gutter, the marker fell outside the box and was
+   clipped away entirely.
+
+   Setting the marker ON THE ITEM is enough: <ol> already carries the implicit
+   counter, so `decimal` still numbers correctly, and no counter-reset,
+   ::before or :has() is needed — it works in every browser.
+
+   This beats `.html-content ol { list-style-type: decimal !important }` above
+   because list-style-type is INHERITED: the <li> only took the parent's value
+   for lack of one of its own, and a direct declaration always outranks an
+   inherited one — `!important` on an ancestor does not travel through
+   inheritance.
+
+   The 75 legacy <ul> lists carry no data-list and are untouched.
+   -------------------------------------------------------------------------- */
+li[data-list="bullet"] {
+  list-style-type: disc !important;
+}
+
+li[data-list="ordered"] {
+  list-style-type: decimal !important;
+}
+
+/* Quill's own marker holder. Empty, and redundant now that the native marker
+   is drawn — it would otherwise add a stray inline box before every item. */
+.ql-ui {
+  display: none;
+}
+
+/* `* { padding: 0 }` in globals.css strips the gutter a list marker needs.
+   .html-content restores it (25px, above); these two rich-text containers
+   never did, so their markers had nowhere to render. */
+.hfaq-answer ul,
+.hfaq-answer ol,
+.narrative-html ul,
+.narrative-html ol {
+  margin: 1em 0;
+  padding-inline-start: 1.5em;
 }
 
 /* --------------------------------------------------------------------------
@@ -7774,4 +7810,79 @@ button[data-action="stop"] {
 .section-title__title {
   font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   font-weight: 700;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Controls that became real <button> elements.
+
+   The search toggle was an <a href="#">, the hamburger a <div onClick> and
+   the drawer's close control a <span onClick> — none of them reachable by
+   keyboard. They are buttons now, so the UA's button styling has to be reset
+   back to what the theme's own selectors expect.
+   ───────────────────────────────────────────────────────────── */
+button.search-toggler,
+button.mobile-nav__toggler,
+button.mobile-nav__close {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button.mobile-nav__toggler {
+  /* The theme lays the three bars out on the div; keep that box model. */
+  display: inline-block;
+}
+
+button.search-toggler:focus-visible,
+button.mobile-nav__toggler:focus-visible,
+button.mobile-nav__close:focus-visible {
+  outline: 3px solid var(--gotur-primary, #b79c5c);
+  outline-offset: 3px;
+}
+
+/* Wishlist count badge — was two diverging blocks of inline styles, one in
+   each header copy (radius 9999 vs 999, 10px vs 11px, different padding). */
+.main-header__wishlist-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: #b79c5c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Pre-hydration carousel placeholders.
+
+   TinySliderWrapper renders every child in a plain <div> until it mounts, and
+   there is NO base .owl-carousel rule in the theme — those class names are
+   vestigial. So each of these carousels server-rendered its full slide list
+   STACKED VERTICALLY (Featured Tours: up to 24 tour cards, thousands of
+   pixels) and collapsed to one row on hydration.
+
+   The hero and the destination carousel already solved this; these four had
+   been missed. Same rule, applied through placeholderClassName.
+   ───────────────────────────────────────────────────────────── */
+.tns-placeholder-single > *:not(:first-child) {
+  display: none;
+}
+
+.tns-placeholder-single {
+  width: 100%;
+  overflow: hidden;
 }

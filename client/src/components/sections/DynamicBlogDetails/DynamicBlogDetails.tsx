@@ -150,12 +150,17 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     switch (block.type) {
       case 'html': {
+        // `data-list` is NOT stripped any more. Quill 2 writes bullet AND
+        // numbered lists as <ol>, marking each item with it, so removing it
+        // left every bullet list rendering as a numbered one. custom.css now
+        // draws the right marker from that attribute — see "QUILL LIST
+        // MARKERS" there. The ql-ui spans still go: they are empty holders
+        // for a marker the stylesheet no longer needs.
         const cleanHtml = typeof content === 'string'
           ? content
               .replace(/&nbsp;/g, ' ')
               .replace(/ /g, ' ')
               .replace(/<span[^>]*class="ql-ui"[^>]*>\s*<\/span>/gi, '')
-              .replace(/\s+data-list="[^"]*"/gi, '')
           : content;
         return (
           <div key={index} className='blog-details-card__text'>

@@ -12,7 +12,8 @@
     "viewPhotos": "View tour photos",
     "playVideo": "Play tour video",
     "addToWishlist": "Add to wishlist",
-    "removeFromWishlist": "Remove from wishlist"
+    "removeFromWishlist": "Remove from wishlist",
+    "discountBadge": "{{percent}}% OFF"
   },
   "updatedRecently": "Updated Recently",
   "links": {
@@ -21,7 +22,31 @@
     "contact": "Contact"
   },
   "footer": {
-    "travelTrade": "Travel Trade"
+    "travelTrade": "Travel Trade",
+    "about": {
+      "title": "About JES Egypt Tours",
+      "text": "JES Egypt Tours is a licensed Egyptian travel agency based in Giza. We design private, guided journeys through Egypt — from the Pyramids and the Nile Valley to Siwa and the Red Sea — led by qualified Egyptologists and planned around the people travelling, not a fixed timetable."
+    },
+    "sendEmail": "Send email",
+    "callAgent": "Call an agent",
+    "destinationsTitle": "Destinations",
+    "usefulLinksTitle": "Useful links",
+    "copyright": "© {{year}} JES Egypt Tours. All rights reserved.",
+    "paymentMethodsAlt": "Accepted payment methods",
+    "destinations": {
+      "tours": "Tours",
+      "specialOffers": "Special Offers",
+      "tailorMade": "Tailor-Made",
+      "blog": "Travel Blog",
+      "faq": "FAQ"
+    },
+    "usefulLinks": {
+      "about": "About Us",
+      "contact": "Contact",
+      "paymentPolicy": "Payment & Cancellation Policy",
+      "wishlist": "Wishlist",
+      "search": "Search"
+    }
   },
   "language": {
     "english": "English",
@@ -189,7 +214,8 @@
     "heritageExperts": "Local Heritage Experts",
     "fallbackSubtitle": "The Ultimate Egyptian Journey",
     "readMore": "Read Full Story",
-    "readLess": "Show Less"
+    "readLess": "Show Less",
+    "imageAlt": "A private JES Egypt Tours group at the Giza Pyramids"
   },
   "destinations": {
     "carousel": {
@@ -256,5 +282,46 @@
     "tagline": "Real Travellers",
     "title": "Video Reviews"
   },
-  "breadcrumb": "Breadcrumb"
+  "breadcrumb": "Breadcrumb",
+  "nav": {
+    "home": "Home",
+    "tailorMade": "Tailor-Made",
+    "label": "Main navigation"
+  },
+  "menu": {
+    "open": "Open menu",
+    "close": "Close menu"
+  },
+  "search": {
+    "open": "Open search",
+    "close": "Close search",
+    "submit": "Search",
+    "placeholder": "Search here..."
+  },
+  "wishlistLink": "Wishlist",
+  "instagram": {
+    "title": "Follow us on Instagram"
+  },
+  "testimonials": {
+    "tagline": "Client Testimonials",
+    "title": "Recent Clients",
+    "highlighted": "Feedback",
+    "previous": "Previous testimonial",
+    "next": "Next testimonial"
+  },
+  "specialOffer": {
+    "tagline": "Save 30% on Egypt Tours",
+    "title": "Discover Egypt — Book Your Dream Trip in",
+    "subtitle": "One Click",
+    "cta": "Claim Your Offer",
+    "limitedTime": "Limited-Time Offer",
+    "off": "off",
+    "upTo": "up to",
+    "travellerImageAlt": "Female traveler with a suitcase exploring Egypt"
+  },
+  "homeMeta": {
+    "title": "Private Egypt Tours & Nile Cruises | JES Egypt Tours",
+    "description": "Cairo-based operator running private, guided trips across Egypt: Giza, Luxor, Aswan, Abu Simbel and Nile cruises. Licensed guides, no hidden fees.",
+    "imageAlt": "The Giza Pyramids and the Sphinx at sunset, Egypt"
+  }
 }

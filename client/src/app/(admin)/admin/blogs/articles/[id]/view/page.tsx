@@ -13,6 +13,7 @@ import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
   useEntity, EditEntityButton, EntityViewError, LocalePreviewTabs, FaqPreview,
@@ -113,6 +114,8 @@ export default function BlogViewPage() {
       />
 
       <TranslationMatrix rows={matrixRows} />
+
+      <InternalLinksAudit entity={blog} />
 
       {/* ── At a glance ── */}
       <Section title="At a glance" icon={<Info size={14} />}>

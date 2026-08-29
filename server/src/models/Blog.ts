@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
 import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
+import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 // Content Block Types
 interface IImageBlock {
@@ -557,5 +558,21 @@ BlogSchema.post('findOneAndDelete', revalidateBlogCaches);
 BlogSchema.post('deleteOne', revalidateBlogCaches);
 BlogSchema.post('updateOne', revalidateBlogCaches);
 BlogSchema.post('updateMany', revalidateBlogCaches);
+
+
+/**
+ * Editor HTML is cleaned on the way IN, so the database never holds a payload
+ * and the ~30 dangerouslySetInnerHTML call sites on the visitor pages are
+ * rendering content that was already sanitized. See utils/sanitizeRichText.ts.
+ *
+ * Both hooks are needed: document hooks never run for findOneAndUpdate and
+ * friends, which the admin uses for edits.
+ */
+const RICH_TEXT_PATHS = ['content', 'excerpt', 'contentBlocks[].content'] as const;
+
+BlogSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
+BlogSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+BlogSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+BlogSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 
 export default mongoose.model<IBlog>('Blog', BlogSchema);

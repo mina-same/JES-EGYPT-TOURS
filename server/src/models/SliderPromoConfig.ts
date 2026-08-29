@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchema';
+import { revalidateTags } from '../services/revalidate';
 
 export interface ISliderUnderPromoConfig {
   text: ILocalizedString;
@@ -38,6 +39,24 @@ const SliderPromoConfigSchema = new Schema<ISliderPromoConfig>(
     timestamps: true,
   }
 );
+
+
+/**
+ * The promo bar under the hero — same cache tag as the slides it sits with.
+ *
+ * Mirrors what Blog.ts does: the visitor fetch is tagged and served from
+ * cache until an editor actually changes something here, at which point the
+ * tag is cleared and the change is live immediately. Without this hook the
+ * only safe option is an uncached fetch on every page view.
+ */
+const revalidateSliderCaches = () => revalidateTags(['slider']);
+
+SliderPromoConfigSchema.post('save', revalidateSliderCaches);
+SliderPromoConfigSchema.post('findOneAndUpdate', revalidateSliderCaches);
+SliderPromoConfigSchema.post('findOneAndDelete', revalidateSliderCaches);
+SliderPromoConfigSchema.post('deleteOne', revalidateSliderCaches);
+SliderPromoConfigSchema.post('updateOne', revalidateSliderCaches);
+SliderPromoConfigSchema.post('updateMany', revalidateSliderCaches);
 
 const SliderPromoConfig = mongoose.model<ISliderPromoConfig>('SliderPromoConfig', SliderPromoConfigSchema);
 

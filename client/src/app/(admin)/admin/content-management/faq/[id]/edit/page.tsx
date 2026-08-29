@@ -16,6 +16,7 @@ import AdminLanguageTabs, { type AdminLanguage } from "@/components/admin/AdminL
 import LocalizedField from "@/components/admin/LocalizedField";
 import FaqPlacementField from "@/components/admin/FaqPlacementField";
 import RichTextEditor from "@/components/ui/RichTextEditor";
+import { InternalLinksAudit } from "@/components/admin/InternalLinksAudit";
 
 interface AdminFAQEditPageProps {
   params: Promise<{
@@ -282,6 +283,8 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
           </form>
         </CardContent>
       </Card>
+
+      <InternalLinksAudit entity={formData} />
 
       {/* FAQ Info */}
       <Card>

@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
 import { ILocalizedString, LocalizedStringSchema } from './shared/LocalizedSchema';
+import { revalidateTags } from '../services/revalidate';
 
 // ==================== INTERFACES ====================
 
@@ -173,6 +174,24 @@ SliderContentSchema.pre('save', async function (next) {
 });
 
 // ==================== MODEL ====================
+
+
+/**
+ * The homepage hero. Admin-curated and rarely changed, so it is cached.
+ *
+ * Mirrors what Blog.ts does: the visitor fetch is tagged and served from
+ * cache until an editor actually changes something here, at which point the
+ * tag is cleared and the change is live immediately. Without this hook the
+ * only safe option is an uncached fetch on every page view.
+ */
+const revalidateSliderCaches = () => revalidateTags(['slider']);
+
+SliderContentSchema.post('save', revalidateSliderCaches);
+SliderContentSchema.post('findOneAndUpdate', revalidateSliderCaches);
+SliderContentSchema.post('findOneAndDelete', revalidateSliderCaches);
+SliderContentSchema.post('deleteOne', revalidateSliderCaches);
+SliderContentSchema.post('updateOne', revalidateSliderCaches);
+SliderContentSchema.post('updateMany', revalidateSliderCaches);
 
 const SliderContent = mongoose.model<ISliderContent>('SliderContent', SliderContentSchema);
 

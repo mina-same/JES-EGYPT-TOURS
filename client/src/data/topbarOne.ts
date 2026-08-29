@@ -36,27 +36,5 @@ export const topbarOne = {
       label: PHONE_DISPLAY,
       href: waHref(),
     },
-    socialLinks: [
-      {
-        platform: "Facebook",
-        iconClass: "icon-facebook",
-        href: "https://facebook.com",
-      },
-      {
-        platform: "Twitter",
-        iconClass: "icon-twitter",
-        href: "https://twitter.com",
-      },
-      {
-        platform: "LinkedIn",
-        iconClass: "icon-linkedin",
-        href: "https://instagram.com", // original HTML had LinkedIn icon but Instagram URL
-      },
-      {
-        platform: "Youtube",
-        iconClass: "icon-youtube",
-        href: "https://youtube.com",
-      },
-    ],
   };
   

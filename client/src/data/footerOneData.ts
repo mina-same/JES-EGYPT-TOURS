@@ -1,10 +1,27 @@
 import { PHONE_DISPLAY } from "@/config/contact";
+// Social profiles live in config/contact.ts — see SOCIAL_PROFILES for why.
 import { StaticImageData } from 'next/image';
 
 import logo from "@/assets/images/logo-light.png";
 import cardImage from "@/assets/images/shapes/footer-card-1-1.png";
 import shape1 from "@/assets/images/shapes/footer-shape-1-1.png";
 import shape2 from "@/assets/images/shapes/footer-shape-1-2.png";
+
+/**
+ * Non-translatable footer config only: images, links, icons, contact details.
+ *
+ * Every DISPLAY string now lives in i18n/locales/*\/common.json under
+ * "footer.*" — the widget titles, the company description and the link labels
+ * were English literals here, so the German, Italian and Spanish footers all
+ * rendered in English. Each link carries a `translationKey` instead of a
+ * `title`, following the same convention aboutOne.ts already uses.
+ */
+export interface FooterLink {
+  /** Key under "footer.*" in common.json. */
+  translationKey: string;
+  /** Locale-prefixed at render time by localizeInternalUrl. */
+  href: string;
+}
 
 export interface FooterDataType {
   logo: StaticImageData;
@@ -15,27 +32,8 @@ export interface FooterDataType {
     email: string;
     phone: string;
   };
-  about: {
-    text: string;
-    socials: {
-      icon: string;
-      link: string;
-      label: string;
-    }[];
-  };
-  destinations: {
-    title: string;
-    href: string;
-  }[];
-  usefulLinks: {
-    title: string;
-    href: string;
-    translationKey?: string;
-  }[];
-  newsletter: {
-    text: string;
-    privacyLink: string;
-  };
+  destinations: FooterLink[];
+  usefulLinks: FooterLink[];
 }
 
 export const footerOneData: FooterDataType = {
@@ -47,39 +45,20 @@ export const footerOneData: FooterDataType = {
     email: "info@jesegypttours.com",
     phone: PHONE_DISPLAY,
   },
-  about: {
-    text: "available, but the majority have suffered alteration in some form by injected humour, or",
-    socials: [
-      { icon: "icon-facebook", link: "https://facebook.com", label: "Facebook" },
-      { icon: "fab fa-twitter", link: "https://twitter.com", label: "Twitter" },
-      { icon: "fab fa-instagram", link: "https://instagram.com", label: "Instagram" },
-      { icon: "icon-youtube", link: "https://youtube.com", label: "Youtube" },
-      {
-        icon: "fab fa-tripadvisor",
-        link: "https://www.tripadvisor.com/Attraction_Review-g294201-d32893109-Reviews-Jes_Egypt_Tour-Cairo_Cairo_Governorate.html",
-        label: "Tripadvisor",
-      },
-    ],
-  },
-  // Internal hrefs are locale-prefixed at render time in FooterOne.
   // Only real, existing routes are listed (no dead template/demo routes).
   destinations: [
-    { title: "Tours", href: "/tours" },
-    { title: "Special Offers", href: "/special-offers" },
-    { title: "Tailor-Made", href: "/tailor-made" },
-    { title: "Travel Blog", href: "/blogs" },
-    { title: "FAQ", href: "/faq" },
+    { translationKey: "footer.destinations.tours", href: "/tours" },
+    { translationKey: "footer.destinations.specialOffers", href: "/special-offers" },
+    { translationKey: "footer.destinations.tailorMade", href: "/tailor-made" },
+    { translationKey: "footer.destinations.blog", href: "/blogs" },
+    { translationKey: "footer.destinations.faq", href: "/faq" },
   ],
   usefulLinks: [
-    { title: "Travel Trade", href: "/travel-trade", translationKey: "footer.travelTrade" },
-    { title: "About Us", href: "/about" },
-    { title: "Contact", href: "/contact" },
-    { title: "Payment & Cancellation Policy", href: "/payment-cancellation-policy" },
-    { title: "Wishlist", href: "/wishlist" },
-    { title: "Search", href: "/search" },
+    { translationKey: "footer.travelTrade", href: "/travel-trade" },
+    { translationKey: "footer.usefulLinks.about", href: "/about" },
+    { translationKey: "footer.usefulLinks.contact", href: "/contact" },
+    { translationKey: "footer.usefulLinks.paymentPolicy", href: "/payment-cancellation-policy" },
+    { translationKey: "footer.usefulLinks.wishlist", href: "/wishlist" },
+    { translationKey: "footer.usefulLinks.search", href: "/search" },
   ],
-  newsletter: {
-    text: "Sign up to searing weekly newsletter to get the latest updates.",
-    privacyLink: "/privacy-policy",
-  },
 };

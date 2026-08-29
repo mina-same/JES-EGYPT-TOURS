@@ -16,6 +16,7 @@ import AdminLanguageTabs, { type AdminLanguage } from "@/components/admin/AdminL
 import LocalizedField from "@/components/admin/LocalizedField";
 import FaqPlacementField from "@/components/admin/FaqPlacementField";
 import RichTextEditor from "@/components/ui/RichTextEditor";
+import { InternalLinksAudit } from "@/components/admin/InternalLinksAudit";
 
 const AdminFAQCreate: React.FC = () => {
   const router = useRouter();
@@ -189,6 +190,8 @@ const AdminFAQCreate: React.FC = () => {
           </form>
         </CardContent>
       </Card>
+
+      <InternalLinksAudit entity={formData} />
     </div>
   );
 };

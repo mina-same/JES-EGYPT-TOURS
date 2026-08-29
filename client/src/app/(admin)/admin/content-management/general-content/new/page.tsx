@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeft, Save, Loader2, Info, Layout, 
-  Type, Globe, Tag
+  Type, Tag
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generalContentService } from '@/services/generalContentService';
@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
+import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 
 export default function NewGeneralContentPage() {
   const router = useRouter();
@@ -193,12 +194,14 @@ export default function NewGeneralContentPage() {
               <h4 className="font-bold text-sm">Pro Tip</h4>
             </div>
             <p className="text-xs text-[#8a6d3b] leading-relaxed">
-              Use slugs like <strong>"home-intro"</strong> to target specifically designed sections on the website. 
+              Use slugs like <strong>&quot;home-intro&quot;</strong> to target specifically designed sections on the website. 
               The frontend will automatically pick up changes once you save.
             </p>
           </div>
         </div>
       </div>
+
+      <InternalLinksAudit entity={formData} />
     </div>
   );
 }

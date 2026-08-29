@@ -3,75 +3,107 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { generalContentAPI } from "@/lib/api/generalContent";
-import { Loader2, ChevronDown, ChevronUp, MapPin, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 
-interface HomeContent {
+/** Raw, all-locales document as the API returns it. */
+export interface HomeIntroContent {
   title: any;
   subtitle?: any;
   content: any;
 }
 
-const HomeIntro: React.FC = () => {
-  const { i18n, t } = useTranslation("common");
-  const [content, setContent] = useState<HomeContent | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(false);
+type HomeIntroProps = {
+  /**
+   * Fetched on the server by the homepage.
+   *
+   * This section used to fetch its own copy in a useEffect: the long-form,
+   * keyword-dense intro — exactly the content the homepage should rank for —
+   * was absent from the server-rendered HTML, and a crawler that does not run
+   * JavaScript saw none of it. Visitors saw a spinner, then a block of a
+   * completely different height dropping in and shoving the page down.
+   *
+   * Same `initialX` pattern as HomeFAQ, FeaturedToursSection and BlogTwoTwo.
+   */
+  initialContent?: HomeIntroContent | null;
+};
 
-  const sanitizeHTML = (html: string): string => {
-    if (!html) return "";
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
-      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-      .replace(/\son\w+="[^"]*"/gi, "")
-      .replace(/\son\w+='[^']*'/gi, "")
-      .replace(/\sstyle="[^"]*"/gi, "")
-      .replace(/\sstyle='[^']*'/gi, "")
-      .replace(/javascript:/gi, "")
-      .replace(/vbscript:/gi, "")
-      .replace(/data:/gi, "");
-  };
+const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
+  const { i18n, t } = useTranslation("common");
+  const [content, setContent] = useState<HomeIntroContent | null>(initialContent);
+  const [loading, setLoading] = useState(!initialContent);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const localizedTitle = getLocalizedValue(content?.title, i18n.language);
   const localizedSubtitle = getLocalizedValue(content?.subtitle, i18n.language);
   const localizedContent = getLocalizedValue(content?.content, i18n.language);
 
-  const sanitizedContent = sanitizeHTML(localizedContent || "");
+  /**
+   * Already sanitized — by the API, at the moment an editor saved it.
+   *
+   * A chain of regex replaces used to run here instead. It was the only
+   * sanitization anywhere on the site (the FAQ answers below this section had
+   * none at all), and it did not work: it stripped `<script>` but not, say,
+   * `<svg` with a newline before `onload=`, and its blanket
+   * `.replace(/data:/gi, "")` corrupted legitimate content that merely
+   * contained the word. Sanitization now lives in one place, on write —
+   * server/src/utils/sanitizeRichText.ts.
+   */
+  const sanitizedContent = localizedContent || "";
 
   useEffect(() => {
+    // Fallback path only — the homepage passes initialContent. This runs when
+    // the server fetch failed, so the section still appears for the visitor.
+    if (initialContent) {
+      setContent(initialContent);
+      setLoading(false);
+      return;
+    }
+
+    let alive = true;
     const fetchContent = async () => {
       try {
         const response = await generalContentAPI.getBySlug("home-intro");
-        if (response.success) {
+        if (alive && response.success) {
           setContent(response.data);
         }
       } catch (err) {
         console.error("Error fetching home intro:", err);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
 
     fetchContent();
-  }, []);
+    return () => {
+      alive = false;
+    };
+  }, [initialContent]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-[#b79c5c]" size={40} />
-      </div>
-    );
-  }
-
-  if (!content) return null;
+  // Nothing is rendered while the fallback fetch runs. The spinner that used
+  // to sit here occupied a py-20 box and was then replaced by content of a
+  // completely different height, shoving everything below it down the page.
+  // With the copy arriving from the server this branch is unreachable in the
+  // normal path anyway.
+  if (loading || !content) return null;
   
-  // Split title to style the part after colon differently
-  const titleParts = localizedTitle ? localizedTitle.split(':') : [];
-  const mainTitle = titleParts[0] || "";
-  const highlightTitle = titleParts[1] ? titleParts[1].trim() : "";
+  /**
+   * The heading is one CMS field; everything after the first colon is styled
+   * as the gold accent line.
+   *
+   * This used to be `split(':')` reading parts [0] and [1], which threw away
+   * everything after a SECOND colon. "Egypt: Land of Pharaohs: A Journey
+   * Through Time" rendered as "Egypt" / "Land of Pharaohs" and the rest
+   * vanished — no error, nothing in the console, just a shorter heading than
+   * the editor typed. Splitting once keeps the remainder intact.
+   */
+  const separator = localizedTitle ? localizedTitle.indexOf(":") : -1;
+  const mainTitle =
+    separator === -1 ? localizedTitle || "" : localizedTitle.slice(0, separator);
+  const highlightTitle =
+    separator === -1 ? "" : localizedTitle.slice(separator + 1).trim();
 
   return (
     <section className="relative py-20 overflow-hidden bg-[#fafafa]">
@@ -156,12 +188,20 @@ const HomeIntro: React.FC = () => {
             {/* Visual Side */}
             <Col lg={5} className="relative min-h-[500px] lg:min-h-full order-1 lg:order-2">
               <div className="absolute inset-0">
-                <Image 
-                  src="https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=2070&auto=format&fit=crop"
-                  alt="Majestic Giza Pyramids"
+                {/* The site's own photograph, not an Unsplash hotlink: the
+                    remote URL made this section depend on a third-party CDN
+                    and forced the image optimizer to allow that host.
+
+                    NO `priority`. This is the third section down, well below
+                    the fold, and `priority` emits a <link rel="preload"> that
+                    competed directly with the hero — the actual LCP element —
+                    for early bandwidth. */}
+                <Image
+                  src="/images/about/private-egypt-tours-planned-around-you-giza-pyramids.webp"
+                  alt={t("homeIntro.imageAlt")}
                   fill
+                  sizes="(max-width: 991px) 100vw, 42vw"
                   className="object-cover transition-transform duration-[20s] hover:scale-110 ease-out"
-                  priority
                 />
                 
                 {/* Sophisticated Overlays */}

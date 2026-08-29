@@ -21,8 +21,11 @@ async function getHeaderMenu(locale: string): Promise<Menu | null> {
     // The locale rides in the header (what the API reads) and in the query
     // string (so this cached fetch keeps one entry per language — otherwise a
     // German menu could be replayed to an Italian visitor).
+    // Tagged as well as timed: Menu.ts clears the 'menu' tag on save, so an
+    // edit is live immediately and the window is only a safety net for a
+    // webhook that never arrived.
     const res = await fetch(`${API_URL}/menus/header-main?locale=${locale}`, {
-      next: { revalidate: 300 },
+      next: { revalidate: 3600, tags: ['menu'] },
       headers: { 'X-Locale': locale },
     });
     if (!res.ok) return null;

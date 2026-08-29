@@ -1,5 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { LocalizedStringSchema, LocalizedMixedSchema, ILocalizedString, ILocalizedMixed } from './shared/LocalizedSchema';
+import { revalidateTags } from '../services/revalidate';
+import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 export interface IFaq extends Document {
   question: ILocalizedString;
@@ -68,6 +70,40 @@ FaqSchema.pre('save', async function (next) {
   }
   next();
 });
+
+
+/**
+ * The FAQ accordion on the homepage and the FAQ page.
+ *
+ * Mirrors what Blog.ts does: the visitor fetch is tagged and served from
+ * cache until an editor actually changes something here, at which point the
+ * tag is cleared and the change is live immediately. Without this hook the
+ * only safe option is an uncached fetch on every page view.
+ */
+const revalidateFaqCaches = () => revalidateTags(['faq']);
+
+FaqSchema.post('save', revalidateFaqCaches);
+FaqSchema.post('findOneAndUpdate', revalidateFaqCaches);
+FaqSchema.post('findOneAndDelete', revalidateFaqCaches);
+FaqSchema.post('deleteOne', revalidateFaqCaches);
+FaqSchema.post('updateOne', revalidateFaqCaches);
+FaqSchema.post('updateMany', revalidateFaqCaches);
+
+
+/**
+ * Editor HTML is cleaned on the way IN, so the database never holds a payload
+ * and the ~30 dangerouslySetInnerHTML call sites on the visitor pages are
+ * rendering content that was already sanitized. See utils/sanitizeRichText.ts.
+ *
+ * Both hooks are needed: document hooks never run for findOneAndUpdate and
+ * friends, which the admin uses for edits.
+ */
+const RICH_TEXT_PATHS = ['answer'] as const;
+
+FaqSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
+FaqSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+FaqSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+FaqSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 
 const Faq = mongoose.models.Faq || mongoose.model<IFaq>('Faq', FaqSchema);
 

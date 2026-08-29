@@ -2,6 +2,7 @@ import { Manrope, Playfair_Display } from "next/font/google";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider } from "@/contexts/I18nProvider";
+import { getLocaleResources } from "@/i18n/bundles";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { cookies } from "next/headers";
 import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
@@ -86,6 +87,11 @@ export default async function RootLayout({
     (await cookies()).get(CURRENCY_COOKIE)?.value
   );
 
+  // Loaded here, on the server, so the four languages' translation JSON never
+  // enters a client chunk. Only the active locale (plus English, which
+  // fallbackLng needs) travels, as data in the RSC payload.
+  const i18nResources = await getLocaleResources(locale);
+
   return (
     // The font variables live on <html> (:root), not <body>. gotur.css defines
     // --gotur-font/--gotur-heading-font/--gotur-display-font in a :root block, and a
@@ -101,7 +107,7 @@ export default async function RootLayout({
         <ErrorBoundary>
           <WishlistProvider>
             <SlugProvider>
-              <I18nProvider locale={locale}>
+              <I18nProvider locale={locale} resources={i18nResources}>
                 <CurrencyProvider initialCurrency={currencyCookie ?? undefined}>
                   <SEOProvider locale={locale} />
                   {children}
