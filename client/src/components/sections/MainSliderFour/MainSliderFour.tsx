@@ -151,11 +151,16 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   }, [initialSlides]);
 
   // Client fallback: fetch slides only when the server provided none.
+  //
+  // `lang` is passed, as the homepage's server fetch does. Without it the
+  // service returns ALL FOUR languages (its own doc says so) — so the one
+  // situation this fallback exists for, a failed server fetch, was also the
+  // one situation a German visitor could lose the German hero.
   useEffect(() => {
     if (initialSlides.length) return;
     let alive = true;
     sliderService
-      .getActiveSliderContent()
+      .getActiveSliderContent(lang)
       .then((items) => {
         if (!alive) return;
         setSlides(
@@ -173,11 +178,12 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   }, [initialSlides, lang]);
 
   // Client fallback: fetch the promo only when the server didn't provide it.
+  // Same locale rule as the slides above.
   useEffect(() => {
     if (initialPromo) return;
     let alive = true;
     sliderService
-      .getPublicSliderPromo()
+      .getPublicSliderPromo(lang)
       .then((p) => {
         if (alive) setPromo(p || null);
       })
@@ -187,7 +193,9 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
     return () => {
       alive = false;
     };
-  }, [initialPromo]);
+    // `lang` belongs here: without it the promo is not refetched when the
+    // visitor switches language on a page that took the fallback path.
+  }, [initialPromo, lang]);
 
   const hasSlides = slides.length > 0;
   const hasMultiple = slides.length > 1;

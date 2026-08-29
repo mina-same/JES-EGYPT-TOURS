@@ -1,4 +1,4 @@
-import { ILocalizedString, ILocalizedMixed, IImage } from './shared';
+import type { ILocalizedString, ILocalizedMixed, IImage } from './shared';
 export type { ILocalizedString, ILocalizedMixed, IImage };
 
 // FAQ-specific localized type — all locales are optional so each language

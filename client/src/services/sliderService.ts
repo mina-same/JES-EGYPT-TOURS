@@ -2,15 +2,55 @@ import { SliderItem } from '@/types/slider';
 import { API_ENDPOINTS } from '@/config/api';
 import { SliderUnderPromo } from '@/types/slider';
 
+/**
+ * Caching is OPT-IN, passed by server callers only.
+ *
+ * These methods are shared with client components and the admin, where Next's
+ * `next` fetch options are ignored anyway — but making it opt-in keeps the
+ * admin explicitly uncached rather than relying on that.
+ *
+ * The tag is what makes this safe. A bare timed `revalidate` was tried on this
+ * codebase and reverted (see src/app/api/revalidate/route.ts): with nothing to
+ * invalidate it, an edit stayed invisible for the length of the window. The
+ * API clears the 'slider' tag on save, so the long window below is only ever a
+ * safety net for a missed webhook.
+ */
+export interface CacheOptions {
+  /** Seconds. Omit for an uncached read. */
+  revalidate?: number;
+  /** Cache tags the API can purge on save. */
+  tags?: string[];
+}
+
+const cacheInit = (cache?: CacheOptions): RequestInit =>
+  cache?.revalidate === undefined && !cache?.tags
+    ? {}
+    : {
+        next: {
+          ...(cache.revalidate !== undefined ? { revalidate: cache.revalidate } : {}),
+          ...(cache.tags ? { tags: cache.tags } : {}),
+        },
+      } as RequestInit;
+
+/**
+ * The locale rides in the query string as well as the header. Next keys its
+ * Data Cache on the request, and this repo's convention (see getFeaturedBlogs
+ * and the header-menu fetch) is to put it in the URL so a German response can
+ * never be replayed to an Italian visitor.
+ */
+const withLocale = (url: string, locale?: string): string =>
+  locale ? `${url}${url.includes('?') ? '&' : '?'}locale=${encodeURIComponent(locale)}` : url;
+
 class SliderService {
   /**
    * Fetch all active slider content for public display
    */
   /** `locale` narrows the response to one language; omit it for all four. */
-  async getActiveSliderContent(locale?: string): Promise<SliderItem[]> {
+  async getActiveSliderContent(locale?: string, cache?: CacheOptions): Promise<SliderItem[]> {
     try {
-      const response = await fetch(API_ENDPOINTS.SLIDER_CONTENT.PUBLIC, {
+      const response = await fetch(withLocale(API_ENDPOINTS.SLIDER_CONTENT.PUBLIC, locale), {
         ...(locale ? { headers: { "X-Locale": locale } } : {}),
+        ...cacheInit(cache),
       });
       
       if (!response.ok) {
@@ -30,10 +70,11 @@ class SliderService {
     }
   }
 
-  async getPublicSliderPromo(locale?: string): Promise<SliderUnderPromo | null> {
+  async getPublicSliderPromo(locale?: string, cache?: CacheOptions): Promise<SliderUnderPromo | null> {
     try {
-      const response = await fetch(API_ENDPOINTS.SLIDER_CONTENT.PROMO_PUBLIC, {
+      const response = await fetch(withLocale(API_ENDPOINTS.SLIDER_CONTENT.PROMO_PUBLIC, locale), {
         ...(locale ? { headers: { "X-Locale": locale } } : {}),
+        ...cacheInit(cache),
       });
 
       if (!response.ok) {

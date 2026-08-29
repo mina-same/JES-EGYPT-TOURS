@@ -60,6 +60,10 @@ const HomeFaqItem: React.FC<{
         aria-labelledby={headerId}
       >
         <div className="hfaq-item__clip">
+          {/* Sanitized on the way IN, by the API, at the moment an editor
+              saved the answer — server/src/utils/sanitizeRichText.ts. This
+              markup is server-rendered, so it had to be cleaned before it
+              reached the database rather than on its way to the screen. */}
           <div
             className="hfaq-answer"
             dangerouslySetInnerHTML={{

@@ -48,3 +48,47 @@ export const waHref = (message?: string): string =>
   `https://wa.me/${WHATSAPP_NUMBER}${
     message ? `?text=${encodeURIComponent(message)}` : ""
   }`;
+/**
+ * The company's social profiles, in one place.
+ *
+ * Same failure as the phone number above, one layer out. These URLs were typed
+ * in three places — footerOneData.socials, an inline block in Drawer.tsx, and
+ * a topbarOne.socialLinks array nothing ever rendered — plus a FOURTH,
+ * different set inside the organization's schema.org `sameAs`. The rendered
+ * ones all pointed at the platforms' own front pages ("https://facebook.com"),
+ * while the schema claimed "https://facebook.com/jesegypttours". So the markup
+ * asserted profiles the visible links contradicted.
+ *
+ * `href: null` means "we do not have this profile". Nothing renders for it and
+ * nothing is claimed in `sameAs` — an unlinked icon is better than an icon
+ * that sends a customer to Instagram's login wall.
+ */
+export interface SocialProfile {
+  /** Stable id, also the accessible name. */
+  label: string;
+  /** Icon class — the theme's own font, or FontAwesome. */
+  icon: string;
+  /** The full profile URL, or null while the profile is unknown. */
+  href: string | null;
+}
+
+export const SOCIAL_PROFILES: readonly SocialProfile[] = [
+  { label: "Facebook", icon: "icon-facebook", href: null },
+  { label: "Instagram", icon: "fab fa-instagram", href: "https://www.instagram.com/jesegypttours/" },
+  { label: "YouTube", icon: "icon-youtube", href: null },
+  { label: "Twitter", icon: "fab fa-twitter", href: null },
+  {
+    label: "Tripadvisor",
+    icon: "fab fa-tripadvisor",
+    href: "https://www.tripadvisor.com/Attraction_Review-g294201-d32893109-Reviews-Jes_Egypt_Tour-Cairo_Cairo_Governorate.html",
+  },
+];
+
+/** A profile that is known to exist — `href` is guaranteed non-null. */
+export type LinkedSocialProfile = SocialProfile & { href: string };
+
+/** Only the profiles that actually exist — what the UI and `sameAs` render. */
+export const getSocialProfiles = (): LinkedSocialProfile[] =>
+  SOCIAL_PROFILES.filter(
+    (profile): profile is LinkedSocialProfile => !!profile.href
+  );

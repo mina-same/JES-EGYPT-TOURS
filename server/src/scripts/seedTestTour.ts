@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Tour from '../models/Tour';
 import TourCategory from '../models/TourCategory';
 import TourSubcategory from '../models/TourSubcategory';
+import { SEED_IMAGE_PLACEHOLDER } from '../seeds/seedImages';
 
 dotenv.config();
 
@@ -65,7 +66,7 @@ const seedTestTour = async () => {
         }]
       }],
       images: [{
-        url: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73b6e',
+        url: SEED_IMAGE_PLACEHOLDER,
         fileName: 'test-image.jpg',
         alt: { en: 'Test Tour Image' }
       }],

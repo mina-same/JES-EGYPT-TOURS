@@ -13,8 +13,7 @@
     "heading": "Quick profile",
     "roleLabel": "Role",
     "organisationLabel": "Organisation",
-    "focusLabel": "Content focus",
-    "languagesLabel": "Writes in"
+    "focusLabel": "Content focus"
   },
   "expertise": {
     "tagline": "Expertise",

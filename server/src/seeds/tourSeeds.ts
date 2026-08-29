@@ -6,6 +6,7 @@
  * - Run: npm run seed:tours
  * - Or: ts-node src/seeds/tourSeeder.ts
  */
+import { SEED_IMAGE_PLACEHOLDER } from './seedImages';
 
 export const tourCategorySeed = {
   name: { en: 'Egypt Ultimate Excursions', de: 'Ägypten Ultimate Excursions', it: 'Escursioni Supreme Egitto', es: 'Excursiones Supreme Egipto' },
@@ -18,7 +19,7 @@ export const tourCategorySeed = {
   },
   images: [
     {
-      url: 'https://images.unsplash.com/photo-1539667468225-eebb663053e6?w=1200&h=800&fit=crop',
+      url: SEED_IMAGE_PLACEHOLDER,
       fileName: 'egypt-main.jpg',
       title: { en: 'Pyramids of Giza', de: 'Pyramiden von Gizeh', it: 'Piramidi di Giza', es: 'Pirámides de Guiza' },
       alt: { en: 'Majestic Pyramids of Giza at sunset', de: 'Majestätische Pyramiden bei Sonnenuntergang', it: 'Maestose Piramidi di Giza al tramonto', es: 'Majestuosas Pirámides de Guiza al atardecer' },
@@ -74,7 +75,7 @@ export const tourSubcategorySeed = {
   },
   images: [
     {
-      url: 'https://images.unsplash.com/photo-1600010991959-19bd948270f2?w=1200&h=800&fit=crop',
+      url: SEED_IMAGE_PLACEHOLDER,
       fileName: 'nile-cruise-main.jpg',
       title: { en: 'Luxury Nile Cruise', de: 'Luxus Nilkreuzfahrt', it: 'Crociera di Lusso sul Nilo', es: 'Crucero de Lujo por el Nilo' },
       alt: { en: 'Luxury cruise ship sailing on the Nile river', de: 'Luxuskreuzfahrtschiff auf dem Nil', it: 'Nave da crociera di lusso sul Nilo', es: 'Crucero de lujo navegando por el río Nilo' },
@@ -148,7 +149,7 @@ export const tourSeed = {
   },
   images: [
     {
-      url: 'https://images.unsplash.com/photo-1600010991959-19bd948270f2?w=1200&h=800&fit=crop',
+      url: SEED_IMAGE_PLACEHOLDER,
       fileName: 'sonesta-main.jpg',
       title: { en: 'Luxury Nile Cruise Ship', de: 'Luxus-Kreuzfahrtschiff', it: 'Nave Lussuosa', es: 'Lujoso Barco' },
       alt: { en: '5-star cruise ship on the Nile river', de: '5-Sterne Schiff', it: 'Nave a 5 stelle', es: 'Barco de 5 estrellas' },
@@ -156,7 +157,7 @@ export const tourSeed = {
   ],
   gallery: [
     {
-      url: 'https://images.unsplash.com/photo-1599839619722-39751411ea63?w=1200&h=800&fit=crop',
+      url: SEED_IMAGE_PLACEHOLDER,
       fileName: 'karnak.jpg',
       title: { en: 'Karnak Temple', de: '', it: '', es: '' },
       alt: { en: 'Karnak Temple Pillars', de: '', it: '', es: '' },

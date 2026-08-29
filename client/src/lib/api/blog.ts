@@ -1,7 +1,7 @@
 import { API_URL } from '@/config/api';
-import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
-import { ISEO } from '@/types/blog';
-import { IFAQ } from '@/types/tour';
+import type { ILocalizedString, ILocalizedMixed } from '@/types/shared';
+import type { ISEO } from '@/types/blog';
+import type { IFAQ } from '@/types/tour';
 
 
 export interface BlogCategory {
@@ -314,7 +314,10 @@ export async function getFeaturedBlogs(limit: number = 6, locale?: string): Prom
   const res = await fetch(
     `${API_URL}/blog/posts/featured?limit=${limit}${locale ? `&locale=${locale}` : ''}`,
     {
-      next: { revalidate: 60 },
+      // Tagged, not just timed. Blog.ts already clears the 'blog' tag on every
+      // save, so an edit is live immediately instead of waiting out the window
+      // — which is why the window can be an hour rather than a minute.
+      next: { revalidate: 3600, tags: ['blog'] },
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     }
   );

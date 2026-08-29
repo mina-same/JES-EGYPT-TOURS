@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { Container, Row, Col } from "react-bootstrap";
-import { Swiper, SwiperSlide } from "swiper/react";
-import type { Swiper as SwiperClass } from "swiper";
-import "swiper/css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  TinySliderWrapper as TinySlider,
+  type TinySliderHandle,
+} from "@/components/common/TinySliderWrapper";
 
 import { blogTwoInfo } from "@/data/blogTwoTwoData";
 import Link from "next/link";
@@ -16,6 +17,7 @@ import { API_URL } from "@/config/api";
 import { BlogPost, BlogResponse } from "@/lib/api/blog";
 import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 import { useTranslation } from "react-i18next";
+import { localizeInternalUrl } from "@/lib/url";
 
 interface BlogData {
   tagline: string;
@@ -36,11 +38,18 @@ type BlogTwoTwoProps = {
 const FEATURED_FETCH_POOL = 24;
 
 const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
+  // Locale-prefixed at render time. The raw '/blogs' from blogTwoTwoData had
+  // no locale segment, so the middleware resolved the language from the
+  // NEXT_LOCALE cookie: a visitor landing on /de from search, with no cookie,
+  // was sent to the ENGLISH blog index.
   const { link }: BlogData = blogTwoInfo;
   const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
   const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>(() => initialBlogs);
-  const [swiper, setSwiper] = useState<SwiperClass | null>(null);
+  // tiny-slider, not Swiper. Five of the six carousels on this page already
+  // ran on tiny-slider; shipping a second full carousel engine (~3.9 MB
+  // installed) for this one section put both in the homepage bundle.
+  const sliderRef = useRef<TinySliderHandle>(null);
 
   const [mounted, setMounted] = useState(false);
 
@@ -112,7 +121,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                       type='button'
                       className='blog-two__nav__btn'
                       aria-label={t('previousArticles')}
-                      onClick={() => swiper?.slidePrev()}
+                      onClick={() => sliderRef.current?.slider?.goTo("prev")}
                     >
                       <ChevronLeft size={20} aria-hidden='true' />
                     </button>
@@ -120,7 +129,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                       type='button'
                       className='blog-two__nav__btn'
                       aria-label={t('nextArticles')}
-                      onClick={() => swiper?.slideNext()}
+                      onClick={() => sliderRef.current?.slider?.goTo("next")}
                     >
                       <ChevronRight size={20} aria-hidden='true' />
                     </button>
@@ -128,7 +137,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                 )}
                 <div className='blog-two__top__btn'>
                   {mounted ? (
-                    <Link href={link} className='gotur-btn gotur-btn--base'>
+                    <Link href={localizeInternalUrl(link, currentLocale)} className='gotur-btn gotur-btn--base'>
                       {t('seeMoreArticle')}{" "}
                       <span className='icon'>
                         <i className='icon-right'></i>
@@ -141,32 +150,40 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
           </Row>
         </div>
 
-        <Swiper
-          onSwiper={setSwiper}
+        <TinySlider
+          ref={sliderRef}
           className='blog-two__carousel'
-          spaceBetween={30}
-          rewind={true}
-          speed={600}
-          breakpoints={{
-            0: { slidesPerView: 1 },
-            576: { slidesPerView: 2 },
-            992: { slidesPerView: 3 },
+          rebuildKey={`${currentLocale}:${featuredViewModel.map((p) => p.id).join("|")}`}
+          placeholderClassName='blog-two__carousel tns-placeholder-single'
+          settings={{
+            items: 1,
+            gutter: 30,
+            // `rewind` wraps at the end without cloning slides, matching what
+            // Swiper's rewind did and what the other carousels here use.
+            loop: false,
+            rewind: true,
+            speed: 600,
+            nav: false,
+            controls: false,
+            mouseDrag: true,
+            responsive: {
+              0: { items: 1 },
+              576: { items: 2 },
+              992: { items: 3 },
+            },
           }}
         >
-          {featuredViewModel.map((post, index) => (
-            <SwiperSlide key={post.id}>
-              {/* The first slide is above the fold on the homepage; the rest
-                  are off-screen until the carousel moves. */}
+          {featuredViewModel.map((post) => (
+            <div key={post.id}>
               <BlogCard
                 post={post}
                 variant='feature'
-                priority={index === 0}
                 // The carousel's own breakpoints: 1 slide, then 2, then 3.
                 sizes='(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw'
               />
-            </SwiperSlide>
+            </div>
           ))}
-        </Swiper>
+        </TinySlider>
       </Container>
 
       <div className='blog-two__element'></div>

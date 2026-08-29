@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
+import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 
 interface EditProps {
   params: Promise<{
@@ -71,7 +72,7 @@ export default function EditGeneralContentPage({ params }: EditProps) {
     };
 
     fetchContent();
-  }, [slug]);
+  }, [router, slug, toast]);
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -248,11 +249,13 @@ export default function EditGeneralContentPage({ params }: EditProps) {
             </div>
             <p className="text-xs text-[#8a6d3b] leading-relaxed">
               Updating this block will instantly reflect across the website wherever the slug 
-              <strong> "{formData.slug}"</strong> is used.
+              <strong> &quot;{formData.slug}&quot;</strong> is used.
             </p>
           </div>
         </div>
       </div>
+
+      <InternalLinksAudit entity={formData} />
     </div>
   );
 }

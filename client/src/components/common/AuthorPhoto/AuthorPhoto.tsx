@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { Camera } from "lucide-react";
 
+import styles from "./AuthorPhoto.module.css";
+
 /**
  * One photograph slot on an author page — the real picture when the author has
  * one, a reserved space in the site's own surface treatment when they do not.
@@ -13,6 +15,12 @@ import { Camera } from "lucide-react";
  * so adding the real photograph later changes the pixels inside the frame and
  * nothing around it. No reflow, no second pass over the CSS, no layout shift
  * when the image decodes.
+ *
+ * ── Styles ──
+ * The frame's own styles live in AuthorPhoto.module.css beside this file, so
+ * the component is self-contained. Only PLACEMENT — width, position, shadow —
+ * comes from the caller through `className`, because that differs per context
+ * and belongs to the page doing the laying out.
  *
  * ── The empty state ──
  * Not a grey developer placeholder. It is the same faint gold-tinted panel and
@@ -28,9 +36,9 @@ import { Camera } from "lucide-react";
 export type AuthorPhotoRatio = "portrait" | "landscape" | "square";
 
 const RATIO_CLASS: Record<AuthorPhotoRatio, string> = {
-  portrait: "author-photo--portrait",
-  landscape: "author-photo--landscape",
-  square: "author-photo--square",
+  portrait: styles.portrait,
+  landscape: styles.landscape,
+  square: styles.square,
 };
 
 interface AuthorPhotoProps {
@@ -59,16 +67,16 @@ const AuthorPhoto: React.FC<AuthorPhotoProps> = ({
   className = "",
   placeholderLabel,
 }) => {
-  const frameClass = `author-photo ${RATIO_CLASS[ratio]} ${className}`.trim();
+  const frameClass = `${styles.frame} ${RATIO_CLASS[ratio]} ${className}`.trim();
 
   if (!src) {
     return (
       <div
-        className={`${frameClass} author-photo--empty`}
+        className={`${frameClass} ${styles.empty}`}
         role="img"
         aria-label={placeholderLabel || undefined}
       >
-        <Camera className="author-photo__glyph" aria-hidden="true" />
+        <Camera className={styles.glyph} aria-hidden="true" />
       </div>
     );
   }
@@ -84,7 +92,7 @@ const AuthorPhoto: React.FC<AuthorPhotoProps> = ({
         fill
         priority={priority}
         sizes={sizes}
-        className="author-photo__img"
+        className={styles.img}
       />
     </div>
   );

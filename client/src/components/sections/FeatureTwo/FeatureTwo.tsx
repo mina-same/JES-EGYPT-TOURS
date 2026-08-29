@@ -185,6 +185,11 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                   rebuildKey={displayData.items
                     .map((item) => `${item.id}:${item.title}:${item.link}:${item.price}`)
                     .join("|")}
+                  // Until tiny-slider mounts, the wrapper renders EVERY child
+                  // in a plain div. Without this the section server-rendered
+                  // all 24 tour cards stacked vertically, then collapsed to a
+                  // single row on hydration.
+                  placeholderClassName="feature-package__carousel tns-placeholder-single"
                 >
                   {displayData.items.map((item: FeaturePackageItem) => (
                     <TourCard

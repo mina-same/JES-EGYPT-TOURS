@@ -255,7 +255,6 @@ export default async function EditorialAuthorPage({
   const portraitAlt = localizedText(author.image?.alt, locale) || author.name;
   const organisation = localizedText(author.organisation, locale);
   const contentFocus = localizedText(author.contentFocus, locale);
-  const languages = localizedText(author.languages, locale);
   const topics = localizedList(author.topics, locale);
   const aboutParagraphs = localizedList(author.about, locale);
   const expertise = localizedCards(author.expertise, locale);
@@ -279,7 +278,6 @@ export default async function EditorialAuthorPage({
     { label: t('facts.roleLabel'), value: role },
     { label: t('facts.organisationLabel'), value: organisation },
     { label: t('facts.focusLabel'), value: contentFocus },
-    { label: t('facts.languagesLabel'), value: languages },
   ].filter((fact) => Boolean(fact.value));
 
   /*
@@ -385,6 +383,10 @@ export default async function EditorialAuthorPage({
             ariaLabel={tCommon('breadcrumb')}
             items={[{ label: t('breadcrumb') }, { label: author.name }]}
             currentUrl={pageUrl}
+            /* The same glass capsule the article hero uses. It reads on this
+               navy the way it reads on the article's photograph, and it is the
+               shared component's own skin — not a copy of it. */
+            variant="pill"
             className={styles.authorHeroCrumb}
           />
           <Row className={`align-items-center gutter-y-40 ${styles.authorHeroBody}`}>

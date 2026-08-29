@@ -1,78 +1,56 @@
- "use client";
- 
- import i18n from "i18next";
- import { initReactI18next } from "react-i18next";
- import LanguageDetector from "i18next-browser-languagedetector";
- import enCommon from "@/i18n/locales/en/common.json";
- import deCommon from "@/i18n/locales/de/common.json";
- import itCommon from "@/i18n/locales/it/common.json";
-import esCommon from "@/i18n/locales/es/common.json";
+"use client";
 
-import enFaq from "@/i18n/locales/en/faq.json";
-import deFaq from "@/i18n/locales/de/faq.json";
-import itFaq from "@/i18n/locales/it/faq.json";
-import esFaq from "@/i18n/locales/es/faq.json";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
 
-import enContact from "@/i18n/locales/en/contact.json";
-import deContact from "@/i18n/locales/de/contact.json";
-import itContact from "@/i18n/locales/it/contact.json";
-import esContact from "@/i18n/locales/es/contact.json";
+/**
+ * The shared i18next instance — initialised with NO resources.
+ *
+ * It used to statically import nine namespaces for four languages (~164 KB of
+ * raw JSON) into `init({ resources })`, which is not tree-shakeable, so every
+ * visitor downloaded and parsed every language to read one. The active
+ * locale's translations are now loaded on the server and seeded here by
+ * I18nProvider via `addResourceBundle` before the first render — see
+ * src/i18n/bundles/index.ts.
+ */
+export const I18N_NAMESPACES = [
+  "common",
+  "faq",
+  "contact",
+  "wishlist",
+  "tailorMade",
+  "tours",
+  "search",
+  "blogs",
+  "specialOffers",
+] as const;
 
-import enWishlist from "@/i18n/locales/en/wishlist.json";
-import deWishlist from "@/i18n/locales/de/wishlist.json";
-import itWishlist from "@/i18n/locales/it/wishlist.json";
-import esWishlist from "@/i18n/locales/es/wishlist.json";
+if (!i18n.isInitialized) {
+  i18n
+    .use(initReactI18next)
+    .use(LanguageDetector)
+    .init({
+      resources: {},
+      fallbackLng: "en",
+      supportedLngs: ["en", "de", "it", "es"],
+      defaultNS: "common",
+      ns: [...I18N_NAMESPACES],
+      // Bundles are added imperatively, so nothing is ever "still loading":
+      // without this, i18next suspends rendering waiting for a backend that
+      // does not exist here.
+      initImmediate: false,
+      react: { useSuspense: false },
+      detection: {
+        order: ["path", "cookie", "localStorage", "navigator"],
+        caches: ["cookie", "localStorage"],
+        lookupCookie: "NEXT_LOCALE",
+        lookupFromPathIndex: 0,
+      },
+      interpolation: {
+        escapeValue: false,
+      },
+    });
+}
 
-import enTailorMade from "@/i18n/locales/en/tailorMade.json";
-import deTailorMade from "@/i18n/locales/de/tailorMade.json";
-import itTailorMade from "@/i18n/locales/it/tailorMade.json";
-import esTailorMade from "@/i18n/locales/es/tailorMade.json";
-
-import enTours from "@/i18n/locales/en/tours.json";
-import deTours from "@/i18n/locales/de/tours.json";
-import itTours from "@/i18n/locales/it/tours.json";
-import esTours from "@/i18n/locales/es/tours.json";
-
-import enSearch from "@/i18n/locales/en/search.json";
-import deSearch from "@/i18n/locales/de/search.json";
-import itSearch from "@/i18n/locales/it/search.json";
-import esSearch from "@/i18n/locales/es/search.json";
-
-import enBlogs from "@/i18n/locales/en/blogs.json";
-import deBlogs from "@/i18n/locales/de/blogs.json";
-import itBlogs from "@/i18n/locales/it/blogs.json";
-import esBlogs from "@/i18n/locales/es/blogs.json";
-
-import enSpecialOffers from "@/i18n/locales/en/specialOffers.json";
-import deSpecialOffers from "@/i18n/locales/de/specialOffers.json";
-import itSpecialOffers from "@/i18n/locales/it/specialOffers.json";
-import esSpecialOffers from "@/i18n/locales/es/specialOffers.json";
- 
- if (!i18n.isInitialized) {
-   i18n
-     .use(initReactI18next)
-     .use(LanguageDetector)
-     .init({
-       resources: {
-         en: { common: enCommon, faq: enFaq, contact: enContact, wishlist: enWishlist, tailorMade: enTailorMade, tours: enTours, search: enSearch, blogs: enBlogs, specialOffers: enSpecialOffers },
-         de: { common: deCommon, faq: deFaq, contact: deContact, wishlist: deWishlist, tailorMade: deTailorMade, tours: deTours, search: deSearch, blogs: deBlogs, specialOffers: deSpecialOffers },
-         it: { common: itCommon, faq: itFaq, contact: itContact, wishlist: itWishlist, tailorMade: itTailorMade, tours: itTours, search: itSearch, blogs: itBlogs, specialOffers: itSpecialOffers },
-         es: { common: esCommon, faq: esFaq, contact: esContact, wishlist: esWishlist, tailorMade: esTailorMade, tours: esTours, search: esSearch, blogs: esBlogs, specialOffers: esSpecialOffers },
-       },
-       fallbackLng: "en",
-       supportedLngs: ["en", "de", "it", "es"],
-       defaultNS: "common",
-       ns: ["common", "faq", "contact", "wishlist", "tailorMade", "tours", "search", "blogs", "specialOffers"],
-       detection: {
-         order: ["path", "cookie", "localStorage", "navigator"],
-         caches: ["cookie", "localStorage"],
-         lookupCookie: "NEXT_LOCALE",
-         lookupFromPathIndex: 0,
-       },
-       interpolation: {
-         escapeValue: false,
-       },
-     });
- }
- 
- export default i18n;
+export default i18n;

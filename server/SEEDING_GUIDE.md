@@ -121,7 +121,7 @@ npm run seed:all-tours
 - FAQs
 - Tags and metadata
 
-✅ **Real Images**: Using Unsplash for high-quality tour images
+✅ **Images**: Every seeded image field gets the local placeholder from `src/seeds/seedImages.ts` — real pictures are uploaded through the admin (Cloudinary)
 
 ✅ **Pricing Tiers**:
 - AFFORDABLE
@@ -266,7 +266,7 @@ npm run seed:all-tours
 
 ## Notes
 
-- **Images**: Tours use Unsplash images as placeholders
+- **Images**: Tours use the local placeholder in `src/seeds/seedImages.ts`. Never seed a remote stock-image URL: seeded values reach `next/image` on the public site, and only the hosts in `client/next.config.ts` are allowed
 - **Dates**: Pricing seasons are set for 2025-2026
 - **Featured Tours**: 4 tours are marked as featured
 - **Active Status**: All tours are active by default

@@ -1,4 +1,4 @@
-import { ILocalizedString, ILocalizedMixed } from "@/types/tour";
+import type { ILocalizedString, ILocalizedMixed } from "@/types/tour";
 
 /**
  * Extracts a locale-specific array without any cross-locale fallback.

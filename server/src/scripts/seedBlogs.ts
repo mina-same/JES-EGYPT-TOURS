@@ -4,6 +4,7 @@ import Blog from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 import User from '../models/User';
+import { SEED_IMAGE_PLACEHOLDER } from '../seeds/seedImages';
 
 // Load environment variables
 dotenv.config();
@@ -101,7 +102,7 @@ const seedBlogs = async () => {
       subCategory: subAncientSites._id,
       author: admin._id,
       featuredImage: {
-        url: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73b6e?w=1200&h=600&fit=crop',
+        url: SEED_IMAGE_PLACEHOLDER,
         fileName: 'pyramids-giza.jpg',
         title: { en: 'Great Pyramids of Giza at Sunset' },
         alt: { en: 'Great Pyramids of Giza at sunset showcasing the Sphinx' },
@@ -171,7 +172,7 @@ const seedBlogs = async () => {
       subCategory: subTips._id,
       author: admin._id,
       featuredImage: {
-        url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&h=600&fit=crop',
+        url: SEED_IMAGE_PLACEHOLDER,
         fileName: 'nile-cruise.jpg',
         title: { en: 'Luxury Nile River Cruise Ship' },
         alt: { en: 'Luxury Nile River Cruise Ship sailing in Egypt' },
@@ -223,7 +224,7 @@ const seedBlogs = async () => {
       subCategory: subAncientSites._id,
       author: admin._id,
       featuredImage: {
-        url: 'https://images.unsplash.com/photo-1596710642232-05452f1e1ac3?w=1200&h=600&fit=crop',
+        url: SEED_IMAGE_PLACEHOLDER,
         fileName: 'karnak-temple.jpg',
         title: { en: 'Karnak Temple in Luxor' },
         alt: { en: 'Massive pillars of Karnak Temple in Luxor' },
@@ -275,7 +276,7 @@ const seedBlogs = async () => {
       subCategory: subFood._id,
       author: admin._id,
       featuredImage: {
-        url: 'https://images.unsplash.com/photo-1627308595229-7830f5c9c66e?w=1200&h=600&fit=crop',
+        url: SEED_IMAGE_PLACEHOLDER,
         fileName: 'egyptian-food.jpg',
         title: { en: 'Traditional Middle Eastern Spice Market' },
         alt: { en: 'Spices and culinary ingredients showcasing Egyptian flavors' },

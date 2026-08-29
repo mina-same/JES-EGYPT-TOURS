@@ -12,7 +12,8 @@
     "viewPhotos": "Tourfotos ansehen",
     "playVideo": "Tourvideo abspielen",
     "addToWishlist": "Zur Merkliste hinzufügen",
-    "removeFromWishlist": "Von der Merkliste entfernen"
+    "removeFromWishlist": "Von der Merkliste entfernen",
+    "discountBadge": "{{percent}} % RABATT"
   },
   "updatedRecently": "Kürzlich aktualisiert",
   "links": {
@@ -21,7 +22,31 @@
     "contact": "Kontakt"
   },
   "footer": {
-    "travelTrade": "Reisebranche"
+    "travelTrade": "Reisebranche",
+    "about": {
+      "title": "Über JES Egypt Tours",
+      "text": "JES Egypt Tours ist ein lizenziertes ägyptisches Reisebüro mit Sitz in Gizeh. Wir gestalten private, geführte Reisen durch Ägypten – von den Pyramiden und dem Niltal bis Siwa und zum Roten Meer – begleitet von qualifizierten Ägyptologen und geplant nach den Reisenden, nicht nach einem festen Zeitplan."
+    },
+    "sendEmail": "E-Mail senden",
+    "callAgent": "Berater anrufen",
+    "destinationsTitle": "Reiseziele",
+    "usefulLinksTitle": "Nützliche Links",
+    "copyright": "© {{year}} JES Egypt Tours. Alle Rechte vorbehalten.",
+    "paymentMethodsAlt": "Akzeptierte Zahlungsarten",
+    "destinations": {
+      "tours": "Touren",
+      "specialOffers": "Sonderangebote",
+      "tailorMade": "Individualreisen",
+      "blog": "Reiseblog",
+      "faq": "FAQ"
+    },
+    "usefulLinks": {
+      "about": "Über uns",
+      "contact": "Kontakt",
+      "paymentPolicy": "Zahlungs- und Stornierungsbedingungen",
+      "wishlist": "Merkliste",
+      "search": "Suche"
+    }
   },
   "language": {
     "english": "English",
@@ -188,7 +213,8 @@
     "heritageExperts": "Lokale Kulturexperten",
     "fallbackSubtitle": "Das ultimative Ägyptenerlebnis",
     "readMore": "Vollständige Geschichte lesen",
-    "readLess": "Weniger anzeigen"
+    "readLess": "Weniger anzeigen",
+    "imageAlt": "Eine private Reisegruppe von JES Egypt Tours an den Pyramiden von Gizeh"
   },
   "destinations": {
     "carousel": {
@@ -255,5 +281,46 @@
     "tagline": "Echte Reisende",
     "title": "Video-Bewertungen"
   },
-  "breadcrumb": "Brotkrümelnavigation"
+  "breadcrumb": "Brotkrümelnavigation",
+  "nav": {
+    "home": "Startseite",
+    "tailorMade": "Individualreise",
+    "label": "Hauptnavigation"
+  },
+  "menu": {
+    "open": "Menü öffnen",
+    "close": "Menü schließen"
+  },
+  "search": {
+    "open": "Suche öffnen",
+    "close": "Suche schließen",
+    "submit": "Suchen",
+    "placeholder": "Hier suchen …"
+  },
+  "wishlistLink": "Merkliste",
+  "instagram": {
+    "title": "Folgen Sie uns auf Instagram"
+  },
+  "testimonials": {
+    "tagline": "Kundenstimmen",
+    "title": "Unsere Gäste",
+    "highlighted": "berichten",
+    "previous": "Vorherige Kundenstimme",
+    "next": "Nächste Kundenstimme"
+  },
+  "specialOffer": {
+    "tagline": "30 % sparen auf Ägypten-Reisen",
+    "title": "Entdecken Sie Ägypten — Ihre Traumreise mit",
+    "subtitle": "einem Klick",
+    "cta": "Angebot sichern",
+    "limitedTime": "Zeitlich begrenztes Angebot",
+    "off": "Rabatt",
+    "upTo": "bis zu",
+    "travellerImageAlt": "Reisende mit Koffer auf Entdeckungstour durch Ägypten"
+  },
+  "homeMeta": {
+    "title": "Private Ägypten-Reisen & Nilkreuzfahrten | JES Egypt Tours",
+    "description": "Veranstalter in Kairo für private Ägypten-Reisen: Gizeh, Luxor, Assuan, Abu Simbel, Nilkreuzfahrten. Lizenzierte Guides, keine versteckten Kosten.",
+    "imageAlt": "Die Pyramiden von Gizeh und die Sphinx bei Sonnenuntergang, Ägypten"
+  }
 }

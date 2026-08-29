@@ -4,6 +4,7 @@ import path from 'path';
 import TourCategory from '../models/TourCategory';
 import TourSubcategory from '../models/TourSubcategory';
 import Tour from '../models/Tour';
+import { SEED_IMAGE_PLACEHOLDER } from './seedImages';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -45,15 +46,15 @@ const detailedTour = {
     `
   },
   images: [
-    { url: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1200', fileName: 'pyramids-main.jpg', title: 'Grand Pyramids of Giza', alt: 'The Great Pyramids at Sunset' },
-    { url: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=1200', fileName: 'nile-cruise.jpg', title: 'Luxury Nile Cruise', alt: 'A luxury cruise ship sailing the Nile' },
-    { url: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=1200', fileName: 'cairo-evening.jpg', title: 'Cairo Skyline', alt: 'Cairo city at night' }
+    { url: SEED_IMAGE_PLACEHOLDER, fileName: 'pyramids-main.jpg', title: 'Grand Pyramids of Giza', alt: 'The Great Pyramids at Sunset' },
+    { url: SEED_IMAGE_PLACEHOLDER, fileName: 'nile-cruise.jpg', title: 'Luxury Nile Cruise', alt: 'A luxury cruise ship sailing the Nile' },
+    { url: SEED_IMAGE_PLACEHOLDER, fileName: 'cairo-evening.jpg', title: 'Cairo Skyline', alt: 'Cairo city at night' }
   ],
   gallery: [
-    { url: 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=800', fileName: 'luxor-temple.jpg', title: 'Luxor Temple', alt: 'Illuminated Luxor Temple columns' },
-    { url: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800', fileName: 'aswan-felucca.jpg', title: 'Felucca on the Nile', alt: 'Traditional sailing boat in Aswan' },
-    { url: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800', fileName: 'red-sea.jpg', title: 'Red Sea Coast', alt: 'Turquoise waters of the Red Sea' },
-    { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'hatshepsut.jpg', title: 'Temple of Hatshepsut', alt: 'The Mortuary Temple of Hatshepsut' }
+    { url: SEED_IMAGE_PLACEHOLDER, fileName: 'luxor-temple.jpg', title: 'Luxor Temple', alt: 'Illuminated Luxor Temple columns' },
+    { url: SEED_IMAGE_PLACEHOLDER, fileName: 'aswan-felucca.jpg', title: 'Felucca on the Nile', alt: 'Traditional sailing boat in Aswan' },
+    { url: SEED_IMAGE_PLACEHOLDER, fileName: 'red-sea.jpg', title: 'Red Sea Coast', alt: 'Turquoise waters of the Red Sea' },
+    { url: SEED_IMAGE_PLACEHOLDER, fileName: 'hatshepsut.jpg', title: 'Temple of Hatshepsut', alt: 'The Mortuary Temple of Hatshepsut' }
   ],
   tourLocation: 'Cairo, Luxor, Aswan, Abu Simbel, Hurghada',
   tourAvailability: 'Every Day (Year Round)',
@@ -237,7 +238,7 @@ const detailedTour = {
           {
             heading: 'Arrival & VIP Assist',
             description: 'Meet our luxury travel representative at Cairo International Airport for VIP assistance with visa and customs. Transfer via private Mercedes-Benz to your 5-star hotel.',
-            image: { url: 'https://images.unsplash.com/photo-1549413200-98365313a07b?w=800', fileName: 'cairo-arrival.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'cairo-arrival.jpg' }
           }
         ]
       },
@@ -249,12 +250,12 @@ const detailedTour = {
           {
             heading: 'Giza Plateau Exploration',
             description: 'Experience the majesty of the Great Pyramids and the Sphinx. Enjoy a private camel trek across the plateau for the best panoramic views.',
-            image: { url: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=800', fileName: 'giza-pyramids.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'giza-pyramids.jpg' }
           },
           {
             heading: 'Memphis & Saqqara',
             description: 'Visit the first capital of Egypt and the Step Pyramid of Djoser, the oldest stone structure in history.',
-            image: { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'saqqara.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'saqqara.jpg' }
           }
         ]
       },
@@ -266,12 +267,12 @@ const detailedTour = {
           {
             heading: 'Grand Egyptian Museum (GEM)',
             description: 'Be among the first to explore the world\'s largest archaeological museum, featuring the full Tutankhamun collection.',
-            image: { url: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800', fileName: 'museum.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'museum.jpg' }
           },
           {
             heading: 'Islamic & Coptic Cairo',
             description: 'Walk through Al-Muizz Street and visit the Citadel of Saladin before exploring the historic Hanging Church.',
-            image: { url: 'https://images.unsplash.com/photo-1549413200-98365313a07b?w=800', fileName: 'old-cairo.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'old-cairo.jpg' }
           }
         ]
       },
@@ -283,7 +284,7 @@ const detailedTour = {
           {
             heading: 'Philae Temple at Sunset',
             description: 'Take a boat to the Agilkia Island to visit the romantic Philae Temple, saved from the rising waters of the Nile.',
-            image: { url: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800', fileName: 'philae-temple.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'philae-temple.jpg' }
           }
         ]
       },
@@ -295,12 +296,12 @@ const detailedTour = {
           {
             heading: 'Abu Simbel Sun Festival Experience',
             description: 'Private transfer to the colossal temples of Ramses II and Nefertari, carved directly into the mountain side.',
-            image: { url: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800', fileName: 'abusimbel.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'abusimbel.jpg' }
           },
           {
             heading: 'Cruise Embarkation',
             description: 'Board your 5-star luxury Nile Cruise and enjoy lunch as we begin our voyage downstream.',
-            image: { url: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800', fileName: 'cruise-life.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'cruise-life.jpg' }
           }
         ]
       },
@@ -312,7 +313,7 @@ const detailedTour = {
           {
             heading: 'Kom Ombo & Edfu',
             description: 'Visit the unique double temple of Kom Ombo and the incredibly well-preserved Temple of Horus in Edfu by horse-drawn carriage.',
-            image: { url: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800', fileName: 'kom-ombo.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'kom-ombo.jpg' }
           }
         ]
       },
@@ -324,12 +325,12 @@ const detailedTour = {
           {
             heading: 'Valley of the Kings',
             description: 'Explore the elaborate underground tombs of the New Kingdom pharaohs, including the legendary Tutankhamun.',
-            image: { url: 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=800', fileName: 'vok-tomb.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'vok-tomb.jpg' }
           },
           {
             heading: 'Mortuary Temple of Hatshepsut',
             description: 'Visit the stunning three-tiered temple of Egypt\'s most famous female pharaoh, built into the limestone cliffs.',
-            image: { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'hatshepsut-temple.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'hatshepsut-temple.jpg' }
           }
         ]
       },
@@ -341,12 +342,12 @@ const detailedTour = {
           {
             heading: 'Karnak Temple Complex',
             description: 'Wander through the massive Hypostyle Hall with its 134 towering columns, the largest religious site in Antiquity.',
-            image: { url: 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=800', fileName: 'karnak-hall.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'karnak-hall.jpg' }
           },
           {
             heading: 'Luxor Temple',
             description: 'Visit the majestic Luxor Temple as it lights up at dusk, connected once to Karnak by the Avenue of Sphinxes.',
-            image: { url: 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=800', fileName: 'luxor-by-night.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'luxor-by-night.jpg' }
           }
         ]
       },
@@ -358,7 +359,7 @@ const detailedTour = {
           {
             heading: 'Transfer to Hurghada',
             description: 'Private transfer through the Eastern Desert to the Red Sea coast. Check-in to your luxury all-inclusive resort.',
-            image: { url: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800', fileName: 'hurghada-resort.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'hurghada-resort.jpg' }
           }
         ]
       },
@@ -370,7 +371,7 @@ const detailedTour = {
           {
             heading: 'Private Snorkeling Safari',
             description: 'Board a private yacht for a day of snorkeling in the protected reefs of the Red Sea. Enjoy a fresh seafood lunch on board.',
-            image: { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'snorkeling-red-sea.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'snorkeling-red-sea.jpg' }
           }
         ]
       },
@@ -382,7 +383,7 @@ const detailedTour = {
           {
             heading: 'Leisure Morning',
             description: 'Free time for spa treatments or more beach relaxation. Late afternoon flight back to Cairo.',
-            image: { url: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800', fileName: 'cairo-return.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'cairo-return.jpg' }
           }
         ]
       },
@@ -394,7 +395,7 @@ const detailedTour = {
           {
             heading: 'Departure Transfer',
             description: 'Private transfer to Cairo International Airport for your flight home.',
-            image: { url: 'https://images.unsplash.com/photo-1549413200-98365313a07b?w=800', fileName: 'departure.jpg' }
+            image: { url: SEED_IMAGE_PLACEHOLDER, fileName: 'departure.jpg' }
           }
         ]
       }

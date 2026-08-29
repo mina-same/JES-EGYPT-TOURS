@@ -25,11 +25,13 @@ import { getSeoBaseUrl } from "@/lib/url";
  * being rendered means they cannot, and every page with a trail gets the
  * markup for free.
  *
- * ── Styling ──
- * `.gotur-breadcrumb` in gotur.css remains the single source: white links, the
- * gold current page, and the "\e917" icomoon chevron between items. Nothing is
- * restyled here — a caller that needs different alignment or scale passes
- * `className` and overrides that one property.
+ * ── Two skins, one trail ──
+ * `classic` is the theme's `.gotur-breadcrumb` — the icomoon chevron and the
+ * gold current page, used under the photographic page banner. `pill` is the
+ * glass capsule the article hero uses: a rounded, blurred bar with "/"
+ * separators. They are variants of ONE component rather than two components,
+ * because the difference is genuinely only paint: same items, same links, same
+ * schema, same locale handling.
  */
 
 export type BreadcrumbItem = {
@@ -52,6 +54,11 @@ interface BreadcrumbProps {
   currentUrl?: string;
   /** Opt out where the page already publishes its own BreadcrumbList. */
   jsonLd?: boolean;
+  /**
+   * `classic` — the theme's chevron trail, for the dark photo banner.
+   * `pill` — the blurred glass capsule the article hero uses.
+   */
+  variant?: "classic" | "pill";
 }
 
 /**
@@ -100,39 +107,98 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
   className = "",
   currentUrl,
   jsonLd = true,
-}) => (
-  // The landmark goes on a <nav> wrapping the list, not on the <ul> itself:
-  // role="navigation" there would strip the list semantics its <li> children
-  // depend on.
-  <nav aria-label={ariaLabel || "Breadcrumb"} className={className}>
-    {jsonLd && (
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
-            buildBreadcrumbJsonLd(
-              `${getSeoBaseUrl()}/${locale}`,
-              homeLabel,
-              Array.isArray(items) ? items : [],
-              currentUrl
-            )
-          ),
-        }}
-      />
-    )}
-    <ul className="gotur-breadcrumb list-unstyled">
-      <li>
-        <Link href={`/${locale}`}>{homeLabel}</Link>
-      </li>
-      {Array.isArray(items)
-        ? items.map((item, index) => (
+  variant = "classic",
+}) => {
+  const list = Array.isArray(items) ? items : [];
+
+  /*
+   * The schema is a SIBLING of the <nav>, not a child of it.
+   *
+   * A <script> inside the landmark is valid and invisible, but it lands in the
+   * element's textContent — so anything reading the trail as text (a test, a
+   * scraper, a future component) gets a wall of JSON before the first crumb.
+   */
+  const schema = jsonLd ? (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(
+          buildBreadcrumbJsonLd(`${getSeoBaseUrl()}/${locale}`, homeLabel, list, currentUrl)
+        ),
+      }}
+    />
+  ) : null;
+
+  const homeLink =
+    variant === "pill" ? (
+      <Link
+        href={`/${locale}`}
+        className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0"
+      >
+        {homeLabel}
+      </Link>
+    ) : (
+      <Link href={`/${locale}`}>{homeLabel}</Link>
+    );
+
+  if (variant === "pill") {
+    return (
+      <>
+        {schema}
+        {/* A flex row rather than a list: the "/" separators are content
+            between the items. The classic skin draws its chevron with ::after
+            on the <li> instead, which is the only reason the two differ
+            structurally at all. */}
+        <nav
+          aria-label={ariaLabel || "Breadcrumb"}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 max-w-full overflow-hidden whitespace-nowrap ${className}`.trim()}
+        >
+          {homeLink}
+          {list.map((item, index) => (
+            <span key={`${item.label}-${index}`} className="contents">
+              <span className="text-white/40 flex-shrink-0">/</span>
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                // The current page: gold, and truncated rather than allowed to
+                // push the capsule past the viewport on a long title.
+                <span
+                  className="text-[#b79c5c] text-sm font-bold truncate block max-w-[150px] md:max-w-[350px]"
+                  title={item.label}
+                >
+                  {item.label}
+                </span>
+              )}
+            </span>
+          ))}
+        </nav>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {schema}
+      {/* The landmark goes on a <nav> wrapping the list, not on the <ul>:
+          role="navigation" there would strip the list semantics its <li>
+          children depend on. */}
+      <nav aria-label={ariaLabel || "Breadcrumb"} className={className}>
+        <ul className="gotur-breadcrumb list-unstyled">
+          <li>{homeLink}</li>
+          {list.map((item, index) => (
             <li key={`${item.label}-${index}`}>
               {item.href ? <Link href={item.href}>{item.label}</Link> : <span>{item.label}</span>}
             </li>
-          ))
-        : null}
-    </ul>
-  </nav>
-);
+          ))}
+        </ul>
+      </nav>
+    </>
+  );
+};
 
 export default Breadcrumb;

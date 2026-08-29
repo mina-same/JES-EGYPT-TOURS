@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
+import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 export interface IDestination extends Document {
   // Basic Info
@@ -197,5 +198,21 @@ DestinationSchema.pre<IDestination>('save', function (next) {
   }
   next();
 });
+
+
+/**
+ * Editor HTML is cleaned on the way IN, so the database never holds a payload
+ * and the ~30 dangerouslySetInnerHTML call sites on the visitor pages are
+ * rendering content that was already sanitized. See utils/sanitizeRichText.ts.
+ *
+ * Both hooks are needed: document hooks never run for findOneAndUpdate and
+ * friends, which the admin uses for edits.
+ */
+const RICH_TEXT_PATHS = ['description', 'heroDescription'] as const;
+
+DestinationSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
+DestinationSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+DestinationSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+DestinationSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 
 export default mongoose.model<IDestination>('Destination', DestinationSchema);

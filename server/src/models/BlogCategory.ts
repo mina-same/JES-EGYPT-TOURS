@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { FAQSchema, IFAQ } from './shared/FaqSchema';
 import { IImage } from './shared/ImageSchema';
+import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 export interface IBlogCategory extends Document {
   // Basic Info
@@ -244,5 +245,21 @@ BlogCategorySchema.pre<IBlogCategory>('save', function (next) {
   
   next();
 });
+
+
+/**
+ * Editor HTML is cleaned on the way IN, so the database never holds a payload
+ * and the ~30 dangerouslySetInnerHTML call sites on the visitor pages are
+ * rendering content that was already sanitized. See utils/sanitizeRichText.ts.
+ *
+ * Both hooks are needed: document hooks never run for findOneAndUpdate and
+ * friends, which the admin uses for edits.
+ */
+const RICH_TEXT_PATHS = ['description', 'heroDescription'] as const;
+
+BlogCategorySchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
+BlogCategorySchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+BlogCategorySchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+BlogCategorySchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 
 export default mongoose.model<IBlogCategory>('BlogCategory', BlogCategorySchema);

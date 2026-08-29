@@ -5,6 +5,7 @@ import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 import User from '../models/User';
 import Destination from '../models/Destination';
+import { SEED_IMAGE_PLACEHOLDER } from '../seeds/seedImages';
 
 // Load environment variables
 dotenv.config();
@@ -72,7 +73,7 @@ const seedDetailedBlog = async () => {
       subCategory: subCategory._id,
       destination: destination?._id,
       featuredImage: {
-        url: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1600&h=900&fit=crop',
+        url: SEED_IMAGE_PLACEHOLDER,
         fileName: 'luxury-egypt-hero.jpg',
         title: { en: 'Aerial view of the Nile in Cairo' },
         alt: { en: 'Luxury travel experience in Egypt showcasing the Nile and Pyramids' },
@@ -128,7 +129,7 @@ const seedDetailedBlog = async () => {
         },
         {
           type: 'image',
-          image: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73b6e?w=1200&h=600&fit=crop',
+          image: SEED_IMAGE_PLACEHOLDER,
           alt: { en: 'Great Pyramids at sunset' },
           caption: { en: 'The Great Pyramids of Giza, seen from the Mena House grounds.' }
         },
@@ -166,7 +167,7 @@ const seedDetailedBlog = async () => {
       metaDescription: { en: 'Plan your dream 10-day luxury trip to Egypt. Expert tips on hotels, cruises, and private tours.', de: 'Planen Sie Ihre Traumreise nach Ägypten.', it: 'Pianifica il tuo viaggio da sogno in Egitto.', es: 'Planifica el viaje de tus sueños a Egipto.' },
       metaKeywords: { en: ['Luxury Egypt', 'Egypt Itinerary', 'Private Tour'], de: ['Luxus Ägypten'], it: ['Egitto di lusso'], es: ['Egipto de lujo'] },
       metaImage: {
-        url: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1200&h=630&fit=crop',
+        url: SEED_IMAGE_PLACEHOLDER,
         fileName: 'luxury-egypt-meta.jpg',
         alt: { en: 'Luxury Egypt Tour' }
       },
@@ -174,7 +175,7 @@ const seedDetailedBlog = async () => {
       // Open Graph
       ogTitle: { en: 'Experience Egypt in Absolute Luxury' },
       ogDescription: { en: 'A 10-day curated journey through the land of the Pharaohs.' },
-      ogImage: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1200&h=630&fit=crop',
+      ogImage: SEED_IMAGE_PLACEHOLDER,
       ogType: 'article',
       
       // Indexing

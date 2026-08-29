@@ -1100,9 +1100,14 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                              the button is pressed. */
                           rowClassName={(index) => {
                             if (index < FAQ_VISIBLE_COUNT) return undefined;
+                            /* `--foldable` stays on in BOTH states so the row
+                               has something to transition between. Adding it
+                               only while open meant collapsing swapped the
+                               class away and the closing had nothing to
+                               animate. Rows inside the fold stay untouched. */
                             return showAllFaqs
-                              ? "faq-list__row--revealed"
-                              : "faq-list__row--folded";
+                              ? "faq-list__row--foldable"
+                              : "faq-list__row--foldable faq-list__row--folded";
                           }}
                         />
 

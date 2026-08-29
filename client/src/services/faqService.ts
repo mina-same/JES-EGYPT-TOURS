@@ -51,6 +51,12 @@ export interface FAQQueryParams {
   search?: string;
   /** 'en' | 'de' | 'it' | 'es' for visitors, or 'bypass' for the admin. */
   locale?: string;
+  /**
+   * Server-side caching, opt-in. The admin never passes it, so an editor
+   * always reads live rows; the visitor pages pass a tag the API clears on
+   * save (see server/src/models/Faq.ts) plus a long window as a safety net.
+   */
+  cache?: { revalidate?: number; tags?: string[] };
 }
 
 class FaqService {
@@ -75,8 +81,16 @@ class FaqService {
       // no question/answer in it. Visitor callers pass their locale; the ADMIN
       // must pass 'bypass' so the editor always sees every row in every
       // language — otherwise an Italian-only FAQ would vanish from the list.
-      const response = await fetch(url, {
+      // The locale is in the query string too: Next keys its Data Cache on
+      // the request, and this repo's convention is to make the language part
+      // of the URL so one language's response cannot be replayed to another.
+      const cachedUrl = params?.locale
+        ? `${url}${url.includes('?') ? '&' : '?'}locale=${encodeURIComponent(params.locale)}`
+        : url;
+
+      const response = await fetch(cachedUrl, {
         ...(params?.locale ? { headers: { 'X-Locale': params.locale } } : {}),
+        ...(params?.cache ? { next: params.cache } : {}),
       });
 
       if (!response.ok) {

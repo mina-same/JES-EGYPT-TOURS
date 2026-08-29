@@ -8,7 +8,7 @@ import Link from "next/link";
 import LanguageSelector from "../LanguageSelector/LanguageSelector";
 import CurrencySwitcher from "../CurrencySwitcher/CurrencySwitcher";
 import { useTranslation } from "react-i18next";
-import { getLocalizedStaticSlug } from "@/lib/url";
+import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import { usePathname } from "next/navigation";
 
 interface ContactInfoItem {
@@ -50,13 +50,17 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
   useEffect(() => {
     setMounted(true);
   }, []);
-  const { t, i18n } = useTranslation("common");
+  const { t } = useTranslation("common");
   const pathname = usePathname();
-  const locales = ["en", "de", "it"];
-  const prefix = (() => {
-    const seg = (pathname || "/").split("/")[1] || "";
-    return locales.includes(seg) ? `/${seg}` : "";
-  })();
+  // Derived through the shared helper, NOT a locally-listed set of locales.
+  // The local list here read ["en", "de", "it"] — Spanish was missing, so on
+  // /es these links lost their locale prefix entirely. The middleware then
+  // resolved the language from the NEXT_LOCALE cookie instead of the page,
+  // and a visitor arriving on /es with no cookie was sent to the ENGLISH
+  // About/Contact pages. localizeInternalUrl also translates the static slug
+  // (/about -> /es/sobre-nosotros), so the hardcoded "/faq" that sat beside
+  // two getLocalizedStaticSlug calls is no longer a separate convention.
+  const locale = getLocaleFromPath(pathname);
 
   return (
     <div className={`top-one ${extraClass || ""}`} suppressHydrationWarning>
@@ -107,9 +111,9 @@ const TopbarOne: React.FC<TopbarOneProps> = ({ extraClass }) => {
             <div className='top-one__social' suppressHydrationWarning>
               {mounted && (
                 <>
-                  <Link href={`${prefix}/faq`}>{t("links.faq")}</Link>
-                  <Link href={`${prefix}/${getLocalizedStaticSlug("about", i18n.language)}`}>{t("links.about")}</Link>
-                  <Link href={`${prefix}/${getLocalizedStaticSlug("contact", i18n.language)}`}>{t("links.contact")}</Link>
+                  <Link href={localizeInternalUrl("/faq", locale)}>{t("links.faq")}</Link>
+                  <Link href={localizeInternalUrl("/about", locale)}>{t("links.about")}</Link>
+                  <Link href={localizeInternalUrl("/contact", locale)}>{t("links.contact")}</Link>
                 </>
               )}
             </div>

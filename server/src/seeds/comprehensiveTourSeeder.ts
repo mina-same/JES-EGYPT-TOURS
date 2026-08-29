@@ -4,6 +4,7 @@ import path from 'path';
 import TourCategory from '../models/TourCategory';
 import TourSubcategory from '../models/TourSubcategory';
 import Tour from '../models/Tour';
+import { SEED_IMAGE_PLACEHOLDER } from './seedImages';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -31,18 +32,20 @@ const log = {
   header: (msg: string) => console.log(`\n${colors.bright}${colors.cyan}${msg}${colors.reset}\n`),
 };
 
-// Sample image URLs (using placeholder service)
+// Every subject resolves to the same local stand-in. The keys are kept
+// because the tour definitions below read as `sampleImages.luxor` and the name
+// still says which picture belongs there once a real one is uploaded.
 const sampleImages = {
-  pyramids: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800',
-  nile: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800',
-  luxor: 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=800',
-  aswan: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800',
-  cairo: 'https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800',
-  redSea: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800',
-  desert: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800',
-  sphinx: 'https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=800',
-  temple: 'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=800',
-  cruise: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800',
+  pyramids: SEED_IMAGE_PLACEHOLDER,
+  nile: SEED_IMAGE_PLACEHOLDER,
+  luxor: SEED_IMAGE_PLACEHOLDER,
+  aswan: SEED_IMAGE_PLACEHOLDER,
+  cairo: SEED_IMAGE_PLACEHOLDER,
+  redSea: SEED_IMAGE_PLACEHOLDER,
+  desert: SEED_IMAGE_PLACEHOLDER,
+  sphinx: SEED_IMAGE_PLACEHOLDER,
+  temple: SEED_IMAGE_PLACEHOLDER,
+  cruise: SEED_IMAGE_PLACEHOLDER,
 };
 
 /**
@@ -386,12 +389,12 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
         images: [
           { url: sampleImages.pyramids, fileName: 'pyramids-hero.jpg', title: { en: 'The Great Pyramids at Sunrise', de: 'Die Großen Pyramiden bei Sonnenaufgang', it: 'Le Grandi Piramidi all\'alba', es: 'Las Grandes Pirámides al Amanecer' }, alt: { en: 'Panoramic view of Giza Pyramids', de: 'Panoramablick auf die Pyramiden von Gizeh', it: 'Vista panoramica delle Piramidi di Giza', es: 'Vista panorámica de las Pirámides de Giza' } },
           { url: sampleImages.sphinx, fileName: 'sphinx-profile.jpg', title: { en: 'The Great Sphinx', de: 'Die Große Sphinx', it: 'La Grande Sfinge', es: 'La Gran Esfinge' }, alt: { en: 'Side profile of the Sphinx with pyramids in background', de: 'Seitenprofil der Sphinx mit Pyramiden im Hintergrund', it: 'Profilo laterale della Sfinge con le piramidi sullo sfondo', es: 'Perfil lateral de la Esfinge con las pirámides al fondo' } },
-          { url: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800', fileName: 'camel-ride.jpg', title: { en: 'Camel Ride at Giza', de: 'Kamelritt in Gizeh', it: 'Giro in cammello a Giza', es: 'Paseo en Camello en Giza' }, alt: { en: 'Tourist riding camel with pyramids view', de: 'Tourist reitet Kamel mit Blick auf die Pyramiden', it: 'Turista che cavalca un cammello con vista sulle piramidi', es: 'Turista montando un camello con vista a las pirámides' } },
+          { url: SEED_IMAGE_PLACEHOLDER, fileName: 'camel-ride.jpg', title: { en: 'Camel Ride at Giza', de: 'Kamelritt in Gizeh', it: 'Giro in cammello a Giza', es: 'Paseo en Camello en Giza' }, alt: { en: 'Tourist riding camel with pyramids view', de: 'Tourist reitet Kamel mit Blick auf die Pyramiden', it: 'Turista che cavalca un cammello con vista sulle piramidi', es: 'Turista montando un camello con vista a las pirámides' } },
         ],
         gallery: [
           { url: sampleImages.pyramids, fileName: 'pyramid-detail.jpg', title: { en: 'Pyramid Limestone Blocks', de: 'Pyramiden-Kalksteinblöcke', it: 'Blocchi di calcare della piramide', es: 'Bloques de Piedra Caliza de la Pirámide' }, alt: { en: 'Close up of massive stones', de: 'Nahaufnahme von massiven Steinen', it: 'Primo piano di pietre massicce', es: 'Primer plano de piedras masivas' } },
           { url: sampleImages.sphinx, fileName: 'sphinx-front.jpg', title: { en: 'Sphinx Front View', de: 'Sphinx Vorderansicht', it: 'Vista frontale della Sfinge', es: 'Vista Frontal de la Esfinge' }, alt: { en: 'Frontal view of Sphinx', de: 'Frontalansicht der Sphinx', it: 'Vista frontale della Sfinge', es: 'Vista frontal de la Esfinge' } },
-          { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800', fileName: 'saqqara-step.jpg', title: { en: 'Step Pyramid of Saqqara', de: 'Stufenpyramide von Sakkara', it: 'Piramide a gradoni di Saqqara', es: 'Pirámide Escalonada de Saqqara' }, alt: { en: 'Djoser Step Pyramid', de: 'Djoser-Stufenpyramide', it: 'Piramide a gradoni di Djoser', es: 'Pirámide Escalonada de Zoser' } },
+          { url: SEED_IMAGE_PLACEHOLDER, fileName: 'saqqara-step.jpg', title: { en: 'Step Pyramid of Saqqara', de: 'Stufenpyramide von Sakkara', it: 'Piramide a gradoni di Saqqara', es: 'Pirámide Escalonada de Saqqara' }, alt: { en: 'Djoser Step Pyramid', de: 'Djoser-Stufenpyramide', it: 'Piramide a gradoni di Djoser', es: 'Pirámide Escalonada de Zoser' } },
         ],
         tourLocation: { en: 'Giza & Saqqara, Egypt', de: 'Gizeh & Sakkara, Ägypten', it: 'Giza e Saqqara, Egitto', es: 'Giza y Saqqara, Egipto' },
         tourAvailability: { en: 'Every Day (8:00 AM Start)', de: 'Jeden Tag (Beginn 08:00 Uhr)', it: 'Ogni giorno (inizio ore 8:00)', es: 'Todos los días (inicio 8:00 AM)' },

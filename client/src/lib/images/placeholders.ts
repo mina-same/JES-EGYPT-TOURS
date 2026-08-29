@@ -12,11 +12,21 @@
  * the original mistake, and `src/assets/*` (which does exist) is a different
  * mechanism entirely, reachable only through a module `import`, never a URL.
  *
- * The asset itself is a flat colour, not a photograph: a stand-in should read
- * as an empty slot rather than misrepresent a tour with someone else's picture.
- * Replace the file to change the look — no code has to move.
+ * The asset is one of the agency's own Egypt photographs. It was a flat colour
+ * until 2026-08-29, on the reasoning that a stand-in should read as an empty
+ * slot rather than misrepresent a tour — that risk is real and still worth
+ * knowing about: a card with no picture of its own now looks like it has one.
+ * What makes it acceptable is ownership. The picture is the agency's, served
+ * from `public/`, so it carries no third-party dependency and no licence to
+ * honour — the two things that made the old Unsplash hotlinks untenable.
+ *
+ * The extension is `.webp`, not `.png`: the file is a photograph, and the same
+ * image as PNG weighs 3.3 MB against 172 KB here. Swapping the file for another
+ * format means changing this constant AND `SEED_IMAGE_PLACEHOLDER` in
+ * `server/src/seeds/seedImages.ts` — a path served with the wrong extension
+ * gets the wrong Content-Type.
  */
-export const TOUR_IMAGE_PLACEHOLDER = "/images/resources/tour-placeholder.png";
+export const TOUR_IMAGE_PLACEHOLDER = "/images/resources/tour-placeholder.webp";
 
 /**
  * The same asset, under the name the blog cards ask for.
