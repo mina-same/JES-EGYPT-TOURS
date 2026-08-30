@@ -25,6 +25,7 @@ import enBlogs from "@/i18n/locales/en/blogs.json";
 import deBlogs from "@/i18n/locales/de/blogs.json";
 import itBlogs from "@/i18n/locales/it/blogs.json";
 import esBlogs from "@/i18n/locales/es/blogs.json";
+import { BLOG_IMAGE_PLACEHOLDER } from '@/lib/images/placeholders';
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
 
@@ -150,7 +151,7 @@ export default function BlogSubcategoryView({
                   style={{ height: '400px' }}
                 >
                   <Image 
-                    src={subcategory.sideImage?.url || (typeof subcategory.image === 'object' ? subcategory.image?.url : subcategory.image) || "https://placehold.co/800x600?text=JES+Egypt+Tours"} 
+                    src={subcategory.sideImage?.url || (typeof subcategory.image === 'object' ? subcategory.image?.url : subcategory.image) || BLOG_IMAGE_PLACEHOLDER} 
                     alt={getLocalizedValue(subcategory.sideImage?.alt, locale) || (typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) : subcategoryName)}
                     title={getImageTitle(subcategory.sideImage, locale, subcategoryImageTitle || subcategoryName)}
                     fill

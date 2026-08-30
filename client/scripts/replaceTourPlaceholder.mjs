@@ -21,7 +21,10 @@ const argv = process.argv.slice(2);
 const dry = argv.includes('--dry');
 const tIdx = argv.indexOf('--target');
 const src = argv.find((a, i) => !a.startsWith('--') && !(tIdx !== -1 && i === tIdx + 1));
-const target = tIdx !== -1 ? argv[tIdx + 1] : 'public/images/resources/tour-placeholder.png';
+// Must match TOUR_IMAGE_PLACEHOLDER in src/lib/images/placeholders.ts. The
+// default was still `.png` after the asset moved to `.webp`, so running this
+// without --target wrote a file nothing reads and left the real one untouched.
+const target = tIdx !== -1 ? argv[tIdx + 1] : 'public/images/resources/tour-placeholder.webp';
 const cacheDir = '.next/cache/images';
 
 if (!src) { console.error('usage: node scripts/replaceTourPlaceholder.mjs <source-image> [--dry]'); process.exit(1); }

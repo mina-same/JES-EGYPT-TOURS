@@ -7,6 +7,7 @@ import type { TourDetailsOneData, TierAmount } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
 import { classifySeason, seasonLabelKey, type SeasonKind } from "@/lib/tours/seasonKind";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 /** English wording when a locale lacks the key. */
 const BROCHURE_SEASON_FALLBACKS: Record<SeasonKind, string> = {
@@ -44,7 +45,7 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
   const heroImage =
     (tour.sliderImages && tour.sliderImages.length > 0 && getImgUrl(tour.sliderImages[0])) ||
     (tour.images && tour.images.length > 0 && getImgUrl(tour.images[0])) ||
-    "https://placehold.co/1200x800?text=Tour";
+    TOUR_IMAGE_PLACEHOLDER;
 
   const gallery = (tour.images || []).slice(0, 5).map(getImgUrl).filter(Boolean);
   const companyName = "JES Egypt Tours";

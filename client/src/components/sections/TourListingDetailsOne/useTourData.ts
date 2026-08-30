@@ -13,6 +13,7 @@ import {
   isEmptyAccommodation,
   resolveAccommodationIcon,
 } from "@/lib/accommodationIcon";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
@@ -83,7 +84,8 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     const tourSlug = getStrictLocalizedSlug(t?.slug, currentLang);
     if (!tourSlug) return null;
     const tourTitle = getLocalizedValue(t?.heading) || t?.name || "";
-    const fallback = 'https://placehold.co/600x400?text=No+Image';
+    // The site's own stand-in, not a third-party placeholder service.
+    const fallback = TOUR_IMAGE_PLACEHOLDER;
     
     // Consolidate images for the gallery
     const rawImages = safeArray<any>(t?.images);
