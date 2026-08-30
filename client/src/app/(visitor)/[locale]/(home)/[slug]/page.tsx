@@ -37,6 +37,7 @@ import {
   getPublicAuthorName,
   isEditorialAuthor,
 } from "@/lib/blog/author";
+import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
@@ -843,7 +844,17 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
               title={name || "Tour Details"}
               subTitle={getLocalizedValue(tour.headingDescription, locale)}
               breadcrumbs={breadcrumbs}
-              bgImage={tour.images?.[0]?.url || tour.featuredImage?.url || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwBz9RsGBZErQQOzYdoMyqX-6tjs_zUEuiJg&s"}
+              bgImage={
+                // The site's own stand-in, not a hotlinked Google Images
+                // thumbnail. That URL sat here as the fallback: it leaked a
+                // referrer to Google on every tour with no picture of its own,
+                // depended on a third party staying up, and — once the image
+                // optimizer stopped accepting arbitrary hosts — threw, turning
+                // the whole page into a 500.
+                tour.images?.[0]?.url ||
+                tour.featuredImage?.url ||
+                TOUR_IMAGE_PLACEHOLDER
+              }
               alt={getLocalizedValue(tour.images?.[0]?.alt || tour.featuredImage?.alt, locale) || name}
             />
             <TourListingOneDetails id={slug} initialRawTour={tourData} />

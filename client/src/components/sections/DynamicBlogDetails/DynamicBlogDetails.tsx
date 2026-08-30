@@ -22,7 +22,7 @@ import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
 import BannerCTA from "@/components/sections/BannerCTA/BannerCTA";
 import { normalizeAmenityItems } from '@/lib/normalizeAmenityItems';
-import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
+import { BLOG_IMAGE_PLACEHOLDER, TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import BlogCard from "@/components/common/BlogCard/BlogCard";
 import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
@@ -550,7 +550,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
               <div className='blog-details-card'>
                 <div className='blog-details-card__image'>
                   <Image 
-                    src={featuredImageUrl || "https://placehold.co/1200x600?text=Image"} 
+                    src={featuredImageUrl || BLOG_IMAGE_PLACEHOLDER} 
                     alt={featuredImageAlt}
                     title={featuredImageTitle}
                     width={1200}
