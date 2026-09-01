@@ -1,15 +1,28 @@
 import { Request, Response } from 'express';
 import Tour from '../models/Tour';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, isValidObjectId } from 'mongoose';
 import { ITour, completeTourSeo, validateTourKindPlans } from '../models/Tour';
-import { deriveStartingPrice } from '../utils/startingPrice';
+import { deriveStartingPrice, validatePricingCurrencyConsistency } from '../utils/startingPrice';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { localize, localizePreservingSlugs } from '../utils/localize';
 import {
   parseFutureSchedule,
   PublishingValidationError,
 } from '../utils/publishing';
-import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { createSearchRegex } from '../utils/search';
+import { PERMISSIONS } from '../permissions';
+import CurrencyConfig from '../models/CurrencyConfig';
+import {
+  applyStartingPriceFilter,
+  effectiveStartingPriceExpression,
+  exactLocalizedValueFilter,
+  parseTourFields,
+  parseTourPagination,
+  parseTourSort,
+  toTourCurrency,
+  toTourLocale,
+  TourQueryValidationError,
+} from '../utils/tourQuery';
 
 // ==================== INTERFACES ====================
 
@@ -31,6 +44,7 @@ interface QueryParams {
   maxPrice?: string;
   tourType?: string;
   tourStyle?: string;
+  currency?: string;
   page?: string;
   limit?: string;
   sort?: string;
@@ -53,20 +67,64 @@ const stripEmptyLocalizedSlugs = (slug: any): void => {
 /**
  * Build query filter from request parameters
  */
-const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<ITour>> => {
+const canReadInactiveTours = (req: { user?: Request['user'] }): boolean => {
+  const user = req.user;
+  if (!user) return false;
+  if (user.role === 'superadmin') return true;
+  return Array.isArray(user.permissions) && user.permissions.includes(PERMISSIONS.TOUR_READ);
+};
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'Unknown error';
+
+const DEFAULT_CURRENCY_RATES = { USD: 1, EUR: 0.92, GBP: 0.79 } as const;
+
+const getTourCurrencyRate = async (currency: ReturnType<typeof toTourCurrency>): Promise<number> => {
+  if (currency === 'USD') return 1;
+  const config = await CurrencyConfig.findOne().select(`rates.${currency}`).lean();
+  const rate = config?.rates?.[currency];
+  return typeof rate === 'number' && Number.isFinite(rate) && rate > 0
+    ? rate
+    : DEFAULT_CURRENCY_RATES[currency];
+};
+
+const buildQueryFilter = async (
+  queryParams: QueryParams,
+  localeValue: unknown,
+  allowInactive = false,
+  currencyRate = 1
+): Promise<FilterQuery<ITour>> => {
   const filter: FilterQuery<ITour> = {};
+  const locale = toTourLocale(localeValue);
+  const currency = toTourCurrency(queryParams.currency);
+  const TourSubcategory = (await import('../models/TourSubcategory')).default;
 
   // Filter by subcategory
   if (queryParams.subcategory) {
+    if (!isValidObjectId(queryParams.subcategory)) {
+      throw new TourQueryValidationError('Invalid subcategory ID');
+    }
     filter.subcategory = queryParams.subcategory;
   }
 
   // Filter by category (requires lookup through subcategory)
   if (queryParams.category) {
-    const TourSubcategory = (await import('../models/TourSubcategory')).default;
-    const subcategories = await TourSubcategory.find({ category: queryParams.category }).select('_id');
+    if (!isValidObjectId(queryParams.category)) {
+      throw new TourQueryValidationError('Invalid category ID');
+    }
+    const subcategories = await TourSubcategory.find({
+      category: queryParams.category,
+      ...(allowInactive ? {} : { isActive: { $ne: false } }),
+    }).select('_id');
     const subcategoryIds = subcategories.map(sub => sub._id);
-    filter.subcategory = { $in: subcategoryIds };
+    if (queryParams.subcategory) {
+      const belongsToCategory = subcategoryIds.some(
+        (id) => String(id) === String(queryParams.subcategory)
+      );
+      filter.subcategory = belongsToCategory ? queryParams.subcategory : { $in: [] };
+    } else {
+      filter.subcategory = { $in: subcategoryIds };
+    }
   }
 
   // ── Visibility (secure by default) ──
@@ -74,7 +132,7 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
   // tours (scheduled ⇒ isActive === false) stay hidden even if the caller
   // forgot to pass a filter — this also keeps them out of the sitemap.
   // The admin panel opts in explicitly with includeInactive=true.
-  const includeInactive = queryParams.includeInactive === 'true';
+  const includeInactive = allowInactive && queryParams.includeInactive === 'true';
 
   if (!includeInactive) {
     filter.isActive = { $ne: false };
@@ -104,104 +162,50 @@ const buildQueryFilter = async (queryParams: QueryParams): Promise<FilterQuery<I
     filter.isSpecialOffer = queryParams.isSpecialOffer === 'true';
   }
 
-  // Search by heading or description in all languages
+  // Search only the language the visitor is currently reading.
   const searchRegex = createSearchRegex(queryParams.search);
   if (searchRegex) {
-    filter.$or = localizedSearchFilters(
-      ['heading', 'Description.text', 'tourLocation'],
-      searchRegex
-    );
+    const search = String(queryParams.search).trim();
+    if (search.length > 100) {
+      throw new TourQueryValidationError('search cannot exceed 100 characters');
+    }
+
+    const matchingSubcategories = await TourSubcategory.find({
+      $or: [
+        { [`name.${locale}`]: searchRegex },
+        { [`shortName.${locale}`]: searchRegex },
+      ],
+    }).select('_id');
+
+    filter.$or = [
+      { [`heading.${locale}`]: searchRegex },
+      { [`cardDescription.${locale}`]: searchRegex },
+      { [`Description.text.${locale}`]: searchRegex },
+      { [`tourLocation.${locale}`]: searchRegex },
+      ...(locale === 'en' ? [{ name: searchRegex }] : []),
+      ...(matchingSubcategories.length
+        ? [{ subcategory: { $in: matchingSubcategories.map((sub) => sub._id) } }]
+        : []),
+    ];
   }
 
   // Filter by tour type
   if (queryParams.tourType) {
-    filter.tourType = { $regex: queryParams.tourType, $options: 'i' };
+    Object.assign(filter, exactLocalizedValueFilter('tourType', locale, queryParams.tourType));
   }
 
   // Filter by tour style
   if (queryParams.tourStyle) {
-    filter.tourStyle = { $regex: queryParams.tourStyle, $options: 'i' };
+    Object.assign(filter, exactLocalizedValueFilter('tourStyle', locale, queryParams.tourStyle));
   }
 
-  // Filter by price range (searches within pricingPlans)
-  if (queryParams.minPrice || queryParams.maxPrice) {
-    const priceFilter: any = {};
-    
-    if (queryParams.minPrice) {
-      priceFilter.$gte = parseFloat(queryParams.minPrice);
-    }
-    
-    if (queryParams.maxPrice) {
-      priceFilter.$lte = parseFloat(queryParams.maxPrice);
-    }
-
-    // This searches for tours where any pricing plan season has prices in range
-    filter['pricingPlans.seasons.prices.solo.USD'] = priceFilter;
-  }
+  applyStartingPriceFilter(filter, queryParams.minPrice, queryParams.maxPrice, currency, currencyRate);
 
   return filter;
 };
 
-/**
- * Parse pagination parameters
- */
-const parsePagination = (queryParams: QueryParams) => {
-  const page = parseInt(queryParams.page || '1', 10);
-  const limit = parseInt(queryParams.limit || '10', 10);
-  const skip = (page - 1) * limit;
-
-  return { page, limit, skip };
-};
-
-/**
- * Parse sort parameter
- */
-const parseSort = (sortParam?: string): string => {
-  const validSortFields = ['heading', 'createdAt', 'updatedAt', 'tourLocation', 'priceStartingFrom'];
-  // Localized fields are {en,de,it,es} objects: sorting on the bare field makes
-  // Mongo compare the whole sub-document (i.e. always by EN). Callers may pass
-  // a locale suffix ("heading.de") so each language sorts by its OWN text.
-  const localizedSortFields = ['heading', 'tourLocation'];
-  const supportedLocales = ['en', 'de', 'it', 'es'];
-
-  if (!sortParam) return '-createdAt';
-
-  // Handle descending sort (e.g., '-createdAt')
-  const isDescending = sortParam.startsWith('-');
-  const raw = isDescending ? sortParam.substring(1) : sortParam;
-  const [field, locale] = raw.split('.');
-
-  if (!validSortFields.includes(field)) {
-    return '-createdAt';
-  }
-
-  // A suffix is only allowed on localized fields, and only a real locale.
-  if (locale && !(localizedSortFields.includes(field) && supportedLocales.includes(locale))) {
-    return '-createdAt';
-  }
-
-  let target = raw;
-  if (field === 'priceStartingFrom') {
-    // Price is {USD,EUR,GBP} — sort on the always-present USD amount.
-    target = 'priceStartingFrom.USD';
-  } else if (localizedSortFields.includes(field) && !locale) {
-    // Keep the previous effective behaviour explicit instead of implicit.
-    target = `${field}.en`;
-  }
-
-  return isDescending ? `-${target}` : target;
-};
-
-/**
- * Parse fields for selective field return
- */
-const parseFields = (fieldsParam?: string): string => {
-  if (!fieldsParam) return '';
-  
-  // Convert comma-separated fields to space-separated
-  return fieldsParam.split(',').join(' ');
-};
-
+// Pagination, sort and projection parsing live in utils/tourQuery so the
+// contract can be tested without a database connection.
 const ensureTourMapSchema = <T>(tour: T): T => {
   if (!tour || typeof tour !== 'object') return tour;
 
@@ -261,42 +265,77 @@ const TOUR_LIST_FIELDS = [
 ].join(' ');
 
 export const getAllTours = async (
-  req: Request<{}, {}, {}, QueryParams>,
+  req: Request<Record<string, never>, unknown, unknown, QueryParams>,
   res: Response
 ): Promise<void> => {
   try {
-    const { page, limit, skip } = parsePagination(req.query);
-    const filter = await buildQueryFilter(req.query);
-    const sort = parseSort(req.query.sort);
-    const fields = parseFields(req.query.fields);
+    const allowInactive = canReadInactiveTours(req);
+    if (req.query.includeInactive === 'true' && !allowInactive) {
+      res.status(403).json({
+        success: false,
+        error: 'Not authorized to include inactive tours',
+      });
+      return;
+    }
+
+    const locale = toTourLocale(req.locale);
+    const currency = toTourCurrency(req.query.currency);
+    const currencyRate = await getTourCurrencyRate(currency);
+    const { page, limit, skip } = parseTourPagination(req.query.page, req.query.limit);
+    const filter = await buildQueryFilter(req.query, locale, allowInactive, currencyRate);
+    const sort = parseTourSort(req.query.sort, locale, currency);
+    const fields = parseTourFields(req.query.fields, allowInactive);
 
     // Build query. NOTE: a single populate call — a second object-form
     // populate on the same path REPLACES the first one's select and ships
     // the full ~23KB subcategory document with every tour in the list.
-    let query = Tour.find(filter)
-      .populate({
-        path: 'subcategory',
-        select: 'name shortName slug category',
-        populate: {
-          path: 'category',
-          select: 'name slug',
-        },
-      })
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
+    const populate = {
+      path: 'subcategory',
+      select: 'name shortName slug category',
+      populate: {
+        path: 'category',
+        select: 'name slug',
+      },
+    };
 
-    // An explicit `?fields=` wins; otherwise the list defaults to card fields.
-    query.select(fields || TOUR_LIST_FIELDS);
+    const selectedFields = fields || TOUR_LIST_FIELDS;
+    const isPriceSort = sort === `priceStartingFrom.${currency}` || sort === `-priceStartingFrom.${currency}`;
+    let toursPromise: Promise<unknown[]>;
+
+    if (isPriceSort) {
+      const projection = Object.fromEntries(
+        selectedFields
+          .split(/\s+/)
+          .filter((field) => field && !field.startsWith('-'))
+          .map((field) => [field, 1])
+      );
+      const direction = sort.startsWith('-') ? -1 : 1;
+      toursPromise = Tour.aggregate([
+        { $match: filter },
+        { $addFields: { __listingPrice: effectiveStartingPriceExpression(currency, currencyRate) } },
+        { $sort: { __listingPrice: direction, _id: 1 } },
+        { $skip: skip },
+        { $limit: limit },
+        { $project: { ...projection, __listingPrice: 0 } },
+      ]).then((documents) => Tour.populate(documents, populate));
+    } else {
+      toursPromise = Tour.find(filter)
+        .populate(populate)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .select(selectedFields)
+        .lean();
+    }
 
     // Execute query with count
     const [tours, total] = await Promise.all([
-      query.lean(),
+      toursPromise,
       Tour.countDocuments(filter),
     ]);
 
     // Calculate pagination metadata
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
@@ -308,14 +347,94 @@ export const getAllTours = async (
       totalPages,
       hasNextPage,
       hasPrevPage,
-      data: localize(tours, req.locale),
+      data: localizePreservingSlugs(tours, req.locale),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching tours:', error);
-    res.status(500).json({
+    const isValidationError = error instanceof TourQueryValidationError;
+    res.status(isValidationError ? 400 : 500).json({
       success: false,
-      error: 'Failed to fetch tours',
-      message: error.message,
+      error: isValidationError ? error.message : 'Failed to fetch tours',
+      message: getErrorMessage(error),
+    });
+  }
+};
+
+/**
+ * Return the complete filter values for a category/subcategory scope. These
+ * options do not depend on the current result page or current filter values.
+ */
+export const getTourFilterOptions = async (
+  req: Request<Record<string, never>, unknown, unknown, QueryParams>,
+  res: Response
+): Promise<void> => {
+  try {
+    const allowInactive = canReadInactiveTours(req);
+    if (req.query.includeInactive === 'true' && !allowInactive) {
+      res.status(403).json({
+        success: false,
+        error: 'Not authorized to include inactive tours',
+      });
+      return;
+    }
+
+    const locale = toTourLocale(req.locale);
+    const currency = toTourCurrency(req.query.currency);
+    const currencyRate = await getTourCurrencyRate(currency);
+    const scope: QueryParams = {
+      category: req.query.category,
+      subcategory: req.query.subcategory,
+      isActive: req.query.isActive,
+      includeInactive: req.query.includeInactive,
+      scheduled: req.query.scheduled,
+      isFeatured: req.query.isFeatured,
+      isSpecialOffer: req.query.isSpecialOffer,
+      currency,
+    };
+    const filter = await buildQueryFilter(scope, locale, allowInactive, currencyRate);
+    const priceField = `priceStartingFrom.${currency}`;
+
+    const [rawTypes, rawStyles, pricedTours] = await Promise.all([
+      Tour.distinct(`tourType.${locale}`, filter),
+      Tour.distinct(`tourStyle.${locale}`, filter),
+      Tour.find(filter).select(`${priceField} priceStartingFrom.USD`).lean(),
+    ]);
+
+    const normalizeOptions = (values: unknown[]): string[] =>
+      [...new Set(values
+        .filter((value): value is string => typeof value === 'string')
+        .map((value) => value.trim())
+        .filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, locale));
+
+    const prices = pricedTours
+      .map((tour: { priceStartingFrom?: Partial<Record<'USD' | 'EUR' | 'GBP', number>> }) => {
+        const exact = tour?.priceStartingFrom?.[currency];
+        if (typeof exact === 'number' && Number.isFinite(exact)) return exact;
+        const usd = tour?.priceStartingFrom?.USD;
+        return typeof usd === 'number' && Number.isFinite(usd) ? usd * currencyRate : undefined;
+      })
+      .filter((price): price is number => typeof price === 'number' && Number.isFinite(price));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        tourTypes: normalizeOptions(rawTypes),
+        tourStyles: normalizeOptions(rawStyles),
+        priceRange: {
+          min: prices.length ? Math.min(...prices) : null,
+          max: prices.length ? Math.max(...prices) : null,
+          currency,
+        },
+      },
+    });
+  } catch (error: unknown) {
+    console.error('Error fetching tour filter options:', error);
+    const isValidationError = error instanceof TourQueryValidationError;
+    res.status(isValidationError ? 400 : 500).json({
+      success: false,
+      error: isValidationError ? error.message : 'Failed to fetch tour filter options',
+      message: getErrorMessage(error),
     });
   }
 };
@@ -400,13 +519,22 @@ export const getToursBySubcategory = async (
 ): Promise<void> => {
   try {
     const { subcategoryId } = req.params;
-    const { isActive, includeInactive, page = '1', limit = '10' } = req.query;
+    const { isActive, includeInactive } = req.query;
+    const allowInactive = canReadInactiveTours(req);
+
+    if (includeInactive === 'true' && !allowInactive) {
+      res.status(403).json({
+        success: false,
+        error: 'Not authorized to include inactive tours',
+      });
+      return;
+    }
 
     const filter: FilterQuery<ITour> = { subcategory: subcategoryId };
 
     // Same secure-by-default visibility rule as the main list (see
     // buildQueryFilter): active-only unless the admin opts in explicitly.
-    if (includeInactive === 'true') {
+    if (allowInactive && includeInactive === 'true') {
       if (isActive !== undefined) {
         filter.isActive = isActive === 'true';
       }
@@ -414,29 +542,30 @@ export const getToursBySubcategory = async (
       filter.isActive = { $ne: false };
     }
 
-    const pageNum = parseInt(page as string, 10);
-    const limitNum = parseInt(limit as string, 10);
-    const skip = (pageNum - 1) * limitNum;
+    const { page, limit, skip } = parseTourPagination(
+      req.query.page as string | undefined,
+      req.query.limit as string | undefined
+    );
 
     const [tours, total] = await Promise.all([
       Tour.find(filter)
         .populate('subcategory', 'name shortName slug')
         .sort('-createdAt')
         .skip(skip)
-        .limit(limitNum)
+        .limit(limit)
         .lean(),
       Tour.countDocuments(filter),
     ]);
 
-    const totalPages = Math.ceil(total / limitNum);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
 
     res.status(200).json({
       success: true,
       count: tours.length,
       total,
-      page: pageNum,
+      page,
       totalPages,
-      data: localize(tours, req.locale),
+      data: localizePreservingSlugs(tours, req.locale),
     });
   } catch (error: any) {
     console.error('Error fetching tours by subcategory:', error);
@@ -477,7 +606,7 @@ export const getToursBySubcategory = async (
  * silently disappear from everyone's wishlist.
  */
 export const getToursByIds = async (
-  req: Request<{}, {}, {}, { ids?: string }>,
+  req: Request<Record<string, never>, unknown, unknown, { ids?: string }>,
   res: Response
 ): Promise<void> => {
   try {
@@ -753,6 +882,12 @@ export const createTour = async (
     // ever got the chance to derive it.
     body.seo = completeTourSeo(body);
 
+    const priceConsistencyProblem = validatePricingCurrencyConsistency(body.pricingPlans);
+    if (priceConsistencyProblem) {
+      res.status(400).json({ success: false, error: priceConsistencyProblem });
+      return;
+    }
+
     // Derived, never accepted from the client: the "from" price must be the
     // cheapest amount in this tour's own plans, or the card can advertise a
     // figure the pricing table below it contradicts.
@@ -897,6 +1032,12 @@ export const updateTour = async (
       const problem = validateTourKindPlans(nextKind, nextPlans);
       if (problem) {
         res.status(400).json({ success: false, error: problem });
+        return;
+      }
+
+      const priceConsistencyProblem = validatePricingCurrencyConsistency(nextPlans);
+      if (priceConsistencyProblem) {
+        res.status(400).json({ success: false, error: priceConsistencyProblem });
         return;
       }
     }

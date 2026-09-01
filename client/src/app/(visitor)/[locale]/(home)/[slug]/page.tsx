@@ -38,6 +38,8 @@ import {
   isEditorialAuthor,
 } from "@/lib/blog/author";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
+import { cookies } from "next/headers";
+import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
 
 /**
  * Get the slug for a specific locale WITHOUT the deep fallback chain.
@@ -68,8 +70,11 @@ function ensureTourMapSchema(tour: any) {
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
-  searchParams: Promise<{ page?: string | string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
+
+const firstQueryValue = (value: string | string[] | undefined): string | undefined =>
+  Array.isArray(value) ? value[0] : value;
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.jesegypttours.com";
 
@@ -513,6 +518,28 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   const page = Number.isFinite(parsedPage) && parsedPage > 0
     ? Math.floor(parsedPage)
     : 1;
+  const currency = parseCurrencyCookie(
+    (await cookies()).get(CURRENCY_COOKIE)?.value
+  ) || 'USD';
+  const minPriceValue = firstQueryValue(query.minPrice);
+  const maxPriceValue = firstQueryValue(query.maxPrice);
+  const parsedMinPrice = minPriceValue ? Number(minPriceValue) : undefined;
+  const parsedMaxPrice = maxPriceValue ? Number(maxPriceValue) : undefined;
+  const validPriceRange =
+    (parsedMinPrice === undefined || (Number.isFinite(parsedMinPrice) && parsedMinPrice >= 0)) &&
+    (parsedMaxPrice === undefined || (Number.isFinite(parsedMaxPrice) && parsedMaxPrice >= 0)) &&
+    !(parsedMinPrice !== undefined && parsedMaxPrice !== undefined && parsedMinPrice > parsedMaxPrice);
+  const listingQuery = validPriceRange ? {
+    page,
+    limit: 9,
+    sort: firstQueryValue(query.sort) || '-createdAt',
+    search: firstQueryValue(query.search) || undefined,
+    minPrice: parsedMinPrice,
+    maxPrice: parsedMaxPrice,
+    tourType: firstQueryValue(query.tourType) || undefined,
+    tourStyle: firstQueryValue(query.tourStyle) || undefined,
+    currency,
+  } : null;
   const resolved = await resolveSlugContent(slug, locale);
 
   // ── 1. Category ──────────────────────────────────────────────────────────
@@ -521,6 +548,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     let renderCategory = false;
     let categoryData: any = null;
     let initialSubcategories: any[] = [];
+    let initialTours: any = undefined;
     try {
       if (resolved?.type === "category") {
         if (resolved.correctSlug !== slug) {
@@ -533,12 +561,21 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
             const subRes = await tourSubcategoryAPI.getByCategory(categoryData._id);
             if (subRes.success && subRes.data) initialSubcategories = subRes.data;
           } catch {}
+          if (listingQuery) {
+            try {
+              initialTours = await tourAPI.getAll({
+                ...listingQuery,
+                category: categoryData._id,
+                subcategory: firstQueryValue(query.subcategory) || undefined,
+              }, locale);
+            } catch {}
+          }
         }
       }
     } catch { /* API error — fall through to next lookup */ }
     // Call permanentRedirect OUTSIDE the try-catch so Next.js can throw NEXT_REDIRECT
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderCategory) return <CategoryView slug={slug} locale={locale} initialCategory={categoryData} initialSubcategories={initialSubcategories} />;
+    if (renderCategory) return <CategoryView slug={slug} locale={locale} initialCategory={categoryData} initialSubcategories={initialSubcategories} initialTours={initialTours} />;
   }
 
   // ── 2. Subcategory ────────────────────────────────────────────────────────
@@ -547,6 +584,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     let renderSubcategory = false;
     let subcategoryData: any = null;
     let initialSiblings: any[] = [];
+    let initialTours: any = undefined;
     try {
       if (resolved?.type === "subcategory") {
         if (resolved.correctSlug !== slug) {
@@ -562,12 +600,20 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
               if (siblingsRes.success && siblingsRes.data) initialSiblings = siblingsRes.data;
             } catch {}
           }
+          if (listingQuery) {
+            try {
+              initialTours = await tourAPI.getAll({
+                ...listingQuery,
+                subcategory: subcategoryData._id,
+              }, locale);
+            } catch {}
+          }
         }
       }
     } catch { /* API error — fall through to next lookup */ }
     // Call permanentRedirect OUTSIDE the try-catch
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderSubcategory) return <SubcategoryView slug={slug} locale={locale} initialSubcategory={subcategoryData} initialSiblings={initialSiblings} />;
+    if (renderSubcategory) return <SubcategoryView slug={slug} locale={locale} initialSubcategory={subcategoryData} initialSiblings={initialSiblings} initialTours={initialTours} />;
   }
 
   // ── 3. Blog Category ───────────────────────────────────────────────────────

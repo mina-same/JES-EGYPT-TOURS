@@ -17,7 +17,7 @@
     "seed:detailed": "ts-node src/seeds/detailedTourSeeder.ts",
     "check:cloudinary": "ts-node src/scripts/checkCloudinary.ts",
     "lint": "eslint . --ext .ts",
-    "test": "jest",
+    "test": "node --require ts-node/register --test \"tests/**/*.test.ts\"",
     "migrate:slider-links": "ts-node src/scripts/migrateSliderLegacyLinks.ts",
     "migrate:remove-views": "ts-node src/scripts/removeContentViews.ts",
     "migrate:reset-tour-social-images": "ts-node src/scripts/resetTourSocialImages.ts",

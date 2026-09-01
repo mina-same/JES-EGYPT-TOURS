@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PaginationProps {
     currentPage?: number;
@@ -11,6 +14,7 @@ const Pagination: React.FC<PaginationProps> = ({
     totalPages = 1, 
     onPageChange = () => {} 
 }) => {
+    const { t } = useTranslation('common');
     // If totalPages is 1 or less (and not 0), we don't need to show pagination
     // But if it's exactly 1, we might want to hide it.
     if (totalPages <= 1) return null;
@@ -35,7 +39,7 @@ const Pagination: React.FC<PaginationProps> = ({
     };
 
     return (
-        <ul className='post-pagination justify-content-center'>
+        <ul className='post-pagination justify-content-center' aria-label={t('pagination.label')}>
             <li>
                 <button 
                     type="button"
@@ -52,7 +56,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         opacity: currentPage === 1 ? 0.5 : 1
                     }}
                 >
-                    Previous
+                    {t('pagination.previous')}
                 </button>
             </li>
             
@@ -61,6 +65,8 @@ const Pagination: React.FC<PaginationProps> = ({
                     <button 
                         type="button"
                         onClick={() => onPageChange(page)}
+                        aria-label={t('pagination.page', { page })}
+                        aria-current={currentPage === page ? 'page' : undefined}
                         style={{ 
                             border: '1px solid #eee', 
                             background: currentPage === page ? 'var(--gotur-primary, #b79c5c)' : 'white',
@@ -94,7 +100,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         opacity: currentPage === totalPages ? 0.5 : 1
                     }}
                 >
-                    Next
+                    {t('pagination.next')}
                 </button>
             </li>
         </ul>

@@ -1,4 +1,5 @@
 import axiosInstance from './axios';
+import type { CurrencyCode } from '@/contexts/CurrencyContext';
 
 const API_BASE = 'tours';
 
@@ -24,7 +25,18 @@ export interface QueryParams {
   maxPrice?: number;
   tourType?: string;
   tourStyle?: string;
+  currency?: CurrencyCode;
   fields?: string;
+}
+
+export interface TourFilterOptions {
+  tourTypes: string[];
+  tourStyles: string[];
+  priceRange: {
+    min: number | null;
+    max: number | null;
+    currency: CurrencyCode;
+  };
 }
 
 export interface ApiResponse<T> {
@@ -224,10 +236,31 @@ export const tourAPI = {
   /**
    * Get all tours with filtering
    */
-  getAll: async (params?: QueryParams) => {
+  getAll: async (params?: QueryParams, locale?: string, signal?: AbortSignal) => {
     const response = await axiosInstance.get<ApiResponse<any[]>>(
       `${API_BASE}`,
-      { params }
+      {
+        params,
+        headers: locale ? { 'X-Locale': locale } : undefined,
+        signal,
+      }
+    );
+    return response.data;
+  },
+
+  /** Get all values available to the filters in a listing scope. */
+  getFilterOptions: async (
+    params?: Pick<QueryParams, 'category' | 'subcategory' | 'isFeatured' | 'isSpecialOffer' | 'currency'>,
+    locale?: string,
+    signal?: AbortSignal
+  ) => {
+    const response = await axiosInstance.get<ApiResponse<TourFilterOptions>>(
+      `${API_BASE}/filter-options`,
+      {
+        params,
+        headers: locale ? { 'X-Locale': locale } : undefined,
+        signal,
+      }
     );
     return response.data;
   },

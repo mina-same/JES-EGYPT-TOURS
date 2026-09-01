@@ -18,6 +18,16 @@ export type TierPrices = Partial<Record<PriceTier, CurrencyAmount | undefined>>;
 export const isUsableAmount = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value > 0;
 
+export const isPlausibleCurrencyAmount = (
+  currency: PriceCurrency,
+  value: number,
+  amounts: CurrencyAmount
+): boolean => {
+  if (currency === 'USD' || !isUsableAmount(amounts.USD)) return true;
+  const ratio = value / amounts.USD;
+  return ratio >= 0.1 && ratio <= 10;
+};
+
 /**
  * The lowest quotable amount in a set of pricing plans, per currency.
  *
@@ -44,6 +54,7 @@ export const deriveStartingPrice = (
         for (const currency of PRICE_CURRENCIES) {
           const value = amounts[currency];
           if (!isUsableAmount(value)) continue;
+          if (!isPlausibleCurrencyAmount(currency, value, amounts)) continue;
           const current = lowest[currency];
           if (current === undefined || value < current) lowest[currency] = value;
         }

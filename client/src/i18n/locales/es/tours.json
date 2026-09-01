@@ -1,5 +1,10 @@
 {
   "filters": {
+    "close": "Cerrar filtros",
+    "remove": "Eliminar filtro",
+    "clearAll": "Borrar todo",
+    "priceRangeError": "El precio mínimo no puede superar el precio máximo.",
+    "priceInvalidError": "Introduce un precio válido que no sea negativo.",
     "title": "Encuentra tu tour perfecto",
     "search": "Buscar",
     "searchPlaceholder": "Buscar tours",
@@ -13,6 +18,7 @@
     "reset": "Restablecer"
   },
   "listing": {
+    "resultsCount": "{{count}} tours encontrados",
     "sortBy": "Ordenar por",
     "sortOptions": {
       "newest": "Más nuevos",

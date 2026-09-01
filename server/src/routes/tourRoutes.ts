@@ -20,6 +20,7 @@ import {
 } from '../controllers/tourSubcategoryController';
 import {
   getAllTours,
+  getTourFilterOptions,
   getFeaturedTours,
   getToursBySubcategory,
   getTourById,
@@ -34,7 +35,7 @@ import {
   toggleTourFeatured,
   getTourStats,
 } from '../controllers/tourController';
-import { protect, permit } from '../middleware/auth';
+import { optionalProtect, protect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
 
 const router = express.Router();
@@ -172,6 +173,13 @@ router.get('/featured', getFeaturedTours);
 router.get('/by-ids', getToursByIds);
 
 /**
+ * @route   GET /api/tours/filter-options
+ * @desc    Get complete filter options for a listing scope
+ * @access  Public (inactive content requires an authorized admin)
+ */
+router.get('/filter-options', optionalProtect, getTourFilterOptions);
+
+/**
  * @route   GET /api/tours/slug/:slug
  * @desc    Get single tour by slug
  * @access  Public
@@ -199,7 +207,7 @@ router.get('/:id/related', getRelatedTours);
  * @access  Public
  * @query   ?isActive=true&page=1&limit=10
  */
-router.get('/subcategories/:subcategoryId/tours', getToursBySubcategory);
+router.get('/subcategories/:subcategoryId/tours', optionalProtect, getToursBySubcategory);
 
 /**
  * @route   GET /api/tours
@@ -209,7 +217,7 @@ router.get('/subcategories/:subcategoryId/tours', getToursBySubcategory);
  *          &minPrice=100&maxPrice=500&tourType=private&tourStyle=luxury
  *          &page=1&limit=10&sort=-createdAt&fields=heading,slug,images
  */
-router.get('/', getAllTours);
+router.get('/', optionalProtect, getAllTours);
 
 /**
  * @route   GET /api/tours/:id

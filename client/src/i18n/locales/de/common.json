@@ -1,5 +1,11 @@
 {
   "home": "Startseite",
+  "pagination": {
+    "label": "Seitennavigation",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "page": "Seite {{page}}"
+  },
   "trustedPartners": "Unsere vertrauenswürdigen Partner",
   "partnerAlt": "Vertrauenswürdiger Partner {{count}}",
   "partnerTitle": "JES Ägypten Touren Partner {{count}}",

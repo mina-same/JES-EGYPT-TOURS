@@ -1,5 +1,11 @@
 {
   "home": "Home",
+  "pagination": {
+    "label": "Paginazione",
+    "previous": "Precedente",
+    "next": "Successiva",
+    "page": "Pagina {{page}}"
+  },
   "trustedPartners": "I nostri partner di fiducia",
   "partnerAlt": "Partner di fiducia {{count}}",
   "partnerTitle": "JES Egypt Tours Partner {{count}}",

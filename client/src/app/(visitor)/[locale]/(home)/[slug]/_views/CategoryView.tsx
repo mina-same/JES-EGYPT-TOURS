@@ -6,7 +6,7 @@ import Link from "next/link";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { Loader2, ChevronRight, Check, Filter, X, SlidersHorizontal } from "lucide-react";
+import { Loader2, ChevronRight, Check, X, SlidersHorizontal } from "lucide-react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -31,104 +31,36 @@ import ListingBlogs from "@/components/common/ListingSections/ListingBlogs";
 import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
+import TourListingFilters from "@/components/common/TourListingFilters/TourListingFilters";
+import { countActiveTourFilters, readTourListingState, validateTourPriceRange } from "@/lib/tours/listingFilters";
+import { useAccessibleDrawer } from "@/hooks/useAccessibleDrawer";
+import { mapApiTourToCard } from "@/lib/tours/cardViewModel";
 
-const FiltersContent = ({ 
-  t, 
-  draftFilters, 
-  setDraftFilters, 
-  subcategories, 
-  locale, 
-  tourTypeOptions, 
-  tourStyleOptions, 
-  handleApplyFilters, 
-  handleResetFilters,
-  currencySymbol = "$",
-  noBorder = false,
-  hideHeader = false,
-  fullHeight = false
-}: any) => {
-  return (
-    <div 
-      className='listing__sidebar__item__inner' 
-      style={{ 
-        borderRadius: noBorder ? 0 : 14, 
-        border: noBorder ? "none" : "1px solid #eee", 
-        background: noBorder ? "transparent" : "#fff",
-        height: fullHeight ? '100%' : 'auto',
-        display: fullHeight ? 'flex' : 'block',
-        flexDirection: 'column'
-      }}
-    >
-      {!hideHeader && (
-        <div style={{ padding: noBorder ? "0 0 18px 0" : 18, borderBottom: "1px solid #f0f0f0" }} className="d-flex justify-content-between align-items-center">
-          <span className='listing__sidebar__title' style={{ margin: 0, fontSize: noBorder ? '22px' : '18px', fontWeight: 800, color: '#1d231f', display: 'block' }}>{t('filters.title')}</span>
-          <Filter className="w-5 h-5 text-[#b79c5c]" />
-        </div>
-      )}
-      <div style={{ padding: noBorder ? (hideHeader ? "10px 20px 24px" : "24px 20px") : 18, display: "grid", gap: 14, flex: fullHeight ? 1 : 'none' }}>
-        <div>
-          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.search')}</label>
-          <input className='form-control rounded-3' style={{ padding: '10px 15px' }} value={draftFilters.search} onChange={(e) => setDraftFilters((p: any) => ({ ...p, search: e.target.value }))} placeholder={t('filters.searchPlaceholder')} />
-        </div>
-        {subcategories && (
-          <div>
-            <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.subcategory')}</label>
-            <select className='form-select rounded-3' style={{ padding: '10px' }} value={draftFilters.subcategoryId} onChange={(e) => setDraftFilters((p: any) => ({ ...p, subcategoryId: e.target.value }))}>
-              <option value="">{t('filters.all')}</option>
-              {subcategories.map((s: any) => (<option key={s._id} value={s._id}>{getDisplayName(s, locale)}</option>))}
-            </select>
-          </div>
-        )}
-        <div className='row g-2 align-items-end'>
-          <div className='col-6'>
-            <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.minPrice')}</label>
-            <div className='input-group'><span className='input-group-text bg-white border-end-0'>{currencySymbol}</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.minPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, minPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="0" /></div>
-          </div>
-          <div className='col-6'>
-            <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.maxPrice')}</label>
-            <div className='input-group'><span className='input-group-text bg-white border-end-0'>{currencySymbol}</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.maxPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, maxPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="9999" /></div>
-          </div>
-        </div>
-        <div>
-          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourType')}</label>
-          <select className='form-select rounded-3' style={{ padding: '10px' }} value={draftFilters.tourType} onChange={(e) => setDraftFilters((p: any) => ({ ...p, tourType: e.target.value }))}>
-            <option value="">{t('filters.all')}</option>
-            {tourTypeOptions.map((tOp: any) => (<option key={tOp} value={tOp}>{tOp}</option>))}
-          </select>
-        </div>
-        <div>
-          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourStyle')}</label>
-          <select className='form-select rounded-3' style={{ padding: '10px' }} value={draftFilters.tourStyle} onChange={(e) => setDraftFilters((p: any) => ({ ...p, tourStyle: e.target.value }))}>
-            <option value="">{t('filters.all')}</option>
-            {tourStyleOptions.map((tOp: any) => (<option key={tOp} value={tOp}>{tOp}</option>))}
-          </select>
-        </div>
-      </div>
-      <div style={{ padding: noBorder ? "24px 20px" : 18, borderTop: "1px solid #f0f0f0", marginTop: 'auto' }}>
-        <div className='row g-2'>
-          <div className='col-6'><button type="button" onClick={handleApplyFilters} className='gotur-btn' style={{ width: "100%", borderRadius: 10 }}>{t('filters.apply')}</button></div>
-          <div className='col-6'><button type="button" onClick={handleResetFilters} className='gotur-btn' style={{ width: "100%", background: "transparent", color: "#111", border: "1px solid #e5e5e5", borderRadius: 10 }}>{t('filters.reset')}</button></div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function CategoryView({ 
   slug, 
   locale, 
   initialCategory, 
-  initialSubcategories 
+  initialSubcategories,
+  initialTours,
 }: { 
   slug: string; 
   locale: string; 
   initialCategory?: any;
   initialSubcategories?: any[];
+  initialTours?: any;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useTranslation('tours');
-  const { currencySymbol } = useCurrency();
+  const { currency, currencySymbol } = useCurrency();
+  const initialListing = readTourListingState(searchParams, true);
+  const initialCards = (Array.isArray(initialTours?.data) ? initialTours.data : [])
+    .map((tour: any) => mapApiTourToCard(tour, locale, {
+      location: t('fallback.location'),
+      duration: t('fallback.days'),
+    }))
+    .filter(Boolean);
 
   useEffect(() => {
     if (i18n.resolvedLanguage !== locale) {
@@ -140,40 +72,31 @@ export default function CategoryView({
   const [initialLoading, setInitialLoading] = useState(!initialCategory);
   // Mounting with server data means a tours fetch is already pending, so start
   // in pageLoading — otherwise the first paint flashes "no tours" before it lands.
-  const [pageLoading, setPageLoading] = useState(!!initialCategory);
+  const [pageLoading, setPageLoading] = useState(!initialTours);
   const [category, setCategory] = useState<any>(initialCategory || null);
   const [subcategories, setSubcategories] = useState<any[]>(initialSubcategories || []);
-  const [tours, setTours] = useState<any[]>([]);
+  const [tours, setTours] = useState<any[]>(initialCards);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [sort, setSort] = useState<string>("-createdAt");
-  const [draftFilters, setDraftFilters] = useState({
-    search: "",
-    minPrice: "",
-    maxPrice: "",
-    subcategoryId: "",
-    tourType: "",
-    tourStyle: "",
-  });
-  const [appliedFilters, setAppliedFilters] = useState({
-    search: "",
-    minPrice: "",
-    maxPrice: "",
-    subcategoryId: "",
-    tourType: "",
-    tourStyle: "",
-  });
+  const [currentPage, setCurrentPage] = useState(initialListing.page);
+  const [totalPages, setTotalPages] = useState(initialTours?.totalPages || 1);
+  const [sort, setSort] = useState<string>(initialListing.sort);
+  const [draftFilters, setDraftFilters] = useState(initialListing.filters);
+  const [appliedFilters, setAppliedFilters] = useState(initialListing.filters);
+  const [filterError, setFilterError] = useState<string | null>(null);
+  const [totalResults, setTotalResults] = useState(initialTours?.total || 0);
   const toursPerPage = 9;
   // Seeded with the current slug when the server already resolved the category:
   // starting at null made the first effect see a "new slug" and blank the
   // server-rendered page behind the white-on-white loading screen.
   const prevSlugRef = useRef<string | null>(initialCategory ? slug : null);
+  const skipInitialFetchRef = useRef(Boolean(initialTours?.success));
   const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<string[]>([]);
+  const closeFilters = () => setIsFilterOpen(false);
+  const { dialogRef, triggerRef } = useAccessibleDrawer(isFilterOpen, closeFilters);
 
   useEffect(() => {
     const fromQueryPage = Number(searchParams?.get("page") || "1");
@@ -194,7 +117,7 @@ export default function CategoryView({
     setDraftFilters(next);
     setAppliedFilters(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, searchParams]);
 
   const buildUrl = (overrides?: Partial<{ page: number; sort: string }> & Partial<typeof appliedFilters>) => {
     const p = overrides?.page ?? currentPage;
@@ -216,8 +139,25 @@ export default function CategoryView({
   };
 
   useEffect(() => {
+    const directPriceIssue = validateTourPriceRange(appliedFilters.minPrice, appliedFilters.maxPrice);
+    if (directPriceIssue) {
+      setFilterError(t(directPriceIssue === 'range' ? 'filters.priceRangeError' : 'filters.priceInvalidError'));
+      setTours([]);
+      setTotalResults(0);
+      setInitialLoading(false);
+      setPageLoading(false);
+      return;
+    }
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false;
+      setInitialLoading(false);
+      setPageLoading(false);
+      return;
+    }
+    const controller = new AbortController();
     const fetchData = async () => {
       try {
+        setError(null);
         const isNewSlug = prevSlugRef.current !== slug;
         if (isNewSlug) prevSlugRef.current = slug;
 
@@ -225,6 +165,7 @@ export default function CategoryView({
         if (isInitial) setInitialLoading(true);
         else setPageLoading(true);
 
+        let resolvedCategory = initialCategory || category;
         if (!initialCategory) {
           const catResponse = await tourCategoryAPI.getBySlug(slug, locale);
           if (!catResponse.success || !catResponse.data) {
@@ -234,6 +175,7 @@ export default function CategoryView({
             return;
           }
           setCategory(catResponse.data);
+          resolvedCategory = catResponse.data;
 
           const subResponse = await tourSubcategoryAPI.getByCategory(catResponse.data._id);
           if (subResponse.success && subResponse.data) setSubcategories(subResponse.data);
@@ -247,13 +189,12 @@ export default function CategoryView({
           }
         }
 
-        const catId = initialCategory?._id || category?._id;
-        if (!catId && !initialCategory) return;
+        const catId = resolvedCategory?._id;
+        if (!catId) return;
 
         const toursResponse = await tourAPI.getAll({
-          ...(appliedFilters.subcategoryId
-            ? { subcategory: appliedFilters.subcategoryId }
-            : { category: initialCategory?._id || category?._id }),
+          category: catId,
+          ...(appliedFilters.subcategoryId ? { subcategory: appliedFilters.subcategoryId } : {}),
           page: currentPage,
           limit: toursPerPage,
           sort,
@@ -262,10 +203,18 @@ export default function CategoryView({
           ...(appliedFilters.maxPrice ? { maxPrice: Number(appliedFilters.maxPrice) } : {}),
           ...(appliedFilters.tourType ? { tourType: appliedFilters.tourType } : {}),
           ...(appliedFilters.tourStyle ? { tourStyle: appliedFilters.tourStyle } : {}),
-        });
+          currency,
+        }, locale, controller.signal);
 
         if (toursResponse.success && toursResponse.data) {
-          setTotalPages(toursResponse.totalPages || 1);
+          const lastPage = toursResponse.totalPages || 1;
+          setTotalPages(lastPage);
+          setTotalResults(toursResponse.total || 0);
+          if ((toursResponse.total || 0) > 0 && currentPage > lastPage) {
+            setCurrentPage(lastPage);
+            router.replace(buildUrl({ page: lastPage }), { scroll: false } as any);
+            return;
+          }
           const mappedTours = toursResponse.data.map((tour: any) => {
             const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
             if (!tourSlug) return null;
@@ -305,22 +254,39 @@ export default function CategoryView({
           }).filter(Boolean);
           setTours(mappedTours);
 
-          const types = Array.from(new Set(toursResponse.data.map((t: any) => String(t?.tourType || "").trim()).filter(Boolean))).sort() as string[];
-          const styles = Array.from(new Set(toursResponse.data.map((t: any) => String(t?.tourStyle || "").trim()).filter(Boolean))).sort() as string[];
-          setTourTypeOptions(types);
-          setTourStyleOptions(styles);
         }
       } catch (err: any) {
+        if (err?.code === 'ERR_CANCELED') return;
         console.error("Error fetching data:", err);
         setError(t('status.errorFetching'));
       } finally {
-        setInitialLoading(false);
-        setPageLoading(false);
+        if (!controller.signal.aborted) {
+          setInitialLoading(false);
+          setPageLoading(false);
+        }
       }
     };
 
-    fetchData();
-  }, [slug, currentPage, sort, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.subcategoryId, appliedFilters.tourType, appliedFilters.tourStyle]);
+    void fetchData();
+    return () => controller.abort();
+  }, [slug, currentPage, sort, currency, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.subcategoryId, appliedFilters.tourType, appliedFilters.tourStyle]);
+
+  useEffect(() => {
+    const categoryId = initialCategory?._id || category?._id;
+    if (!categoryId) return;
+    const controller = new AbortController();
+    tourAPI.getFilterOptions({ category: categoryId, currency }, locale, controller.signal)
+      .then((response) => {
+        if (response.success && response.data) {
+          setTourTypeOptions(response.data.tourTypes);
+          setTourStyleOptions(response.data.tourStyles);
+        }
+      })
+      .catch((err) => {
+        if (err?.code !== 'ERR_CANCELED') console.error('Failed to load tour filter options:', err);
+      });
+    return () => controller.abort();
+  }, [category?._id, initialCategory?._id, currency, locale]);
 
 
   // The ids are already on the card: the listing payload carries `reviews`, so
@@ -338,6 +304,12 @@ export default function CategoryView({
   };
 
   const handleApplyFilters = () => {
+    const priceIssue = validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice);
+    if (priceIssue) {
+      setFilterError(t(priceIssue === 'range' ? 'filters.priceRangeError' : 'filters.priceInvalidError'));
+      return;
+    }
+    setFilterError(null);
     setAppliedFilters(draftFilters);
     setCurrentPage(1);
     router.replace(buildUrl({ page: 1, ...draftFilters }), { scroll: false } as any);
@@ -349,6 +321,7 @@ export default function CategoryView({
     setAppliedFilters(empty);
     setSort("-createdAt");
     setCurrentPage(1);
+    setFilterError(null);
     router.replace(`/${locale}/${encodeURIComponent(slug)}`, { scroll: false } as any);
   };
 
@@ -356,6 +329,15 @@ export default function CategoryView({
     setSort(nextSort);
     setCurrentPage(1);
     router.replace(buildUrl({ page: 1, sort: nextSort }), { scroll: false } as any);
+  };
+
+  const removeFilter = (key: keyof typeof appliedFilters) => {
+    const next = { ...appliedFilters, [key]: '' };
+    setDraftFilters(next);
+    setAppliedFilters(next);
+    setCurrentPage(1);
+    setFilterError(null);
+    router.replace(buildUrl({ page: 1, ...next }), { scroll: false } as any);
   };
 
   if (initialLoading) {
@@ -372,7 +354,7 @@ export default function CategoryView({
     );
   }
 
-  if (error || !category) {
+  if (!category) {
     return (
       <Layout>
         <TopbarOne /><HeaderOne linkTheme="light" />
@@ -397,17 +379,17 @@ export default function CategoryView({
       <TopbarOne /><HeaderOne linkTheme="light" />
 
       {/* Mobile Filter Drawer (Top-level for proper stacking context) */}
-      <div className={`mobile-filter-drawer ${isFilterOpen ? 'is-open' : ''} d-lg-none`}>
-        <div className="mobile-filter-drawer__overlay" onClick={() => setIsFilterOpen(false)} />
-        <div className="mobile-filter-drawer__content">
+      <div className={`mobile-filter-drawer ${isFilterOpen ? 'is-open' : ''} d-lg-none`} aria-hidden={!isFilterOpen}>
+        <button type="button" className="mobile-filter-drawer__overlay" onClick={closeFilters} tabIndex={-1} aria-label={t('filters.close')} />
+        <div ref={dialogRef} id="tour-filter-dialog" className="mobile-filter-drawer__content" role="dialog" aria-modal="true" aria-labelledby="tour-filter-title">
           <div className="mobile-filter-drawer__header">
-            <span className="m-0" style={{ fontWeight: 800, fontSize: '20px' }}>{t('filters.title')}</span>
-            <button onClick={() => setIsFilterOpen(false)} className="btn-close-filter" aria-label="Close Filter">
+            <span id="tour-filter-title" className="m-0" style={{ fontWeight: 800, fontSize: '20px' }}>{t('filters.title')}</span>
+            <button type="button" onClick={closeFilters} className="btn-close-filter" aria-label={t('filters.close')}>
               <X className="w-6 h-6" />
             </button>
           </div>
           <div className="mobile-filter-drawer__body">
-            <FiltersContent 
+            <TourListingFilters
               t={t} 
               draftFilters={draftFilters} 
               setDraftFilters={setDraftFilters} 
@@ -418,6 +400,7 @@ export default function CategoryView({
               handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }} 
               handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }} 
               currencySymbol={currencySymbol}
+              validationError={filterError}
               noBorder={true}
               hideHeader={true}
               fullHeight={true}
@@ -518,7 +501,7 @@ export default function CategoryView({
             {/* Desktop Sidebar */}
             <Col lg={4} xl={3} className="d-none d-lg-block p-0">
               <aside className='listing__sidebar sticky-top' style={{ top: '0', height: '100vh', padding: '120px 20px 40px', background: '#fff', borderRight: '1px solid #f0f0f0', overflowY: 'auto' }}>
-                <FiltersContent 
+                <TourListingFilters
                   t={t} 
                   draftFilters={draftFilters} 
                   setDraftFilters={setDraftFilters} 
@@ -529,6 +512,7 @@ export default function CategoryView({
                   handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }} 
                   handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }} 
                   currencySymbol={currencySymbol}
+                  validationError={filterError}
                   noBorder={true}
                 />
               </aside>
@@ -560,9 +544,13 @@ export default function CategoryView({
               {/* Controls bar */}
               <div className="d-flex flex-wrap justify-content-between align-items-center bg-white p-3 rounded-4 mb-4" style={{ gap: 12 }}>
                 <div className="d-flex align-items-center gap-3">
-                  <button 
+                  <button
+                    ref={triggerRef}
+                    type="button"
                     className="d-lg-none flex items-center gap-2 px-4 py-2 bg-[#b79c5c] text-white rounded-lg font-bold shadow-sm"
                     onClick={() => setIsFilterOpen(true)}
+                    aria-expanded={isFilterOpen}
+                    aria-controls="tour-filter-dialog"
                   >
                     <SlidersHorizontal className="w-5 h-5" />
                     <span>{t('filters.title')}</span>
@@ -580,7 +568,19 @@ export default function CategoryView({
                   </select>
                 </div>
               </div>
-              
+              <div className="d-flex flex-wrap align-items-center gap-2 mb-4" aria-live="polite">
+                <span className="text-muted">{t('listing.resultsCount', { count: totalResults })}</span>
+                {Object.entries(appliedFilters).filter(([, value]) => value).map(([key, value]) => (
+                  <button key={key} type="button" className="btn btn-sm btn-outline-secondary rounded-pill d-inline-flex align-items-center gap-1" onClick={() => removeFilter(key as keyof typeof appliedFilters)} aria-label={`${t('filters.remove')} ${value}`}>
+                    {value} <X size={14} aria-hidden="true" />
+                  </button>
+                ))}
+                {countActiveTourFilters(appliedFilters) > 1 && (
+                  <button type="button" className="btn btn-sm btn-link" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
+                )}
+              </div>
+              {error && <div className="alert alert-danger" role="alert">{error}</div>}
+
               {pageLoading && (<div className="flex items-center justify-center mb-4" style={{ minHeight: 40 }}><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>)}
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
