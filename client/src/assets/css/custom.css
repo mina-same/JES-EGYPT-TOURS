@@ -7804,12 +7804,20 @@ button[data-action="stop"] {
    h1-h6 body face. They are marketing headings, so they opt in to the display
    serif - unlike .subcategory-header__title and .tour-listing-details__title,
    which are functional headings and stay on the body face.
-   Typography only: no size, colour or spacing is set here, so the existing
-   layout is untouched.
+   It used to set the face and the weight and stop there, on the reasoning that
+   leaving size alone left the layout untouched. What that actually left was an
+   <h2> inheriting 16px — the same size as the body copy underneath it, so a
+   section heading read as a label. Every place using this class had it: the
+   author page, the blogs hub, the tours hub and the video-reviews section.
+
+   Size and line-height only. Margins and colour are still left to the theme,
+   so the spacing of each of those layouts is genuinely untouched.
 --------------------------------------------------------------------------- */
 .section-title__title {
   font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
   font-weight: 700;
+  font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+  line-height: 1.25;
 }
 
 /* ─────────────────────────────────────────────────────────────

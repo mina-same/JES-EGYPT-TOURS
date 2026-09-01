@@ -1,5 +1,5 @@
 /**
- * One-off: correct the house author's job title.
+ * Sync the house author's profile with the seed.
  *
  * The site carried two different titles for the same person. The author page
  * said "Travel Content Editor"; the database — and therefore the byline box on
@@ -15,7 +15,7 @@
  * in the database — so correcting a value that is already there has to be an
  * explicit, deliberate action someone runs once.
  *
- *   npm run migrate:author-role
+ *   npm run migrate:author-profile
  */
 import dotenv from 'dotenv';
 import path from 'path';
@@ -92,7 +92,7 @@ const run = async () => {
 
 run()
   .catch((error) => {
-    console.error('Failed to correct the author role:', error);
+    console.error('Failed to sync the author profile:', error);
     process.exitCode = 1;
   })
   .finally(() => mongoose.connection.close());
