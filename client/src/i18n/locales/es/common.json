@@ -234,17 +234,13 @@
       "title": "Asuán",
       "subtitle": "Tour en Feluca por el Nilo"
     },
-    "dahab": {
-      "title": "Dahab",
-      "subtitle": "Tour Mar Rojo & Montañas"
+    "fayoum": {
+      "title": "Fayún",
+      "subtitle": "Tour de los Lagos de Wadi El Rayan"
     },
     "giza": {
       "title": "Guiza",
       "subtitle": "Panorama Pirámides & Esfinge"
-    },
-    "hatshepsut": {
-      "title": "Templo de Hatshepsut",
-      "subtitle": "Tour Ribera Oeste de Luxor"
     },
     "khanElKhalili": {
       "title": "Khan El Khalili",
@@ -257,6 +253,10 @@
     "qaitbay": {
       "title": "Ciudadela de Qaitbay",
       "subtitle": "Tour Costero de Alejandría"
+    },
+    "sharmElSheikh": {
+      "title": "Sharm El Sheikh",
+      "subtitle": "Playas y Arrecifes del Mar Rojo"
     },
     "siwa": {
       "title": "Siwa",
@@ -305,7 +305,9 @@
   },
   "wishlistLink": "Favoritos",
   "instagram": {
-    "title": "Síguenos en Instagram"
+    "title": "Síguenos en Instagram",
+    "pause": "Pausar",
+    "play": "Reproducir"
   },
   "testimonials": {
     "tagline": "Testimonios de clientes",

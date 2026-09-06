@@ -1,4 +1,5 @@
 import { StaticImageData } from "next/image";
+import type { FeatureTwoItem } from "../FeatureTwo/types";
 import type { ICurrencyPrice } from "@/contexts/CurrencyContext";
 
 export interface ContactFormField {
@@ -8,23 +9,9 @@ export interface ContactFormField {
   type: "text" | "email" | "textarea";
 }
 
-
-export interface Metadata {
-  id: number;
-  title: string;
-  icon: string;
-}
-
-export interface Item {
-  id: number | string;
-  image: StaticImageData | string;
-  title: string;
-  link: string;
-  price: string | number;
-  videoId: string;
-  discount: string;
-  meta: Metadata[];
-}
+/* `Item` and `Metadata` lived here and described the same card as the two
+   `FeaturePackageItem` interfaces in FeatureTwo — three declarations, three
+   different opinions about `price`. FeatureTwoItem replaces all three. */
 
 /** Each tier is a per-currency object, not a bare number — the API stores real
  *  amounts in USD/EUR/GBP rather than one figure to convert. This was typed as
@@ -133,7 +120,7 @@ export interface TourDetailsOneData {
   highlightList: string[] | string;
   amenities: string;
   amenitiesTwo: string;
-  relatedTours: Item[];
+  relatedTours: FeatureTwoItem[];
   images: (StaticImageData | string | ImageObject)[];
   faqs: { question: string; answer: string }[];
   map: string;

@@ -208,7 +208,6 @@ export async function generateMetadata({
   return {
     title,
     description: bio || undefined,
-    icons: { icon: '/favicon-32x32.png' },
     alternates: getStaticLocaleAlternates(locale, authorPath, servedLocales),
     openGraph: {
       ...ogSiteDefaults(locale),

@@ -4837,17 +4837,6 @@ body.megamenu-popup-active .mobile-nav__content {
 .client-carousel__one__image {
   margin: auto;
 }
-.client-carousel__one__hover-image {
-  opacity: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  transition: opacity 300ms ease;
-}
-.client-carousel__one__item:hover .client-carousel__one__hover-image {
-  opacity: 1;
-}
 
 /*--------------------------------------------------------------
 # Animations
@@ -10306,40 +10295,9 @@ a + .listing-card-four__btns__hover {
   transform: scale(1);
   transition: all 0.3s ease-in-out;
 }
-.instagram-one__item__overly {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(var(--gotur-black-rgb, 29, 35, 31), 0.6);
-  position: absolute;
-  top: 0;
-  left: 0;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transform: translateY(-20%);
-  z-index: 1;
-  transition: opacity 500ms ease, transform 500ms ease;
-}
-.instagram-one__item__overly__icon {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--gotur-primary, #f7921e);
-  color: var(--gotur-white, #fff);
-  transition: all 0.4s ease-in-out;
-  font-size: 30px;
-}
-.instagram-one__item__overly__icon:hover {
-  background-color: var(--gotur-base, #63ab45);
-}
-.instagram-one__item:hover .instagram-one__item__overly {
-  opacity: 1;
-  transform: translateY(0);
-}
+/* The hover overlay and its round Instagram button were removed with the
+   markup in InstagramOne: the tiles are deliberately not clickable, and a
+   circular icon with its own :hover colour read as a button. */
 .instagram-one__item:hover {
   border-radius: 100px;
 }

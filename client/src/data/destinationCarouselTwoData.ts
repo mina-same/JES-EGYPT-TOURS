@@ -23,14 +23,19 @@ const destinationCarouselTwoData: readonly DestinationCarouselItem[] = [
   },
   {
     id: 2,
-    image: "/images/backgrounds/dahab-red-sea-mountains-tour-egypt.webp",
-    titleKey: "destinations.dahab.title",
-    subtitleKey: "destinations.dahab.subtitle",
+    // Dahab was here, and was the only slide that did not link to a
+    // destination page: it pointed at /search?q=Dahab, which returns
+    // nothing in any locale because no tour or blog mentions Dahab.
+    // Sharm El Sheikh is the nearest real destination in the same
+    // Sinai / Red Sea theme.
+    image: "/images/instragarm/sharm-el-sheikh-red-sea-resort-beach-egypt.webp",
+    titleKey: "destinations.sharmElSheikh.title",
+    subtitleKey: "destinations.sharmElSheikh.subtitle",
     hrefByLocale: {
-      en: "/en/search?q=Dahab",
-      de: "/de/search?q=Dahab",
-      it: "/it/search?q=Dahab",
-      es: "/es/search?q=Dahab",
+      en: "/en/sharm-el-sheikh",
+      de: "/de/scharm-el-scheich",
+      it: "/it/sharm-el-sheikh",
+      es: "/es/sharm-el-sheikh",
     },
   },
   {
@@ -47,14 +52,18 @@ const destinationCarouselTwoData: readonly DestinationCarouselItem[] = [
   },
   {
     id: 4,
-    image: "/images/backgrounds/hatshepsut-temple-luxor-west-bank-tour-egypt.webp",
-    titleKey: "destinations.hatshepsut.title",
-    subtitleKey: "destinations.hatshepsut.subtitle",
+    // Hatshepsut Temple was here and linked to /luxor — the same URL as
+    // slide 6 — so two slides with different labels led to one page while
+    // other destinations went unlinked. Fayoum is active and was not
+    // reachable from this carousel at all.
+    image: "/images/instragarm/fayoum-wadi-el-rayan-lakes-tour-egypt.webp",
+    titleKey: "destinations.fayoum.title",
+    subtitleKey: "destinations.fayoum.subtitle",
     hrefByLocale: {
-      en: "/en/luxor",
-      de: "/de/luxor",
-      it: "/it/luxor",
-      es: "/es/luxor",
+      en: "/en/fayoum",
+      de: "/de/fayyum",
+      it: "/it/faiyum",
+      es: "/es/fayun",
     },
   },
   {

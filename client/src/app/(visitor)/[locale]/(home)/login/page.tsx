@@ -20,9 +20,6 @@ export async function generateMetadata({
     title: "Sign In | JES Egypt Tours",
     description:
       "Sign in to your JES Egypt Tours account to manage your bookings and wishlist.",
-    icons: {
-      icon: "/favicon-32x32.png",
-    },
     alternates: getStaticLocaleAlternates(locale, "login"),
   };
 }

@@ -234,17 +234,13 @@
       "title": "Assuan",
       "subtitle": "Nil-Feluke Segel-Tour"
     },
-    "dahab": {
-      "title": "Dahab",
-      "subtitle": "Rotes Meer & Bergtour"
+    "fayoum": {
+      "title": "Fayyum",
+      "subtitle": "Wadi El Rayan Seen-Tour"
     },
     "giza": {
       "title": "Gizeh",
       "subtitle": "Pyramiden & Sphinx Panorama"
-    },
-    "hatshepsut": {
-      "title": "Hatschepsut-Tempel",
-      "subtitle": "Luxor Westufer Tour"
     },
     "khanElKhalili": {
       "title": "Khan El Khalili",
@@ -257,6 +253,10 @@
     "qaitbay": {
       "title": "Qaitbay-Zitadelle",
       "subtitle": "Alexandria Küstentour"
+    },
+    "sharmElSheikh": {
+      "title": "Scharm el-Scheich",
+      "subtitle": "Rotes Meer: Strände & Riffe"
     },
     "siwa": {
       "title": "Siwa",
@@ -305,7 +305,9 @@
   },
   "wishlistLink": "Merkliste",
   "instagram": {
-    "title": "Folgen Sie uns auf Instagram"
+    "title": "Folgen Sie uns auf Instagram",
+    "pause": "Pausieren",
+    "play": "Abspielen"
   },
   "testimonials": {
     "tagline": "Kundenstimmen",

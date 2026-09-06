@@ -235,17 +235,13 @@
       "title": "Aswan",
       "subtitle": "Nile Felucca Sailing Tour"
     },
-    "dahab": {
-      "title": "Dahab",
-      "subtitle": "Red Sea Mountains Tour"
+    "fayoum": {
+      "title": "Fayoum",
+      "subtitle": "Wadi El Rayan Lakes Tour"
     },
     "giza": {
       "title": "Giza",
       "subtitle": "Pyramids & Sphinx Sunset Panorama"
-    },
-    "hatshepsut": {
-      "title": "Hatshepsut Temple",
-      "subtitle": "Luxor West Bank Tour"
     },
     "khanElKhalili": {
       "title": "Khan El Khalili",
@@ -258,6 +254,10 @@
     "qaitbay": {
       "title": "Qaitbay Citadel",
       "subtitle": "Alexandria Coastal Tour"
+    },
+    "sharmElSheikh": {
+      "title": "Sharm El Sheikh",
+      "subtitle": "Red Sea Beaches & Reefs"
     },
     "siwa": {
       "title": "Siwa",
@@ -306,7 +306,9 @@
   },
   "wishlistLink": "Wishlist",
   "instagram": {
-    "title": "Follow us on Instagram"
+    "title": "Follow us on Instagram",
+    "pause": "Pause",
+    "play": "Play"
   },
   "testimonials": {
     "tagline": "Client Testimonials",

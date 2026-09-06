@@ -13,7 +13,7 @@ import LazyInstagramSection from "@/components/common/LazySection/LazyInstagramS
 import BlogTwoTwo from "@/components/sections/BlogTwoTwo/BlogTwoTwo";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import MainSliderFour from "@/components/sections/MainSliderFour/MainSliderFour";
-import WhyChooseUs from "@/components/sections/whyChooseUs/whyChoseeUs";
+import WhyChooseUs from "@/components/sections/whyChooseUs/WhyChooseUs";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
 import HomeIntro, { type HomeIntroContent } from "@/components/sections/HomeIntro/HomeIntro";
@@ -92,10 +92,6 @@ export async function generateMetadata({
   return {
     title,
     description,
-    icons: {
-      icon: "/favicon-logo.png",
-      apple: "/favicon-logo.png",
-    },
     alternates,
     openGraph: {
       ...ogSiteDefaults(lang),

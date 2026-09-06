@@ -7894,3 +7894,54 @@ button.mobile-nav__close:focus-visible {
   width: 100%;
   overflow: hidden;
 }
+
+/* ==========================================================================
+   INSTAGRAM STRIP — heading row and autoplay control
+   The strip auto-advances every 2.5s, so WCAG 2.2.2 needs a visible way to
+   stop it that does not depend on hovering.
+   ========================================================================== */
+.instagram-one__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px 24px;
+}
+
+.instagram-one__autoplay-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: 1px solid var(--gotur-base, #b79c5c);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--gotur-black, #1d231f);
+  font-size: 15px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+.instagram-one__autoplay-toggle:hover,
+.instagram-one__autoplay-toggle:focus-visible {
+  background-color: var(--gotur-base, #b79c5c);
+  color: var(--gotur-white, #fff);
+}
+
+.instagram-one__autoplay-toggle:focus-visible {
+  outline: 3px solid var(--gotur-black, #1d231f);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .instagram-one__autoplay-toggle {
+    transition: none;
+  }
+}
+
+@media (max-width: 575px) {
+  .instagram-one__heading {
+    flex-direction: column;
+  }
+}

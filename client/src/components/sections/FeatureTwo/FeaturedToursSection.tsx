@@ -9,31 +9,17 @@ import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { useTranslation } from "react-i18next";
 import { type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import FeatureTwo from "./FeatureTwo";
+import type { FeatureTwoItem } from "./types";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
-interface FeaturePackageItem {
-  id: string;
-  image: string;
-  images: string[];
-  title: string;
-  link: string;
-  price: number | ICurrencyPrice;
-  videoId: string;
-  /** All of the tour's review videos, so the card's button opens the same set
-   *  the listing pages open rather than just the first one. */
-  videoIds: string[];
-  discount: string;
-  /** Short summary shown under the title (HTML is stripped by the card). */
-  description?: string;
-  meta: { id: number; title: string; icon: string }[];
-}
+/* The card shape is FeatureTwoItem — one definition, in ./types.ts. */
 
 function getYouTubeId(url: string): string {
   const match = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
   return match ? match[1] : "";
 }
 
-function mapTour(tour: any, locale: string): FeaturePackageItem {
+function mapTour(tour: any, locale: string): FeatureTwoItem {
   // All of the tour's own image URLs — used to open a per-tour lightbox on
   // click. Just strings (no downloads until the gallery opens).
   const images: string[] = Array.isArray(tour.images)
@@ -128,7 +114,7 @@ type FallbackState = {
   locale: string;
   /** The `initialTours` reference that led to this fetch. */
   source: RawTourList;
-  tours: FeaturePackageItem[];
+  tours: FeatureTwoItem[];
 } | null;
 
 // Upper bound for the featured-tours carousel (looping slider shows all of
@@ -136,7 +122,7 @@ type FallbackState = {
 // server-side FEATURED_TOURS_LIMIT.
 const FEATURED_TOURS_LIMIT = 24;
 
-function mapToursForLocale(tours: any[], locale: string): FeaturePackageItem[] {
+function mapToursForLocale(tours: any[], locale: string): FeatureTwoItem[] {
   return tours
     .filter((tour: any) => getStrictLocalizedSlug(tour.slug, locale as SupportedLocale))
     .map((tour: any) => mapTour(tour, locale));
@@ -223,7 +209,7 @@ const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({
       extraClass="section-space"
       id="featured-tours"
       rewind
-      tours={tours as any}
+      tours={tours}
       title={`${t("featuredTours.title")} ${t("featuredTours.titleSpan")}`}
       titleSpan=""
       subtitle={t("featuredTours.tagline")}
