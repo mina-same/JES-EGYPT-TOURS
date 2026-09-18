@@ -14,6 +14,7 @@ import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
+import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
@@ -784,11 +785,11 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
         <>
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(blogJsonLd) }}
           />
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(blogBreadcrumbJsonLd) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(blogBreadcrumbJsonLd) }}
           />
           <BlogDetailView slug={slug} locale={locale} initialBlog={blogData} />
         </>
@@ -881,7 +882,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
           <SlugManager slugs={tour.slug as any} />
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
           />
           <Layout>
             <TopbarOne />

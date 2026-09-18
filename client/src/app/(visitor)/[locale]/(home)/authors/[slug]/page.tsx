@@ -23,6 +23,7 @@ import {
   type SupportedLocale,
 } from '@/lib/url';
 import { getStaticLocaleAlternates } from '@/lib/seo/localeAlternates';
+import { serializeJsonLd } from '@/lib/seo/serializeJsonLd';
 import { getServerTranslation } from '@/lib/i18n-server';
 import { ogSiteDefaults } from '@/lib/ogDefaults';
 import styles from './AuthorPage.module.css';
@@ -354,7 +355,7 @@ export default async function EditorialAuthorPage({
 
   return (
     <Layout>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(profileJsonLd) }} />
       <TopbarOne />
       {/* `light` — light-COLOURED links, for a dark area behind them.
 
