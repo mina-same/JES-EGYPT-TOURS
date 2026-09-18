@@ -5,12 +5,12 @@ import useStore from "@/store/useStore";
 import { usePathname } from "next/navigation";
 
 const LayoutObserver = () => {
-  const {
-    mobileDrawerStatus,
-    mobileDrawerTwoStatus,
-    setMobileDrawerTwoStatus,
-    setMobileDrawerStatus,
-  } = useStore();
+  const mobileDrawerStatus = useStore((state) => state.mobileDrawerStatus);
+  const mobileDrawerTwoStatus = useStore((state) => state.mobileDrawerTwoStatus);
+  const setMobileDrawerTwoStatus = useStore(
+    (state) => state.setMobileDrawerTwoStatus
+  );
+  const setMobileDrawerStatus = useStore((state) => state.setMobileDrawerStatus);
   const pathname = usePathname();
   useEffect(() => {
     if (mobileDrawerStatus || mobileDrawerTwoStatus) {

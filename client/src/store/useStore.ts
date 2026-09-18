@@ -18,20 +18,14 @@ const useStore = create<StoreState>((set) => ({
   mobileDrawerTwoStatus: false,
   changeSearchPopupStatus: () =>
     set((state) => ({ searchPopupStatus: !state.searchPopupStatus })),
-  // changeMobileDrawerStatus: () =>
-  //   set((state) => ({ mobileDrawerStatus: !state.mobileDrawerStatus })),
   changeMobileDrawerStatus: () =>
-    set((state) => {
-      const newStatus = !state.mobileDrawerStatus;
-      console.log("mobileDrawerStatus changed to:", newStatus);
-      return { mobileDrawerStatus: newStatus };
-    }),
+    set((state) => ({
+      mobileDrawerStatus: !state.mobileDrawerStatus,
+    })),
   changeMobileDrawerTwoStatus: () =>
-    set((state) => {
-      const newStatus = !state.mobileDrawerTwoStatus;
-      console.log("mobileDrawerStatus changed to:", newStatus);
-      return { mobileDrawerTwoStatus: newStatus };
-    }),
+    set((state) => ({
+      mobileDrawerTwoStatus: !state.mobileDrawerTwoStatus,
+    })),
   setMobileDrawerTwoStatus: (status: boolean) =>
     set(() => ({ mobileDrawerTwoStatus: status })),
   setMobileDrawerStatus: (status: boolean) =>

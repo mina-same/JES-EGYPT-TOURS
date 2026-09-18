@@ -58,6 +58,7 @@ const HomeFaqItem: React.FC<{
         id={panelId}
         role="region"
         aria-labelledby={headerId}
+        inert={!isOpen}
       >
         <div className="hfaq-item__clip">
           {/* Sanitized on the way IN, by the API, at the moment an editor

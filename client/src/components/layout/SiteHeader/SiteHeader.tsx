@@ -57,7 +57,14 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
   const locale = getLocaleFromPath(pathname);
   const { menu } = useHeaderMenu("header-main");
   const { wishlist } = useWishlist();
-  const { changeSearchPopupStatus, changeMobileDrawerStatus } = useStore();
+  // One selector per action: actions never change identity, so neither header
+  // copy re-renders when the popup or drawer toggles.
+  const changeSearchPopupStatus = useStore(
+    (state) => state.changeSearchPopupStatus
+  );
+  const changeMobileDrawerStatus = useStore(
+    (state) => state.changeMobileDrawerStatus
+  );
 
   const isSticky = variant === "sticky";
   const scrolledUp = useScrollUp(500);
