@@ -8121,10 +8121,12 @@ button.mobile-nav__close:focus-visible {
    not styled here.
 
    Motion: panels start reacting on the first frame (no delay) and ease
-   out over ~200ms — first level slides down 8px, third level slides in
-   8px from the side. `visibility` rides the same transition so a panel
-   stays hit-testable while fading out, and hidden items stay out of the
-   tab order.
+   out over ~250ms — first level slides down 6px, third level slides in
+   6px from the side. `visibility` does not animate: it flips to visible
+   the instant a panel opens (so a Tab pressed in the same moment already
+   finds the links), and flips to hidden only after the 260ms close has
+   played out (so the fade stays visible and hidden items leave the tab
+   order).
    ───────────────────────────────────────────────────────────── */
 .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul {
   top: calc(100% - 10px);
@@ -8139,20 +8141,25 @@ button.mobile-nav__close:focus-visible {
     0 14px 34px -10px rgba(29, 35, 31, 0.18),
     0 3px 8px -2px rgba(29, 35, 31, 0.06);
   transform-origin: top left;
-  transform: translateY(8px);
+  transform: translateY(6px);
   transition:
-    opacity 200ms ease-out,
-    visibility 200ms ease-out,
-    transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    opacity 240ms ease,
+    transform 260ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    visibility 0s linear 260ms;
 }
 
 /* Opens on focus as well as hover, so keyboard users can reach the
-   submenu from its parent link. */
+   submenu from its parent link. Same opacity/transform timing as the
+   close; only `visibility` differs (immediate here, delayed above). */
 .main-menu .main-menu__list li.dropdown:not(.megamenu):hover > ul,
 .main-menu .main-menu__list li.dropdown:not(.megamenu):focus-within > ul {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  transition:
+    opacity 240ms ease,
+    transform 260ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    visibility 0s;
 }
 
 .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a {
@@ -8192,7 +8199,7 @@ button.mobile-nav__close:focus-visible {
 .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown > ul {
   top: -8px;
   left: calc(100% + 10px);
-  transform: translateX(8px);
+  transform: translateX(6px);
 }
 .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:hover > ul,
 .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:focus-within > ul {
@@ -8203,7 +8210,7 @@ button.mobile-nav__close:focus-visible {
    off the parent ROW (not the panel), so it does not shift with the
    panel's slide-in, and it only exists while that row is hovered — an
    invisible strip that never catches the pointer on its own. 20px covers
-   the gap plus the 8px slide offset. */
+   the gap plus the 6px slide offset. */
 .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:hover::before {
   content: "";
   position: absolute;
@@ -8219,7 +8226,7 @@ button.mobile-nav__close:focus-visible {
   .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown > ul {
     left: auto;
     right: calc(100% + 10px);
-    transform: translateX(-8px);
+    transform: translateX(-6px);
   }
   .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown:hover > ul,
   .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown:focus-within > ul {
@@ -8240,7 +8247,17 @@ button.mobile-nav__close:focus-visible {
     transform: none;
     transition:
       opacity 100ms linear,
-      visibility 100ms linear;
+      visibility 0s linear 100ms;
+  }
+  /* Open state. The side-panel selectors are listed separately because the
+     side-panel rule above out-ranks the plain first-level one. */
+  .main-menu .main-menu__list li.dropdown:not(.megamenu):hover > ul,
+  .main-menu .main-menu__list li.dropdown:not(.megamenu):focus-within > ul,
+  .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:hover > ul,
+  .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:focus-within > ul {
+    transition:
+      opacity 100ms linear,
+      visibility 0s;
   }
   .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a {
     transition: none;
