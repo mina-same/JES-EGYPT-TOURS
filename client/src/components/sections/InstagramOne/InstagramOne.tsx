@@ -38,10 +38,6 @@ const TILE_SIZES =
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia(REDUCED_MOTION_QUERY).matches;
-
 const InstagramOne: React.FC<InstragramOneProps> = ({ extraClass = "" }) => {
   // `extraClass` had no default, so the rendered class list literally read
   // "instagram-one section-space undefined".
@@ -49,20 +45,25 @@ const InstagramOne: React.FC<InstragramOneProps> = ({ extraClass = "" }) => {
   const { items }: InstagramOneData = instagramOneData;
   const sliderRef = useRef<TinySliderHandle>(null);
 
-  // Starts matching the visitor's system preference. This component is only
-  // ever mounted in the browser (LazyInstagramSection loads it with
-  // `ssr: false`), so reading matchMedia during the initial state is safe —
-  // there is no server HTML for it to disagree with.
-  const [playing, setPlaying] = useState(() => !prefersReducedMotion());
+  // Always `true` on the first render, never read from matchMedia. The
+  // homepage loads this through LazyInstagramSection (`ssr: false`), but the
+  // About page imports it directly, so it IS server-rendered there — and the
+  // server has no window. Deriving the initial value from the preference made
+  // a reduced-motion visitor's first client render say "Play" over server
+  // HTML that said "Pause": a hydration mismatch. The effect below applies
+  // the real preference once mounted, well inside the 2.5s autoplayTimeout.
+  const [playing, setPlaying] = useState(true);
   const [sliderReady, setSliderReady] = useState(false);
 
-  // Follow the preference if it changes while the page is open. No
-  // "did the user override this?" bookkeeping: a fresh system-level
-  // accessibility choice simply wins over an earlier click on the button.
+  // Match the visitor's system preference after mount, and follow it if it
+  // changes while the page is open. No "did the user override this?"
+  // bookkeeping: a fresh system-level accessibility choice simply wins over
+  // an earlier click on the button.
   useEffect(() => {
     const query = window.matchMedia(REDUCED_MOTION_QUERY);
     const syncWithPreference = () => setPlaying(!query.matches);
 
+    syncWithPreference();
     query.addEventListener("change", syncWithPreference);
     return () => query.removeEventListener("change", syncWithPreference);
   }, []);

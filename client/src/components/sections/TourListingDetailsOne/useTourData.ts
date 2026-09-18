@@ -275,7 +275,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [moreTours, setMoreTours] = useState<any[]>([]);
+  const [moreTours, setMoreTours] = useState<FeatureTwoItem[]>([]);
   const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
   /**
    * Whether a real tour is available to render. True from the first render when
@@ -451,7 +451,11 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         // byline of "Admin": its private copy of the mapping never received
         // the fixes the shared one did.
         setRelatedBlogs(fetchedRelatedBlogs);
-        setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
+        setMoreTours(
+          fetchedMoreToursRaw
+            .map(mapTourToItem)
+            .filter((item): item is FeatureTwoItem => item !== null)
+        );
         setTourData(mappedData);
         setHasTourContent(true);
       } catch (err) {

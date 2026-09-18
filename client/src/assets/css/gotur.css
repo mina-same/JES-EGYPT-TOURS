@@ -10290,7 +10290,6 @@ a + .listing-card-four__btns__hover {
   transition: all 0.4s ease-in-out;
 }
 .instagram-one__item img {
-  object-fit: cover;
   width: 100%;
   transform: scale(1);
   transition: all 0.3s ease-in-out;
