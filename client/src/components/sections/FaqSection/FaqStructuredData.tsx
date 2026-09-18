@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 import { getLocaleFromPath, normalizeLocale } from '@/lib/url';
+import { stripHtml } from '@/lib/seo/tourJsonLd';
 
 interface FaqStructuredDataProps {
   faqs: FAQ[];
@@ -40,31 +41,53 @@ export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({
   const locale = getLocaleFromPath(pathname, normalizeLocale(i18n.language));
   const faqPageUrl = `${BASE_URL}/${locale}/faq`;
 
+  // JSON-LD text is plain text. The answers are stored as sanitized HTML, so
+  // `&` arrives as `&amp;` and paragraphs as adjacent <p> tags: stripHtml
+  // decodes the entities and keeps a space where each tag was, where the old
+  // bare regex published "&amp;" literally and glued paragraphs together.
+  // An answer that is only markup (an empty `<p><br></p>`) passes the
+  // server's non-empty check but cleans to "", so it is dropped here.
+  const mainEntity = faqs
+    .map(faq => {
+      const rawQ = getLocalizedValue(faq.question, locale);
+      const rawA = getLocalizedValue(faq.answer, locale);
+      return {
+        q: stripHtml(typeof rawQ === 'string' ? rawQ : ''),
+        a: stripHtml(typeof rawA === 'string' ? rawA : ''),
+      };
+    })
+    .filter(({ q, a }) => q && a)
+    .map(({ q, a }) => ({
+      "@type": "Question",
+      "name": q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": a
+      }
+    }));
+
+  // An empty FAQPage is invalid structured data — this is what a failed FAQ
+  // request used to publish, since the page still renders with `faqs = []`.
+  if (mainEntity.length === 0) return null;
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "url": faqPageUrl,
     "name": title,
     "description": description,
-    "mainEntity": faqs.map(faq => {
-      const q = getLocalizedValue(faq.question, locale) || '';
-      const a = getLocalizedValue(faq.answer, locale) || '';
-
-      return {
-        "@type": "Question",
-        "name": q,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": a.replace(/<[^>]*>/g, '') // Strip HTML for schema
-        }
-      };
-    })
+    "mainEntity": mainEntity
   };
+
+  // stripHtml turns `&lt;` back into "<", and JSON.stringify leaves "<"
+  // alone — so an answer containing the text "</script>" would end this
+  // element early. `\u003c` is the same character to a JSON parser.
+  const json = JSON.stringify(structuredData).replace(/</g, "\\u003c");
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      dangerouslySetInnerHTML={{ __html: json }}
     />
   );
 };
