@@ -13,9 +13,8 @@ import { API_URL } from "@/config/api";
 import type { Menu } from "@/services/menuService";
 
 // Server-fetch the header navigation so its links are part of the initial
-// HTML (SEO: crawlers see the nav without executing JavaScript). Revalidated
-// every 5 minutes — pages stay static/fast while admin menu edits still roll
-// out quickly.
+// HTML (SEO: crawlers see the nav without executing JavaScript). Cached for
+// an hour and cleared on demand when an admin saves the menu.
 async function getHeaderMenu(locale: string): Promise<Menu | null> {
   try {
     // The locale rides in the header (what the API reads) and in the query

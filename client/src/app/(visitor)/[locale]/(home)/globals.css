@@ -140,10 +140,10 @@ a {
 }
 
 @media (min-width: 1200px) {
+  /* No box-shadow: it cast a dark band across the nav row below. */
   .top-one {
     position: relative;
     z-index: 100;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
   }
 
   .top-one + .main-header--one .main-header__logo img {

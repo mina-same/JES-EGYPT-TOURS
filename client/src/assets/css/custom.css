@@ -7842,11 +7842,6 @@ button.mobile-nav__close {
   appearance: none;
 }
 
-button.mobile-nav__toggler {
-  /* The theme lays the three bars out on the div; keep that box model. */
-  display: inline-block;
-}
-
 button.search-toggler:focus-visible,
 button.mobile-nav__toggler:focus-visible,
 button.mobile-nav__close:focus-visible {
@@ -8112,6 +8107,142 @@ button.mobile-nav__close:focus-visible {
   .search-popup .search-popup__overlay,
   .search-popup .search-popup__content,
   .search-popup__close {
+    transition: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Desktop header dropdowns — floating card panel.
+   Replaces the theme's square white box, solid gold hover fill and
+   bullet glyph with a rounded, softly shadowed card and a light tint on
+   hover. Scoped to `.main-menu` (desktop <nav> only; the mobile drawer
+   never carries that class) and to `li.dropdown:not(.megamenu)` so the
+   megamenu popup rules in gotur.css are untouched. Top-level items are
+   not styled here.
+
+   Motion: panels start reacting on the first frame (no delay) and ease
+   out over ~200ms — first level slides down 8px, third level slides in
+   8px from the side. `visibility` rides the same transition so a panel
+   stays hit-testable while fading out, and hidden items stay out of the
+   tab order.
+   ───────────────────────────────────────────────────────────── */
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul {
+  top: calc(100% - 10px);
+  left: -22px;
+  min-width: 240px;
+  padding: 7px;
+  gap: 2px;
+  background-color: var(--gotur-white, #fff);
+  border: 1px solid rgba(29, 35, 31, 0.07);
+  border-radius: 12px;
+  box-shadow:
+    0 14px 34px -10px rgba(29, 35, 31, 0.18),
+    0 3px 8px -2px rgba(29, 35, 31, 0.06);
+  transform-origin: top left;
+  transform: translateY(8px);
+  transition:
+    opacity 200ms ease-out,
+    visibility 200ms ease-out,
+    transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Opens on focus as well as hover, so keyboard users can reach the
+   submenu from its parent link. */
+.main-menu .main-menu__list li.dropdown:not(.megamenu):hover > ul,
+.main-menu .main-menu__list li.dropdown:not(.megamenu):focus-within > ul {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--gotur-black, #1d231f);
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease-out,
+    color 160ms ease-out;
+}
+
+/* No icons in submenu items: drop the theme's bullet glyph. */
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a::after {
+  content: none;
+}
+
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li:hover > a,
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li.current > a,
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a:focus-visible {
+  background-color: rgba(var(--gotur-base-rgb, 212, 175, 55), 0.12);
+  color: #7a5f12;
+}
+
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a:focus-visible {
+  outline: 2px solid var(--gotur-base, #d4af37);
+  outline-offset: -2px;
+}
+
+/* Third level: opens beside its parent row, aligned with its top, and
+   slides in from the side rather than from above. */
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown > ul {
+  top: -8px;
+  left: calc(100% + 10px);
+  transform: translateX(8px);
+}
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:hover > ul,
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:focus-within > ul {
+  transform: translateX(0);
+}
+
+/* Hover bridge for the 10px gap between a row and its side panel. It hangs
+   off the parent ROW (not the panel), so it does not shift with the
+   panel's slide-in, and it only exists while that row is hovered — an
+   invisible strip that never catches the pointer on its own. 20px covers
+   the gap plus the 8px slide offset. */
+.main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown:hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 20px;
+}
+
+/* Keep the theme's flip for the last two top-level items on narrow
+   desktops, so third-level panels don't run off the right edge. */
+@media (min-width: 1200px) and (max-width: 1400px) {
+  .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown > ul {
+    left: auto;
+    right: calc(100% + 10px);
+    transform: translateX(-8px);
+  }
+  .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown:hover > ul,
+  .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown:focus-within > ul {
+    transform: translateX(0);
+  }
+  .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown:hover::before {
+    left: auto;
+    right: 100%;
+  }
+}
+
+/* Reduced motion: no slide at all, and only a brief fade so the panel
+   still doesn't flash. Open/close behaviour is unchanged. */
+@media (prefers-reduced-motion: reduce) {
+  .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul,
+  .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul li.dropdown > ul,
+  .main-menu .main-menu__list > li.dropdown:nth-last-child(-n + 2) > ul li.dropdown > ul {
+    transform: none;
+    transition:
+      opacity 100ms linear,
+      visibility 100ms linear;
+  }
+  .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a {
     transition: none;
   }
 }
