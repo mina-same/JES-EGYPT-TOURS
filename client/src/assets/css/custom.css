@@ -7854,6 +7854,58 @@ button.mobile-nav__close:focus-visible {
   outline-offset: 3px;
 }
 
+/* The header's search toggle used to be an <a>, and the theme styles the
+   header icons ONLY through `.main-header__info a` selectors (gotur.css and
+   globals.css). As a <button> it lost all of them: its colour (the reset's
+   `color: inherit` fell through to near-black body text, beside a white
+   heart), its hover and transition, and — through `a + a` — the space
+   before the wishlist link. These restore the same values by class.
+
+   Same order as gotur.css, so on light-link headers the colour stays white
+   on hover exactly as the old link did (links-light beats :hover there). */
+.main-header--one .main-header__info .search-toggler {
+  color: var(--gotur-black, #1d231f);
+  transition: color 0.4s ease-in-out;
+}
+
+.main-header--one .main-header__info .search-toggler:hover {
+  color: var(--gotur-base, #63ab45);
+}
+
+.main-header--one.main-header--links-light .main-header__info .search-toggler {
+  color: var(--gotur-white, #fff);
+}
+
+/* Main header only. The sticky copy (.sticky-header--cloned) spaces its
+   icons with an inline 20px flex gap in SiteHeader and must not stack a
+   margin on top of it. */
+.main-header:not(.sticky-header--cloned)
+  .main-header__info
+  .search-toggler
+  + .main-header__info__item {
+  margin-left: 24px;
+}
+
+/* The homepage header's own values (globals.css `.top-one + .main-header--one`
+   rules). That selector never matches the sticky copy, which is never placed
+   directly after the top bar. */
+@media (min-width: 1200px) {
+  .top-one
+    + .main-header--one
+    .main-header__info
+    .search-toggler
+    + .main-header__info__item {
+    margin-left: 18px;
+  }
+
+  .top-one
+    + .main-header--one
+    .main-header__info
+    .search-toggler {
+    font-size: 15px;
+  }
+}
+
 /* Wishlist count badge — was two diverging blocks of inline styles, one in
    each header copy (radius 9999 vs 999, 10px vs 11px, different padding). */
 .main-header__wishlist-badge {
@@ -7943,5 +7995,123 @@ button.mobile-nav__close:focus-visible {
 @media (max-width: 575px) {
   .instagram-one__heading {
     flex-direction: column;
+  }
+}
+
+/* ==========================================================================
+   SEARCH POPUP — motion
+   Overrides the template's animation in gotur.css, which is left untouched:
+   a 224vw black circle scaling up over 1.6s, a panel whose WIDTH grew from 0
+   after a 0.7s delay, and `transition: all 1s` on the wrapper — so the
+   z-index itself animated, keeping the closed popup stacked over the page
+   for most of a second. Here: one short fade on the backdrop and a small
+   rise-and-settle on the panel, both starting at once and reversing on close.
+   ========================================================================== */
+
+/* Closed = not painted. `visibility` waits for the fade-out to finish before
+   hiding, instead of animating z-index. Keyboard access while closed is
+   still handled by `inert` in Search.tsx. */
+.search-popup {
+  z-index: 9999;
+  visibility: hidden;
+  transition: visibility 0s linear 260ms;
+}
+
+.search-popup.active {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+/* A plain full-screen scrim at every width — the circle geometry and the
+   mobile slide-down are both neutralised. Lighter than the old 0.8 black,
+   with a light blur so the page stays recognisable behind it. */
+.search-popup .search-popup__overlay,
+.search-popup.active .search-popup__overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  transform: none;
+}
+
+.search-popup .search-popup__overlay {
+  /* gotur.css gives this backdrop an X-shaped image cursor
+     (url(../images/close.png)); the visible close button replaces it. */
+  cursor: default;
+  opacity: 0;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  transition: opacity 200ms ease;
+}
+
+.search-popup.active .search-popup__overlay {
+  opacity: 0.6;
+}
+
+/* The panel is full width from the start (no more width animation) and only
+   fades, rises 12px and settles from 98% scale. The extra top padding makes
+   room for the close button, which now lives inside the panel. */
+.search-popup .search-popup__content {
+  width: 100%;
+  padding: 48px 15px 30px;
+  opacity: 0;
+  transform: translate(-50%, -50%) translateY(12px) scale(0.98);
+  transition: opacity 220ms ease, transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.search-popup.active .search-popup__content {
+  width: 100%;
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  transition-delay: 0s;
+}
+
+/* Close button — same look as the mobile drawer's close (.mobile-nav__close):
+   a white fa-times at 20px that takes the brand colour on hover. It sits
+   inside the panel, above the input's right edge, so it moves with the panel
+   rather than on its own. That class cannot be reused directly:
+   `button.mobile-nav__close { color: inherit }` would paint it in dark body
+   text on the dark backdrop. */
+.search-popup__close {
+  position: absolute;
+  top: 8px;
+  right: 7px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--gotur-white, #fff);
+  cursor: pointer;
+  transition: color 300ms ease;
+}
+
+.search-popup__close:hover {
+  color: var(--gotur-base, #63ab45);
+}
+
+.search-popup__close:focus-visible {
+  outline: 3px solid var(--gotur-primary, #b79c5c);
+  outline-offset: 3px;
+}
+
+/* No global reduced-motion rule exists, so the popup carries its own: the
+   states still change, they just do not animate. */
+@media (prefers-reduced-motion: reduce) {
+  .search-popup,
+  .search-popup .search-popup__overlay,
+  .search-popup .search-popup__content,
+  .search-popup__close {
+    transition: none;
   }
 }
