@@ -5134,6 +5134,23 @@ button[data-action="stop"] {
   -webkit-user-select: none;
 }
 
+/* Until tiny-slider has wrapped the slides in .tns-outer, only slide 1 takes
+   part in layout. This covers the server placeholder AND the bare container
+   TinySliderWrapper renders between hydration and the slider's async init —
+   in that gap all six slides used to stack vertically (a hero thousands of
+   pixels tall for a moment), which was the page's load CLS. The host's child
+   is .tns-outer once the slider exists, so this never matches after init. */
+.main-slider-four .tiny-slider-host > div:not(.tns-outer) > *:not(:first-child) {
+  display: none;
+}
+
+/* Keep the placeholder's min-height (895px, 660px on phones) but drop its
+   fixed height: on phones slide 1 is taller than 660px (~717px at 375px), so
+   the fixed box clipped it and reserved less space than the slider then used. */
+.main-slider-four .main-slider-four__slider-placeholder {
+  height: auto;
+}
+
 /* Eyebrow: the script subtitle flanked by thin gold lines. */
 .main-slider-four__subtitle {
   display: flex;
