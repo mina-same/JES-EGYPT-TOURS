@@ -25,7 +25,7 @@ import { useTourData } from "./useTourData";
 // Import sub-components
 import { TourInfoBar } from "./components/TourInfoBar";
 import { TrustBand } from "./components/TrustBand";
-import { BookingForm } from "./components/BookingForm";
+import { BookingFormLazy } from "./components/BookingFormLazy";
 import { TourPlan } from "./components/TourPlan";
 import { PricingPlans } from "./components/PricingPlans";
 import { TourMosaic } from "./components/TourMosaic";
@@ -1242,7 +1242,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                   overflowY: isSidebarViewportConstrained ? 'auto' : undefined,
                 }}
               >
-                <BookingForm
+                <BookingFormLazy
                   tourId={String(tourData.id || '')}
                   price={price}
                   // Gates the card's "Pricing" link. Plans existing is not

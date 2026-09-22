@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import type { ICurrencyPrice } from "@/contexts/CurrencyContext";
-import { BookingForm } from './BookingForm';
+import { BookingFormLazy } from './BookingFormLazy';
 import { BadgeCheck, CalendarDays, ChevronUp, X } from 'lucide-react';
 
 interface MobileStickyBookingBarProps {
@@ -151,7 +151,7 @@ export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ 
           </button>
         </div>
         <div className="bottom-sheet-content">
-          <BookingForm tourId={tourId} price={price} tourTitle={tourTitle} packageOptions={packageOptions} />
+          <BookingFormLazy tourId={tourId} price={price} tourTitle={tourTitle} packageOptions={packageOptions} />
         </div>
       </div>
     </>

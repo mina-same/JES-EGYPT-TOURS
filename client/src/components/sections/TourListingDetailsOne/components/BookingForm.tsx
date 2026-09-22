@@ -1,6 +1,13 @@
 "use client";
-import "react-datepicker/dist/react-datepicker.css";
-import "react-phone-number-input/style.css";
+/*
+ * This module is loaded as its own chunk, through BookingFormLazy — never
+ * import it directly, or react-datepicker and react-phone-number-input land
+ * back in the shared route bundle that every category and blog page downloads.
+ *
+ * react-datepicker.css and react-phone-number-input/style.css are imported by
+ * that wrapper instead of here, so they stay in the eagerly-loaded route CSS
+ * and are already applied when this chunk's markup paints.
+ */
 import React, { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
 import { de as dateDe } from "date-fns/locale/de";
