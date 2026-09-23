@@ -9,6 +9,60 @@
   gap: 0 0.19em;
 }
 
+/* TextAnimation renders one span per word. These were inline styles on every
+   span; as CSS they keep the wrapping behaviour identical while leaving the
+   server HTML free of presentation. */
+.text-animation > span {
+  display: inline-block;
+  white-space: pre;
+}
+
+/* The entrance is an ENHANCEMENT, and this is the whole of it.
+ *
+ * With no `data-reveal` attribute — which is the server-rendered state, and
+ * the permanent state for anything that was already on screen when the page
+ * hydrated — none of the rules below apply and the words are simply visible.
+ * The component adds `data-reveal="pending"` only to a heading still below the
+ * fold, then swaps it to "in" when the visitor reaches it.
+ *
+ * Only opacity and transform, so arming a heading cannot move anything. */
+.text-animation[data-reveal] > span {
+  transition: opacity 600ms ease, transform 600ms ease;
+  transition-delay: calc(var(--word-index, 0) * 60ms);
+}
+.text-animation[data-reveal="pending"] > span {
+  opacity: 0;
+}
+.text-animation[data-reveal="pending"][data-anim="right"] > span {
+  transform: translateX(20px);
+}
+.text-animation[data-reveal="pending"][data-anim="left"] > span {
+  transform: translateX(-20px);
+}
+.text-animation[data-reveal="pending"][data-anim="up"] > span {
+  transform: translateY(20px);
+}
+.text-animation[data-reveal="pending"][data-anim="down"] > span {
+  transform: translateY(-20px);
+}
+.text-animation[data-reveal="pending"][data-anim="scale"] > span {
+  transform: scale(0.8);
+}
+.text-animation[data-reveal="in"] > span {
+  opacity: 1;
+  transform: none;
+}
+
+/* Asked not to see motion: the final frame, with nothing to wait for. The
+   component does not arm in this case either, so this is belt and braces. */
+@media (prefers-reduced-motion: reduce) {
+  .text-animation[data-reveal] > span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 @layer base {
   :root {
     color-scheme: light;
@@ -140,10 +194,10 @@ a {
 }
 
 @media (min-width: 1200px) {
+  /* No box-shadow: it cast a dark band across the nav row below. */
   .top-one {
     position: relative;
     z-index: 100;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
   }
 
   .top-one + .main-header--one .main-header__logo img {

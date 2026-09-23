@@ -41,6 +41,7 @@ export type InternalLinkIssueCode =
   | 'empty_anchor_text'
   | 'internal_nofollow'
   | 'link_in_metadata'
+  | 'duplicate_internal_link'
   | 'localized_slug_mismatch';
 
 export interface InternalLinkIssue {
@@ -316,6 +317,30 @@ export function auditInternalLinks(
           if (link) results.push(link);
         }
       }
+    }
+  }
+
+  // Compare occurrences across fields within one language. Metadata is not
+  // rendered as page links; fragment/query-only references are local navigation.
+  // normalizedHref makes absolute and relative URLs comparable while preserving
+  // distinct query parameters and section targets.
+  const targetGroups = new Map<string, AuditedInternalLink[]>();
+  for (const link of results) {
+    if (link.samePageReference || METADATA_SOURCE_PATTERN.test(link.source)) continue;
+    const key = JSON.stringify([link.locale, link.normalizedHref]);
+    const group = targetGroups.get(key) ?? [];
+    group.push(link);
+    targetGroups.set(key, group);
+  }
+  for (const group of targetGroups.values()) {
+    if (group.length < 2) continue;
+    const locations = Array.from(new Set(group.map((link) => link.source))).join('; ');
+    for (const link of group) {
+      link.issues.push({
+        code: 'duplicate_internal_link',
+        severity: 'warning',
+        message: `Duplicate internal link: appears ${group.length} times in ${link.locale.toUpperCase()} content. Found in: ${locations}`,
+      });
     }
   }
 

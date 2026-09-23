@@ -1,5 +1,10 @@
 {
   "filters": {
+    "close": "Filter schließen",
+    "remove": "Filter entfernen",
+    "clearAll": "Alle löschen",
+    "priceRangeError": "Der Mindestpreis darf nicht höher als der Höchstpreis sein.",
+    "priceInvalidError": "Geben Sie einen gültigen, nicht negativen Preis ein.",
     "title": "Finden Sie Ihre perfekte Tour",
     "search": "Suchen",
     "searchPlaceholder": "Touren suchen",
@@ -13,6 +18,7 @@
     "reset": "Zurücksetzen"
   },
   "listing": {
+    "resultsCount": "{{count}} Touren gefunden",
     "sortBy": "Sortieren nach",
     "sortOptions": {
       "newest": "Neueste",

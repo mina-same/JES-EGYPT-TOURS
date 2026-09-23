@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 
 import { tourAPI } from "@/lib/api/tour";
 import { getAllBlogs, getAllSubCategories, BlogSubCategory } from "@/lib/api/blog";
@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
+import { validateTourPriceRange } from "@/lib/tours/listingFilters";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -58,6 +59,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const [toursError, setToursError] = useState<string | null>(null);
   const [toursPage, setToursPage] = useState(1);
   const [toursTotalPages, setToursTotalPages] = useState(1);
+  const [toursTotal, setToursTotal] = useState(0);
 
   const [blogs, setBlogs] = useState<any[]>([]);
   const [blogsPagination, setBlogsPagination] = useState<any>({ page: 1, limit: 6, total: 0, pages: 1 });
@@ -68,7 +70,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const { locale } = useParams() as { locale: string };
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { t } = useTranslation('search');
-  const { currencySymbol } = useCurrency();
+  const { currency, currencySymbol } = useCurrency();
+  const [filterError, setFilterError] = useState<string | null>(null);
 
   // Filter options state
   const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
@@ -148,6 +151,12 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   };
 
   const handleApplyFilters = () => {
+    const priceIssue = validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice);
+    if (priceIssue) {
+      setFilterError(t(priceIssue === 'range' ? 'priceRangeError' : 'priceInvalidError'));
+      return;
+    }
+    setFilterError(null);
     setAppliedFilters(draftFilters);
     updateUrl({ ...draftFilters, page: "1", blogPage: "1" });
   };
@@ -164,7 +173,16 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     };
     setDraftFilters(empty);
     setAppliedFilters(empty);
+    setFilterError(null);
     router.push(searchBasePath);
+  };
+
+  const removeTourFilter = (key: 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyle') => {
+    const next = { ...appliedFilters, [key]: '' };
+    setDraftFilters(next);
+    setAppliedFilters(next);
+    setFilterError(null);
+    updateUrl({ [key]: '', page: '1', ...(key === 'q' ? { blogPage: '1' } : {}) });
   };
 
   useEffect(() => {
@@ -185,10 +203,19 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchTours = async () => {
       try {
         setToursLoading(true);
         setToursError(null);
+
+        const directPriceIssue = validateTourPriceRange(appliedFilters.minPrice, appliedFilters.maxPrice);
+        if (directPriceIssue) {
+          setFilterError(t(directPriceIssue === 'range' ? 'priceRangeError' : 'priceInvalidError'));
+          setTours([]);
+          setToursTotal(0);
+          return;
+        }
 
         const res = await tourAPI.getAll({
           page,
@@ -199,17 +226,21 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           maxPrice: appliedFilters.maxPrice ? Number(appliedFilters.maxPrice) : undefined,
           tourType: appliedFilters.tourType || undefined,
           tourStyle: appliedFilters.tourStyle || undefined,
-        });
+          currency,
+        }, locale, controller.signal);
 
         if (!res.success) {
           setToursError(res.error || "Failed to load tours");
           setTours([]);
+          setToursTotal(0);
           setToursTotalPages(1);
           return;
         }
 
         const mapped = (Array.isArray(res.data) ? res.data : []).map((tour: any) => {
-          const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
+          const tourSlug = typeof tour.slug === 'string'
+            ? tour.slug.trim()
+            : getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
           if (!tourSlug) return null;
           const galleryImages = [
             ...(tour.images || []).map((img: any) => img.url),
@@ -246,7 +277,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
         }).filter(Boolean);
 
         setTours(mapped);
-        setToursTotalPages(res.totalPages || 1);
+        const lastPage = res.totalPages || 1;
+        setToursTotalPages(lastPage);
+        setToursTotal(res.total || 0);
+        if ((res.total || 0) > 0 && page > lastPage) {
+          updateUrl({ page: String(lastPage) });
+          return;
+        }
 
         // Derive options if not already set or whenever we have new results
         if (res.data && Array.isArray(res.data)) {
@@ -256,18 +293,36 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             setTourStyleOptions(prev => Array.from(new Set([...prev, ...styles as string[]])));
         }
 
-      } catch (e) {
+      } catch (e: any) {
+        if (e?.code === 'ERR_CANCELED') return;
         console.error(e);
         setToursError("An error occurred while loading tours");
         setTours([]);
+        setToursTotal(0);
         setToursTotalPages(1);
       } finally {
-        setToursLoading(false);
+        if (!controller.signal.aborted) setToursLoading(false);
       }
     };
 
     void fetchTours();
-  }, [q, page, appliedFilters.sort, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyle, locale]);
+    return () => controller.abort();
+  }, [q, page, appliedFilters.sort, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyle, locale, currency]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    tourAPI.getFilterOptions({ currency }, locale, controller.signal)
+      .then((response) => {
+        if (response.success && response.data) {
+          setTourTypeOptions(response.data.tourTypes);
+          setTourStyleOptions(response.data.tourStyles);
+        }
+      })
+      .catch((error) => {
+        if (error?.code !== 'ERR_CANCELED') console.error('Failed to load tour filter options:', error);
+      });
+    return () => controller.abort();
+  }, [currency, locale]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -306,6 +361,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             <div className="search-box-wrapper">
               <div className="input-group shadow-sm rounded-pill overflow-hidden border bg-white">
                 <input
+                  type="search"
+                  aria-label={t('searchPlaceholder')}
                   className="form-control border-0 px-4"
                   placeholder={t('searchPlaceholder')}
                   value={draftFilters.q}
@@ -318,6 +375,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                   style={{ height: 60, fontSize: 18 }}
                 />
                 <button
+                  type="button"
                   className="btn btn-primary px-4 d-flex align-items-center"
                   onClick={handleApplyFilters}
                 >
@@ -344,8 +402,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>{t('experiences')}</h4>
                     
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">{t('sortToursBy')}</label>
+                      <label htmlFor="search-tour-sort" className="form-label font-weight-bold small">{t('sortToursBy')}</label>
                       <select
+                        id="search-tour-sort"
                         className="form-select form-select-sm"
                         value={draftFilters.sort}
                         onChange={(e) => setDraftFilters(p => ({ ...p, sort: e.target.value }))}
@@ -358,11 +417,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
 
                     <div className="row g-2 mb-3">
                        <div className="col-6">
-                         <label className="form-label font-weight-bold small">{t('minPrice')}</label>
+                         <label htmlFor="search-min-price" className="form-label font-weight-bold small">{t('minPrice')}</label>
                          <div className="input-group input-group-sm">
                            <span className="input-group-text bg-white border-end-0">{currencySymbol}</span>
                            <input
+                              id="search-min-price"
                               type="number"
+                              min="0"
+                              step="any"
                               className="form-control border-start-0"
                               value={draftFilters.minPrice}
                               onChange={(e) => setDraftFilters(p => ({ ...p, minPrice: e.target.value }))}
@@ -371,11 +433,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                          </div>
                        </div>
                        <div className="col-6">
-                         <label className="form-label font-weight-bold small">{t('maxPrice')}</label>
+                         <label htmlFor="search-max-price" className="form-label font-weight-bold small">{t('maxPrice')}</label>
                          <div className="input-group input-group-sm">
                            <span className="input-group-text bg-white border-end-0">{currencySymbol}</span>
                            <input
+                              id="search-max-price"
                               type="number"
+                              min="0"
+                              step="any"
                               className="form-control border-start-0"
                               value={draftFilters.maxPrice}
                               onChange={(e) => setDraftFilters(p => ({ ...p, maxPrice: e.target.value }))}
@@ -384,10 +449,12 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                          </div>
                        </div>
                     </div>
+                    {filterError && <p className="text-danger small" role="alert">{filterError}</p>}
 
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">{t('tourType')}</label>
+                      <label htmlFor="search-tour-type" className="form-label font-weight-bold small">{t('tourType')}</label>
                       <select
+                        id="search-tour-type"
                         className="form-select form-select-sm"
                         value={draftFilters.tourType}
                         onChange={(e) => setDraftFilters(p => ({ ...p, tourType: e.target.value }))}
@@ -400,8 +467,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">{t('tourStyle')}</label>
+                      <label htmlFor="search-tour-style" className="form-label font-weight-bold small">{t('tourStyle')}</label>
                       <select
+                        id="search-tour-style"
                         className="form-select form-select-sm"
                         value={draftFilters.tourStyle}
                         onChange={(e) => setDraftFilters(p => ({ ...p, tourStyle: e.target.value }))}
@@ -421,8 +489,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>{t('knowledge')}</h4>
                     
                     <div className="mb-3">
-                      <label className="form-label font-weight-bold small">{t('blogCategory')}</label>
+                      <label htmlFor="search-blog-category" className="form-label font-weight-bold small">{t('blogCategory')}</label>
                       <select
+                        id="search-blog-category"
                         className="form-select form-select-sm"
                         value={draftFilters.blogSubCategory}
                         onChange={(e) => setDraftFilters(p => ({ ...p, blogSubCategory: e.target.value }))}
@@ -441,6 +510,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                   <div className="row g-2">
                     <div className="col-8">
                       <button
+                        type="button"
                         className="gotur-btn w-100"
                         onClick={handleApplyFilters}
                         style={{ height: 42, fontSize: 14 }}
@@ -450,6 +520,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     </div>
                     <div className="col-4">
                       <button
+                        type="button"
                         className="gotur-btn w-100"
                         onClick={handleResetFilters}
                         style={{ height: 42, fontSize: 14, background: "transparent", color: "#111", border: "1px solid #ddd" }}
@@ -467,9 +538,18 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           <Col lg={8} xl={9}>
             {/* TOURS RESULTS */}
             <div className="results-wrapper mb-5 pb-5">
+              <div className="d-flex flex-wrap gap-2 mb-3">
+                {(['q', 'minPrice', 'maxPrice', 'tourType', 'tourStyle'] as const)
+                  .filter((key) => appliedFilters[key])
+                  .map((key) => (
+                    <button key={key} type="button" className="btn btn-sm btn-outline-secondary rounded-pill d-inline-flex align-items-center gap-1" onClick={() => removeTourFilter(key)}>
+                      {appliedFilters[key]} <X size={14} aria-hidden="true" />
+                    </button>
+                  ))}
+              </div>
               <div className="d-flex align-items-center justify-content-between mb-4">
                 <h2 className="section-title mb-0" style={{ fontSize: 24 }}>{t('experiencesFound')}</h2>
-                {tours.length > 0 && <span className="badge bg-light text-dark px-3 py-2 rounded-pill border">{t('showingResults', { count: tours.length })}</span>}
+                <span className="badge bg-light text-dark px-3 py-2 rounded-pill border" aria-live="polite">{t('showingResults', { count: toursTotal })}</span>
               </div>
 
               {toursLoading ? (

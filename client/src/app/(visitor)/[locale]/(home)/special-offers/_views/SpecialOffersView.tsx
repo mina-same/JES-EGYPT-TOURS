@@ -26,6 +26,7 @@ import OffersCta from "./OffersCta";
 import SpecialOffersBanner from "./SpecialOffersBanner";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 /** Shown in the banner headline when no live offer carries a discount yet. */
 const FALLBACK_HEADLINE_PERCENT = 30;
@@ -103,6 +104,7 @@ interface SpecialOffersViewProps {
 export default function SpecialOffersView({ locale, initialTours, initialTotal, initialTotalPages }: SpecialOffersViewProps) {
   const { t, i18n } = useTranslation("specialOffers");
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { currency } = useCurrency();
 
   useEffect(() => {
     if (i18n.resolvedLanguage !== locale) i18n.changeLanguage(locale);
@@ -137,7 +139,8 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
         // orders every language by its ENGLISH title (see parseSort on the API).
         sort: sortVal === "heading" ? `heading.${locale}` : sortVal,
         fields: CARD_FIELDS,
-      });
+        currency,
+      }, locale);
       if (res.success && res.data) {
         setTotalPages(res.totalPages || 1);
         setTotal(res.total || res.count || 0);
@@ -163,7 +166,7 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
     }
     fetchTours(currentPage, sort, currentPage === 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, sort]);
+  }, [currentPage, sort, currency]);
 
 
   // The ids are already on the card: the listing payload carries `reviews`, so

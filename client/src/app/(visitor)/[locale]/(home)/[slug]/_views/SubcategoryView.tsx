@@ -6,7 +6,7 @@ import Link from "next/link";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { tourAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { Loader2, ChevronRight, Check, Filter, X, SlidersHorizontal } from "lucide-react";
+import { Loader2, ChevronRight, Check, X, SlidersHorizontal } from "lucide-react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -21,7 +21,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
-import TourCard from "@/components/common/TourCard/TourCard";
+import TourCard, { LISTING_CARD_IMAGE_SIZES } from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -32,94 +32,36 @@ import ListingPromo from "@/components/common/ListingSections/ListingPromo";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
+import TourListingFilters from "@/components/common/TourListingFilters/TourListingFilters";
+import { countActiveTourFilters, readTourListingState, validateTourPriceRange } from "@/lib/tours/listingFilters";
+import { useAccessibleDrawer } from "@/hooks/useAccessibleDrawer";
+import { mapApiTourToCard } from "@/lib/tours/cardViewModel";
 
-const FiltersContent = ({
-  t,
-  draftFilters,
-  setDraftFilters,
-  locale,
-  tourTypeOptions,
-  tourStyleOptions,
-  handleApplyFilters,
-  handleResetFilters,
-  currencySymbol = "$",
-  noBorder = false,
-  hideHeader = false,
-  fullHeight = false
-}: any) => {
-  return (
-    <div
-      className='listing__sidebar__item__inner'
-      style={{
-        borderRadius: noBorder ? 0 : 14,
-        border: noBorder ? "none" : "1px solid #eee",
-        background: noBorder ? "transparent" : "#fff",
-        height: fullHeight ? '100%' : 'auto',
-        display: fullHeight ? 'flex' : 'block',
-        flexDirection: 'column'
-      }}
-    >
-      {!hideHeader && (
-        <div style={{ padding: noBorder ? "0 0 18px 0" : 18, borderBottom: "1px solid #f0f0f0" }} className="d-flex justify-content-between align-items-center">
-          <span className='listing__sidebar__title' style={{ margin: 0, fontSize: noBorder ? '22px' : '18px', fontWeight: 800, color: '#1d231f', display: 'block' }}>{t('filters.title')}</span>
-          <Filter className="w-5 h-5 text-[#b79c5c]" />
-        </div>
-      )}
-      <div style={{ padding: noBorder ? (hideHeader ? "10px 20px 24px" : "24px 20px") : 18, display: "grid", gap: 14, flex: fullHeight ? 1 : 'none' }}>
-        <div>
-          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.search')}</label>
-          <input className='form-control rounded-3' style={{ padding: '10px 15px' }} value={draftFilters.search} onChange={(e) => setDraftFilters((p: any) => ({ ...p, search: e.target.value }))} placeholder={t('filters.searchPlaceholder')} />
-        </div>
-        <div className='row g-2 align-items-end'>
-          <div className='col-6'>
-            <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.minPrice')}</label>
-            <div className='input-group'><span className='input-group-text bg-white border-end-0'>{currencySymbol}</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.minPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, minPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="0" /></div>
-          </div>
-          <div className='col-6'>
-            <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.maxPrice')}</label>
-            <div className='input-group'><span className='input-group-text bg-white border-end-0'>{currencySymbol}</span><input className='form-control border-start-0 rounded-end-3' style={{ padding: '10px' }} value={draftFilters.maxPrice} onChange={(e) => setDraftFilters((p: any) => ({ ...p, maxPrice: e.target.value.replace(/[^0-9.]/g, "") }))} inputMode="decimal" placeholder="9999" /></div>
-          </div>
-        </div>
-        <div>
-          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourType')}</label>
-          <select className='form-select rounded-3' style={{ padding: '10px' }} value={draftFilters.tourType} onChange={(e) => setDraftFilters((p: any) => ({ ...p, tourType: e.target.value }))}>
-            <option value="">{t('filters.all')}</option>
-            {tourTypeOptions.map((tOp: any) => (<option key={tOp} value={tOp}>{tOp}</option>))}
-          </select>
-        </div>
-        <div>
-          <label className='form-label' style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourStyle')}</label>
-          <select className='form-select rounded-3' style={{ padding: '10px' }} value={draftFilters.tourStyle} onChange={(e) => setDraftFilters((p: any) => ({ ...p, tourStyle: e.target.value }))}>
-            <option value="">{t('filters.all')}</option>
-            {tourStyleOptions.map((tOp: any) => (<option key={tOp} value={tOp}>{tOp}</option>))}
-          </select>
-        </div>
-      </div>
-      <div style={{ padding: noBorder ? "24px 20px" : 18, borderTop: "1px solid #f0f0f0", marginTop: 'auto' }}>
-        <div className='row g-2'>
-          <div className='col-6'><button type="button" onClick={handleApplyFilters} className='gotur-btn' style={{ width: "100%", borderRadius: 10 }}>{t('filters.apply')}</button></div>
-          <div className='col-6'><button type="button" onClick={handleResetFilters} className='gotur-btn' style={{ width: "100%", background: "transparent", color: "#111", border: "1px solid #e5e5e5", borderRadius: 10 }}>{t('filters.reset')}</button></div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function SubcategoryView({
   slug,
   locale,
   initialSubcategory,
-  initialSiblings
+  initialSiblings,
+  initialTours,
 }: {
   slug: string;
   locale: string;
   initialSubcategory?: any;
   initialSiblings?: any[];
+  initialTours?: any;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useTranslation('tours');
-  const { currencySymbol } = useCurrency();
+  const { currency, currencySymbol } = useCurrency();
+  const initialListing = readTourListingState(searchParams);
+  const initialCards = (Array.isArray(initialTours?.data) ? initialTours.data : [])
+    .map((tour: any) => mapApiTourToCard(tour, locale, {
+      location: t('fallback.location'),
+      duration: t('fallback.days'),
+    }))
+    .filter(Boolean);
 
   useEffect(() => {
     if (i18n.resolvedLanguage !== locale) i18n.changeLanguage(locale);
@@ -129,26 +71,31 @@ export default function SubcategoryView({
   const [initialLoading, setInitialLoading] = useState(!initialSubcategory);
   // Mounting with server data means a tours fetch is already pending, so start
   // in pageLoading — otherwise the first paint flashes "no tours" before it lands.
-  const [pageLoading, setPageLoading] = useState(!!initialSubcategory);
+  const [pageLoading, setPageLoading] = useState(!initialTours);
   const [subcategory, setSubcategory] = useState<any>(initialSubcategory || null);
   const [siblingSubcategories, setSiblingSubcategories] = useState<any[]>(initialSiblings || []);
-  const [tours, setTours] = useState<any[]>([]);
+  const [tours, setTours] = useState<any[]>(initialCards);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [sort, setSort] = useState<string>("-createdAt");
+  const [currentPage, setCurrentPage] = useState(initialListing.page);
+  const [totalPages, setTotalPages] = useState(initialTours?.totalPages || 1);
+  const [sort, setSort] = useState<string>(initialListing.sort);
   const toursPerPage = 9;
   // Seeded with the current slug when the server already resolved the
   // subcategory: starting at null made the first effect see a "new slug" and
   // blank the server-rendered page behind the white-on-white loading screen.
   const prevSlugRef = useRef<string | null>(initialSubcategory ? slug : null);
-  const [draftFilters, setDraftFilters] = useState({ search: "", minPrice: "", maxPrice: "", tourType: "", tourStyle: "" });
-  const [appliedFilters, setAppliedFilters] = useState({ search: "", minPrice: "", maxPrice: "", tourType: "", tourStyle: "" });
+  const skipInitialFetchRef = useRef(Boolean(initialTours?.success));
+  const [draftFilters, setDraftFilters] = useState(initialListing.filters);
+  const [appliedFilters, setAppliedFilters] = useState(initialListing.filters);
+  const [filterError, setFilterError] = useState<string | null>(null);
+  const [totalResults, setTotalResults] = useState(initialTours?.total || 0);
   const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<string[]>([]);
+  const closeFilters = () => setIsFilterOpen(false);
+  const { dialogRef, triggerRef } = useAccessibleDrawer(isFilterOpen, closeFilters);
 
   useEffect(() => {
     const fromQueryPage = Number(searchParams?.get("page") || "1");
@@ -166,7 +113,7 @@ export default function SubcategoryView({
     setDraftFilters(next);
     setAppliedFilters(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, searchParams]);
 
   const buildUrl = (overrides?: Partial<{ page: number; sort: string }> & Partial<typeof appliedFilters>) => {
     const p = overrides?.page ?? currentPage;
@@ -192,8 +139,15 @@ export default function SubcategoryView({
   };
 
   const handleApplyFilters = () => {
+    const priceIssue = validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice);
+    if (priceIssue) {
+      setFilterError(t(priceIssue === 'range' ? 'filters.priceRangeError' : 'filters.priceInvalidError'));
+      return;
+    }
+    setFilterError(null);
     setAppliedFilters(draftFilters);
     setCurrentPage(1);
+    setFilterError(null);
     router.replace(buildUrl({ page: 1, ...draftFilters }), { scroll: false } as any);
   };
 
@@ -203,6 +157,7 @@ export default function SubcategoryView({
     setAppliedFilters(empty);
     setSort("-createdAt");
     setCurrentPage(1);
+    setFilterError(null);
     router.replace(`/${locale}/${encodeURIComponent(slug)}`, { scroll: false } as any);
   };
 
@@ -212,9 +167,35 @@ export default function SubcategoryView({
     router.replace(buildUrl({ page: 1, sort: nextSort }), { scroll: false } as any);
   };
 
+  const removeFilter = (key: keyof typeof appliedFilters) => {
+    const next = { ...appliedFilters, [key]: '' };
+    setDraftFilters(next);
+    setAppliedFilters(next);
+    setCurrentPage(1);
+    setFilterError(null);
+    router.replace(buildUrl({ page: 1, ...next }), { scroll: false } as any);
+  };
+
   useEffect(() => {
+    const directPriceIssue = validateTourPriceRange(appliedFilters.minPrice, appliedFilters.maxPrice);
+    if (directPriceIssue) {
+      setFilterError(t(directPriceIssue === 'range' ? 'filters.priceRangeError' : 'filters.priceInvalidError'));
+      setTours([]);
+      setTotalResults(0);
+      setInitialLoading(false);
+      setPageLoading(false);
+      return;
+    }
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false;
+      setInitialLoading(false);
+      setPageLoading(false);
+      return;
+    }
+    const controller = new AbortController();
     const fetchData = async () => {
       try {
+        setError(null);
         const isNewSlug = prevSlugRef.current !== slug;
         if (isNewSlug) prevSlugRef.current = slug;
 
@@ -222,6 +203,7 @@ export default function SubcategoryView({
         if (isInitial) setInitialLoading(true);
         else setPageLoading(true);
 
+        let resolvedSubcategory = initialSubcategory || subcategory;
         if (!initialSubcategory) {
           const subResponse = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
           if (!subResponse.success || !subResponse.data) {
@@ -231,6 +213,7 @@ export default function SubcategoryView({
             return;
           }
           setSubcategory(subResponse.data);
+          resolvedSubcategory = subResponse.data;
 
           const categoryId = typeof subResponse.data?.category === "string"
             ? subResponse.data.category
@@ -256,11 +239,11 @@ export default function SubcategoryView({
           }
         }
 
-        const subId = initialSubcategory?._id || subcategory?._id;
-        if (!subId && !initialSubcategory) return;
+        const subId = resolvedSubcategory?._id;
+        if (!subId) return;
 
         const toursResponse = await tourAPI.getAll({
-          subcategory: initialSubcategory?._id || subcategory?._id,
+          subcategory: subId,
           page: currentPage,
           limit: toursPerPage,
           sort,
@@ -269,10 +252,18 @@ export default function SubcategoryView({
           ...(appliedFilters.maxPrice ? { maxPrice: Number(appliedFilters.maxPrice) } : {}),
           ...(appliedFilters.tourType ? { tourType: appliedFilters.tourType } : {}),
           ...(appliedFilters.tourStyle ? { tourStyle: appliedFilters.tourStyle } : {}),
-        });
+          currency,
+        }, locale, controller.signal);
 
         if (toursResponse.success && toursResponse.data) {
-          setTotalPages(toursResponse.totalPages || 1);
+          const lastPage = toursResponse.totalPages || 1;
+          setTotalPages(lastPage);
+          setTotalResults(toursResponse.total || 0);
+          if ((toursResponse.total || 0) > 0 && currentPage > lastPage) {
+            setCurrentPage(lastPage);
+            router.replace(buildUrl({ page: lastPage }), { scroll: false } as any);
+            return;
+          }
           const mappedTours = toursResponse.data.map((tour: any) => {
             const tourSlug = getStrictLocalizedSlug(tour.slug, locale as SupportedLocale);
             if (!tourSlug) return null;
@@ -311,23 +302,39 @@ export default function SubcategoryView({
             };
           }).filter(Boolean);
           setTours(mappedTours);
-          const types = Array.from(new Set(toursResponse.data.map((t: any) => String(t?.tourType || "").trim()).filter(Boolean))).sort() as string[];
-          const styles = Array.from(new Set(toursResponse.data.map((t: any) => String(t?.tourStyle || "").trim()).filter(Boolean))).sort() as string[];
-          setTourTypeOptions(types);
-          setTourStyleOptions(styles);
         }
       } catch (err: any) {
+        if (err?.code === 'ERR_CANCELED') return;
         console.error("Error fetching data:", err);
         setError(t('status.errorFetching'));
       } finally {
-        setInitialLoading(false);
-        setPageLoading(false);
+        if (!controller.signal.aborted) {
+          setInitialLoading(false);
+          setPageLoading(false);
+        }
       }
     };
 
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, currentPage, sort, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyle]);
+    void fetchData();
+    return () => controller.abort();
+  }, [slug, currentPage, sort, currency, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyle]);
+
+  useEffect(() => {
+    const subcategoryId = initialSubcategory?._id || subcategory?._id;
+    if (!subcategoryId) return;
+    const controller = new AbortController();
+    tourAPI.getFilterOptions({ subcategory: subcategoryId, currency }, locale, controller.signal)
+      .then((response) => {
+        if (response.success && response.data) {
+          setTourTypeOptions(response.data.tourTypes);
+          setTourStyleOptions(response.data.tourStyles);
+        }
+      })
+      .catch((err) => {
+        if (err?.code !== 'ERR_CANCELED') console.error('Failed to load tour filter options:', err);
+      });
+    return () => controller.abort();
+  }, [subcategory?._id, initialSubcategory?._id, currency, locale]);
 
 
   // The ids are already on the card: the listing payload carries `reviews`, so
@@ -352,7 +359,7 @@ export default function SubcategoryView({
     );
   }
 
-  if (error || !subcategory) {
+  if (!subcategory) {
     return (
       <Layout>
         <TopbarOne /><HeaderOne linkTheme="light" />
@@ -380,17 +387,17 @@ export default function SubcategoryView({
       <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
 
       {/* Mobile Filter Drawer (Top-level for proper stacking context) */}
-      <div className={`mobile-filter-drawer ${isFilterOpen ? 'is-open' : ''} d-lg-none`}>
-        <div className="mobile-filter-drawer__overlay" onClick={() => setIsFilterOpen(false)} />
-        <div className="mobile-filter-drawer__content">
+      <div className={`mobile-filter-drawer ${isFilterOpen ? 'is-open' : ''} d-lg-none`} aria-hidden={!isFilterOpen}>
+        <button type="button" className="mobile-filter-drawer__overlay" onClick={closeFilters} tabIndex={-1} aria-label={t('filters.close')} />
+        <div ref={dialogRef} id="tour-filter-dialog" className="mobile-filter-drawer__content" role="dialog" aria-modal="true" aria-labelledby="tour-filter-title">
           <div className="mobile-filter-drawer__header">
-            <span className="m-0" style={{ fontWeight: 800, fontSize: '20px' }}>{t('filters.title')}</span>
-            <button onClick={() => setIsFilterOpen(false)} className="btn-close-filter" aria-label="Close Filter">
+            <span id="tour-filter-title" className="m-0" style={{ fontWeight: 800, fontSize: '20px' }}>{t('filters.title')}</span>
+            <button type="button" onClick={closeFilters} className="btn-close-filter" aria-label={t('filters.close')}>
               <X className="w-6 h-6" />
             </button>
           </div>
           <div className="mobile-filter-drawer__body">
-            <FiltersContent
+            <TourListingFilters
               t={t}
               draftFilters={draftFilters}
               setDraftFilters={setDraftFilters}
@@ -400,6 +407,7 @@ export default function SubcategoryView({
               handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }}
               handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }}
               currencySymbol={currencySymbol}
+              validationError={filterError}
               noBorder={true}
               hideHeader={true}
               fullHeight={true}
@@ -476,6 +484,12 @@ export default function SubcategoryView({
                               src={sub.images?.[0]?.url || TOUR_IMAGE_PLACEHOLDER}
                               alt={getLocalizedValue(sub.images?.[0]?.alt, locale) || subName}
                               fill
+                              /* Matches CategoryView: the card is `width: auto`
+                                 on a `min-width: 200px` slide with a nowrap
+                                 title, so ~320px covers the longest name. Without
+                                 it, `fill` defaults to `100vw` and each card
+                                 requests the 3840w candidate. */
+                              sizes="(max-width: 576px) 180px, 320px"
                               className="subcategory-card__image"
                             />
                             <div className="subcategory-card__overlay" />
@@ -503,7 +517,7 @@ export default function SubcategoryView({
             {/* Desktop Sidebar */}
             <Col lg={4} xl={3} className="d-none d-lg-block p-0">
               <aside className='listing__sidebar sticky-top' style={{ top: '0', height: '100vh', padding: '120px 20px 40px', background: '#fff', borderRight: '1px solid #f0f0f0', overflowY: 'auto' }}>
-                <FiltersContent
+                <TourListingFilters
                   t={t}
                   draftFilters={draftFilters}
                   setDraftFilters={setDraftFilters}
@@ -513,6 +527,7 @@ export default function SubcategoryView({
                   handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }}
                   handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }}
                   currencySymbol={currencySymbol}
+                  validationError={filterError}
                   noBorder={true}
                 />
               </aside>
@@ -545,8 +560,12 @@ export default function SubcategoryView({
               <div className="d-flex flex-wrap justify-content-between align-items-center bg-white p-3 rounded-4 mb-4" style={{ gap: 12 }}>
                 <div className="d-flex align-items-center gap-3">
                   <button
+                    ref={triggerRef}
+                    type="button"
                     className="d-lg-none flex items-center gap-2 px-4 py-2 bg-[#b79c5c] text-white rounded-lg font-bold"
                     onClick={() => setIsFilterOpen(true)}
+                    aria-expanded={isFilterOpen}
+                    aria-controls="tour-filter-dialog"
                   >
                     <SlidersHorizontal className="w-5 h-5" />
                     <span>{t('filters.title')}</span>
@@ -564,10 +583,24 @@ export default function SubcategoryView({
                   </select>
                 </div>
               </div>
+              <div className="d-flex flex-wrap align-items-center gap-2 mb-4" aria-live="polite">
+                <span className="text-muted">{t('listing.resultsCount', { count: totalResults })}</span>
+                {Object.entries(appliedFilters).filter(([, value]) => value).map(([key, value]) => (
+                  <button key={key} type="button" className="btn btn-sm btn-outline-secondary rounded-pill d-inline-flex align-items-center gap-1" onClick={() => removeFilter(key as keyof typeof appliedFilters)} aria-label={`${t('filters.remove')} ${value}`}>
+                    {value} <X size={14} aria-hidden="true" />
+                  </button>
+                ))}
+                {countActiveTourFilters(appliedFilters) > 1 && (
+                  <button type="button" className="btn btn-sm btn-link" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
+                )}
+              </div>
+              {error && <div className="alert alert-danger" role="alert">{error}</div>}
               {pageLoading && (<div className="flex items-center justify-center mb-4" style={{ minHeight: 40 }}><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>)}
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
-                  tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
+                  // Same narrow slot as CategoryView — cards share the row with
+                  // the filter sidebar, so ~252px rather than the default ~360px.
+                  tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} imageSizes={LISTING_CARD_IMAGE_SIZES} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
                 ) : pageLoading ? null : (
                   <div className="flex items-center justify-center min-h-[200px] w-full"><p className="text-xl text-gray-500">{t('listing.noToursSubcategory')}</p></div>
                 )}
@@ -789,93 +822,6 @@ export default function SubcategoryView({
         .subcategory-card.is-active .subcategory-card__icon {
           background: white;
           color: #b79c5c;
-        }
-        /* Mobile Filter Drawer Styles */
-        .mobile-filter-drawer {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100dvh;
-          z-index: 999999;
-          visibility: hidden;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .mobile-filter-drawer.is-open {
-          visibility: visible;
-        }
-        .mobile-filter-drawer__overlay {
-          position: absolute;
-          inset: 0;
-          background: rgba(0,0,0,0.6);
-          backdrop-filter: blur(4px);
-          opacity: 0;
-          transition: opacity 0.4s ease;
-        }
-        .mobile-filter-drawer.is-open .mobile-filter-drawer__overlay {
-          opacity: 1;
-        }
-        .mobile-filter-drawer__content {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 85%;
-          max-width: 380px;
-          height: 100%;
-          background: #fff;
-          display: flex;
-          flex-direction: column;
-          transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          box-shadow: 20px 0 50px rgba(0,0,0,0.15);
-          overflow-x: hidden;
-        }
-        .mobile-filter-drawer.is-open .mobile-filter-drawer__content {
-          left: 0;
-        }
-        .mobile-filter-drawer__header {
-          padding: 24px 20px;
-          border-bottom: 2px solid #f7f3ed;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #fff;
-        }
-        .mobile-filter-drawer__header h3 {
-          font-size: 20px;
-          font-weight: 800;
-          color: #1d231f;
-          letter-spacing: -0.5px;
-        }
-        .mobile-filter-drawer__body {
-          padding: 0;
-          overflow-y: auto;
-          flex: 1;
-          -webkit-overflow-scrolling: touch;
-        }
-        /* Custom scrollbar for drawer */
-        .mobile-filter-drawer__body::-webkit-scrollbar {
-          width: 4px;
-        }
-        .mobile-filter-drawer__body::-webkit-scrollbar-thumb {
-          background: #b79c5c;
-          border-radius: 10px;
-        }
-        .btn-close-filter {
-          background: #f7f3ed;
-          border: none;
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #111;
-          transition: all 0.3s ease;
-        }
-        .btn-close-filter:active {
-          transform: scale(0.9);
-          background: #b79c5c;
-          color: #fff;
         }
       `}</style>
       <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />

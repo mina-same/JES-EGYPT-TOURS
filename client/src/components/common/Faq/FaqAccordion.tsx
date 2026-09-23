@@ -85,6 +85,7 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({
               id={answerId}
               role="region"
               aria-labelledby={questionId}
+              inert={!isOpen}
             >
               <div className="faq-list__clip">
                 <div

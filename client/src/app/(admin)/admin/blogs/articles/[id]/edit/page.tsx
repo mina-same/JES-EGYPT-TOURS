@@ -404,7 +404,11 @@ export default function EditBlogPage() {
                 delete normalizedBlock.title;
               } else {
                 delete normalizedBlock.content;
-                delete normalizedBlock.title;
+                if (block.type === 'image') {
+                  normalizedBlock.title = normalizeLocalizedString(block.title);
+                } else {
+                  delete normalizedBlock.title;
+                }
               }
 
               normalizedBlock.images = (block.images || []).map((img: any) => ({
@@ -574,9 +578,11 @@ export default function EditBlogPage() {
           // blockquote only uses content; same per-language freedom applies.
           delete cleanedBlock.title;
         } else {
-          // Others don't use top-level content/title
+          // Single images use title as localized image metadata.
           delete cleanedBlock.content;
-          delete cleanedBlock.title;
+          if (cleanedBlock.type !== 'image' || isLocalizedStringEmpty(cleanedBlock.title)) {
+            delete cleanedBlock.title;
+          }
         }
 
         if (cleanedBlock?.type !== 'imageRow') return cleanedBlock;

@@ -1,4 +1,5 @@
 import axiosInstance from './axios';
+import type { CurrencyCode } from '@/contexts/CurrencyContext';
 
 const API_BASE = 'tours';
 
@@ -24,7 +25,18 @@ export interface QueryParams {
   maxPrice?: number;
   tourType?: string;
   tourStyle?: string;
+  currency?: CurrencyCode;
   fields?: string;
+}
+
+export interface TourFilterOptions {
+  tourTypes: string[];
+  tourStyles: string[];
+  priceRange: {
+    min: number | null;
+    max: number | null;
+    currency: CurrencyCode;
+  };
 }
 
 export interface ApiResponse<T> {
@@ -140,12 +152,26 @@ export const tourSubcategoryAPI = {
   },
 
   /**
-   * Get subcategories by category ID
+   * Get subcategories by category ID.
+   *
+   * `locale` reaches the API as the X-Locale header, exactly as it does in
+   * `getBySlug` below and in every other localized call in this file.
+   *
+   * It is optional because the browser does not need it: the request
+   * interceptor in ./axios.ts fills X-Locale in from i18n (or `bypass` on
+   * admin pages). That interceptor returns early when `window` is undefined,
+   * so a SERVER-side caller that omits the locale sends no header at all —
+   * and the API's i18n middleware then falls back through Accept-Language,
+   * which a server render never sends either, to 'en'. The result was every
+   * locale receiving English subcategory names. Server callers must pass it.
    */
-  getByCategory: async (categoryId: string, params?: QueryParams) => {
+  getByCategory: async (categoryId: string, params?: QueryParams, locale?: string) => {
     const response = await axiosInstance.get<ApiResponse<any[]>>(
       `${API_BASE}/categories/${categoryId}/subcategories`,
-      { params }
+      {
+        params,
+        headers: locale ? { 'X-Locale': locale } : undefined
+      }
     );
     return response.data;
   },
@@ -224,10 +250,31 @@ export const tourAPI = {
   /**
    * Get all tours with filtering
    */
-  getAll: async (params?: QueryParams) => {
+  getAll: async (params?: QueryParams, locale?: string, signal?: AbortSignal) => {
     const response = await axiosInstance.get<ApiResponse<any[]>>(
       `${API_BASE}`,
-      { params }
+      {
+        params,
+        headers: locale ? { 'X-Locale': locale } : undefined,
+        signal,
+      }
+    );
+    return response.data;
+  },
+
+  /** Get all values available to the filters in a listing scope. */
+  getFilterOptions: async (
+    params?: Pick<QueryParams, 'category' | 'subcategory' | 'isFeatured' | 'isSpecialOffer' | 'currency'>,
+    locale?: string,
+    signal?: AbortSignal
+  ) => {
+    const response = await axiosInstance.get<ApiResponse<TourFilterOptions>>(
+      `${API_BASE}/filter-options`,
+      {
+        params,
+        headers: locale ? { 'X-Locale': locale } : undefined,
+        signal,
+      }
     );
     return response.data;
   },

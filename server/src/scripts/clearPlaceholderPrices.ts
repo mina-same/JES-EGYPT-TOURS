@@ -24,7 +24,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Tour from '../models/Tour';
-import { deriveStartingPrice } from '../utils/startingPrice';
+import { deriveStartingPrice, isPlausibleCurrencyAmount } from '../utils/startingPrice';
 
 dotenv.config();
 
@@ -43,7 +43,10 @@ const cleanTier = (amounts: any): Record<string, number> | undefined => {
 
   const kept: Record<string, number> = {};
   for (const currency of CURRENCIES) {
-    if (isUsable(amounts[currency])) kept[currency] = amounts[currency];
+    const value = amounts[currency];
+    if (isUsable(value) && isPlausibleCurrencyAmount(currency, value, amounts)) {
+      kept[currency] = value;
+    }
   }
   return Object.keys(kept).length > 0 ? kept : undefined;
 };

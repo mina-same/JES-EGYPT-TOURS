@@ -8,6 +8,39 @@ type CurrencyAmount = Partial<Record<PriceCurrency, number>>;
 const isUsableAmount = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value > 0;
 
+/** Reject only unmistakable order-of-magnitude currency placeholders. */
+export const isPlausibleCurrencyAmount = (
+  currency: PriceCurrency,
+  value: number,
+  amounts: CurrencyAmount
+): boolean => {
+  if (currency === 'USD' || !isUsableAmount(amounts.USD)) return true;
+  const ratio = value / amounts.USD;
+  return ratio >= 0.1 && ratio <= 10;
+};
+
+export const validatePricingCurrencyConsistency = (pricingPlans: unknown): string | null => {
+  if (!Array.isArray(pricingPlans)) return null;
+  const plans = pricingPlans as Array<{
+    seasons?: Array<{ prices?: Partial<Record<(typeof PRICE_TIERS)[number], CurrencyAmount>> }>;
+  }>;
+  for (const plan of plans) {
+    for (const season of Array.isArray(plan?.seasons) ? plan.seasons : []) {
+      for (const tier of PRICE_TIERS) {
+        const amounts = season?.prices?.[tier] as CurrencyAmount | undefined;
+        if (!amounts || !isUsableAmount(amounts.USD)) continue;
+        for (const currency of ['EUR', 'GBP'] as const) {
+          const value = amounts[currency];
+          if (isUsableAmount(value) && !isPlausibleCurrencyAmount(currency, value, amounts)) {
+            return `${currency} amount in ${tier} is inconsistent with its USD amount`;
+          }
+        }
+      }
+    }
+  }
+  return null;
+};
+
 /**
  * The lowest quotable amount across a tour's pricing plans, per currency.
  *
@@ -46,6 +79,7 @@ export const deriveStartingPrice = (
         for (const currency of PRICE_CURRENCIES) {
           const value = amounts[currency];
           if (!isUsableAmount(value)) continue;
+          if (!isPlausibleCurrencyAmount(currency, value, amounts)) continue;
           const current = lowest[currency];
           if (current === undefined || value < current) lowest[currency] = value;
         }

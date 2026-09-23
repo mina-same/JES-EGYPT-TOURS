@@ -36,12 +36,12 @@
    both derived from existing tokens rather than from new colours.
 
    The top padding is CLEARANCE, not taste: the header is laid over the page
-   rather than above it, which is why the theme's own banner carries
-   `padding: 220px 0 130px`. Measured, the header block is 108px tall (plus the
-   60px topbar on desktop). */
+   rather than above it. 150px is what the theme's own banner settled on in
+   custom.css for exactly this reason, so the two openings now agree; the
+   bottom is trimmed because the section was closing on ~185px of nothing. */
 .authorHero {
   position: relative;
-  padding: 168px 0 76px;
+  padding: 150px 0 48px;
   background-color: var(--gotur-text, #0e3a57);
   background-image:
     /* Gold light behind the portrait, on the right. */
@@ -72,14 +72,16 @@
    the article hero — so it brings its own colours and spacing. Nothing is
    restyled here: the only thing this page decides is where it sits.
 
-   The margin has to clear the row BELOW it. `.gutter-y-40` gives the hero row
-   `margin-top: -40px` (that is how Bootstrap's vertical gutters work), which
-   pulled the row up over the breadcrumb until the portrait sat on top of the
-   word "Home" on mobile. */
+   This margin IS the gap to the portrait, one to one. `.gutter-y-40` puts
+   `margin-top: -40px` on the row and `padding-top: 40px` on its columns, and
+   those cancel exactly — so nothing else on the desktop layout moves this
+   distance. 40 is the floor: below it the row's negative margin would start
+   pulling the portrait up over the trail, which is what put the picture on top
+   of the word "Home" on mobile once already. */
 .authorHeroCrumb {
   position: relative;
   z-index: 1;
-  margin-bottom: 68px;
+  margin-bottom: 40px;
 }
 
 /* Everything in the hero sits above the background layers. */
@@ -162,12 +164,13 @@
    the fold. 400px keeps the portrait the largest thing in the hero without
    letting it set the section's height.
 
-   360 rather than 400: the row is vertically centred, so every pixel the
-   portrait is taller than the text block becomes half that much dead space
-   above the eyebrow. At 360 the picture is 480 tall against 261 of text,
-   which leaves a normal ~110px of breathing room instead of a hole. */
+   The row is vertically centred, so EVERY pixel the portrait is taller than
+   the text block becomes half that much dead space above the eyebrow AND half
+   below the chips — the same number, paid twice. At 360 the picture ran 480
+   tall against 261 of text: 110px of nothing at each end. 300 brings it to
+   400, which is ~70 — and the portrait is still the largest thing here. */
 .authorHeroPortrait {
-  max-width: 360px;
+  max-width: 300px;
   margin-left: auto;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
 }
@@ -315,7 +318,9 @@
 
 .authorApproachHeading {
   font-family: var(--gotur-display-font, Georgia), "Times New Roman", serif;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  /* The same scale as .section-title__title in custom.css — one heading size
+     across the page, light sections and dark alike. */
+  font-size: clamp(1.7rem, 2.6vw, 2.2rem);
   font-weight: 700;
   color: var(--gotur-white, #fff);
   margin-bottom: 14px;

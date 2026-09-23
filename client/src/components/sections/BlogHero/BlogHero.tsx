@@ -2,7 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Calendar, BookOpen, Clock } from 'lucide-react';
+import { BookOpen, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'next/navigation';
 import { normalizeLocale } from '@/lib/url';

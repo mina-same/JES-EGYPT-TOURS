@@ -61,11 +61,12 @@ export async function POST(request: Request) {
   }
 
   /*
-   * The second argument is required in Next 16: it names the cache profile
-   * whose entries are purged. "max" is the widest, which is what a publish
-   * means — drop everything held under this tag, however long-lived.
+   * The second argument is required in Next 16. `{ expire: 0 }` expires the
+   * tagged entries immediately, so the very next visitor gets a fresh fetch.
+   * The "max" profile would be stale-while-revalidate instead: the first
+   * visit after a save would still be served the old content.
    */
-  list.forEach((tag) => revalidateTag(tag, "max"));
+  list.forEach((tag) => revalidateTag(tag, { expire: 0 }));
 
   return NextResponse.json({ revalidated: true, tags: list });
 }

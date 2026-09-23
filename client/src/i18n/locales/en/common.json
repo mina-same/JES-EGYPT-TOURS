@@ -1,5 +1,11 @@
 {
   "home": "Home",
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}"
+  },
   "trustedPartners": "Our Trusted Partners",
   "partnerAlt": "Trusted Partner {{count}}",
   "partnerTitle": "JES Egypt Tours Partner {{count}}",
@@ -8,6 +14,7 @@
     "saveTour": "Save to wishlist",
     "savedTour": "Saved to wishlist",
     "startFrom": "Start from",
+    "priceOnRequest": "Price on request",
     "viewTour": "View Tour",
     "viewPhotos": "View tour photos",
     "playVideo": "Play tour video",
@@ -229,17 +236,13 @@
       "title": "Aswan",
       "subtitle": "Nile Felucca Sailing Tour"
     },
-    "dahab": {
-      "title": "Dahab",
-      "subtitle": "Red Sea Mountains Tour"
+    "fayoum": {
+      "title": "Fayoum",
+      "subtitle": "Wadi El Rayan Lakes Tour"
     },
     "giza": {
       "title": "Giza",
       "subtitle": "Pyramids & Sphinx Sunset Panorama"
-    },
-    "hatshepsut": {
-      "title": "Hatshepsut Temple",
-      "subtitle": "Luxor West Bank Tour"
     },
     "khanElKhalili": {
       "title": "Khan El Khalili",
@@ -252,6 +255,10 @@
     "qaitbay": {
       "title": "Qaitbay Citadel",
       "subtitle": "Alexandria Coastal Tour"
+    },
+    "sharmElSheikh": {
+      "title": "Sharm El Sheikh",
+      "subtitle": "Red Sea Beaches & Reefs"
     },
     "siwa": {
       "title": "Siwa",
@@ -276,7 +283,9 @@
     "trust1": "Licensed expert guides",
     "trust2": "No hidden fees",
     "trust3": "24/7 support",
-    "scroll": "Scroll"
+    "scroll": "Scroll",
+    "pauseSlideshow": "Pause slideshow",
+    "playSlideshow": "Play slideshow"
   },
   "videoReviews": {
     "tagline": "Real Travellers",
@@ -300,7 +309,9 @@
   },
   "wishlistLink": "Wishlist",
   "instagram": {
-    "title": "Follow us on Instagram"
+    "title": "Follow us on Instagram",
+    "pause": "Pause",
+    "play": "Play"
   },
   "testimonials": {
     "tagline": "Client Testimonials",

@@ -9,8 +9,6 @@ import slider2Image4 from "@/assets/images/gallery/listing-list-g-1-4.jpg";
 import slider2Image5 from "@/assets/images/gallery/listing-list-g-1-5.jpg";
 import img1 from "@/assets/images/resources/tour-listing-details-1-1.jpg";
 import img2 from "@/assets/images/resources/tour-listing-details-1-2.jpg";
-import tour1 from "@/assets/images/blog/listing-list-4-1.jpg";
-import tour2 from "@/assets/images/blog/listing-list-4-2.jpg";
 import commentImg1 from "@/assets/images/blog/blog-comment-1-1.png";
 
 const tourDetailsOneData = {
@@ -60,54 +58,10 @@ const tourDetailsOneData = {
       rating: 4,
     },
   ],
-  relatedTours: [
-    {
-      id: 1,
-      image: tour1,
-      title: "All Inclusive Ultimate Circle Island Day with Lunch",
-      link: "tour-listing-details-2",
-      price: "$59.00",
-      rating: 5,
-      reviews: 10,
-      videoId: "0MuL8fd3pb8",
-      discount: "",
-      meta: [
-        {
-          id: 1,
-          icon: "icon-pin1",
-          title: "Slingerland",
-        },
-        {
-          id: 2,
-          icon: "icon-calendar",
-          title: "6 Days, 3 Night",
-        },
-      ],
-    },
-    {
-      id: 2,
-      image: tour2,
-      title: "Molokini and Turtle Town Snorkeling Adventure Aboard",
-      link: "tour-listing-details-2",
-      price: "$69.00",
-      rating: 4,
-      reviews: 8,
-      videoId: "GTn2EKD-cfg",
-      discount: "40",
-      meta: [
-        {
-          id: 1,
-          icon: "icon-pin1",
-          title: "Slingerland",
-        },
-        {
-          id: 2,
-          icon: "icon-calendar",
-          title: "6 Days, 3 Night",
-        },
-      ],
-    },
-  ],
+  /* Emptied: this held two demo tours with `$59.00` string prices and
+     links to a route that does not exist. It is only reached when
+     `initialRawTour` is absent, and the tour page always supplies it. */
+  relatedTours: [],
   faqs: [
     {
       question: "How long should a business plan be?",

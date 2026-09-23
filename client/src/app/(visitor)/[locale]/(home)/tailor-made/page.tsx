@@ -10,9 +10,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t('metaTitle'),
     description: t('metaDescription'),
-    icons: {
-      icon: "/favicon-32x32.png",
-    },
     alternates: getStaticLocaleAlternates(locale, "tailor-made"),
   };
 }

@@ -1,6 +1,13 @@
 "use client";
-import "react-datepicker/dist/react-datepicker.css";
-import "react-phone-number-input/style.css";
+/*
+ * This module is loaded as its own chunk, through BookingFormLazy — never
+ * import it directly, or react-datepicker and react-phone-number-input land
+ * back in the shared route bundle that every category and blog page downloads.
+ *
+ * react-datepicker.css and react-phone-number-input/style.css are imported by
+ * that wrapper instead of here, so they stay in the eagerly-loaded route CSS
+ * and are already applied when this chunk's markup paints.
+ */
 import React, { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
 import { de as dateDe } from "date-fns/locale/de";
@@ -17,6 +24,7 @@ import { createBooking } from "@/lib/api/booking";
 import { Loader2, CheckCircle, XCircle, Heart, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useWishlist } from "@/contexts/WishlistContext";
+import { useRouteLocale } from "@/hooks/useRouteLocale";
 import { useCurrency, type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import { footerOneData } from "@/data/footerOneData";
 import { PACKAGE_NOT_SURE } from "@/lib/tours/tourKind";
@@ -146,7 +154,7 @@ interface BookingFormProps {
 }
 
 export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPricing, tourTitle, packageOptions }) => {
-  const { t, i18n } = useTranslation('tours');
+  const { t } = useTranslation('tours');
   const { formatPrice, getPriceValue, currency } = useCurrency();
   // Resolved through the context rather than a `typeof === 'number'` check: the
   // value arrives as a per-currency object on real tours, so a numeric test
@@ -288,7 +296,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
 
   const nationalityOptions = NATIONALITY_OPTIONS;
 
-  const activeLanguage = (i18n.resolvedLanguage || i18n.language || "en").split("-")[0];
+  /*
+   * Same correction as PricingPlans, and it matters more here: this value
+   * chooses the date-picker locale and the phone-country label table, both
+   * of which are rendered on the SERVER. A stale `resolvedLanguage` put
+   * English country names into a German page's HTML and then hydrated them
+   * to German — precisely the mismatch the comment below guards against.
+   */
+  const activeLanguage = useRouteLocale();
   const datePickerLocale = DATE_PICKER_LOCALES[
     activeLanguage as keyof typeof DATE_PICKER_LOCALES
   ] || DATE_PICKER_LOCALES.en;
@@ -478,7 +493,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
           )}
         </div>
 
-        {resolvedPrice > 0 && (
+        {resolvedPrice > 0 ? (
           <div className="booking-price-block">
             {/* "from" rather than "Price starts from": the long label was the
                 widest thing in the header and pushed the title onto two lines
@@ -490,6 +505,24 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
             <span className="booking-price-block__value">{formatPrice(price)}</span>
             <span className="booking-price-block__unit">
               {t("tourDetails.pricing.perPerson", "per person")}
+            </span>
+          </div>
+        ) : (
+          /*
+           * Same rule as the tour cards — priced means an effective amount
+           * above zero, with the currency context resolving the per-currency
+           * value or converting from USD — so a detail page and the card that
+           * links to it can never disagree about whether a tour has a price.
+           *
+           * The block used to be omitted entirely, leaving the booking card
+           * headed by nothing. The label and the "per person" unit are dropped
+           * with the amount, because neither means anything without a number;
+           * only the value slot speaks. `resolvedPrice` itself is untouched and
+           * still numeric — this is display text, never a calculation input.
+           */
+          <div className="booking-price-block">
+            <span className="booking-price-block__value">
+              {tCommon("tourCard.priceOnRequest")}
             </span>
           </div>
         )}

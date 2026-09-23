@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { featurePackageData } from "@/data/featureTwoData";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
@@ -11,37 +11,25 @@ import {
   type TinySliderHandle,
 } from "@/components/common/TinySliderWrapper";
 import TourCard from "@/components/common/TourCard/TourCard";
+import type { FeatureTwoItem } from "./types";
 import { useWishlist } from "@/contexts/WishlistContext";
 
-interface FeaturePackageItem {
-  id: number | string;
-  image: StaticImageData | string;
-  images?: string[];
-  title: string;
-  link: string;
-  price: string | number;
-  videoId: string;
-  /** Every review video on the tour. The button opens all of them, the same
-   *  as the cards on the listing pages do. */
-  videoIds?: string[];
-  discount: string;
-  /** Short summary shown under the title (HTML is stripped by the card). */
-  description?: string;
-  meta: Metadata[];
-}
-
-/* The card markup, gallery lightbox and pricing row now live in TourCard so a
-   design change applies to every tour card on the site at once. */
-interface Metadata {
-  id: number;
-  title: string;
-  icon: string;
-}
+/* The card markup, gallery lightbox and pricing row live in TourCard so a
+   design change applies to every tour card on the site at once. The card shape
+   — including its meta entries — is FeatureTwoItem in ./types.ts; it used to be
+   redeclared here as FeaturePackageItem + Metadata. */
 interface FeatureTwoProps {
   extraClass?: string;
   id?: string;
   homeThree?: boolean;
-  tours?: FeaturePackageItem[];
+  /**
+   * Required. Every caller already passes it, and the demo fixture the
+   * optional version fell back to held string prices like "$59.00" that
+   * `parseFloat` turned into NaN, plus links to routes that do not exist.
+   * Making it required means a caller with no data is a compile error
+   * rather than a carousel of broken cards.
+   */
+  tours: FeatureTwoItem[];
   itemsPerRow?: number;
   rewind?: boolean;
   title?: string;
@@ -68,8 +56,9 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   // in for tours that are already saved.
   const { toggleWishlist, isInWishlist } = useWishlist();
 
-  // Use custom tours if provided, otherwise use default data
-  const displayData = tours ? { items: tours } : featurePackageData;
+  // No demo fallback: `tours` is required, so the fixture shape can no
+  // longer join this union and TypeScript checks the real one.
+  const displayData = { items: tours };
 
   // Use custom title data if provided
   const displayTitle = title || (homeThree ? featurePackageData.title2 : featurePackageData.title);
@@ -191,17 +180,12 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                   // single row on hydration.
                   placeholderClassName="feature-package__carousel tns-placeholder-single"
                 >
-                  {displayData.items.map((item: FeaturePackageItem) => (
+                  {displayData.items.map((item: FeatureTwoItem) => (
                     <TourCard
                       key={item.id}
-                      item={{
-                        ...item,
-                        id: String(item.id),
-                        price:
-                          typeof item.price === "string"
-                            ? parseFloat(item.price)
-                            : item.price,
-                      }}
+                      // No coercion left to do: `id` is a string and
+                      // `price` is number | ICurrencyPrice by contract.
+                      item={item}
                       imageHeight={220}
                       imageZoom
                       linkMeta={false}

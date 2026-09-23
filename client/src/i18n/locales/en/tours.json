@@ -1,5 +1,10 @@
 {
   "filters": {
+    "close": "Close filters",
+    "remove": "Remove filter",
+    "clearAll": "Clear all",
+    "priceRangeError": "Minimum price cannot be greater than maximum price.",
+    "priceInvalidError": "Enter a valid non-negative price.",
     "title": "Find Your Perfect Tour",
     "search": "Search",
     "searchPlaceholder": "Search tours",
@@ -13,6 +18,7 @@
     "reset": "Reset"
   },
   "listing": {
+    "resultsCount": "{{count}} tours found",
     "sortBy": "Sort by",
     "sortOptions": {
       "newest": "Newest",

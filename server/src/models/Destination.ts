@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
+import { revalidateTags } from '../services/revalidate';
 
 export interface IDestination extends Document {
   // Basic Info
@@ -214,5 +215,37 @@ DestinationSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 DestinationSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 DestinationSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 DestinationSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+
+
+/**
+ * Destination content — read by the destination page through the shared
+ * [slug] route, which now serves it from the Next Data Cache under the
+ * `destinations` tag. Without this hook that cache would have no
+ * invalidation path at all and an edit would wait out the full TTL.
+ *
+ * Mutation paths the admin controller actually uses:
+ *   create   Destination.create()  -> save       (document)
+ *   edit     doc.save()            -> save       (document)
+ *   delete   doc.deleteOne()       -> deleteOne  (DOCUMENT)
+ *
+ * `deleteOne` is registered for document middleware explicitly: in Mongoose 8
+ * a bare post('deleteOne') is QUERY middleware only and would never fire for
+ * the `doc.deleteOne()` the delete endpoint calls. The query variant is
+ * registered too for direct Model.deleteOne() callers, and findOneAndUpdate/
+ * updateOne/updateMany are covered because the sanitize hooks above already
+ * anticipate those paths being used.
+ *
+ * Fire-and-forget: revalidateTags never throws and is never awaited, so an
+ * admin save cannot fail because the front end is unreachable.
+ */
+const revalidateDestinationCaches = () => revalidateTags(['destinations']);
+
+DestinationSchema.post('save', revalidateDestinationCaches);
+DestinationSchema.post('findOneAndUpdate', revalidateDestinationCaches);
+DestinationSchema.post('findOneAndDelete', revalidateDestinationCaches);
+DestinationSchema.post('updateOne', revalidateDestinationCaches);
+DestinationSchema.post('updateMany', revalidateDestinationCaches);
+DestinationSchema.post('deleteOne', { document: true, query: false }, revalidateDestinationCaches);
+DestinationSchema.post('deleteOne', { document: false, query: true }, revalidateDestinationCaches);
 
 export default mongoose.model<IDestination>('Destination', DestinationSchema);

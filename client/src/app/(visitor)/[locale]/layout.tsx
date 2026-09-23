@@ -33,9 +33,25 @@ export async function generateMetadata({
 
   return {
     metadataBase: new URL(baseUrl),
+    /*
+     * The site's icons, declared ONCE here for every visitor page.
+     *
+     * This pointed at /favicon-logo.png — the full 313px logo, wordmark and
+     * all. A browser scaling that into a 16px tab renders "JES EGYPT TOURS" as
+     * three grey smudges, so the tab showed no recognisable mark. The sized
+     * files carry the falcon-and-pyramid alone, which survives 16px.
+     *
+     * `shortcut` matters more than it looks: browsers request /favicon.ico on
+     * their own, whatever the <link> tags say, and that file was still the
+     * theme's green aeroplane — which is why the old icon kept reappearing.
+     */
     icons: {
-      icon: "/favicon-logo.png",
-      apple: "/favicon-logo.png",
+      icon: [
+        { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+        { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      ],
+      shortcut: "/favicon.ico",
+      apple: "/apple-touch-icon.png",
     },
     robots: siteIndexable
       ? { index: true, follow: true }

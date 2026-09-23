@@ -3,6 +3,26 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import { JwtPayload } from '../types';
 
+const readRequestToken = (req: Request): string | undefined => {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer ')
+  ) {
+    return req.headers.authorization.split(' ')[1];
+  }
+
+  return req.cookies?.token;
+};
+
+const loadTokenUser = async (token: string) => {
+  const decoded = jwt.verify(
+    token,
+    process.env.JWT_SECRET as string
+  ) as JwtPayload;
+
+  return User.findById(decoded.id).select('-password');
+};
+
 /**
  * Protect routes - Verify JWT token
  */
@@ -12,19 +32,7 @@ export const protect = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    let token: string | undefined;
-
-    // Check for token in Authorization header
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
-    ) {
-      token = req.headers.authorization.split(' ')[1];
-    }
-    // Check for token in cookies
-    else if (req.cookies?.token) {
-      token = req.cookies.token;
-    }
+    const token = readRequestToken(req);
 
     // Make sure token exists
     if (!token) {
@@ -36,14 +44,7 @@ export const protect = async (
     }
 
     try {
-      // Verify token
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET as string
-      ) as JwtPayload;
-
-      // Get user from token
-      const user = await User.findById(decoded.id).select('-password');
+      const user = await loadTokenUser(token);
 
       if (!user) {
         res.status(401).json({
@@ -75,6 +76,37 @@ export const protect = async (
       success: false,
       error: 'Server error',
     });
+  }
+};
+
+/**
+ * Populate req.user when a visitor supplies a valid admin token, while keeping
+ * genuinely public GET routes public. An expired browser token is ignored on
+ * these routes so public catalogue pages do not become 401 pages; it simply
+ * cannot grant access to inactive content.
+ */
+export const optionalProtect = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const token = readRequestToken(req);
+  if (!token) {
+    next();
+    return;
+  }
+
+  try {
+    const user = await loadTokenUser(token);
+    if (!user || !user.isActive) {
+      next();
+      return;
+    }
+
+    req.user = user;
+    next();
+  } catch {
+    next();
   }
 };
 

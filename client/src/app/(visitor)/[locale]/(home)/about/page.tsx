@@ -23,9 +23,6 @@ export async function generateMetadata({
     title: "About Us | JES Egypt Tours",
     description:
       "JES Egypt Tours is a premium travel agency offering unique and authentic Egyptian experiences. Explore the land of pharaohs with our expert-led tours.",
-    icons: {
-      icon: "/favicon-32x32.png",
-    },
     alternates: getStaticLocaleAlternates(locale, "about"),
   };
 }

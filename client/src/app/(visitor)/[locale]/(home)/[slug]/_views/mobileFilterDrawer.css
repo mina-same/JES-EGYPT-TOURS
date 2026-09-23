@@ -1,0 +1,127 @@
+/*
+ * Mobile filter drawer — the tour listings' off-canvas filter panel.
+ *
+ * ── Why this is a stylesheet and not `<style jsx global>` ──
+ * These rules used to live in a styled-jsx block inside CategoryView and,
+ * byte for byte, again inside SubcategoryView. styled-jsx in a Client
+ * Component injects its CSS from JavaScript, so none of it existed until
+ * hydration: it appeared in no server HTML and in none of the nine
+ * render-blocking stylesheets the page links in <head>.
+ *
+ * The drawer's markup, however, IS server-rendered, near the top of the
+ * document. Until its CSS arrived it was therefore an ordinary static block
+ * in normal flow — measured at 632px tall — sitting above the page header and
+ * pushing the entire document down. When hydration finally applied
+ * `position: fixed`, everything snapped back up by 632px.
+ *
+ * Measured cost of that one frame: CLS 0.7483 at 390px and 0.6167 at 768px,
+ * against Google's 0.1 "good" threshold. It was the single largest layout
+ * shift on the category and subcategory pages, in every locale.
+ *
+ * A plain CSS import is bundled into the route's stylesheet and linked in
+ * <head>, so `position: fixed` and `visibility: hidden` are in force on the
+ * very first frame the browser paints. The rules are unchanged — only when
+ * they arrive is different.
+ *
+ * Imported by CategoryView and SubcategoryView. One source of truth: the
+ * duplicate styled-jsx copies are gone.
+ */
+
+.mobile-filter-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  z-index: 999999;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.mobile-filter-drawer.is-open {
+  visibility: visible;
+}
+
+.mobile-filter-drawer__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.mobile-filter-drawer.is-open .mobile-filter-drawer__overlay {
+  opacity: 1;
+}
+
+.mobile-filter-drawer__content {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 85%;
+  max-width: 380px;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.15);
+  overflow-x: hidden;
+}
+
+.mobile-filter-drawer.is-open .mobile-filter-drawer__content {
+  left: 0;
+}
+
+.mobile-filter-drawer__header {
+  padding: 24px 20px;
+  border-bottom: 2px solid #f7f3ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+}
+
+.mobile-filter-drawer__header h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1d231f;
+  letter-spacing: -0.5px;
+}
+
+.mobile-filter-drawer__body {
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar for drawer */
+.mobile-filter-drawer__body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.mobile-filter-drawer__body::-webkit-scrollbar-thumb {
+  background: #b79c5c;
+  border-radius: 10px;
+}
+
+.btn-close-filter {
+  background: #f7f3ed;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  transition: all 0.3s ease;
+}
+
+.btn-close-filter:active {
+  transform: scale(0.9);
+  background: #b79c5c;
+  color: #fff;
+}

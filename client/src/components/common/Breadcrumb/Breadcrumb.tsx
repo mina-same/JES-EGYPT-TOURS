@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSeoBaseUrl } from "@/lib/url";
+import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
 
 /**
  * The site's breadcrumb trail — one implementation, used everywhere.
@@ -122,7 +123,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(
+        __html: serializeJsonLd(
           buildBreadcrumbJsonLd(`${getSeoBaseUrl()}/${locale}`, homeLabel, list, currentUrl)
         ),
       }}

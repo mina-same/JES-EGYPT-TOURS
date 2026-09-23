@@ -7,6 +7,7 @@ import { RELATED_BLOGS_FALLBACK_LIMIT } from "@/lib/tour/relatedBlogs";
 import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
+import type { FeatureTwoItem } from "../FeatureTwo/types";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug } from "@/lib/url";
 import {
@@ -78,7 +79,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
 
   // Map a tour object (raw or localized) to FeatureTwo item
-  const mapTourToItem = (t: any) => {
+  const mapTourToItem = (t: any): FeatureTwoItem | null => {
     if (!t) return null;
     
     const tourSlug = getStrictLocalizedSlug(t?.slug, currentLang);
@@ -189,7 +190,12 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         title: getLocalizedValue(n?.title),
         text: getLocalizedValue(n?.text),
       })),
-      relatedTours: fetchedRelatedTours.map(mapTourToItem).filter(Boolean) as any[],
+      // A type guard, not a cast: `.filter(Boolean)` does not narrow
+      // `(FeatureTwoItem | null)[]`, which is the only reason this line
+      // used to end in `as any[]`.
+      relatedTours: fetchedRelatedTours
+        .map(mapTourToItem)
+        .filter((item): item is FeatureTwoItem => item !== null),
       images: galleryImages,
       // Strict locale lookup — no fallback to English.
       // Only include rows where the active locale has both question and answer.
@@ -269,7 +275,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [moreTours, setMoreTours] = useState<any[]>([]);
+  const [moreTours, setMoreTours] = useState<FeatureTwoItem[]>([]);
   const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
   /**
    * Whether a real tour is available to render. True from the first render when
@@ -445,7 +451,11 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         // byline of "Admin": its private copy of the mapping never received
         // the fixes the shared one did.
         setRelatedBlogs(fetchedRelatedBlogs);
-        setMoreTours(fetchedMoreToursRaw.map(mapTourToItem).filter(Boolean));
+        setMoreTours(
+          fetchedMoreToursRaw
+            .map(mapTourToItem)
+            .filter((item): item is FeatureTwoItem => item !== null)
+        );
         setTourData(mappedData);
         setHasTourContent(true);
       } catch (err) {

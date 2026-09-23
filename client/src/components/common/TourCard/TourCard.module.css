@@ -127,3 +127,15 @@
   border-top: 1px solid var(--gotur-border-color, #e5e5e5);
   padding-top: 16px;
 }
+
+/*
+ * The "Price on request" fallback occupies the price slot, so it keeps the
+ * amount's weight and colour — but it must never wrap. At some widths the
+ * phrase broke onto a second line, taking the price box from 32px to 64px.
+ * That is past the CTA height, which is what actually sets the row height, so
+ * those cards grew taller than their priced neighbours in the same grid row.
+ * One line keeps every card aligned, in all four languages.
+ */
+.priceOnRequest.priceOnRequest {
+  white-space: nowrap;
+}

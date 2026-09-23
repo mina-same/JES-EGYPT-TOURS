@@ -32,13 +32,13 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
     controls: false,
     autoplayButtonOutput: false,
 
+    /* Item counts only ever rise with the viewport. There used to be a
+       `431: { items: 1 }` rung here — straight from the template import —
+       so screens between 431px and 499px showed FEWER logos than narrower
+       ones. */
     responsive: {
       0: {
         items: Math.min(2, clientCarouselData.items.length),
-        gutter: 30,
-      },
-      431: {
-        items: Math.min(1, clientCarouselData.items.length),
         gutter: 30,
       },
       500: {
@@ -73,17 +73,16 @@ const ClientCarousel: React.FC<ClientCarouselProps> = ({ extraClass }) => {
           {clientCarouselData.items.map((item, index) => (
             <div className='item' key={item.id}>
               <div className='client-carousel__one__item'>
+                {/* One image per partner. A second, absolutely positioned
+                    copy used to sit on top of this one and fade in on
+                    hover — from the same `StaticImageData`, so nothing was
+                    ever visible, while every logo carried its alt and
+                    title twice. */}
                 <Image
                   src={item.image}
                   alt={t("partnerAlt", { count: index + 1 })}
                   title={t("partnerTitle", { count: index + 1 })}
                   className='client-carousel__one__image'
-                />
-                <Image
-                  src={item.hoverImage}
-                  alt={t("partnerAlt", { count: index + 1 })}
-                  title={t("partnerTitle", { count: index + 1 })}
-                  className='client-carousel__one__hover-image'
                 />
               </div>
             </div>

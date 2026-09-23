@@ -1,5 +1,11 @@
 {
   "home": "Startseite",
+  "pagination": {
+    "label": "Seitennavigation",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "page": "Seite {{page}}"
+  },
   "trustedPartners": "Unsere vertrauenswürdigen Partner",
   "partnerAlt": "Vertrauenswürdiger Partner {{count}}",
   "partnerTitle": "JES Ägypten Touren Partner {{count}}",
@@ -8,6 +14,7 @@
     "saveTour": "Zur Merkliste hinzufügen",
     "savedTour": "In der Merkliste",
     "startFrom": "Ab",
+    "priceOnRequest": "Preis auf Anfrage",
     "viewTour": "Tour ansehen",
     "viewPhotos": "Tourfotos ansehen",
     "playVideo": "Tourvideo abspielen",
@@ -228,17 +235,13 @@
       "title": "Assuan",
       "subtitle": "Nil-Feluke Segel-Tour"
     },
-    "dahab": {
-      "title": "Dahab",
-      "subtitle": "Rotes Meer & Bergtour"
+    "fayoum": {
+      "title": "Fayyum",
+      "subtitle": "Wadi El Rayan Seen-Tour"
     },
     "giza": {
       "title": "Gizeh",
       "subtitle": "Pyramiden & Sphinx Panorama"
-    },
-    "hatshepsut": {
-      "title": "Hatschepsut-Tempel",
-      "subtitle": "Luxor Westufer Tour"
     },
     "khanElKhalili": {
       "title": "Khan El Khalili",
@@ -251,6 +254,10 @@
     "qaitbay": {
       "title": "Qaitbay-Zitadelle",
       "subtitle": "Alexandria Küstentour"
+    },
+    "sharmElSheikh": {
+      "title": "Scharm el-Scheich",
+      "subtitle": "Rotes Meer: Strände & Riffe"
     },
     "siwa": {
       "title": "Siwa",
@@ -275,7 +282,9 @@
     "trust1": "Lizenzierte Experten-Guides",
     "trust2": "Keine versteckten Gebühren",
     "trust3": "24/7 Support",
-    "scroll": "Scrollen"
+    "scroll": "Scrollen",
+    "pauseSlideshow": "Diashow pausieren",
+    "playSlideshow": "Diashow abspielen"
   },
   "videoReviews": {
     "tagline": "Echte Reisende",
@@ -299,7 +308,9 @@
   },
   "wishlistLink": "Merkliste",
   "instagram": {
-    "title": "Folgen Sie uns auf Instagram"
+    "title": "Folgen Sie uns auf Instagram",
+    "pause": "Pausieren",
+    "play": "Abspielen"
   },
   "testimonials": {
     "tagline": "Kundenstimmen",

@@ -17,14 +17,15 @@
     "seed:detailed": "ts-node src/seeds/detailedTourSeeder.ts",
     "check:cloudinary": "ts-node src/scripts/checkCloudinary.ts",
     "lint": "eslint . --ext .ts",
-    "test": "jest",
+    "test": "node --require ts-node/register --test \"tests/**/*.test.ts\"",
     "migrate:slider-links": "ts-node src/scripts/migrateSliderLegacyLinks.ts",
     "migrate:remove-views": "ts-node src/scripts/removeContentViews.ts",
     "migrate:reset-tour-social-images": "ts-node src/scripts/resetTourSocialImages.ts",
     "migrate:tour-kind": "ts-node src/scripts/backfillTourKind.ts",
     "migrate:clear-placeholder-prices": "ts-node src/scripts/clearPlaceholderPrices.ts",
-    "migrate:author-role": "ts-node src/scripts/correctAuthorRole.ts",
-    "sanitize:existing": "ts-node src/scripts/sanitizeExistingContent.ts"
+    "migrate:author-profile": "ts-node src/scripts/syncAuthorProfile.ts",
+    "sanitize:existing": "ts-node src/scripts/sanitizeExistingContent.ts",
+    "content:home-intro": "ts-node src/scripts/updateHomeIntro.ts"
   },
   "keywords": [
     "express",

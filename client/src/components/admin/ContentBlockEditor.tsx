@@ -513,6 +513,7 @@ function BlockContent({
       const imgObj = {
         url:      (block as any).url      || '',
         fileName: (block as any).fileName || '',
+        title:    block.title || { en: '', de: '', it: '', es: '' },
         alt:      (block as any).alt      || { en: '', de: '', it: '', es: '' },
         caption:  (block as any).caption  || { en: '', de: '', it: '', es: '' },
       };
@@ -540,12 +541,12 @@ function BlockContent({
             images={[imgObj]}
             onAdd={() => {}}
             onRemove={() => {
-              onUpdate(index, { url: '', fileName: '', alt: { en: '', de: '', it: '', es: '' }, caption: { en: '', de: '', it: '', es: '' } });
+              onUpdate(index, { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' }, caption: { en: '', de: '', it: '', es: '' } });
             }}
             onUpdate={(imgIndex, field, value, lang) => {
               if (lang && (['alt', 'caption', 'title'] as string[]).includes(field)) {
                 const current = (block as any)[field] || { en: '', de: '', it: '', es: '' };
-                onUpdate(index, field, { ...current, [lang]: value });
+                onUpdate(index, field, { ...(typeof current === 'string' ? { en: current } : current), [lang]: value });
               } else {
                 onUpdate(index, field, value);
               }

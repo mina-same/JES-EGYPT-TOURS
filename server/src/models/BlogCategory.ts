@@ -3,6 +3,7 @@ import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixe
 import { FAQSchema, IFAQ } from './shared/FaqSchema';
 import { IImage } from './shared/ImageSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
+import { revalidateTags } from '../services/revalidate';
 
 export interface IBlogCategory extends Document {
   // Basic Info
@@ -261,5 +262,47 @@ BlogCategorySchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 BlogCategorySchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 BlogCategorySchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 BlogCategorySchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+
+
+/**
+ * Blog category content — read by the shared [slug] route and the blog hub.
+ *
+ * Mirrors Blog.ts: the visitor fetch is tagged and served from cache until an
+ * editor changes something, at which point the tag is cleared and the change
+ * is live immediately.
+ *
+ * ── Why `blog` and nothing else ──
+ * The tag has to match what a cached read actually holds, and the reads that
+ * carry blog category data today are tagged `blog`:
+ *   getCategoryBySlug in client/src/lib/api/blog.ts.
+ * A dedicated `blog-categories` tag would be tidier to read but nothing
+ * consumes it, and an emitted tag with no consumer invalidates nothing while
+ * looking like it does. If those reads are ever split onto their own tag,
+ * this line moves with them.
+ *
+ * ── Hooks follow the operations the admin controller ACTUALLY uses ──
+ *   create         Model.create()        -> save             (document)
+ *   edit           findByIdAndUpdate()   -> findOneAndUpdate (query)
+ *   toggle active  doc.save()            -> save             (document)
+ *   delete         doc.deleteOne()       -> deleteOne        (DOCUMENT)
+ *
+ * That last row is why `deleteOne` is registered twice. In Mongoose 8 a bare
+ * post('deleteOne') is QUERY middleware only (helpers/model/applyHooks.js:
+ * `return !!hook['document']`), so it would never fire for the
+ * `doc.deleteOne()` the delete endpoint calls — the tag would quietly survive
+ * a deletion. The query variant is kept for direct Model.deleteOne() callers.
+ *
+ * Fire-and-forget: revalidateTags never throws and is never awaited, so an
+ * admin save cannot fail because the front end is unreachable.
+ */
+const revalidateBlogCategoryCaches = () => revalidateTags(['blog']);
+
+BlogCategorySchema.post('save', revalidateBlogCategoryCaches);
+BlogCategorySchema.post('findOneAndUpdate', revalidateBlogCategoryCaches);
+BlogCategorySchema.post('findOneAndDelete', revalidateBlogCategoryCaches);
+BlogCategorySchema.post('updateOne', revalidateBlogCategoryCaches);
+BlogCategorySchema.post('updateMany', revalidateBlogCategoryCaches);
+BlogCategorySchema.post('deleteOne', { document: true, query: false }, revalidateBlogCategoryCaches);
+BlogCategorySchema.post('deleteOne', { document: false, query: true }, revalidateBlogCategoryCaches);
 
 export default mongoose.model<IBlogCategory>('BlogCategory', BlogCategorySchema);

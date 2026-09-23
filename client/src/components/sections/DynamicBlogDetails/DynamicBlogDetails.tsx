@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import BlogTOC from "@/components/common/BlogTOC/BlogTOC";
-import { CheckCircle, List, HelpCircle, Plus, Minus } from "lucide-react";
+import { CheckCircle, List, HelpCircle } from "lucide-react";
 import FaqAccordion from "@/components/common/Faq/FaqAccordion";
 import ReviewAvatar from "@/components/common/ReviewAvatar";
 import { API_URL } from "@/config/api";

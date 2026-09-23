@@ -1,4 +1,6 @@
 {
+  "priceRangeError": "Il prezzo minimo non può superare il prezzo massimo.",
+  "priceInvalidError": "Inserisci un prezzo valido e non negativo.",
   "pageTitle": "Risultati di ricerca || JES Egypt Tours",
   "pageDescription": "Cerca tour e blog.",
   "pageHeaderTitle": "Cerca",
