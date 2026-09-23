@@ -5224,6 +5224,37 @@ button[data-action="stop"] {
 .main-slider-four__nobreak {
   white-space: nowrap;
 }
+/* Mobile hero: reserve the two bands that sit on top of the copy.
+ *
+ * The hero starts at y=0 under a transparent header, so the header band is
+ * painted OVER the slide — measured at exactly 108px at every mobile width
+ * in all four locales. At the other end the dot pill is positioned against
+ * `.main-slider-four__carousel` at `bottom: 24px` and is 42px tall, so it
+ * owns the last 66px of that box. Neither band was reserved anywhere:
+ * `.main-slider-four__item` simply centres `.main-slider-four__content`
+ * (`display: flex; align-items: center`) and the content carries a flat
+ * `padding: 40px 15px` at every width.
+ *
+ * Above 767px the 895px min-height leaves enough slack that centring keeps
+ * the copy clear of both bands on its own. On mobile that min-height drops to
+ * 660px (gotur.css) while the copy itself measures 458–899px, so on the
+ * longer slides the copy fills the box outright and collides at both ends: the
+ * eyebrow rendered 70px ABOVE the header's bottom edge, and the trust row
+ * overlapped the pill by 26px. It is one problem — a box with no room — so
+ * it is fixed once, on that box, rather than by nudging the eyebrow, the
+ * title, the CTA and the trust row separately.
+ *
+ * Each value is the band it clears plus the 24px the pill already uses as its
+ * own inset, so the copy keeps a consistent gap at both ends. Padding rather
+ * than margins on the children, so on the short slides — where the 660px
+ * min-height still wins — the box does not grow at all and the flex centring
+ * is untouched; only the slides that were actually overflowing get taller. */
+@media (max-width: 767px) {
+  .main-slider-four__content {
+    padding-top: calc(108px + 24px);
+    padding-bottom: calc(24px + 42px + 24px);
+  }
+}
 /* Gold hand-drawn underline (inline SVG): spans the exact width of the gold
    phrase and inherits its color, replacing the old green PNG asset. */
 .main-slider-four__title-line {

@@ -25,6 +25,7 @@ import {
   tourServerAPI,
   tourSubcategoryServerAPI,
 } from "@/lib/api/tour.server";
+import { resolveSlug } from "@/lib/api/resolve.server";
 import {
   type BlogResponse,
   type BlogSubCategory,
@@ -72,14 +73,6 @@ import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { cookies } from "next/headers";
 import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
 
-/**
- * Get the slug for a specific locale WITHOUT the deep fallback chain.
- * Returns null if the slug doesn't exist for the specific locale (forcing a 404).
- */
-function getLocaleSlug(slugObj: any, locale: string): string | null {
-  if (!slugObj || typeof slugObj !== 'object') return slugObj || null;
-  return slugObj[locale] || null;
-}
 
 function ensureTourMapSchema(tour: any) {
   if (!tour || typeof tour !== "object") return tour;
@@ -222,78 +215,89 @@ type ResolvedSlugContent = {
   correctSlug: string;
 };
 
+/*
+ * Slug -> content, in one resolution plus one entity read.
+ *
+ * This used to ask seven endpoints in turn until one answered 200. Next
+ * never caches a non-OK response, so every miss ahead of the real type hit
+ * the API on EVERY request, warm cache or not — six wasted round trips for a
+ * destination, five for an article. /api/resolve answers the same question
+ * once, from seven parallel indexed lookups, and that answer IS cacheable.
+ *
+ * The signature and return shape are unchanged on purpose: generateMetadata,
+ * every render branch, the redirects and notFound() all consume this exactly
+ * as before.
+ *
+ * Precedence now lives in the API (resolveController CANDIDATES), in the same
+ * order this chain used. A database audit found zero cross-type slug
+ * collisions, so nothing observable depends on it today, but it is preserved
+ * rather than rationalised.
+ *
+ * React cache() still wraps it, so metadata and the page share one call.
+ */
 const resolveSlugContent = cache(async (slug: string, locale: string): Promise<ResolvedSlugContent | null> => {
-  // 1. Try tour (checked first: most common content type, and confirmed via
-  //    DB audit to have zero slug collisions with any other content type)
-  try {
-    const tourRes = await tourServerAPI.getBySlug(slug, locale);
-    if (tourRes?.success && tourRes?.data) {
-      const correctSlug = getLocaleSlug(tourRes.data.slug, locale);
-      if (correctSlug) return { type: "tour", data: tourRes.data, correctSlug };
-    }
-  } catch {}
+  /*
+   * Deliberately NOT wrapped in try/catch. A missing slug comes back as null
+   * and becomes a 404; a 500 or an unreachable API throws, and must keep
+   * throwing. Turning an outage into notFound() would answer "this page does
+   * not exist" to a crawler about a page that does.
+   */
+  const resolution = await resolveSlug(slug, locale);
+  if (!resolution) return null;
 
-  // 2. Try category
-  try {
-    const catRes = await tourCategoryServerAPI.getBySlug(slug, locale);
-    if (catRes?.success && catRes?.data) {
-      const correctSlug = getLocaleSlug(catRes.data.slug, locale);
-      if (correctSlug) return { type: "category", data: catRes.data, correctSlug };
-    }
-  } catch {}
+  // The canonical slug for THIS locale — always present, because the API only
+  // resolves an entity that has one. Reading the entity by it rather than by
+  // whatever alias was typed also keeps one cache entry per locale.
+  const correctSlug = resolution.canonicalSlug;
 
-  // 3. Try subcategory
-  try {
-    const subRes = await tourSubcategoryServerAPI.getBySlug(slug, locale);
-    if (subRes?.success && subRes?.data) {
-      const correctSlug = getLocaleSlug(subRes.data.slug, locale);
-      if (correctSlug) return { type: "subcategory", data: subRes.data, correctSlug };
+  switch (resolution.type) {
+    case "tour": {
+      const res = await tourServerAPI.getBySlug(correctSlug, locale);
+      if (res?.success && res?.data) return { type: "tour", data: res.data, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 4. Try Blog Category
-  try {
-    const category = await getBlogCategoryBySlug(slug, locale);
-    if (category) {
-      const correctSlug = getLocaleSlug(category.slug, locale);
-      if (correctSlug) return { type: "blogCategory", data: category, correctSlug };
+    case "tour-category": {
+      const res = await tourCategoryServerAPI.getBySlug(correctSlug, locale);
+      if (res?.success && res?.data) return { type: "category", data: res.data, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 5. Try Blog Subcategory
-  try {
-    const subcategory = await getBlogSubCategoryBySlug(slug, locale);
-    if (subcategory) {
-      const correctSlug = getLocaleSlug(subcategory.slug, locale);
-      if (correctSlug) return { type: "blogSubcategory", data: subcategory, correctSlug };
+    case "tour-subcategory": {
+      const res = await tourSubcategoryServerAPI.getBySlug(correctSlug, locale);
+      if (res?.success && res?.data) return { type: "subcategory", data: res.data, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 6. Try Blog Post
-  try {
-    const blog = await getBlogBySlug(slug, locale);
-    if (blog) {
-      const correctSlug = getLocaleSlug(blog.slug, locale);
-      // A slug alone is not enough: if none of the article's blocks belong to
-      // this language there is nothing to render, and falling back to another
-      // language would republish content the editor scoped elsewhere. Returning
-      // nothing here makes the page 404 and keeps it out of generateMetadata.
-      if (correctSlug && !hasNoContentForLocale(blog.contentBlocks, locale)) {
-        return { type: "blog", data: blog, correctSlug };
-      }
+    case "blog-category": {
+      const category = await getBlogCategoryBySlug(correctSlug, locale);
+      if (category) return { type: "blogCategory", data: category, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 7. Try Destination
-  try {
-    const destination = await getDestinationBySlug(slug, locale);
-    if (destination) {
-      const correctSlug = getLocaleSlug(destination.slug, locale);
-      if (correctSlug) return { type: "destination", data: destination, correctSlug };
+    case "blog-subcategory": {
+      const subcategory = await getBlogSubCategoryBySlug(correctSlug, locale);
+      if (subcategory) return { type: "blogSubcategory", data: subcategory, correctSlug };
+      return null;
     }
-  } catch {}
-
-  return null;
+    case "blog": {
+      const blog = await getBlogBySlug(correctSlug, locale);
+      if (!blog) return null;
+      /*
+       * A slug alone is not enough. If none of the article's blocks belong to
+       * this language there is nothing to render, and falling back to another
+       * language would republish content the editor scoped elsewhere. This
+       * check stays here rather than moving into the resolver because the
+       * block rules live in blogBlocks.ts, and a second copy behind the API
+       * would be one more thing to keep in sync.
+       */
+      if (hasNoContentForLocale(blog.contentBlocks, locale)) return null;
+      return { type: "blog", data: blog, correctSlug };
+    }
+    case "destination": {
+      const destination = await getDestinationBySlug(correctSlug, locale);
+      if (destination) return { type: "destination", data: destination, correctSlug };
+      return null;
+    }
+    default:
+      return null;
+  }
 });
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

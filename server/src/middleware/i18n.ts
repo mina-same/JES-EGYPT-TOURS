@@ -36,11 +36,30 @@ declare global {
 export const i18nMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const supportedLocales = ['en', 'de', 'it', 'es', 'bypass'];
   
-  // Check 'X-Locale' header or 'Accept-Language' header
-  const headerLocale = (req.headers['x-locale'] as string) || (req.headers['accept-language']?.split(',')[0].split('-')[0]) || 'en';
+  /*
+   * X-Locale is the ONLY header that selects the response language.
+   *
+   * This used to fall back to Accept-Language, which made the same URL
+   * return four different bodies to four browsers while the response
+   * advertised only `Vary: X-Locale` — a shared cache could not see the
+   * second dependency and would replay one language to all of them.
+   *
+   * Declaring `Vary: X-Locale, Accept-Language` would have been the other
+   * way to make that honest, but browser Accept-Language values are almost
+   * unbounded ("de-DE,de;q=0.9,en;q=0.8", "de;q=0.8,en-US;q=0.7", ...), so a
+   * future CDN would shard four real languages across hundreds of variants.
+   * Narrowing the contract is both cheaper and more predictable: the cache
+   * key is exactly URL + X-Locale, and four values cover the whole site.
+   *
+   * Missing or unsupported -> English. Never a guess from the browser.
+   * 'bypass' is unchanged: the admin uses it to read raw multilingual docs.
+   */
+  const headerLocale = req.headers['x-locale'];
   
-  // Set the locale for the request
-  req.locale = supportedLocales.includes(headerLocale) ? headerLocale : 'en';
+  req.locale =
+    typeof headerLocale === 'string' && supportedLocales.includes(headerLocale)
+      ? headerLocale
+      : 'en';
   
   res.vary('X-Locale');
   
