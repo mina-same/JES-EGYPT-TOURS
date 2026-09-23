@@ -1,4 +1,30 @@
-import { tourAPI, tourCategoryAPI, tourSubcategoryAPI } from "@/lib/api/tour";
+/*
+ * The mobile filter drawer's layout CSS, imported HERE rather than from the
+ * view that renders it.
+ *
+ * The drawer's markup is server-rendered, but CategoryView and SubcategoryView
+ * reach the browser through next/dynamic, so a stylesheet imported by them
+ * ships in the view's ASYNC chunk — it arrives after the first paint, and the
+ * server-rendered drawer spends that frame as a static block in normal flow,
+ * ~632px tall, pushing the whole page down. Measured: CLS 0.7483 at 390px.
+ *
+ * This file is the route's own module and is never deferred, so importing the
+ * stylesheet here puts it in the route CSS that <head> links, where
+ * `position: fixed` applies to the very first painted frame.
+ */
+import "./_views/mobileFilterDrawer.css";
+/*
+ * Catalog reads go through the SERVER readers, which use native fetch and so
+ * participate in the Next Data Cache. ./tour.ts (axios) is untouched and is
+ * still what the browser and the admin use — it just has no place in a
+ * Server Component, because Next cannot cache an axios call.
+ */
+import {
+  isCanonicalListing,
+  tourCategoryServerAPI,
+  tourServerAPI,
+  tourSubcategoryServerAPI,
+} from "@/lib/api/tour.server";
 import {
   type BlogResponse,
   type BlogSubCategory,
@@ -22,15 +48,19 @@ import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
-import TourListingOneDetails from "@/components/sections/TourListingDetailsOne/TourListingDetailsOne";
+import TourListingOneDetails from "@/components/sections/TourListingDetailsOne/TourListingDetailsOneLazy";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import { SlugManager } from "@/components/common/SlugManager";
-import CategoryView from "./_views/CategoryView";
-import SubcategoryView from "./_views/SubcategoryView";
-import BlogCategoryView from "./_views/BlogCategoryView";
-import BlogSubcategoryView from "./_views/BlogSubcategoryView";
-import BlogDetailView from "./_views/BlogDetailView";
-import DestinationView from "./_views/DestinationView";
+// Each view is imported through its *Lazy wrapper, which holds the async
+// import() that gives it its own chunk. Importing any of them directly here
+// would put it back in the route's shared client chunk group and ship it to
+// all seven content types — see the wrappers for the measurement.
+import CategoryView from "./_views/CategoryViewLazy";
+import SubcategoryView from "./_views/SubcategoryViewLazy";
+import BlogCategoryView from "./_views/BlogCategoryViewLazy";
+import BlogSubcategoryView from "./_views/BlogSubcategoryViewLazy";
+import BlogDetailView from "./_views/BlogDetailViewLazy";
+import DestinationView from "./_views/DestinationViewLazy";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
 import { hasNoContentForLocale } from "@/lib/blogBlocks";
 import {
@@ -196,7 +226,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
   // 1. Try tour (checked first: most common content type, and confirmed via
   //    DB audit to have zero slug collisions with any other content type)
   try {
-    const tourRes = await tourAPI.getBySlug(slug, locale);
+    const tourRes = await tourServerAPI.getBySlug(slug, locale);
     if (tourRes?.success && tourRes?.data) {
       const correctSlug = getLocaleSlug(tourRes.data.slug, locale);
       if (correctSlug) return { type: "tour", data: tourRes.data, correctSlug };
@@ -205,7 +235,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
 
   // 2. Try category
   try {
-    const catRes = await tourCategoryAPI.getBySlug(slug, locale);
+    const catRes = await tourCategoryServerAPI.getBySlug(slug, locale);
     if (catRes?.success && catRes?.data) {
       const correctSlug = getLocaleSlug(catRes.data.slug, locale);
       if (correctSlug) return { type: "category", data: catRes.data, correctSlug };
@@ -214,7 +244,7 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
 
   // 3. Try subcategory
   try {
-    const subRes = await tourSubcategoryAPI.getBySlug(slug, undefined, locale);
+    const subRes = await tourSubcategoryServerAPI.getBySlug(slug, locale);
     if (subRes?.success && subRes?.data) {
       const correctSlug = getLocaleSlug(subRes.data.slug, locale);
       if (correctSlug) return { type: "subcategory", data: subRes.data, correctSlug };
@@ -541,6 +571,20 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     tourStyle: firstQueryValue(query.tourStyle) || undefined,
     currency,
   } : null;
+  /*
+   * Whether this listing query is bounded enough to cache.
+   *
+   * Free-text search and arbitrary price ranges would mint an unbounded
+   * number of cache entries, so those requests bypass the Data Cache and run
+   * exactly as they do today. Only the shapes a visitor can reach by clicking
+   * — scope, locale, currency, page, whitelisted sort — are cached.
+   */
+  const listingCacheable =
+    !!listingQuery &&
+    isCanonicalListing({
+      ...listingQuery,
+      subcategory: firstQueryValue(query.subcategory) || undefined,
+    });
   const resolved = await resolveSlugContent(slug, locale);
 
   // ── 1. Category ──────────────────────────────────────────────────────────
@@ -557,20 +601,30 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
         } else {
           categoryData = resolved.data;
           renderCategory = true;
-          // Optionally fetch subcategories here if needed for full SEO
-          try {
-            const subRes = await tourSubcategoryAPI.getByCategory(categoryData._id);
-            if (subRes.success && subRes.data) initialSubcategories = subRes.data;
-          } catch {}
-          if (listingQuery) {
-            try {
-              initialTours = await tourAPI.getAll({
-                ...listingQuery,
-                category: categoryData._id,
-                subcategory: firstQueryValue(query.subcategory) || undefined,
-              }, locale);
-            } catch {}
-          }
+          /*
+           * Both reads need only the category id and neither needs the other
+           * result; they were simply awaited in sequence. Running them together
+           * removes a full round trip from every cold-cache render.
+           *
+           * No try/catch: the server readers already return null for a miss or
+           * a failure, so there is nothing left here to throw.
+           */
+          const [subRes, toursRes] = await Promise.all([
+            tourSubcategoryServerAPI.getByCategory(categoryData._id, locale),
+            listingQuery
+              ? tourServerAPI.getListing(
+                  {
+                    ...listingQuery,
+                    category: categoryData._id,
+                    subcategory: firstQueryValue(query.subcategory) || undefined,
+                  },
+                  locale,
+                  listingCacheable
+                )
+              : Promise.resolve(null),
+          ]);
+          if (subRes?.success && subRes.data) initialSubcategories = subRes.data;
+          initialTours = toursRes ?? undefined;
         }
       }
     } catch { /* API error — fall through to next lookup */ }
@@ -595,20 +649,22 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
           renderSubcategory = true;
           // Fetch siblings for SEO
           const categoryId = typeof subcategoryData.category === "string" ? subcategoryData.category : subcategoryData.category?._id;
-          if (categoryId) {
-            try {
-              const siblingsRes = await tourSubcategoryAPI.getByCategory(categoryId);
-              if (siblingsRes.success && siblingsRes.data) initialSiblings = siblingsRes.data;
-            } catch {}
-          }
-          if (listingQuery) {
-            try {
-              initialTours = await tourAPI.getAll({
-                ...listingQuery,
-                subcategory: subcategoryData._id,
-              }, locale);
-            } catch {}
-          }
+          /* Same independence as the category branch: the sibling rail and the
+             listing share nothing beyond ids already in hand. */
+          const [siblingsRes, toursRes] = await Promise.all([
+            categoryId
+              ? tourSubcategoryServerAPI.getByCategory(categoryId, locale)
+              : Promise.resolve(null),
+            listingQuery
+              ? tourServerAPI.getListing(
+                  { ...listingQuery, subcategory: subcategoryData._id },
+                  locale,
+                  listingCacheable
+                )
+              : Promise.resolve(null),
+          ]);
+          if (siblingsRes?.success && siblingsRes.data) initialSiblings = siblingsRes.data;
+          initialTours = toursRes ?? undefined;
         }
       }
     } catch { /* API error — fall through to next lookup */ }

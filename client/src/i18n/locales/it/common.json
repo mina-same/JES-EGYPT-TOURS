@@ -14,6 +14,7 @@
     "saveTour": "Aggiungi ai preferiti",
     "savedTour": "Nei preferiti",
     "startFrom": "A partire da",
+    "priceOnRequest": "Prezzo su richiesta",
     "viewTour": "Vedi tour",
     "viewPhotos": "Vedi le foto del tour",
     "playVideo": "Riproduci il video del tour",
@@ -281,7 +282,9 @@
     "trust1": "Guide esperte autorizzate",
     "trust2": "Nessun costo nascosto",
     "trust3": "Supporto 24/7",
-    "scroll": "Scorri"
+    "scroll": "Scorri",
+    "pauseSlideshow": "Metti in pausa la presentazione",
+    "playSlideshow": "Riproduci la presentazione"
   },
   "videoReviews": {
     "tagline": "Viaggiatori Reali",

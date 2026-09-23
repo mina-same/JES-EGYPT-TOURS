@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useMemo, useRef } from "react";
 
 interface TextAnimationProps {
   text: string;
@@ -9,77 +8,85 @@ interface TextAnimationProps {
   semantic?: boolean;
 }
 
-const variants = {
-  fade: { initial: { opacity: 0 }, animate: { opacity: 1 } },
-  right: { initial: { opacity: 0, x: 20 }, animate: { opacity: 1, x: 0 } },
-  left: { initial: { opacity: 0, x: -20 }, animate: { opacity: 1, x: 0 } },
-  up: { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } },
-  down: { initial: { opacity: 0, y: -20 }, animate: { opacity: 1, y: 0 } },
-  scale: { initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 } },
-} as const;
-
 /**
- * A heading that reveals as it scrolls into view.
+ * A heading that reveals as it scrolls into view — as an enhancement, never as
+ * a precondition for reading it.
  *
- * ── One motion component per WORD, not per character ──
- * This used to split every heading into individual letters and render a
- * <motion.span> for each one. The homepage uses this component in ~15 places,
- * so a page of ordinary headings mounted several hundred independent animated
- * components during hydration — a direct cost to Interaction to Next Paint for
- * an effect nobody reads letter by letter. Per word the visual result is
- * near-identical at roughly a fifth of the components.
+ * ── Visible by default ──
+ * This used to render each word as a Framer Motion component seeded with an
+ * `initial` variant, which serialises into the server HTML as
+ * `style="opacity:0;transform:translateX(20px)"`. The words only became
+ * readable once JavaScript hydrated AND an IntersectionObserver fired, so with
+ * scripting unavailable every heading built on this component — About, Why
+ * Choose Us, Featured Tours, both Offers, Testimonials, the FAQ — stayed
+ * invisible forever, while still being announced by a screen reader. The text
+ * was in the HTML the whole time; only the CSS hid it.
  *
- * ── It animates once ──
- * `isVisible` used to track `entry.isIntersecting` in both directions, so the
- * heading faded back out and replayed on every scroll past. The observer now
- * disconnects on the first intersection.
+ * Now the markup carries no hidden state at all. Words render in their final
+ * form, styled by `.text-animation` in globals.css, and script may *opt them
+ * in* to an entrance afterwards by setting `data-reveal`.
+ *
+ * ── It only arms text nobody has seen ──
+ * On mount the component measures itself. If any part of it is already on
+ * screen — or the visitor scrolled past it before hydration — it is left
+ * alone permanently: hiding words someone may already have read, in order to
+ * animate them back in, would just move the original defect later in the page
+ * lifecycle. Only a heading still fully below the fold is armed, and arming
+ * touches opacity and transform only, so nothing reflows.
+ *
+ * ── One observer per heading, not per word ──
+ * The observer watches the wrapper and disconnects on the first intersection,
+ * so the entrance plays once. Per-word staggering is a CSS `transition-delay`
+ * driven by a custom property, which is why the words are plain spans: a page
+ * of ordinary headings used to mount several hundred independent animated
+ * components during hydration, a direct cost to Interaction to Next Paint for
+ * an effect nobody reads word by word.
  *
  * ── Reduced motion ──
- * There was none, although the stylesheet honours the preference in fifteen
- * other places. With the preference set the text renders in its final state
- * immediately: headings must never be stuck at opacity 0 waiting for an
- * animation the visitor has asked not to see.
+ * Never armed, and the stylesheet neutralises the armed state too, so the
+ * final frame is all there is.
+ *
+ * The DOM contract is unchanged — `.text-animation` wrapper, one `<span>` per
+ * word — because `gotur.css` styles `.sec-title__title .text-animation span`
+ * and `globals.css` lays the block variant out as a flex row.
  */
 const TextAnimation: React.FC<TextAnimationProps> = ({
   text,
   animationType,
   semantic = false,
 }) => {
-  const prefersReducedMotion = useReducedMotion();
-  // Derived, not stored: the old component seeded state from `text` and then
-  // re-derived the identical value in an effect on mount, costing a render.
   const words = useMemo(() => (text ? text.split(" ") : []), [text]);
-  const [isVisible, setIsVisible] = useState(false);
   const containerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setIsVisible(true);
-      return;
-    }
-
     const node = containerRef.current;
     if (!node) return;
 
-    if (typeof IntersectionObserver === "undefined") {
-      setIsVisible(true);
-      return;
-    }
+    if (typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    // Anything at or above the fold may already have been read. Leave it.
+    if (node.getBoundingClientRect().top < window.innerHeight) return;
+
+    node.dataset.reveal = "pending";
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        setIsVisible(true);
+        node.dataset.reveal = "in";
         observer.disconnect();
       },
-      { threshold: 0.1 }
+      // Fires just BEFORE the heading reaches the viewport rather than once a
+      // tenth of it is already showing: a heading caught at the very edge by
+      // the old threshold could sit there visibly blank until the visitor
+      // scrolled further. Starting early means the entrance is already under
+      // way by the time it is properly on screen.
+      { rootMargin: "0px 0px 15% 0px", threshold: 0 }
     );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [prefersReducedMotion]);
-
-  const animate = isVisible || prefersReducedMotion ? "animate" : "initial";
+  }, []);
 
   /**
    * @param spaced the inline (`semantic`) variant flows as text, so each word
@@ -89,20 +96,12 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
    */
   const renderWords = (spaced: boolean) =>
     words.map((word, index) => (
-      <motion.span
+      <span
         key={index}
-        variants={variants[animationType]}
-        initial='initial'
-        animate={animate}
-        transition={
-          prefersReducedMotion
-            ? { duration: 0 }
-            : { delay: index * 0.06, duration: 0.6, ease: "easeOut" }
-        }
-        style={{ display: "inline-block", whiteSpace: "pre" }}
+        style={{ "--word-index": index } as React.CSSProperties}
       >
         {spaced && index < words.length - 1 ? `${word} ` : word}
-      </motion.span>
+      </span>
     ));
 
   if (semantic) {
@@ -110,8 +109,8 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
       <span
         ref={containerRef as React.RefObject<HTMLSpanElement>}
         className='text-animation'
+        data-anim={animationType}
         style={{ display: "inline" }}
-        suppressHydrationWarning
       >
         {renderWords(true)}
       </span>
@@ -122,7 +121,7 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
     <div
       ref={containerRef as React.RefObject<HTMLDivElement>}
       className='text-animation'
-      suppressHydrationWarning
+      data-anim={animationType}
     >
       {renderWords(false)}
     </div>

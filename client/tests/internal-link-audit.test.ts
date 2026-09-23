@@ -6,6 +6,47 @@ import { auditInternalLinks, buildAllHtmlLinkSources } from '../src/lib/internal
 
 const siteUrl = 'https://www.jesegypttours.com';
 
+test('warns on every duplicate across blocks, including absolute and relative forms', () => {
+  const contentBlocks = Array.from({ length: 10 }, () => ({ content: { en: '' } }));
+  contentBlocks[0].content.en = '<a href="https://www.jesegypttours.com/en/museum">Grand Egyptian Museum</a>';
+  contentBlocks[9].content.en = '<a href="/en/museum">Visit the museum</a>';
+  const links = auditInternalLinks(buildAllHtmlLinkSources({ contentBlocks }), siteUrl);
+
+  assert.equal(links.length, 2);
+  for (const link of links) {
+    const issue = link.issues.find((issue) => issue.code === 'duplicate_internal_link');
+    assert.equal(issue?.severity, 'warning');
+    assert.match(issue!.message, /appears 2 times in EN content/);
+    assert.match(issue!.message, /Item 1 · Content/);
+    assert.match(issue!.message, /Item 10 · Content/);
+  }
+  assert.ok(links[0].issues.some((issue) => issue.code === 'absolute_internal_url'));
+});
+
+test('counts repeated links in one field and keeps languages separate', () => {
+  const links = auditInternalLinks([{ label: 'Content', value: {
+    en: '<a href="/en/museum">Museum</a>'.repeat(3),
+    de: '<a href="/en/museum">Museum</a>',
+  } }], siteUrl);
+
+  for (const link of links.filter((link) => link.locale === 'en')) {
+    assert.deepEqual(link.issues.map((issue) => issue.code), ['duplicate_internal_link']);
+    assert.match(link.issues[0].message, /appears 3 times/);
+  }
+  assert.deepEqual(links.find((link) => link.locale === 'de')?.issues.map((issue) => issue.code), ['language_mismatch']);
+});
+
+test('does not conflate distinct destinations, queries, sections or local navigation', () => {
+  const targets = ['/en/museum', '/en/cairo', '/en/museum?day=1', '/en/museum?day=2',
+    '/en/museum#tickets', '/en/museum#hours', '#tickets', '#tickets', '?day=1', '?day=1'];
+  const links = auditInternalLinks([{ label: 'Content', value: {
+    en: targets.map((href) => `<a href="${href}">Explore</a>`).join(''),
+  } }], siteUrl);
+
+  assert.equal(links.length, targets.length);
+  assert.ok(links.every((link) => link.issues.length === 0));
+});
+
 test('finds same-site links per locale and ignores external links', () => {
   const links = auditInternalLinks([
     {

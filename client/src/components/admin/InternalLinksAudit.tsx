@@ -170,7 +170,7 @@ export function InternalLinksAudit({
     <Section title="Internal links audit" icon={<Link2 size={14} />}>
       <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
         <p className="text-sm text-gray-500 dark:text-gray-400 m-0 max-w-2xl">
-          Links inside this page&apos;s saved text fields. Language, URL format and SEO attributes are checked automatically.
+          Links inside this page&apos;s saved text fields. Duplicate targets within each language, language mismatches, URL format and SEO attributes are checked automatically.
         </p>
         <button
           type="button"

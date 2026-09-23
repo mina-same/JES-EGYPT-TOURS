@@ -19,6 +19,9 @@ interface MobileStickyBookingBarProps {
 
 export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ tourId, price, tourTitle, packageOptions }) => {
   const { t } = useTranslation("tours");
+  // The fallback wording lives in `common`, next to the tour-card labels, so
+  // the same phrase appears wherever a tour can be shown without a price.
+  const { t: tCommon } = useTranslation("common");
   const { formatPrice, getPriceValue } = useCurrency();
   const hasPrice = getPriceValue(price) > 0;
   const [isOpen, setIsOpen] = useState(false);
@@ -114,18 +117,30 @@ export const MobileStickyBookingBar: React.FC<MobileStickyBookingBarProps> = ({ 
     <>
       <div className={`mobile-sticky-booking-bar ${isVisible && !isOpen ? 'is-visible' : ''}`}>
         <div className="booking-bar-content">
-          {hasPrice && (
-            <div className="booking-bar-meta">
+          {/*
+            The meta block now always renders, so the bar cannot show a price
+            on desktop and nothing here. The "Ready to book" chip stays tied to
+            hasPrice exactly as before: it is a claim about being bookable at a
+            known rate, and an unpriced tour has not earned it.
+          */}
+          <div className="booking-bar-meta">
+            {hasPrice && (
               <span className="booking-bar-chip">
                 <BadgeCheck size={14} />
                 {t("tourDetails.bestSeller", "Ready to book")}
               </span>
-              <div className="booking-bar-price">
-                <span className="price-label">{t("tourDetails.from")}</span>
-                <span className="price-value">{formatPrice(price)}</span>
-              </div>
+            )}
+            <div className="booking-bar-price">
+              {hasPrice ? (
+                <>
+                  <span className="price-label">{t("tourDetails.from")}</span>
+                  <span className="price-value">{formatPrice(price)}</span>
+                </>
+              ) : (
+                <span className="price-value">{tCommon("tourCard.priceOnRequest")}</span>
+              )}
             </div>
-          )}
+          </div>
           <button className="theme-btn booking-bar-btn" onClick={() => setIsOpen(true)}>
             <span>{t("tourDetails.bookThisTour", "Book This Tour")}</span>
             <ChevronUp size={18} />

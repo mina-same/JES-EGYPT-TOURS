@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowRight, ChevronDown, Headset, ShieldCheck, Sparkles, Wallet } from "lucide-react";
+import { ArrowRight, ChevronDown, Headset, Pause, Play, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 
 import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
 import { sliderService } from "@/services/sliderService";
@@ -111,8 +111,13 @@ const baseSettings = {
   // No prev/next arrows: navigation is swipe/drag + the dot indicator.
   controls: false,
   autoplayButtonOutput: false,
-  // Pause the rotation while the visitor hovers/reads the hero.
-  autoplayHoverPause: true,
+  // Hover pause lives in this component, not in the library: tiny-slider's
+  // own mouseout handler restarts the timer whenever ITS hover flag is set,
+  // without checking whether the visitor pressed pause — so one hover in and
+  // out of the hero would silently undo the pause button below. Hover, focus
+  // and the explicit pause are one policy here (syncAutoplay), and tiny-slider
+  // still owns the only timer through its play()/pause() API.
+  autoplayHoverPause: false,
   autoplayTimeout: AUTOPLAY_MS,
   speed: 1000,
 };
@@ -243,6 +248,107 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
     swipeStart.current = null;
   };
 
+  // ---- Autoplay policy (WCAG 2.2.2).
+  //
+  // tiny-slider remains the single source of autoplay timing; this only
+  // decides WHEN that timer may run. It runs unless one of three things is
+  // true: the visitor pressed pause, the pointer is over the hero, or the
+  // keyboard focus is inside it. The last one is what stops a slide change
+  // from yanking a focused CTA out from under the visitor — the old slide
+  // becomes visibility:hidden (M4.1) and focus would fall to <body>.
+  //
+  // Only the explicit pause is React state, because only it is user-visible
+  // (the button's label and icon). Hover and focus are refs: they must not
+  // re-render six slides on every mouse move.
+  const [userPaused, setUserPaused] = useState(false);
+  const userPausedRef = useRef(false);
+  const pointerInsideRef = useRef(false);
+  const focusInsideRef = useRef(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const syncAutoplay = useCallback(() => {
+    const running =
+      !userPausedRef.current && !pointerInsideRef.current && !focusInsideRef.current;
+    // play() is a no-op while the timer already runs and pause() while it is
+    // already stopped, so this is safe to call on every enter/leave/focus.
+    const slider = sliderRef.current?.slider;
+    if (slider) {
+      if (running) slider.play();
+      else slider.pause();
+    }
+    // The active dot's gold progress fill is a CSS animation, so it has to be
+    // told as well — a stopped hero that still looks like it is counting down
+    // reads as broken. Set imperatively for the same reason as the refs above.
+    carouselRef.current?.setAttribute("data-autoplay", running ? "running" : "paused");
+  }, []);
+
+  const toggleAutoplay = () => {
+    userPausedRef.current = !userPausedRef.current;
+    setUserPaused(userPausedRef.current);
+    // Pressing play is an explicit request for motion, and it outranks the
+    // focus pause that this button's OWN focus would otherwise impose —
+    // otherwise a keyboard user could never make play take effect, since
+    // focus stays on the button they just pressed. Moving focus to any other
+    // hero control re-arms it (onHeroFocus fires again), and nothing is at
+    // risk meanwhile: this button lives outside the slides, so a slide change
+    // cannot hide the element holding focus.
+    if (!userPausedRef.current) focusInsideRef.current = false;
+    syncAutoplay();
+  };
+
+  // Hover pause is for a real mouse only. A tap also emits enter/leave for
+  // compatibility, but the "leave" never arrives — the finger is gone, the
+  // synthetic hover is not — so on a phone the hero would stay stopped after
+  // the first tap and the play button could never take effect.
+  const onHeroPointerEnter = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    pointerInsideRef.current = true;
+    syncAutoplay();
+  };
+
+  const onHeroPointerLeave = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    pointerInsideRef.current = false;
+    syncAutoplay();
+  };
+
+  // A reduced-motion preference is expressed as the pause the visitor would
+  // have pressed themselves: no extra state, the label already reads "Play
+  // slideshow", and pressing play still starts the hero — the preference
+  // stops motion from starting on its own, it does not take the choice away.
+  //
+  // One-way on purpose. It pauses when the preference turns on (at mount, or
+  // live), and turning the preference back off never resumes: the hero is
+  // then in the same state as any other explicit pause, and restarting it
+  // behind the visitor is exactly what rule 3 of this preference is for.
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const pauseForReducedMotion = () => {
+      if (!query.matches || userPausedRef.current) return;
+      userPausedRef.current = true;
+      setUserPaused(true);
+      syncAutoplay();
+    };
+    pauseForReducedMotion();
+    query.addEventListener("change", pauseForReducedMotion);
+    return () => query.removeEventListener("change", pauseForReducedMotion);
+  }, [syncAutoplay]);
+
+  const onHeroFocus = () => {
+    if (focusInsideRef.current) return;
+    focusInsideRef.current = true;
+    syncAutoplay();
+  };
+
+  // focusout also fires when focus only moves BETWEEN hero controls, so the
+  // hero counts as left only when the element receiving focus is outside it
+  // (relatedTarget is null when focus goes nowhere at all — also "outside").
+  const onHeroBlur = (e: React.FocusEvent<HTMLElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    focusInsideRef.current = false;
+    syncAutoplay();
+  };
+
   const handleIndexChanged = (info: TinySliderInfo) => {
     if (!slides.length) return;
     setActiveSlide(((info.index % slides.length) + slides.length) % slides.length);
@@ -257,9 +363,17 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   };
 
   return (
-    <section className={`main-slider-four${hasSlides ? "" : " main-slider-four--empty"}`} id="home">
+    <section
+      className={`main-slider-four${hasSlides ? "" : " main-slider-four--empty"}`}
+      id="home"
+      onFocus={onHeroFocus}
+      onBlur={onHeroBlur}
+    >
       <div
+        ref={carouselRef}
         className="main-slider-four__carousel gotur-owl__carousel owl-carousel"
+        onPointerEnter={onHeroPointerEnter}
+        onPointerLeave={onHeroPointerLeave}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
@@ -271,6 +385,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
             settings={settings}
             rebuildKey={`${lang}:${JSON.stringify(slides)}`}
             onIndexChanged={handleIndexChanged}
+            onInit={syncAutoplay}
             placeholderClassName="main-slider-four__slider-placeholder"
           >
             {slides.map((item, index) => {
@@ -401,6 +516,18 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
         {/* Glass-pill slide indicator: one React-owned button per slide. */}
         {hasMultiple && (
           <div className="main-slider-four__dots" aria-label="Slides">
+            <button
+              type="button"
+              className="main-slider-four__autoplay"
+              aria-label={userPaused ? t("hero.playSlideshow") : t("hero.pauseSlideshow")}
+              onClick={toggleAutoplay}
+            >
+              {userPaused ? (
+                <Play size={13} aria-hidden="true" />
+              ) : (
+                <Pause size={13} aria-hidden="true" />
+              )}
+            </button>
             {slides.map((item, index) => (
               <button
                 key={item.id}

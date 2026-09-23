@@ -106,10 +106,13 @@ export async function getAllDestinations(params?: {
  */
 export async function getDestinationBySlug(slug: string, locale?: string): Promise<Destination | null> {
   try {
-    const res = await fetch(`${API_URL}/destinations/slug/${slug}`, {
-      cache: 'no-store',
-      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
-    });
+    const res = await fetch(
+      `${API_URL}/destinations/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
+      {
+        next: { revalidate: 3600, tags: ['destinations'] },
+        ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+      }
+    );
     if (!res.ok) return null;
     const json = await res.json();
     return json.success ? json.data : null;

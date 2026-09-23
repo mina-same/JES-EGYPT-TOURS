@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useCurrency, type ICurrencyPrice } from "@/contexts/CurrencyContext";
 import styles from "./OfferPriceFooter.module.css";
 
@@ -40,6 +41,7 @@ export default function OfferPriceFooter({
   labels,
 }: OfferPriceFooterProps) {
   const { formatPrice, getPriceValue, currency } = useCurrency();
+  const { t } = useTranslation("common");
 
   const current = getPriceValue(price);
   const original = getPriceValue(originalPrice);
@@ -69,13 +71,16 @@ export default function OfferPriceFooter({
             <s className={styles.wasAmount}>{formatPrice(originalPrice)}</s>
           </span>
         )}
-        {/* An unpriced tour shows no amount rather than "$0.00 per person" —
-            tours are published before sales price them. */}
-        {current > 0 && (
+        {/* Same rule as the standard card: an amount when there is one, and
+            otherwise the words, never "$0.00 per person". Tours are published
+            before sales price them. */}
+        {current > 0 ? (
           <>
             <span className={styles.price}>{formatPrice(price)}</span>
             <span className={styles.unit}>{labels.perPerson}</span>
           </>
+        ) : (
+          <span className={styles.price}>{t("tourCard.priceOnRequest")}</span>
         )}
       </div>
 

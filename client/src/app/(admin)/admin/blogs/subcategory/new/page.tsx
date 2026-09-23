@@ -32,6 +32,11 @@ import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import LucideIcon from '@/components/common/LucideIcon';
+import { ICON_NAMES, isIconName } from '@/components/common/iconRegistry';
+
+/* Radix's Select cannot hold an empty string as an item value, so "no icon"
+   needs a sentinel that is mapped back to "" before it reaches the form. */
+const NO_ICON_VALUE = '__none__';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 interface BlogSubCategoryFormData {
@@ -778,12 +783,36 @@ export default function NewBlogSubCategoryPage() {
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon (Emoji or Icon Name)</Label>
                 <div className="flex gap-3">
-                  <div className="flex-1">
+                  {/* The picker offers the approved registry rather than the
+                      whole of Lucide. Typing a name by hand used to be the only
+                      option, so a guess that Lucide did not recognise saved
+                      cleanly and then drew nothing on the public page. */}
+                  <div className="flex-1 grid gap-2 sm:grid-cols-2">
+                    <Select
+                      value={isIconName(formData.icon) ? formData.icon : NO_ICON_VALUE}
+                      onValueChange={(value) =>
+                        handleChange('icon', value === NO_ICON_VALUE ? '' : value)
+                      }
+                    >
+                      <SelectTrigger id="icon">
+                        <SelectValue placeholder="Choose an icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NO_ICON_VALUE}>— No icon —</SelectItem>
+                        {ICON_NAMES.map((iconName) => (
+                          <SelectItem key={iconName} value={iconName}>
+                            {iconName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {/* Emojis stay free-form: they are content, not a name that
+                        has to resolve to a component. */}
                     <Input
-                      id="icon"
-                      value={formData.icon || ''}
+                      id="icon-emoji"
+                      value={isIconName(formData.icon) ? '' : formData.icon || ''}
                       onChange={(e) => handleChange('icon', e.target.value)}
-                      placeholder="🏺 or triangle-alert"
+                      placeholder="…or an emoji 🏺"
                     />
                   </div>
                   <div className="w-12 h-12 rounded-lg border bg-muted/30 flex items-center justify-center shrink-0">
@@ -799,9 +828,10 @@ export default function NewBlogSubCategoryPage() {
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground">
-                  Used in Browse by Topic section. You can use an emoji or a Lucide icon name.
+                  Used in Browse by Topic section. Pick an approved icon, or type a single emoji.
                   <br />
-                  Find Lucide icon names here: <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">lucide.dev/icons</a>
+                  Need an icon that is not listed? Add it to{' '}
+                  <code>src/components/common/iconRegistry.ts</code> and it appears here.
                 </p>
               </div>
             </div>

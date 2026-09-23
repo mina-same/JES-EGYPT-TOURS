@@ -9,6 +9,7 @@ import {
   LocalizedMixedSchema 
 } from './shared/LocalizedSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
+import { revalidateTags } from '../services/revalidate';
 
 // ==================== INTERFACES ====================
 
@@ -336,5 +337,45 @@ TourSubcategorySchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 TourSubcategorySchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourSubcategorySchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourSubcategorySchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+
+
+/**
+ * Subcategory content and SEO — read by the subcategory page and by every
+ * listing that shows a subcategory name.
+ *
+ * Mirrors Tour.ts: the visitor fetch is tagged and served from cache until an
+ * editor actually changes something here, at which point the tag is cleared
+ * and the change is live immediately.
+ *
+ * `tours` is cleared alongside `tour-subcategories` because a subcategory edit changes how
+ * its tours are PRESENTED — the heading above a listing, the breadcrumb, the
+ * card label — so a cached tour listing would otherwise keep rendering the old
+ * subcategory text.
+ *
+ * The hook list follows the operations the admin controllers ACTUALLY use, not
+ * every operation Mongoose offers:
+ *   create        Model.create()        -> save             (document)
+ *   toggle active doc.save()            -> save             (document)
+ *   edit          findByIdAndUpdate()   -> findOneAndUpdate (query)
+ *   delete        doc.deleteOne()       -> deleteOne        (DOCUMENT)
+ *
+ * That last row is why `deleteOne` is registered explicitly for both kinds. In
+ * Mongoose 8 a bare post('deleteOne') is QUERY middleware only, so it would
+ * never fire for the `doc.deleteOne()` the delete endpoint actually calls —
+ * the tag would silently survive a deletion. The query variant is registered
+ * too, so a future direct Model.deleteOne() is covered as well.
+ *
+ * Fire-and-forget by design: revalidateTags never throws and is never awaited,
+ * so an admin save cannot fail because the front end is unreachable.
+ */
+const revalidateTourSubcategoryCaches = () => revalidateTags(['tour-subcategories', 'tours']);
+
+TourSubcategorySchema.post('save', revalidateTourSubcategoryCaches);
+TourSubcategorySchema.post('findOneAndUpdate', revalidateTourSubcategoryCaches);
+TourSubcategorySchema.post('findOneAndDelete', revalidateTourSubcategoryCaches);
+TourSubcategorySchema.post('updateOne', revalidateTourSubcategoryCaches);
+TourSubcategorySchema.post('updateMany', revalidateTourSubcategoryCaches);
+TourSubcategorySchema.post('deleteOne', { document: true, query: false }, revalidateTourSubcategoryCaches);
+TourSubcategorySchema.post('deleteOne', { document: false, query: true }, revalidateTourSubcategoryCaches);
 
 export default mongoose.model<ITourSubcategory>('TourSubcategory', TourSubcategorySchema);

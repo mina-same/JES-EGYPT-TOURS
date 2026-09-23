@@ -14,6 +14,7 @@
     "saveTour": "Zur Merkliste hinzufügen",
     "savedTour": "In der Merkliste",
     "startFrom": "Ab",
+    "priceOnRequest": "Preis auf Anfrage",
     "viewTour": "Tour ansehen",
     "viewPhotos": "Tourfotos ansehen",
     "playVideo": "Tourvideo abspielen",
@@ -281,7 +282,9 @@
     "trust1": "Lizenzierte Experten-Guides",
     "trust2": "Keine versteckten Gebühren",
     "trust3": "24/7 Support",
-    "scroll": "Scrollen"
+    "scroll": "Scrollen",
+    "pauseSlideshow": "Diashow pausieren",
+    "playSlideshow": "Diashow abspielen"
   },
   "videoReviews": {
     "tagline": "Echte Reisende",

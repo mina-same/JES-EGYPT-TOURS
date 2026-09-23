@@ -152,12 +152,26 @@ export const tourSubcategoryAPI = {
   },
 
   /**
-   * Get subcategories by category ID
+   * Get subcategories by category ID.
+   *
+   * `locale` reaches the API as the X-Locale header, exactly as it does in
+   * `getBySlug` below and in every other localized call in this file.
+   *
+   * It is optional because the browser does not need it: the request
+   * interceptor in ./axios.ts fills X-Locale in from i18n (or `bypass` on
+   * admin pages). That interceptor returns early when `window` is undefined,
+   * so a SERVER-side caller that omits the locale sends no header at all —
+   * and the API's i18n middleware then falls back through Accept-Language,
+   * which a server render never sends either, to 'en'. The result was every
+   * locale receiving English subcategory names. Server callers must pass it.
    */
-  getByCategory: async (categoryId: string, params?: QueryParams) => {
+  getByCategory: async (categoryId: string, params?: QueryParams, locale?: string) => {
     const response = await axiosInstance.get<ApiResponse<any[]>>(
       `${API_BASE}/categories/${categoryId}/subcategories`,
-      { params }
+      {
+        params,
+        headers: locale ? { 'X-Locale': locale } : undefined
+      }
     );
     return response.data;
   },

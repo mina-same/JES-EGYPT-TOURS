@@ -1,7 +1,7 @@
 "use client";
 
 import useStore from "@/store/useStore";
-import React, { useEffect, useRef, useState, FormEvent } from "react";
+import React, { useEffect, useRef, FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPath } from "@/lib/url";
 import { useTranslation } from "react-i18next";
@@ -10,9 +10,17 @@ import { useTranslation } from "react-i18next";
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/**
+ * How many animation frames the input gets to become focusable on open.
+ *
+ * It takes one — two on a slow frame — while the opening transition flips the
+ * panel from `visibility: hidden`. This is only a ceiling so a panel that never
+ * becomes focusable cannot retry forever.
+ */
+const MAX_FOCUS_FRAMES = 10;
+
 const Search: React.FC = () => {
   const { t } = useTranslation("common");
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const locale = getLocaleFromPath(pathname);
@@ -20,9 +28,6 @@ const Search: React.FC = () => {
     changeSearchPopupStatus,
     searchPopupStatus,
   } = useStore();
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // ── Dialog behaviour ──────────────────────────────────────────────────
   // Same pattern as the mobile Drawer. There was no Escape key, focus stayed
@@ -32,6 +37,8 @@ const Search: React.FC = () => {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+  /** The pending focus-retry frame, so closing cancels it. */
+  const focusFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!searchPopupStatus) return;
@@ -40,9 +47,36 @@ const Search: React.FC = () => {
     lastFocusedRef.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
-    // `inert` is already off by the time this runs — it is removed in the
-    // same commit that opens the popup — so the input can take focus now.
-    inputRef.current?.focus();
+    /*
+     * Focus lands on a LATER frame, not this one.
+     *
+     * `inert` is already off by the time this runs, but the panel only becomes
+     * `visibility: visible` as the opening transition starts, and the input
+     * carries `transition: all 400ms` — so for the first frame its own computed
+     * visibility is still `hidden`, and an invisible element silently refuses
+     * focus(). Calling it here left the caret on the search toggler behind the
+     * overlay: the dialog announced itself as modal while the keyboard was
+     * still outside it.
+     *
+     * So: try on the next frame, confirm the focus actually landed, and try
+     * again on the frame after that if it did not. It succeeds on the first or
+     * second frame in practice; MAX_FOCUS_FRAMES is only a stop so a panel that
+     * never becomes focusable cannot spin forever. Refs, not state — none of
+     * this should re-render the dialog.
+     */
+    let framesLeft = MAX_FOCUS_FRAMES;
+    const focusInput = () => {
+      focusFrameRef.current = null;
+      const input = inputRef.current;
+      if (!input) return;
+
+      input.focus();
+      if (document.activeElement === input || framesLeft <= 0) return;
+
+      framesLeft -= 1;
+      focusFrameRef.current = requestAnimationFrame(focusInput);
+    };
+    focusFrameRef.current = requestAnimationFrame(focusInput);
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -80,6 +114,12 @@ const Search: React.FC = () => {
     // search — so every way out hands focus back to the opener.
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      // A retry still queued when the popup closes would steal focus back from
+      // the opener, so it is dropped before focus is handed over.
+      if (focusFrameRef.current !== null) {
+        cancelAnimationFrame(focusFrameRef.current);
+        focusFrameRef.current = null;
+      }
       const opener = lastFocusedRef.current;
       lastFocusedRef.current = null;
       if (opener?.isConnected) opener.focus();
@@ -95,10 +135,6 @@ const Search: React.FC = () => {
     router.push(url);
     changeSearchPopupStatus();
   };
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <div

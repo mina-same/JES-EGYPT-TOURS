@@ -21,7 +21,7 @@ import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/E
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
-import TourCard from "@/components/common/TourCard/TourCard";
+import TourCard, { LISTING_CARD_IMAGE_SIZES } from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -473,8 +473,16 @@ export default function CategoryView({
                               src={sub.images?.[0]?.url || TOUR_IMAGE_PLACEHOLDER} 
                               alt={getLocalizedValue(sub.images?.[0]?.alt, locale) || subName} 
                               title={getLocalizedValue(sub.images?.[0]?.title, locale) || getLocalizedValue(sub.images?.[0]?.alt, locale) || subName}
-                              fill 
-                              className="subcategory-card__image" 
+                              fill
+                              /* The card is `width: auto` on a `min-width: 200px`
+                                 slide, and its title is `white-space: nowrap`, so
+                                 the longest subcategory name sets the width —
+                                 about 270px worst case, 320px with headroom.
+                                 Without this, `fill` falls back to `100vw` and a
+                                 200px card asks for the 3840w candidate: 510 KB
+                                 across four cards on desktop instead of 139 KB. */
+                              sizes="(max-width: 576px) 180px, 320px"
+                              className="subcategory-card__image"
                             />
                             <div className="subcategory-card__overlay" />
                           </div>
@@ -584,7 +592,9 @@ export default function CategoryView({
               {pageLoading && (<div className="flex items-center justify-center mb-4" style={{ minHeight: 40 }}><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>)}
               <Row className='gutter-y-30 gutter-x-30'>
                 {tours.length > 0 ? (
-                  tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
+                  // LISTING_CARD_IMAGE_SIZES: these cards sit beside the filter
+                  // sidebar, so the slot is ~252px, not the default ~360px.
+                  tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} imageSizes={LISTING_CARD_IMAGE_SIZES} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
                 ) : pageLoading ? null : (
                   <div className="flex items-center justify-center min-h-[200px] w-full"><p className="text-xl text-gray-500">{t('listing.noToursCategory')}</p></div>
                 )}
@@ -809,93 +819,6 @@ export default function CategoryView({
         /* SEO Refinement: Hidden label but semantic */
         .subcategory-card-link[aria-current="page"] .subcategory-card {
            /* styles already included in .is-active */
-        }
-        /* Mobile Filter Drawer Styles */
-        .mobile-filter-drawer {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100dvh;
-          z-index: 999999;
-          visibility: hidden;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .mobile-filter-drawer.is-open {
-          visibility: visible;
-        }
-        .mobile-filter-drawer__overlay {
-          position: absolute;
-          inset: 0;
-          background: rgba(0,0,0,0.6);
-          backdrop-filter: blur(4px);
-          opacity: 0;
-          transition: opacity 0.4s ease;
-        }
-        .mobile-filter-drawer.is-open .mobile-filter-drawer__overlay {
-          opacity: 1;
-        }
-        .mobile-filter-drawer__content {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 85%;
-          max-width: 380px;
-          height: 100%;
-          background: #fff;
-          display: flex;
-          flex-direction: column;
-          transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          box-shadow: 20px 0 50px rgba(0,0,0,0.15);
-          overflow-x: hidden;
-        }
-        .mobile-filter-drawer.is-open .mobile-filter-drawer__content {
-          left: 0;
-        }
-        .mobile-filter-drawer__header {
-          padding: 24px 20px;
-          border-bottom: 2px solid #f7f3ed;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #fff;
-        }
-        .mobile-filter-drawer__header h3 {
-          font-size: 20px;
-          font-weight: 800;
-          color: #1d231f;
-          letter-spacing: -0.5px;
-        }
-        .mobile-filter-drawer__body {
-          padding: 0;
-          overflow-y: auto;
-          flex: 1;
-          -webkit-overflow-scrolling: touch;
-        }
-        /* Custom scrollbar for drawer */
-        .mobile-filter-drawer__body::-webkit-scrollbar {
-          width: 4px;
-        }
-        .mobile-filter-drawer__body::-webkit-scrollbar-thumb {
-          background: #b79c5c;
-          border-radius: 10px;
-        }
-        .btn-close-filter {
-          background: #f7f3ed;
-          border: none;
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #111;
-          transition: all 0.3s ease;
-        }
-        .btn-close-filter:active {
-          transform: scale(0.9);
-          background: #b79c5c;
-          color: #fff;
         }
       `}</style>
       <VideoModal isOpen={isOpen} setOpen={setOpen} ids={videoIds} />

@@ -66,7 +66,40 @@ interface TourCardProps {
   linkMeta?: boolean;
   /** Image badges — currently just the discount badge, and only when the tour has one. */
   showBadges?: boolean;
+  /**
+   * `sizes` for the card image, when the caller's slot is narrower than the
+   * default grid.
+   *
+   * The default below describes the common case: a `Col lg={4}` inside the
+   * full 1200px container, which is a ~360px slot. The tour listings are the
+   * exception — their cards sit inside the `Col lg={8} xl={9}` content column
+   * beside the filter sidebar, so the same `Col lg={4}` is only ~252px wide.
+   * Telling the browser 380px there had it fetch the 1080w candidate for a
+   * 252px box: 652 KB across five cards where 281 KB renders identically.
+   *
+   * A prop rather than a variant component, because the markup is the same —
+   * only the slot differs.
+   */
+  imageSizes?: string;
 }
+
+/**
+ * `Col lg={4}` inside the theme's 1200px container: (1200 - 30 padding) / 3,
+ * less a 30px gutter, is roughly a 360px slot. 380px leaves headroom without
+ * jumping a candidate. Used by special offers, wishlist, search and the
+ * carousels; listings pass their own narrower value.
+ */
+const DEFAULT_IMAGE_SIZES =
+  "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 380px";
+
+/**
+ * For the tour listings, whose grid shares its row with the filter sidebar:
+ * the `Col lg={8} xl={9}` content column is ~847px inside, so a `Col lg={4}`
+ * card is only ~252px. Exported so the category and subcategory views state
+ * the same slot once rather than each carrying its own copy of the string.
+ */
+export const LISTING_CARD_IMAGE_SIZES =
+  "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 280px";
 
 /** Reads an image's real dimensions so the lightbox shows its true ratio. */
 const measureImage = (src: string) =>
@@ -127,6 +160,7 @@ const TourCard: React.FC<TourCardProps> = ({
   imageZoom = false,
   linkMeta = true,
   showBadges = true,
+  imageSizes = DEFAULT_IMAGE_SIZES,
 }) => {
   const { formatPrice, getPriceValue } = useCurrency();
   // Owned by the card so every listing gets the same localised, pluralised
@@ -162,7 +196,7 @@ const TourCard: React.FC<TourCardProps> = ({
               src={item.image}
               alt={item.imageAlt || item.title}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes={imageSizes}
               className={`object-cover${imageZoom ? " transition-transform duration-500 hover:scale-110" : ""}`}
             />
           </div>
@@ -285,16 +319,35 @@ const TourCard: React.FC<TourCardProps> = ({
             />
           ) : (
             <div className="listing-card-four__content__btn">
-              {/* Only when the tour actually has a price. Tours are published
-                  before sales price them, and formatting the absent value
-                  rendered a literal "Start from $0.00" on the card. */}
-              {getPriceValue(item.price) > 0 && (
+              {/*
+                A tour is "priced" when its effective amount in the selected
+                currency is greater than zero — the same test the card has
+                always used, and the same one the listing now sorts by
+                (tourController's __listingPriceRank). Tours are published
+                before sales price them, so this is a normal state, not an
+                error: getPriceValue() already resolves the per-currency
+                value or converts from USD, so a tour holding only USD still
+                counts as priced in EUR and GBP.
+
+                The absent case used to render nothing, leaving a blank gap
+                beside the CTA. It now says so in words, in the same slot,
+                rather than inventing a number or showing "Start from $0.00".
+              */}
+              {getPriceValue(item.price) > 0 ? (
                 <div className="listing-card-four__price">
                   <span className="listing-card-four__price__sub">
                     {t("tourCard.startFrom")}
                   </span>
                   <span className="listing-card-four__price__number">
                     {formatPrice(item.price)}
+                  </span>
+                </div>
+              ) : (
+                <div className="listing-card-four__price">
+                  <span
+                    className={`listing-card-four__price__number ${styles.priceOnRequest}`}
+                  >
+                    {t("tourCard.priceOnRequest")}
                   </span>
                 </div>
               )}

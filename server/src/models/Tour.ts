@@ -1138,7 +1138,21 @@ const revalidateTourCaches = () => revalidateTags(['tours']);
 TourSchema.post('save', revalidateTourCaches);
 TourSchema.post('findOneAndUpdate', revalidateTourCaches);
 TourSchema.post('findOneAndDelete', revalidateTourCaches);
-TourSchema.post('deleteOne', revalidateTourCaches);
+/*
+ * deleteOne needs BOTH registrations, and the distinction is not cosmetic.
+ *
+ * In Mongoose 8 a bare post('deleteOne') is QUERY middleware only
+ * (helpers/model/applyHooks.js: `return !!hook['document']` for this hook
+ * name). The admin delete endpoint calls `await tour.deleteOne()` on a
+ * DOCUMENT (controllers/tourController.ts), so the bare registration never
+ * fired for it: deleting a tour left the `tours` tag untouched and cached
+ * listings kept serving the deleted tour until its TTL expired.
+ *
+ * The query form is kept as well because it is genuinely used —
+ * seeds/detailedTourSeeder.ts calls Tour.deleteOne({ slug }).
+ */
+TourSchema.post('deleteOne', { document: true, query: false }, revalidateTourCaches);
+TourSchema.post('deleteOne', { document: false, query: true }, revalidateTourCaches);
 TourSchema.post('updateOne', revalidateTourCaches);
 TourSchema.post('updateMany', revalidateTourCaches);
 

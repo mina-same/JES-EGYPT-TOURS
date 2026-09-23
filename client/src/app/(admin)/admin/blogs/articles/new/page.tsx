@@ -402,9 +402,11 @@ export default function NewBlogPage() {
           // blockquote only uses content; same per-language freedom applies.
           delete cleanedBlock.title;
         } else {
-          // Others don't use top-level content/title
+          // Single images use title as localized image metadata.
           delete cleanedBlock.content;
-          delete cleanedBlock.title;
+          if (cleanedBlock.type !== 'image' || isLocalizedStringEmpty(cleanedBlock.title)) {
+            delete cleanedBlock.title;
+          }
         }
 
         if (cleanedBlock?.type !== 'imageRow') return cleanedBlock;

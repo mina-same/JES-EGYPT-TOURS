@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Tour from '../models/Tour';
-import { FilterQuery, isValidObjectId } from 'mongoose';
+import { FilterQuery, Types, isValidObjectId } from 'mongoose';
 import { ITour, completeTourSeo, validateTourKindPlans } from '../models/Tour';
 import { deriveStartingPrice, validatePricingCurrencyConsistency } from '../utils/startingPrice';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
@@ -104,7 +104,21 @@ const buildQueryFilter = async (
     if (!isValidObjectId(queryParams.subcategory)) {
       throw new TourQueryValidationError('Invalid subcategory ID');
     }
-    filter.subcategory = queryParams.subcategory;
+    /*
+     * Cast to ObjectId rather than leaving the raw string.
+     *
+     * `Tour.find()` and `countDocuments()` cast strings through the schema,
+     * so a string worked everywhere the listing used the query builder. The
+     * price-sorted listing does not use it — it runs an aggregation, and
+     * `$match` inside a pipeline performs NO casting. A string id therefore
+     * matched zero documents, while the parallel countDocuments() still
+     * counted them: a subcategory page sorted by price returned an empty
+     * list that claimed a non-zero total.
+     *
+     * The category branch below never had the bug because it assigns real
+     * ObjectIds from a TourSubcategory lookup.
+     */
+    filter.subcategory = new Types.ObjectId(queryParams.subcategory);
   }
 
   // Filter by category (requires lookup through subcategory)
@@ -121,7 +135,9 @@ const buildQueryFilter = async (
       const belongsToCategory = subcategoryIds.some(
         (id) => String(id) === String(queryParams.subcategory)
       );
-      filter.subcategory = belongsToCategory ? queryParams.subcategory : { $in: [] };
+      filter.subcategory = belongsToCategory
+        ? new Types.ObjectId(queryParams.subcategory)
+        : { $in: [] };
     } else {
       filter.subcategory = { $in: subcategoryIds };
     }
@@ -310,13 +326,59 @@ export const getAllTours = async (
           .map((field) => [field, 1])
       );
       const direction = sort.startsWith('-') ? -1 : 1;
+      /*
+       * `__listingPrice` is a sort helper and must not reach the response.
+       *
+       * It used to be stripped with `__listingPrice: 0` inside the same
+       * `$project` that lists the fields to KEEP. MongoDB rejects that
+       * outright — an inclusion projection may not also exclude a field,
+       * `_id` being the only exemption — so every price-sorted listing died
+       * with "Cannot do exclusion on field __listingPrice in inclusion
+       * projection", and the visitor page quietly rendered an empty list.
+       *
+       * The exclusion was never needed in the first place: `projection` is
+       * built from TOUR_LIST_FIELDS, which does not contain `__listingPrice`,
+       * and an inclusion projection emits only the fields it names. Dropping
+       * the illegal key is the entire fix.
+       *
+       * `$unset` covers the one case where there is no inclusion projection
+       * to rely on: an admin may pass `?fields=-something`, which leaves
+       * `projection` empty, and `$project: {}` is itself invalid.
+       */
+      const stripSortHelpers = Object.keys(projection).length
+        ? { $project: projection }
+        : { $unset: ['__listingPrice', '__listingPriceRank'] };
+      /*
+       * Two helpers, and the rank is the reason this is not simply a $sort on
+       * price.
+       *
+       * MongoDB orders missing and null BELOW every number, so "price low to
+       * high" used to lead with the tours that have no price at all — exactly
+       * the ones whose card reads "Price on request". Ranking priced tours
+       * ahead of unpriced ones, and sorting by that rank FIRST, keeps the
+       * unpriced last in BOTH directions.
+       *
+       * Nothing is substituted for the missing price: `__listingPrice` still
+       * holds the real amount or nothing at all, so no sentinel like 999999
+       * can ever escape into a response or a comparison.
+       *
+       * The `> 0` test is deliberately the same rule TourCard uses to decide
+       * whether to render an amount, so the sorter and the card cannot
+       * disagree about which tours count as priced. A tour holding only USD
+       * is priced in EUR and GBP too, because the expression converts it.
+       *
+       * Ties — including every unpriced tour, which all rank equal — fall back
+       * to `-createdAt`, the listing default elsewhere, then to `_id` so the
+       * order is fully deterministic between requests.
+       */
       toursPromise = Tour.aggregate([
         { $match: filter },
         { $addFields: { __listingPrice: effectiveStartingPriceExpression(currency, currencyRate) } },
-        { $sort: { __listingPrice: direction, _id: 1 } },
+        { $addFields: { __listingPriceRank: { $cond: [{ $gt: ['$__listingPrice', 0] }, 0, 1] } } },
+        { $sort: { __listingPriceRank: 1, __listingPrice: direction, createdAt: -1, _id: 1 } },
         { $skip: skip },
         { $limit: limit },
-        { $project: { ...projection, __listingPrice: 0 } },
+        stripSortHelpers,
       ]).then((documents) => Tour.populate(documents, populate));
     } else {
       toursPromise = Tour.find(filter)

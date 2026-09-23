@@ -14,6 +14,7 @@
     "saveTour": "Save to wishlist",
     "savedTour": "Saved to wishlist",
     "startFrom": "Start from",
+    "priceOnRequest": "Price on request",
     "viewTour": "View Tour",
     "viewPhotos": "View tour photos",
     "playVideo": "Play tour video",
@@ -282,7 +283,9 @@
     "trust1": "Licensed expert guides",
     "trust2": "No hidden fees",
     "trust3": "24/7 support",
-    "scroll": "Scroll"
+    "scroll": "Scroll",
+    "pauseSlideshow": "Pause slideshow",
+    "playSlideshow": "Play slideshow"
   },
   "videoReviews": {
     "tagline": "Real Travellers",

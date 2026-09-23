@@ -5151,6 +5151,31 @@ button[data-action="stop"] {
   height: auto;
 }
 
+/* A slide nobody can see must not be a tab stop.
+ *
+ * Gallery mode keeps every slide in the DOM at `opacity: 0`, parked at
+ * `left: -100%`. tiny-slider marks the inactive ones `aria-hidden="true"` and
+ * `tabindex="-1"`, which is enough for a screen reader but NOT for the
+ * keyboard: `tabindex` on an ancestor does not remove its descendants from the
+ * tab order, so all twelve hero CTAs stayed focusable. Tabbing past the hero
+ * meant ten stops on links sitting ~950px off-screen, each inside
+ * `aria-hidden` — focus with nothing to see and nothing announced.
+ *
+ * `visibility: hidden` is what actually takes descendants out of the tab
+ * order, and it is scoped to `.tns-normal` — the class tiny-slider gives a
+ * slide once it has SETTLED. A slide that is mid-fade carries `tns-fadeOut`
+ * (outgoing) or `tns-fadeIn` (incoming) instead, so the 1s cross-fade is never
+ * touched: measured on the production build, the outgoing slide carries
+ * `tns-fadeOut` from 46ms to 965ms (opacity 0.98 down to 0.00) and only
+ * becomes `tns-normal` at ~1016ms, when it is already fully transparent.
+ *
+ * `.tns-item` exists only after the slider initialises, so the server and
+ * pre-init state above is untouched.
+ */
+.main-slider-four .tns-item.tns-normal:not(.tns-slide-active) {
+  visibility: hidden;
+}
+
 /* Eyebrow: the script subtitle flanked by thin gold lines. */
 .main-slider-four__subtitle {
   display: flex;
@@ -5180,6 +5205,17 @@ button[data-action="stop"] {
   color: var(--gotur-base, #d4af37);
   display: inline-block;
   position: relative;
+  /* The wrapper below sets `white-space: nowrap` to stop a trailing comma
+     detaching from this phrase, and white-space INHERITS — so the phrase
+     itself could not wrap either, whatever the width. On a 320px screen that
+     cost real words off the right edge of the hero: 46px in English, 85 in
+     German, 103 in Italian and 197 in Spanish ("Más silencioso que la
+     multitud"), invisible to an overflow check because the hero clips rather
+     than scrolls. Restoring `normal` here lets the phrase wrap internally
+     while the wrapper keeps doing its one job: this is a separate formatting
+     context (inline-block), so the break opportunity at its outer boundary is
+     still governed by the wrapper and the punctuation stays put. */
+  white-space: normal;
 }
 /* Keeps the gold phrase and any leading punctuation of the following text
    (e.g. the comma in "Just you, your guide") on the same line — the
@@ -5300,7 +5336,10 @@ button[data-action="stop"] {
   z-index: 3;
   display: flex;
   align-items: center;
-  gap: 10px;
+  /* 16px, not 10: an 8px dot plus the 8px of transparent border on each side
+     that carries its 24px hit target (see below) needs a 24px pitch to sit in,
+     and 8 + 16 = 24. Anything tighter and neighbouring targets would overlap. */
+  gap: 16px;
   padding: 10px 14px;
   border-radius: 999px;
   background: rgba(13, 26, 42, 0.35);
@@ -5323,6 +5362,7 @@ button[data-action="stop"] {
 .main-slider-four__dots button:hover {
   background: rgba(255, 255, 255, 0.8);
 }
+
 .main-slider-four__dots button:focus-visible {
   outline: 2px solid var(--gotur-base, #d4af37);
   outline-offset: 3px;
@@ -5330,6 +5370,46 @@ button[data-action="stop"] {
 .main-slider-four__dots button.tns-nav-active {
   width: 28px;
   background: rgba(212, 175, 55, 0.3);
+}
+
+/* Hit target, separate from the artwork (WCAG 2.5.8 asks for 24x24).
+ *
+ * A slide dot paints 8x8. A TRANSPARENT BORDER grows the button's own box to
+ * 24x24 — a border is part of the element's hit region, and
+ * `background-clip: padding-box` keeps the paint on the 8px dot — while the
+ * matching negative margin hands that space straight back to the flex row, so
+ * the row lays out exactly as it would with bare 8px dots and nothing in the
+ * pill or the hero moves.
+ *
+ * With the row's 16px gap the arithmetic closes: 8px of border on each side of
+ * an 8px dot, 16px between dots, so neighbouring targets meet exactly in the
+ * middle of the gap. Edge to edge, nothing to overlap, no dead strip.
+ *
+ * Border, not padding: `overflow` clips to the PADDING box and the progress
+ * fill is `inset: 0` against it, so padding would stretch the gold fill across
+ * the whole target. A border leaves it on the visible dot.
+ *
+ * It has to sit AFTER .tns-nav-active above: that rule sets `background`, and
+ * the shorthand resets background-clip to border-box at the same specificity,
+ * so declared first the active dot paints its gold across the full 44x24. */
+.main-slider-four__dots button:not(.main-slider-four__autoplay) {
+  box-sizing: content-box;
+  border: 8px solid transparent;
+  margin: -8px;
+  background-clip: padding-box;
+  /* The clip has to go, or it would cut away the corner pad below. It was
+     doing nothing here: the progress fill sits inset:0 inside this box and
+     never reaches an edge to be clipped at. */
+  overflow: visible;
+}
+/* `border-radius: 999px` has to stay large enough to keep the 8px dot
+   circular, which rounds the grown box into a circle too — so a pointer in one
+   of its corners falls through to the pill behind. This squares those corners
+   back up: out of flow, paints nothing, purely something to hit. */
+.main-slider-four__dots button:not(.main-slider-four__autoplay)::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
 }
 /* Gold progress fill inside the active dot (6s = autoplayTimeout). */
 .main-slider-four__dots button.tns-nav-active::after {
@@ -5349,14 +5429,66 @@ button[data-action="stop"] {
     transform: scaleX(1);
   }
 }
-/* The rotation pauses on hover (autoplayHoverPause) — pause the fill too. */
-.main-slider-four__carousel:hover .main-slider-four__dots button.tns-nav-active::after {
+/* The countdown fill follows the rotation, whatever stopped it: hover, the
+   pause button, keyboard focus inside the hero, or a reduced-motion
+   preference. The component reports all four through data-autoplay, so this
+   one rule replaces the older `:hover` version — which only guessed at hover
+   and, on a touch device where :hover sticks after a tap, froze the fill
+   while the hero was still advancing. */
+.main-slider-four__carousel[data-autoplay="paused"]
+  .main-slider-four__dots
+  button.tns-nav-active::after {
   animation-play-state: paused;
+}
+
+/* Pause/play toggle, first item in the dots pill (WCAG 2.2.2 needs a visible
+   way to stop the rotation). The pill is position:absolute, so this control
+   cannot move the hero or shift anything around it. Its own box is 24px — a
+   usable pointer/touch target — while the dots beside it keep their 8px. */
+.main-slider-four__dots .main-slider-four__autoplay {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* The dot rule above clips its own progress fill; this control has to let
+     its separator hairline out. */
+  overflow: visible;
+  width: 24px;
+  height: 24px;
+  /* The row's gap widened to 16px to carry the dots' hit targets; this pulls
+     the first dot back so the control still sits the same 12px from it, with
+     the hairline below centred in that space. */
+  margin-right: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+/* Hairline separating the control from the slide dots. */
+.main-slider-four__dots .main-slider-four__autoplay::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  width: 1px;
+  height: 14px;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+}
+.main-slider-four__dots .main-slider-four__autoplay:hover {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+.main-slider-four__dots .main-slider-four__autoplay:focus-visible {
+  outline: 2px solid var(--gotur-base, #d4af37);
+  outline-offset: 3px;
 }
 @media (max-width: 767px) {
   .main-slider-four__dots {
     bottom: 24px;
-    gap: 8px;
     padding: 8px 12px;
   }
 }
@@ -5432,16 +5564,83 @@ button[data-action="stop"] {
   transform: none;
   transition-delay: 1800ms;
 }
+
+/* ...and the same copy, readable before tiny-slider has marked anything active.
+ *
+ * Every rule above waits for `.tns-slide-active`, a class JAVASCRIPT adds. The
+ * text is server-rendered and sits in the HTML from the first byte, but with
+ * scripting off it never became visible: the hero painted as a bare
+ * photograph, with both CTAs still keyboard-focusable at opacity 0. Even with
+ * scripting on, a slow connection showed the headline, lost it the moment the
+ * stylesheet applied, and got it back only once the slider initialised.
+ *
+ * The condition is `:not(:has(.tns-slide-active))` rather than the
+ * `:not(.tns-outer)` the layout rule near the top of this file uses, and the
+ * difference matters. Both are false once the slider is up, but `.tns-outer`
+ * is in the DOM a moment BEFORE the active class lands: for that gap the copy
+ * would fall back to `opacity: 0` and then replay the entrance, so text that
+ * had been readable for seconds blinked out for the 1.3s delay and faded in
+ * again. Keying on the active class hands over on the same style resolution
+ * that reveals the slide — opacity goes 1 to 1 and nothing moves.
+ *
+ * `> *:first-child` because the layout rule hides every slide EXCEPT the
+ * first, so the first is the only one on screen; revealing copy inside the
+ * others would be pointless work on `display: none` subtrees.
+ *
+ * Four classes to one, so it outranks the `opacity: 0` defaults without
+ * !important, and it sets only opacity and transform: no layout property, so
+ * the H1 height work is untouched. A browser without `:has()` drops the whole
+ * rule and simply behaves as the site did before it existed. */
+.main-slider-four .tiny-slider-host > div:not(:has(.tns-slide-active)) > *:first-child .main-slider-four__subtitle,
+.main-slider-four .tiny-slider-host > div:not(:has(.tns-slide-active)) > *:first-child .main-slider-four__title,
+.main-slider-four .tiny-slider-host > div:not(:has(.tns-slide-active)) > *:first-child .main-slider-four__divider,
+.main-slider-four .tiny-slider-host > div:not(:has(.tns-slide-active)) > *:first-child .main-slider-four__cta,
+.main-slider-four .tiny-slider-host > div:not(:has(.tns-slide-active)) > *:first-child .main-slider-four__trust {
+  opacity: 1;
+  transform: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .main-slider-four__scroll svg {
     animation: none;
   }
+  /* Every staged reveal lands on its final frame at once. The title and the
+     eyebrow join the three that were already here: gotur.css starts them at
+     opacity 0 with a 1.5s transform and a delay of up to 1.7s, which is the
+     largest remaining movement in the hero after the background. */
+  .main-slider-four__subtitle,
+  .main-slider-four__title,
   .main-slider-four__divider,
   .main-slider-four__cta,
   .main-slider-four__trust {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+  /* Ken Burns off. gotur.css scales the active slide's background to 1.2 over
+     ten seconds; the second selector matches its own specificity so the
+     active slide stays at its natural size. `transform` never participates in
+     layout, so nothing moves or reflows either way. */
+  .main-slider-four__bg,
+  .main-slider-four .tns-slide-active .main-slider-four__bg {
+    transform: none;
+    transition: none;
+  }
+  /* The cross-fade becomes a cut. tiny-slider writes the duration at runtime
+     into its own stylesheet as `#<slideId> > .tns-item { transition-duration:
+     1s }` — an ID selector, so nothing scoped to the hero can outrank it and
+     !important is the only way to reach it. Only the duration is touched:
+     the slide swap itself, and therefore manual navigation, is untouched.
+
+     1ms rather than 0s, and that matters. In gallery mode tiny-slider ends a
+     transition on the incoming slide's `transitionend`; its manual fallback
+     only fires when the JS `speed` option is 0, which it cannot know this
+     rule changed. A zero-duration transition emits no event at all, so
+     `running` would stay true forever — with preventActionWhenRunning that
+     silently freezes every later dot click and autoplay tick, and the
+     outgoing slide never reaches .tns-normal, so M4.1 never hides it. One
+     millisecond is imperceptible and still fires the event. */
+  .main-slider-four .tns-item {
+    transition-duration: 1ms !important;
   }
 }
 
@@ -8206,8 +8405,15 @@ button.mobile-nav__close:focus-visible {
   color: #7a5f12;
 }
 
+/* The ring is the darker gold this row's own text already uses, not the brand
+   base: #d4af37 on the white panel measures 2.10:1, below the 3:1 WCAG asks of
+   a focus indicator (SC 1.4.11 / 2.4.11). #7a5f12 measures 6.05:1 against the
+   panel and 5.59:1 against the tinted row, so the ring is unmistakable on both.
+   Width, style and offset are unchanged, so nothing moves. The same selector
+   also covers third-level rows — their <ul> is a child of an inner
+   li.dropdown — so nested submenus get the same compliant ring. */
 .main-menu .main-menu__list li.dropdown:not(.megamenu) > ul > li > a:focus-visible {
-  outline: 2px solid var(--gotur-base, #d4af37);
+  outline: 2px solid #7a5f12;
   outline-offset: -2px;
 }
 

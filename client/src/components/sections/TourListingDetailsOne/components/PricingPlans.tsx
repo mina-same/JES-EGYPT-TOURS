@@ -5,6 +5,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { PricingPlan, Season } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { getLocalizedStaticPath } from "@/lib/url/staticSlugs";
+import { useRouteLocale } from "@/hooks/useRouteLocale";
 import StayIcon from "./StayIcon";
 import SeasonIcon from "./SeasonIcon";
 import {
@@ -62,12 +63,18 @@ const HOLIDAY_FALLBACKS: Record<HolidayKind, string> = {
 const isMostChosen = (planName: string) => planName.toUpperCase().startsWith("GOLD");
 
 export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
-  const { t, i18n } = useTranslation("tours");
+  const { t } = useTranslation("tours");
   const { formatPrice, getPriceValue } = useCurrency();
-  const contactHref = getLocalizedStaticPath(
-    "contact",
-    i18n.resolvedLanguage || i18n.language
-  );
+  /*
+   * The ROUTE locale, not the i18next instance's.
+   *
+   * This line used to read `i18n.resolvedLanguage || i18n.language`, and
+   * `resolvedLanguage` is stale on the first server render of any locale —
+   * so a German page shipped `<a href="/en/contact">` under correctly
+   * translated German text. See useRouteLocale for the measurement.
+   */
+  const routeLocale = useRouteLocale();
+  const contactHref = getLocalizedStaticPath("contact", routeLocale);
 
   /** Only plans with something to quote. An unpriced tier gets no tab at all,
    *  rather than a tab leading to an empty panel. */

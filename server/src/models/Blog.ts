@@ -610,9 +610,29 @@ const revalidateBlogCaches = () => revalidateTags(['blog']);
 BlogSchema.post('save', revalidateBlogCaches);
 BlogSchema.post('findOneAndUpdate', revalidateBlogCaches);
 BlogSchema.post('findOneAndDelete', revalidateBlogCaches);
-BlogSchema.post('deleteOne', revalidateBlogCaches);
 BlogSchema.post('updateOne', revalidateBlogCaches);
 BlogSchema.post('updateMany', revalidateBlogCaches);
+
+/*
+ * deleteOne needs BOTH registrations, and the distinction is not cosmetic.
+ *
+ * In Mongoose 8 a bare post('deleteOne') is QUERY middleware only — helpers/
+ * model/applyHooks.js filters document hooks with `return !!hook['document']`
+ * for this hook name, so a registration without the flag is skipped entirely
+ * for document deletes. The admin delete endpoint calls
+ * `await blog.deleteOne()` on a DOCUMENT (controllers/blogController.ts), so
+ * the bare form never fired for it: deleting an article left the `blog` tag
+ * untouched, and cached listings, category pages and the author page kept
+ * serving the deleted post until their TTL expired.
+ *
+ * The query form is kept as well because it is genuinely used —
+ * scripts/seedDetailedBlog.ts calls Blog.deleteOne({ 'slug.en': ... }).
+ *
+ * Only one of the two runs for any given delete, so one deletion still
+ * produces exactly one invalidation.
+ */
+BlogSchema.post('deleteOne', { document: true, query: false }, revalidateBlogCaches);
+BlogSchema.post('deleteOne', { document: false, query: true }, revalidateBlogCaches);
 
 
 /**

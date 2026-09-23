@@ -175,10 +175,13 @@ export async function getCategories(): Promise<BlogCategory[]> {
  * so the same page could render in two different languages.
  */
 export async function getCategoryBySlug(slug: string, locale?: string): Promise<BlogCategory> {
-  const res = await fetch(`${API_URL}/blog/categories/slug/${slug}`, {
-    cache: 'no-store',
-    ...(locale ? { headers: { 'X-Locale': locale } } : {}),
-  });
+  const res = await fetch(
+    `${API_URL}/blog/categories/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 3600, tags: ['blog'] },
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch category');
@@ -233,10 +236,13 @@ export async function getAllSubCategories(): Promise<BlogSubCategory[]> {
  * so the same page could render in two different languages.
  */
 export async function getSubCategoryBySlug(slug: string, locale?: string): Promise<BlogSubCategory> {
-  const res = await fetch(`${API_URL}/blog/subcategories/slug/${slug}`, {
-    cache: 'no-store',
-    ...(locale ? { headers: { 'X-Locale': locale } } : {}),
-  });
+  const res = await fetch(
+    `${API_URL}/blog/subcategories/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 3600, tags: ['blog'] },
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch subcategory');
@@ -382,10 +388,13 @@ export async function getBlogsBySubCategory(subCategorySlug: string, page: numbe
  * which then looks like "this article has nothing in German" and 404s the page.
  */
 export async function getBlogBySlug(slug: string, locale?: string): Promise<BlogPost> {
-  const res = await fetch(`${API_URL}/blog/posts/slug/${slug}`, {
-    cache: 'no-store',
-    headers: locale ? { 'X-Locale': locale } : undefined,
-  });
+  const res = await fetch(
+    `${API_URL}/blog/posts/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
+    {
+      next: { revalidate: 3600, tags: ['blog'] },
+      headers: locale ? { 'X-Locale': locale } : undefined,
+    }
+  );
   
   if (!res.ok) {
     throw new Error('Failed to fetch blog');
