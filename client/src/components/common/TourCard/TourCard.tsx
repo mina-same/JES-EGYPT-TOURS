@@ -279,7 +279,7 @@ const TourCard: React.FC<TourCardProps> = ({
 
           {item.meta.length > 0 && (
             <ul className={styles.metaList}>
-              {item.meta.map((meta) => {
+              {item.meta.filter(meta => String(meta.title || "").trim()).map((meta) => {
                 // The itinerary chain gets its own row; the rest share one.
                 const isLocation = LOCATION_ICONS.includes(meta.icon);
                 const text = String(meta.title || "");
@@ -318,7 +318,7 @@ const TourCard: React.FC<TourCardProps> = ({
               labels={offerLabels}
             />
           ) : (
-            <div className="listing-card-four__content__btn">
+            <div className={`listing-card-four__content__btn ${styles.priceRow} ${getPriceValue(item.price) > 0 ? '' : styles.requestRow}`}>
               {/*
                 A tour is "priced" when its effective amount in the selected
                 currency is greater than zero — the same test the card has
@@ -352,9 +352,9 @@ const TourCard: React.FC<TourCardProps> = ({
                 </div>
               )}
               {item.link && (
-                <Link href={item.link} className="listing-card-four__btn gotur-btn">
+                <Link href={item.link} className={`listing-card-four__btn gotur-btn ${styles.viewTour}`}>
                   {t("tourCard.viewTour")}{" "}
-                  <span className="icon">
+                  <span className="icon" aria-hidden="true">
                     <i className="icon-right"></i>{" "}
                   </span>
                 </Link>

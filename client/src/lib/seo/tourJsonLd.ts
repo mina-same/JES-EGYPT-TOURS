@@ -1,3 +1,4 @@
+import { tourTypeLabel } from '../tours/catalog';
 /**
  * tourJsonLd.ts
  *
@@ -677,7 +678,7 @@ export function generateTourJsonLd({
         }
       : {}),
     ...(tour.tourType
-      ? { touristType: stripHtml(getLocalizedValue(tour.tourType, loc)) }
+      ? { touristType: stripHtml(tourTypeLabel(tour.tourType, loc)) }
       : {}),
     ...(aggregateOfferNode ? { offers: { "@id": offersId } } : {}),
     ...(itineraryNode ? { itinerary: { "@id": itineraryId } } : {}),

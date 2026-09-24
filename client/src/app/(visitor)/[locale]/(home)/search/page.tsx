@@ -14,7 +14,7 @@ export default function SearchPage({
   searchParams,
   params
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = use(params);
@@ -32,7 +32,7 @@ export default function SearchPage({
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <PageHeader title={t('pageHeaderTitle')} subTitle={t('pageHeaderSubTitle')} />
-      <SearchResultsPage initialSearchParams={searchParams} />
+      <SearchResultsPage initialSearchParams={use(searchParams)} />
       <FooterOne />
     </Layout>
   );

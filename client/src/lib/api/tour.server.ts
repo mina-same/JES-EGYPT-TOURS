@@ -78,16 +78,59 @@ type CachedGetOptions = {
 };
 
 /**
- * One GET, with the error semantics the resolver already depended on.
+ * One GET for the document a page is about: a tour, a tour category, a tour
+ * subcategory.
+ *
+ * Null means one thing only: the API answered 404, so the document does not
+ * exist and the route answers 404. Every other failure — a 5xx, an unreachable
+ * API — throws, and the route answers 500. Failing soft the way cachedGet()
+ * does would turn an outage into notFound() for a live page, and a 404 tells a
+ * crawler to drop the URL where a 500 tells it to come back.
+ *
+ * Only the status is logged. An error body may be HTML, empty, or carry detail
+ * that does not belong in a log, and it is never read.
+ *
+ * The request is the one cachedGet() sends with the cache on, so each read
+ * keeps the Data Cache entry it had.
+ */
+async function getEntity<T>(
+  path: string,
+  { locale, tags, revalidate, params }: Omit<CachedGetOptions, 'cache'>
+): Promise<ApiResponse<T> | null> {
+  const url = buildUrl(path, locale, params);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: { 'X-Locale': locale },
+      next: { revalidate, tags },
+    });
+  } catch (error) {
+    console.error(`[tour.server] request failed for ${path} (locale=${locale}):`, error);
+    throw error;
+  }
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    console.error(`[tour.server] ${res.status} from ${path} (locale=${locale})`);
+    throw new Error(`[tour.server] ${res.status} from ${path}`);
+  }
+
+  return (await res.json()) as ApiResponse<T>;
+}
+
+/**
+ * One GET for a listing or a rail, which fails soft: every failure comes back
+ * as null and the page renders without that section.
  *
  * `fetch` does not throw on 404 or 500 the way axios did, so the distinction
- * has to be drawn by hand. Both return null — the resolver's
- * `if (res?.success && res?.data)` checks then fall through to the next content
- * type exactly as before — but a 5xx or a network fault is genuinely different
- * from "this slug is not a tour", and only the former is worth logging.
+ * has to be drawn by hand. Both return null, but a 5xx or a network fault is
+ * genuinely different from a 404, and only the former is worth logging.
  * Without that split the old failure mode stays invisible: every catch returns
  * empty, the page answers HTTP 200 with an empty shell, and nothing anywhere
  * records that the API was down.
+ *
+ * The document a page is about must not fail soft — see getEntity().
  */
 async function cachedGet<T>(
   path: string,
@@ -122,17 +165,17 @@ async function cachedGet<T>(
 
 export const tourServerAPI = {
   /**
-   * Resolver probe #1, and the read behind every tour detail page.
+   * The read behind every tour detail page, by the canonical slug the
+   * resolver returned.
    *
-   * Tagged `tours`, which also settles what happens to a NEGATIVE result. Next
-   * caches the 404 alongside the hits, so a slug that does not exist yet would
-   * otherwise keep 404-ing for the whole TTL — bad for a page an editor just
-   * published. But creating a tour fires Tour.ts's post('save') hook, which
-   * clears the `tours` tag, which drops the cached 404 with it. The new page is
-   * live on the very next request, and the TTL is only the backstop.
+   * Tagged `tours`: saving a tour fires Tour.ts's post('save') hook, which
+   * clears the tag, so an edit is live on the very next request and the TTL is
+   * only the backstop. A 404 is never cached — the Data Cache stores only 200
+   * responses — so a tour that did not exist a moment ago is not held back
+   * either.
    */
   getBySlug: (slug: string, locale: string) =>
-    cachedGet<any>(`tours/slug/${encodeURIComponent(slug)}`, {
+    getEntity<any>(`tours/slug/${encodeURIComponent(slug)}`, {
       locale,
       tags: [TOUR_TAG],
       revalidate: CMS_TTL,
@@ -151,14 +194,14 @@ export const tourServerAPI = {
       locale,
       tags: [TOUR_TAG],
       revalidate: LISTING_TTL,
-      params: params as Record<string, unknown>,
+      params: { ...params, filterVersion: 2 } as Record<string, unknown>,
       cache: cacheable,
     }),
 };
 
 export const tourCategoryServerAPI = {
   getBySlug: (slug: string, locale: string) =>
-    cachedGet<any>(`tours/categories/slug/${encodeURIComponent(slug)}`, {
+    getEntity<any>(`tours/categories/slug/${encodeURIComponent(slug)}`, {
       locale,
       tags: [TOUR_CATEGORY_TAG],
       revalidate: CMS_TTL,
@@ -167,7 +210,7 @@ export const tourCategoryServerAPI = {
 
 export const tourSubcategoryServerAPI = {
   getBySlug: (slug: string, locale: string, categoryId?: string) =>
-    cachedGet<any>(`tours/subcategories/slug/${encodeURIComponent(slug)}`, {
+    getEntity<any>(`tours/subcategories/slug/${encodeURIComponent(slug)}`, {
       locale,
       tags: [TOUR_SUBCATEGORY_TAG],
       revalidate: CMS_TTL,
@@ -197,6 +240,7 @@ export const tourSubcategoryServerAPI = {
  * Anything else is hand-typed or hostile, and not worth a cache entry.
  */
 const CACHEABLE_SORTS = new Set([
+  'recommended', 'durationHours', '-durationHours',
   '-createdAt',
   'createdAt',
   'priceStartingFrom',
@@ -232,7 +276,9 @@ export function isCanonicalListing(query: {
   minPrice?: number;
   maxPrice?: number;
   tourType?: string;
-  tourStyle?: string;
+  tourStyles?: string;
+  destinations?: string;
+  durationRange?: string;
   sort?: string;
   page?: number;
   subcategory?: string;
@@ -241,7 +287,7 @@ export function isCanonicalListing(query: {
   if (query.minPrice !== undefined) return false;
   if (query.maxPrice !== undefined) return false;
   if (query.tourType) return false;
-  if (query.tourStyle) return false;
+  if (query.tourStyles || query.destinations || query.durationRange) return false;
 
   if (query.sort && !CACHEABLE_SORTS.has(query.sort)) return false;
   if (query.page !== undefined && (query.page < 1 || query.page > MAX_CACHEABLE_PAGE)) return false;

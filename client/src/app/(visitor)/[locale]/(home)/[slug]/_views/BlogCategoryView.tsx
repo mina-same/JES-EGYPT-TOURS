@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout/Layout';
 import TopbarOne from '@/components/common/TopbarOne/TopbarOne';
@@ -8,15 +8,11 @@ import HeaderOne from '@/components/layout/HeaderOne/HeaderOne';
 import HeaderOneCloned from '@/components/layout/HeaderOneCloned/HeaderOneCloned';
 import FooterOne from '@/components/layout/FooterOne/FooterOne';
 import DynamicBlogGrid from '@/components/sections/DynamicBlogGrid/DynamicBlogGrid';
-import {
-  getBlogsByCategory,
-  getCategoryBySlug,
-  getSubCategoriesByCategory,
-} from '@/lib/api/blog';
+import type { BlogCategory, BlogListResponse, BlogSubCategory } from '@/lib/api/blog';
 import { SlugManager } from '@/components/common/SlugManager';
 import { getLocalizedValue } from '@/lib/localize';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
-import { Loader2, ArrowRight, MapPin } from 'lucide-react';
+import { ArrowRight, MapPin } from 'lucide-react';
 import ListingFaqs from '@/components/common/ListingSections/ListingFaqs';
 import ClientCarousel from '@/components/sections/ClientCarousel/ClientCarousel';
 import BlogHero from '@/components/sections/BlogHero/BlogHero';
@@ -71,44 +67,47 @@ const SubcatIcon: React.FC<{ icon?: string; hover?: boolean }> = ({ icon }) => {
   return <LucideIcon name={icon} size={28} strokeWidth={1.5} />;
 };
 
+interface BlogCategoryViewProps {
+  slug: string;
+  locale: string;
+  /** The category, exactly as the route's resolver read it. */
+  category: BlogCategory;
+  /** Its sub-categories — the "Browse by Topic" cards. */
+  subcategories: BlogSubCategory[];
+  /** The listing page this URL asks for (?page=), read on the server — cards only. */
+  blogsData: BlogListResponse;
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function BlogCategoryView({ slug, locale }: { slug: string; locale: string }) {
+/**
+ * Rendered from server data, the way BlogSubcategoryView already is.
+ *
+ * This view used to reach the browser as an empty shell: the server rendered a
+ * spinner, and the category, its sub-categories and the listing were fetched
+ * only after hydration. The HTML had no <h1>, no article cards and no links to
+ * them, and a client-side visit showed the spinner until three requests
+ * returned. The route now reads all three and passes them in.
+ *
+ * No client fetch is left, pagination included. The pager is a real <Link> to
+ * ?page=N, and following it re-renders the route on the server, which reads
+ * that page and hands it over as new props — React keeps this instance and
+ * swaps the props rather than remounting it. A client fetch on top would
+ * request the same page a second time, and copying these props into local
+ * state would pin the view to its first page, because a state initializer
+ * only runs on mount.
+ */
+export default function BlogCategoryView({
+  slug,
+  locale,
+  category,
+  subcategories,
+  blogsData,
+}: BlogCategoryViewProps) {
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get('page')) || 1;
   const allBlogsRef = useRef<HTMLElement>(null);
   const destinationSliderRef = useRef<TinySliderHandle>(null);
   const t = (key: string) => translations[locale]?.[key] || translations['en']?.[key] || key;
-
-  const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState<any>(null);
-  const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [blogsData, setBlogsData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const cat = await getCategoryBySlug(slug, locale);
-        const baseSlug = typeof cat.slug === 'object' ? cat.slug.en : cat.slug;
-
-        const [subs, blogs] = await Promise.all([
-          getSubCategoriesByCategory(cat._id, locale),
-          getBlogsByCategory(baseSlug || slug, page, 9, locale),
-        ]);
-
-        setCategory(cat);
-        setSubcategories(Array.isArray(subs) ? subs : []);
-        setBlogsData(blogs);
-      } catch (err) {
-        console.error('Error fetching blog category data:', err);
-        setError('Category not found');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [slug, page]);
 
   // Scroll to All Blogs section on page change (not first load)
   const isFirstRender = useRef(true);
@@ -117,37 +116,14 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
     allBlogsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [page]);
 
-  // ── Loading ──────────────────────────────────────────────────────────────────
-  if (loading && !category) {
-    return (
-      <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#b79c5c' }} />
-        </div>
-        <FooterOne />
-      </Layout>
-    );
-  }
-
-  if (error || !category) {
-    return (
-      <Layout>
-        <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
-          <h3>Category Not Found</h3>
-        </div>
-        <FooterOne />
-      </Layout>
-    );
-  }
-
   const categoryName = getLocalizedValue(category.name, locale) || '';
   const categoryImage = getImageUrl(category.image);
   const categoryImageTitle = getImageTitle(category.image, locale, categoryName);
-  const hasFeaturedBlogs = category.featuredBlogs?.length > 0;
-  const hasFeaturedDestinations = category.featuredDestinations?.length > 0;
-  const hasFaqs = category.faqs?.length > 0;
+  const featuredBlogs = category.featuredBlogs ?? [];
+  const featuredDestinations = category.featuredDestinations ?? [];
+  const hasFeaturedBlogs = featuredBlogs.length > 0;
+  const hasFeaturedDestinations = featuredDestinations.length > 0;
+  const hasFaqs = (category.faqs?.length ?? 0) > 0;
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -384,11 +360,11 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
                   },
                 }}
                 className="destination-slider-inner"
-                rebuildKey={`${locale}:${category.featuredDestinations
+                rebuildKey={`${locale}:${featuredDestinations
                   .map((destination: any) => destination._id ?? "")
                   .join("|")}`}
               >
-                {category.featuredDestinations.map((dest: any, idx: number) => {
+                {featuredDestinations.map((dest: any, idx: number) => {
                   const destImg = getImageUrl(dest.coverImage);
                   const destName = getLocalizedValue(dest.name, locale) || '';
                   const destImageTitle = getImageTitle(dest.coverImage, locale, destName);
@@ -493,7 +469,7 @@ export default function BlogCategoryView({ slug, locale }: { slug: string; local
             </div>
 
             <DynamicBlogGrid
-              blogs={category.featuredBlogs}
+              blogs={featuredBlogs}
               basePath={`/${locale}/${slug}`}
               variant="featured"
             />

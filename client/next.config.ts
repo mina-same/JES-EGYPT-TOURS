@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 /**
  * Hosts the image optimizer is allowed to fetch from.
@@ -39,6 +40,8 @@ if (apiHost && process.env.NODE_ENV !== "production") {
 }
 
 const nextConfig: NextConfig = {
+  // The filter catalog is shared with the API; allow that workspace import.
+  turbopack: { root: path.resolve(__dirname, '..') },
   /* i18n configuration removed since we're using the App Router and middleware.ts */
   images: {
     remotePatterns,
@@ -97,7 +100,6 @@ const nextConfig: NextConfig = {
   },
   /* config options here */
   reactStrictMode: false,
-  turbopack: {},
 };
 
 export default nextConfig;

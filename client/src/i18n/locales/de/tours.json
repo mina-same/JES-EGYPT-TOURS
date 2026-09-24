@@ -15,7 +15,19 @@
     "tourType": "Reiseart",
     "tourStyle": "Reisestil",
     "apply": "Anwenden",
-    "reset": "Zurücksetzen"
+    "reset": "Zurücksetzen",
+    "destinations": "Besuchte Orte",
+    "durationRange": "Dauer",
+    "tourStyles": "Reisestile",
+    "anySelected": "Mindestens eine Auswahl muss zutreffen.",
+    "durationHelp": "Enthält auch Ausflüge unter einem Tag.",
+    "durationRanges": {
+      "1-3": "1–3 Tage",
+      "4-6": "4–6 Tage",
+      "7-9": "7–9 Tage",
+      "10-12": "10–12 Tage",
+      "13-plus": "13+ Tage"
+    }
   },
   "listing": {
     "resultsCount": "{{count}} Touren gefunden",
@@ -26,7 +38,10 @@
       "nameAsc": "Name A-Z",
       "locationAsc": "Ort A-Z",
       "priceAsc": "Preis (aufsteigend)",
-      "priceDesc": "Preis (absteigend)"
+      "priceDesc": "Preis (absteigend)",
+      "recommended": "Empfohlen",
+      "durationAsc": "Dauer: kurz bis lang",
+      "durationDesc": "Dauer: lang bis kurz"
     },
     "noToursCategory": "Keine Touren in dieser Kategorie gefunden.",
     "noToursSubcategory": "Keine Touren in dieser Unterkategorie gefunden."
@@ -42,7 +57,7 @@
     "category": "Kategorie"
   },
   "fallback": {
-    "days": "3 Tage",
+    "days": "",
     "location": "Standort"
   },
   "tourDetails": {

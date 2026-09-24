@@ -118,21 +118,39 @@ function givenName(fullName: string): string {
  * `generateMetadata` and the component call this with the same arguments, so
  * React's fetch memoisation collapses them into a single round trip per
  * request rather than two.
+ *
+ * Null means one thing only: the API answered 404, there is no such author,
+ * and the page answers 404. Any other failure throws and the page answers 500.
+ * Returning null for an outage would call notFound() on a live page, which
+ * tells a crawler to drop it. Only the status is logged, never the body.
  */
 async function getAuthor(slug: string, locale: string, page: number) {
-  const response = await fetch(
-    `${API_URL}/blog/authors/${encodeURIComponent(slug)}?page=${page}&limit=${PAGE_SIZE}&featuredLimit=${FEATURED_COUNT}`,
-    {
-      // Cached until something invalidates the tag. The admin calls the
-      // revalidation route on every publish, so this is fresh AND cached —
-      // where `no-store` was fresh at the cost of a database read on every
-      // single visit, and a plain timer was cached at the cost of serving a
-      // deleted article for the length of the window.
-      next: { tags: [`author:${slug}`, 'blog'] },
-      headers: { 'X-Locale': locale },
-    }
-  );
-  if (!response.ok) return null;
+  let response: Response;
+  try {
+    response = await fetch(
+      `${API_URL}/blog/authors/${encodeURIComponent(slug)}?page=${page}&limit=${PAGE_SIZE}&featuredLimit=${FEATURED_COUNT}`,
+      {
+        // Cached until something invalidates the tag. The admin calls the
+        // revalidation route on every publish, so this is fresh AND cached —
+        // where `no-store` was fresh at the cost of a database read on every
+        // single visit, and a plain timer was cached at the cost of serving a
+        // deleted article for the length of the window.
+        next: { tags: [`author:${slug}`, 'blog'] },
+        headers: { 'X-Locale': locale },
+      }
+    );
+  } catch (error) {
+    console.error(`[author] request failed reading "${slug}" (locale=${locale}, page=${page}):`, error);
+    throw error;
+  }
+
+  if (response.status === 404) return null;
+
+  if (!response.ok) {
+    console.error(`[author] ${response.status} reading "${slug}" (locale=${locale}, page=${page})`);
+    throw new Error(`Author read failed with ${response.status}`);
+  }
+
   const payload = await response.json();
   return payload?.data ?? null;
 }

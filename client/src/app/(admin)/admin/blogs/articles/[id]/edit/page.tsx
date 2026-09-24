@@ -1,5 +1,6 @@
 'use client';
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -114,6 +115,7 @@ export default function EditBlogPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeTab, setActiveTab] = useState('content');
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  useRevealLinkLocation(setActiveLanguage, setActiveTab);
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
@@ -969,6 +971,7 @@ export default function EditBlogPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <LocalizedField
+                          fieldPath="title"
                           label="Title"
                           value={formData.title}
                           onChange={(lang, val) => handleChange('title', val, lang)}
@@ -1060,6 +1063,7 @@ export default function EditBlogPage() {
                     
                     <div className="space-y-2">
                       <LocalizedField
+                        fieldPath="excerpt"
                         label="Intro"
                         value={formData.excerpt}
                         onChange={(lang, val) => handleChange('excerpt', val, lang)}
@@ -1125,6 +1129,7 @@ export default function EditBlogPage() {
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       <LocalizedRichText
+                        fieldPath="summary"
                         label="Final Summary"
                         value={mixedToHtml(formData.summary)}
                         onChange={(val) => handleChange('summary', val)}
@@ -1136,6 +1141,7 @@ export default function EditBlogPage() {
 
                     <div className="space-y-2">
                       <LocalizedRichText
+                        fieldPath="keyTakeaways"
                         label="Key Takeaways"
                         value={mixedToHtml(formData.keyTakeaways)}
                         onChange={(val) => handleChange('keyTakeaways', val)}
@@ -1377,6 +1383,7 @@ export default function EditBlogPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <LocalizedField
+                          fieldPath="metaTitle"
                           label="Meta Title"
                           value={formData.metaTitle}
                           onChange={(lang, val) => handleChange('metaTitle', val, lang)}
@@ -1406,6 +1413,7 @@ export default function EditBlogPage() {
                     
                     <div className="space-y-2">
                       <LocalizedField
+                        fieldPath="metaDescription"
                         label="Meta Description"
                         value={formData.metaDescription}
                         onChange={(lang, val) => handleChange('metaDescription', val, lang)}
@@ -1426,6 +1434,7 @@ export default function EditBlogPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <LocalizedField
+                          fieldPath="ogTitle"
                           label="OG Title (social sharing)"
                           value={formData.ogTitle}
                           onChange={(lang, val) => handleChange('ogTitle', val, lang)}
@@ -1444,6 +1453,7 @@ export default function EditBlogPage() {
                       </div>
                       <div className="space-y-2">
                         <LocalizedField
+                          fieldPath="ogDescription"
                           label="OG Description (social sharing)"
                           value={formData.ogDescription}
                           onChange={(lang, val) => handleChange('ogDescription', val, lang)}

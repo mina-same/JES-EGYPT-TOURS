@@ -47,12 +47,21 @@ export const BookingFormLazy = dynamic(
   () => import("./BookingForm").then((mod) => mod.BookingForm),
   {
     /*
-     * Only ever seen on a client-side navigation into a tour page: on a fresh
-     * load the server has already rendered the real form, and React keeps that
-     * markup on screen until the chunk hydrates it.
+     * This `loading` gives the form its own <Suspense> boundary, and the
+     * boundary is kept on purpose: React can hydrate the rest of the tour page
+     * without waiting for this chunk, and hydrate the form when it lands.
      *
-     * It carries the card's own classes and reserves its height so that brief
-     * window does not collapse the sidebar and shift the page around it.
+     * The cost is that React's server renderer streams a completed boundary
+     * this far down the page out of line: the form's server HTML sits hidden
+     * at the end of the document until an inline script moves it here, which
+     * happens at once in any browser running scripts. With JavaScript off
+     * this placeholder is what shows. That is acceptable only because the
+     * form cannot be submitted without JavaScript anyway (onSubmit, no
+     * action). It is not acceptable for page content, which is why the view
+     * wrappers have no `loading` at all.
+     *
+     * It carries the card's own classes and reserves its height, so the swap
+     * does not collapse the sidebar and shift the page around it.
      */
     loading: () => (
       <div

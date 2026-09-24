@@ -24,14 +24,17 @@ export interface QueryParams {
   minPrice?: number;
   maxPrice?: number;
   tourType?: string;
-  tourStyle?: string;
+  tourStyles?: string;
+  destinations?: string;
+  durationRange?: string;
   currency?: CurrencyCode;
   fields?: string;
 }
 
 export interface TourFilterOptions {
-  tourTypes: string[];
-  tourStyles: string[];
+  tourTypes: { id: string; label: string }[];
+  tourStyles: { id: string; label: string }[];
+  destinations: { id: string; label: string }[];
   priceRange: {
     min: number | null;
     max: number | null;

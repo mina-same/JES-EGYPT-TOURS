@@ -90,7 +90,8 @@ export interface IBlogPost {
   author: {
     _id: string;
     name: string;
-    email: string;
+    /** Sent only by the authenticated admin endpoints; public responses omit it. */
+    email?: string;
   } | string;
   featuredImage: any;
   featuredImageAlt?: ILocalizedString;

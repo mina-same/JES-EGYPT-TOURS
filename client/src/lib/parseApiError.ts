@@ -43,6 +43,17 @@ export function parseApiError(responseData: any): FormErrorItem[] {
   const errors: FormErrorItem[] = [];
   const rawMessage = responseData.message || responseData.error || responseData.msg;
 
+  if (responseData.code === 'DUPLICATE_INTERNAL_LINKS') {
+    return [{
+      field: 'Internal links',
+      message: 'Cannot save: duplicate internal links. Your edits are still in the form.',
+      recovery: {
+        steps: ['Open the duplicate link report to see each URL, language and location.', 'Remove the repeated links, then save again to recheck.'],
+        action: { label: 'View duplicate locations', href: '#duplicate-internal-links-report' },
+      },
+    }];
+  }
+
   // Authentication failures are page-level errors, not field validation errors.
   // Give staff a safe recovery path without closing the page or losing their work.
   if (typeof rawMessage === 'string' && isAuthenticationErrorMessage(rawMessage)) {

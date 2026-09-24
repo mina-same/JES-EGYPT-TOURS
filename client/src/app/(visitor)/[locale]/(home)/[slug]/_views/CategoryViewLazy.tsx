@@ -17,13 +17,17 @@ import dynamic from "next/dynamic";
  * level up, inside the Server Component, runs at render time on the server and
  * changes nothing about what the browser downloads — measured, twice.
  *
- * SSR stays ON: the server still renders the real view, so the HTML, its
- * headings, copy and links are unchanged and `loading` is only ever seen on a
- * client-side navigation. It reserves a viewport so that transition does not
- * collapse the page and throw the scroll position.
+ * SSR stays ON, and there is deliberately NO `loading` option. Passing one is
+ * what makes next/dynamic wrap the view in a <Suspense> boundary, and React's
+ * server renderer does not write a large completed boundary where it belongs:
+ * past 12,800 bytes it puts the fallback there, streams the view into a
+ * hidden <div> at the end of the document and leaves an inline script to swap
+ * them. With JavaScript off the page showed nothing at all, because the view
+ * renders the whole layout, header and footer included. Without the boundary
+ * the view is written inline. The chunk is still split and still preloaded,
+ * and on a client-side navigation React keeps the previous page on screen
+ * until the chunk arrives instead of painting a blank placeholder.
  */
-const CategoryViewLazy = dynamic(() => import("./CategoryView"), {
-  loading: () => <div style={{ minHeight: "100vh" }} aria-hidden="true" />,
-});
+const CategoryViewLazy = dynamic(() => import("./CategoryView"));
 
 export default CategoryViewLazy;

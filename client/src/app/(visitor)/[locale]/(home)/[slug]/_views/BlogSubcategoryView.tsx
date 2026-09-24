@@ -7,7 +7,7 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
-import type { BlogResponse, BlogSubCategory } from "@/lib/api/blog";
+import type { BlogListResponse, BlogSubCategory } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
@@ -44,7 +44,7 @@ interface BlogSubcategoryViewProps {
   slug: string;
   locale: string;
   subcategory: BlogSubCategory;
-  blogsData: BlogResponse;
+  blogsData: BlogListResponse;
   siblingSubcategories: BlogSubCategory[];
 }
 

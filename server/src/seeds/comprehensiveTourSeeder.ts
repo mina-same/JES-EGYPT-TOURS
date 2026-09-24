@@ -399,8 +399,8 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
         tourLocation: { en: 'Giza & Saqqara, Egypt', de: 'Gizeh & Sakkara, Ägypten', it: 'Giza e Saqqara, Egitto', es: 'Giza y Saqqara, Egipto' },
         tourAvailability: { en: 'Every Day (8:00 AM Start)', de: 'Jeden Tag (Beginn 08:00 Uhr)', it: 'Ogni giorno (inizio ore 8:00)', es: 'Todos los días (inicio 8:00 AM)' },
         pickupAndDropOff: { en: 'Complimentary pickup and drop-off from any Cairo or Giza hotel.', de: 'Kostenlose Abholung und Rückfahrt von jedem Hotel in Kairo oder Gizeh.', it: 'Ritiro e riconsegna gratuiti da qualsiasi hotel al Cairo o Giza.', es: 'Recogida y regreso gratuitos desde cualquier hotel de El Cairo o Giza.' },
-        tourType: { en: 'Private Day Tour', de: 'Private Tagestour', it: 'Tour privato di un giorno', es: 'Tour Privado de un Día' },
-        tourStyle: { en: 'History & Culture', de: 'Geschichte & Kultur', it: 'Storia e cultura', es: 'Historia y Cultura' },
+        tourType: undefined, // Classify explicitly in Admin.
+        tourStyles: [], // Choose canonical styles in Admin.
         tourHighlights: [
           { en: 'Stand at the foot of the Great Pyramid of Khufu', de: 'Stehen Sie am Fuße der Großen Pyramide von Cheops', it: 'Sosta ai piedi della Grande Piramide di Cheope', es: 'Párese al pie de la Gran Pirámide de Keops' },
           { en: '10+ Years experienced Egyptologist guide', de: 'Über 10 Jahre erfahrener Ägyptologe als Guide', it: 'Guida egittologa con oltre 10 anni di esperienza', es: 'Guía egiptólogo con más de 10 años de experiencia' },
@@ -502,8 +502,8 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
         tourLocation: { en: 'Luxor, Egypt', de: 'Luxor, Ägypten', it: 'Luxor, Egitto', es: 'Luxor, Egipto' },
         tourAvailability: { en: 'Daily', de: 'Täglich', it: 'Quotidiano', es: 'Diario' },
         pickupAndDropOff: { en: 'Included from any Luxor Hotel or Cruise Ship', de: 'Inbegriffen von jedem Hotel oder Kreuzfahrtschiff in Luxor', it: 'Incluso da qualsiasi hotel o nave da crociera a Luxor', es: 'Incluido desde cualquier hotel o crucero en Luxor' },
-        tourType: { en: 'Private Day Tour', de: 'Private Tagestour', it: 'Tour privato di un giorno', es: 'Tour Privado de un Día' },
-        tourStyle: { en: 'Historical', de: 'Historisch', it: 'Storico', es: 'Histórico' },
+        tourType: undefined, // Classify explicitly in Admin.
+        tourStyles: [], // Choose canonical styles in Admin.
         tourHighlights: [
           { en: 'Explore three royal tombs in the Valley of the Kings', de: 'Erkunden Sie drei Königsgräber im Tal der Könige', it: 'Esplora tre tombe reali nella Valle dei Re', es: 'Explore tres tumbas reales en el Valle de los Reyes' },
           { en: '10+ Years of local expertise', de: 'Über 10 Jahre lokale Erfahrung', it: 'Oltre 10 anni di esperienza locale', es: 'Más de 10 años de experiencia local' },
@@ -596,8 +596,8 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
         tourLocation: { en: 'Cairo - Luxor - Aswan - Hurghada', de: 'Kairo - Luxor - Assuan - Hurghada', it: 'Il Cairo - Luxor - Assuan - Hurghada', es: 'El Cairo - Luxor - Asuán - Hurghada' },
         tourAvailability: { en: 'Every Day', de: 'Täglich', it: 'Ogni giorno', es: 'Todos los días' },
         pickupAndDropOff: { en: 'Airport transfers included', de: 'Flughafentransfers inbegriffen', it: 'Trasferimenti aeroportuali inclusi', es: 'Traslados al aeropuerto incluidos' },
-        tourType: { en: 'Private Tour Package', de: 'Private Rundreise', it: 'Pacchetto tour privato', es: 'Paquete de Tour Privado' },
-        tourStyle: { en: 'Culture & Relaxation', de: 'Kultur & Entspannung', it: 'Cultura e relax', es: 'Cultura y Relajación' },
+        tourType: undefined, // Classify explicitly in Admin.
+        tourStyles: [], // Choose canonical styles in Admin.
         tourHighlights: [
           { en: 'Visit the Giza Pyramids & Sphinx', de: 'Besuch der Pyramiden von Gizeh & Sphinx', it: 'Visita le Piramidi di Giza e la Sfinge', es: 'Visite las Pirámides de Giza y la Esfinge' },
           { en: '10+ Years of excellence in guiding', de: 'Über 10 Jahre Exzellenz in der Führung', it: 'Oltre 10 anni di eccellenza nella guida', es: 'Más de 10 años de excelencia en el guía' },

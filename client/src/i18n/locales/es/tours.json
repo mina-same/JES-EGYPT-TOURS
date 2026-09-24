@@ -15,7 +15,19 @@
     "tourType": "Tipo de Tour",
     "tourStyle": "Estilo de Tour",
     "apply": "Aplicar",
-    "reset": "Restablecer"
+    "reset": "Restablecer",
+    "destinations": "Lugares visitados",
+    "durationRange": "Duración",
+    "tourStyles": "Estilos de viaje",
+    "anySelected": "Coincide con cualquiera de las opciones.",
+    "durationHelp": "Incluye excursiones de menos de un día.",
+    "durationRanges": {
+      "1-3": "1–3 Días",
+      "4-6": "4–6 Días",
+      "7-9": "7–9 Días",
+      "10-12": "10–12 Días",
+      "13-plus": "13+ Días"
+    }
   },
   "listing": {
     "resultsCount": "{{count}} tours encontrados",
@@ -26,7 +38,10 @@
       "nameAsc": "Nombre A-Z",
       "locationAsc": "Ubicación A-Z",
       "priceAsc": "Precio (Menor a Mayor)",
-      "priceDesc": "Precio (Mayor a Menor)"
+      "priceDesc": "Precio (Mayor a Menor)",
+      "recommended": "Recomendados",
+      "durationAsc": "Duración: de menor a mayor",
+      "durationDesc": "Duración: de mayor a menor"
     },
     "noToursCategory": "No se encontraron tours en esta categoría.",
     "noToursSubcategory": "No se encontraron tours en esta subcategoría."
@@ -42,7 +57,7 @@
     "category": "Categoría"
   },
   "fallback": {
-    "days": "3 Días",
+    "days": "",
     "location": "Ubicación"
   },
   "tourDetails": {

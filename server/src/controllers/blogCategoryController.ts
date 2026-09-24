@@ -1,3 +1,4 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import { completeOgFromMeta } from '../models/shared/LocalizedSchema';
@@ -5,7 +6,7 @@ import BlogCategory, { IBlogCategory } from '../models/BlogCategory';
 import { FilterQuery } from 'mongoose';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
-import { blogCardPopulate } from '../utils/blogCardPopulate';
+import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -115,6 +116,7 @@ export const getAllCategories = async (
       data: normalizedCategories,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog categories:', error);
     res.status(500).json({
       success: false,
@@ -136,7 +138,7 @@ export const getCategoryById = async (
   try {
     const category = await BlogCategory.findById(req.params.id)
       .populate('subcategoriesCount')
-      .populate('featuredBlogs')
+      .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
       .populate('featuredDestinations')
       .lean();
 
@@ -153,6 +155,7 @@ export const getCategoryById = async (
       data: normalizeDocumentImage(category, category.name),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog category:', error);
     
     // Handle invalid ObjectId
@@ -223,6 +226,7 @@ export const getCategoryBySlug = async (
       ),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog category by slug:', error);
     res.status(500).json({
       success: false,
@@ -271,6 +275,7 @@ export const createCategory = async (
       data: normalizeDocumentImage(categoryObject, categoryObject.name),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error creating blog category:', error);
 
     // Handle duplicate key error
@@ -400,6 +405,7 @@ export const updateCategory = async (
       data: normalizeDocumentImage(category.toObject(), category.name),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error updating blog category:', error);
 
     // Handle invalid ObjectId
@@ -468,6 +474,7 @@ export const deleteCategory = async (
       message: 'Blog category deleted successfully',
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting blog category:', error);
 
     // Handle invalid ObjectId
@@ -526,6 +533,7 @@ export const toggleCategoryStatus = async (
       data: category,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling category status:', error);
     res.status(500).json({
       success: false,

@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from "react";
+import FilterChips from '@/components/common/TourListingFilters/FilterChips';
+import type { FilterOption } from '@/lib/tours/catalog';
 import { Col, Container, Row } from "react-bootstrap";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,9 +16,7 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import PageHeader from "@/components/sections/PageHeader/PageHeader";
 import FooterOne from "@/components/layout/FooterOne/FooterOne";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { tourAPI as tourApiForFetch } from "@/lib/api/tour";
-import { toast } from "@/hooks/use-toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
@@ -50,7 +50,7 @@ export default function CategoryView({
   initialSubcategories?: any[];
   initialTours?: any;
 }) {
-  const router = useRouter();
+  const updateListingUrl = (url: string) => window.history.pushState(null, '', url);
   const searchParams = useSearchParams();
   const { t, i18n } = useTranslation('tours');
   const { currency, currencySymbol } = useCurrency();
@@ -93,15 +93,16 @@ export default function CategoryView({
   // server-rendered page behind the white-on-white loading screen.
   const prevSlugRef = useRef<string | null>(initialCategory ? slug : null);
   const skipInitialFetchRef = useRef(Boolean(initialTours?.success));
-  const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
-  const [tourStyleOptions, setTourStyleOptions] = useState<string[]>([]);
+  const [tourTypeOptions, setTourTypeOptions] = useState<FilterOption[]>([]);
+  const [tourStyleOptions, setTourStyleOptions] = useState<FilterOption[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<FilterOption[]>([]);
   const closeFilters = () => setIsFilterOpen(false);
   const { dialogRef, triggerRef } = useAccessibleDrawer(isFilterOpen, closeFilters);
 
   useEffect(() => {
     const fromQueryPage = Number(searchParams?.get("page") || "1");
     const safePage = Number.isFinite(fromQueryPage) && fromQueryPage > 0 ? Math.floor(fromQueryPage) : 1;
-    const fromSort = searchParams?.get("sort") || "-createdAt";
+    const fromSort = searchParams?.get("sort") || "recommended";
 
     const next = {
       search: searchParams?.get("search") || "",
@@ -109,7 +110,9 @@ export default function CategoryView({
       maxPrice: searchParams?.get("maxPrice") || "",
       subcategoryId: searchParams?.get("subcategory") || "",
       tourType: searchParams?.get("tourType") || "",
-      tourStyle: searchParams?.get("tourStyle") || "",
+      tourStyles: searchParams?.get("tourStyles") || searchParams?.get("tourStyle") || "",
+      destinations: searchParams?.get("destinations") || "",
+      durationRange: searchParams?.get("durationRange") || "",
     };
 
     setCurrentPage(safePage);
@@ -126,13 +129,15 @@ export default function CategoryView({
 
     const sp = new URLSearchParams();
     if (p && p !== 1) sp.set("page", String(p));
-    if (s && s !== "-createdAt") sp.set("sort", s);
+    if (s && s !== "recommended") sp.set("sort", s);
     if (f.search) sp.set("search", f.search);
     if (f.minPrice) sp.set("minPrice", f.minPrice);
     if (f.maxPrice) sp.set("maxPrice", f.maxPrice);
     if (f.subcategoryId) sp.set("subcategory", f.subcategoryId);
     if (f.tourType) sp.set("tourType", f.tourType);
-    if (f.tourStyle) sp.set("tourStyle", f.tourStyle);
+    if (f.destinations) sp.set("destinations", f.destinations);
+    if (f.durationRange) sp.set("durationRange", f.durationRange);
+    if (f.tourStyles) sp.set("tourStyles", f.tourStyles);
 
     const qs = sp.toString();
     return `/${locale}/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
@@ -169,7 +174,7 @@ export default function CategoryView({
         if (!initialCategory) {
           const catResponse = await tourCategoryAPI.getBySlug(slug, locale);
           if (!catResponse.success || !catResponse.data) {
-            setError("Category not found");
+            setError(t('status.categoryNotFound'));
             setInitialLoading(false);
             setPageLoading(false);
             return;
@@ -202,7 +207,9 @@ export default function CategoryView({
           ...(appliedFilters.minPrice ? { minPrice: Number(appliedFilters.minPrice) } : {}),
           ...(appliedFilters.maxPrice ? { maxPrice: Number(appliedFilters.maxPrice) } : {}),
           ...(appliedFilters.tourType ? { tourType: appliedFilters.tourType } : {}),
-          ...(appliedFilters.tourStyle ? { tourStyle: appliedFilters.tourStyle } : {}),
+          destinations: appliedFilters.destinations || undefined,
+          durationRange: appliedFilters.durationRange || undefined,
+          ...(appliedFilters.tourStyles ? { tourStyles: appliedFilters.tourStyles } : {}),
           currency,
         }, locale, controller.signal);
 
@@ -212,7 +219,7 @@ export default function CategoryView({
           setTotalResults(toursResponse.total || 0);
           if ((toursResponse.total || 0) > 0 && currentPage > lastPage) {
             setCurrentPage(lastPage);
-            router.replace(buildUrl({ page: lastPage }), { scroll: false } as any);
+            window.history.replaceState(null, '', buildUrl({ page: lastPage }));
             return;
           }
           const mappedTours = toursResponse.data.map((tour: any) => {
@@ -259,6 +266,9 @@ export default function CategoryView({
         if (err?.code === 'ERR_CANCELED') return;
         console.error("Error fetching data:", err);
         setError(t('status.errorFetching'));
+        setTours([]);
+        setTotalResults(0);
+        setTotalPages(1);
       } finally {
         if (!controller.signal.aborted) {
           setInitialLoading(false);
@@ -269,7 +279,7 @@ export default function CategoryView({
 
     void fetchData();
     return () => controller.abort();
-  }, [slug, currentPage, sort, currency, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.subcategoryId, appliedFilters.tourType, appliedFilters.tourStyle]);
+  }, [slug, currentPage, sort, currency, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.subcategoryId, appliedFilters.tourType, appliedFilters.tourStyles, appliedFilters.destinations, appliedFilters.durationRange, locale]);
 
   useEffect(() => {
     const categoryId = initialCategory?._id || category?._id;
@@ -280,6 +290,7 @@ export default function CategoryView({
         if (response.success && response.data) {
           setTourTypeOptions(response.data.tourTypes);
           setTourStyleOptions(response.data.tourStyles);
+          setDestinationOptions(response.data.destinations);
         }
       })
       .catch((err) => {
@@ -299,7 +310,7 @@ export default function CategoryView({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    router.replace(buildUrl({ page }), { scroll: false } as any);
+    updateListingUrl(buildUrl({ page }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -312,32 +323,32 @@ export default function CategoryView({
     setFilterError(null);
     setAppliedFilters(draftFilters);
     setCurrentPage(1);
-    router.replace(buildUrl({ page: 1, ...draftFilters }), { scroll: false } as any);
+    updateListingUrl(buildUrl({ page: 1, ...draftFilters }));
   };
 
   const handleResetFilters = () => {
-    const empty = { search: "", minPrice: "", maxPrice: "", subcategoryId: "", tourType: "", tourStyle: "" };
+    const empty = { search: "", minPrice: "", maxPrice: "", subcategoryId: "", tourType: "", destinations: "", durationRange: "", tourStyles: "" };
     setDraftFilters(empty);
     setAppliedFilters(empty);
-    setSort("-createdAt");
+    setSort("recommended");
     setCurrentPage(1);
     setFilterError(null);
-    router.replace(`/${locale}/${encodeURIComponent(slug)}`, { scroll: false } as any);
+    updateListingUrl(`/${locale}/${encodeURIComponent(slug)}`);
   };
 
   const handleSortChange = (nextSort: string) => {
     setSort(nextSort);
     setCurrentPage(1);
-    router.replace(buildUrl({ page: 1, sort: nextSort }), { scroll: false } as any);
+    updateListingUrl(buildUrl({ page: 1, sort: nextSort }));
   };
 
-  const removeFilter = (key: keyof typeof appliedFilters) => {
-    const next = { ...appliedFilters, [key]: '' };
+  const removeFilter = (key: keyof typeof appliedFilters, remaining = '') => {
+    const next = { ...appliedFilters, [key]: remaining };
     setDraftFilters(next);
     setAppliedFilters(next);
     setCurrentPage(1);
     setFilterError(null);
-    router.replace(buildUrl({ page: 1, ...next }), { scroll: false } as any);
+    updateListingUrl(buildUrl({ page: 1, ...next }));
   };
 
   if (initialLoading) {
@@ -396,8 +407,8 @@ export default function CategoryView({
               subcategories={subcategories} 
               locale={locale} 
               tourTypeOptions={tourTypeOptions} 
-              tourStyleOptions={tourStyleOptions} 
-              handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }} 
+              tourStyleOptions={tourStyleOptions} destinationOptions={destinationOptions}
+              handleApplyFilters={() => { handleApplyFilters(); if (!validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice)) setIsFilterOpen(false); }}
               handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }} 
               currencySymbol={currencySymbol}
               validationError={filterError}
@@ -516,8 +527,8 @@ export default function CategoryView({
                   subcategories={subcategories} 
                   locale={locale} 
                   tourTypeOptions={tourTypeOptions} 
-                  tourStyleOptions={tourStyleOptions} 
-                  handleApplyFilters={() => { handleApplyFilters(); setIsFilterOpen(false); }} 
+                  tourStyleOptions={tourStyleOptions} destinationOptions={destinationOptions}
+                  handleApplyFilters={() => { handleApplyFilters(); if (!validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice)) setIsFilterOpen(false); }}
                   handleResetFilters={() => { handleResetFilters(); setIsFilterOpen(false); }} 
                   currencySymbol={currencySymbol}
                   validationError={filterError}
@@ -566,11 +577,10 @@ export default function CategoryView({
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>{t('listing.sortBy')}</span>
-                  <select value={sort} onChange={(e) => handleSortChange(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e5e5", background: "#fff", minWidth: 220 }}>
-                    <option value="-createdAt">{t('listing.sortOptions.newest')}</option>
-                    <option value="createdAt">{t('listing.sortOptions.oldest')}</option>
-                    <option value="heading">{t('listing.sortOptions.nameAsc')}</option>
-                    <option value="tourLocation">{t('listing.sortOptions.locationAsc')}</option>
+                  <select aria-label={t('listing.sortBy')} value={sort} onChange={(e) => handleSortChange(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e5e5", background: "#fff", minWidth: 220 }}>
+                    <option value="recommended">{t('listing.sortOptions.recommended')}</option>
+                    <option value="durationHours">{t('listing.sortOptions.durationAsc')}</option>
+                    <option value="-durationHours">{t('listing.sortOptions.durationDesc')}</option>
                     <option value="priceStartingFrom">{t('listing.sortOptions.priceAsc')}</option>
                     <option value="-priceStartingFrom">{t('listing.sortOptions.priceDesc')}</option>
                   </select>
@@ -578,11 +588,7 @@ export default function CategoryView({
               </div>
               <div className="d-flex flex-wrap align-items-center gap-2 mb-4" aria-live="polite">
                 <span className="text-muted">{t('listing.resultsCount', { count: totalResults })}</span>
-                {Object.entries(appliedFilters).filter(([, value]) => value).map(([key, value]) => (
-                  <button key={key} type="button" className="btn btn-sm btn-outline-secondary rounded-pill d-inline-flex align-items-center gap-1" onClick={() => removeFilter(key as keyof typeof appliedFilters)} aria-label={`${t('filters.remove')} ${value}`}>
-                    {value} <X size={14} aria-hidden="true" />
-                  </button>
-                ))}
+                <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} t={t} remove={(key, remaining) => removeFilter(key as keyof typeof appliedFilters, remaining)} />
                 {countActiveTourFilters(appliedFilters) > 1 && (
                   <button type="button" className="btn btn-sm btn-link" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
                 )}
@@ -595,7 +601,7 @@ export default function CategoryView({
                   // LISTING_CARD_IMAGE_SIZES: these cards sit beside the filter
                   // sidebar, so the slot is ~252px, not the default ~360px.
                   tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} imageSizes={LISTING_CARD_IMAGE_SIZES} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
-                ) : pageLoading ? null : (
+                ) : pageLoading || error ? null : (
                   <div className="flex items-center justify-center min-h-[200px] w-full"><p className="text-xl text-gray-500">{t('listing.noToursCategory')}</p></div>
                 )}
                 <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} /></Col>

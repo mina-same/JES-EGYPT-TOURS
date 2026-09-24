@@ -59,8 +59,8 @@ const detailedTour = {
   tourLocation: 'Cairo, Luxor, Aswan, Abu Simbel, Hurghada',
   tourAvailability: 'Every Day (Year Round)',
   pickupAndDropOff: 'VIP Meet & Assist service at Cairo International Airport with private transfers throughout.',
-  tourType: 'Private VIP Luxury Tour',
-  tourStyle: 'History, Culture & Relaxation',
+  tourType: undefined,
+  tourStyles: [],
   tourHighlights: [
     'Private VIP tour of the Giza Pyramids and the mysterious Sphinx',
     'Exclusive access to the Grand Egyptian Museum (GEM) and its treasures',

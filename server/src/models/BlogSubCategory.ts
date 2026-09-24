@@ -1,3 +1,4 @@
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
@@ -280,6 +281,7 @@ BlogSubCategorySchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 BlogSubCategorySchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 BlogSubCategorySchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 BlogSubCategorySchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+BlogSubCategorySchema.plugin(duplicateInternalLinksPlugin);
 
 
 /**

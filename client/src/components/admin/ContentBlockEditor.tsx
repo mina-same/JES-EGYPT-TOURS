@@ -1,5 +1,6 @@
 'use client';
 
+import { REVEAL_LINK_LOCATION } from '@/lib/duplicateLinkFeedback';
 import React, { useState, useCallback, useMemo } from 'react';
 import { 
   DndContext, 
@@ -246,6 +247,8 @@ function SortableBlockItem({
 
   return (
     <div
+      data-field={`contentBlocks.${index}`}
+      data-content-block-id={block.id}
       ref={setNodeRef}
       style={style}
       className={cn(
@@ -651,6 +654,19 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [langFilter, setLangFilter] = useState<'all' | AdminLanguage>('all');
+  React.useEffect(() => {
+    const reveal = (event: Event) => {
+      const { path, locale, blockId } = (event as CustomEvent<{ path: string; locale: AdminLanguage; blockId?: string }>).detail;
+      const match = path.match(/^contentBlocks\.(\d+)/);
+      if (!match) return;
+      const block = blockId ? blocks.find((item) => item.id === blockId) : blocks[Number(match[1])];
+      if (!block) return;
+      setLangFilter(locale);
+      setCollapsedBlocks((previous) => { const next = new Set(previous); next.delete(block.id); return next; });
+    };
+    window.addEventListener(REVEAL_LINK_LOCATION, reveal);
+    return () => window.removeEventListener(REVEAL_LINK_LOCATION, reveal);
+  }, [blocks]);
   const isFiltered = langFilter !== 'all';
   // While filtering, opened blocks show the FILTER language's inputs, not the
   // global admin tab's — the per-field flag tabs still allow overriding.

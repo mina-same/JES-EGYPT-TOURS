@@ -1,4 +1,5 @@
 "use client";
+import { tourTypeLabel } from '@/lib/tours/catalog';
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
@@ -169,7 +170,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
       location: getLocalizedValue(tour.tourLocation) || "",
       pickupAndDropOff: getLocalizedValue(tour.pickupAndDropOff) || "",
-      activitiesType: getLocalizedValue(tour.tourType) || "",
+      activitiesType: tourTypeLabel(tour.tourType, currentLang) || "",
       activateDay: getLocalizedValue(tour.duration) || "",
       availability: getLocalizedValue(tour.tourAvailability) || "",
       price: tour.priceStartingFrom || tour.price || 0,

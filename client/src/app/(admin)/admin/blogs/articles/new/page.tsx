@@ -1,5 +1,6 @@
 'use client';
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -127,6 +128,7 @@ export default function NewBlogPage() {
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeTab, setActiveTab] = useState('content');
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  useRevealLinkLocation(setActiveLanguage, setActiveTab);
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
@@ -914,6 +916,7 @@ export default function NewBlogPage() {
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
                       <LocalizedRichText
+                        fieldPath="summary"
                         label="Final Summary"
                         value={mixedToHtml(formData.summary)}
                         onChange={(val) => handleChange('summary', val)}
@@ -925,6 +928,7 @@ export default function NewBlogPage() {
 
                     <div className="space-y-2">
                       <LocalizedRichText
+                        fieldPath="keyTakeaways"
                         label="Key Takeaways"
                         value={mixedToHtml(formData.keyTakeaways)}
                         onChange={(val) => handleChange('keyTakeaways', val)}

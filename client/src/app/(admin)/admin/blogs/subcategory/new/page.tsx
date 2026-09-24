@@ -1,5 +1,6 @@
 'use client';
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -133,6 +134,7 @@ export default function NewBlogSubCategoryPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  useRevealLinkLocation(setActiveLanguage, setActiveTab);
   const [originalFormData, setOriginalFormData] = useState<BlogSubCategoryFormData | null>(null);
   const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
   const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
@@ -837,6 +839,7 @@ export default function NewBlogSubCategoryPage() {
             </div>
             
             <LocalizedRichText
+              fieldPath="description"
               label="Description"
               value={formData.description}
               onChange={(val) => handleChange('description', val)}
@@ -909,6 +912,7 @@ export default function NewBlogSubCategoryPage() {
                   activeLanguage={activeLanguage}
                 />
                 <LocalizedRichText
+                  fieldPath="heroDescription"
                   label="Hero Description"
                   value={formData.heroDescription || { en: '', de: '', it: '', es: '' }}
                   onChange={(val) => handleChange('heroDescription', val)}
@@ -1184,6 +1188,7 @@ export default function NewBlogSubCategoryPage() {
             
             <div className="space-y-2">
             <LocalizedRichText
+              fieldPath="seo.metaDescription"
               label="Meta Description"
               value={formData.seo?.metaDescription || { en: '', de: '', it: '', es: '' }}
               onChange={(val) => handleChange('seo.metaDescription', val)}

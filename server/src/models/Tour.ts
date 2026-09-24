@@ -1,3 +1,5 @@
+import filterCatalog from '../config/tourFilters.json';
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { IImage, ImageSchema } from './shared/ImageSchema';
@@ -211,10 +213,13 @@ export interface ITour extends Document {
   tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: ILocalizedString;
-  tourStyle?: ILocalizedString;
-  /** Which pricing shape this tour uses. Unlike `tourType`/`tourStyle`, which
-   *  are free localized labels shown to visitors, this one is logic: it decides
+  tourType?: string;
+  tourStyles?: string[];
+  destinations?: mongoose.Types.ObjectId[];
+  durationHours?: number;
+  recommendedOrder?: number;
+  /** Which pricing shape this tour uses. Separate from the product type and
+   *  style IDs used by listing filters, this field decides
    *  which plan names may be stored, and whether the booking form offers the
    *  visitor a package to choose. Optional so tours predating the field keep
    *  loading; the admin sets it on the next edit. */
@@ -834,12 +839,11 @@ const TourSchema = new Schema<ITour>(
     pickupAndDropOff: {
       type: OptionalLocalizedStringSchema,
     },
-    tourType: {
-      type: OptionalLocalizedStringSchema,
-    },
-    tourStyle: {
-      type: OptionalLocalizedStringSchema,
-    },
+    tourType: { type: String, enum: [...Object.keys(filterCatalog.types), ''] },
+    tourStyles: { type: [{ type: String, enum: Object.keys(filterCatalog.styles) }], default: [] },
+    destinations: { type: [{ type: Schema.Types.ObjectId, ref: 'Destination' }], default: [] },
+    durationHours: { type: Number, min: Number.MIN_VALUE },
+    recommendedOrder: { type: Number, min: 0, validate: { validator: (v: number | null) => v == null || Number.isInteger(v), message: 'Recommended order must be an integer' } },
     tourKind: {
       type: String,
       enum: {
@@ -953,6 +957,10 @@ TourSchema.index({ heading: 'text', 'Description.text': 'text' });
 
 // Compound indexes for common queries
 TourSchema.index({ subcategory: 1, isActive: 1 });
+TourSchema.index({ subcategory: 1, isActive: 1, durationHours: 1 });
+TourSchema.index({ subcategory: 1, isActive: 1, tourType: 1 });
+TourSchema.index({ destinations: 1, isActive: 1 });
+TourSchema.index({ tourStyles: 1, isActive: 1 });
 TourSchema.index({ isActive: 1, isFeatured: 1 });
 
 // ==================== VIRTUALS ====================
@@ -1171,5 +1179,6 @@ TourSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 TourSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+TourSchema.plugin(duplicateInternalLinksPlugin);
 
 export default mongoose.model<ITour>('Tour', TourSchema);

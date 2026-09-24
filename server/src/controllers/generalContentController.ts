@@ -1,3 +1,4 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { Request, Response } from 'express';
 import GeneralContent from '../models/GeneralContent';
 
@@ -14,6 +15,7 @@ export const getAllContent = async (_req: Request, res: Response) => {
       data: content,
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching all general content:', error);
     return res.status(500).json({
       success: false,
@@ -45,6 +47,7 @@ export const getContentBySlug = async (req: Request, res: Response) => {
       data: content,
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching general content:', error);
     return res.status(500).json({
       success: false,
@@ -87,6 +90,7 @@ export const upsertContent = async (req: Request, res: Response) => {
       data: updatedContent,
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error upserting general content:', error);
     return res.status(500).json({
       success: false,
@@ -118,6 +122,7 @@ export const toggleActive = async (req: Request, res: Response) => {
       data: content,
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling general content status:', error);
     return res.status(500).json({
       success: false,
@@ -146,6 +151,7 @@ export const deleteContent = async (req: Request, res: Response) => {
       message: 'Content deleted successfully',
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting general content:', error);
     return res.status(500).json({
       success: false,

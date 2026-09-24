@@ -1,3 +1,4 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { narrowFaqsToLocale } from '../utils/localize';
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
@@ -69,6 +70,7 @@ export const getAllFaqs = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching FAQs:', error);
     res.status(500).json({
       success: false,
@@ -94,6 +96,7 @@ export const getHomeFaqs = async (req: Request, res: Response) => {
       data: narrowFaqsToLocale(faqs, req.locale)
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching home FAQs:', error);
     res.status(500).json({
       success: false,
@@ -130,6 +133,7 @@ export const getFaqById = async (req: Request, res: Response): Promise<void> => 
       data: faq
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching FAQ:', error);
     res.status(500).json({
       success: false,
@@ -171,6 +175,7 @@ export const createFaq = async (req: Request, res: Response): Promise<void> => {
       message: 'FAQ created successfully'
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error creating FAQ:', error);
     res.status(500).json({
       success: false,
@@ -221,6 +226,7 @@ export const updateFaq = async (req: Request, res: Response): Promise<void> => {
       message: 'FAQ updated successfully'
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error updating FAQ:', error);
     res.status(500).json({
       success: false,
@@ -259,6 +265,7 @@ export const deleteFaq = async (req: Request, res: Response): Promise<void> => {
       message: 'FAQ deleted successfully'
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting FAQ:', error);
     res.status(500).json({
       success: false,
@@ -277,6 +284,7 @@ export const getFaqCategories = async (_req: Request, res: Response) => {
       data: categories
     });
   } catch (error) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching FAQ categories:', error);
     res.status(500).json({
       success: false,

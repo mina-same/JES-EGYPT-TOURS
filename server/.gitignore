@@ -35,3 +35,6 @@ coverage/
 
 # Misc
 *.pem
+
+# Local migration review/rollback reports (never deploy with the application)
+tour-filter-migration-*.json

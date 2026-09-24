@@ -1,3 +1,4 @@
+import { reportDuplicateLinkResponse } from '@/lib/duplicateLinkFeedback';
 import { API_ENDPOINTS } from '@/config/api';
 import { ILocalizedString, ILocalizedMixed } from '@/types/tour';
 
@@ -190,11 +191,11 @@ class FaqService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = reportDuplicateLinkResponse(await response.json().catch(() => ({})));
         throw new Error(errorData.error || `Failed to create FAQ: ${response.statusText}`);
       }
 
-      return await response.json();
+      return reportDuplicateLinkResponse(await response.json());
     } catch (error) {
       console.error('Error creating FAQ:', error);
       throw error;
@@ -219,11 +220,11 @@ class FaqService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = reportDuplicateLinkResponse(await response.json().catch(() => ({})));
         throw new Error(errorData.error || `Failed to update FAQ: ${response.statusText}`);
       }
 
-      return await response.json();
+      return reportDuplicateLinkResponse(await response.json());
     } catch (error) {
       console.error('Error updating FAQ:', error);
       throw error;
@@ -246,11 +247,11 @@ class FaqService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = reportDuplicateLinkResponse(await response.json().catch(() => ({})));
         throw new Error(errorData.error || `Failed to delete FAQ: ${response.statusText}`);
       }
 
-      return await response.json();
+      return reportDuplicateLinkResponse(await response.json());
     } catch (error) {
       console.error('Error deleting FAQ:', error);
       throw error;

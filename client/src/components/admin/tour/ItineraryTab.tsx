@@ -1,6 +1,7 @@
  'use client';
 
- import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ import { REVEAL_LINK_LOCATION } from '@/lib/duplicateLinkFeedback';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
  import {
    DndContext,
    DragEndEvent,
@@ -147,7 +148,7 @@ export default function ItineraryTab({
   handleImageUpload,
   activeLanguage,
 }: ItineraryTabProps) {
-  const days = formData.itinerary?.days || [];
+  const days = useMemo(() => formData.itinerary?.days || [], [formData.itinerary?.days]);
   const dayIds = useMemo<string[]>(() => days.map(getDayId), [days]);
 
   const sensors = useSensors(
@@ -159,6 +160,24 @@ export default function ItineraryTab({
 
   const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({});
   const [collapsedActivities, setCollapsedActivities] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    const reveal = (event: Event) => {
+      const { path } = (event as CustomEvent<{ path: string }>).detail;
+      const match = path.match(/^itinerary\.days\.(\d+)(?:\.activities\.(\d+))?/);
+      if (!match) return;
+      const day = days[Number(match[1])];
+      if (!day) return;
+      const dayId = getDayId(day);
+      setCollapsedDays((previous) => ({ ...previous, [dayId]: false }));
+      if (match[2]) {
+        const key = `${dayId}-${getActivityId(day.day, Number(match[2]))}`;
+        setCollapsedActivities((previous) => ({ ...previous, [key]: false }));
+      }
+    };
+    window.addEventListener(REVEAL_LINK_LOCATION, reveal);
+    return () => window.removeEventListener(REVEAL_LINK_LOCATION, reveal);
+  }, [days]);
+
 
   useEffect(() => {
     if (!dayIds.length) return;
@@ -263,6 +282,7 @@ export default function ItineraryTab({
         </CardHeader>
         <CardContent>
           <LocalizedRichText
+            fieldPath="itinerary.generalDescription"
             label="General Description"
             value={formData.itinerary?.generalDescription || { en: '', de: '', it: '', es: '' }}
             onChange={(val) => handleChange('itinerary.generalDescription', val)}
@@ -592,6 +612,7 @@ export default function ItineraryTab({
                                                     </div>
 
                                                     <LocalizedRichText
+                                                      fieldPath={`itinerary.days.${dayIndex}.activities.${actIndex}.description`}
                                                       label="Activity Description"
                                                       value={activity.description || { en: '', de: '', it: '', es: '' }}
                                                       onChange={(val) => updateActivity(actIndex, 'description', val)}

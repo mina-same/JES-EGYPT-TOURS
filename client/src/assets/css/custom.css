@@ -1005,6 +1005,86 @@ body {
   width: 100% !important;
 }
 
+/* Mobile drawer: the panel scrolls, the page behind it does not.
+ *
+ * gotur.css sets `overflow: unset` on `.mobile-nav__content` whenever <body>
+ * carries `megamenu-popup-active` — a leftover of the theme's full-screen
+ * megamenu, which this site never renders. LayoutObserver adds that class
+ * every time the drawer opens, so the panel lost its own `overflow-y: auto`
+ * precisely while it was on screen: in 667x375 landscape the Special Offers
+ * link and everything below it sat past the bottom edge with no way to reach
+ * them, and at 320x568 an open submenu pushed the social icons out the same
+ * way. Restoring the scroll on the same selector undoes only that.
+ *
+ * The page lock never held either. The same class puts `overflow: hidden` on
+ * <body>, but `html, body { overflow-x: hidden !important }` at the top of
+ * this file gives <html> a non-visible overflow of its own, so body's value
+ * no longer propagates to the viewport and <html> is the element that
+ * scrolls: a touch drag on the overlay moved the page underneath by
+ * 385–566px. The lock therefore goes on <html>, keyed through `:has()` to
+ * the same class, so it exists only while the drawer is open and needs no
+ * script. A browser without `:has()` (Firefox before 121) drops the rule and
+ * behaves exactly as before. `scrollbar-gutter: stable` keeps the gutter
+ * while the bar is hidden, so a narrow desktop window does not reflow behind
+ * the overlay.
+ *
+ * `100dvh`: with `100vh` a phone's browser toolbar covers the bottom of the
+ * drawer, which is exactly where the last controls end up once it scrolls.
+ * Engines without `dvh` ignore the declaration and keep gotur.css's 100vh. */
+.mobile-nav__wrapper {
+  height: 100dvh;
+}
+body.megamenu-popup-active .mobile-nav__content {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+html:has(> body.megamenu-popup-active) {
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+
+/* Drawer parents now put the label link and the chevron button side by side
+ * in `.main-menu__list__wrapper` (the level-2 pattern) instead of nesting the
+ * button inside the link. Two things only reached a label that was the row's
+ * direct child: the theme's hover colour (`> li:hover > a`, gotur.css) and
+ * the row-wide tap area the old <a> had. Both carry over to the wrapped
+ * label, so the row looks and taps as before — minus the chevron, which is
+ * now its own target. */
+.mobile-nav__content .main-menu__list > li:hover > .main-menu__list__wrapper > a {
+  color: var(--gotur-base, #63ab45);
+  text-shadow: 0 0 0.5px currentColor;
+}
+.mobile-nav__content .main-menu__list > li > .main-menu__list__wrapper > a {
+  flex: 1 1 auto;
+}
+
+/* On every open after the first, gotur.css kept the panel `visibility: hidden`
+ * for 500 ms while the dialog was already open and modal. Nothing in it could
+ * take focus: the close button, which has its own `transition: all`, turned
+ * visible for a single frame, took focus, and was hidden again on the next —
+ * dropping focus onto <body> with the page behind the overlay in the tab
+ * order. Opacity and the slide keep the same 500 ms delay, so the panel looks
+ * exactly as before; only visibility no longer waits. The panel is still off
+ * screen (translateX(-100%)) during that time, so nothing in it can be hit by
+ * a pointer before it has slid in. */
+.mobile-nav__wrapper.expanded .mobile-nav__content {
+  transition: opacity 500ms ease 500ms, visibility 0s linear 0s,
+    transform 500ms ease 500ms;
+}
+
+/* Submenu chevron. gotur.css draws it white on the gold fill, 2.10:1 — under
+ * the 3:1 an icon needs; dark on gold is 7.61:1. The expanded state (dark on
+ * white) already has this colour, so only the collapsed chevron changes.
+ * gotur.css also sets `outline: none` with nothing in its place: the ring is
+ * white, 2px clear of the button, on the dark panel. */
+.mobile-nav__content .main-menu__list li .main-menu__list__wrapper button {
+  color: var(--gotur-black, #1d231f);
+}
+.mobile-nav__content .main-menu__list li .main-menu__list__wrapper button:focus-visible {
+  outline: 2px solid var(--gotur-white, #fff);
+  outline-offset: 2px;
+}
+
 /* (Legacy .main-slider-four__form overrides removed — the theme's
    absolute-positioned rules they neutralized were deleted from gotur.css.) */
 
@@ -3488,6 +3568,17 @@ body {
 /* Ensure only custom navigation buttons are visible */
 .feature-package__bottom__nav {
   display: flex !important;
+}
+
+/* Carousel prev/next buttons (Why Choose Us, Featured Tours, Testimonials).
+   gotur.css sets `outline: none` on all three with no replacement, so
+   keyboard focus showed nothing. Same ring colour as the desktop dropdown's
+   focus ring: #7a5f12 on these light sections. */
+.destinations-two__bottom__nav button:focus-visible,
+.feature-package__bottom__nav button:focus-visible,
+.testimonials-two__bottom__nav button:focus-visible {
+  outline: 2px solid #7a5f12;
+  outline-offset: 3px;
 }
 
 /* Hide browser extension attributes that cause hydration issues */
@@ -8096,6 +8187,15 @@ button.mobile-nav__close:focus-visible {
   outline-offset: 3px;
 }
 
+/* The reset's `color: inherit` also beat gotur.css's white on the drawer's
+   close button (`button.mobile-nav__close` outranks `.mobile-nav__close`),
+   so the icon took the page's near-black body text: #020817 on the #1d231f
+   panel, 1.25:1. Restored by class, as the search toggle is below. The
+   theme's gold `.mobile-nav__close:hover` still wins over this. */
+button.mobile-nav__close {
+  color: var(--gotur-white, #fff);
+}
+
 /* The header's search toggle used to be an <a>, and the theme styles the
    header icons ONLY through `.main-header__info a` selectors (gotur.css and
    globals.css). As a <button> it lost all of them: its colour (the reset's
@@ -8344,6 +8444,21 @@ button.mobile-nav__close:focus-visible {
 
 .search-popup__close:focus-visible {
   outline: 3px solid var(--gotur-primary, #b79c5c);
+  outline-offset: 3px;
+}
+
+/* Tailwind's preflight greys every placeholder to #9ca3af: 2.54:1 on the
+   white field, and "Search here..." is the field's only visible prompt.
+   #6b7280 is 4.83:1. The typed text keeps its own colour. */
+.search-popup__form input::placeholder {
+  color: #6b7280;
+}
+
+/* gotur.css removes the field's outline and only darkens its text on focus,
+   which left a keyboard user nothing but the caret. The ring sits in the
+   dimmed backdrop, 3px clear of the white field — the close button's ring. */
+.search-popup__form input[type="search"]:focus-visible {
+  outline: 3px solid var(--gotur-primary, #f4d03f);
   outline-offset: 3px;
 }
 

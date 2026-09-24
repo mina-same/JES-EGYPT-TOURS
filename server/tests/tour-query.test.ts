@@ -2,18 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   applyStartingPriceFilter,
-  exactLocalizedValueFilter,
+  effectiveStartingPriceExpression,
   parseTourFields,
   parseTourPagination,
   parseTourSort,
   TourQueryValidationError,
 } from '../src/utils/tourQuery';
-
-test('localized type filters target the selected locale and escape regex syntax', () => {
-  assert.deepEqual(exactLocalizedValueFilter('tourType', 'de', 'Privat (VIP)+'), {
-    'tourType.de': { $regex: '^Privat \\(VIP\\)\\+$', $options: 'i' },
-  });
-});
 
 test('pagination normalizes invalid values and caps large pages', () => {
   assert.deepEqual(parseTourPagination('-2', '0'), { page: 1, limit: 10, skip: 0 });
@@ -29,7 +23,8 @@ test('sort uses the request locale and selected currency', () => {
 test('USD price filters use the displayed starting price and validate input', () => {
   const filter: Record<string, unknown> = {};
   applyStartingPriceFilter(filter, '90', '120', 'USD');
-  assert.deepEqual(filter, { 'priceStartingFrom.USD': { $gte: 90, $lte: 120 } });
+  const price = effectiveStartingPriceExpression('USD', 1);
+  assert.deepEqual(filter, { $expr: { $and: [{ $gt: [price, 0] }, { $gte: [price, 90] }, { $lte: [price, 120] }] } });
 
   assert.throws(
     () => applyStartingPriceFilter({}, '.', undefined, 'USD'),
@@ -44,14 +39,8 @@ test('USD price filters use the displayed starting price and validate input', ()
 test('non-USD filters fall back to converted USD when no exact price exists', () => {
   const filter: Record<string, unknown> = {};
   applyStartingPriceFilter(filter, '80', undefined, 'EUR', 0.92);
-  assert.deepEqual(filter, {
-    $expr: {
-      $gte: [
-        { $ifNull: ['$priceStartingFrom.EUR', { $multiply: ['$priceStartingFrom.USD', 0.92] }] },
-        80,
-      ],
-    },
-  });
+  const price = effectiveStartingPriceExpression('EUR', 0.92);
+  assert.deepEqual(filter, { $expr: { $and: [{ $gt: [price, 0] }, { $gte: [price, 80] }] } });
 });
 
 test('public field selection drops private or oversized fields', () => {

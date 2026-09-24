@@ -122,8 +122,11 @@ export interface ITour {
   tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: ILocalizedString;
-  tourStyle?: ILocalizedString;
+  tourType?: string;
+  tourStyles?: string[];
+  destinations?: string[];
+  durationHours?: number | null;
+  recommendedOrder?: number | null;
   /** Day tour or package — decides which pricing plans are allowed and
    *  whether the booking form asks the visitor to choose one. */
   tourKind?: 'DAY_TOUR' | 'PACKAGE';
@@ -338,8 +341,11 @@ export interface TourFormData {
   tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: ILocalizedString;
-  tourStyle?: ILocalizedString;
+  tourType?: string;
+  tourStyles?: string[];
+  destinations?: string[];
+  durationHours?: number | null;
+  recommendedOrder?: number | null;
   /** Day tour or package — decides which pricing plans are allowed and
    *  whether the booking form asks the visitor to choose one. */
   tourKind?: 'DAY_TOUR' | 'PACKAGE';

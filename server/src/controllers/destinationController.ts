@@ -1,3 +1,4 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import Destination, { IDestination } from '../models/Destination';
@@ -6,7 +7,12 @@ import { FilterQuery } from 'mongoose';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
-import { blogCardPopulate } from '../utils/blogCardPopulate';
+import {
+  BLOG_LISTING_FIELDS,
+  BLOG_LISTING_POPULATE,
+  BLOG_WITHOUT_COMMENTS,
+  blogCardPopulate,
+} from '../utils/blogCardPopulate';
 
 interface QueryParams {
   isActive?: string;
@@ -62,6 +68,7 @@ export const getAllDestinations = async (
       data: localizePreservingSlugs(destinations, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     res.status(500).json({ success: false, error: 'Failed to fetch destinations', message: error.message });
   }
 };
@@ -74,7 +81,7 @@ export const getAllDestinations = async (
 export const getDestinationById = async (req: Request, res: Response): Promise<void> => {
   try {
     const destination = await Destination.findById(req.params.id)
-      .populate('featuredBlogs')
+      .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
       .populate('relatedDestinations', 'name slug coverImage')
       .lean();
 
@@ -84,6 +91,7 @@ export const getDestinationById = async (req: Request, res: Response): Promise<v
     }
     res.status(200).json({ success: true, data: destination });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     if (error.name === 'CastError') {
       res.status(400).json({ success: false, error: 'Invalid destination ID format' });
       return;
@@ -124,6 +132,7 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
     // `faqs` to the rows this language can render.
     res.status(200).json({ success: true, data: localizePreservingSlugs(destination, req.locale) });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     res.status(500).json({ success: false, error: 'Failed to fetch destination', message: error.message });
   }
 };
@@ -160,18 +169,26 @@ export const getBlogsByDestination = async (req: Request, res: Response): Promis
     };
 
     const [blogs, total] = await Promise.all([
+      // The same card as the blog category and subcategory listings: only what
+      // the destination page's article grid draws (see BLOG_LISTING_FIELDS),
+      // which also leaves `comments` out. The page renders on the server and
+      // hands this list to a Client Component, so every field sent here is
+      // serialized into its HTML as well.
       Blog.find(filter)
+        .select(BLOG_LISTING_FIELDS)
+        .populate(BLOG_LISTING_POPULATE)
         .sort('-publishedAt')
         .skip(skip)
         .limit(limit)
-        .populate('author', 'name')
         .lean(),
       Blog.countDocuments(filter),
     ]);
 
     res.status(200).json({
       success: true,
-      data: blogs,
+      // Localized like those listings, with every `slug` kept whole so a card
+      // still links to its article in each language.
+      data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
         page,
         pages: Math.ceil(total / limit),
@@ -180,6 +197,7 @@ export const getBlogsByDestination = async (req: Request, res: Response): Promis
       },
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     res.status(500).json({ success: false, error: 'Failed to fetch destination blogs', message: error.message });
   }
 };
@@ -203,6 +221,7 @@ export const createDestination = async (req: Request, res: Response): Promise<vo
     const destination = await Destination.create(body);
     res.status(201).json({ success: true, message: 'Destination created successfully', data: destination });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       res.status(400).json({ success: false, error: `Destination with this ${field} already exists` });
@@ -245,6 +264,7 @@ export const updateDestination = async (req: Request, res: Response): Promise<vo
 
     res.status(200).json({ success: true, message: 'Destination updated successfully', data: destination });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Update Destination Server Error:', error);
     if (error.name === 'CastError') {
       res.status(400).json({ success: false, error: 'Invalid destination ID format' });
@@ -279,6 +299,7 @@ export const deleteDestination = async (req: Request, res: Response): Promise<vo
     await destination.deleteOne();
     res.status(200).json({ success: true, message: 'Destination deleted successfully' });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     if (error.name === 'CastError') {
       res.status(400).json({ success: false, error: 'Invalid destination ID format' });
       return;
@@ -307,6 +328,7 @@ export const toggleDestinationStatus = async (req: Request, res: Response): Prom
       data: destination,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     res.status(500).json({ success: false, error: 'Failed to toggle destination status', message: error.message });
   }
 };

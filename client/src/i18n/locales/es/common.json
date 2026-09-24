@@ -298,7 +298,9 @@
   },
   "menu": {
     "open": "Abrir menú",
-    "close": "Cerrar menú"
+    "close": "Cerrar menú",
+    "expandSubmenu": "Expandir el submenú {{label}}",
+    "collapseSubmenu": "Contraer el submenú {{label}}"
   },
   "search": {
     "open": "Abrir búsqueda",

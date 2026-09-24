@@ -27,15 +27,22 @@ import {
 } from "@/lib/api/tour.server";
 import { resolveSlug } from "@/lib/api/resolve.server";
 import {
-  type BlogResponse,
+  type BlogCategory,
+  type BlogListResponse,
   type BlogSubCategory,
+  getBlogsByCategory,
   getBlogsBySubCategory,
   getCategoryBySlug as getBlogCategoryBySlug,
   getSubCategoriesByCategory as getBlogSubCategoriesByCategory,
   getSubCategoryBySlug as getBlogSubCategoryBySlug,
   getBlogBySlug,
 } from "@/lib/api/blog";
-import { getDestinationBySlug } from "@/lib/api/destination";
+import {
+  getBlogsByDestination,
+  getDestinationBySlug,
+  type Destination,
+  type DestinationBlogsResponse,
+} from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
@@ -567,12 +574,14 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   const listingQuery = validPriceRange ? {
     page,
     limit: 9,
-    sort: firstQueryValue(query.sort) || '-createdAt',
+    sort: firstQueryValue(query.sort) || 'recommended',
     search: firstQueryValue(query.search) || undefined,
     minPrice: parsedMinPrice,
     maxPrice: parsedMaxPrice,
     tourType: firstQueryValue(query.tourType) || undefined,
-    tourStyle: firstQueryValue(query.tourStyle) || undefined,
+    tourStyles: firstQueryValue(query.tourStyles) || firstQueryValue(query.tourStyle) || undefined,
+    destinations: firstQueryValue(query.destinations) || undefined,
+    durationRange: firstQueryValue(query.durationRange) || undefined,
     currency,
   } : null;
   /*
@@ -681,17 +690,67 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   {
     let redirectTarget: string | null = null;
     let renderBlogCategory = false;
+    let categoryData: BlogCategory | null = null;
+    let initialSubcategories: BlogSubCategory[] = [];
+    let initialBlogsData: BlogListResponse | null = null;
+    let blogListingError: unknown = null;
     try {
       if (resolved?.type === "blogCategory") {
         if (resolved.correctSlug !== slug) {
           redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
+          const data = resolved.data as BlogCategory;
+          categoryData = data;
           renderBlogCategory = true;
+
+          /*
+           * The two reads BlogCategoryView used to make in the browser after
+           * hydration, with the same arguments, made here instead — so the
+           * HTML carries the heading, the topic cards and the article cards
+           * rather than a spinner. Both need only what the resolver already
+           * returned, so they run together.
+           *
+           * The listing is keyed by the English slug, as the view always did:
+           * the endpoint matches any language's slug, and one spelling keeps
+           * one cache entry per page and locale. `page` is this route's own
+           * parse of ?page=, so a crawler following the pager's
+           * <a href="?page=2"> gets page 2's cards in the HTML.
+           */
+          const baseSlug = typeof data.slug === "object" ? data.slug?.en : data.slug;
+          const [subcategoriesResult, blogsResult] = await Promise.allSettled([
+            getBlogSubCategoriesByCategory(data._id, locale),
+            getBlogsByCategory(baseSlug || slug, page, 9, locale),
+          ]);
+
+          // The topic cards are secondary: without them the page still has its
+          // heading, copy and articles, so a failure drops just that section.
+          if (subcategoriesResult.status === "fulfilled" && Array.isArray(subcategoriesResult.value)) {
+            initialSubcategories = subcategoriesResult.value;
+          }
+          // The article list IS the page. Rendering without it would answer a
+          // 200 with nothing to index, so the failure is rethrown below — a
+          // 500 is retried by a crawler; an empty 200 is indexed as thin.
+          if (blogsResult.status === "fulfilled") {
+            initialBlogsData = blogsResult.value;
+          } else {
+            blogListingError = blogsResult.reason;
+          }
         }
       }
     } catch { /* API error — fall through */ }
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderBlogCategory) return <BlogCategoryView slug={slug} locale={locale} />;
+    if (blogListingError) throw blogListingError;
+    if (renderBlogCategory && categoryData && initialBlogsData) {
+      return (
+        <BlogCategoryView
+          slug={slug}
+          locale={locale}
+          category={categoryData}
+          subcategories={initialSubcategories}
+          blogsData={initialBlogsData}
+        />
+      );
+    }
   }
 
   // ── 4. Blog Subcategory ────────────────────────────────────────────────────
@@ -699,7 +758,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     let redirectTarget: string | null = null;
     let renderBlogSubcategory = false;
     let subcategoryData: BlogSubCategory | null = null;
-    let initialBlogsData: BlogResponse | null = null;
+    let initialBlogsData: BlogListResponse | null = null;
     let initialSiblingSubcategories: BlogSubCategory[] = [];
     let blogListingError: unknown = null;
     try {
@@ -860,18 +919,46 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   // ── 5.5. Destination ──────────────────────────────────────────────────
   {
     let redirectTarget: string | null = null;
-    let renderDestination = false;
+    let destinationData: Destination | null = null;
+    let initialBlogsData: DestinationBlogsResponse | null = null;
+    let blogListingError: unknown = null;
     try {
       if (resolved?.type === "destination") {
         if (resolved.correctSlug !== slug) {
           redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
-          renderDestination = true;
+          /*
+           * DestinationView used to read the destination and its article list
+           * in the browser after hydration, so the HTML carried a spinner. The
+           * destination is the entity the resolver already read; only the
+           * article list is fetched here, for this route's own parse of ?page=,
+           * so a crawler following the pager's <a href="?page=2"> gets page 2's
+           * cards in the HTML.
+           */
+          destinationData = resolved.data as Destination;
+          try {
+            initialBlogsData = await getBlogsByDestination(destinationData._id, page, 9, locale);
+          } catch (error) {
+            // Rendering without the article list would answer a 200 missing
+            // this page's cards and links; a 500 is retried by a crawler, as
+            // the blog listings do.
+            blogListingError = error;
+          }
         }
       }
     } catch { /* API error — fall through */ }
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderDestination) return <DestinationView slug={slug} locale={locale} />;
+    if (blogListingError) throw blogListingError;
+    if (destinationData && initialBlogsData) {
+      return (
+        <DestinationView
+          slug={slug}
+          locale={locale}
+          destination={destinationData}
+          blogsData={initialBlogsData}
+        />
+      );
+    }
   }
 
   // ── 6. Tour ───────────────────────────────────────────────────────────────

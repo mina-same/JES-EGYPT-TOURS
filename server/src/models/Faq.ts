@@ -1,3 +1,4 @@
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document } from 'mongoose';
 import { LocalizedStringSchema, LocalizedMixedSchema, ILocalizedString, ILocalizedMixed } from './shared/LocalizedSchema';
 import { revalidateTags } from '../services/revalidate';
@@ -104,6 +105,7 @@ FaqSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 FaqSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 FaqSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 FaqSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+FaqSchema.plugin(duplicateInternalLinksPlugin);
 
 const Faq = mongoose.models.Faq || mongoose.model<IFaq>('Faq', FaqSchema);
 

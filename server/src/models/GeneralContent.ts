@@ -1,3 +1,4 @@
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document } from 'mongoose';
 import { LocalizedStringSchema, LocalizedMixedSchema, ILocalizedString, ILocalizedMixed } from './shared/LocalizedSchema';
 import { revalidateTags } from '../services/revalidate';
@@ -78,6 +79,7 @@ GeneralContentSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 GeneralContentSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 GeneralContentSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 GeneralContentSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+GeneralContentSchema.plugin(duplicateInternalLinksPlugin);
 
 const GeneralContent = mongoose.model<IGeneralContent>('GeneralContent', GeneralContentSchema);
 

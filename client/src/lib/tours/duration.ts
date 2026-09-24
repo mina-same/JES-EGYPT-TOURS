@@ -8,8 +8,8 @@
  * list. So the list lives here, already translated, and the admin picks one
  * entry that writes all four languages at once.
  *
- * The stored shape is unchanged — still `{ en, de, it, es }` — so nothing on the
- * visitor side, in the API, or in the database has to know this file exists.
+ * The localized display shape is unchanged — still `{ en, de, it, es }` — so nothing on the
+ * visitor side needs to parse it. Each option also supplies canonical hours.
  * Tours saved before the catalogue keep whatever text they hold; the editor
  * surfaces such a value as "custom" rather than silently rewriting it.
  */
@@ -19,8 +19,9 @@ export type DurationLocale = 'en' | 'de' | 'it' | 'es';
 export type DurationLabels = Record<DurationLocale, string>;
 
 export interface DurationOption {
-  /** Stable key for the picker. Never stored — the labels are what get saved. */
+  /** Stable key for the picker. Picker-only ID — the labels are what get saved. */
   id: string;
+  hours: number;
   /** Which of the two picker groups this belongs to. */
   group: 'hours' | 'days';
   labels: DurationLabels;
@@ -34,6 +35,7 @@ const MAX_DAYS = 20;
 
 const hourOption = (hours: number): DurationOption => ({
   id: `h${hours}`,
+  hours,
   group: 'hours',
   labels: {
     en: `${hours} Hours`,
@@ -48,6 +50,7 @@ const dayOption = (days: number): DurationOption => {
   const plural = nights > 1;
   return {
     id: `d${days}`,
+    hours: days * 24,
     group: 'days',
     labels: {
       en: `${days} Days / ${nights} ${plural ? 'Nights' : 'Night'}`,

@@ -21,13 +21,14 @@ interface DurationSelectProps {
   /** The stored `{ en, de, it, es }` duration. */
   value?: Partial<DurationLabels>;
   /** Receives the complete four-language object, ready to store as-is. */
-  onChange: (value: DurationLabels) => void;
+  onChange: (value: DurationLabels, hours: number | null) => void;
 }
 
 interface Choice {
   value: string;
   label: string;
   labels?: DurationLabels;
+  hours?: number;
   /** Set on the stand-in built for a value that predates the catalogue. */
   isCustom?: boolean;
 }
@@ -39,6 +40,7 @@ const LOCALES: DurationLocale[] = ['en', 'de', 'it', 'es'];
 
 const toChoice = (option: DurationOption): Choice => ({
   value: option.id,
+  hours: option.hours,
   label: option.labels.en,
   labels: option.labels,
 });
@@ -77,17 +79,17 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
 
   const selected: Choice | null = matched ? toChoice(matched) : customChoice;
 
-  const apply = (option: DurationOption) => onChange({ ...option.labels });
+  const apply = (option: DurationOption) => onChange({ ...option.labels }, option.hours);
 
   const handleSelect = (choice: Choice | null) => {
     if (!choice) {
-      onChange({ ...EMPTY_DURATION });
+      onChange({ ...EMPTY_DURATION }, null);
       return;
     }
     // The custom stand-in is only there so the saved text stays visible and
     // selected; re-picking it must not turn one language into all four.
     if (choice.isCustom || !choice.labels) return;
-    onChange({ ...choice.labels });
+    onChange({ ...choice.labels }, choice.hours ?? null);
   };
 
   /**

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,13 +17,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
-import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 
 export default function NewGeneralContentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  useRevealLinkLocation(setActiveLanguage);
   const [formData, setFormData] = useState({
     slug: '',
     title: { en: '', de: '', it: '', es: '' },
@@ -100,6 +101,7 @@ export default function NewGeneralContentPage() {
             <div className="grid gap-4">
               <div className="space-y-2">
                 <LocalizedField
+                  fieldPath="title"
                   label="Display Title"
                   value={formData.title}
                   globalLanguage={activeLanguage}
@@ -117,6 +119,7 @@ export default function NewGeneralContentPage() {
 
               <div className="space-y-2">
                 <LocalizedField
+                  fieldPath="subtitle"
                   label="Subtitle (Optional)"
                   value={formData.subtitle}
                   globalLanguage={activeLanguage}
@@ -134,6 +137,7 @@ export default function NewGeneralContentPage() {
 
               <div className="space-y-2">
                 <LocalizedField
+                  fieldPath="content"
                   label="Main Content (HTML)"
                   value={formData.content}
                   globalLanguage={activeLanguage}
@@ -201,7 +205,6 @@ export default function NewGeneralContentPage() {
         </div>
       </div>
 
-      <InternalLinksAudit entity={formData} />
     </div>
   );
 }

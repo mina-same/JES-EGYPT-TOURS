@@ -1,10 +1,11 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import TourCategory from '../models/TourCategory';
 import { FilterQuery } from 'mongoose';
 import { ITourCategory } from '../models/TourCategory';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
-import { blogCardPopulate } from '../utils/blogCardPopulate';
+import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -110,6 +111,7 @@ export const getAllCategories = async (
       data: localizePreservingSlugs(categories, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour categories:', error);
     res.status(500).json({
       success: false,
@@ -131,7 +133,7 @@ export const getCategoryById = async (
   try {
     const category = await TourCategory.findById(req.params.id)
       .populate('subcategoriesCount')
-      .populate('featuredBlogs')
+      .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
       .populate('featuredDestinations')
       .lean();
 
@@ -148,6 +150,7 @@ export const getCategoryById = async (
       data: category,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour category:', error);
     
     // Handle invalid ObjectId
@@ -209,6 +212,7 @@ export const getCategoryBySlug = async (
       data: localizePreservingSlugs(category, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour category by slug:', error);
     res.status(500).json({
       success: false,
@@ -236,6 +240,7 @@ export const createCategory = async (
       data: category,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error creating tour category:', error);
 
     // Handle duplicate key error
@@ -327,6 +332,7 @@ export const updateCategory = async (
       data: category,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error updating tour category:', error);
 
     // Handle invalid ObjectId
@@ -394,6 +400,7 @@ export const deleteCategory = async (
       message: 'Tour category deleted successfully',
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting tour category:', error);
 
     // Handle invalid ObjectId
@@ -452,6 +459,7 @@ export const toggleCategoryStatus = async (
       data: category,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling category status:', error);
     res.status(500).json({
       success: false,

@@ -1,5 +1,7 @@
 'use client';
 
+import { hasCompleteFaqLocalePair } from '@/lib/faqCleanup';
+import { REVEAL_LINK_LOCATION } from '@/lib/duplicateLinkFeedback';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   DndContext,
@@ -143,6 +145,22 @@ export default function FaqManager({
 
   const [collapsedFaqs, setCollapsedFaqs] = useState<Record<string, boolean>>({});
   const [langFilter, setLangFilter] = useState<'all' | AdminLanguage>('all');
+  React.useEffect(() => {
+    const reveal = (event: Event) => {
+      const detail = (event as CustomEvent<{ path: string; locale: AdminLanguage; resolvedPath: string }>).detail;
+      const { path, locale } = detail;
+      const match = path.match(/^faqs\.(\d+)/);
+      if (!match) return;
+      const savedFaq = faqs.filter(hasCompleteFaqLocalePair)[Number(match[1])];
+      const index = faqs.indexOf(savedFaq);
+      if (index < 0) return;
+      detail.resolvedPath = path.replace(/^faqs\.\d+/, `faqs.${index}`);
+      setLangFilter(locale);
+      setCollapsedFaqs((previous) => ({ ...previous, [getFaqId(faqs[index], index)]: false }));
+    };
+    window.addEventListener(REVEAL_LINK_LOCATION, reveal);
+    return () => window.removeEventListener(REVEAL_LINK_LOCATION, reveal);
+  }, [faqs]);
   const isFiltered = langFilter !== 'all';
   // While filtering, opened rows must show the FILTER language's inputs,
   // not the global admin tab's — the per-field tabs still allow overriding.
@@ -454,6 +472,7 @@ export default function FaqManager({
                               </div>
 
                               <LocalizedField
+                                fieldPath={`faqs.${index}.question`}
                                 label="Question"
                                 value={faq.question}
                                 globalLanguage={effectiveLanguage}
@@ -470,6 +489,7 @@ export default function FaqManager({
                               </LocalizedField>
 
                               <LocalizedField
+                                fieldPath={`faqs.${index}.answer`}
                                 label="Answer"
                                 value={faq.answer}
                                 globalLanguage={effectiveLanguage}

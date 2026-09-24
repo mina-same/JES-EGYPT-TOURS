@@ -1,3 +1,4 @@
+import { revalidateTags } from '../services/revalidate';
 import { Request, Response } from 'express';
 import CurrencyConfig from '../models/CurrencyConfig';
 
@@ -74,6 +75,7 @@ export const updateRates = async (req: Request, res: Response) => {
       await config.save();
     }
 
+    revalidateTags(['tours']);
     return res.status(200).json({
       success: true,
       message: 'Exchange rates updated successfully',

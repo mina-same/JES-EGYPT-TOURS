@@ -1,5 +1,6 @@
 "use client";
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import React, { useCallback, useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -16,7 +17,6 @@ import AdminLanguageTabs, { type AdminLanguage } from "@/components/admin/AdminL
 import LocalizedField from "@/components/admin/LocalizedField";
 import FaqPlacementField from "@/components/admin/FaqPlacementField";
 import RichTextEditor from "@/components/ui/RichTextEditor";
-import { InternalLinksAudit } from "@/components/admin/InternalLinksAudit";
 
 interface AdminFAQEditPageProps {
   params: Promise<{
@@ -31,6 +31,7 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
   const [saving, setSaving] = useState(false);
   const [faq, setFaq] = useState<FAQ | null>(null);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>("en");
+  useRevealLinkLocation(setActiveLanguage);
   const [formData, setFormData] = useState<FAQUpdateRequest>({
     question: { en: "", de: "", it: "", es: "" },
     answer: { en: "", de: "", it: "", es: "" },
@@ -173,6 +174,7 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-4">
                 <LocalizedField
+                  fieldPath="question"
                   label="Question *"
                   value={formData.question as any}
                   globalLanguage={activeLanguage}
@@ -212,6 +214,7 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
 
             <div className="space-y-4">
               <LocalizedField
+                fieldPath="answer"
                 label="Answer *"
                 value={formData.answer as any}
                 globalLanguage={activeLanguage}
@@ -284,7 +287,6 @@ const AdminFAQEdit: React.FC<AdminFAQEditPageProps> = ({ params }) => {
         </CardContent>
       </Card>
 
-      <InternalLinksAudit entity={formData} />
 
       {/* FAQ Info */}
       <Card>

@@ -20,15 +20,15 @@ import dynamic from "next/dynamic";
  * react-datepicker and the phone input out of the tour page's own first load,
  * and this one keeps all of it off the other six page types.
  *
- * SSR stays ON, so the tour page's markup, headings and booking form are
- * unchanged in the server HTML; `loading` is only ever seen on a client-side
- * navigation and reserves a viewport so the page does not collapse mid-transition.
+ * SSR stays ON, and there is deliberately NO `loading` option: it would wrap
+ * the view in a <Suspense> boundary, and React's server renderer streams a
+ * large completed boundary out of line, hidden at the end of the document
+ * until an inline script moves it into place. The itinerary, pricing and FAQ
+ * were invisible with JavaScript off. Without the boundary the view is
+ * written inline; the chunk is still split and still preloaded.
+ *
+ * BookingFormLazy, inside this view, keeps ITS boundary on purpose; see there.
  */
-const TourListingOneDetailsLazy = dynamic(
-  () => import("./TourListingDetailsOne"),
-  {
-    loading: () => <div style={{ minHeight: "100vh" }} aria-hidden="true" />,
-  }
-);
+const TourListingOneDetailsLazy = dynamic(() => import("./TourListingDetailsOne"));
 
 export default TourListingOneDetailsLazy;

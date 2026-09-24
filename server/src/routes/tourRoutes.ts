@@ -214,7 +214,7 @@ router.get('/subcategories/:subcategoryId/tours', optionalProtect, getToursBySub
  * @desc    Get all tours with advanced filtering, pagination, and sorting
  * @access  Public
  * @query   ?subcategory=id&category=id&isActive=true&isFeatured=true&search=dubai
- *          &minPrice=100&maxPrice=500&tourType=private&tourStyle=luxury
+ *          &minPrice=100&maxPrice=500&tourType=multi-day&tourStyles=luxury,honeymoon&durationRange=4-6
  *          &page=1&limit=10&sort=-createdAt&fields=heading,slug,images
  */
 router.get('/', optionalProtect, getAllTours);

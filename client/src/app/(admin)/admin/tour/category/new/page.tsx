@@ -1,5 +1,6 @@
 'use client';
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -94,6 +95,7 @@ export default function NewCategoryPage() {
   const [fetchingData, setFetchingData] = useState(isEditMode);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  useRevealLinkLocation(setActiveLanguage, setActiveTab);
   const [originalFormData, setOriginalFormData] = useState<TourCategoryFormData | null>(null);
   const [knownEditVersion, setKnownEditVersion] = useState<number>(0);
   const [draftStatus, setDraftStatus] = useState<'none' | 'safe' | 'stale-no-version' | 'stale-version-mismatch'>('none');
@@ -874,6 +876,7 @@ export default function NewCategoryPage() {
             </div>
             
             <LocalizedRichText
+              fieldPath="description"
               label="Description"
               value={formData.description}
               onChange={(val, lang) => handleChange('description', val, lang)}
@@ -1032,6 +1035,7 @@ export default function NewCategoryPage() {
             </div>
 
             <LocalizedRichText
+              fieldPath="sectionHeader.description"
               label="Section Description"
               value={formData.sectionHeader?.description || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('sectionHeader.description', val, lang)}
@@ -1200,6 +1204,7 @@ export default function NewCategoryPage() {
               />
 
               <LocalizedRichText
+                fieldPath="bottomSection.description"
                 label="SEO Content Body"
                 value={formData.bottomSection?.description || { en: '', de: '', it: '', es: '' }}
                 onChange={(val, lang) => handleChange('bottomSection.description', val, lang)}

@@ -1,3 +1,4 @@
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import { revalidateTags } from '../services/revalidate';
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
@@ -649,5 +650,6 @@ BlogSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 BlogSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 BlogSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 BlogSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+BlogSchema.plugin(duplicateInternalLinksPlugin);
 
 export default mongoose.model<IBlog>('Blog', BlogSchema);

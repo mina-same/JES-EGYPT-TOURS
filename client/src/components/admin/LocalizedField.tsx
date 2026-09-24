@@ -1,5 +1,6 @@
 "use client";
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import React, { useState } from "react";
 import { GB, DE, IT, ES } from "country-flag-icons/react/3x2";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ interface LocalizedFieldProps {
   globalLanguage?: AdminLanguage;
   /** Additional class for the wrapper */
   className?: string;
+  fieldPath?: string;
   /** Hide per-field tabs when a page-level language switcher is used */
   hideLanguageTabs?: boolean;
   /** Render the actual input/textarea/editor as a function-child, receiving the active language value and a change handler */
@@ -54,12 +56,15 @@ export function LocalizedField({
   label,
   globalLanguage,
   className,
+  fieldPath,
   hideLanguageTabs = false,
   children,
 }: LocalizedFieldProps) {
   const [activeLang, setActiveLang] = useState<AdminLanguage>(
     globalLanguage || "en"
   );
+
+  useRevealLinkLocation(setActiveLang);
 
   // Sync with global language tab if provided
   React.useEffect(() => {
@@ -89,7 +94,7 @@ export function LocalizedField({
     typeof label === "function" ? label(activeLang) : label;
 
   return (
-    <div className={cn("space-y-1", className)}>
+    <div data-field={fieldPath} className={cn("space-y-1", className)}>
       {/* Language tab strip */}
       <div className="flex min-w-0 items-center gap-1">
         {resolvedLabel && (

@@ -1,0 +1,23 @@
+{
+  "types": {
+    "multi-day": {"en":"Multi-Day Tour","de":"Mehrtägige Reise","it":"Tour di più giorni","es":"Tour de varios días"},
+    "nile-cruise": {"en":"Nile Cruise","de":"Nilkreuzfahrt","it":"Crociera sul Nilo","es":"Crucero por el Nilo"},
+    "day-tour": {"en":"Day Tour","de":"Tagesausflug","it":"Escursione giornaliera","es":"Excursión de un día"},
+    "shore-excursion": {"en":"Shore Excursion","de":"Landausflug","it":"Escursione a terra","es":"Excursión en tierra"}
+  },
+  "styles": {
+    "classic": {"en":"Classic","de":"Klassisch","it":"Classico","es":"Clásico"},
+    "luxury": {"en":"Luxury","de":"Luxus","it":"Lusso","es":"Lujo"},
+    "family": {"en":"Family","de":"Familie","it":"Famiglia","es":"Familia"},
+    "honeymoon": {"en":"Honeymoon","de":"Flitterwochen","it":"Luna di miele","es":"Luna de miel"},
+    "accessible": {"en":"Accessible","de":"Barrierefrei","it":"Accessibile","es":"Accesible"}
+  },
+  "durations": {
+    "1-3": {"minExclusive":0,"maxInclusive":72},
+    "4-6": {"minExclusive":72,"maxInclusive":144},
+    "7-9": {"minExclusive":144,"maxInclusive":216},
+    "10-12": {"minExclusive":216,"maxInclusive":288},
+    "13-plus": {"minExclusive":288,"maxInclusive":null}
+  },
+  "sorts": ["recommended","priceStartingFrom","-priceStartingFrom","durationHours","-durationHours"]
+}
