@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { catalogOptions } from '@/lib/tours/catalog';
+import type { TourStyleId } from '@/lib/tours/catalog';
+import TourStyleSelect from './TourStyleSelect';
 import { getAllDestinations, type Destination } from '@/lib/api/destination';
 
 export default function TourFilterFields({ value, onChange }: {
-  value: { tourType?: string; tourStyles?: string[]; destinations?: string[]; durationHours?: number | null; recommendedOrder?: number | null };
+  value: { tourType?: string; tourStyles?: TourStyleId[]; destinations?: string[]; durationHours?: number | null; recommendedOrder?: number | null };
   onChange: (field: string, value: unknown) => void;
 }) {
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -27,7 +29,7 @@ export default function TourFilterFields({ value, onChange }: {
     fetchAll().catch(() => { if (!cancelled) setError('Could not load destinations. Reload to try again.'); });
     return () => { cancelled = true; };
   }, []);
-  const toggle = (field: 'tourStyles' | 'destinations', id: string) => {
+  const toggle = (field: 'destinations', id: string) => {
     const current = value[field] || [];
     onChange(field, current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
   };
@@ -39,11 +41,7 @@ export default function TourFilterFields({ value, onChange }: {
         {catalogOptions('types').map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
       </select>
     </label>
-    <fieldset><legend>Tour Styles — select all that apply</legend>
-      <div className="flex flex-wrap gap-4">{catalogOptions('styles').map(o => <label key={o.id} className="flex gap-2 items-center">
-        <input type="checkbox" checked={value.tourStyles?.includes(o.id) || false} onChange={() => toggle('tourStyles', o.id)} />{o.label}
-      </label>)}</div>
-    </fieldset>
+    <TourStyleSelect value={value.tourStyles} onChange={styles => onChange('tourStyles', styles)} />
     <fieldset><legend>Places Visited</legend>
       {error && <p role="alert" className="text-red-600">{error}</p>}
       <div className="flex flex-wrap gap-4">{destinations.map(d => <label key={d._id} className="flex gap-2 items-center">

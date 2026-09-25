@@ -171,8 +171,10 @@
   height: 24px;
 }
 
+/* Dark, not the brand gold: the ring sits on the white card, where #d4af37
+   was 2.10:1 (#1d231f: 16:1). */
 .card .viewTour.viewTour:focus-visible {
-  outline: 2px solid var(--gotur-base, #d4af37) !important;
+  outline: 2px solid var(--gotur-black, #1d231f) !important;
   outline-offset: 3px;
 }
 

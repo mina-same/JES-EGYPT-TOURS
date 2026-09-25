@@ -1,4 +1,11 @@
 import { API_URL } from '@/config/api';
+import {
+  BLOG_ENTITY_TTL,
+  BLOG_TAG,
+  blogCacheOptions,
+  blogListingCacheOptions,
+  normalizeBlogPage,
+} from './blogCachePolicy';
 import type { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import type { ISEO } from '@/types/blog';
 import type { IFAQ } from '@/types/tour';
@@ -234,10 +241,14 @@ export interface SubCategoriesResponse {
 }
 
 // Fetch all categories
+/**
+ * The Blogs Hub's category directory. The API returns the records raw, all
+ * four languages, so one entry serves every locale. Tagged `blog`, which
+ * BlogCategory and BlogSubCategory clear on every write (each category
+ * carries its subcategory count).
+ */
 export async function getCategories(): Promise<BlogCategory[]> {
-  const res = await fetch(`${API_URL}/blog/categories`, {
-    next: { revalidate: 3600 }, // Revalidate every hour
-  });
+  const res = await fetch(`${API_URL}/blog/categories`, blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]));
   
   if (!res.ok) {
     throw new Error('Failed to fetch categories');
@@ -293,7 +304,7 @@ export async function getCategoryBySlug(slug: string, locale?: string): Promise<
   const res = await fetchEntity(
     `${API_URL}/blog/categories/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
     {
-      next: { revalidate: 3600, tags: ['blog'] },
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     },
     { what: 'category', slug, locale }
@@ -306,6 +317,11 @@ export async function getCategoryBySlug(slug: string, locale?: string): Promise<
 
 // Fetch subcategories by category ID
 /**
+ * A category's topics: the Browse by Topic cards, a subcategory page's
+ * siblings and the Blogs Hub's topic lists. Tagged `blog`, which
+ * BlogSubCategory clears on every write, so a renamed, added or removed topic
+ * shows on the next request rather than up to an hour later.
+ *
  * `locale` reaches the API as the X-Locale header AND as a query parameter.
  * The header is what the API reads; the query parameter is there so this cached
  * fetch gets a separate cache entry per language, otherwise one locale's response
@@ -315,7 +331,7 @@ export async function getSubCategoriesByCategory(categoryId: string, locale?: st
   const res = await fetch(
     `${API_URL}/blog/subcategories/category/${categoryId}${locale ? `?locale=${locale}` : ''}`,
     {
-      next: { revalidate: 3600 },
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     }
   );
@@ -329,10 +345,9 @@ export async function getSubCategoriesByCategory(categoryId: string, locale?: st
 }
 
 // Fetch all subcategories
+/** Called from the browser only (the search page): there is no Data Cache there. */
 export async function getAllSubCategories(): Promise<BlogSubCategory[]> {
-  const res = await fetch(`${API_URL}/blog/subcategories`, {
-    next: { revalidate: 3600 },
-  });
+  const res = await fetch(`${API_URL}/blog/subcategories`);
   
   if (!res.ok) {
     throw new Error('Failed to fetch subcategories');
@@ -352,7 +367,7 @@ export async function getSubCategoryBySlug(slug: string, locale?: string): Promi
   const res = await fetchEntity(
     `${API_URL}/blog/subcategories/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
     {
-      next: { revalidate: 3600, tags: ['blog'] },
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     },
     { what: 'subcategory', slug, locale }
@@ -364,6 +379,12 @@ export async function getSubCategoryBySlug(slug: string, locale?: string): Promi
 }
 
 // Fetch all blogs with pagination
+/**
+ * The all-articles listing (/blogs/all) on the server, and the search page in
+ * the browser. Stored like the other listings only in its canonical shape: a
+ * page within the bound, no tag and no search. A tag or a search term is free
+ * text, so each distinct value would be a new cache entry; those go to the API.
+ */
 export async function getAllBlogs(
   pageOrOptions:
     | number
@@ -389,6 +410,8 @@ export async function getAllBlogs(
     limit = limitArg;
   }
 
+  page = normalizeBlogPage(page);
+
   const queryParams = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
@@ -412,7 +435,7 @@ export async function getAllBlogs(
   const res = await fetch(
     `${API_URL}/blog/posts?${queryParams.toString()}${locale ? `&locale=${locale}` : ''}`,
     {
-      next: { revalidate: 60 }, // Revalidate every minute
+      ...blogListingCacheOptions(page, !search && !tags),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     }
   );
@@ -434,7 +457,7 @@ export async function getFeaturedBlogs(limit: number = 6, locale?: string): Prom
       // Tagged, not just timed. Blog.ts already clears the 'blog' tag on every
       // save, so an edit is live immediately instead of waiting out the window
       // — which is why the window can be an hour rather than a minute.
-      next: { revalidate: 3600, tags: ['blog'] },
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     }
   );
@@ -448,16 +471,22 @@ export async function getFeaturedBlogs(limit: number = 6, locale?: string): Prom
 
 // Fetch blogs by category
 /**
+ * One page of a category's article cards. Cached for BLOG_LISTING_TTL under
+ * `blog`, which every article, category and subcategory write clears, and
+ * only for pages up to MAX_CACHEABLE_BLOG_PAGE. The page is normalized first,
+ * so ?page=abc and ?page=1 are one entry, and no page below 1 reaches the API.
+ *
  * `locale` reaches the API as the X-Locale header AND as a query parameter.
  * The header is what the API reads; the query parameter is there so this cached
  * fetch gets a separate cache entry per language, otherwise one locale's response
  * could be replayed to another. The API ignores the extra parameter.
  */
 export async function getBlogsByCategory(categorySlug: string, page: number = 1, limit: number = 9, locale?: string): Promise<BlogListResponse> {
+  const listingPage = normalizeBlogPage(page);
   const res = await fetch(
-    `${API_URL}/blog/categories/${categorySlug}/posts?page=${page}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
+    `${API_URL}/blog/categories/${categorySlug}/posts?page=${listingPage}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
     {
-      next: { revalidate: 60 },
+      ...blogListingCacheOptions(listingPage),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     }
   );
@@ -471,16 +500,22 @@ export async function getBlogsByCategory(categorySlug: string, page: number = 1,
 
 // Fetch blogs by subcategory
 /**
+ * One page of a subcategory's article cards. Cached for BLOG_LISTING_TTL under
+ * `blog`, which every article, category and subcategory write clears, and
+ * only for pages up to MAX_CACHEABLE_BLOG_PAGE. The page is normalized first,
+ * so ?page=abc and ?page=1 are one entry, and no page below 1 reaches the API.
+ *
  * `locale` reaches the API as the X-Locale header AND as a query parameter.
  * The header is what the API reads; the query parameter is there so this cached
  * fetch gets a separate cache entry per language, otherwise one locale's response
  * could be replayed to another. The API ignores the extra parameter.
  */
 export async function getBlogsBySubCategory(subCategorySlug: string, page: number = 1, limit: number = 9, locale?: string): Promise<BlogListResponse> {
+  const listingPage = normalizeBlogPage(page);
   const res = await fetch(
-    `${API_URL}/blog/subcategories/${subCategorySlug}/posts?page=${page}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
+    `${API_URL}/blog/subcategories/${subCategorySlug}/posts?page=${listingPage}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
     {
-      next: { revalidate: 60 },
+      ...blogListingCacheOptions(listingPage),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     }
   );
@@ -502,7 +537,7 @@ export async function getBlogBySlug(slug: string, locale?: string): Promise<Blog
   const res = await fetchEntity(
     `${API_URL}/blog/posts/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
     {
-      next: { revalidate: 3600, tags: ['blog'] },
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
       headers: locale ? { 'X-Locale': locale } : undefined,
     },
     { what: 'article', slug, locale }
@@ -525,13 +560,15 @@ export interface BlogTagCount {
  * Replaces the sidebar's old approach of fetching fifty posts and reducing
  * them in the browser: that shipped fifty article records to draw twenty
  * words, and a tag used only on an older post could never appear.
+ *
+ * Called from the browser only (the article sidebar): there is no Data Cache
+ * there.
  */
 export async function getBlogTags(
   limit: number = 20,
   locale?: string
 ): Promise<BlogTagCount[]> {
   const res = await fetch(`${API_URL}/blog/tags?limit=${limit}`, {
-    next: { revalidate: 300 },
     headers: locale ? { 'X-Locale': locale } : undefined,
   });
 
@@ -549,6 +586,8 @@ export async function getBlogTags(
  * Related Blogs is a carousel rather than a three-card cap, so resolving the
  * complete set in one request avoids one HTTP request per article. MongoDB's
  * `$in` does not preserve input order; rebuild the response against the ids.
+ *
+ * Called from the browser only (the tour page): there is no Data Cache there.
  */
 export async function getBlogsByIds(ids: string[], locale?: string): Promise<BlogPost[]> {
   const uniqueIds = Array.from(new Set(ids.map(String).filter(Boolean)));
@@ -559,7 +598,6 @@ export async function getBlogsByIds(ids: string[], locale?: string): Promise<Blo
     limit: String(uniqueIds.length),
   });
   const res = await fetch(`${API_URL}/blog/posts?${params.toString()}`, {
-    next: { revalidate: 60 },
     headers: locale ? { 'X-Locale': locale } : undefined,
   });
   

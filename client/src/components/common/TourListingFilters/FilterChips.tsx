@@ -14,6 +14,7 @@ export default function FilterChips({ values, destinations, locale, t, remove }:
     const multi = ['tourStyles', 'destinations', 'durationRange'].includes(key);
     const selected = multi ? splitFilterValues(value) : [value!];
     return selected.map(id => {
+      if (key === 'tourStyles' && !catalogOptions('styles', locale).some(option => option.id === id)) return null;
       const label = key === 'durationRange' ? t(`filters.durationRanges.${id}`)
         : labels.find(option => option.id === id)?.label || id;
       return <button key={`${key}-${id}`} type="button" className="btn btn-sm btn-outline-secondary rounded-pill"

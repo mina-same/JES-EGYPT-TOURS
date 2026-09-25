@@ -44,10 +44,12 @@ test('migration reports ambiguity instead of inferring classifications from pros
 test('safe migration is idempotent and retains multiple canonical styles', () => {
   const original = { tourType: 'day-tour', tourStyle: { en: 'Luxury' }, duration: { en: '4 Hours' }, destinations: ['id'] };
   const first = planTourFilterMigration(original);
-  assert.deepEqual(first.set, { tourStyles: ['luxury'], durationHours: 4 });
+  assert.deepEqual(first.set, { durationHours: 4 });
+  assert.deepEqual(first.unset, {});
+  assert.ok(first.review.includes('tourStyles'));
   const migrated: any = { ...original, ...first.set };
   delete migrated.tourStyle;
-  assert.deepEqual(planTourFilterMigration(migrated), { set: {}, unset: {}, review: [] });
+  assert.deepEqual(planTourFilterMigration(migrated), { set: {}, unset: {}, review: ['tourStyles'] });
   assert.deepEqual(planTourFilterMigration({ ...migrated, tourStyles: ['luxury', 'honeymoon'] }).set, {});
 });
 

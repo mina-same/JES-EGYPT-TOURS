@@ -522,6 +522,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                 pickupAndDropOff={pickupAndDropOff}
                 location={location}
                 activitiesType={activitiesType}
+                stylesLabel={tourData.stylesLabel}
                 activateDay={activateDay}
                 availability={availability}
                 mapHref={map ? '#map' : undefined}

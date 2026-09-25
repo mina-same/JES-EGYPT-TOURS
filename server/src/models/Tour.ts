@@ -1,4 +1,5 @@
 import filterCatalog from '../config/tourFilters.json';
+import { validTourStyles, type TourStyleId } from '../utils/tourStyles';
 import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
@@ -214,7 +215,7 @@ export interface ITour extends Document {
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
   tourType?: string;
-  tourStyles?: string[];
+  tourStyles?: TourStyleId[];
   destinations?: mongoose.Types.ObjectId[];
   durationHours?: number;
   recommendedOrder?: number;
@@ -840,7 +841,12 @@ const TourSchema = new Schema<ITour>(
       type: OptionalLocalizedStringSchema,
     },
     tourType: { type: String, enum: [...Object.keys(filterCatalog.types), ''] },
-    tourStyles: { type: [{ type: String, enum: Object.keys(filterCatalog.styles) }], default: [] },
+    tourStyles: {
+      type: [{ type: String, enum: Object.keys(filterCatalog.styles) }],
+      castNonArrays: false,
+      default: [],
+      validate: { validator: validTourStyles, message: 'Tour Styles must contain unique approved IDs' },
+    },
     destinations: { type: [{ type: Schema.Types.ObjectId, ref: 'Destination' }], default: [] },
     durationHours: { type: Number, min: Number.MIN_VALUE },
     recommendedOrder: { type: Number, min: 0, validate: { validator: (v: number | null) => v == null || Number.isInteger(v), message: 'Recommended order must be an integer' } },

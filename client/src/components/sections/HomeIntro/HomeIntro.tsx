@@ -217,7 +217,7 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                 {/* Decorative Badge */}
                 <div className="inline-flex items-center gap-3">
                   <div className="w-12 h-[2px] bg-[#b79c5c] rounded-full"></div>
-                  <span className="text-[#b79c5c] font-black uppercase tracking-[0.25em] text-[10px] md:text-xs">
+                  <span className="text-[#7a5f12] font-black uppercase tracking-[0.25em] text-[10px] md:text-xs">
                     {localizedSubtitle || t("homeIntro.fallbackSubtitle")}
                   </span>
                 </div>
@@ -226,7 +226,7 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                 <h2 className="text-[#1a1a1a] font-extrabold text-3xl md:text-5xl lg:text-6xl leading-[1.1] tracking-tight">
                   {mainTitle}
                   {highlightTitle && (
-                    <span className="block text-[#b79c5c] mt-3 italic font-serif font-normal opacity-95 low-italic-fix">
+                    <span className="block text-[#9a7b1c] mt-3 italic font-serif font-normal opacity-95 low-italic-fix">
                       {highlightTitle}
                     </span>
                   )}
@@ -281,7 +281,7 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                       onClick={() => setIsExpanded(!isExpanded)}
                       aria-expanded={isExpanded}
                       aria-controls={narrativeId}
-                      className="group flex items-center gap-2 text-[#1a1a1a] font-black uppercase text-[11px] tracking-widest border-b-2 border-[#b79c5c] pb-1 hover:text-[#b79c5c] transition-colors duration-300"
+                      className="group flex items-center gap-2 text-[#1a1a1a] font-black uppercase text-[11px] tracking-widest border-b-2 border-[#b79c5c] pb-1 hover:text-[#7a5f12] transition-colors duration-300"
                     >
                       {isExpanded ? (
                         <>{t("homeIntro.readLess")} <ChevronUp size={16} aria-hidden="true" className="group-hover:-translate-y-1 transition-transform" /></>
@@ -292,8 +292,9 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                   </div>
                 )}
 
-                {/* Trust Footer */}
-                <div className="pt-10 border-t border-gray-100 flex flex-wrap gap-x-10 gap-y-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
+                {/* Trust Footer — 60%, not 50%: at half opacity its 10px labels
+                    were 3.69:1; 60% is the lightest that reaches 4.5:1. */}
+                <div className="pt-10 border-t border-gray-100 flex flex-wrap gap-x-10 gap-y-4 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
                   <div className="flex items-center gap-3">
                     <ShieldCheck size={22} strokeWidth={1.5} />
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">{t("homeIntro.licensedAgency")}</span>

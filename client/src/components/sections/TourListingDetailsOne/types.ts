@@ -111,6 +111,7 @@ export interface TourDetailsOneData {
   location: string;
   pickupAndDropOff: string;
   activitiesType: string;
+  stylesLabel?: string;
   activateDay: string;
   availability: string;
   price: number | ICurrencyPrice;

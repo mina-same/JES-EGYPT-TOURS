@@ -1,6 +1,12 @@
 import catalog from '../../../../server/src/config/tourFilters.json';
 
 export { catalog };
+/** Unknown/legacy values are not visitor-facing labels. */
+export function tourStyleLabels(value: unknown, locale = 'en'): string[] {
+  if (!Array.isArray(value)) return [];
+  const selected = new Set(value);
+  return catalogOptions('styles', locale).filter(option => selected.has(option.id)).map(option => option.label);
+}
 export type TourTypeId = keyof typeof catalog.types;
 export type TourStyleId = keyof typeof catalog.styles;
 export interface FilterOption { id: string; label: string }

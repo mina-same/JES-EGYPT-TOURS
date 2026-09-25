@@ -1,4 +1,5 @@
 import { listingSortStages } from '../utils/tourListingSort';
+import { validTourStyles } from '../utils/tourStyles';
 import { structuredTourFilters } from '../utils/tourFilterContract';
 import filterCatalog from '../config/tourFilters.json';
 import Destination from '../models/Destination';
@@ -888,7 +889,9 @@ export const createTour = async (
       const count = await Destination.countDocuments({ _id: { $in: body.destinations } });
       if (count !== body.destinations.length) { res.status(400).json({ success: false, error: 'Unknown destination' }); return; }
     }
-    if (Array.isArray(body.tourStyles)) body.tourStyles = [...new Set(body.tourStyles)];
+    if (body.tourStyles !== undefined && !validTourStyles(body.tourStyles)) {
+      res.status(400).json({ success: false, error: 'Tour Styles must be an array of unique approved IDs' }); return;
+    }
     delete body.tourStyle;
     if ((body.tourType !== undefined && typeof body.tourType !== 'string') ||
         (body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||
@@ -1031,7 +1034,9 @@ export const updateTour = async (
       const count = await Destination.countDocuments({ _id: { $in: body.destinations } });
       if (count !== body.destinations.length) { res.status(400).json({ success: false, error: 'Unknown destination' }); return; }
     }
-    if (Array.isArray(body.tourStyles)) body.tourStyles = [...new Set(body.tourStyles)];
+    if (body.tourStyles !== undefined && !validTourStyles(body.tourStyles)) {
+      res.status(400).json({ success: false, error: 'Tour Styles must be an array of unique approved IDs' }); return;
+    }
     delete body.tourStyle;
     if ((body.tourType !== undefined && typeof body.tourType !== 'string') ||
         (body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||

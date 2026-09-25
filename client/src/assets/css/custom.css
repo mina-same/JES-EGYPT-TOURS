@@ -2,6 +2,20 @@
    1. GLOBAL UTILS
    ========================================================================== */
 
+/* Golds for READABLE content. The brand golds stay on fills, strokes and
+   decoration, but none of them can carry text on the site's light sections:
+   --gotur-base #d4af37 is 2.10:1 on white, --gotur-primary #f4d03f 1.51:1,
+   --jes-gold #b79c5c 2.65:1.
+
+   --gotur-gold-text     5.1-6.05:1 on those sections: any text size (4.5:1).
+   --gotur-gold-heading  3.4-4.0:1 on the same sections: ONLY for text that is
+                         WCAG-large at every breakpoint (>= 24px, or >= 18.66px
+                         bold), which needs 3:1. */
+:root {
+  --gotur-gold-text: #7a5f12;
+  --gotur-gold-heading: #9a7b1c;
+}
+
 /* Global Overflow Fixes */
 html, body {
   overflow-x: hidden !important;
@@ -132,10 +146,14 @@ html, body {
 .listing-card-four__btns button.is-active i { color: #e53e3e; }
 
 /* A real button can be reached by keyboard, so it needs a visible focus ring —
-   something the anchor version never showed. */
+   something the anchor version never showed. These white discs sit on the
+   tour photograph, where a single yellow ring measured 1.41-1.67:1: the ring
+   is now dark, with a 2px white halo inside it (16:1 between the two), so
+   one of them always contrasts with whatever the photo shows. */
 .listing-card-four__btns button:focus-visible {
-  outline: 2px solid var(--gotur-primary, #f7921e);
+  outline: 2px solid var(--gotur-black, #1d231f);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -3438,10 +3456,50 @@ html:has(> body.megamenu-popup-active) {
 /* ==========================================================================
    13. WHY CHOOSE US OVERLAY STYLES
    ========================================================================== */
+/* The photo and the text block share ONE grid cell, so a card is as tall as
+   whichever of the two is taller. The text used to be absolutely positioned
+   at the bottom of a photo-sized box with `overflow: hidden`, and from 576 to
+   991px, where a card is only 199-223px wide, it outgrew the photo (335px of
+   text in English, 423px in German, against a 255px photo) and lost its top:
+   titles were cut off. Wider and narrower layouts are unchanged — there the
+   photo is the taller of the two. */
 .destinations-card-two__thumb {
   position: relative;
   overflow: hidden;
   border-radius: 15px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.destinations-card-two__thumb > img,
+.reason-card__content {
+  grid-area: 1 / 1;
+}
+/* When the text makes the cell taller than the photo's own ratio, the photo
+   fills it (object-fit: cover, from gotur.css, crops rather than stretches). */
+.destinations-card-two__thumb > img {
+  height: 100%;
+}
+
+/* One height per row: the carousel's track becomes a flex row, so every card
+   stretches to the tallest one and the photos stay aligned. tiny-slider keeps
+   setting the slides' widths and the track's transform; only the cross axis
+   changes. The pre-hydration placeholder has no .tns-slider and is untouched. */
+#why-choose-us .tns-slider {
+  display: flex;
+}
+#why-choose-us .tns-slider > .tns-item {
+  flex: none;
+}
+#why-choose-us .tns-item > .item {
+  height: 100%;
+}
+.destinations-card-two {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.destinations-card-two__thumb {
+  flex: 1 0 auto;
 }
 
 .reason-card__overlay {
@@ -3456,13 +3514,22 @@ html:has(> body.megamenu-popup-active) {
 }
 
 .reason-card__content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  align-self: end;
   padding: 30px 20px 20px;
   z-index: 2;
   color: #fff;
+}
+
+/* From 576 to 991px the text covers most of the card and reaches up into the
+   lightest part of the overlay above: titles fell to 2.1-2.9:1 there. A 25%
+   shade behind the text block only, faded in over its top padding, is the
+   lightest that keeps every title past 3:1 in all four languages (3.18:1 at
+   the single worst pixel) and every description past 4.5:1. */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .reason-card__content {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.25) calc(100% - 30px), rgba(0, 0, 0, 0));
+  }
 }
 
 .reason-card__title {
@@ -3579,6 +3646,23 @@ html:has(> body.megamenu-popup-active) {
 .testimonials-two__bottom__nav button:focus-visible {
   outline: 2px solid #7a5f12;
   outline-offset: 3px;
+}
+
+/* Their arrows, and the destination carousel's (owl basic nav): the arrow is
+   the button's only content, and gotur.css draws it in the brand gold on
+   white (2.10:1), then white on the gold hover fill (2.10:1). Text gold at
+   rest (6.05:1), dark on the fill (7.61:1). The gold ring and fill stay. */
+.destinations-two__bottom__nav button,
+.feature-package__bottom__nav button,
+.testimonials-two__bottom__nav button,
+.gotur-owl__carousel--basic-nav.owl-carousel .owl-nav button {
+  color: var(--gotur-gold-text, #7a5f12);
+}
+.destinations-two__bottom__nav button:hover,
+.feature-package__bottom__nav button:hover,
+.testimonials-two__bottom__nav button:hover,
+.gotur-owl__carousel--basic-nav.owl-carousel .owl-nav button:hover {
+  color: var(--gotur-black, #1d231f);
 }
 
 /* Hide browser extension attributes that cause hydration issues */
@@ -4585,18 +4669,79 @@ button[data-action="stop"] {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Section taglines (eyebrows), SITE-WIDE: decorative accent text in the
-   deeper brand gold for readability, without the washed-out translucent
-   pill background. The face is the display serif in italic (set in
-   gotur.css); this was the template's handwritten Caveat until Phase 2.
+   The same navy-on-gold label for the other gold buttons whose text was
+   white: 1.51:1 on the yellow fill and 2.10:1 on the gold one, at rest or
+   in the hover sweep. Scoped per button, as above: `.gotur-btn` appears on
+   some twenty pages and not all of them sit on gold. #19374a is 8.27:1 on
+   #f4d03f and 6.11:1 on #d4af37. The two outline buttons keep their dark
+   text through the sweep instead of turning white on it (#1d231f: 10.62:1
+   on the yellow, 7.61:1 on the gold), and so does the search submit's icon.
+   Fills, borders and the hover animation are unchanged.
+   ───────────────────────────────────────────────────────────── */
+.offer-one__btn .gotur-btn,
+.offer-one__btn .gotur-btn:hover,
+.offer-two__btn .gotur-btn,
+.offer-two__btn .gotur-btn:hover {
+  color: #19374a;
+}
+.blog-two__top__btn .gotur-btn:hover,
+.listing-card-four .listing-card-four__btn:hover,
+.search-popup__form .gotur-btn,
+.search-popup__form .gotur-btn:hover {
+  color: var(--gotur-black, #1d231f);
+}
+
+/* The same for the text printed ON gold: the offer badge ("30% off", "up
+   to") and the footer's copyright bar were white (1.51:1 on the yellow
+   circle, 2.10:1 on the gold pill, 1.83:1 for the copyright at 80%). */
+.offer-two__funfact__item__count,
+.offer-two__funfact__item__text,
+.offer-two__funfact__item__upto {
+  color: var(--gotur-black, #1d231f);
+}
+.main-footer__copyright {
+  color: var(--gotur-black, #1d231f);
+  opacity: 1;
+}
+/* Spanish "de descuento" is the one badge label too long for a single line
+   at 35px, and wrapped it ran 26px past the circle's edge. At 26px it holds
+   one line, 13px inside the curve (the Italian label's margin). */
+.offer-two__funfact__item__text:lang(es) {
+  font-size: 26px;
+}
+
+/* Small gold text the theme sets in the brand gold (1.80-2.10:1): the
+   "Call or WhatsApp" label above the About phone number, and the testimonial
+   authors' names, which sit on a pale gold card where even the heading gold
+   is under 3:1 (2.81-3.02) — both take the text gold (4.2-6.05:1). */
+.about-one__button__call span,
+.testimonials-two-card__author__name {
+  color: var(--gotur-gold-text, #7a5f12);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Section taglines (eyebrows), SITE-WIDE: accent text in the text gold,
+   without the washed-out translucent pill background. The face is the
+   display serif in italic (set in gotur.css); this was the template's
+   handwritten Caveat until Phase 2. #b79c5c measured 2.24-2.65:1 on every
+   section it sits on; taglines are 20px (not large) on phones, so they take
+   the text gold: 5.1-6.05:1, measured on every page that has one.
    ───────────────────────────────────────────────────────────── */
 .sec-title__tagline {
-  color: #b79c5c;
+  color: var(--gotur-gold-text, #7a5f12);
   padding: 0;
   font-weight: 500; /* deliberately above the 400 in gotur.css */
 }
 .sec-title__tagline::after {
   display: none;
+}
+
+/* The gold words in section headings (gotur.css `.sec-title__title span`,
+   which also colours TextAnimation's word spans). The brand #d4af37 was
+   1.86-2.10:1. These spans are 28-50px at every breakpoint, so the lighter
+   heading gold is enough: 3.59-4.02:1 on every section and page that has one. */
+.sec-title__title span {
+  color: var(--gotur-gold-heading, #9a7b1c);
 }
 
 /* Small trust line under the WhatsApp number */
@@ -4635,9 +4780,15 @@ button[data-action="stop"] {
   -webkit-user-drag: none;
 }
 
+/* A single gold ring on a photograph could not hold 3:1 (median 1.49 against
+   the pixels beside it). The ring is drawn on the dim layer instead, which
+   already sits over the image: white outside, dark inside, 16:1 between the
+   two, so one of them always contrasts with the photo whatever it shows. */
 .destination-carousel--two .destination-carousel__link:focus-visible {
-  outline: 4px solid var(--gotur-base, #f6c945);
-  outline-offset: -7px;
+  outline: none;
+}
+.destination-carousel--two .destination-carousel__link:focus-visible .destination-carousel__dim {
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 6px var(--gotur-black, #1d231f);
 }
 
 .destination-carousel--two .destination-carousel__image {
@@ -4658,9 +4809,12 @@ button[data-action="stop"] {
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* The flat tint was 0.14: the destination name and the tour line under it
+     fell to 2.24-2.67:1 and 3.65:1 on the brighter photographs. 0.3 is the
+     lightest tint that clears both on all four cards at 375/768/1440. */
   background:
     linear-gradient(180deg, rgba(10, 20, 31, 0.2) 0%, rgba(10, 20, 31, 0.48) 100%),
-    rgba(0, 0, 0, 0.14);
+    rgba(0, 0, 0, 0.3);
   pointer-events: none;
 }
 
@@ -4702,7 +4856,8 @@ button[data-action="stop"] {
   line-height: 0.88;
   letter-spacing: -0.045em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.62);
+  /* Full white, not 0.62: at 62% it took the photo's colour and lost contrast. */
+  color: #fff;
   text-wrap: balance;
   overflow-wrap: normal;
   text-shadow: 0 3px 18px rgba(0, 0, 0, 0.26);
@@ -4812,6 +4967,15 @@ button[data-action="stop"] {
    Desktop/sticky: transparent gold-outline pill (experiment).
    Mobile Drawer row below is intentionally left as the rose accent.
    ───────────────────────────────────────────────────────────── */
+
+/* Top-level link hover (gotur.css paints it --gotur-base, !important). Over
+   the homepage hero that was 2.72-2.91:1; the bright gold, on the hero scrim,
+   is 5.11:1 at worst across all six slides, and on the sticky header's dark
+   bar it only gains (10.62:1). Hover only: the current-page state and the
+   dropdown panels' own hover are left as they are. */
+.main-header--one .main-menu__list > li:hover > a {
+  color: var(--gotur-primary, #f4d03f) !important;
+}
 
 /* Desktop pill (experiment): transparent gold-outline pill that fills gold
    on hover with dark-blue text. High-specificity color/border so it wins
@@ -5155,19 +5319,21 @@ button[data-action="stop"] {
   border-radius: 50%;
   border: 1.5px solid var(--gotur-base, #d4af37);
   background: transparent;
-  color: var(--gotur-base, #d4af37);
+  /* The arrow is the control's only content: text gold (6.05:1 on white)
+     instead of the brand gold (2.10:1); the ring stays brand gold. */
+  color: var(--gotur-gold-text, #7a5f12);
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease,
     transform 0.2s ease, box-shadow 0.2s ease;
 }
 .blog-two__nav__btn:hover {
   background: var(--gotur-base, #d4af37);
-  color: #fff;
+  color: var(--gotur-black, #1d231f);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(var(--gotur-base-rgb, 212, 175, 55), 0.35);
 }
 .blog-two__nav__btn:focus-visible {
-  outline: 2px solid var(--gotur-base, #d4af37);
+  outline: 2px solid var(--gotur-gold-text, #7a5f12);
   outline-offset: 3px;
 }
 /* Vertical padding so the cards' shadow/hover-lift is not clipped by the
@@ -5285,7 +5451,30 @@ button[data-action="stop"] {
   background: linear-gradient(90deg, var(--gotur-base, #d4af37), transparent);
 }
 
-/* Title accent: the CMS "span" phrase takes the brand gold.
+/* Photo scrim (gotur.css `.main-slider-four__bg::after`). Its middle stop
+   was 0.28, right where the title, the gold phrase, the subtitle and the
+   buttons sit: on the brighter slides the white title fell to 2.05:1 and the
+   gold phrase to 1.00:1. 0.6 is the lightest middle stop that clears every
+   one of them on all six slides at 375/768/1440 (0.55 left the phrase at
+   2.85:1); the top and bottom stops and the vignette are unchanged. */
+.main-slider-four__bg::after {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 26, 42, 0.72) 0%,
+      rgba(13, 26, 42, 0.6) 42%,
+      rgba(13, 26, 42, 0.7) 100%
+    ),
+    radial-gradient(
+      120% 75% at 50% 42%,
+      rgba(6, 14, 24, 0) 45%,
+      rgba(6, 14, 24, 0.5) 100%
+    );
+}
+
+/* Title accent: the CMS "span" phrase takes the bright brand gold
+   (#f4d03f), not #d4af37 — on the scrim above that is what keeps it past
+   3:1 on every slide (3.31:1 at worst; #d4af37 would not be).
    `inline-block` keeps the phrase as ONE unit — it wraps to the next line
    whole instead of fragmenting mid-phrase; a fragmented inline span has no
    reliable box for the absolutely-positioned underline image, which is why
@@ -5293,7 +5482,7 @@ button[data-action="stop"] {
    With `max-width: 100%` (set in gotur.css) the underline now also sizes
    to the phrase instead of overflowing it. */
 .main-slider-four__title-accent {
-  color: var(--gotur-base, #d4af37);
+  color: var(--gotur-primary, #f4d03f);
   display: inline-block;
   position: relative;
   /* The wrapper below sets `white-space: nowrap` to stop a trailing comma
@@ -5489,9 +5678,14 @@ button[data-action="stop"] {
   outline: 2px solid var(--gotur-base, #d4af37);
   outline-offset: 3px;
 }
+/* The active dot's track is what marks the current slide whenever the gold
+   fill below is paused (pause button, hover, focus in the hero, reduced
+   motion — for the last, always). At 30% gold it was 1.74-1.86:1 against the
+   pill; it now uses the inactive dots' white (3.1:1 and up), and the gold
+   fill still runs across it. Width and hit area are unchanged. */
 .main-slider-four__dots button.tns-nav-active {
   width: 28px;
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* Hit target, separate from the artwork (WCAG 2.5.8 asks for 24x24).
@@ -6596,7 +6790,9 @@ button[data-action="stop"] {
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: 0.02em;
-  color: var(--jes-gold, #b79c5c);
+  /* Text gold, not --jes-gold (2.26-2.42:1 on the frosted chip). The hover
+     keeps the gold FILL and takes a dark label instead of white (2.65:1). */
+  color: var(--gotur-gold-text, #7a5f12);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -6604,7 +6800,7 @@ button[data-action="stop"] {
 }
 .blog-card-chip:hover {
   background-color: var(--jes-gold, #b79c5c);
-  color: #fff;
+  color: var(--gotur-black, #1d231f);
 }
 
 /* ── Content ───────────────────────────────────────────────────
@@ -6755,10 +6951,11 @@ button[data-action="stop"] {
      description's colour, which is two reasons for the eye to stop on it. */
   font-weight: 400;
   line-height: 1.6;
-  /* #6C8798 — the same ink as the description above at ~0.61 instead of ~0.68.
-     Deliberately NOT darkened alongside it: the whole point is the distance
-     between the two. */
-  color: #6c8798;
+  /* The description's ink, kept visibly lighter than it: the whole point is
+     the distance between the two. #6c8798 went too far (3.78:1 on white);
+     #5a788c is the lightest step of the same hue past 4.5:1 (4.67), still
+     well short of the description's #355b73 (7.25:1). */
+  color: #5a788c;
 }
 .blog-card-meta > li:first-child {
   grid-column: 1 / -1;
@@ -6787,7 +6984,15 @@ button[data-action="stop"] {
   transition: color 250ms ease;
 }
 .blog-card-meta a:hover {
-  color: var(--jes-gold, #b79c5c);
+  color: var(--gotur-gold-text, #7a5f12);
+}
+
+/* Card titles' hover colour (gotur.css): the brand golds are 1.51-2.10:1 on
+   the white card. The currentColor underline follows. */
+.blog-card-two__title a:hover,
+.blog-card-two--one .blog-card-two__title a:hover,
+.listing-card-four__title a:hover {
+  color: var(--gotur-gold-text, #7a5f12);
 }
 
 /* ── Footer: the divider and the call to action ────────────────
@@ -6816,7 +7021,8 @@ button[data-action="stop"] {
   border: 1px solid rgba(183, 156, 92, 0.55);
   border-radius: 999px;
   background-color: #fff;
-  color: var(--jes-gold, #b79c5c);
+  /* Text gold: --jes-gold was 2.65:1 here. The disc keeps the brand gold. */
+  color: var(--gotur-gold-text, #7a5f12);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.4;

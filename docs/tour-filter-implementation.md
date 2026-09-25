@@ -13,7 +13,7 @@ unspecified; ties use createdAt descending and _id ascending.
 - [x] FILTER-03 Duration precision and removal of the false 3 Days fallback
 - [x] FILTER-04 Product type and multiple styles (canonical schema and all consumers)
 - [x] FILTER-05 Admin and recommended order
-- [ ] FILTER-06 Safe migration applied; manual classification and final legacy cleanup remain
+- [ ] FILTER-06 Types/places and ten durations applied; style decision, duration conflicts and legacy cleanup remain
 - [x] FILTER-07 Backend filters/options/sorting
 - [x] FILTER-08 URL/SSR/cache
 - [x] FILTER-09 Accessible localized UI
@@ -67,11 +67,13 @@ values, timestamps and edit versions in a local report before writing.
 Post-migration verification confirmed all nine values, unchanged classifications,
 and that a repeat migration plans no further deterministic changes.
 
-All 11 tours need explicit product/style/place review; two also need a numeric
-duration decision. See [the data review](tour-filter-data-review.md). Existing
-localized type/style values remain readable for manual review; the old style
-field is neither a schema field nor a filter source. After canonical styles
-are assigned, rerun the migration to remove obsolete raw `tourStyle` values.
+The itinerary review applied types and existing destinations to all 11 tours
+and resolved the eight-day duration. Styles and two conflicting duration records
+still require the owner's decision. See [the data review](tour-filter-data-review.md). Existing
+legacy style values remain readable for manual review; the old style
+field is neither a schema field nor a filter source. Style inference and old-field cleanup are explicitly paused. The migration
+never assigns styles, even from exact old labels, and never removes tourStyle.
+Manual selection uses the new chip control; later cleanup is a separate step.
 No permanent rollback fields were added to Tour.
 
 Status-only saves validate modified fields so unmigrated classifications do
@@ -80,6 +82,12 @@ runs. Full editor saves enforce the new classification contract.
 
 ## Verification
 
+- After the itinerary review, 252 read-only calls to the actual listing/options
+  controllers passed against the connected database: all four languages and
+  three currencies, type/place/duration filters, price/duration ordering with
+  missing values last, stable pagination, and subcategory-scoped options.
+  Results contain six day tours, five multi-day tours and six represented
+  existing destinations. Styles remain pending and are not claimed as accepted.
 - Server and frontend production builds passed.
 - Server tests cover schema validation, migration/idempotence, scope-aware
   options, OR/AND behavior, pagination, numeric sorting and price validation.
@@ -98,4 +106,28 @@ runs. Full editor saves enforce the new classification contract.
 
 Application changes have not been deployed. Deploy both API and frontend
 together after reviewing the remaining data; verify cache invalidation
-connectivity, which was unreachable during the migration's best-effort refresh.
+connectivity. Local revalidation now returns HTTP 200 after starting the configured
+frontend; the earlier failure was caused by that frontend being offline.
+
+
+## Revised Tour Styles delivery
+
+- FILTER-01/04: existing shared catalog remains the only list of five IDs and localized labels. Schema/API now reject unknown IDs, non-arrays and duplicates; empty arrays are allowed. Type and booking kind remain independent.
+- FILTER-05/09: Admin uses native toggle buttons with aria-pressed, visible check marks, keyboard focus and wrapping. No language tabs/free text/default selection. Empty values show Needs manual review. Saved arrays load directly into the same control on create/edit.
+- FILTER-06: classification and cleanup paused; never infer from title, description or legacy text. Existing valid arrays remain intact. Remaining manual records are in the data review document. Duration conflicts do not block the style control.
+- FILTER-07/08: existing OR-within-styles and AND-across-groups, stable URL IDs, scoped options and caching retained.
+- FILTER-10: added write/schema/API rejection, Admin state/edit/empty, four-language labels, no guessing/cleanup and real Mongo filtering coverage. Browser verified native Tab/Space/Enter operation at 390px, no horizontal overflow or page errors. Server/client builds pass. No deployment or style database writes.
+
+Dependencies: catalog -> validation/schema/types -> Admin and visitor labels -> tests. Manual selection -> later separately authorized cleanup; neither duration clarification nor legacy cleanup blocks this implementation.
+
+Changed implementation files in this revision:
+
+- server/src/utils/tourStyles.ts, server/src/models/Tour.ts, server/src/controllers/tourController.ts, server/src/utils/tourFilterMigration.ts
+- client/src/components/admin/tour/TourStyleSelect.tsx, TourFilterFields.tsx
+- client/src/lib/tours/catalog.ts, client/src/types/tour.ts
+- client/src/components/common/TourListingFilters/FilterChips.tsx
+- client/src/components/sections/TourListingDetailsOne/{TourListingDetailsOne.tsx,useTourData.ts,types.ts,components/TourInfoBar.tsx}
+- server/tests/{tour-styles.test.ts,tour-filter-contract.test.ts,tour-filter-mongo.test.ts}, client/tests/tour-styles.test.ts
+- docs/tour-filter-implementation.md, docs/tour-filter-data-review.md
+
+Verification totals for this revision: 14 server tests passed (8 contract, 1 options, 4 style save/API/schema/legacy, 1 opt-in read-only Mongo), plus 10 client tests (7 listing/URL/cache, 3 Admin/localization). Backend build, frontend production build and TypeScript checks passed. No tests wrote style classifications to the connected database.

@@ -1,8 +1,9 @@
 import { reportDuplicateLinkResponse } from '@/lib/duplicateLinkFeedback';
 import { API_URL } from '@/config/api';
-import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
-import { IFAQ } from '@/types/tour';
-import { BlogListItem, BlogPost, PaginationData } from './blog';
+import type { ILocalizedString, ILocalizedMixed } from '@/types/shared';
+import type { IFAQ } from '@/types/tour';
+import type { BlogListItem, BlogPost, PaginationData } from './blog';
+import { blogListingCacheOptions, normalizeBlogPage } from './blogCachePolicy';
 
 export interface DestinationCoverImage {
   url: string;
@@ -159,9 +160,12 @@ export async function getDestinationById(id: string): Promise<Destination | null
  * One page of a destination's article cards.
  *
  * Read on the server for every render of the destination page, so it is
- * cached like the blog category and subcategory listings: 60 seconds, enough
- * that a newly published article appears within a minute. The cache entry is
- * bounded by destination, page, limit and locale.
+ * cached like the blog category and subcategory listings: BLOG_LISTING_TTL
+ * under `blog`, pages up to MAX_CACHEABLE_BLOG_PAGE only, the page normalized
+ * first. `blog` covers everything this list is built from — the articles, and
+ * the categories and subcategories whose featuredDestinations pull articles
+ * in — so a new or edited article shows on the next request. Nothing in it
+ * comes from the destination document, whose `destinations` tag is not needed.
  *
  * `locale` reaches the API as the X-Locale header AND as a query parameter.
  * The header is what the API reads; the query parameter gives each language
@@ -174,10 +178,11 @@ export async function getBlogsByDestination(
   limit = 9,
   locale?: string
 ): Promise<DestinationBlogsResponse> {
+  const listingPage = normalizeBlogPage(page);
   const res = await fetch(
-    `${API_URL}/destinations/${id}/blogs?page=${page}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
+    `${API_URL}/destinations/${id}/blogs?page=${listingPage}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
     {
-      next: { revalidate: 60 },
+      ...blogListingCacheOptions(listingPage),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     }
   );

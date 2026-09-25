@@ -1,4 +1,5 @@
 import catalog from '../config/tourFilters.json';
+import { validTourStyles } from './tourStyles';
 
 /** Only exact catalogue labels/IDs are deterministic; never split prose. */
 export function exactCatalogId(value: unknown, group: 'types' | 'styles'): string | undefined {
@@ -26,11 +27,9 @@ export function planTourFilterMigration(tour: Record<string, any>) {
     if (type) set.tourType = type;
     else review.push('tourType');
   }
-  if (!tour.tourStyles?.length) {
-    const style = exactCatalogId(tour.tourStyle, 'styles');
-    if (style) { set.tourStyles = [style]; unset.tourStyle = ''; }
-    else review.push('tourStyles');
-  } else if ('tourStyle' in tour) unset.tourStyle = '';
+  // Style assignment and legacy cleanup are paused. Even an exact legacy label
+  // needs an explicit Admin selection; titles/descriptions are never evidence.
+  if (!validTourStyles(tour.tourStyles) || !tour.tourStyles.length) review.push('tourStyles');
   if (!(tour.durationHours > 0)) {
     const hours = migrateDurationHours(tour.duration);
     if (hours) set.durationHours = hours;

@@ -28,6 +28,10 @@ test('Mongo evaluates membership, precise durations, prices, ranking and paginat
         return result.cursor.firstBatch.map((row: { _id: number }) => row._id);
       };
       assert.deepEqual(await query([{ $match: structuredTourFilters({ tourStyles: 'luxury,honeymoon' }) }]), [1, 3]);
+      assert.deepEqual(await query([{ $match: structuredTourFilters({ tourStyles: 'luxury' }) }]), [1]);
+      const combined = structuredTourFilters({ tourStyles: 'luxury,honeymoon', durationRange: '1-3' });
+      applyStartingPriceFilter(combined, '80', '100', 'USD', 1);
+      assert.deepEqual(await query([{ $match: combined }]), [1]);
       assert.deepEqual(await query([{ $match: structuredTourFilters({ tourStyles: 'luxury,honeymoon', durationRange: '4-6' }) }]), []);
       for (const [range, ids] of Object.entries({ '1-3': [1, 2, 3], '4-6': [4, 5], '7-9': [6, 7], '10-12': [8, 9], '13-plus': [10] })) {
         assert.deepEqual(await query([{ $match: structuredTourFilters({ durationRange: range }) }]), ids);
