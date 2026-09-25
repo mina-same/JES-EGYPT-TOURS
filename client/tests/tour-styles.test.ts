@@ -9,16 +9,30 @@ import ts from 'typescript';
 function loadSource(relative: string, overrides: Record<string, unknown> = {}) {
   const url = new URL(relative, import.meta.url);
   const require = createRequire(url);
-  const module = { exports: {} as any };
+  const compiledModule = { exports: {} as any };
   const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     fileName: fileURLToPath(url),
   }).outputText;
   new Function('require', 'module', 'exports', compiled)(
-    (name: string) => overrides[name] ?? require(name), module, module.exports);
-  return module.exports;
+    (name: string) => overrides[name] ?? require(name), compiledModule, compiledModule.exports);
+  return compiledModule.exports;
 }
 const catalog = loadSource('../src/lib/tours/catalog.ts');
+test('exactly the five approved style IDs have the requested labels in all four languages', () => {
+  const ids = ['classic', 'luxury', 'family', 'honeymoon', 'accessible'];
+  assert.deepEqual(Object.keys(catalog.catalog.styles), ids);
+  const expected = {
+    en: ['Classic', 'Luxury', 'Family', 'Honeymoon', 'Accessible'],
+    de: ['Klassisch', 'Luxus', 'Familie', 'Flitterwochen', 'Barrierefrei'],
+    it: ['Classico', 'Lusso', 'Famiglia', 'Luna di miele', 'Accessibile'],
+    es: ['Clásico', 'Lujo', 'Familiar', 'Luna de miel', 'Accesible'],
+  };
+  for (const [locale, labels] of Object.entries(expected)) {
+    assert.deepEqual(catalog.catalogOptions('styles', locale), ids.map((id, index) => ({ id, label: labels[index] })));
+    assert.deepEqual(catalog.tourStyleLabels(ids, locale), labels);
+  }
+});
 const Select = loadSource('../src/components/admin/tour/TourStyleSelect.tsx', {
   '@/lib/tours/catalog': catalog,
 }).default;
@@ -44,9 +58,9 @@ test('Admin loads selections and adds/removes styles without mutating loaded dat
   assert.deepEqual(original, ['luxury', 'honeymoon']);
 });
 
-test('empty Admin selection requires manual review with no free text or language tabs', () => {
+test('empty Admin styles remain optional with no warning, free text or language tabs', () => {
   const tree = nodes(Select({ onChange() {} }));
-  assert.ok(tree.some(n => n.props?.role === 'status'));
+  assert.ok(!tree.some(n => n.props?.role === 'status'));
   assert.ok(!tree.some(n => n.type === 'input' || n.props?.role === 'tab'));
   assert.ok(tree.filter(n => n.type === 'button').every(n => !n.props['aria-pressed']));
 });

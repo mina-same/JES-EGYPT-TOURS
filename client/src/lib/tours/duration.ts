@@ -67,6 +67,9 @@ export const DAY_DURATION_OPTIONS: DurationOption[] = Array.from(
   { length: MAX_DAYS - 1 },
   (_, i) => dayOption(i + 2)
 );
+DAY_DURATION_OPTIONS.unshift({ id: 'd1', hours: 24, group: 'days', labels: {
+  en: '1 Day', de: '1 Tag', it: '1 Giorno', es: '1 Día',
+} });
 
 export const DURATION_OPTIONS: DurationOption[] = [
   ...HOUR_DURATION_OPTIONS,
@@ -83,15 +86,16 @@ const normalise = (value: unknown) =>
  *
  * Matching is not restricted to English: a tour translated by hand before this
  * list existed may hold "3 Tage / 2 Nächte" with an empty `en`, and that is the
- * same duration. Any language matching is enough to recognise it, and picking
+ * same duration. All non-empty languages must agree to recognise it; picking
  * it up this way also repairs the missing languages on the next save.
  */
 export const findDurationOption = (value: unknown): DurationOption | undefined => {
   if (!value || typeof value !== 'object') return undefined;
   const stored = value as Partial<DurationLabels>;
 
-  return DURATION_OPTIONS.find((option) =>
-    (Object.keys(option.labels) as DurationLocale[]).some((locale) => {
+  const populated = (Object.keys(EMPTY_DURATION) as DurationLocale[]).filter(locale => normalise(stored[locale]).length > 0);
+  return DURATION_OPTIONS.find((option) => populated.length > 0 &&
+    populated.every((locale) => {
       const candidate = normalise(stored[locale]);
       return candidate.length > 0 && candidate === normalise(option.labels[locale]);
     })

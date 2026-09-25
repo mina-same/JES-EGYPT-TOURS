@@ -158,7 +158,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
   return (
     <div className="space-y-2">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground">Duration</span>
+        <label htmlFor="tour-duration-input" className="text-xs font-medium text-muted-foreground">Duration *</label>
         <span className="ml-auto rounded border bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           Fills all 4 languages
         </span>
@@ -177,7 +177,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
               onClick={() => apply(option)}
               aria-pressed={active}
               className={cn(
-                'rounded-full border px-2.5 py-1 text-xs font-medium transition',
+                'min-h-11 rounded-full border px-3 py-2 text-xs font-medium transition',
                 active
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-input text-muted-foreground hover:border-primary/50 hover:bg-muted/50 hover:text-foreground'
@@ -191,6 +191,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
 
       <Select<Choice, false, GroupBase<Choice>>
         instanceId="tour-duration"
+        inputId="tour-duration-input"
         options={groups}
         value={selected}
         onChange={handleSelect}

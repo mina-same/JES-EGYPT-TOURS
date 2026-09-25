@@ -217,7 +217,7 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                 {/* Decorative Badge */}
                 <div className="inline-flex items-center gap-3">
                   <div className="w-12 h-[2px] bg-[#b79c5c] rounded-full"></div>
-                  <span className="text-[#7a5f12] font-black uppercase tracking-[0.25em] text-[10px] md:text-xs">
+                  <span className="text-[#b79c5c] font-black uppercase tracking-[0.25em] text-[10px] md:text-xs">
                     {localizedSubtitle || t("homeIntro.fallbackSubtitle")}
                   </span>
                 </div>
@@ -226,7 +226,7 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                 <h2 className="text-[#1a1a1a] font-extrabold text-3xl md:text-5xl lg:text-6xl leading-[1.1] tracking-tight">
                   {mainTitle}
                   {highlightTitle && (
-                    <span className="block text-[#9a7b1c] mt-3 italic font-serif font-normal opacity-95 low-italic-fix">
+                    <span className="block text-[#b79c5c] mt-3 italic font-serif font-normal opacity-95 low-italic-fix">
                       {highlightTitle}
                     </span>
                   )}

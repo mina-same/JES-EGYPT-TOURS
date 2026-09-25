@@ -14,10 +14,15 @@
 import "react-datepicker/dist/react-datepicker.css";
 import "react-phone-number-input/style.css";
 
+import React from "react";
 import dynamic from "next/dynamic";
+import type { ICurrencyPrice } from "@/contexts/CurrencyContext";
+import { sameBookingCardProps } from "@/lib/bookingFormUx";
+import { BookingCardHeader } from "./BookingCardHeader";
+import { BookingFormBoundary } from "./BookingFormBoundary";
 
 /**
- * The booking form, loaded as its own chunk.
+ * The booking form's fields, loaded as their own chunk.
  *
  * BookingForm is the only module in the app that imports react-datepicker,
  * react-phone-number-input (and with it libphonenumber's metadata) and
@@ -43,32 +48,75 @@ import dynamic from "next/dynamic";
  * single remaining static `import { BookingForm }` anywhere would pull the
  * module back into the route's chunk group and undo the split entirely.
  */
-export const BookingFormLazy = dynamic(
+const BookingFormFields = dynamic(
   () => import("./BookingForm").then((mod) => mod.BookingForm),
   {
     /*
-     * This `loading` gives the form its own <Suspense> boundary, and the
+     * This `loading` gives the fields their own <Suspense> boundary, and the
      * boundary is kept on purpose: React can hydrate the rest of the tour page
-     * without waiting for this chunk, and hydrate the form when it lands.
+     * without waiting for this chunk, and hydrate the fields when it lands.
      *
      * The cost is that React's server renderer streams a completed boundary
-     * this far down the page out of line: the form's server HTML sits hidden
-     * at the end of the document until an inline script moves it here, which
-     * happens at once in any browser running scripts. With JavaScript off
-     * this placeholder is what shows. That is acceptable only because the
-     * form cannot be submitted without JavaScript anyway (onSubmit, no
-     * action). It is not acceptable for page content, which is why the view
-     * wrappers have no `loading` at all.
+     * this large out of line: the fields' server HTML sits hidden at the end
+     * of the document until an inline script moves it here, which happens at
+     * once in any browser running scripts. With JavaScript off this
+     * placeholder is what shows — under the card's title and price, which are
+     * outside the boundary. That is acceptable only because the form cannot
+     * be submitted without JavaScript anyway (onSubmit, no action).
      *
-     * It carries the card's own classes and reserves its height, so the swap
-     * does not collapse the sidebar and shift the page around it.
+     * It reserves the fields' height (688–690px on desktop), so the card does
+     * not collapse while the chunk loads after a client-side navigation.
      */
     loading: () => (
-      <div
-        className="tour-listing-details__sidebar__item tour-listing-details__sidebar__item-form"
-        style={{ minHeight: 600 }}
-        aria-hidden="true"
-      />
+      <div className="booking-form-card" style={{ minHeight: 690 }} aria-hidden="true" />
     ),
   }
 );
+
+interface BookingCardProps {
+  tourId: string;
+  /** The starting price shown in the card's header: `priceStartingFrom`'s
+   *  { USD, EUR, GBP } object, resolved by the currency context. */
+  price?: number | ICurrencyPrice | null;
+  /** True when the tour has real pricing plans, so the price can link to them. */
+  hasPricing?: boolean;
+  /** The tour's own pricing plan names, in the order the admin arranged them. */
+  packageOptions?: string[];
+  /** Names the tour in the prefilled WhatsApp message. */
+  tourTitle?: string;
+}
+
+/**
+ * The booking card: its title and price, then the form.
+ *
+ * The title and price are written here, outside the fields' lazy boundary, so
+ * they are part of the page's own server markup — visible with JavaScript off,
+ * and never replaced by the fields' placeholder.
+ */
+function BookingCard({ tourId, price, hasPricing, packageOptions, tourTitle }: BookingCardProps) {
+  return (
+    <div className="tour-listing-details__sidebar__item tour-listing-details__sidebar__item-form">
+      <BookingCardHeader price={price} hasPricing={hasPricing} />
+      <BookingFormBoundary>
+        <BookingFormFields tourId={tourId} tourTitle={tourTitle} packageOptions={packageOptions} />
+      </BookingFormBoundary>
+    </div>
+  );
+}
+
+/**
+ * Memoised on the props' values, which is what keeps the server-rendered form
+ * on screen until its chunk arrives.
+ *
+ * Until then the fields' boundary is dehydrated: React holds the server HTML
+ * and cannot render the component behind it. Any update that reaches the
+ * boundary in that window makes React give up on hydrating it — it deletes the
+ * server HTML and shows the placeholder until the chunk lands. The tour page
+ * re-renders straight after hydrating (it measures its nav and sidebar) and
+ * again when its related content arrives, each time with a new package array
+ * and, after the re-map, a new price object holding the same amounts. Compared
+ * by value, those renders stop here. Context updates are the other way in;
+ * the providers above make their load-time updates as transitions, which React
+ * holds back until the boundary has hydrated.
+ */
+export const BookingFormLazy = React.memo(BookingCard, sameBookingCardProps);

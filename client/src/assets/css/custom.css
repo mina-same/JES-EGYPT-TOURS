@@ -4744,6 +4744,17 @@ button[data-action="stop"] {
   color: var(--gotur-gold-heading, #9a7b1c);
 }
 
+/* Exception, by request: the homepage About block keeps the original golds
+   (#b79c5c tagline, #d4af37 heading words) for the look of the first screen.
+   Only the homepage renders this block's title as an h1 (/about uses h2), so
+   every other section and page keeps the accessible golds above. */
+#about .sec-title:has(h1.sec-title__title) .sec-title__tagline {
+  color: #b79c5c;
+}
+#about h1.sec-title__title span {
+  color: var(--gotur-base, #d4af37);
+}
+
 /* Small trust line under the WhatsApp number */
 .about-one__button__call__note {
   display: block;
@@ -4782,13 +4793,14 @@ button[data-action="stop"] {
 
 /* A single gold ring on a photograph could not hold 3:1 (median 1.49 against
    the pixels beside it). The ring is drawn on the dim layer instead, which
-   already sits over the image: white outside, dark inside, 16:1 between the
-   two, so one of them always contrasts with the photo whatever it shows. */
+   already sits over the image: dark outside, where the card meets the white
+   page (16:1), and white inside, against the tinted photo. With white outside
+   the ring vanished into the page and its dark band into dark photos. */
 .destination-carousel--two .destination-carousel__link:focus-visible {
   outline: none;
 }
 .destination-carousel--two .destination-carousel__link:focus-visible .destination-carousel__dim {
-  box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 6px var(--gotur-black, #1d231f);
+  box-shadow: inset 0 0 0 3px var(--gotur-black, #1d231f), inset 0 0 0 6px #fff;
 }
 
 .destination-carousel--two .destination-carousel__image {
@@ -5451,30 +5463,7 @@ button[data-action="stop"] {
   background: linear-gradient(90deg, var(--gotur-base, #d4af37), transparent);
 }
 
-/* Photo scrim (gotur.css `.main-slider-four__bg::after`). Its middle stop
-   was 0.28, right where the title, the gold phrase, the subtitle and the
-   buttons sit: on the brighter slides the white title fell to 2.05:1 and the
-   gold phrase to 1.00:1. 0.6 is the lightest middle stop that clears every
-   one of them on all six slides at 375/768/1440 (0.55 left the phrase at
-   2.85:1); the top and bottom stops and the vignette are unchanged. */
-.main-slider-four__bg::after {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(13, 26, 42, 0.72) 0%,
-      rgba(13, 26, 42, 0.6) 42%,
-      rgba(13, 26, 42, 0.7) 100%
-    ),
-    radial-gradient(
-      120% 75% at 50% 42%,
-      rgba(6, 14, 24, 0) 45%,
-      rgba(6, 14, 24, 0.5) 100%
-    );
-}
-
-/* Title accent: the CMS "span" phrase takes the bright brand gold
-   (#f4d03f), not #d4af37 — on the scrim above that is what keeps it past
-   3:1 on every slide (3.31:1 at worst; #d4af37 would not be).
+/* Title accent: the CMS "span" phrase takes the brand gold.
    `inline-block` keeps the phrase as ONE unit — it wraps to the next line
    whole instead of fragmenting mid-phrase; a fragmented inline span has no
    reliable box for the absolutely-positioned underline image, which is why
@@ -5482,7 +5471,7 @@ button[data-action="stop"] {
    With `max-width: 100%` (set in gotur.css) the underline now also sizes
    to the phrase instead of overflowing it. */
 .main-slider-four__title-accent {
-  color: var(--gotur-primary, #f4d03f);
+  color: var(--gotur-base, #d4af37);
   display: inline-block;
   position: relative;
   /* The wrapper below sets `white-space: nowrap` to stop a trailing comma

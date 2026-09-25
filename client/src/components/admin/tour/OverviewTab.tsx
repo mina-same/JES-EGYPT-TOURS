@@ -1,5 +1,6 @@
 import TourFilterFields from './TourFilterFields';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { findDurationOption } from '@/lib/tours/duration';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,12 @@ const LANGUAGE_NAMES: Record<AdminLanguage, string> = {
 
 export default function OverviewTab({ formData, subcategories, handleChange, activeLanguage, formErrors = [] }: OverviewTabProps) {
   const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
+  const durationOption = findDurationOption(formData.duration);
+  useEffect(() => {
+    // Only repair absent numeric metadata for an unambiguous saved choice.
+    // Preserve existing numeric values and ambiguous legacy text until selected.
+    if (formData.durationHours == null && durationOption) handleChange('durationHours', durationOption.hours);
+  }, [formData.durationHours, durationOption, handleChange]);
 
   return (
     <div className="space-y-6">
@@ -185,7 +192,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           <CardDescription>Location, availability, and logistics</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <LocalizedInput
               label="Location"
               value={formData.tourLocation || { en: '', de: '', it: '', es: '' }}
@@ -196,10 +203,14 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
 
             {/* No language tabs: one pick writes all four languages, so there is
                 nothing per-language left for the admin to fill in. */}
+            <div>
             <DurationSelect
               value={formData.duration}
               onChange={(val, hours) => { handleChange('duration', val); handleChange('durationHours', hours); }}
             />
+            {(!(formData.durationHours > 0) || (durationOption && durationOption.hours !== formData.durationHours)) &&
+              <p className="mt-2 text-sm text-amber-800">Select a duration from the list to keep this tour&apos;s duration filter accurate.</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

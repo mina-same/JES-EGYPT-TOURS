@@ -8,7 +8,7 @@
   "styles": {
     "classic": {"en":"Classic","de":"Klassisch","it":"Classico","es":"Clásico"},
     "luxury": {"en":"Luxury","de":"Luxus","it":"Lusso","es":"Lujo"},
-    "family": {"en":"Family","de":"Familie","it":"Famiglia","es":"Familia"},
+    "family": {"en":"Family","de":"Familie","it":"Famiglia","es":"Familiar"},
     "honeymoon": {"en":"Honeymoon","de":"Flitterwochen","it":"Luna di miele","es":"Luna de miel"},
     "accessible": {"en":"Accessible","de":"Barrierefrei","it":"Accessibile","es":"Accesible"}
   },
