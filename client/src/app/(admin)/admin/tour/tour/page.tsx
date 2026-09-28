@@ -1,5 +1,6 @@
 'use client';
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -222,10 +223,10 @@ function ToursPageContent() {
               <LanguageBadges entity={tour} className="ms-2" />
             </div>
             <div className="tour-meta">
-              {tour.tourLocation && (
+              {formatTourDestinations(tour.destinations, 'en') && (
                 <div className="tour-meta-item">
                   <MapPin size={12} />
-                  {typeof tour.tourLocation === 'object' ? (tour.tourLocation as any).en : tour.tourLocation}
+                  {formatTourDestinations(tour.destinations, 'en')}
                 </div>
               )}
             </div>

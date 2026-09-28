@@ -336,7 +336,7 @@ export const getBlogBySlug = async (
       // Related posts are drawn with the same card as everywhere else, so they
       // are populated with the same field set — see blogCardPopulate.
       .populate(blogCardPopulate('relatedPosts'))
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
+      .populate({ path: 'relatedTours', select: 'heading slug images gallery duration destinations priceStartingFrom reviews videoLink', populate: { path: 'destinations', select: 'name shortName' } });
 
     if (!blog) {
       res.status(404).json({
@@ -986,7 +986,7 @@ export const getBlogById = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('destination', 'name slug')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
+      .populate({ path: 'relatedTours', select: 'heading slug images gallery duration destinations priceStartingFrom reviews videoLink', populate: { path: 'destinations', select: 'name shortName' } });
 
     if (!blog) {
       res.status(404).json({

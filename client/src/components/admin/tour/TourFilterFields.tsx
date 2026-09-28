@@ -54,7 +54,7 @@ export default function TourFilterFields({ value, onChange }: {
       <Select<{ value: string; label: string }, true>
         instanceId={`${id}-places`} inputId={`${id}-places`} isMulti isSearchable
         options={options} value={selected} isLoading={loading} closeMenuOnSelect={false}
-        placeholder="Search destinations..." noOptionsMessage={() => 'No destinations found'}
+        placeholder="Search places visited..." noOptionsMessage={() => 'No destinations found'}
         onChange={items => onChange('destinations', items.map(item => item.value))}
         aria-describedby={error ? `${id}-places-error` : !selected.length ? `${id}-places-help` : undefined}
         maxMenuHeight={220}
@@ -68,7 +68,7 @@ export default function TourFilterFields({ value, onChange }: {
         }}
       />
       {error && <p id={`${id}-places-error`} role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
-      {!selected.length && <p id={`${id}-places-help`} className="mt-2 text-sm text-amber-800">Select the destinations this tour visits.</p>}
+      {!selected.length && <p id={`${id}-places-help`} className="mt-2 text-sm text-amber-800">Places Visited needs review</p>}
     </div>
     <details className="border-t pt-4">
       <summary className="cursor-pointer py-2 font-medium focus-visible:outline-amber-600">Advanced listing options</summary>

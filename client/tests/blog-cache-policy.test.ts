@@ -113,7 +113,9 @@ test('entities, the featured strip and the directories are tagged for an hour', 
   for (const [url, read, extra] of reads) {
     const [call] = await callsOf(read);
     assert.equal(call.url, url);
-    assert.deepEqual(call.init, { ...entity(), ...extra }, url);
+    const expected = entity();
+    if (url.startsWith('/blog/posts/slug/')) expected.next.tags.push('tours');
+    assert.deepEqual(call.init, { ...expected, ...extra }, url);
   }
 });
 

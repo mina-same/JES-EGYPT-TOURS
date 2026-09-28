@@ -1,5 +1,6 @@
 'use client';
 
+import { tourDestinationIds } from '@/lib/tours/destinations';
 import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -231,12 +232,12 @@ export default function EditTourPage() {
               cardDescription: toLocalized(tour.cardDescription),
               meetingPoint: toLocalized(tour.meetingPoint),
               tags: toLocalizedMixed(tour.tags),
-              tourLocation: toLocalized(tour.tourLocation),
+
               tourAvailability: toLocalized(tour.tourAvailability),
               pickupAndDropOff: toLocalized(tour.pickupAndDropOff),
               tourType: typeof tour.tourType === 'string' ? tour.tourType : '',
               tourStyles: tour.tourStyles || [],
-              destinations: tour.destinations || [],
+              destinations: tourDestinationIds(tour.destinations),
               durationHours: tour.durationHours,
               recommendedOrder: tour.recommendedOrder,
               // Plain enum, not a localized field — it is logic, not copy.

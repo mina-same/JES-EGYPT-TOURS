@@ -1,4 +1,5 @@
 "use client";
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import { tourTypeLabel, tourStyleLabels } from '@/lib/tours/catalog';
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -97,7 +98,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
 
     // Build metadata for the card (Location first — it gets its own row).
     const meta = [];
-    const loc = getLocalizedValue(t?.tourLocation);
+    const loc = formatTourDestinations(t?.destinations, currentLang);
     if (loc) {
       meta.push({ id: 1, title: loc, icon: "icon-location" });
     }
@@ -168,7 +169,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
       title: getLocalizedValue(tour.heading) || tour.name || "",
       titleTwo: tour.name || "",
       overview: getLocalizedValue(tour.Description?.text) || getLocalizedValue(tour.overview) || "",
-      location: getLocalizedValue(tour.tourLocation) || "",
+      location: formatTourDestinations(tour.destinations, currentLang),
       pickupAndDropOff: getLocalizedValue(tour.pickupAndDropOff) || "",
       activitiesType: tourTypeLabel(tour.tourType, currentLang) || "",
       stylesLabel: tourStyleLabels(tour.tourStyles, currentLang).join(', '),

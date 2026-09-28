@@ -163,12 +163,7 @@ export const tourSeed = {
       alt: { en: 'Karnak Temple Pillars', de: '', it: '', es: '' },
     },
   ],
-  tourLocation: { 
-    en: 'Aswan, Kom Ombo, Edfu, Luxor',
-    de: 'Assuan, Kom Ombo, Edfu, Luxor',
-    it: 'Assuan, Kom Ombo, Edfu, Luxor',
-    es: 'Asuán, Kom Ombo, Edfu, Lúxor'
-  },
+
   tourAvailability: { 
     en: 'Weekly Departures (Fridays)',
     de: 'Wöchentliche Abfahrten (Freitags)',

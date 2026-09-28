@@ -1,5 +1,6 @@
 'use client';
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -127,7 +128,7 @@ export default function TourViewPage() {
           <Field label="Status">{isActive ? 'Active' : scheduled ? 'Scheduled' : 'Inactive'}</Field>
           {scheduled && <Field label="Scheduled for">{new Date(entity.scheduledAt).toLocaleString()}</Field>}
           <Field label="Duration">{getLocalizedValue(entity.duration) || '—'}</Field>
-          <Field label="Location">{getLocalizedValue(entity.tourLocation) || '—'}</Field>
+          <Field label="Places Visited">{formatTourDestinations(entity.destinations, previewLocale) || "Places Visited needs review"}</Field>
           <Field label="Price from">{money(entity.priceStartingFrom)}</Field>
           <Field label="Itinerary days">{days.length}</Field>
           <Field label="Pricing plans">{plans.length}</Field>

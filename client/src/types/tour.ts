@@ -120,12 +120,11 @@ export interface ITour {
   price?: number;
   priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;
-  tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
   tourType?: string;
   tourStyles?: TourStyleId[];
-  destinations?: string[];
+  destinations?: Array<string | import('@/lib/tours/destinations').TourDestination>;
   durationHours?: number | null;
   recommendedOrder?: number | null;
   /** Day tour or package — decides which pricing plans are allowed and
@@ -339,7 +338,6 @@ export interface TourFormData {
   headingDescription?: ILocalizedMixed;
   /** Short teaser for the tour card (two clamped lines). */
   cardDescription?: ILocalizedString;
-  tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
   tourType?: string;

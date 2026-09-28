@@ -124,8 +124,7 @@ export const parseTourSort = (
       if (explicitLocale) return '-createdAt';
       target = field;
       break;
-    case 'heading':
-    case 'tourLocation': {
+    case 'heading': {
       if (explicitLocale && !TOUR_LOCALES.includes(explicitLocale as TourLocale)) {
         return '-createdAt';
       }
@@ -145,7 +144,7 @@ export const parseTourSort = (
 
 export const PUBLIC_TOUR_LIST_FIELDS = new Set([
   'heading', 'name', 'slug', 'images', 'gallery', 'cardDescription',
-  'Description', 'tourLocation', 'duration', 'priceStartingFrom',
+  'Description', 'duration', 'priceStartingFrom',
   'subcategory', 'category', 'tourType', 'tourStyles', 'destinations', 'durationHours', 'recommendedOrder', 'specialOfferDiscount',
   'isActive', 'isFeatured', 'scheduledAt', 'createdAt', 'updatedAt', 'reviews.url',
 ]);

@@ -11,4 +11,4 @@ export const CARD_FIELDS =
   // `reviews.url` and nothing more of the review: it is only read to decide
   // whether the card offers its video button, and the full review bodies would
   // dwarf everything else in this payload.
-  "slug,heading,name,images,gallery,priceStartingFrom,videoLink,specialOfferDiscount,duration,tourLocation,subcategory,cardDescription,Description,reviews.url";
+  "slug,heading,name,images,gallery,priceStartingFrom,videoLink,specialOfferDiscount,duration,destinations,subcategory,cardDescription,Description,reviews.url";

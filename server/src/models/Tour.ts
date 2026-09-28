@@ -211,7 +211,6 @@ export interface ITour extends Document {
   Description?: IDescription;
   images: IImage[];
   gallery?: IImage[];
-  tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
   tourType?: string;
@@ -830,9 +829,6 @@ const TourSchema = new Schema<ITour>(
     gallery: {
       type: [ImageSchema],
       default: [],
-    },
-    tourLocation: {
-      type: OptionalLocalizedStringSchema,
     },
     tourAvailability: {
       type: OptionalLocalizedStringSchema,

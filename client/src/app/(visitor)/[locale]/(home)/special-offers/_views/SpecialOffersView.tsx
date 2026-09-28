@@ -1,4 +1,5 @@
 'use client';
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import React, { useState, useEffect, useRef } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { Loader2, Tag, ArrowRight } from "lucide-react";
@@ -84,7 +85,7 @@ function mapTour(tour: any, locale: string) {
               getLocalizedValue(tour.Description?.text, locale) ||
               "",
     meta: [
-      { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || "Egypt", icon: "icon-location" },
+      { id: 1, title: formatTourDestinations(tour.destinations, locale), icon: "icon-location" },
       { id: 2, title: getLocalizedValue(tour.duration, locale) || "1 Day", icon: "icon-clock" },
       ...(getDisplayName(tour.subcategory, locale)
                   ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]

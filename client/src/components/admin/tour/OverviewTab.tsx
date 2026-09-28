@@ -189,18 +189,10 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
       <Card>
         <CardHeader>
           <CardTitle>Tour Details</CardTitle>
-          <CardDescription>Location, availability, and logistics</CardDescription>
+          <CardDescription>Duration, availability, and logistics</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <LocalizedInput
-              label="Location"
-              value={formData.tourLocation || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('tourLocation', val, lang)}
-              placeholder="Cairo, Egypt"
-              activeLanguage={activeLanguage}
-            />
-
             {/* No language tabs: one pick writes all four languages, so there is
                 nothing per-language left for the admin to fill in. */}
             <div>

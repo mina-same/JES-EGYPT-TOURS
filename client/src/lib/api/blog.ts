@@ -537,7 +537,7 @@ export async function getBlogBySlug(slug: string, locale?: string): Promise<Blog
   const res = await fetchEntity(
     `${API_URL}/blog/posts/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
     {
-      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG, 'tours']),
       headers: locale ? { 'X-Locale': locale } : undefined,
     },
     { what: 'article', slug, locale }

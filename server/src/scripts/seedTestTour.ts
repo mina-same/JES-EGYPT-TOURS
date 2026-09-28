@@ -48,7 +48,7 @@ const seedTestTour = async () => {
       },
       duration: { en: '5 Days' },
       tourType: undefined, // Classify explicitly in Admin.
-      tourLocation: { en: 'Cairo' },
+
       tourStyles: [], // Choose canonical styles in Admin.
       priceStartingFrom: { USD: 500, EUR: 450, GBP: 400 },
       pricingPlans: [{

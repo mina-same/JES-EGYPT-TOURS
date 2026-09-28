@@ -246,7 +246,6 @@ const CACHEABLE_SORTS = new Set([
   'priceStartingFrom',
   '-priceStartingFrom',
   'heading',
-  'tourLocation',
 ]);
 
 /** Deep pagination is neither crawled nor browsed; past this we stop caching. */

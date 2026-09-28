@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import FilterChips from '@/components/common/TourListingFilters/FilterChips';
 import { StructuredFilters } from '@/components/common/TourListingFilters/StructuredFilters';
 import React, { useEffect, useMemo, useState } from "react";
@@ -276,7 +277,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
               getLocalizedValue(tour.Description?.text, locale) ||
               "",
             meta: [
-              { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || "Location", icon: "icon-location" },
+              { id: 1, title: formatTourDestinations(tour.destinations, locale), icon: "icon-location" },
               { id: 2, title: `${getLocalizedValue(tour.duration, locale) || '3 Days'}`, icon: "icon-clock" },
               ...(getDisplayName(tour.subcategory, locale)
                   ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]

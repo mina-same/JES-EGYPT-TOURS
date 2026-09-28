@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlogPost, formatBlogDate } from "@/lib/api/blog";
@@ -487,7 +488,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           "",
         meta: [
           { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
-          { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },
+          { id: 3, title: formatTourDestinations(tour.destinations, locale), icon: "icon-location" },
         ],
       };
 

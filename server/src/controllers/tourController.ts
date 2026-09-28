@@ -10,7 +10,7 @@ import { FilterQuery, Types, isValidObjectId } from 'mongoose';
 import { ITour, completeTourSeo, validateTourKindPlans } from '../models/Tour';
 import { deriveStartingPrice, validatePricingCurrencyConsistency } from '../utils/startingPrice';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
-import { localize, localizePreservingSlugs } from '../utils/localize';
+import { localizePreservingSlugs } from '../utils/localize';
 import {
   parseFutureSchedule,
   PublishingValidationError,
@@ -202,11 +202,18 @@ const buildQueryFilter = async (
       ],
     }).select('_id');
 
+    const matchingDestinations = await Destination.find({
+      $or: [
+        { [`name.${locale}`]: searchRegex },
+        { [`shortName.${locale}`]: searchRegex },
+      ],
+    }).select('_id');
+
     filter.$or = [
       { [`heading.${locale}`]: searchRegex },
       { [`cardDescription.${locale}`]: searchRegex },
       { [`Description.text.${locale}`]: searchRegex },
-      { [`tourLocation.${locale}`]: searchRegex },
+      { destinations: { $in: matchingDestinations.map((destination) => destination._id) } },
       ...(locale === 'en' ? [{ name: searchRegex }] : []),
       ...(matchingSubcategories.length
         ? [{ subcategory: { $in: matchingSubcategories.map((sub) => sub._id) } }]
@@ -268,7 +275,7 @@ const TOUR_LIST_FIELDS = [
   'heading', 'name', 'slug',
   // card face
   'images', 'gallery', 'cardDescription', 'Description',
-  'tourLocation', 'duration', 'priceStartingFrom',
+  'duration', 'priceStartingFrom',
   // relations shown as labels (subcategory is also required for the populate)
   'subcategory', 'category',
   // canonical listing facts (options are read from the full scope separately)
@@ -306,14 +313,14 @@ export const getAllTours = async (
     // Build query. NOTE: a single populate call — a second object-form
     // populate on the same path REPLACES the first one's select and ships
     // the full ~23KB subcategory document with every tour in the list.
-    const populate = {
+    const populate = [{
       path: 'subcategory',
       select: 'name shortName slug category',
       populate: {
         path: 'category',
         select: 'name slug',
       },
-    };
+    }, { path: 'destinations', select: 'name shortName' }];
 
     const selectedFields = fields || TOUR_LIST_FIELDS;
     const isPriceSort = sort === `priceStartingFrom.${currency}` || sort === `-priceStartingFrom.${currency}`;
@@ -477,9 +484,9 @@ export const getFeaturedTours = async (
       .select(
         // `subcategory` must be selected for the populate above to resolve — the
         // card shows its name as the tour's category label.
-        'heading slug images cardDescription Description tourLocation subcategory pricingPlans priceStartingFrom duration specialOfferDiscount isSpecialOffer reviews.url'
+        'heading slug images cardDescription Description destinations subcategory pricingPlans priceStartingFrom duration specialOfferDiscount isSpecialOffer reviews.url'
       )
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     // Collapse reviews into their URLs and drop the rest of each review, so the
     // homepage card can show a working video button without receiving titles
@@ -571,7 +578,7 @@ export const getToursBySubcategory = async (
         .sort('-createdAt')
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .populate({ path: 'destinations', select: 'name shortName' }).lean(),
       Tour.countDocuments(filter),
     ]);
 
@@ -644,7 +651,7 @@ export const getToursByIds = async (
 
     const tours = await Tour.find({ _id: { $in: requested } })
       .select(
-        'heading name slug images priceStartingFrom duration tourLocation ' +
+        'heading name slug images priceStartingFrom duration destinations ' +
           'subcategory cardDescription Description isActive specialOfferDiscount videoLink'
       )
       // `category` inside the subcategory is what the wishlist page uses to pick
@@ -655,7 +662,7 @@ export const getToursByIds = async (
         select: 'name shortName slug category',
         populate: { path: 'category', select: '_id name slug' },
       })
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     const data = tours.map((tour: any) =>
       tour.isActive === false ? { _id: tour._id, isActive: false } : tour
@@ -697,7 +704,7 @@ export const getTourById = async (
           select: 'name slug description',
         },
       })
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     if (!tour) {
       res.status(404).json({
@@ -709,7 +716,7 @@ export const getTourById = async (
 
     res.status(200).json({
       success: true,
-      data: localize(ensureTourMapSchema(tour), req.locale),
+      data: localizePreservingSlugs(ensureTourMapSchema(tour), req.locale),
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
@@ -758,7 +765,7 @@ export const getTourBySlug = async (
           select: 'name shortName slug description',
         },
       })
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     if (!tour) {
       res.status(404).json({
@@ -797,7 +804,7 @@ export const getTourByExternalId = async (
   try {
     const tour = await Tour.findOne({ idExternal: req.params.idExternal })
       .populate('subcategory', 'name shortName slug')
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     if (!tour) {
       res.status(404).json({
@@ -809,7 +816,7 @@ export const getTourByExternalId = async (
 
     res.status(200).json({
       success: true,
-      data: localize(tour, req.locale),
+      data: localizePreservingSlugs(tour, req.locale),
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
@@ -850,9 +857,9 @@ export const getRelatedTours = async (
       _id: { $ne: req.params.id },
       isActive: true,
     })
-      .select('heading slug images cardDescription Description tourLocation pricingPlans')
+      .select('heading slug images cardDescription Description destinations pricingPlans')
       .limit(limit)
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     res.status(200).json({
       success: true,

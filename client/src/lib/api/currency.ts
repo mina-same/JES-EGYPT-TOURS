@@ -19,7 +19,9 @@ export const currencyAPI = {
       const response = await axiosInstance.get('/currency/rates');
       return response.data;
     } catch (error: any) {
-      console.error('Error fetching currency rates:', error);
+      // CurrencyProvider falls back to cached/default rates, so an unreachable
+      // API is not an error worth the dev overlay — console.error would raise it.
+      console.warn('Currency rates unavailable, using fallback rates:', error?.message);
       return error.response?.data || { success: false, message: 'Failed to fetch rates' };
     }
   },

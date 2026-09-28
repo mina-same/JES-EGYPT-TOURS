@@ -1,3 +1,4 @@
+import { tourDestinationNames } from '../tours/destinations';
 import { tourTypeLabel } from '../tours/catalog';
 /**
  * tourJsonLd.ts
@@ -403,7 +404,7 @@ export function generateTourJsonLd({
   const durationStr = getLocalizedValue(tour.duration, loc);
   const isoDuration = formatISO8601Duration(durationStr);
 
-  const tourLocation = stripHtml(getLocalizedValue(tour.tourLocation, loc));
+  const destinationNames = tourDestinationNames(tour.destinations, loc).map(stripHtml);
   const tourAvailabilityStr = getLocalizedValue(tour.tourAvailability, loc);
   const availabilityUrl = resolveAvailability(tourAvailabilityStr);
 
@@ -661,22 +662,9 @@ export function generateTourJsonLd({
     ...(allImageUrls.length > 0 ? { image: allImageUrls } : {}),
     provider: { "@id": organizationId },
     ...(isoDuration ? { duration: isoDuration } : {}),
-    ...(tourLocation
-      ? {
-          touristDestination: {
-            "@type": "TouristDestination",
-            name: tourLocation,
-            ...(tourLocation.toLowerCase().includes("egypt")
-              ? {}
-              : {
-                  containedInPlace: {
-                    "@type": "Country",
-                    name: "Egypt",
-                  },
-                }),
-          },
-        }
-      : {}),
+    ...(destinationNames.length ? {
+      touristDestination: destinationNames.map((name) => ({ "@type": "TouristDestination", name })),
+    } : {}),
     ...(tour.tourType
       ? { touristType: stripHtml(tourTypeLabel(tour.tourType, loc)) }
       : {}),

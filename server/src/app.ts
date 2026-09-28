@@ -29,6 +29,7 @@ import menuRoutes from './routes/menuRoutes';
 import currencyRoutes from './routes/currencyRoutes';
 import destinationRoutes from './routes/destinationRoutes';
 import resolveRoutes from './routes/resolveRoutes';
+import sitemapRoutes from './routes/sitemapRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import connectDB from './config/database';
 import { i18nMiddleware } from './middleware/i18n';
@@ -180,6 +181,8 @@ app.use('/api/currency', currencyRoutes);
 app.use('/api/destinations', destinationRoutes);
 // Slug -> content type for the shared /[locale]/[slug] visitor route.
 app.use('/api/resolve', resolveRoutes);
+// Slugs, dates and indexing flags for the front end's sitemap.xml.
+app.use('/api/sitemap', sitemapRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

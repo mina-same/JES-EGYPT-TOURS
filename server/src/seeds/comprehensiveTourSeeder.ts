@@ -396,7 +396,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           { url: sampleImages.sphinx, fileName: 'sphinx-front.jpg', title: { en: 'Sphinx Front View', de: 'Sphinx Vorderansicht', it: 'Vista frontale della Sfinge', es: 'Vista Frontal de la Esfinge' }, alt: { en: 'Frontal view of Sphinx', de: 'Frontalansicht der Sphinx', it: 'Vista frontale della Sfinge', es: 'Vista frontal de la Esfinge' } },
           { url: SEED_IMAGE_PLACEHOLDER, fileName: 'saqqara-step.jpg', title: { en: 'Step Pyramid of Saqqara', de: 'Stufenpyramide von Sakkara', it: 'Piramide a gradoni di Saqqara', es: 'Pirámide Escalonada de Saqqara' }, alt: { en: 'Djoser Step Pyramid', de: 'Djoser-Stufenpyramide', it: 'Piramide a gradoni di Djoser', es: 'Pirámide Escalonada de Zoser' } },
         ],
-        tourLocation: { en: 'Giza & Saqqara, Egypt', de: 'Gizeh & Sakkara, Ägypten', it: 'Giza e Saqqara, Egitto', es: 'Giza y Saqqara, Egipto' },
+
         tourAvailability: { en: 'Every Day (8:00 AM Start)', de: 'Jeden Tag (Beginn 08:00 Uhr)', it: 'Ogni giorno (inizio ore 8:00)', es: 'Todos los días (inicio 8:00 AM)' },
         pickupAndDropOff: { en: 'Complimentary pickup and drop-off from any Cairo or Giza hotel.', de: 'Kostenlose Abholung und Rückfahrt von jedem Hotel in Kairo oder Gizeh.', it: 'Ritiro e riconsegna gratuiti da qualsiasi hotel al Cairo o Giza.', es: 'Recogida y regreso gratuitos desde cualquier hotel de El Cairo o Giza.' },
         tourType: undefined, // Classify explicitly in Admin.
@@ -499,7 +499,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           { url: sampleImages.luxor, fileName: 'karnak-hall.jpg', title: { en: 'Great Hypostyle Hall', de: 'Große Säulenhalle', it: 'Grande sala ipostila', es: 'Gran Sala Hipóstila' }, alt: { en: 'Columns of Karnak', de: 'Säulen von Karnak', it: 'Colonne di Karnak', es: 'Columnas de Karnak' } },
           { url: sampleImages.temple, fileName: 'hatshepsut.jpg', title: { en: 'Temple of Hatshepsut', de: 'Tempel der Hatschepsut', it: 'Tempio di Hatshepsut', es: 'Templo de Hatshepsut' }, alt: { en: 'Mortuary Temple of Hatshepsut', de: 'Totentempel der Hatschepsut', it: 'Tempio mortuario di Hatshepsut', es: 'Templo Funerario de Hatshepsut' } },
         ],
-        tourLocation: { en: 'Luxor, Egypt', de: 'Luxor, Ägypten', it: 'Luxor, Egitto', es: 'Luxor, Egipto' },
+
         tourAvailability: { en: 'Daily', de: 'Täglich', it: 'Quotidiano', es: 'Diario' },
         pickupAndDropOff: { en: 'Included from any Luxor Hotel or Cruise Ship', de: 'Inbegriffen von jedem Hotel oder Kreuzfahrtschiff in Luxor', it: 'Incluso da qualsiasi hotel o nave da crociera a Luxor', es: 'Incluido desde cualquier hotel o crucero en Luxor' },
         tourType: undefined, // Classify explicitly in Admin.
@@ -593,7 +593,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           { url: sampleImages.nile, fileName: 'nile-cruise.jpg', title: { en: 'Nile Cruise', de: 'Nilkreuzfahrt', it: 'Crociera sul Nilo', es: 'Crucero por el Nilo' }, alt: { en: 'Luxury Nile Cruise', de: 'Luxuriöse Nilkreuzfahrt', it: 'Crociera di lusso sul Nilo', es: 'Crucero de lujo por el Nilo' } },
           { url: sampleImages.redSea, fileName: 'hurghada-beach.jpg', title: { en: 'Hurghada Red Sea', de: 'Hurghada Rotes Meer', it: 'Hurghada Mar Rosso', es: 'Hurghada Mar Rojo' }, alt: { en: 'Red Sea Beach', de: 'Strand am Roten Meer', it: 'Spiaggia del Mar Rosso', es: 'Playa del Mar Rojo' } },
         ],
-        tourLocation: { en: 'Cairo - Luxor - Aswan - Hurghada', de: 'Kairo - Luxor - Assuan - Hurghada', it: 'Il Cairo - Luxor - Assuan - Hurghada', es: 'El Cairo - Luxor - Asuán - Hurghada' },
+
         tourAvailability: { en: 'Every Day', de: 'Täglich', it: 'Ogni giorno', es: 'Todos los días' },
         pickupAndDropOff: { en: 'Airport transfers included', de: 'Flughafentransfers inbegriffen', it: 'Trasferimenti aeroportuali inclusi', es: 'Traslados al aeropuerto incluidos' },
         tourType: undefined, // Classify explicitly in Admin.
@@ -660,7 +660,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
         images: [
           { url: sampleImages.redSea, fileName: 'details-coral.jpg', title: { en: 'Red Sea Corals', de: 'Korallen im Roten Meer', it: 'Coralli del Mar Rosso', es: 'Corales del Mar Rojo' }, alt: { en: 'Colorful coral reef', de: 'Farbenfrohes Korallenriff', it: 'Barriera corallina colorata', es: 'Arrecife de coral colorido' } },
         ],
-        tourLocation: { en: 'Hurghada', de: 'Hurghada', it: 'Hurghada', es: 'Hurghada' },
+
         tourAvailability: { en: 'Daily', de: 'Täglich', it: 'Ogni giorno', es: 'Diario' },
         pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ seasonName: 'All Year', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31'), prices: { solo: 45, pax_2_4: 35, pax_5_8: 30, pax_9_16: 25 } }] }],
         priceStartingFrom: 25,
@@ -703,7 +703,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           text: { en: '<p>Expert-led tour with 10 years experience.</p>', de: '<p>Von Experten geführte Tour mit 10 Jahren Erfahrung.</p>', it: '<p>Tour guidato da esperti con 10 anni di esperienza.', es: '<p>Tour dirigido por expertos con 10 años de experiencia.</p>' },
         },
         images: [{ url: sampleImages.cairo, fileName: 'muizz-street.jpg', title: { en: 'Al-Muizz Street', de: 'Al-Muizz Straße', it: 'Via Al-Muizz', es: 'Calle Al-Muizz' }, alt: { en: 'Historic street Cairo', de: 'Historische Straße Kairo', it: 'Strada storica del Cairo', es: 'Calle histórica de El Cairo' } }],
-        tourLocation: { en: 'Cairo', de: 'Kairo', it: 'Il Cairo', es: 'El Cairo' },
+
         inclusion: [
           { en: 'Expert guide', de: 'Experte als Guide', it: 'Guida esperta', es: 'Guía experto' },
           { en: 'Walking tour', de: 'Rundgang', it: 'Tour a piedi', es: 'Tour a pie' },
@@ -744,7 +744,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           text: { en: '<p>10+ years expertise in southern tours.</p>', de: '<p>Über 10 Jahre Erfahrung in südlichen Touren.</p>', it: '<p>Oltre 10 anni di esperienza nei tour del sud.</p>', es: '<p>Más de 10 años de experiencia en tours por el sur.</p>' },
         },
         images: [{ url: sampleImages.aswan, fileName: 'abusimbel-main.jpg', title: { en: 'Abu Simbel Facade', de: 'Abu Simbel Fassade', it: 'Facciata di Abu Simbel', es: 'Fachada de Abu Simbel' }, alt: { en: 'Four statues of Ramses', de: 'Vier Statuen von Ramses', it: 'Quattro statue di Ramses', es: 'Cuatro estatuas de Ramsés' } }],
-        tourLocation: { en: 'Aswan/Abu Simbel', de: 'Assuan/Abu Simbel', it: 'Assuan/Abu Simbel', es: 'Asuán/Abu Simbel' },
+
         inclusion: [
           { en: 'Private transport', de: 'Privater Transport', it: 'Trasporto privato', es: 'Transporte privado' },
           { en: 'Lunch', de: 'Mittagessen', it: 'Pranzo', es: 'Almuerzo' },
@@ -786,7 +786,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           text: { en: '<p>Safely camp with guides having 10+ years experience.</p>', de: '<p>Sicher campen mit Guides, die über 10 Jahre Erfahrung haben.</p>', it: '<p>Campeggia in sicurezza con guide che hanno oltre 10 anni di esperienza.</p>', es: '<p>Acampe con seguridad con guías que tienen más de 10 años de experiencia.</p>' },
         },
         images: [{ url: sampleImages.desert, fileName: 'white-desert-night.jpg', title: { en: 'Camping under stars', de: 'Camping unter Sternen', it: 'Campeggio sotto le stelle', es: 'Camping bajo las estrellas' }, alt: { en: 'Tent in White Desert', de: 'Zelt in der Weißen Wüste', it: 'Tenda nel deserto bianco', es: 'Tienda en el Desierto Blanco' } }],
-        tourLocation: { en: 'Bahariya Oasis', de: 'Bahariya Oase', it: 'Oasi di Bahariya', es: 'Oasis de Bahariya' },
+
         inclusion: [
           { en: 'Camping gear', de: 'Campingausrüstung', it: 'Attrezzatura da campeggio', es: 'Equipo de camping' },
           { en: 'Meals and water', de: 'Mahlzeiten und Wasser', it: 'Pasti e acqua', es: 'Comidas y agua' },
@@ -827,7 +827,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           text: { en: '<p>Discover Alexandria with our 10+ years experienced guides.</p>', de: '<p>Entdecken Sie Alexandria mit unseren Guides, die über 10 Jahre Erfahrung haben.', it: '<p>Scopri Alessandria con le nostre guide con oltre 10 anni di esperienza.', es: '<p>Descubra Alejandría con nuestros guías experimentados de más de 10 años.</p>' },
         },
         images: [{ url: sampleImages.cairo, fileName: 'alex-citadel.jpg', title: { en: 'Qaitbay Citadel', de: 'Qaitbay-Zitadelle', it: 'Cittadella di Qaitbay', es: 'Ciudadela de Qaitbay' }, alt: { en: 'Fortress by the sea', de: 'Festung am Meer', it: 'Fortezza sul mare', es: 'Fortaleza junto al mar' } }],
-        tourLocation: { en: 'Alexandria', de: 'Alexandria', it: 'Alessandria', es: 'Alejandría' },
+
         inclusion: [
           { en: 'Private transport', de: 'Privater Transport', it: 'Trasporto privato', es: 'Transporte privado' },
           { en: 'Expert guide', de: 'Experte als Guide', it: 'Guida esperta', es: 'Guía experto' },
@@ -868,7 +868,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           text: { en: '<p>Compact tour with professional expertise (10+ years).</p>', de: '<p>Kompakte Tour mit professioneller Kompetenz (über 10 Jahre).</p>', it: '<p>Tour compatto con competenza professionale (oltre 10 anni).</p>', es: '<p>Tour compacto con experiencia profesional (más de 10 años).</p>' },
         },
         images: [{ url: sampleImages.pyramids, fileName: 'memphis-statue.jpg', title: { en: 'Ramses II Statue', de: 'Ramses II Statue', it: 'Statua di Ramses II', es: 'Estatua de Ramsés II' }, alt: { en: 'Colossus of Ramses', de: 'Koloss von Ramses', it: 'Colosso di Ramses', es: 'Coloso de Ramsés' } }],
-        tourLocation: { en: 'Giza', de: 'Gizeh', it: 'Giza', es: 'Giza' },
+
         inclusion: [
           { en: 'Private transport', de: 'Privater Transport', it: 'Trasporto privato', es: 'Transporte privado' },
           { en: 'Expert guide', de: 'Experte als Guide', it: 'Guida esperta', es: 'Guía experto' },
@@ -909,7 +909,7 @@ const seedTours = async (subcategoryMap: Map<string, mongoose.Types.ObjectId>): 
           text: { en: '<p>Traditional experience with 10+ years of excellence.</p>', de: '<p>Traditionelles Erlebnis mit über 10 Jahren Exzellenz.</p>', it: '<p>Esperienza tradizionale con oltre 10 anni di eccellenza.</p>', es: '<p>Experiencia tradicional con más de 10 años de excelencia.</p>' },
         },
         images: [{ url: sampleImages.nile, fileName: 'nubian-house.jpg', title: { en: 'Nubian House', de: 'Nubisches Haus', it: 'Casa nubiana', es: 'Casa Nubia' }, alt: { en: 'Colorful Nubian village', de: 'Buntes nubisches Dorf', it: 'Colorato villaggio nubiano', es: 'Colorido pueblo nubio' } }],
-        tourLocation: { en: 'Aswan', de: 'Assuan', it: 'Assuan', es: 'Asuán' },
+
         inclusion: [
           { en: 'Felucca ride', de: 'Felluckenfahrt', it: 'Giro in feluca', es: 'Paseo en feluca' },
           { en: 'Visit to Nubian family', de: 'Besuch bei einer nubischen Familie', it: 'Visita alla famiglia nubiana', es: 'Visita a una familia nubia' },
