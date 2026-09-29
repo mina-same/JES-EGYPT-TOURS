@@ -20,7 +20,76 @@ function loadSource(relative: string, overrides: Record<string, unknown> = {}) {
 }
 
 const catalog = loadSource('../src/lib/tours/catalog.ts');
+test('type labels come only from current IDs, never translated objects or free text', () => {
+  for (const locale of ['en', 'de', 'it', 'es']) {
+    for (const [id, labels] of Object.entries(catalog.catalog.types) as [string, Record<string, string>][]) {
+      assert.equal(catalog.tourTypeLabel(id, locale), labels[locale]);
+    }
+    for (const invalid of [{ en: 'day-tour', es: 'Privado' }, { en: 'Private' }, 'Private', 'unknown', '', null, undefined]) {
+      assert.equal(catalog.tourTypeLabel(invalid, locale), '');
+    }
+  }
+});
+const { validateTourForm } = loadSource('../src/lib/validations/tourValidation.ts', {
+  '@/lib/tours/catalog': catalog,
+});
+
+test('shared create/edit save validation requires a current type while styles may stay empty', () => {
+  for (const tourType of ['', undefined, null, 'Private', { en: 'day-tour' }, ['day-tour']]) {
+    assert.ok(validateTourForm({ tourType }).some((error: any) => error.path === 'tourType'));
+  }
+  for (const tourType of Object.keys(catalog.catalog.types)) {
+    const form = { tourType, tourStyles: [], tourKind: 'DAY_TOUR' };
+    const before = JSON.stringify(form);
+    assert.ok(!validateTourForm(form).some((error: any) => ['tourType', 'tourStyles'].includes(error.path)));
+    assert.equal(JSON.stringify(form), before);
+  }
+});
 const React = createRequire(import.meta.url)('react');
+const hookDependencies = {
+  '@/lib/api/tour': {}, '@/lib/api/upload': {}, '@/hooks/use-toast': {},
+  '@/lib/tours/catalog': catalog,
+};
+test('draft restoration keeps only current scalar type IDs without inferring old translations', () => {
+  const { createInitialTourFormData } = loadSource('../src/hooks/useTourForm.ts', hookDependencies);
+  for (const tourType of [undefined, null, '', 'Private', 'unknown', { en: 'day-tour', es: 'Privado' }, ['day-tour']]) {
+    const restored = createInitialTourFormData({ tourType, tourStyles: [], tourKind: 'DAY_TOUR' });
+    assert.equal(restored.tourType, '');
+    assert.deepEqual(restored.tourStyles, []);
+    assert.equal(restored.tourKind, 'DAY_TOUR');
+  }
+  for (const tourType of Object.keys(catalog.catalog.types)) {
+    assert.equal(createInitialTourFormData({ tourType }).tourType, tourType);
+  }
+});
+
+test('form changes keep scalar type IDs for every locale and reject localized leaf changes', () => {
+  let form: any;
+  const { useTourForm } = loadSource('../src/hooks/useTourForm.ts', {
+    ...hookDependencies,
+    react: { ...React, useEffect() {}, useRef: (value: unknown) => ({ current: value }), useState(initial: any) {
+      let state = typeof initial === 'function' ? initial() : initial;
+      const isForm = state && typeof state === 'object' && 'tourType' in state;
+      if (isForm) form = state;
+      return [state, (update: any) => {
+        state = typeof update === 'function' ? update(state) : update;
+        if (isForm) form = state;
+      }];
+    } },
+  });
+  const hook = useTourForm({ tourType: 'day-tour', tourKind: 'DAY_TOUR', tourStyles: [] });
+  for (const locale of ['en', 'de', 'it', 'es']) {
+    hook.handleChange('tourType', 'multi-day', locale);
+    assert.equal(form.tourType, 'multi-day');
+    hook.handleChange(`tourType.${locale}`, 'day-tour');
+    assert.equal(form.tourType, 'multi-day');
+    assert.deepEqual(catalog.catalogOptions('types', locale).map((o: any) => o.id), Object.keys(catalog.catalog.types));
+  }
+  hook.handleChange('tourType', { en: 'day-tour' }, 'en');
+  assert.equal(form.tourType, '');
+  assert.equal(form.tourKind, 'DAY_TOUR');
+  assert.deepEqual(form.tourStyles, []);
+});
 const Fields = loadSource('../src/components/admin/tour/TourFilterFields.tsx', {
   '@/lib/tours/catalog': catalog,
   './TourStyleSelect': () => null,

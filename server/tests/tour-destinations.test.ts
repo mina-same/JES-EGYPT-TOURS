@@ -64,7 +64,7 @@ test('create and update reject display objects, invalid IDs and missing referenc
   for (const handler of [createTour, updateTour]) {
     for (const destinations of [[{ _id: first }], ['Luxor'], [first]]) {
       const res = response();
-      await handler({ params: { id: first }, body: { destinations } } as any, res as any);
+      await handler({ params: { id: first }, body: { tourType: 'day-tour', destinations } } as any, res as any);
       assert.equal(res.code, 400);
     }
   }

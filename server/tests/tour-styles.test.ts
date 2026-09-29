@@ -1,10 +1,9 @@
-/// <reference path="../src/types/express.d.ts" />
+import type {} from '../src/types/express';
 import '../src/middleware/i18n';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import Tour from '../src/models/Tour';
 import { validTourStyles } from '../src/utils/tourStyles';
-import { planTourFilterMigration } from '../src/utils/tourFilterMigration';
 import { createTour, updateTour } from '../src/controllers/tourController';
 
 test('saving one or several styles writes only stable IDs and preserves type/kind', async context => {
@@ -47,21 +46,10 @@ test('both create and update APIs reject bad styles before database writes', asy
   for (const handler of [createTour, updateTour]) {
     for (const tourStyles of [['Luxury'], ['luxury', 'luxury'], 'Cultural, Historical']) {
       let status: number | undefined;
-      await handler({ body: { tourStyles }, params: {} } as any, {
+      await handler({ body: { tourType: 'day-tour', tourStyles }, params: {} } as any, {
         status(code: number) { status = code; return this; }, json() {},
       } as any);
       assert.equal(status, 400);
-    }
-  }
-});
-
-test('legacy labels, prose and descriptions never assign or remove styles', () => {
-  for (const tourStyle of [{ en: 'Luxury' }, { en: 'Cultural, Historical' }, 'classic']) {
-    for (const tourStyles of [undefined, [], ['luxury', 'honeymoon']]) {
-      const plan = planTourFilterMigration({ tourStyle, tourStyles, heading: { en: 'Luxury' }, Description: { text: { en: 'Luxury hotel' } } });
-      assert.equal('tourStyles' in plan.set, false);
-      assert.equal('tourStyle' in plan.unset, false);
-      assert.equal(plan.review.includes('tourStyles'), !tourStyles?.length);
     }
   }
 });

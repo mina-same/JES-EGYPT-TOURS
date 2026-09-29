@@ -1,5 +1,9 @@
 # Tour filter data review
 
+Historical record from 2026-09-25. Classification review and cleanup are now complete;
+see [the final cleanup report](tour-classification-cleanup.md). The historical tables
+below are not the current manual-review queue.
+
 Reviewed the saved itinerary bodies, numbered days, included stops and overnight stays on 2026-09-25. The following types and destination references have been applied. No classification was inferred from a tour title or Private.
 
 Rules: a same-day itinerary with return is day-tour; overnight itineraries are multi-day. Packages combining Cairo hotels and a Nile cruise remain multi-day. Places include scheduled sightseeing and overnight destinations, not pickup-only cities or optional excursions. Only existing Destination records are linked; no new public destination pages were created.
@@ -49,14 +53,13 @@ The new Admin chip selector is ready for manual classification. These 11 tours s
 | 6aae353ddd225c59e29681fc | Half Day Private Tour of the Grand Egyptian Museum in Giza |
 | 6ab2c859a83cf835c0240cac | Karnak and Luxor Temple Tour: Private East Bank Day Tour |
 
-Edit each at `/admin/tour/tour/<ID>/edit`. No style data was changed during this revision. Old tourStyle is read-only review material, not a visitor/filter fallback. The migration script no longer assigns styles or unsets this field. Cleanup requires a later explicit step after manual review and verification; it is not automatically triggered by running migration --apply.
+The owner's subsequent manual review is complete. Current styles were preserved
+without inference, and the obsolete singular style field was removed on 2026-09-29.
 
 ## Backups and cache
 
-Local git-ignored backups were written before updates. Writes compared updatedAt to avoid overwriting concurrent edits; tour writes incremented editVersion. No permanent backup fields were added.
+Local git-ignored backups were written before those historical updates. The four obsolete tour classification migration reports were removed during final cleanup. Writes compared updatedAt to avoid overwriting concurrent edits; tour writes incremented editVersion. No permanent backup fields were added.
 
-- server/tour-filter-migration-1790290517074.json: original nine durations.
-- server/tour-filter-migration-reviewed-1790327001769.json: full original tour documents, evidence and explicit changes.
 - server/tour-filter-migration-destination-*.json: original Giza destination.
 
 Authenticated POST /api/revalidate returned HTTP 200 with the configured local frontend running. Both secrets match. The earlier failure was an unavailable local frontend. Production deployment/connectivity is not established by this local check.

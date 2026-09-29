@@ -6,6 +6,7 @@ import ContactTop from "@/components/sections/ContactTop/ContactTop";
 import ContactPage from "@/components/sections/ContactPage/ContactPage";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
+import { RouteToaster } from "@/components/ui/route-toaster";
 import { getServerTranslation } from "@/lib/i18n-server";
 import { Metadata } from "next";
 import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
@@ -96,28 +97,32 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
   };
 
   return (
-    <Layout>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <TopbarOne />
-      <HeaderOne linkTheme="light" />
-      <HeaderOneCloned />
-      <PageHeader
-        /* This page publishes its own BreadcrumbList below. */
-        breadcrumbJsonLd={false}
-        title={t('pageTitle')}
-        subTitle={t('pageSubTitle')}
-        breadcrumbs={[{ label: t('breadcrumb.current') }]}
-      />
-      <ContactTop />
-      <ContactPage locale={lang} />
-      <FooterOne />
-    </Layout>
+    <>
+      <Layout>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+        <TopbarOne />
+        <HeaderOne linkTheme="light" />
+        <HeaderOneCloned />
+        <PageHeader
+          /* This page publishes its own BreadcrumbList below. */
+          breadcrumbJsonLd={false}
+          title={t('pageTitle')}
+          subTitle={t('pageSubTitle')}
+          breadcrumbs={[{ label: t('breadcrumb.current') }]}
+        />
+        <ContactTop />
+        <ContactPage locale={lang} />
+        <FooterOne />
+      </Layout>
+      {/* ContactPage's toasts: invalid fields, send failure, message sent. */}
+      <RouteToaster />
+    </>
   );
 }

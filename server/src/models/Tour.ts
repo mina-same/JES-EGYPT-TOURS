@@ -12,7 +12,7 @@ import {
   LocalizedMixedSchema,
   OptionalLocalizedMixedSchema,
 } from './shared/LocalizedSchema';
-import { revalidateTags } from '../services/revalidate';
+import { revalidateTags, wroteDocuments } from '../services/revalidate';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 // ==================== INTERFACES ====================
@@ -213,7 +213,7 @@ export interface ITour extends Document {
   gallery?: IImage[];
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: string;
+  tourType: keyof typeof filterCatalog.types;
   tourStyles?: TourStyleId[];
   destinations?: mongoose.Types.ObjectId[];
   durationHours?: number;
@@ -836,7 +836,7 @@ const TourSchema = new Schema<ITour>(
     pickupAndDropOff: {
       type: OptionalLocalizedStringSchema,
     },
-    tourType: { type: String, enum: [...Object.keys(filterCatalog.types), ''] },
+    tourType: { type: String, cast: false, required: [true, 'Tour Type is required'], enum: Object.keys(filterCatalog.types) },
     tourStyles: {
       type: [{ type: String, enum: Object.keys(filterCatalog.styles) }],
       castNonArrays: false,
@@ -1164,7 +1164,15 @@ TourSchema.post('findOneAndDelete', revalidateTourCaches);
 TourSchema.post('deleteOne', { document: true, query: false }, revalidateTourCaches);
 TourSchema.post('deleteOne', { document: false, query: true }, revalidateTourCaches);
 TourSchema.post('updateOne', revalidateTourCaches);
-TourSchema.post('updateMany', revalidateTourCaches);
+/*
+ * Only when a tour was actually written. services/publishingScheduler.ts runs
+ * Tour.updateMany every 30 seconds to activate scheduled tours, and this hook
+ * runs after every one of those calls — so clearing the tag unconditionally
+ * expired every cached tour page twice a minute when nothing was due.
+ */
+TourSchema.post('updateMany', (result: unknown) => {
+  if (wroteDocuments(result)) revalidateTourCaches();
+});
 
 
 /**

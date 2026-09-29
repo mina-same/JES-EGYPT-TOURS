@@ -3,6 +3,7 @@ import { TourFormData, ITourSubcategory } from '@/types/tour';
 import { tourSubcategoryAPI } from '@/lib/api/tour';
 import { uploadAPI } from '@/lib/api/upload';
 import { toast } from '@/hooks/use-toast';
+import { catalog } from '@/lib/tours/catalog';
 
 import { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import type { UploadResult } from '@/components/admin/ImageUpload';
@@ -73,10 +74,12 @@ export const createInitialTourFormData = (initialData?: Partial<TourFormData>): 
   tags: { en: [], de: [], it: [], es: [] },
   };
   // Older local drafts can contain removed fields. Only restore current form
-  // fields, retaining every editable value without reintroducing old payloads.
+  // fields and the current scalar type shape. Never infer an ID from old text.
   return {
     ...defaults,
     ...Object.fromEntries(Object.entries(initialData || {}).filter(([key]) => Object.hasOwn(defaults, key))),
+    tourType: typeof initialData?.tourType === 'string' && Object.hasOwn(catalog.types, initialData.tourType)
+      ? initialData.tourType : '',
   };
 };
 
@@ -188,6 +191,10 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
   // Handle form field changes
   const handleChange = (field: string, value: any, lang?: AdminLanguage) => {
     setFormData(prev => {
+      if (field.startsWith('tourType.')) return prev;
+      if (field === 'tourType') {
+        return { ...prev, tourType: typeof value === 'string' && Object.hasOwn(catalog.types, value) ? value as NonNullable<TourFormData['tourType']> : '' };
+      }
       const updated = { ...prev } as any;
       
       if (field.includes('.')) {

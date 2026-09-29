@@ -9,6 +9,8 @@ import { tourAPI } from '@/lib/api/tour';
 import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import PriceBadge from '@/components/admin/tour/PriceBadge';
+import { TOUR_REQUIRED_LOCALIZED_FIELDS } from '@/lib/tours/requiredLocalizedFields';
 import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
@@ -109,7 +111,7 @@ export default function TourViewPage() {
             {entity.isFeatured && <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-800"><Star size={10} /> Featured</span>}
             {entity.isSpecialOffer && <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-800">Special offer</span>}
           </h1>
-          <p className="admin-page-subtitle flex items-center gap-2"><span>Tour{subName ? ` · ${parentName ? parentName + ' / ' : ''}${subName}` : ''} · read-only</span><LanguageBadges entity={entity} /></p>
+          <p className="admin-page-subtitle flex items-center gap-2"><span>Tour{subName ? ` · ${parentName ? parentName + ' / ' : ''}${subName}` : ''} · read-only</span><LanguageBadges entity={entity} requiredLocalizedFields={TOUR_REQUIRED_LOCALIZED_FIELDS} imageTextAsSeo /><PriceBadge tour={entity} /></p>
         </div>
         <div className="header-actions">
           <EditEntityButton href={`${EDIT_PATH}${id}/edit`} resource="tour" />

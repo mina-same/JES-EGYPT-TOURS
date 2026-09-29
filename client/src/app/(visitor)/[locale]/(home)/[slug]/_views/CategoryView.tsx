@@ -111,7 +111,7 @@ export default function CategoryView({
       maxPrice: searchParams?.get("maxPrice") || "",
       subcategoryId: searchParams?.get("subcategory") || "",
       tourType: searchParams?.get("tourType") || "",
-      tourStyles: searchParams?.get("tourStyles") || searchParams?.get("tourStyle") || "",
+      tourStyles: searchParams?.get("tourStyles") || "",
       destinations: searchParams?.get("destinations") || "",
       durationRange: searchParams?.get("durationRange") || "",
     };

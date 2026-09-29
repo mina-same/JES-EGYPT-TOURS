@@ -58,7 +58,6 @@ export default function EditTourPage() {
   const params = useParams();
   const tourId = params.id as string;
   
-  const [legacyClassification, setLegacyClassification] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -235,7 +234,7 @@ export default function EditTourPage() {
 
               tourAvailability: toLocalized(tour.tourAvailability),
               pickupAndDropOff: toLocalized(tour.pickupAndDropOff),
-              tourType: typeof tour.tourType === 'string' ? tour.tourType : '',
+              tourType: tour.tourType,
               tourStyles: tour.tourStyles || [],
               destinations: tourDestinationIds(tour.destinations),
               durationHours: tour.durationHours,
@@ -338,10 +337,6 @@ export default function EditTourPage() {
           // No draft — load fresh server data without creating a draft
           setStoredDraftVersion(serverVersion);
           tourForm.clearDraft({ suppressNextSave: true });
-          setLegacyClassification(JSON.stringify({
-            previousType: typeof tour.tourType === 'object' ? tour.tourType : undefined,
-            previousStyle: tour.tourStyle,
-          }, null, 2));
           tourForm.setFormData(loadedFormData);
         } else {
           setError(response.error || 'Failed to fetch tour');
@@ -773,7 +768,6 @@ export default function EditTourPage() {
         >
           {activeTab === 'overview' && (
             <>
-            {legacyClassification !== '{}' && <details className="rounded border p-3 mb-3"><summary>Previous classification: review before choosing new values</summary><pre className="whitespace-pre-wrap text-sm">{legacyClassification}</pre></details>}
             <OverviewTab
               formData={tourForm.formData}
               subcategories={tourForm.subcategories}

@@ -8,6 +8,11 @@ import {
 import { deriveStartingPrice } from '../src/lib/tours/startingPrice';
 import { isCanonicalListing, tourServerAPI } from '../src/lib/api/tour.server';
 
+test('only the canonical styles query parameter controls the listing', () => {
+  assert.equal(readTourListingState(new URLSearchParams('tourStyle=luxury')).filters.tourStyles, '');
+  assert.equal(readTourListingState(new URLSearchParams('tourStyles=family,classic&tourStyle=luxury')).filters.tourStyles, 'family,classic');
+});
+
 test('listing state is read before the initial request', () => {
   const params = new URLSearchParams('page=3&sort=heading&search=Nile&minPrice=90&subcategory=abc');
   assert.deepEqual(readTourListingState(params, true), {

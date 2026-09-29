@@ -47,6 +47,7 @@ import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { getNotFoundRobotsMetadata, getRobotsMetadata } from "@/lib/seo/robots";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
 import { Metadata } from "next";
@@ -390,6 +391,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getRobotsMetadata(cAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -424,6 +426,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getRobotsMetadata(sAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -464,6 +467,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
       alternates,
+      robots: getRobotsMetadata(bAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -494,6 +498,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getRobotsMetadata(destination.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: seoTitle || getLocalizedValue(destination.name, locale),
@@ -549,7 +554,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  return { title: "Not Found | JES Egypt Tours", robots: "noindex" };
+  /*
+   * Nothing resolved, so the page below calls notFound(). This never reaches
+   * the 404's server HTML; that head comes from (home)/not-found.tsx. It is
+   * not dead, though: the 404 is sent as Next's error shell, and the browser
+   * renders the page from the RSC payload that carries THIS metadata. It is
+   * the title and robots the visitor's document ends up with.
+   */
+  return { title: "Not Found | JES Egypt Tours", robots: getNotFoundRobotsMetadata() };
 }
 
 export default async function SlugPage({ params, searchParams }: PageProps) {
@@ -579,7 +591,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     minPrice: parsedMinPrice,
     maxPrice: parsedMaxPrice,
     tourType: firstQueryValue(query.tourType) || undefined,
-    tourStyles: firstQueryValue(query.tourStyles) || firstQueryValue(query.tourStyle) || undefined,
+    tourStyles: firstQueryValue(query.tourStyles) || undefined,
     destinations: firstQueryValue(query.destinations) || undefined,
     durationRange: firstQueryValue(query.durationRange) || undefined,
     currency,

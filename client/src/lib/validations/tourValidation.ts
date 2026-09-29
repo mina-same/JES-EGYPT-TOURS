@@ -1,8 +1,13 @@
 import { TourFormData } from '@/types/tour';
 import { FormErrorItem } from '@/lib/parseApiError';
+import { catalog } from '@/lib/tours/catalog';
 
 export function validateTourForm(formData: TourFormData): FormErrorItem[] {
   const errors: FormErrorItem[] = [];
+  // Draft autosave is local; both create and edit validate before API saves.
+  if (typeof formData.tourType !== 'string' || !Object.hasOwn(catalog.types, formData.tourType)) {
+    errors.push({ field: 'Tour Type', message: 'Please select a valid Tour Type', path: 'tourType' });
+  }
 
   const hasSchedule =
     formData.scheduledAt !== undefined && formData.scheduledAt !== null;

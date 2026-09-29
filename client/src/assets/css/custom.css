@@ -2,18 +2,16 @@
    1. GLOBAL UTILS
    ========================================================================== */
 
-/* Golds for READABLE content. The brand golds stay on fills, strokes and
-   decoration, but none of them can carry text on the site's light sections:
-   --gotur-base #d4af37 is 2.10:1 on white, --gotur-primary #f4d03f 1.51:1,
-   --jes-gold #b79c5c 2.65:1.
-
-   --gotur-gold-text     5.1-6.05:1 on those sections: any text size (4.5:1).
-   --gotur-gold-heading  3.4-4.0:1 on the same sections: ONLY for text that is
-                         WCAG-large at every breakpoint (>= 24px, or >= 18.66px
-                         bold), which needs 3:1. */
+/* Two kinds of gold on light sections:
+   - Brand typography keeps the site's own golds, by design decision: heading
+     accent words, names, FAQ numbers and tags in --gotur-base (#d4af37);
+     taglines, eyebrows, blog chips and "Read More" in --jes-gold (#b79c5c).
+     These are 2.0-2.7:1 on white, below WCAG AA, accepted for the brand look.
+   - --gotur-gold-text (#7a5f12, 5.1-6.05:1) is for FUNCTIONAL gold only:
+     focus rings, carousel arrows, selected/hover states of controls and links.
+     Do not use it for brand typography, and do not lighten it. */
 :root {
   --gotur-gold-text: #7a5f12;
-  --gotur-gold-heading: #9a7b1c;
 }
 
 /* Global Overflow Fixes */
@@ -4710,49 +4708,19 @@ button[data-action="stop"] {
   font-size: 26px;
 }
 
-/* Small gold text the theme sets in the brand gold (1.80-2.10:1): the
-   "Call or WhatsApp" label above the About phone number, and the testimonial
-   authors' names, which sit on a pale gold card where even the heading gold
-   is under 3:1 (2.81-3.02) — both take the text gold (4.2-6.05:1). */
-.about-one__button__call span,
-.testimonials-two-card__author__name {
-  color: var(--gotur-gold-text, #7a5f12);
-}
-
 /* ─────────────────────────────────────────────────────────────
-   Section taglines (eyebrows), SITE-WIDE: accent text in the text gold,
-   without the washed-out translucent pill background. The face is the
-   display serif in italic (set in gotur.css); this was the template's
-   handwritten Caveat until Phase 2. #b79c5c measured 2.24-2.65:1 on every
-   section it sits on; taglines are 20px (not large) on phones, so they take
-   the text gold: 5.1-6.05:1, measured on every page that has one.
+   Section taglines (eyebrows), SITE-WIDE: decorative accent text in the
+   soft brand gold, without the washed-out translucent pill background. The
+   face is the display serif in italic (set in gotur.css); this was the
+   template's handwritten Caveat until Phase 2.
    ───────────────────────────────────────────────────────────── */
 .sec-title__tagline {
-  color: var(--gotur-gold-text, #7a5f12);
+  color: var(--jes-gold, #b79c5c);
   padding: 0;
   font-weight: 500; /* deliberately above the 400 in gotur.css */
 }
 .sec-title__tagline::after {
   display: none;
-}
-
-/* The gold words in section headings (gotur.css `.sec-title__title span`,
-   which also colours TextAnimation's word spans). The brand #d4af37 was
-   1.86-2.10:1. These spans are 28-50px at every breakpoint, so the lighter
-   heading gold is enough: 3.59-4.02:1 on every section and page that has one. */
-.sec-title__title span {
-  color: var(--gotur-gold-heading, #9a7b1c);
-}
-
-/* Exception, by request: the homepage About block keeps the original golds
-   (#b79c5c tagline, #d4af37 heading words) for the look of the first screen.
-   Only the homepage renders this block's title as an h1 (/about uses h2), so
-   every other section and page keeps the accessible golds above. */
-#about .sec-title:has(h1.sec-title__title) .sec-title__tagline {
-  color: #b79c5c;
-}
-#about h1.sec-title__title span {
-  color: var(--gotur-base, #d4af37);
 }
 
 /* Small trust line under the WhatsApp number */
@@ -6779,9 +6747,9 @@ button[data-action="stop"] {
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: 0.02em;
-  /* Text gold, not --jes-gold (2.26-2.42:1 on the frosted chip). The hover
-     keeps the gold FILL and takes a dark label instead of white (2.65:1). */
-  color: var(--gotur-gold-text, #7a5f12);
+  /* Brand gold label; the hover keeps the gold FILL and takes a dark label
+     instead of white (2.65:1). */
+  color: var(--jes-gold, #b79c5c);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7010,8 +6978,7 @@ button[data-action="stop"] {
   border: 1px solid rgba(183, 156, 92, 0.55);
   border-radius: 999px;
   background-color: #fff;
-  /* Text gold: --jes-gold was 2.65:1 here. The disc keeps the brand gold. */
-  color: var(--gotur-gold-text, #7a5f12);
+  color: var(--jes-gold, #b79c5c);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.4;

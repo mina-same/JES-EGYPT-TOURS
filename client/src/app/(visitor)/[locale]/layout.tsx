@@ -1,6 +1,5 @@
 import { Manrope, Playfair_Display } from "next/font/google";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { Toaster } from "@/components/ui/toaster";
 import { I18nProvider } from "@/contexts/I18nProvider";
 import { getLocaleResources } from "@/i18n/bundles";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
@@ -11,15 +10,10 @@ import { SlugProvider } from "@/contexts/SlugContext";
 import SEOProvider from "@/components/common/SEO/SEOProvider";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getRobotsMetadata } from "@/lib/seo/robots";
 
 const locales = ["en", "de", "it", "es"];
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.jesegypttours.com";
-
-// The site is intentionally kept OUT of search indexes during development.
-// It stays noindex unless NEXT_PUBLIC_SITE_INDEXABLE is explicitly 'true' at
-// launch — the default (unset) is always noindex, so nothing is exposed now.
-// Mirrors the same flag in src/app/robots.ts.
-const siteIndexable = process.env.NEXT_PUBLIC_SITE_INDEXABLE === "true";
 
 export async function generateMetadata({
   params,
@@ -53,9 +47,12 @@ export async function generateMetadata({
       shortcut: "/favicon.ico",
       apple: "/apple-touch-icon.png",
     },
-    robots: siteIndexable
-      ? { index: true, follow: true }
-      : { index: false, follow: false },
+    // The site is intentionally kept OUT of search indexes during development:
+    // noindex, nofollow unless NEXT_PUBLIC_SITE_INDEXABLE is explicitly 'true'
+    // at launch (lib/seo/robots.ts; robots.txt follows the same flag). Pages
+    // whose entity has an editor "No Index" set their own value through the
+    // same helper, so the site switch still wins there.
+    robots: getRobotsMetadata(),
   };
 }
 
@@ -127,7 +124,9 @@ export default async function RootLayout({
                 <CurrencyProvider initialCurrency={currencyCookie ?? undefined}>
                   <SEOProvider locale={locale} />
                   {children}
-                  <Toaster />
+                  {/* No Toaster here: the routes that raise toasts (Contact,
+                      Special Offers) mount a RouteToaster themselves, so the
+                      Radix Toast code no longer ships to every visitor page. */}
                 </CurrencyProvider>
               </I18nProvider>
             </SlugProvider>

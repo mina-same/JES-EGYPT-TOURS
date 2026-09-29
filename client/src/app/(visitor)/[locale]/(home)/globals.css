@@ -401,7 +401,7 @@ a {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.2px;
-  color: var(--gotur-gold-text, #7a5f12);
+  color: var(--gotur-base, #d4af37);
   min-width: 22px;
   padding-top: 3px;
   flex-shrink: 0;
@@ -485,7 +485,7 @@ a {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--gotur-gold-text, #7a5f12);
+  color: var(--gotur-base, #d4af37);
   background: rgba(212, 175, 55, 0.1);
   padding: 3px 10px;
   border-radius: 20px;

@@ -1,8 +1,9 @@
 "use client";
 /*
- * This module is loaded as its own chunk, through BookingFormLazy — never
- * import it directly, or react-datepicker and react-phone-number-input land
- * back in the shared route bundle that every category and blog page downloads.
+ * This module is loaded as its own chunk, through BookingFormLazy and its
+ * per-locale entries in ./bookingLocales — never import it directly, or
+ * react-datepicker and react-phone-number-input land back in the shared route
+ * bundle that every category and blog page downloads.
  *
  * react-datepicker.css and react-phone-number-input/style.css are imported by
  * that wrapper instead of here, so they stay in the eagerly-loaded route CSS
@@ -10,21 +11,16 @@
  */
 import React, { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
-import { de as dateDe } from "date-fns/locale/de";
-import { enUS as dateEn } from "date-fns/locale/en-US";
-import { es as dateEs } from "date-fns/locale/es";
-import { it as dateIt } from "date-fns/locale/it";
+import type { Locale } from "date-fns";
 import PhoneInput, { getCountryCallingCode, isValidPhoneNumber, type Country } from "react-phone-number-input";
 import { getCountries } from "react-phone-number-input";
-import de from "react-phone-number-input/locale/de";
+// English country names stay here for every language: they are the
+// nationality list's names and the fallback for a code a locale table lacks.
 import en from "react-phone-number-input/locale/en";
-import es from "react-phone-number-input/locale/es";
-import it from "react-phone-number-input/locale/it";
 import { createBooking } from "@/lib/api/booking";
 import { Loader2, CheckCircle, XCircle, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { useRouteLocale } from "@/hooks/useRouteLocale";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { footerOneData } from "@/data/footerOneData";
 import { PACKAGE_NOT_SURE } from "@/lib/tours/tourKind";
@@ -40,18 +36,6 @@ const PARTY_LIMITS = { adults: { min: 1, max: 50 }, children: { min: 0, max: 50 
 const REQUIREMENTS_MAX = 2000;
 const BOOKING_SUPPORT_EMAIL = footerOneData.contact.email.trim();
 const BOOKING_COUNTRIES = getCountries();
-const PHONE_COUNTRY_LABELS_BY_LANGUAGE: Record<string, Record<string, string>> = {
-  de: de as Record<string, string>,
-  en: en as Record<string, string>,
-  es: es as Record<string, string>,
-  it: it as Record<string, string>,
-};
-const DATE_PICKER_LOCALES = {
-  de: dateDe,
-  en: dateEn,
-  es: dateEs,
-  it: dateIt,
-} as const;
 const NATIONALITY_OPTIONS = BOOKING_COUNTRIES
   .map((code) => ({
     code,
@@ -147,7 +131,25 @@ interface BookingFormProps {
   tourTitle?: string;
 }
 
-export const BookingForm: React.FC<BookingFormProps> = ({ tourId, tourTitle, packageOptions }) => {
+/** The page language's data, passed in by the ./bookingLocales entry that
+ *  BookingFormLazy mounted for the route locale. */
+interface BookingFormLocaleProps {
+  /** Both date pickers: month and weekday names, the "P" date format, the
+   *  first day of the week. */
+  dateLocale: Locale;
+  /** Country names for the phone field's calling-code select. */
+  phoneLabels: Record<string, string>;
+}
+
+export type { BookingFormProps };
+
+export const BookingForm: React.FC<BookingFormProps & BookingFormLocaleProps> = ({
+  tourId,
+  tourTitle,
+  packageOptions,
+  dateLocale,
+  phoneLabels,
+}) => {
   const { t } = useTranslation('tours');
   const { currency } = useCurrency();
   // The wishlist labels live in `common`, alongside the ones the tour cards use,
@@ -287,24 +289,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, tourTitle, pac
   const nationalityOptions = NATIONALITY_OPTIONS;
 
   /*
-   * Same correction as PricingPlans, and it matters more here: this value
-   * chooses the date-picker locale and the phone-country label table, both
-   * of which are rendered on the SERVER. A stale `resolvedLanguage` put
-   * English country names into a German page's HTML and then hydrated them
-   * to German — precisely the mismatch the comment below guards against.
+   * The date-picker locale and the phone-country label table are both
+   * rendered on the SERVER, so they follow the ROUTE locale, as in
+   * PricingPlans: a stale `resolvedLanguage` once put English country names
+   * into a German page's HTML and then hydrated them to German — precisely the
+   * mismatch the comment below guards against. BookingFormLazy reads the route
+   * locale and mounts the ./bookingLocales entry that passes that language's
+   * data in as `dateLocale` and `phoneLabels`.
    */
-  const activeLanguage = useRouteLocale();
-  const datePickerLocale = DATE_PICKER_LOCALES[
-    activeLanguage as keyof typeof DATE_PICKER_LOCALES
-  ] || DATE_PICKER_LOCALES.en;
+  const datePickerLocale = dateLocale;
 
   /** Use the phone library's static locale data rather than Intl.DisplayNames.
    *  ICU country names can differ between Node and the browser, which would
    *  make the server-rendered <option> text fail React hydration. */
   const phoneCountryLabels = useMemo(() => {
-    const localizedLabels = PHONE_COUNTRY_LABELS_BY_LANGUAGE[activeLanguage]
-      || PHONE_COUNTRY_LABELS_BY_LANGUAGE.en;
-    const labels: Record<string, string> = { ...localizedLabels };
+    const labels: Record<string, string> = { ...phoneLabels };
     for (const code of BOOKING_COUNTRIES) {
       const countryName = labels[code] || (en as Record<string, string>)[code] || code;
       labels[code] = `${countryName} (+${getCountryCallingCode(code)})`;
@@ -313,7 +312,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, tourTitle, pac
     labels.phone = t("tourDetails.bookingForm.mobilePlaceholder", "Mobile *");
     labels.ZZ = t("tourDetails.bookingForm.internationalOption", "International");
     return labels;
-  }, [activeLanguage, t]);
+  }, [phoneLabels, t]);
 
   const clearError = (field: string) => {
     setErrors(prev => (prev[field] ? { ...prev, [field]: "" } : prev));

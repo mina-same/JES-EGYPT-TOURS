@@ -43,7 +43,7 @@ export default function TourFilterFields({ value, onChange }: {
       <div className="flex flex-wrap gap-2">
         {catalogOptions('types').map(option => <label key={option.id} className="cursor-pointer">
           <input className="peer sr-only" type="radio" name={`${id}-type`} value={option.id} checked={value.tourType === option.id} onChange={() => onChange('tourType', option.id)} />
-          <span className="inline-flex min-h-11 items-center rounded-full border border-gray-300 px-4 py-2 text-sm peer-checked:border-amber-600 peer-checked:bg-amber-100 peer-checked:text-amber-950 peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500 peer-focus-visible:ring-offset-2">{option.label}</span>
+          <span className="inline-flex min-h-11 items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-amber-500 hover:bg-amber-50 peer-checked:border-amber-600 peer-checked:bg-amber-100 peer-checked:text-amber-950 peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500 peer-focus-visible:ring-offset-2">{option.label}</span>
         </label>)}
       </div>
       {!value.tourType && <p id={`${id}-type-help`} className="mt-2 text-sm text-amber-800">Select a tour type.</p>}
@@ -56,7 +56,7 @@ export default function TourFilterFields({ value, onChange }: {
         options={options} value={selected} isLoading={loading} closeMenuOnSelect={false}
         placeholder="Search places visited..." noOptionsMessage={() => 'No destinations found'}
         onChange={items => onChange('destinations', items.map(item => item.value))}
-        aria-describedby={error ? `${id}-places-error` : !selected.length ? `${id}-places-help` : undefined}
+        aria-describedby={[`${id}-places-description`, error && `${id}-places-error`, !selected.length && `${id}-places-help`].filter(Boolean).join(' ')}
         maxMenuHeight={220}
         styles={{
           control: (base, state) => ({ ...base, minHeight: 44, borderColor: state.isFocused ? '#b79c5c' : base.borderColor, boxShadow: state.isFocused ? '0 0 0 1px #b79c5c' : 'none' }),
@@ -67,15 +67,16 @@ export default function TourFilterFields({ value, onChange }: {
           multiValueRemove: base => ({ ...base, minWidth: 44, minHeight: 44, justifyContent: 'center' }),
         }}
       />
+      <p id={`${id}-places-description`} className="mt-2 text-sm text-gray-600">Select all destinations visited during the tour.</p>
       {error && <p id={`${id}-places-error`} role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
       {!selected.length && <p id={`${id}-places-help`} className="mt-2 text-sm text-amber-800">Places Visited needs review</p>}
     </div>
     <details className="border-t pt-4">
-      <summary className="cursor-pointer py-2 font-medium focus-visible:outline-amber-600">Advanced listing options</summary>
+      <summary className="min-h-11 cursor-pointer rounded py-3 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2">Advanced listing options</summary>
       <div className="mt-3 space-y-2">
         <label htmlFor={`${id}-order`} className="block text-sm font-medium">Recommended position</label>
-        <input id={`${id}-order`} type="number" min="0" step="1" aria-describedby={`${id}-order-help`} className="block min-h-11 w-full max-w-xs border rounded p-2" value={value.recommendedOrder ?? ''} onChange={e => onChange('recommendedOrder', e.target.value === '' ? null : Number(e.target.value))} />
-        <p id={`${id}-order-help`} className="text-sm text-gray-600">Leave empty for automatic ordering. Lower numbers appear first.</p>
+        <input id={`${id}-order`} type="number" min="0" step="1" aria-describedby={`${id}-order-help`} className="block min-h-11 w-full max-w-xs border rounded p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2" value={value.recommendedOrder ?? ''} onChange={e => onChange('recommendedOrder', e.target.value === '' ? null : Number(e.target.value))} />
+        <p id={`${id}-order-help`} className="text-sm text-gray-600">Optional. Controls this tour&apos;s position when visitors sort by Recommended. Lower numbers appear first. Leave empty for automatic ordering.</p>
       </div>
     </details>
     {missing.length > 0 && <div role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">

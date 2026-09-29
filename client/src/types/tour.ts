@@ -1,5 +1,5 @@
 import type { ILocalizedString, ILocalizedMixed, IImage } from './shared';
-import type { TourStyleId } from '../lib/tours/catalog';
+import type { TourStyleId, TourTypeId } from '../lib/tours/catalog';
 export type { ILocalizedString, ILocalizedMixed, IImage };
 
 // FAQ-specific localized type — all locales are optional so each language
@@ -122,7 +122,7 @@ export interface ITour {
   duration?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: string;
+  tourType?: TourTypeId;
   tourStyles?: TourStyleId[];
   destinations?: Array<string | import('@/lib/tours/destinations').TourDestination>;
   durationHours?: number | null;
@@ -340,7 +340,7 @@ export interface TourFormData {
   cardDescription?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: string;
+  tourType?: TourTypeId | ''; // Local drafts may be incomplete; API saves require a valid ID.
   tourStyles?: TourStyleId[];
   destinations?: string[];
   durationHours?: number | null;

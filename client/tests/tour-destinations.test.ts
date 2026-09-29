@@ -107,6 +107,7 @@ test('Admin reloads populated records and preserves ID-only save data, including
 test('new forms and restored drafts omit removed fields while retaining editable content', () => {
   const { createInitialTourFormData } = loadSource('../src/hooks/useTourForm.ts', {
     '@/lib/api/tour': {}, '@/lib/api/upload': {}, '@/hooks/use-toast': {},
+    '@/lib/tours/catalog': loadSource('../src/lib/tours/catalog.ts'),
   });
   const draft = {
     tourLocation: { en: 'Old free text' }, destinations: [cairo._id, luxor._id],

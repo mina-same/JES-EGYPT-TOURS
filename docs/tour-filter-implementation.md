@@ -52,33 +52,16 @@ bounded listing requests include scope, locale, currency, sort, page and a new
 filter-contract version in their identity. Destination, tour and exchange-rate
 updates invalidate tour caches. Options are fetched afresh, with locale headers.
 
-## Migration and remaining data work
+## Classification cleanup completed (2026-09-29)
 
-From `server/`:
+All 12 tours were verified with valid stable types before cleanup. The temporary
+Admin review UI, query aliases and migration tools have been removed. Saved tours
+require a valid type; incomplete local browser drafts remain supported. Empty
+style arrays remain valid and are never assigned automatically.
 
-```sh
-npx ts-node src/scripts/migrateTourFilters.ts          # report only
-npx ts-node src/scripts/migrateTourFilters.ts --apply  # deterministic changes
-```
-
-The applied migration populated numeric durations for nine tours and left
-classifications and visited destinations untouched. It saved pre-migration
-values, timestamps and edit versions in a local report before writing.
-Post-migration verification confirmed all nine values, unchanged classifications,
-and that a repeat migration plans no further deterministic changes.
-
-The itinerary review applied types and existing destinations to all 11 tours
-and resolved the eight-day duration. Styles and two conflicting duration records
-still require the owner's decision. See [the data review](tour-filter-data-review.md). Existing
-legacy style values remain readable for manual review; the old style
-field is neither a schema field nor a filter source. Style inference and old-field cleanup are explicitly paused. The migration
-never assigns styles, even from exact old labels, and never removes tourStyle.
-Manual selection uses the new chip control; later cleanup is a separate step.
-No permanent rollback fields were added to Tour.
-
-Status-only saves validate modified fields so unmigrated classifications do
-not break status toggles. The existing content-wide duplicate-link guard still
-runs. Full editor saves enforce the new classification contract.
+See [the final cleanup report](tour-classification-cleanup.md) for database counts,
+verification and the removed tooling. Older revision notes below are historical,
+not instructions to run migration or a list of remaining work.
 
 ## Verification
 
@@ -122,7 +105,7 @@ Dependencies: catalog -> validation/schema/types -> Admin and visitor labels -> 
 
 Changed implementation files in this revision:
 
-- server/src/utils/tourStyles.ts, server/src/models/Tour.ts, server/src/controllers/tourController.ts, server/src/utils/tourFilterMigration.ts
+- server/src/utils/tourStyles.ts, server/src/models/Tour.ts, server/src/controllers/tourController.ts
 - client/src/components/admin/tour/TourStyleSelect.tsx, TourFilterFields.tsx
 - client/src/lib/tours/catalog.ts, client/src/types/tour.ts
 - client/src/components/common/TourListingFilters/FilterChips.tsx

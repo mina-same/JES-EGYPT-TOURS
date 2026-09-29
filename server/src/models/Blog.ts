@@ -1,5 +1,5 @@
 import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
-import { revalidateTags } from '../services/revalidate';
+import { revalidateTags, wroteDocuments } from '../services/revalidate';
 import mongoose, { Schema, Document } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
 import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
@@ -612,7 +612,16 @@ BlogSchema.post('save', revalidateBlogCaches);
 BlogSchema.post('findOneAndUpdate', revalidateBlogCaches);
 BlogSchema.post('findOneAndDelete', revalidateBlogCaches);
 BlogSchema.post('updateOne', revalidateBlogCaches);
-BlogSchema.post('updateMany', revalidateBlogCaches);
+/*
+ * Only when an article was actually written. services/publishingScheduler.ts
+ * runs Blog.updateMany every 30 seconds to publish scheduled articles, and
+ * this hook runs after every one of those calls — so clearing the tag
+ * unconditionally expired every cached blog page twice a minute when nothing
+ * was due.
+ */
+BlogSchema.post('updateMany', (result: unknown) => {
+  if (wroteDocuments(result)) revalidateBlogCaches();
+});
 
 /*
  * deleteOne needs BOTH registrations, and the distinction is not cosmetic.

@@ -1,3 +1,4 @@
+import { hasNestedTourType, validTourType } from '../utils/tourType';
 import { listingSortStages } from '../utils/tourListingSort';
 import { validTourStyles } from '../utils/tourStyles';
 import { structuredTourFilters } from '../utils/tourFilterContract';
@@ -48,7 +49,6 @@ interface QueryParams {
   minPrice?: string;
   maxPrice?: string;
   tourType?: string;
-  tourStyle?: string;
   tourStyles?: string;
   destinations?: string;
   durationRange?: string;
@@ -221,7 +221,7 @@ const buildQueryFilter = async (
     ];
   }
 
-  Object.assign(filter, structuredTourFilters({ ...queryParams, tourStyles: queryParams.tourStyles || queryParams.tourStyle }));
+  Object.assign(filter, structuredTourFilters(queryParams));
 
   applyStartingPriceFilter(filter, queryParams.minPrice, queryParams.maxPrice, currency, currencyRate);
 
@@ -888,6 +888,9 @@ export const createTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    if (hasNestedTourType(body) || !validTourType(body.tourType)) {
+      res.status(400).json({ success: false, error: 'Select a valid Tour Type', path: 'tourType' }); return;
+    }
     if (body.destinations !== undefined) {
       if (!Array.isArray(body.destinations) || body.destinations.some((id: unknown) => typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id))) {
         res.status(400).json({ success: false, error: 'Invalid destination IDs' }); return;
@@ -899,9 +902,7 @@ export const createTour = async (
     if (body.tourStyles !== undefined && !validTourStyles(body.tourStyles)) {
       res.status(400).json({ success: false, error: 'Tour Styles must be an array of unique approved IDs' }); return;
     }
-    delete body.tourStyle;
-    if ((body.tourType !== undefined && typeof body.tourType !== 'string') ||
-        (body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||
+    if ((body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||
         ['durationHours', 'recommendedOrder'].some(field => body[field] != null && (typeof body[field] !== 'number' || !Number.isFinite(body[field])))) {
       res.status(400).json({ success: false, error: 'Invalid tour filter fields' }); return;
     }
@@ -1033,6 +1034,9 @@ export const updateTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    if (hasNestedTourType(body) || (Object.prototype.hasOwnProperty.call(body, 'tourType') && !validTourType(body.tourType))) {
+      res.status(400).json({ success: false, error: 'Select a valid Tour Type', path: 'tourType' }); return;
+    }
     if (body.destinations !== undefined) {
       if (!Array.isArray(body.destinations) || body.destinations.some((id: unknown) => typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id))) {
         res.status(400).json({ success: false, error: 'Invalid destination IDs' }); return;
@@ -1044,9 +1048,7 @@ export const updateTour = async (
     if (body.tourStyles !== undefined && !validTourStyles(body.tourStyles)) {
       res.status(400).json({ success: false, error: 'Tour Styles must be an array of unique approved IDs' }); return;
     }
-    delete body.tourStyle;
-    if ((body.tourType !== undefined && typeof body.tourType !== 'string') ||
-        (body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||
+    if ((body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||
         ['durationHours', 'recommendedOrder'].some(field => body[field] != null && (typeof body[field] !== 'number' || !Number.isFinite(body[field])))) {
       res.status(400).json({ success: false, error: 'Invalid tour filter fields' }); return;
     }
@@ -1366,7 +1368,7 @@ export const toggleTourStatus = async (
       tour.publishedAt = new Date();
     }
     tour.editVersion = (tour.editVersion ?? 0) + 1;
-    // A status-only edit must not recast an unmigrated localized classification.
+    // Validate the fields changed by this status-only edit.
     // Content-wide duplicate-link validation still runs in pre('validate').
     await tour.save({ validateModifiedOnly: true });
 
@@ -1410,7 +1412,7 @@ export const toggleTourFeatured = async (
 
     tour.isFeatured = !tour.isFeatured;
     tour.editVersion = (tour.editVersion ?? 0) + 1;
-    // A status-only edit must not recast an unmigrated localized classification.
+    // Validate the fields changed by this featured-only edit.
     // Content-wide duplicate-link validation still runs in pre('validate').
     await tour.save({ validateModifiedOnly: true });
 

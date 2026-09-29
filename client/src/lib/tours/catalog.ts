@@ -17,9 +17,5 @@ export function catalogOptions(group: 'types' | 'styles', locale = 'en'): Filter
 }
 export function tourTypeLabel(value: unknown, locale = 'en'): string {
   if (typeof value === 'string') return catalogOptions('types', locale).find(o => o.id === value)?.label || '';
-  if (value && typeof value === 'object') {
-    const labels = value as Record<string, string>;
-    return labels[locale] || labels.en || '';
-  }
   return '';
 }

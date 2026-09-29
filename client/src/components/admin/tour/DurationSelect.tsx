@@ -107,7 +107,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
   };
 
   const styles: StylesConfig<Choice, false, GroupBase<Choice>> = {
-    control: (provided) => ({
+    control: (provided, state) => ({
       ...provided,
       minHeight: '44px',
       // hsl(): the token is a bare shadcn triplet, invalid unwrapped.
@@ -116,9 +116,9 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
       paddingRight: '4px',
       fontSize: '14px',
       borderRadius: 'calc(var(--radius) - 2px)',
-      borderColor: 'hsl(var(--input))',
-      boxShadow: 'none',
-      '&:hover': { borderColor: 'hsl(var(--input))' },
+      borderColor: state.isFocused ? '#d97706' : 'hsl(var(--input))',
+      boxShadow: state.isFocused ? '0 0 0 2px #f59e0b' : 'none',
+      '&:hover': { borderColor: '#d97706' },
     }),
     menu: (provided) => ({
       ...provided,
@@ -166,7 +166,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
 
       {/* Day tours are the common case and there are only five of them, so they
           get one-click buttons instead of a scroll through the same dropdown. */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
         <Clock size={13} className="shrink-0 text-muted-foreground" aria-hidden="true" />
         {HOUR_DURATION_OPTIONS.map((option) => {
           const active = matched?.id === option.id;
@@ -177,10 +177,10 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
               onClick={() => apply(option)}
               aria-pressed={active}
               className={cn(
-                'min-h-11 rounded-full border px-3 py-2 text-xs font-medium transition',
+                'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2',
                 active
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-input text-muted-foreground hover:border-primary/50 hover:bg-muted/50 hover:text-foreground'
+                  ? 'border-amber-600 bg-amber-100 text-amber-950'
+                  : 'border-gray-300 bg-white text-gray-700 hover:border-amber-500 hover:bg-amber-50'
               )}
             >
               {option.labels.en}

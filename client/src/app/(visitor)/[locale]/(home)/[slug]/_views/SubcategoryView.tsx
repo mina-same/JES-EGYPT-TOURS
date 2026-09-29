@@ -107,7 +107,7 @@ export default function SubcategoryView({
       minPrice: searchParams?.get("minPrice") || "",
       maxPrice: searchParams?.get("maxPrice") || "",
       tourType: searchParams?.get("tourType") || "",
-      tourStyles: searchParams?.get("tourStyles") || searchParams?.get("tourStyle") || "",
+      tourStyles: searchParams?.get("tourStyles") || "",
       destinations: searchParams?.get("destinations") || "",
       durationRange: searchParams?.get("durationRange") || "",
     };

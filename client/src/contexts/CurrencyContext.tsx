@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, startTransition } from "react";
-import { currencyAPI } from "@/lib/api/currency";
+// Not currencyAPI (lib/api/currency): it imports axios, and this provider is on every page.
+import { getCurrencyRates } from "@/lib/api/currencyRates";
 import { currencyForCountry } from "@/lib/currency/countryCurrency";
 import {
   isCurrencyCode,
@@ -205,7 +206,7 @@ export const CurrencyProvider: React.FC<{
       }
 
       try {
-        const response = await currencyAPI.getRates();
+        const response = await getCurrencyRates();
         if (response.success && response.data) {
           const freshRates = {
             USD: 1,

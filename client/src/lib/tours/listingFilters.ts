@@ -38,7 +38,7 @@ export const readTourListingState = (
     minPrice: params?.get('minPrice') || '',
     maxPrice: params?.get('maxPrice') || '',
     tourType: params?.get('tourType') || '',
-    tourStyles: params?.get('tourStyles') || params?.get('tourStyle') || '',
+    tourStyles: params?.get('tourStyles') || '',
     destinations: params?.get('destinations') || '',
     durationRange: params?.get('durationRange') || '',
   };

@@ -33,6 +33,11 @@ export interface LocaleCompletenessOptions {
    * at least one language has a value.
    */
   requiredLocalizedFields?: readonly RequiredLocalizedField[];
+  /**
+   * Track the `alt` / `title` of images (any object with a string `url`) like
+   * SEO fields: listed in the tooltip, never affecting the state color.
+   */
+  imageTextAsSeo?: boolean;
 }
 
 // Relations / metadata that must not count toward THIS entity's content.
@@ -42,6 +47,9 @@ export interface LocaleCompletenessOptions {
 // `contentBlocks` is excluded for the same reason: each language's article
 // body is authored independently against its own keyword map, so a section
 // existing in one language only is intentional, not missing work.
+// A tour's `duration` is picked from a list that writes all four languages at
+// once, so it is never translation work — counting it made a language nobody
+// had touched look started (amber instead of gray).
 const DEFAULT_SKIP_KEYS = new Set([
   '_id', 'id', '__v', 'createdAt', 'updatedAt', 'editVersion',
   'subcategory', 'subCategory', 'category', 'subcategories',
@@ -50,9 +58,11 @@ const DEFAULT_SKIP_KEYS = new Set([
   'destination', 'destinations', 'featuredBlogs', 'featuredDestinations',
   'reviews', 'comments',
   'faqs', 'contentBlocks',
+  'duration',
 ]);
 
 const SEO_KEYS = new Set(['seo', 'metaTitle', 'metaDescription', 'metaKeywords', 'mapSchema']);
+const IMAGE_TEXT_KEYS = new Set(['alt', 'title']);
 
 const isLocalizedLeaf = (value: unknown): value is Record<string, unknown> => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -81,6 +91,7 @@ interface WalkContext {
   filled: Record<ContentLang, number>;
   requiredLocalizedFields: Map<string, string | undefined>;
   visitedRequiredFields: Set<string>;
+  imageTextAsSeo: boolean;
 }
 
 const visitLeaf = (leaf: Record<string, unknown>, path: string[], isSeo: boolean, ctx: WalkContext) => {
@@ -116,9 +127,11 @@ const walk = (node: unknown, path: string[], inSeo: boolean, ctx: WalkContext) =
     return;
   }
 
+  const isImage = ctx.imageTextAsSeo && typeof (node as { url?: unknown }).url === 'string';
   for (const [key, value] of Object.entries(node)) {
     if (DEFAULT_SKIP_KEYS.has(key)) continue;
-    walk(value, [...path, key], inSeo || SEO_KEYS.has(key), ctx);
+    const isSeo = inSeo || SEO_KEYS.has(key) || (isImage && IMAGE_TEXT_KEYS.has(key));
+    walk(value, [...path, key], isSeo, ctx);
   }
 };
 
@@ -143,6 +156,7 @@ export function getLocaleCompleteness(
     filled: { en: 0, de: 0, it: 0, es: 0 },
     requiredLocalizedFields,
     visitedRequiredFields: new Set(),
+    imageTextAsSeo: options.imageTextAsSeo === true,
   };
 
   walk(entity, [], false, ctx);
