@@ -1,8 +1,9 @@
 "use client";
 /*
- * This module is loaded as its own chunk, through BookingFormLazy — never
- * import it directly, or react-datepicker and react-phone-number-input land
- * back in the shared route bundle that every category and blog page downloads.
+ * This module is loaded as its own chunk, through BookingFormLazy and its
+ * per-locale entries in ./bookingLocales — never import it directly, or
+ * react-datepicker and react-phone-number-input land back in the shared route
+ * bundle that every category and blog page downloads.
  *
  * react-datepicker.css and react-phone-number-input/style.css are imported by
  * that wrapper instead of here, so they stay in the eagerly-loaded route CSS
@@ -10,22 +11,17 @@
  */
 import React, { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
-import { de as dateDe } from "date-fns/locale/de";
-import { enUS as dateEn } from "date-fns/locale/en-US";
-import { es as dateEs } from "date-fns/locale/es";
-import { it as dateIt } from "date-fns/locale/it";
+import type { Locale } from "date-fns";
 import PhoneInput, { getCountryCallingCode, isValidPhoneNumber, type Country } from "react-phone-number-input";
 import { getCountries } from "react-phone-number-input";
-import de from "react-phone-number-input/locale/de";
+// English country names stay here for every language: they are the
+// nationality list's names and the fallback for a code a locale table lacks.
 import en from "react-phone-number-input/locale/en";
-import es from "react-phone-number-input/locale/es";
-import it from "react-phone-number-input/locale/it";
 import { createBooking } from "@/lib/api/booking";
-import { Loader2, CheckCircle, XCircle, Heart, ChevronRight } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { useRouteLocale } from "@/hooks/useRouteLocale";
-import { useCurrency, type ICurrencyPrice } from "@/contexts/CurrencyContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { footerOneData } from "@/data/footerOneData";
 import { PACKAGE_NOT_SURE } from "@/lib/tours/tourKind";
 import {
@@ -40,18 +36,6 @@ const PARTY_LIMITS = { adults: { min: 1, max: 50 }, children: { min: 0, max: 50 
 const REQUIREMENTS_MAX = 2000;
 const BOOKING_SUPPORT_EMAIL = footerOneData.contact.email.trim();
 const BOOKING_COUNTRIES = getCountries();
-const PHONE_COUNTRY_LABELS_BY_LANGUAGE: Record<string, Record<string, string>> = {
-  de: de as Record<string, string>,
-  en: en as Record<string, string>,
-  es: es as Record<string, string>,
-  it: it as Record<string, string>,
-};
-const DATE_PICKER_LOCALES = {
-  de: dateDe,
-  en: dateEn,
-  es: dateEs,
-  it: dateIt,
-} as const;
 const NATIONALITY_OPTIONS = BOOKING_COUNTRIES
   .map((code) => ({
     code,
@@ -135,16 +119,10 @@ const Counter: React.FC<CounterProps> = ({
   </div>
 );
 
+/** The card's title and starting price are BookingCardHeader's, rendered by
+ *  BookingFormLazy outside this chunk; this component is the form itself. */
 interface BookingFormProps {
   tourId: string;
-  /**
-   * Starting price, shown at the top of both the desktop card and mobile sheet.
-   * Not a plain number — `priceStartingFrom` is a { USD, EUR, GBP } object, so
-   * the currency context resolves it.
-   */
-  price?: number | ICurrencyPrice | null;
-  /** True when the tour has real pricing plans, so the price can link to them. */
-  hasPricing?: boolean;
   /** The tour's own pricing plan names, in the order the admin arranged them.
    *  The package choice is built from these — never from a fixed list — so a
    *  tour offering two tiers offers exactly two. */
@@ -153,13 +131,27 @@ interface BookingFormProps {
   tourTitle?: string;
 }
 
-export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPricing, tourTitle, packageOptions }) => {
+/** The page language's data, passed in by the ./bookingLocales entry that
+ *  BookingFormLazy mounted for the route locale. */
+interface BookingFormLocaleProps {
+  /** Both date pickers: month and weekday names, the "P" date format, the
+   *  first day of the week. */
+  dateLocale: Locale;
+  /** Country names for the phone field's calling-code select. */
+  phoneLabels: Record<string, string>;
+}
+
+export type { BookingFormProps };
+
+export const BookingForm: React.FC<BookingFormProps & BookingFormLocaleProps> = ({
+  tourId,
+  tourTitle,
+  packageOptions,
+  dateLocale,
+  phoneLabels,
+}) => {
   const { t } = useTranslation('tours');
-  const { formatPrice, getPriceValue, currency } = useCurrency();
-  // Resolved through the context rather than a `typeof === 'number'` check: the
-  // value arrives as a per-currency object on real tours, so a numeric test
-  // silently hid the price on every one of them.
-  const resolvedPrice = getPriceValue(price);
+  const { currency } = useCurrency();
   // The wishlist labels live in `common`, alongside the ones the tour cards use,
   // so the same wording appears wherever a tour can be saved.
   const { t: tCommon } = useTranslation('common');
@@ -297,24 +289,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
   const nationalityOptions = NATIONALITY_OPTIONS;
 
   /*
-   * Same correction as PricingPlans, and it matters more here: this value
-   * chooses the date-picker locale and the phone-country label table, both
-   * of which are rendered on the SERVER. A stale `resolvedLanguage` put
-   * English country names into a German page's HTML and then hydrated them
-   * to German — precisely the mismatch the comment below guards against.
+   * The date-picker locale and the phone-country label table are both
+   * rendered on the SERVER, so they follow the ROUTE locale, as in
+   * PricingPlans: a stale `resolvedLanguage` once put English country names
+   * into a German page's HTML and then hydrated them to German — precisely the
+   * mismatch the comment below guards against. BookingFormLazy reads the route
+   * locale and mounts the ./bookingLocales entry that passes that language's
+   * data in as `dateLocale` and `phoneLabels`.
    */
-  const activeLanguage = useRouteLocale();
-  const datePickerLocale = DATE_PICKER_LOCALES[
-    activeLanguage as keyof typeof DATE_PICKER_LOCALES
-  ] || DATE_PICKER_LOCALES.en;
+  const datePickerLocale = dateLocale;
 
   /** Use the phone library's static locale data rather than Intl.DisplayNames.
    *  ICU country names can differ between Node and the browser, which would
    *  make the server-rendered <option> text fail React hydration. */
   const phoneCountryLabels = useMemo(() => {
-    const localizedLabels = PHONE_COUNTRY_LABELS_BY_LANGUAGE[activeLanguage]
-      || PHONE_COUNTRY_LABELS_BY_LANGUAGE.en;
-    const labels: Record<string, string> = { ...localizedLabels };
+    const labels: Record<string, string> = { ...phoneLabels };
     for (const code of BOOKING_COUNTRIES) {
       const countryName = labels[code] || (en as Record<string, string>)[code] || code;
       labels[code] = `${countryName} (+${getCountryCallingCode(code)})`;
@@ -323,7 +312,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
     labels.phone = t("tourDetails.bookingForm.mobilePlaceholder", "Mobile *");
     labels.ZZ = t("tourDetails.bookingForm.internationalOption", "International");
     return labels;
-  }, [activeLanguage, t]);
+  }, [phoneLabels, t]);
 
   const clearError = (field: string) => {
     setErrors(prev => (prev[field] ? { ...prev, [field]: "" } : prev));
@@ -472,66 +461,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
     }
   };
 
+  /* The package row adds a field's worth of height, which pushed the card
+     past the viewport on 900px-tall screens and brought back the internal
+     scrollbar the layout was tuned to avoid. The tightening is scoped to
+     the tours that actually carry the extra row, so day tours keep the
+     spacing they were tuned with. */
   return (
-    <div className='tour-listing-details__sidebar__item tour-listing-details__sidebar__item-form'>
-      {/* Keep price and intent together in one compact header. The form stays
-          reassuringly priced without spending three full rows above Name.
-          Two columns: what the card is for on the left, what it costs on the
-          right. The secondary "Pricing" link lives under the title rather than
-          under the amount — it belongs to the reading path, not to the number,
-          and it fills the column's second line instead of ragging the badge. */}
-      <div className="booking-card-header">
-        <div className="booking-card-header__intent">
-          <h2 className='tour-listing-details__sidebar__title'>
-            {t("tourDetails.bookingForm.title")}
-          </h2>
-          {hasPricing && (
-            <a className="booking-price-block__link" href="#pricing">
-              {t("tourDetails.nav.pricing")}
-              <ChevronRight size={13} aria-hidden="true" />
-            </a>
-          )}
-        </div>
-
-        {resolvedPrice > 0 ? (
-          <div className="booking-price-block">
-            {/* "from" rather than "Price starts from": the long label was the
-                widest thing in the header and pushed the title onto two lines
-                in every locale. Same promise, and it now sits on the amount's
-                own baseline where it reads as one phrase. */}
-            <span className="booking-price-block__label">
-              {t("tourDetails.from", "from")}
-            </span>
-            <span className="booking-price-block__value">{formatPrice(price)}</span>
-            <span className="booking-price-block__unit">
-              {t("tourDetails.pricing.perPerson", "per person")}
-            </span>
-          </div>
-        ) : (
-          /*
-           * Same rule as the tour cards — priced means an effective amount
-           * above zero, with the currency context resolving the per-currency
-           * value or converting from USD — so a detail page and the card that
-           * links to it can never disagree about whether a tour has a price.
-           *
-           * The block used to be omitted entirely, leaving the booking card
-           * headed by nothing. The label and the "per person" unit are dropped
-           * with the amount, because neither means anything without a number;
-           * only the value slot speaks. `resolvedPrice` itself is untouched and
-           * still numeric — this is display text, never a calculation input.
-           */
-          <div className="booking-price-block">
-            <span className="booking-price-block__value">
-              {tCommon("tourCard.priceOnRequest")}
-            </span>
-          </div>
-        )}
-      </div>
-      {/* The package row adds a field's worth of height, which pushed the card
-          past the viewport on 900px-tall screens and brought back the internal
-          scrollbar the layout was tuned to avoid. The tightening is scoped to
-          the tours that actually carry the extra row, so day tours keep the
-          spacing they were tuned with. */}
       <div className={`booking-form-card${showPackageChoice ? ' booking-form-card--with-package' : ''}`}>
         {/* noValidate: without it the browser's own `required` bubbles fired
             first — in the BROWSER's language — and the localized messages below
@@ -896,6 +831,5 @@ export const BookingForm: React.FC<BookingFormProps> = ({ tourId, price, hasPric
           )}
         </form>
       </div>
-    </div>
   );
 };

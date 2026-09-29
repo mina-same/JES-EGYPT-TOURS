@@ -49,3 +49,18 @@ export const revalidateTags = (tags: string[]): void => {
 export const revalidateBlog = (authorSlug?: string | null): void => {
   revalidateTags(['blog', ...(authorSlug ? [`author:${authorSlug}`] : [])]);
 };
+
+/**
+ * Whether a query write actually changed a document, from the result MongoDB
+ * returned for it. For a model's post('updateMany') hook, which Mongoose runs
+ * after every updateMany whether or not anything matched.
+ *
+ * Only an explicit "nothing written" answers false: 0 modified and 0 upserted.
+ * A result without counts is treated as a change, so an unexpected shape costs
+ * a cache refresh rather than a stale page.
+ */
+export const wroteDocuments = (result: unknown): boolean => {
+  const { modifiedCount, upsertedCount } = (result ?? {}) as { modifiedCount?: unknown; upsertedCount?: unknown };
+  if (typeof modifiedCount !== 'number') return true;
+  return modifiedCount > 0 || (typeof upsertedCount === 'number' && upsertedCount > 0);
+};

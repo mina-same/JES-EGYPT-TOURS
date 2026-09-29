@@ -3,7 +3,9 @@ export interface TourFilterValues {
   minPrice: string;
   maxPrice: string;
   tourType: string;
-  tourStyle: string;
+  tourStyles: string;
+  destinations: string;
+  durationRange: string;
   subcategoryId?: string;
 }
 
@@ -22,7 +24,7 @@ export const EMPTY_TOUR_FILTERS: TourFilterValues = {
   minPrice: '',
   maxPrice: '',
   tourType: '',
-  tourStyle: '',
+  tourStyles: '', destinations: '', durationRange: '',
 };
 
 export const readTourListingState = (
@@ -36,14 +38,16 @@ export const readTourListingState = (
     minPrice: params?.get('minPrice') || '',
     maxPrice: params?.get('maxPrice') || '',
     tourType: params?.get('tourType') || '',
-    tourStyle: params?.get('tourStyle') || '',
+    tourStyles: params?.get('tourStyles') || '',
+    destinations: params?.get('destinations') || '',
+    durationRange: params?.get('durationRange') || '',
   };
 
   if (includeSubcategory) filters.subcategoryId = params?.get('subcategory') || '';
 
   return {
     page,
-    sort: params?.get('sort') || '-createdAt',
+    sort: params?.get('sort') || 'recommended',
     filters,
   };
 };

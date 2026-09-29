@@ -1,5 +1,6 @@
 'use client';
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -20,6 +21,8 @@ import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import LanguageBadges from '@/components/admin/LanguageBadges';
+import PriceBadge from '@/components/admin/tour/PriceBadge';
+import { TOUR_REQUIRED_LOCALIZED_FIELDS } from '@/lib/tours/requiredLocalizedFields';
 import { getDisplayName } from '@/lib/displayName';
 
 function ToursPageContent() {
@@ -61,6 +64,11 @@ function ToursPageContent() {
         // Admin list must show deactivated/scheduled tours too (the API is
         // active-only by default so public callers can never leak them).
         includeInactive: true,
+        // Every content field, not the trimmed card set: the language badges
+        // compare all of a tour's translations and the price badge reads every
+        // season price. FAQs and reviews count toward neither; the API drops
+        // them only on explicit sorts, so the default order still returns them.
+        fields: '-faqs,-reviews',
         search: searchTerm.trim() || undefined,
       };
       
@@ -219,13 +227,21 @@ function ToursPageContent() {
           <div className="tour-details">
             <div className="tour-name">
               {(typeof tour.heading === 'object' ? (tour.heading as any).en : tour.heading) || (typeof tour.name === 'object' ? (tour.name as any).en : tour.name) || 'Untitled Tour'}
-              <LanguageBadges entity={tour} className="ms-2" />
+            </div>
+            {/* Own line: .tour-name clips its overflow, which hid the badges on long names. */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 self-start">
+              <LanguageBadges
+                entity={tour}
+                requiredLocalizedFields={TOUR_REQUIRED_LOCALIZED_FIELDS}
+                imageTextAsSeo
+              />
+              <PriceBadge tour={tour} />
             </div>
             <div className="tour-meta">
-              {tour.tourLocation && (
+              {formatTourDestinations(tour.destinations, 'en') && (
                 <div className="tour-meta-item">
                   <MapPin size={12} />
-                  {typeof tour.tourLocation === 'object' ? (tour.tourLocation as any).en : tour.tourLocation}
+                  {formatTourDestinations(tour.destinations, 'en')}
                 </div>
               )}
             </div>

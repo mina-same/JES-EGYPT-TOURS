@@ -1,3 +1,6 @@
+import filterCatalog from '../config/tourFilters.json';
+import { validTourStyles, type TourStyleId } from '../utils/tourStyles';
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { IImage, ImageSchema } from './shared/ImageSchema';
@@ -9,7 +12,7 @@ import {
   LocalizedMixedSchema,
   OptionalLocalizedMixedSchema,
 } from './shared/LocalizedSchema';
-import { revalidateTags } from '../services/revalidate';
+import { revalidateTags, wroteDocuments } from '../services/revalidate';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 
 // ==================== INTERFACES ====================
@@ -208,13 +211,15 @@ export interface ITour extends Document {
   Description?: IDescription;
   images: IImage[];
   gallery?: IImage[];
-  tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: ILocalizedString;
-  tourStyle?: ILocalizedString;
-  /** Which pricing shape this tour uses. Unlike `tourType`/`tourStyle`, which
-   *  are free localized labels shown to visitors, this one is logic: it decides
+  tourType: keyof typeof filterCatalog.types;
+  tourStyles?: TourStyleId[];
+  destinations?: mongoose.Types.ObjectId[];
+  durationHours?: number;
+  recommendedOrder?: number;
+  /** Which pricing shape this tour uses. Separate from the product type and
+   *  style IDs used by listing filters, this field decides
    *  which plan names may be stored, and whether the booking form offers the
    *  visitor a package to choose. Optional so tours predating the field keep
    *  loading; the admin sets it on the next edit. */
@@ -825,21 +830,22 @@ const TourSchema = new Schema<ITour>(
       type: [ImageSchema],
       default: [],
     },
-    tourLocation: {
-      type: OptionalLocalizedStringSchema,
-    },
     tourAvailability: {
       type: OptionalLocalizedStringSchema,
     },
     pickupAndDropOff: {
       type: OptionalLocalizedStringSchema,
     },
-    tourType: {
-      type: OptionalLocalizedStringSchema,
+    tourType: { type: String, cast: false, required: [true, 'Tour Type is required'], enum: Object.keys(filterCatalog.types) },
+    tourStyles: {
+      type: [{ type: String, enum: Object.keys(filterCatalog.styles) }],
+      castNonArrays: false,
+      default: [],
+      validate: { validator: validTourStyles, message: 'Tour Styles must contain unique approved IDs' },
     },
-    tourStyle: {
-      type: OptionalLocalizedStringSchema,
-    },
+    destinations: { type: [{ type: Schema.Types.ObjectId, ref: 'Destination' }], default: [] },
+    durationHours: { type: Number, min: Number.MIN_VALUE },
+    recommendedOrder: { type: Number, min: 0, validate: { validator: (v: number | null) => v == null || Number.isInteger(v), message: 'Recommended order must be an integer' } },
     tourKind: {
       type: String,
       enum: {
@@ -953,6 +959,10 @@ TourSchema.index({ heading: 'text', 'Description.text': 'text' });
 
 // Compound indexes for common queries
 TourSchema.index({ subcategory: 1, isActive: 1 });
+TourSchema.index({ subcategory: 1, isActive: 1, durationHours: 1 });
+TourSchema.index({ subcategory: 1, isActive: 1, tourType: 1 });
+TourSchema.index({ destinations: 1, isActive: 1 });
+TourSchema.index({ tourStyles: 1, isActive: 1 });
 TourSchema.index({ isActive: 1, isFeatured: 1 });
 
 // ==================== VIRTUALS ====================
@@ -1154,7 +1164,15 @@ TourSchema.post('findOneAndDelete', revalidateTourCaches);
 TourSchema.post('deleteOne', { document: true, query: false }, revalidateTourCaches);
 TourSchema.post('deleteOne', { document: false, query: true }, revalidateTourCaches);
 TourSchema.post('updateOne', revalidateTourCaches);
-TourSchema.post('updateMany', revalidateTourCaches);
+/*
+ * Only when a tour was actually written. services/publishingScheduler.ts runs
+ * Tour.updateMany every 30 seconds to activate scheduled tours, and this hook
+ * runs after every one of those calls — so clearing the tag unconditionally
+ * expired every cached tour page twice a minute when nothing was due.
+ */
+TourSchema.post('updateMany', (result: unknown) => {
+  if (wroteDocuments(result)) revalidateTourCaches();
+});
 
 
 /**
@@ -1171,5 +1189,6 @@ TourSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 TourSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+TourSchema.plugin(duplicateInternalLinksPlugin);
 
 export default mongoose.model<ITour>('Tour', TourSchema);

@@ -1,8 +1,18 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { menuService, type Menu } from '@/services/menuService';
+import type { Menu } from '@/services/menuService';
+import { publicGet } from '@/lib/api/publicGet';
 import { useServerHeaderMenu } from '@/contexts/HeaderMenuContext';
+
+/*
+ * menuService.getPublicByKey(key) — same request, same `response.data.data`,
+ * same rejection on failure — without axios. menuService is the admin's menu
+ * client and imports the axios instance; this hook runs in the header and the
+ * drawer on every visitor page.
+ */
+const getPublicMenuByKey = (key: string) =>
+  publicGet(`/menus/${encodeURIComponent(key)}`).then((body) => body.data as Menu);
 
 const resolvedMenuCache = new Map<string, Menu>();
 const pendingMenuRequests = new Map<string, Promise<Menu>>();
@@ -18,8 +28,7 @@ const getCachedHeaderMenu = (key: string, cacheKey: string) => {
     return pendingRequest;
   }
 
-  const request = menuService
-    .getPublicByKey(key)
+  const request = getPublicMenuByKey(key)
     .then((data) => {
       resolvedMenuCache.set(cacheKey, data);
       return data;

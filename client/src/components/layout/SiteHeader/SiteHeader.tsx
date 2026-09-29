@@ -62,8 +62,8 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
   const changeSearchPopupStatus = useStore(
     (state) => state.changeSearchPopupStatus
   );
-  const changeMobileDrawerStatus = useStore(
-    (state) => state.changeMobileDrawerStatus
+  const setMobileDrawerStatus = useStore(
+    (state) => state.setMobileDrawerStatus
   );
 
   const isSticky = variant === "sticky";
@@ -274,11 +274,22 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
 
             {/* A real button. As a <div onClick> the mobile drawer — the only
                 navigation that exists at this width — could not be opened by
-                keyboard or switch device at all (WCAG 2.1.1). */}
+                keyboard or switch device at all (WCAG 2.1.1).
+                It OPENS, it does not toggle: the drawer is mounted lazily on
+                first use, so a second tap before it appeared used to toggle it
+                straight back to closed and the menu never showed. Once open,
+                the drawer covers this button; closing is the drawer's job. */}
             <button
               type='button'
               className='mobile-nav__btn mobile-nav__toggler'
-              onClick={changeMobileDrawerStatus}
+              onClick={() => setMobileDrawerStatus(true)}
+              // A repeat tap while the drawer is already opening must not pull
+              // focus back out of it: the drawer slides in over this button, so
+              // for a moment it is still under the finger. Read without
+              // subscribing, so the header still never re-renders on open.
+              onMouseDown={(event) => {
+                if (useStore.getState().mobileDrawerStatus) event.preventDefault();
+              }}
               tabIndex={tabIndex}
               aria-label={t("menu.open")}
               aria-haspopup='dialog'

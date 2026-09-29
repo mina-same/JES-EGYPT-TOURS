@@ -2,6 +2,18 @@
    1. GLOBAL UTILS
    ========================================================================== */
 
+/* Two kinds of gold on light sections:
+   - Brand typography keeps the site's own golds, by design decision: heading
+     accent words, names, FAQ numbers and tags in --gotur-base (#d4af37);
+     taglines, eyebrows, blog chips and "Read More" in --jes-gold (#b79c5c).
+     These are 2.0-2.7:1 on white, below WCAG AA, accepted for the brand look.
+   - --gotur-gold-text (#7a5f12, 5.1-6.05:1) is for FUNCTIONAL gold only:
+     focus rings, carousel arrows, selected/hover states of controls and links.
+     Do not use it for brand typography, and do not lighten it. */
+:root {
+  --gotur-gold-text: #7a5f12;
+}
+
 /* Global Overflow Fixes */
 html, body {
   overflow-x: hidden !important;
@@ -132,10 +144,14 @@ html, body {
 .listing-card-four__btns button.is-active i { color: #e53e3e; }
 
 /* A real button can be reached by keyboard, so it needs a visible focus ring —
-   something the anchor version never showed. */
+   something the anchor version never showed. These white discs sit on the
+   tour photograph, where a single yellow ring measured 1.41-1.67:1: the ring
+   is now dark, with a 2px white halo inside it (16:1 between the two), so
+   one of them always contrasts with whatever the photo shows. */
 .listing-card-four__btns button:focus-visible {
-  outline: 2px solid var(--gotur-primary, #f7921e);
+  outline: 2px solid var(--gotur-black, #1d231f);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1003,6 +1019,86 @@ body {
 .mobile-nav__container .main-menu__list > .megamenu.megamenu-clickable > ul,
 .stricky-header .main-menu__list > .megamenu.megamenu-clickable > ul {
   width: 100% !important;
+}
+
+/* Mobile drawer: the panel scrolls, the page behind it does not.
+ *
+ * gotur.css sets `overflow: unset` on `.mobile-nav__content` whenever <body>
+ * carries `megamenu-popup-active` — a leftover of the theme's full-screen
+ * megamenu, which this site never renders. LayoutObserver adds that class
+ * every time the drawer opens, so the panel lost its own `overflow-y: auto`
+ * precisely while it was on screen: in 667x375 landscape the Special Offers
+ * link and everything below it sat past the bottom edge with no way to reach
+ * them, and at 320x568 an open submenu pushed the social icons out the same
+ * way. Restoring the scroll on the same selector undoes only that.
+ *
+ * The page lock never held either. The same class puts `overflow: hidden` on
+ * <body>, but `html, body { overflow-x: hidden !important }` at the top of
+ * this file gives <html> a non-visible overflow of its own, so body's value
+ * no longer propagates to the viewport and <html> is the element that
+ * scrolls: a touch drag on the overlay moved the page underneath by
+ * 385–566px. The lock therefore goes on <html>, keyed through `:has()` to
+ * the same class, so it exists only while the drawer is open and needs no
+ * script. A browser without `:has()` (Firefox before 121) drops the rule and
+ * behaves exactly as before. `scrollbar-gutter: stable` keeps the gutter
+ * while the bar is hidden, so a narrow desktop window does not reflow behind
+ * the overlay.
+ *
+ * `100dvh`: with `100vh` a phone's browser toolbar covers the bottom of the
+ * drawer, which is exactly where the last controls end up once it scrolls.
+ * Engines without `dvh` ignore the declaration and keep gotur.css's 100vh. */
+.mobile-nav__wrapper {
+  height: 100dvh;
+}
+body.megamenu-popup-active .mobile-nav__content {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+html:has(> body.megamenu-popup-active) {
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+
+/* Drawer parents now put the label link and the chevron button side by side
+ * in `.main-menu__list__wrapper` (the level-2 pattern) instead of nesting the
+ * button inside the link. Two things only reached a label that was the row's
+ * direct child: the theme's hover colour (`> li:hover > a`, gotur.css) and
+ * the row-wide tap area the old <a> had. Both carry over to the wrapped
+ * label, so the row looks and taps as before — minus the chevron, which is
+ * now its own target. */
+.mobile-nav__content .main-menu__list > li:hover > .main-menu__list__wrapper > a {
+  color: var(--gotur-base, #63ab45);
+  text-shadow: 0 0 0.5px currentColor;
+}
+.mobile-nav__content .main-menu__list > li > .main-menu__list__wrapper > a {
+  flex: 1 1 auto;
+}
+
+/* On every open after the first, gotur.css kept the panel `visibility: hidden`
+ * for 500 ms while the dialog was already open and modal. Nothing in it could
+ * take focus: the close button, which has its own `transition: all`, turned
+ * visible for a single frame, took focus, and was hidden again on the next —
+ * dropping focus onto <body> with the page behind the overlay in the tab
+ * order. Opacity and the slide keep the same 500 ms delay, so the panel looks
+ * exactly as before; only visibility no longer waits. The panel is still off
+ * screen (translateX(-100%)) during that time, so nothing in it can be hit by
+ * a pointer before it has slid in. */
+.mobile-nav__wrapper.expanded .mobile-nav__content {
+  transition: opacity 500ms ease 500ms, visibility 0s linear 0s,
+    transform 500ms ease 500ms;
+}
+
+/* Submenu chevron. gotur.css draws it white on the gold fill, 2.10:1 — under
+ * the 3:1 an icon needs; dark on gold is 7.61:1. The expanded state (dark on
+ * white) already has this colour, so only the collapsed chevron changes.
+ * gotur.css also sets `outline: none` with nothing in its place: the ring is
+ * white, 2px clear of the button, on the dark panel. */
+.mobile-nav__content .main-menu__list li .main-menu__list__wrapper button {
+  color: var(--gotur-black, #1d231f);
+}
+.mobile-nav__content .main-menu__list li .main-menu__list__wrapper button:focus-visible {
+  outline: 2px solid var(--gotur-white, #fff);
+  outline-offset: 2px;
 }
 
 /* (Legacy .main-slider-four__form overrides removed — the theme's
@@ -3358,10 +3454,50 @@ body {
 /* ==========================================================================
    13. WHY CHOOSE US OVERLAY STYLES
    ========================================================================== */
+/* The photo and the text block share ONE grid cell, so a card is as tall as
+   whichever of the two is taller. The text used to be absolutely positioned
+   at the bottom of a photo-sized box with `overflow: hidden`, and from 576 to
+   991px, where a card is only 199-223px wide, it outgrew the photo (335px of
+   text in English, 423px in German, against a 255px photo) and lost its top:
+   titles were cut off. Wider and narrower layouts are unchanged — there the
+   photo is the taller of the two. */
 .destinations-card-two__thumb {
   position: relative;
   overflow: hidden;
   border-radius: 15px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.destinations-card-two__thumb > img,
+.reason-card__content {
+  grid-area: 1 / 1;
+}
+/* When the text makes the cell taller than the photo's own ratio, the photo
+   fills it (object-fit: cover, from gotur.css, crops rather than stretches). */
+.destinations-card-two__thumb > img {
+  height: 100%;
+}
+
+/* One height per row: the carousel's track becomes a flex row, so every card
+   stretches to the tallest one and the photos stay aligned. tiny-slider keeps
+   setting the slides' widths and the track's transform; only the cross axis
+   changes. The pre-hydration placeholder has no .tns-slider and is untouched. */
+#why-choose-us .tns-slider {
+  display: flex;
+}
+#why-choose-us .tns-slider > .tns-item {
+  flex: none;
+}
+#why-choose-us .tns-item > .item {
+  height: 100%;
+}
+.destinations-card-two {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.destinations-card-two__thumb {
+  flex: 1 0 auto;
 }
 
 .reason-card__overlay {
@@ -3376,13 +3512,22 @@ body {
 }
 
 .reason-card__content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  align-self: end;
   padding: 30px 20px 20px;
   z-index: 2;
   color: #fff;
+}
+
+/* From 576 to 991px the text covers most of the card and reaches up into the
+   lightest part of the overlay above: titles fell to 2.1-2.9:1 there. A 25%
+   shade behind the text block only, faded in over its top padding, is the
+   lightest that keeps every title past 3:1 in all four languages (3.18:1 at
+   the single worst pixel) and every description past 4.5:1. */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .reason-card__content {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.25) calc(100% - 30px), rgba(0, 0, 0, 0));
+  }
 }
 
 .reason-card__title {
@@ -3488,6 +3633,34 @@ body {
 /* Ensure only custom navigation buttons are visible */
 .feature-package__bottom__nav {
   display: flex !important;
+}
+
+/* Carousel prev/next buttons (Why Choose Us, Featured Tours, Testimonials).
+   gotur.css sets `outline: none` on all three with no replacement, so
+   keyboard focus showed nothing. Same ring colour as the desktop dropdown's
+   focus ring: #7a5f12 on these light sections. */
+.destinations-two__bottom__nav button:focus-visible,
+.feature-package__bottom__nav button:focus-visible,
+.testimonials-two__bottom__nav button:focus-visible {
+  outline: 2px solid #7a5f12;
+  outline-offset: 3px;
+}
+
+/* Their arrows, and the destination carousel's (owl basic nav): the arrow is
+   the button's only content, and gotur.css draws it in the brand gold on
+   white (2.10:1), then white on the gold hover fill (2.10:1). Text gold at
+   rest (6.05:1), dark on the fill (7.61:1). The gold ring and fill stay. */
+.destinations-two__bottom__nav button,
+.feature-package__bottom__nav button,
+.testimonials-two__bottom__nav button,
+.gotur-owl__carousel--basic-nav.owl-carousel .owl-nav button {
+  color: var(--gotur-gold-text, #7a5f12);
+}
+.destinations-two__bottom__nav button:hover,
+.feature-package__bottom__nav button:hover,
+.testimonials-two__bottom__nav button:hover,
+.gotur-owl__carousel--basic-nav.owl-carousel .owl-nav button:hover {
+  color: var(--gotur-black, #1d231f);
 }
 
 /* Hide browser extension attributes that cause hydration issues */
@@ -4494,13 +4667,55 @@ button[data-action="stop"] {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   The same navy-on-gold label for the other gold buttons whose text was
+   white: 1.51:1 on the yellow fill and 2.10:1 on the gold one, at rest or
+   in the hover sweep. Scoped per button, as above: `.gotur-btn` appears on
+   some twenty pages and not all of them sit on gold. #19374a is 8.27:1 on
+   #f4d03f and 6.11:1 on #d4af37. The two outline buttons keep their dark
+   text through the sweep instead of turning white on it (#1d231f: 10.62:1
+   on the yellow, 7.61:1 on the gold), and so does the search submit's icon.
+   Fills, borders and the hover animation are unchanged.
+   ───────────────────────────────────────────────────────────── */
+.offer-one__btn .gotur-btn,
+.offer-one__btn .gotur-btn:hover,
+.offer-two__btn .gotur-btn,
+.offer-two__btn .gotur-btn:hover {
+  color: #19374a;
+}
+.blog-two__top__btn .gotur-btn:hover,
+.listing-card-four .listing-card-four__btn:hover,
+.search-popup__form .gotur-btn,
+.search-popup__form .gotur-btn:hover {
+  color: var(--gotur-black, #1d231f);
+}
+
+/* The same for the text printed ON gold: the offer badge ("30% off", "up
+   to") and the footer's copyright bar were white (1.51:1 on the yellow
+   circle, 2.10:1 on the gold pill, 1.83:1 for the copyright at 80%). */
+.offer-two__funfact__item__count,
+.offer-two__funfact__item__text,
+.offer-two__funfact__item__upto {
+  color: var(--gotur-black, #1d231f);
+}
+.main-footer__copyright {
+  color: var(--gotur-black, #1d231f);
+  opacity: 1;
+}
+/* Spanish "de descuento" is the one badge label too long for a single line
+   at 35px, and wrapped it ran 26px past the circle's edge. At 26px it holds
+   one line, 13px inside the curve (the Italian label's margin). */
+.offer-two__funfact__item__text:lang(es) {
+  font-size: 26px;
+}
+
+/* ─────────────────────────────────────────────────────────────
    Section taglines (eyebrows), SITE-WIDE: decorative accent text in the
-   deeper brand gold for readability, without the washed-out translucent
-   pill background. The face is the display serif in italic (set in
-   gotur.css); this was the template's handwritten Caveat until Phase 2.
+   soft brand gold, without the washed-out translucent pill background. The
+   face is the display serif in italic (set in gotur.css); this was the
+   template's handwritten Caveat until Phase 2.
    ───────────────────────────────────────────────────────────── */
 .sec-title__tagline {
-  color: #b79c5c;
+  color: var(--jes-gold, #b79c5c);
   padding: 0;
   font-weight: 500; /* deliberately above the 400 in gotur.css */
 }
@@ -4544,9 +4759,16 @@ button[data-action="stop"] {
   -webkit-user-drag: none;
 }
 
+/* A single gold ring on a photograph could not hold 3:1 (median 1.49 against
+   the pixels beside it). The ring is drawn on the dim layer instead, which
+   already sits over the image: dark outside, where the card meets the white
+   page (16:1), and white inside, against the tinted photo. With white outside
+   the ring vanished into the page and its dark band into dark photos. */
 .destination-carousel--two .destination-carousel__link:focus-visible {
-  outline: 4px solid var(--gotur-base, #f6c945);
-  outline-offset: -7px;
+  outline: none;
+}
+.destination-carousel--two .destination-carousel__link:focus-visible .destination-carousel__dim {
+  box-shadow: inset 0 0 0 3px var(--gotur-black, #1d231f), inset 0 0 0 6px #fff;
 }
 
 .destination-carousel--two .destination-carousel__image {
@@ -4567,9 +4789,12 @@ button[data-action="stop"] {
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* The flat tint was 0.14: the destination name and the tour line under it
+     fell to 2.24-2.67:1 and 3.65:1 on the brighter photographs. 0.3 is the
+     lightest tint that clears both on all four cards at 375/768/1440. */
   background:
     linear-gradient(180deg, rgba(10, 20, 31, 0.2) 0%, rgba(10, 20, 31, 0.48) 100%),
-    rgba(0, 0, 0, 0.14);
+    rgba(0, 0, 0, 0.3);
   pointer-events: none;
 }
 
@@ -4611,7 +4836,8 @@ button[data-action="stop"] {
   line-height: 0.88;
   letter-spacing: -0.045em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.62);
+  /* Full white, not 0.62: at 62% it took the photo's colour and lost contrast. */
+  color: #fff;
   text-wrap: balance;
   overflow-wrap: normal;
   text-shadow: 0 3px 18px rgba(0, 0, 0, 0.26);
@@ -4721,6 +4947,15 @@ button[data-action="stop"] {
    Desktop/sticky: transparent gold-outline pill (experiment).
    Mobile Drawer row below is intentionally left as the rose accent.
    ───────────────────────────────────────────────────────────── */
+
+/* Top-level link hover (gotur.css paints it --gotur-base, !important). Over
+   the homepage hero that was 2.72-2.91:1; the bright gold, on the hero scrim,
+   is 5.11:1 at worst across all six slides, and on the sticky header's dark
+   bar it only gains (10.62:1). Hover only: the current-page state and the
+   dropdown panels' own hover are left as they are. */
+.main-header--one .main-menu__list > li:hover > a {
+  color: var(--gotur-primary, #f4d03f) !important;
+}
 
 /* Desktop pill (experiment): transparent gold-outline pill that fills gold
    on hover with dark-blue text. High-specificity color/border so it wins
@@ -5064,19 +5299,21 @@ button[data-action="stop"] {
   border-radius: 50%;
   border: 1.5px solid var(--gotur-base, #d4af37);
   background: transparent;
-  color: var(--gotur-base, #d4af37);
+  /* The arrow is the control's only content: text gold (6.05:1 on white)
+     instead of the brand gold (2.10:1); the ring stays brand gold. */
+  color: var(--gotur-gold-text, #7a5f12);
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease,
     transform 0.2s ease, box-shadow 0.2s ease;
 }
 .blog-two__nav__btn:hover {
   background: var(--gotur-base, #d4af37);
-  color: #fff;
+  color: var(--gotur-black, #1d231f);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(var(--gotur-base-rgb, 212, 175, 55), 0.35);
 }
 .blog-two__nav__btn:focus-visible {
-  outline: 2px solid var(--gotur-base, #d4af37);
+  outline: 2px solid var(--gotur-gold-text, #7a5f12);
   outline-offset: 3px;
 }
 /* Vertical padding so the cards' shadow/hover-lift is not clipped by the
@@ -5224,6 +5461,37 @@ button[data-action="stop"] {
 .main-slider-four__nobreak {
   white-space: nowrap;
 }
+/* Mobile hero: reserve the two bands that sit on top of the copy.
+ *
+ * The hero starts at y=0 under a transparent header, so the header band is
+ * painted OVER the slide — measured at exactly 108px at every mobile width
+ * in all four locales. At the other end the dot pill is positioned against
+ * `.main-slider-four__carousel` at `bottom: 24px` and is 42px tall, so it
+ * owns the last 66px of that box. Neither band was reserved anywhere:
+ * `.main-slider-four__item` simply centres `.main-slider-four__content`
+ * (`display: flex; align-items: center`) and the content carries a flat
+ * `padding: 40px 15px` at every width.
+ *
+ * Above 767px the 895px min-height leaves enough slack that centring keeps
+ * the copy clear of both bands on its own. On mobile that min-height drops to
+ * 660px (gotur.css) while the copy itself measures 458–899px, so on the
+ * longer slides the copy fills the box outright and collides at both ends: the
+ * eyebrow rendered 70px ABOVE the header's bottom edge, and the trust row
+ * overlapped the pill by 26px. It is one problem — a box with no room — so
+ * it is fixed once, on that box, rather than by nudging the eyebrow, the
+ * title, the CTA and the trust row separately.
+ *
+ * Each value is the band it clears plus the 24px the pill already uses as its
+ * own inset, so the copy keeps a consistent gap at both ends. Padding rather
+ * than margins on the children, so on the short slides — where the 660px
+ * min-height still wins — the box does not grow at all and the flex centring
+ * is untouched; only the slides that were actually overflowing get taller. */
+@media (max-width: 767px) {
+  .main-slider-four__content {
+    padding-top: calc(108px + 24px);
+    padding-bottom: calc(24px + 42px + 24px);
+  }
+}
 /* Gold hand-drawn underline (inline SVG): spans the exact width of the gold
    phrase and inherits its color, replacing the old green PNG asset. */
 .main-slider-four__title-line {
@@ -5367,9 +5635,14 @@ button[data-action="stop"] {
   outline: 2px solid var(--gotur-base, #d4af37);
   outline-offset: 3px;
 }
+/* The active dot's track is what marks the current slide whenever the gold
+   fill below is paused (pause button, hover, focus in the hero, reduced
+   motion — for the last, always). At 30% gold it was 1.74-1.86:1 against the
+   pill; it now uses the inactive dots' white (3.1:1 and up), and the gold
+   fill still runs across it. Width and hit area are unchanged. */
 .main-slider-four__dots button.tns-nav-active {
   width: 28px;
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* Hit target, separate from the artwork (WCAG 2.5.8 asks for 24x24).
@@ -6474,6 +6747,8 @@ button[data-action="stop"] {
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: 0.02em;
+  /* Brand gold label; the hover keeps the gold FILL and takes a dark label
+     instead of white (2.65:1). */
   color: var(--jes-gold, #b79c5c);
   white-space: nowrap;
   overflow: hidden;
@@ -6482,7 +6757,7 @@ button[data-action="stop"] {
 }
 .blog-card-chip:hover {
   background-color: var(--jes-gold, #b79c5c);
-  color: #fff;
+  color: var(--gotur-black, #1d231f);
 }
 
 /* ── Content ───────────────────────────────────────────────────
@@ -6633,10 +6908,11 @@ button[data-action="stop"] {
      description's colour, which is two reasons for the eye to stop on it. */
   font-weight: 400;
   line-height: 1.6;
-  /* #6C8798 — the same ink as the description above at ~0.61 instead of ~0.68.
-     Deliberately NOT darkened alongside it: the whole point is the distance
-     between the two. */
-  color: #6c8798;
+  /* The description's ink, kept visibly lighter than it: the whole point is
+     the distance between the two. #6c8798 went too far (3.78:1 on white);
+     #5a788c is the lightest step of the same hue past 4.5:1 (4.67), still
+     well short of the description's #355b73 (7.25:1). */
+  color: #5a788c;
 }
 .blog-card-meta > li:first-child {
   grid-column: 1 / -1;
@@ -6665,7 +6941,15 @@ button[data-action="stop"] {
   transition: color 250ms ease;
 }
 .blog-card-meta a:hover {
-  color: var(--jes-gold, #b79c5c);
+  color: var(--gotur-gold-text, #7a5f12);
+}
+
+/* Card titles' hover colour (gotur.css): the brand golds are 1.51-2.10:1 on
+   the white card. The currentColor underline follows. */
+.blog-card-two__title a:hover,
+.blog-card-two--one .blog-card-two__title a:hover,
+.listing-card-four__title a:hover {
+  color: var(--gotur-gold-text, #7a5f12);
 }
 
 /* ── Footer: the divider and the call to action ────────────────
@@ -8065,6 +8349,15 @@ button.mobile-nav__close:focus-visible {
   outline-offset: 3px;
 }
 
+/* The reset's `color: inherit` also beat gotur.css's white on the drawer's
+   close button (`button.mobile-nav__close` outranks `.mobile-nav__close`),
+   so the icon took the page's near-black body text: #020817 on the #1d231f
+   panel, 1.25:1. Restored by class, as the search toggle is below. The
+   theme's gold `.mobile-nav__close:hover` still wins over this. */
+button.mobile-nav__close {
+  color: var(--gotur-white, #fff);
+}
+
 /* The header's search toggle used to be an <a>, and the theme styles the
    header icons ONLY through `.main-header__info a` selectors (gotur.css and
    globals.css). As a <button> it lost all of them: its colour (the reset's
@@ -8313,6 +8606,21 @@ button.mobile-nav__close:focus-visible {
 
 .search-popup__close:focus-visible {
   outline: 3px solid var(--gotur-primary, #b79c5c);
+  outline-offset: 3px;
+}
+
+/* Tailwind's preflight greys every placeholder to #9ca3af: 2.54:1 on the
+   white field, and "Search here..." is the field's only visible prompt.
+   #6b7280 is 4.83:1. The typed text keeps its own colour. */
+.search-popup__form input::placeholder {
+  color: #6b7280;
+}
+
+/* gotur.css removes the field's outline and only darkens its text on focus,
+   which left a keyboard user nothing but the caret. The ring sits in the
+   dimmed backdrop, 3px clear of the white field — the close button's ring. */
+.search-popup__form input[type="search"]:focus-visible {
+  outline: 3px solid var(--gotur-primary, #f4d03f);
   outline-offset: 3px;
 }
 

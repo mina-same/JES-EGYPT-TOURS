@@ -3,11 +3,13 @@ import { TourFormData, ITourSubcategory } from '@/types/tour';
 import { tourSubcategoryAPI } from '@/lib/api/tour';
 import { uploadAPI } from '@/lib/api/upload';
 import { toast } from '@/hooks/use-toast';
+import { catalog } from '@/lib/tours/catalog';
 
 import { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import type { UploadResult } from '@/components/admin/ImageUpload';
 
-const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFormData => ({
+export const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFormData => {
+  const defaults: TourFormData = {
   name: '',
   slug: { en: '', de: '', it: '', es: '' },
   description: {
@@ -21,17 +23,20 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   heading: { en: '', de: '', it: '', es: '' },
   headingDescription: { en: '', de: '', it: '', es: '' },
   cardDescription: { en: '', de: '', it: '', es: '' },
-  tourLocation: { en: '', de: '', it: '', es: '' },
   tourAvailability: { en: '', de: '', it: '', es: '' },
   pickupAndDropOff: { en: '', de: '', it: '', es: '' },
-  tourType: { en: '', de: '', it: '', es: '' },
-  tourStyle: { en: '', de: '', it: '', es: '' },
+  tourType: '',
+  tourStyles: [],
+  destinations: [],
+  durationHours: undefined,
+  recommendedOrder: undefined,
   // Left undefined on purpose: a new tour has no kind until one is picked, and
   // defaulting to either would silently restrict the pricing plans on offer.
   tourKind: undefined as 'DAY_TOUR' | 'PACKAGE' | undefined,
   isFeatured: false,
   isActive: true,
   scheduledAt: null,
+  publishedAt: undefined,
   isSpecialOffer: false,
   specialOfferDiscount: 0,
   seo: {
@@ -67,8 +72,16 @@ const createInitialTourFormData = (initialData?: Partial<TourFormData>): TourFor
   meetingPoint: { en: '', de: '', it: '', es: '' },
   cancellationPolicy: { en: '', de: '', it: '', es: '' },
   tags: { en: [], de: [], it: [], es: [] },
-  ...initialData,
-});
+  };
+  // Older local drafts can contain removed fields. Only restore current form
+  // fields and the current scalar type shape. Never infer an ID from old text.
+  return {
+    ...defaults,
+    ...Object.fromEntries(Object.entries(initialData || {}).filter(([key]) => Object.hasOwn(defaults, key))),
+    tourType: typeof initialData?.tourType === 'string' && Object.hasOwn(catalog.types, initialData.tourType)
+      ? initialData.tourType : '',
+  };
+};
 
 export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: string) {
   const [hasDraft, setHasDraft] = useState(() => {
@@ -92,10 +105,10 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
             parsed.description = parsed.Description;
             delete parsed.Description;
           }
-          return {
+          return createInitialTourFormData({
             ...parsed,
             ...initialData // Still allow overriding with initialData if needed
-          };
+          });
         }
       } catch (e) {
         console.error('Failed to parse tour draft:', e);
@@ -143,7 +156,7 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
     saveTimer.current = setTimeout(() => {
       try {
         localStorage.setItem(draftKey, JSON.stringify(formData));
-      } catch (e) {
+      } catch {
         // Fail silently
       }
     }, 1000);
@@ -178,6 +191,10 @@ export function useTourForm(initialData?: Partial<TourFormData>, draftKey?: stri
   // Handle form field changes
   const handleChange = (field: string, value: any, lang?: AdminLanguage) => {
     setFormData(prev => {
+      if (field.startsWith('tourType.')) return prev;
+      if (field === 'tourType') {
+        return { ...prev, tourType: typeof value === 'string' && Object.hasOwn(catalog.types, value) ? value as NonNullable<TourFormData['tourType']> : '' };
+      }
       const updated = { ...prev } as any;
       
       if (field.includes('.')) {

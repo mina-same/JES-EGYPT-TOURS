@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import React, { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
@@ -32,7 +33,7 @@ type WishlistTour = {
   /** false when the tour is currently switched off — it stays saved, shown as unavailable. */
   isActive?: boolean;
   duration?: string;
-  tourLocation?: string;
+  destinations?: import('@/lib/tours/destinations').TourDestination[];
   tourType?: string;
   cardDescription?: any;
   Description?: { text?: any };
@@ -159,7 +160,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 },
                 {
                   id: 3,
-                  title: t.tourLocation || "Location",
+                  title: formatTourDestinations(t.destinations, locale),
                   icon: "icon-location",
                 },
               ],
@@ -260,7 +261,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                         price,
                         description: tour.cardDescription || tour.Description?.text || "",
                         meta: [
-                          { id: 1, title: tour.tourLocation || t('location'), icon: "icon-location" },
+                          { id: 1, title: formatTourDestinations(tour.destinations, locale), icon: "icon-location" },
                           { id: 2, title: tour.duration || t('flexible'), icon: "icon-clock" },
                           // The API localizes documents for this page, so the name
                           // normally arrives as a plain string already.

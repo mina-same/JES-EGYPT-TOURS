@@ -1,10 +1,17 @@
+import { hasNestedTourType, validTourType } from '../utils/tourType';
+import { listingSortStages } from '../utils/tourListingSort';
+import { validTourStyles } from '../utils/tourStyles';
+import { structuredTourFilters } from '../utils/tourFilterContract';
+import filterCatalog from '../config/tourFilters.json';
+import Destination from '../models/Destination';
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { Request, Response } from 'express';
 import Tour from '../models/Tour';
 import { FilterQuery, Types, isValidObjectId } from 'mongoose';
 import { ITour, completeTourSeo, validateTourKindPlans } from '../models/Tour';
 import { deriveStartingPrice, validatePricingCurrencyConsistency } from '../utils/startingPrice';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
-import { localize, localizePreservingSlugs } from '../utils/localize';
+import { localizePreservingSlugs } from '../utils/localize';
 import {
   parseFutureSchedule,
   PublishingValidationError,
@@ -14,8 +21,7 @@ import { PERMISSIONS } from '../permissions';
 import CurrencyConfig from '../models/CurrencyConfig';
 import {
   applyStartingPriceFilter,
-  effectiveStartingPriceExpression,
-  exactLocalizedValueFilter,
+  effectiveStartingPrice,
   parseTourFields,
   parseTourPagination,
   parseTourSort,
@@ -43,7 +49,9 @@ interface QueryParams {
   minPrice?: string;
   maxPrice?: string;
   tourType?: string;
-  tourStyle?: string;
+  tourStyles?: string;
+  destinations?: string;
+  durationRange?: string;
   currency?: string;
   page?: string;
   limit?: string;
@@ -151,6 +159,7 @@ const buildQueryFilter = async (
   const includeInactive = allowInactive && queryParams.includeInactive === 'true';
 
   if (!includeInactive) {
+    filter[`slug.${locale}`] = { $exists: true, $nin: ['', null] };
     filter.isActive = { $ne: false };
   } else {
     if (queryParams.isActive !== undefined) {
@@ -193,11 +202,18 @@ const buildQueryFilter = async (
       ],
     }).select('_id');
 
+    const matchingDestinations = await Destination.find({
+      $or: [
+        { [`name.${locale}`]: searchRegex },
+        { [`shortName.${locale}`]: searchRegex },
+      ],
+    }).select('_id');
+
     filter.$or = [
       { [`heading.${locale}`]: searchRegex },
       { [`cardDescription.${locale}`]: searchRegex },
       { [`Description.text.${locale}`]: searchRegex },
-      { [`tourLocation.${locale}`]: searchRegex },
+      { destinations: { $in: matchingDestinations.map((destination) => destination._id) } },
       ...(locale === 'en' ? [{ name: searchRegex }] : []),
       ...(matchingSubcategories.length
         ? [{ subcategory: { $in: matchingSubcategories.map((sub) => sub._id) } }]
@@ -205,15 +221,7 @@ const buildQueryFilter = async (
     ];
   }
 
-  // Filter by tour type
-  if (queryParams.tourType) {
-    Object.assign(filter, exactLocalizedValueFilter('tourType', locale, queryParams.tourType));
-  }
-
-  // Filter by tour style
-  if (queryParams.tourStyle) {
-    Object.assign(filter, exactLocalizedValueFilter('tourStyle', locale, queryParams.tourStyle));
-  }
+  Object.assign(filter, structuredTourFilters(queryParams));
 
   applyStartingPriceFilter(filter, queryParams.minPrice, queryParams.maxPrice, currency, currencyRate);
 
@@ -267,11 +275,11 @@ const TOUR_LIST_FIELDS = [
   'heading', 'name', 'slug',
   // card face
   'images', 'gallery', 'cardDescription', 'Description',
-  'tourLocation', 'duration', 'priceStartingFrom',
+  'duration', 'priceStartingFrom',
   // relations shown as labels (subcategory is also required for the populate)
   'subcategory', 'category',
-  // client-side filter options on the listing pages
-  'tourType', 'tourStyle',
+  // canonical listing facts (options are read from the full scope separately)
+  'tourType', 'tourStyles', 'destinations', 'durationHours', 'recommendedOrder',
   // the offers page badge
   'specialOfferDiscount',
   // the admin table's columns
@@ -305,77 +313,32 @@ export const getAllTours = async (
     // Build query. NOTE: a single populate call — a second object-form
     // populate on the same path REPLACES the first one's select and ships
     // the full ~23KB subcategory document with every tour in the list.
-    const populate = {
+    const populate = [{
       path: 'subcategory',
       select: 'name shortName slug category',
       populate: {
         path: 'category',
         select: 'name slug',
       },
-    };
+    }, { path: 'destinations', select: 'name shortName' }];
 
     const selectedFields = fields || TOUR_LIST_FIELDS;
     const isPriceSort = sort === `priceStartingFrom.${currency}` || sort === `-priceStartingFrom.${currency}`;
     let toursPromise: Promise<unknown[]>;
 
-    if (isPriceSort) {
+    if (isPriceSort || sort === 'recommended' || sort.replace('-', '') === 'durationHours') {
       const projection = Object.fromEntries(
         selectedFields
           .split(/\s+/)
           .filter((field) => field && !field.startsWith('-'))
           .map((field) => [field, 1])
       );
-      const direction = sort.startsWith('-') ? -1 : 1;
-      /*
-       * `__listingPrice` is a sort helper and must not reach the response.
-       *
-       * It used to be stripped with `__listingPrice: 0` inside the same
-       * `$project` that lists the fields to KEEP. MongoDB rejects that
-       * outright — an inclusion projection may not also exclude a field,
-       * `_id` being the only exemption — so every price-sorted listing died
-       * with "Cannot do exclusion on field __listingPrice in inclusion
-       * projection", and the visitor page quietly rendered an empty list.
-       *
-       * The exclusion was never needed in the first place: `projection` is
-       * built from TOUR_LIST_FIELDS, which does not contain `__listingPrice`,
-       * and an inclusion projection emits only the fields it names. Dropping
-       * the illegal key is the entire fix.
-       *
-       * `$unset` covers the one case where there is no inclusion projection
-       * to rely on: an admin may pass `?fields=-something`, which leaves
-       * `projection` empty, and `$project: {}` is itself invalid.
-       */
       const stripSortHelpers = Object.keys(projection).length
         ? { $project: projection }
-        : { $unset: ['__listingPrice', '__listingPriceRank'] };
-      /*
-       * Two helpers, and the rank is the reason this is not simply a $sort on
-       * price.
-       *
-       * MongoDB orders missing and null BELOW every number, so "price low to
-       * high" used to lead with the tours that have no price at all — exactly
-       * the ones whose card reads "Price on request". Ranking priced tours
-       * ahead of unpriced ones, and sorting by that rank FIRST, keeps the
-       * unpriced last in BOTH directions.
-       *
-       * Nothing is substituted for the missing price: `__listingPrice` still
-       * holds the real amount or nothing at all, so no sentinel like 999999
-       * can ever escape into a response or a comparison.
-       *
-       * The `> 0` test is deliberately the same rule TourCard uses to decide
-       * whether to render an amount, so the sorter and the card cannot
-       * disagree about which tours count as priced. A tour holding only USD
-       * is priced in EUR and GBP too, because the expression converts it.
-       *
-       * Ties — including every unpriced tour, which all rank equal — fall back
-       * to `-createdAt`, the listing default elsewhere, then to `_id` so the
-       * order is fully deterministic between requests.
-       */
+        : { $unset: ['__listingValue', '__listingRank'] };
       toursPromise = Tour.aggregate([
         { $match: filter },
-        { $addFields: { __listingPrice: effectiveStartingPriceExpression(currency, currencyRate) } },
-        { $addFields: { __listingPriceRank: { $cond: [{ $gt: ['$__listingPrice', 0] }, 0, 1] } } },
-        { $sort: { __listingPriceRank: 1, __listingPrice: direction, createdAt: -1, _id: 1 } },
+        ...listingSortStages(sort, currency, currencyRate),
         { $skip: skip },
         { $limit: limit },
         stripSortHelpers,
@@ -383,7 +346,7 @@ export const getAllTours = async (
     } else {
       toursPromise = Tour.find(filter)
         .populate(populate)
-        .sort(sort)
+        .sort(`${sort} _id`)
         .skip(skip)
         .limit(limit)
         .select(selectedFields)
@@ -409,7 +372,11 @@ export const getAllTours = async (
       totalPages,
       hasNextPage,
       hasPrevPage,
-      data: localizePreservingSlugs(tours, req.locale),
+      data: localizePreservingSlugs(tours.map((tour: any) => {
+        const effective = effectiveStartingPrice(tour.priceStartingFrom, currency, currencyRate);
+        return typeof effective === 'number' && Number.isFinite(effective)
+          ? { ...tour, priceStartingFrom: { ...tour.priceStartingFrom, [currency]: effective } } : tour;
+      }), req.locale),
     });
   } catch (error: unknown) {
     console.error('Error fetching tours:', error);
@@ -456,33 +423,28 @@ export const getTourFilterOptions = async (
     const filter = await buildQueryFilter(scope, locale, allowInactive, currencyRate);
     const priceField = `priceStartingFrom.${currency}`;
 
-    const [rawTypes, rawStyles, pricedTours] = await Promise.all([
-      Tour.distinct(`tourType.${locale}`, filter),
-      Tour.distinct(`tourStyle.${locale}`, filter),
+    const [rawTypes, rawStyles, pricedTours, destinationIds] = await Promise.all([
+      Tour.distinct('tourType', filter),
+      Tour.distinct('tourStyles', filter),
       Tour.find(filter).select(`${priceField} priceStartingFrom.USD`).lean(),
+      Tour.distinct('destinations', filter),
     ]);
 
-    const normalizeOptions = (values: unknown[]): string[] =>
-      [...new Set(values
-        .filter((value): value is string => typeof value === 'string')
-        .map((value) => value.trim())
-        .filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, locale));
+    const optionValues = (group: 'types' | 'styles', values: unknown[]) =>
+      Object.entries(filterCatalog[group]).filter(([id]) => values.includes(id))
+        .map(([id, labels]) => ({ id, label: labels[locale] || labels.en }));
+    const destinations = await Destination.find({ _id: { $in: destinationIds }, isActive: { $ne: false } })
+      .select('name shortName').lean();
 
-    const prices = pricedTours
-      .map((tour: { priceStartingFrom?: Partial<Record<'USD' | 'EUR' | 'GBP', number>> }) => {
-        const exact = tour?.priceStartingFrom?.[currency];
-        if (typeof exact === 'number' && Number.isFinite(exact)) return exact;
-        const usd = tour?.priceStartingFrom?.USD;
-        return typeof usd === 'number' && Number.isFinite(usd) ? usd * currencyRate : undefined;
-      })
-      .filter((price): price is number => typeof price === 'number' && Number.isFinite(price));
+    const prices = pricedTours.map(tour => effectiveStartingPrice(tour.priceStartingFrom, currency, currencyRate))
+      .filter((price): price is number => typeof price === 'number' && price > 0);
 
     res.status(200).json({
       success: true,
       data: {
-        tourTypes: normalizeOptions(rawTypes),
-        tourStyles: normalizeOptions(rawStyles),
+        tourTypes: optionValues('types', rawTypes),
+        tourStyles: optionValues('styles', rawStyles),
+        destinations: destinations.map(d => ({ id: String(d._id), label: d.shortName?.[locale] || d.name?.[locale] || d.shortName?.en || d.name.en })).sort((a,b) => a.label.localeCompare(b.label, locale)),
         priceRange: {
           min: prices.length ? Math.min(...prices) : null,
           max: prices.length ? Math.max(...prices) : null,
@@ -522,9 +484,9 @@ export const getFeaturedTours = async (
       .select(
         // `subcategory` must be selected for the populate above to resolve — the
         // card shows its name as the tour's category label.
-        'heading slug images cardDescription Description tourLocation subcategory pricingPlans priceStartingFrom duration specialOfferDiscount isSpecialOffer reviews.url'
+        'heading slug images cardDescription Description destinations subcategory pricingPlans priceStartingFrom duration specialOfferDiscount isSpecialOffer reviews.url'
       )
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     // Collapse reviews into their URLs and drop the rest of each review, so the
     // homepage card can show a working video button without receiving titles
@@ -561,6 +523,7 @@ export const getFeaturedTours = async (
       data: payload,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching featured tours:', error);
     res.status(500).json({
       success: false,
@@ -615,7 +578,7 @@ export const getToursBySubcategory = async (
         .sort('-createdAt')
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .populate({ path: 'destinations', select: 'name shortName' }).lean(),
       Tour.countDocuments(filter),
     ]);
 
@@ -630,6 +593,7 @@ export const getToursBySubcategory = async (
       data: localizePreservingSlugs(tours, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tours by subcategory:', error);
     
     if (error.name === 'CastError') {
@@ -687,7 +651,7 @@ export const getToursByIds = async (
 
     const tours = await Tour.find({ _id: { $in: requested } })
       .select(
-        'heading name slug images priceStartingFrom duration tourLocation ' +
+        'heading name slug images priceStartingFrom duration destinations ' +
           'subcategory cardDescription Description isActive specialOfferDiscount videoLink'
       )
       // `category` inside the subcategory is what the wishlist page uses to pick
@@ -698,7 +662,7 @@ export const getToursByIds = async (
         select: 'name shortName slug category',
         populate: { path: 'category', select: '_id name slug' },
       })
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     const data = tours.map((tour: any) =>
       tour.isActive === false ? { _id: tour._id, isActive: false } : tour
@@ -711,6 +675,7 @@ export const getToursByIds = async (
       data: localizePreservingSlugs(data, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tours by ids:', error);
     res.status(500).json({
       success: false,
@@ -739,7 +704,7 @@ export const getTourById = async (
           select: 'name slug description',
         },
       })
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     if (!tour) {
       res.status(404).json({
@@ -751,9 +716,10 @@ export const getTourById = async (
 
     res.status(200).json({
       success: true,
-      data: localize(ensureTourMapSchema(tour), req.locale),
+      data: localizePreservingSlugs(ensureTourMapSchema(tour), req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour:', error);
     
     if (error.name === 'CastError') {
@@ -799,7 +765,7 @@ export const getTourBySlug = async (
           select: 'name shortName slug description',
         },
       })
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     if (!tour) {
       res.status(404).json({
@@ -816,6 +782,7 @@ export const getTourBySlug = async (
       data: localizePreservingSlugs(ensureTourMapSchema(tour), req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour by slug:', error);
     res.status(500).json({
       success: false,
@@ -837,7 +804,7 @@ export const getTourByExternalId = async (
   try {
     const tour = await Tour.findOne({ idExternal: req.params.idExternal })
       .populate('subcategory', 'name shortName slug')
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     if (!tour) {
       res.status(404).json({
@@ -849,9 +816,10 @@ export const getTourByExternalId = async (
 
     res.status(200).json({
       success: true,
-      data: localize(tour, req.locale),
+      data: localizePreservingSlugs(tour, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour by external ID:', error);
     res.status(500).json({
       success: false,
@@ -889,9 +857,9 @@ export const getRelatedTours = async (
       _id: { $ne: req.params.id },
       isActive: true,
     })
-      .select('heading slug images cardDescription Description tourLocation pricingPlans')
+      .select('heading slug images cardDescription Description destinations pricingPlans')
       .limit(limit)
-      .lean();
+      .populate({ path: 'destinations', select: 'name shortName' }).lean();
 
     res.status(200).json({
       success: true,
@@ -899,6 +867,7 @@ export const getRelatedTours = async (
       data: relatedTours,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching related tours:', error);
     res.status(500).json({
       success: false,
@@ -919,6 +888,24 @@ export const createTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    if (hasNestedTourType(body) || !validTourType(body.tourType)) {
+      res.status(400).json({ success: false, error: 'Select a valid Tour Type', path: 'tourType' }); return;
+    }
+    if (body.destinations !== undefined) {
+      if (!Array.isArray(body.destinations) || body.destinations.some((id: unknown) => typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id))) {
+        res.status(400).json({ success: false, error: 'Invalid destination IDs' }); return;
+      }
+      body.destinations = [...new Set(body.destinations)];
+      const count = await Destination.countDocuments({ _id: { $in: body.destinations } });
+      if (count !== body.destinations.length) { res.status(400).json({ success: false, error: 'Unknown destination' }); return; }
+    }
+    if (body.tourStyles !== undefined && !validTourStyles(body.tourStyles)) {
+      res.status(400).json({ success: false, error: 'Tour Styles must be an array of unique approved IDs' }); return;
+    }
+    if ((body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||
+        ['durationHours', 'recommendedOrder'].some(field => body[field] != null && (typeof body[field] !== 'number' || !Number.isFinite(body[field])))) {
+      res.status(400).json({ success: false, error: 'Invalid tour filter fields' }); return;
+    }
     stripEmptyLocalizedSlugs(body.slug);
 
     if (
@@ -970,6 +957,7 @@ export const createTour = async (
       data: tour,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error creating tour:', error);
 
     if (error instanceof PublishingValidationError) {
@@ -1046,6 +1034,24 @@ export const updateTour = async (
 ): Promise<void> => {
   try {
     const body = { ...req.body };
+    if (hasNestedTourType(body) || (Object.prototype.hasOwnProperty.call(body, 'tourType') && !validTourType(body.tourType))) {
+      res.status(400).json({ success: false, error: 'Select a valid Tour Type', path: 'tourType' }); return;
+    }
+    if (body.destinations !== undefined) {
+      if (!Array.isArray(body.destinations) || body.destinations.some((id: unknown) => typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id))) {
+        res.status(400).json({ success: false, error: 'Invalid destination IDs' }); return;
+      }
+      body.destinations = [...new Set(body.destinations)];
+      const count = await Destination.countDocuments({ _id: { $in: body.destinations } });
+      if (count !== body.destinations.length) { res.status(400).json({ success: false, error: 'Unknown destination' }); return; }
+    }
+    if (body.tourStyles !== undefined && !validTourStyles(body.tourStyles)) {
+      res.status(400).json({ success: false, error: 'Tour Styles must be an array of unique approved IDs' }); return;
+    }
+    if ((body.tourStyles !== undefined && (!Array.isArray(body.tourStyles) || body.tourStyles.some((id: unknown) => typeof id !== 'string'))) ||
+        ['durationHours', 'recommendedOrder'].some(field => body[field] != null && (typeof body[field] !== 'number' || !Number.isFinite(body[field])))) {
+      res.status(400).json({ success: false, error: 'Invalid tour filter fields' }); return;
+    }
     stripEmptyLocalizedSlugs(body.slug);
 
     // Stale-save conflict guard — reject saves from stale drafts or old tabs
@@ -1220,6 +1226,7 @@ export const updateTour = async (
       data: tour,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error updating tour:', error);
 
     if (error instanceof PublishingValidationError) {
@@ -1316,6 +1323,7 @@ export const deleteTour = async (
       message: 'Tour deleted successfully',
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting tour:', error);
 
     if (error.name === 'CastError') {
@@ -1360,7 +1368,9 @@ export const toggleTourStatus = async (
       tour.publishedAt = new Date();
     }
     tour.editVersion = (tour.editVersion ?? 0) + 1;
-    await tour.save();
+    // Validate the fields changed by this status-only edit.
+    // Content-wide duplicate-link validation still runs in pre('validate').
+    await tour.save({ validateModifiedOnly: true });
 
     void emitDashboardStatsUpdate();
 
@@ -1370,6 +1380,7 @@ export const toggleTourStatus = async (
       data: tour,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling tour status:', error);
     res.status(500).json({
       success: false,
@@ -1401,7 +1412,9 @@ export const toggleTourFeatured = async (
 
     tour.isFeatured = !tour.isFeatured;
     tour.editVersion = (tour.editVersion ?? 0) + 1;
-    await tour.save();
+    // Validate the fields changed by this featured-only edit.
+    // Content-wide duplicate-link validation still runs in pre('validate').
+    await tour.save({ validateModifiedOnly: true });
 
     void emitDashboardStatsUpdate();
 
@@ -1411,6 +1424,7 @@ export const toggleTourFeatured = async (
       data: tour,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling tour featured status:', error);
     res.status(500).json({
       success: false,
@@ -1485,6 +1499,7 @@ export const getTourStats = async (
       data: stats[0],
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour statistics:', error);
     res.status(500).json({
       success: false,

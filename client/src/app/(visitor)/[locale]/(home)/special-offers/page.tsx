@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import SpecialOffersView from "./_views/SpecialOffersView";
+import { RouteToaster } from "@/components/ui/route-toaster";
 import enStrings from "@/i18n/locales/en/specialOffers.json";
 import deStrings from "@/i18n/locales/de/specialOffers.json";
 import itStrings from "@/i18n/locales/it/specialOffers.json";
@@ -118,6 +119,8 @@ export default async function SpecialOffersPage({ params }: { params: Promise<{ 
         initialTotal={initialOffers?.total}
         initialTotalPages={initialOffers?.totalPages}
       />
+      {/* SpecialOffersView's toast: a page of offers failed to load. */}
+      <RouteToaster />
     </>
   );
 }

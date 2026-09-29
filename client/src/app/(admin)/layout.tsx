@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import Script from 'next/script';
 import { AppSidebar } from '@/components/admin/app-sidebar';
+import DuplicateLinkSaveFeedback from '@/components/admin/DuplicateLinkSaveFeedback';
 import AdminHeader from '@/components/admin/AdminHeader';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { TailorMadeProvider } from '@/contexts/TailorMadeContext';
@@ -158,7 +159,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             <SidebarInset>
                               <AdminHeader />
                               <main className="flex flex-1 flex-col gap-4 bg-muted/30 p-4 md:p-6">
-                                <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+                                <div className="mx-auto w-full max-w-screen-2xl">
+                                  <React.Suspense fallback={null}><DuplicateLinkSaveFeedback /></React.Suspense>
+                                  {children}
+                                </div>
                               </main>
                             </SidebarInset>
                           </SidebarProvider>

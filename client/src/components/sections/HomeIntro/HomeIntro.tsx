@@ -281,7 +281,7 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                       onClick={() => setIsExpanded(!isExpanded)}
                       aria-expanded={isExpanded}
                       aria-controls={narrativeId}
-                      className="group flex items-center gap-2 text-[#1a1a1a] font-black uppercase text-[11px] tracking-widest border-b-2 border-[#b79c5c] pb-1 hover:text-[#b79c5c] transition-colors duration-300"
+                      className="group flex items-center gap-2 text-[#1a1a1a] font-black uppercase text-[11px] tracking-widest border-b-2 border-[#b79c5c] pb-1 hover:text-[#7a5f12] transition-colors duration-300"
                     >
                       {isExpanded ? (
                         <>{t("homeIntro.readLess")} <ChevronUp size={16} aria-hidden="true" className="group-hover:-translate-y-1 transition-transform" /></>
@@ -292,8 +292,9 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                   </div>
                 )}
 
-                {/* Trust Footer */}
-                <div className="pt-10 border-t border-gray-100 flex flex-wrap gap-x-10 gap-y-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
+                {/* Trust Footer — 60%, not 50%: at half opacity its 10px labels
+                    were 3.69:1; 60% is the lightest that reaches 4.5:1. */}
+                <div className="pt-10 border-t border-gray-100 flex flex-wrap gap-x-10 gap-y-4 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
                   <div className="flex items-center gap-3">
                     <ShieldCheck size={22} strokeWidth={1.5} />
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">{t("homeIntro.licensedAgency")}</span>

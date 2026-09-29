@@ -85,7 +85,9 @@ function linkStatus(link: AuditedInternalLink, liveResult: AvailabilityResult | 
   if (link.issues.length > 0 || hasLiveIssue(liveResult)) {
     return {
       label: 'Review',
-      classes: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
+      classes: link.issues.some((issue) => issue.code === 'duplicate_internal_link')
+        ? 'bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300'
+        : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
       icon: <AlertTriangle size={12} />,
     };
   }
@@ -191,6 +193,9 @@ export function InternalLinksAudit({
             const key = availabilityKey(link);
             return link.issues.length > 0 || hasLiveIssue(key ? availability[key] : undefined);
           }).length;
+          const hasDuplicates = localeLinks.some((link) =>
+            link.issues.some((issue) => issue.code === 'duplicate_internal_link')
+          );
           return (
             <button
               key={locale}
@@ -205,7 +210,7 @@ export function InternalLinksAudit({
               <div className="text-[10px] uppercase font-bold tracking-wide text-gray-400">{LOCALE_NAMES[locale]}</div>
               <div className="flex items-end justify-between gap-2 mt-1">
                 <span className="text-xl font-bold text-gray-900 dark:text-white">{localeLinks.length}</span>
-                <span className={`text-[10px] font-semibold ${flagged ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                <span className={`text-[10px] font-semibold ${hasDuplicates ? 'text-red-600 dark:text-red-400' : flagged ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                   {flagged ? `${flagged} to review` : 'No issues'}
                 </span>
               </div>
@@ -287,7 +292,7 @@ export function InternalLinksAudit({
                       {link.issues.length > 0 && (
                         <ul className="mt-1.5 space-y-1 m-0 p-0 list-none">
                           {link.issues.map((issue) => (
-                            <li key={issue.code} className={`text-[11px] leading-snug ${issue.severity === 'error' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                            <li key={issue.code} className={`text-[11px] leading-snug ${issue.severity === 'error' || issue.code === 'duplicate_internal_link' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
                               {issue.message}
                             </li>
                           ))}

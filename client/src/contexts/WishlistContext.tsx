@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, startTransition } from 'react';
 
 interface WishlistContextType {
   wishlist: string[];
@@ -14,15 +14,31 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 const STORAGE_KEY = 'tour_wishlist';
 
+/** The saved list, or `fallback` when storage cannot be read. */
+const readSaved = (fallback: string[]): string[] => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const saved = raw ? JSON.parse(raw) : [];
+    return Array.isArray(saved) ? saved : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [wishlist, setWishlist] = useState<string[]>([]);
 
-  // Load wishlist from localStorage on mount
+  // Load wishlist from localStorage on mount — as a transition, like the
+  // currency provider's load-time updates: a plain update to this context in
+  // the moments after hydration makes React discard the server HTML of any
+  // Suspense boundary below still waiting for its code (the tour page's
+  // booking form). A transition waits for that boundary to hydrate instead.
   useEffect(() => {
     const savedWishlist = localStorage.getItem(STORAGE_KEY);
     if (savedWishlist) {
       try {
-        setWishlist(JSON.parse(savedWishlist));
+        const saved = JSON.parse(savedWishlist);
+        startTransition(() => setWishlist(saved));
       } catch (e) {
         console.error('Failed to parse wishlist from localStorage', e);
       }
@@ -52,10 +68,17 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  /*
+   * Adding and removing start from the saved list rather than from `prev`.
+   * The load above is a transition, and while it is held back — the booking
+   * form is still hydrating — `prev` is still the empty initial list: a click
+   * in that moment would write just the clicked tour over every other saved one.
+   */
   const addToWishlist = (tourId: string) => {
     setWishlist((prev) => {
-      if (prev.includes(tourId)) return prev;
-      const next = [...prev, tourId];
+      const current = readSaved(prev);
+      if (current.includes(tourId)) return prev.includes(tourId) ? prev : current;
+      const next = [...current, tourId];
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch {}
@@ -65,7 +88,7 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const removeFromWishlist = (tourId: string) => {
     setWishlist((prev) => {
-      const next = prev.filter((id) => id !== tourId);
+      const next = readSaved(prev).filter((id) => id !== tourId);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch {}

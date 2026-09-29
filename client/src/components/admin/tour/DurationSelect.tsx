@@ -21,13 +21,14 @@ interface DurationSelectProps {
   /** The stored `{ en, de, it, es }` duration. */
   value?: Partial<DurationLabels>;
   /** Receives the complete four-language object, ready to store as-is. */
-  onChange: (value: DurationLabels) => void;
+  onChange: (value: DurationLabels, hours: number | null) => void;
 }
 
 interface Choice {
   value: string;
   label: string;
   labels?: DurationLabels;
+  hours?: number;
   /** Set on the stand-in built for a value that predates the catalogue. */
   isCustom?: boolean;
 }
@@ -39,6 +40,7 @@ const LOCALES: DurationLocale[] = ['en', 'de', 'it', 'es'];
 
 const toChoice = (option: DurationOption): Choice => ({
   value: option.id,
+  hours: option.hours,
   label: option.labels.en,
   labels: option.labels,
 });
@@ -77,17 +79,17 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
 
   const selected: Choice | null = matched ? toChoice(matched) : customChoice;
 
-  const apply = (option: DurationOption) => onChange({ ...option.labels });
+  const apply = (option: DurationOption) => onChange({ ...option.labels }, option.hours);
 
   const handleSelect = (choice: Choice | null) => {
     if (!choice) {
-      onChange({ ...EMPTY_DURATION });
+      onChange({ ...EMPTY_DURATION }, null);
       return;
     }
     // The custom stand-in is only there so the saved text stays visible and
     // selected; re-picking it must not turn one language into all four.
     if (choice.isCustom || !choice.labels) return;
-    onChange({ ...choice.labels });
+    onChange({ ...choice.labels }, choice.hours ?? null);
   };
 
   /**
@@ -105,7 +107,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
   };
 
   const styles: StylesConfig<Choice, false, GroupBase<Choice>> = {
-    control: (provided) => ({
+    control: (provided, state) => ({
       ...provided,
       minHeight: '44px',
       // hsl(): the token is a bare shadcn triplet, invalid unwrapped.
@@ -114,9 +116,9 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
       paddingRight: '4px',
       fontSize: '14px',
       borderRadius: 'calc(var(--radius) - 2px)',
-      borderColor: 'hsl(var(--input))',
-      boxShadow: 'none',
-      '&:hover': { borderColor: 'hsl(var(--input))' },
+      borderColor: state.isFocused ? '#d97706' : 'hsl(var(--input))',
+      boxShadow: state.isFocused ? '0 0 0 2px #f59e0b' : 'none',
+      '&:hover': { borderColor: '#d97706' },
     }),
     menu: (provided) => ({
       ...provided,
@@ -156,7 +158,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
   return (
     <div className="space-y-2">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground">Duration</span>
+        <label htmlFor="tour-duration-input" className="text-xs font-medium text-muted-foreground">Duration *</label>
         <span className="ml-auto rounded border bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           Fills all 4 languages
         </span>
@@ -164,7 +166,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
 
       {/* Day tours are the common case and there are only five of them, so they
           get one-click buttons instead of a scroll through the same dropdown. */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
         <Clock size={13} className="shrink-0 text-muted-foreground" aria-hidden="true" />
         {HOUR_DURATION_OPTIONS.map((option) => {
           const active = matched?.id === option.id;
@@ -175,10 +177,10 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
               onClick={() => apply(option)}
               aria-pressed={active}
               className={cn(
-                'rounded-full border px-2.5 py-1 text-xs font-medium transition',
+                'min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2',
                 active
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-input text-muted-foreground hover:border-primary/50 hover:bg-muted/50 hover:text-foreground'
+                  ? 'border-amber-600 bg-amber-100 text-amber-950'
+                  : 'border-gray-300 bg-white text-gray-700 hover:border-amber-500 hover:bg-amber-50'
               )}
             >
               {option.labels.en}
@@ -189,6 +191,7 @@ export default function DurationSelect({ value, onChange }: DurationSelectProps)
 
       <Select<Choice, false, GroupBase<Choice>>
         instanceId="tour-duration"
+        inputId="tour-duration-input"
         options={groups}
         value={selected}
         onChange={handleSelect}

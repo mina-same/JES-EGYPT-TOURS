@@ -56,11 +56,11 @@ const detailedTour = {
     { url: SEED_IMAGE_PLACEHOLDER, fileName: 'red-sea.jpg', title: 'Red Sea Coast', alt: 'Turquoise waters of the Red Sea' },
     { url: SEED_IMAGE_PLACEHOLDER, fileName: 'hatshepsut.jpg', title: 'Temple of Hatshepsut', alt: 'The Mortuary Temple of Hatshepsut' }
   ],
-  tourLocation: 'Cairo, Luxor, Aswan, Abu Simbel, Hurghada',
+
   tourAvailability: 'Every Day (Year Round)',
   pickupAndDropOff: 'VIP Meet & Assist service at Cairo International Airport with private transfers throughout.',
-  tourType: 'Private VIP Luxury Tour',
-  tourStyle: 'History, Culture & Relaxation',
+  tourType: undefined,
+  tourStyles: [],
   tourHighlights: [
     'Private VIP tour of the Giza Pyramids and the mysterious Sphinx',
     'Exclusive access to the Grand Egyptian Museum (GEM) and its treasures',

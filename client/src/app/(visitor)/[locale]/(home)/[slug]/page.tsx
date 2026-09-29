@@ -25,20 +25,29 @@ import {
   tourServerAPI,
   tourSubcategoryServerAPI,
 } from "@/lib/api/tour.server";
+import { resolveSlug } from "@/lib/api/resolve.server";
 import {
-  type BlogResponse,
+  type BlogCategory,
+  type BlogListResponse,
   type BlogSubCategory,
+  getBlogsByCategory,
   getBlogsBySubCategory,
   getCategoryBySlug as getBlogCategoryBySlug,
   getSubCategoriesByCategory as getBlogSubCategoriesByCategory,
   getSubCategoryBySlug as getBlogSubCategoryBySlug,
   getBlogBySlug,
 } from "@/lib/api/blog";
-import { getDestinationBySlug } from "@/lib/api/destination";
+import {
+  getBlogsByDestination,
+  getDestinationBySlug,
+  type Destination,
+  type DestinationBlogsResponse,
+} from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
+import { getNotFoundRobotsMetadata, getRobotsMetadata } from "@/lib/seo/robots";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
 import { Metadata } from "next";
@@ -72,14 +81,6 @@ import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { cookies } from "next/headers";
 import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
 
-/**
- * Get the slug for a specific locale WITHOUT the deep fallback chain.
- * Returns null if the slug doesn't exist for the specific locale (forcing a 404).
- */
-function getLocaleSlug(slugObj: any, locale: string): string | null {
-  if (!slugObj || typeof slugObj !== 'object') return slugObj || null;
-  return slugObj[locale] || null;
-}
 
 function ensureTourMapSchema(tour: any) {
   if (!tour || typeof tour !== "object") return tour;
@@ -222,78 +223,89 @@ type ResolvedSlugContent = {
   correctSlug: string;
 };
 
+/*
+ * Slug -> content, in one resolution plus one entity read.
+ *
+ * This used to ask seven endpoints in turn until one answered 200. Next
+ * never caches a non-OK response, so every miss ahead of the real type hit
+ * the API on EVERY request, warm cache or not — six wasted round trips for a
+ * destination, five for an article. /api/resolve answers the same question
+ * once, from seven parallel indexed lookups, and that answer IS cacheable.
+ *
+ * The signature and return shape are unchanged on purpose: generateMetadata,
+ * every render branch, the redirects and notFound() all consume this exactly
+ * as before.
+ *
+ * Precedence now lives in the API (resolveController CANDIDATES), in the same
+ * order this chain used. A database audit found zero cross-type slug
+ * collisions, so nothing observable depends on it today, but it is preserved
+ * rather than rationalised.
+ *
+ * React cache() still wraps it, so metadata and the page share one call.
+ */
 const resolveSlugContent = cache(async (slug: string, locale: string): Promise<ResolvedSlugContent | null> => {
-  // 1. Try tour (checked first: most common content type, and confirmed via
-  //    DB audit to have zero slug collisions with any other content type)
-  try {
-    const tourRes = await tourServerAPI.getBySlug(slug, locale);
-    if (tourRes?.success && tourRes?.data) {
-      const correctSlug = getLocaleSlug(tourRes.data.slug, locale);
-      if (correctSlug) return { type: "tour", data: tourRes.data, correctSlug };
-    }
-  } catch {}
+  /*
+   * Deliberately NOT wrapped in try/catch. A missing slug comes back as null
+   * and becomes a 404; a 500 or an unreachable API throws, and must keep
+   * throwing. Turning an outage into notFound() would answer "this page does
+   * not exist" to a crawler about a page that does.
+   */
+  const resolution = await resolveSlug(slug, locale);
+  if (!resolution) return null;
 
-  // 2. Try category
-  try {
-    const catRes = await tourCategoryServerAPI.getBySlug(slug, locale);
-    if (catRes?.success && catRes?.data) {
-      const correctSlug = getLocaleSlug(catRes.data.slug, locale);
-      if (correctSlug) return { type: "category", data: catRes.data, correctSlug };
-    }
-  } catch {}
+  // The canonical slug for THIS locale — always present, because the API only
+  // resolves an entity that has one. Reading the entity by it rather than by
+  // whatever alias was typed also keeps one cache entry per locale.
+  const correctSlug = resolution.canonicalSlug;
 
-  // 3. Try subcategory
-  try {
-    const subRes = await tourSubcategoryServerAPI.getBySlug(slug, locale);
-    if (subRes?.success && subRes?.data) {
-      const correctSlug = getLocaleSlug(subRes.data.slug, locale);
-      if (correctSlug) return { type: "subcategory", data: subRes.data, correctSlug };
+  switch (resolution.type) {
+    case "tour": {
+      const res = await tourServerAPI.getBySlug(correctSlug, locale);
+      if (res?.success && res?.data) return { type: "tour", data: res.data, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 4. Try Blog Category
-  try {
-    const category = await getBlogCategoryBySlug(slug, locale);
-    if (category) {
-      const correctSlug = getLocaleSlug(category.slug, locale);
-      if (correctSlug) return { type: "blogCategory", data: category, correctSlug };
+    case "tour-category": {
+      const res = await tourCategoryServerAPI.getBySlug(correctSlug, locale);
+      if (res?.success && res?.data) return { type: "category", data: res.data, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 5. Try Blog Subcategory
-  try {
-    const subcategory = await getBlogSubCategoryBySlug(slug, locale);
-    if (subcategory) {
-      const correctSlug = getLocaleSlug(subcategory.slug, locale);
-      if (correctSlug) return { type: "blogSubcategory", data: subcategory, correctSlug };
+    case "tour-subcategory": {
+      const res = await tourSubcategoryServerAPI.getBySlug(correctSlug, locale);
+      if (res?.success && res?.data) return { type: "subcategory", data: res.data, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 6. Try Blog Post
-  try {
-    const blog = await getBlogBySlug(slug, locale);
-    if (blog) {
-      const correctSlug = getLocaleSlug(blog.slug, locale);
-      // A slug alone is not enough: if none of the article's blocks belong to
-      // this language there is nothing to render, and falling back to another
-      // language would republish content the editor scoped elsewhere. Returning
-      // nothing here makes the page 404 and keeps it out of generateMetadata.
-      if (correctSlug && !hasNoContentForLocale(blog.contentBlocks, locale)) {
-        return { type: "blog", data: blog, correctSlug };
-      }
+    case "blog-category": {
+      const category = await getBlogCategoryBySlug(correctSlug, locale);
+      if (category) return { type: "blogCategory", data: category, correctSlug };
+      return null;
     }
-  } catch {}
-
-  // 7. Try Destination
-  try {
-    const destination = await getDestinationBySlug(slug, locale);
-    if (destination) {
-      const correctSlug = getLocaleSlug(destination.slug, locale);
-      if (correctSlug) return { type: "destination", data: destination, correctSlug };
+    case "blog-subcategory": {
+      const subcategory = await getBlogSubCategoryBySlug(correctSlug, locale);
+      if (subcategory) return { type: "blogSubcategory", data: subcategory, correctSlug };
+      return null;
     }
-  } catch {}
-
-  return null;
+    case "blog": {
+      const blog = await getBlogBySlug(correctSlug, locale);
+      if (!blog) return null;
+      /*
+       * A slug alone is not enough. If none of the article's blocks belong to
+       * this language there is nothing to render, and falling back to another
+       * language would republish content the editor scoped elsewhere. This
+       * check stays here rather than moving into the resolver because the
+       * block rules live in blogBlocks.ts, and a second copy behind the API
+       * would be one more thing to keep in sync.
+       */
+      if (hasNoContentForLocale(blog.contentBlocks, locale)) return null;
+      return { type: "blog", data: blog, correctSlug };
+    }
+    case "destination": {
+      const destination = await getDestinationBySlug(correctSlug, locale);
+      if (destination) return { type: "destination", data: destination, correctSlug };
+      return null;
+    }
+    default:
+      return null;
+  }
 });
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -379,6 +391,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getRobotsMetadata(cAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -413,6 +426,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getRobotsMetadata(sAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -453,6 +467,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
       alternates,
+      robots: getRobotsMetadata(bAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -483,6 +498,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getRobotsMetadata(destination.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: seoTitle || getLocalizedValue(destination.name, locale),
@@ -538,7 +554,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  return { title: "Not Found | JES Egypt Tours", robots: "noindex" };
+  /*
+   * Nothing resolved, so the page below calls notFound(). This never reaches
+   * the 404's server HTML; that head comes from (home)/not-found.tsx. It is
+   * not dead, though: the 404 is sent as Next's error shell, and the browser
+   * renders the page from the RSC payload that carries THIS metadata. It is
+   * the title and robots the visitor's document ends up with.
+   */
+  return { title: "Not Found | JES Egypt Tours", robots: getNotFoundRobotsMetadata() };
 }
 
 export default async function SlugPage({ params, searchParams }: PageProps) {
@@ -563,12 +586,14 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   const listingQuery = validPriceRange ? {
     page,
     limit: 9,
-    sort: firstQueryValue(query.sort) || '-createdAt',
+    sort: firstQueryValue(query.sort) || 'recommended',
     search: firstQueryValue(query.search) || undefined,
     minPrice: parsedMinPrice,
     maxPrice: parsedMaxPrice,
     tourType: firstQueryValue(query.tourType) || undefined,
-    tourStyle: firstQueryValue(query.tourStyle) || undefined,
+    tourStyles: firstQueryValue(query.tourStyles) || undefined,
+    destinations: firstQueryValue(query.destinations) || undefined,
+    durationRange: firstQueryValue(query.durationRange) || undefined,
     currency,
   } : null;
   /*
@@ -677,17 +702,67 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   {
     let redirectTarget: string | null = null;
     let renderBlogCategory = false;
+    let categoryData: BlogCategory | null = null;
+    let initialSubcategories: BlogSubCategory[] = [];
+    let initialBlogsData: BlogListResponse | null = null;
+    let blogListingError: unknown = null;
     try {
       if (resolved?.type === "blogCategory") {
         if (resolved.correctSlug !== slug) {
           redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
+          const data = resolved.data as BlogCategory;
+          categoryData = data;
           renderBlogCategory = true;
+
+          /*
+           * The two reads BlogCategoryView used to make in the browser after
+           * hydration, with the same arguments, made here instead — so the
+           * HTML carries the heading, the topic cards and the article cards
+           * rather than a spinner. Both need only what the resolver already
+           * returned, so they run together.
+           *
+           * The listing is keyed by the English slug, as the view always did:
+           * the endpoint matches any language's slug, and one spelling keeps
+           * one cache entry per page and locale. `page` is this route's own
+           * parse of ?page=, so a crawler following the pager's
+           * <a href="?page=2"> gets page 2's cards in the HTML.
+           */
+          const baseSlug = typeof data.slug === "object" ? data.slug?.en : data.slug;
+          const [subcategoriesResult, blogsResult] = await Promise.allSettled([
+            getBlogSubCategoriesByCategory(data._id, locale),
+            getBlogsByCategory(baseSlug || slug, page, 9, locale),
+          ]);
+
+          // The topic cards are secondary: without them the page still has its
+          // heading, copy and articles, so a failure drops just that section.
+          if (subcategoriesResult.status === "fulfilled" && Array.isArray(subcategoriesResult.value)) {
+            initialSubcategories = subcategoriesResult.value;
+          }
+          // The article list IS the page. Rendering without it would answer a
+          // 200 with nothing to index, so the failure is rethrown below — a
+          // 500 is retried by a crawler; an empty 200 is indexed as thin.
+          if (blogsResult.status === "fulfilled") {
+            initialBlogsData = blogsResult.value;
+          } else {
+            blogListingError = blogsResult.reason;
+          }
         }
       }
     } catch { /* API error — fall through */ }
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderBlogCategory) return <BlogCategoryView slug={slug} locale={locale} />;
+    if (blogListingError) throw blogListingError;
+    if (renderBlogCategory && categoryData && initialBlogsData) {
+      return (
+        <BlogCategoryView
+          slug={slug}
+          locale={locale}
+          category={categoryData}
+          subcategories={initialSubcategories}
+          blogsData={initialBlogsData}
+        />
+      );
+    }
   }
 
   // ── 4. Blog Subcategory ────────────────────────────────────────────────────
@@ -695,7 +770,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     let redirectTarget: string | null = null;
     let renderBlogSubcategory = false;
     let subcategoryData: BlogSubCategory | null = null;
-    let initialBlogsData: BlogResponse | null = null;
+    let initialBlogsData: BlogListResponse | null = null;
     let initialSiblingSubcategories: BlogSubCategory[] = [];
     let blogListingError: unknown = null;
     try {
@@ -856,18 +931,46 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   // ── 5.5. Destination ──────────────────────────────────────────────────
   {
     let redirectTarget: string | null = null;
-    let renderDestination = false;
+    let destinationData: Destination | null = null;
+    let initialBlogsData: DestinationBlogsResponse | null = null;
+    let blogListingError: unknown = null;
     try {
       if (resolved?.type === "destination") {
         if (resolved.correctSlug !== slug) {
           redirectTarget = `/${locale}/${resolved.correctSlug}`;
         } else {
-          renderDestination = true;
+          /*
+           * DestinationView used to read the destination and its article list
+           * in the browser after hydration, so the HTML carried a spinner. The
+           * destination is the entity the resolver already read; only the
+           * article list is fetched here, for this route's own parse of ?page=,
+           * so a crawler following the pager's <a href="?page=2"> gets page 2's
+           * cards in the HTML.
+           */
+          destinationData = resolved.data as Destination;
+          try {
+            initialBlogsData = await getBlogsByDestination(destinationData._id, page, 9, locale);
+          } catch (error) {
+            // Rendering without the article list would answer a 200 missing
+            // this page's cards and links; a 500 is retried by a crawler, as
+            // the blog listings do.
+            blogListingError = error;
+          }
         }
       }
     } catch { /* API error — fall through */ }
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderDestination) return <DestinationView slug={slug} locale={locale} />;
+    if (blogListingError) throw blogListingError;
+    if (destinationData && initialBlogsData) {
+      return (
+        <DestinationView
+          slug={slug}
+          locale={locale}
+          destination={destinationData}
+          blogsData={initialBlogsData}
+        />
+      );
+    }
   }
 
   // ── 6. Tour ───────────────────────────────────────────────────────────────

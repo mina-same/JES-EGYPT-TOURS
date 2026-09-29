@@ -18,7 +18,10 @@ import { cn } from '@/lib/utils';
 const MAX_LISTED_FIELDS = 6;
 const NO_REQUIRED_FIELDS: readonly RequiredLocalizedField[] = [];
 
-const STATE_CLASSES = {
+// Shared with the tour PriceBadge so both chip kinds look alike.
+export const CHIP_CLASSES = 'text-[10px] px-1.5 py-0.5 rounded uppercase font-bold whitespace-nowrap cursor-default';
+
+export const STATE_CLASSES = {
   complete: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
   partial: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   empty: 'bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-slate-500',
@@ -26,9 +29,15 @@ const STATE_CLASSES = {
 
 function tooltipLines(info: LangCompleteness): string[] {
   if (info.state === 'complete') {
-    return info.missingSeo.length > 0
-      ? ['Content complete', `SEO missing: ${info.missingSeo.slice(0, MAX_LISTED_FIELDS).join(', ')}`]
-      : ['Content complete'];
+    if (info.missingSeo.length === 0) return ['Content complete'];
+    // Name the fields while they fit; past that a count is honest where a cut
+    // list would hide the rest.
+    return [
+      'Content complete',
+      info.missingSeo.length > MAX_LISTED_FIELDS
+        ? `SEO missing: ${info.missingSeo.length} field(s)`
+        : `SEO missing: ${info.missingSeo.join(', ')}`,
+    ];
   }
   if (info.state === 'empty') return ['Not started'];
 
@@ -44,20 +53,23 @@ function tooltipLines(info: LangCompleteness): string[] {
  * Per-language completeness chips (EN DE IT ES) for admin list rows.
  * Green = every field that exists in some language is filled in this one;
  * amber = partially translated (hover to see exactly what's missing);
- * gray = not started. SEO fields never affect the color.
+ * gray = not started. SEO fields never affect the color (nor image alt/title
+ * with `imageTextAsSeo`).
  */
 export default function LanguageBadges({
   entity,
   className,
   requiredLocalizedFields = NO_REQUIRED_FIELDS,
+  imageTextAsSeo = false,
 }: {
   entity: unknown;
   className?: string;
   requiredLocalizedFields?: readonly RequiredLocalizedField[];
+  imageTextAsSeo?: boolean;
 }) {
   const report = useMemo(
-    () => getLocaleCompleteness(entity, { requiredLocalizedFields }),
-    [entity, requiredLocalizedFields]
+    () => getLocaleCompleteness(entity, { requiredLocalizedFields, imageTextAsSeo }),
+    [entity, requiredLocalizedFields, imageTextAsSeo]
   );
 
   return (
@@ -68,12 +80,7 @@ export default function LanguageBadges({
           return (
             <Tooltip key={lang}>
               <TooltipTrigger asChild>
-                <span
-                  className={cn(
-                    'text-[10px] px-1.5 py-0.5 rounded uppercase font-bold whitespace-nowrap cursor-default',
-                    STATE_CLASSES[info.state]
-                  )}
-                >
+                <span className={cn(CHIP_CLASSES, STATE_CLASSES[info.state])}>
                   {lang}
                 </span>
               </TooltipTrigger>

@@ -79,21 +79,24 @@
   text-align: left;
 }
 
+/* Hovered and selected currencies, and the selected one's check mark: the
+   text gold on the menu's white (#b79c5c was 2.44-2.65:1; this is 5.5-6:1).
+   The gold tints behind them stay. */
 .currency-switcher__option:hover {
   background: rgba(183, 156, 92, 0.1);
-  color: #b79c5c;
+  color: var(--gotur-gold-text, #7a5f12);
 }
 
 .currency-switcher__option.is-active {
   background: rgba(183, 156, 92, 0.05);
-  color: #b79c5c;
+  color: var(--gotur-gold-text, #7a5f12);
   font-weight: 700;
 }
 
 .currency-switcher__check {
   margin-left: auto;
   font-size: 12px;
-  color: #b79c5c;
+  color: var(--gotur-gold-text, #7a5f12);
 }
 
 /* responsive adjustment */

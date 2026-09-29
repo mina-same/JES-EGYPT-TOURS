@@ -80,7 +80,7 @@ export default function OfferPriceFooter({
             <span className={styles.unit}>{labels.perPerson}</span>
           </>
         ) : (
-          <span className={styles.price}>{t("tourCard.priceOnRequest")}</span>
+          <span className={styles.requestPrice}>{t("tourCard.priceOnRequest")}</span>
         )}
       </div>
 

@@ -1,3 +1,4 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import { completeOgFromMeta } from '../models/shared/LocalizedSchema';
@@ -6,7 +7,7 @@ import { FilterQuery } from 'mongoose';
 import { IBlogSubCategory } from '../models/BlogSubCategory';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
-import { blogCardPopulate } from '../utils/blogCardPopulate';
+import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -122,6 +123,7 @@ export const getAllSubcategories = async (
       data: normalizedSubcategories,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog subcategories:', error);
     res.status(500).json({
       success: false,
@@ -164,6 +166,7 @@ export const getSubcategoriesByCategory = async (
       data: normalizedSubcategories,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching subcategories by category:', error);
     
     // Handle invalid ObjectId
@@ -195,7 +198,7 @@ export const getSubcategoryById = async (
   try {
     const subcategory = await BlogSubCategory.findById(req.params.id)
       .populate('category', 'name slug description')
-      .populate('featuredBlogs')
+      .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
       .populate('featuredDestinations')
       .lean();
 
@@ -212,6 +215,7 @@ export const getSubcategoryById = async (
       data: normalizeDocumentImage(subcategory, subcategory.name),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog subcategory:', error);
     
     // Handle invalid ObjectId
@@ -285,6 +289,7 @@ export const getSubcategoryBySlug = async (
       ),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog subcategory by slug:', error);
     res.status(500).json({
       success: false,
@@ -336,6 +341,7 @@ export const createSubcategory = async (
       data: normalizeDocumentImage(subcategoryObject, subcategoryObject.name),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error creating blog subcategory:', error);
 
     // Handle duplicate key error
@@ -473,6 +479,7 @@ export const updateSubcategory = async (
       data: normalizeDocumentImage(subcategory.toObject(), subcategory.name),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error updating blog subcategory:', error);
 
     // Handle invalid ObjectId
@@ -549,6 +556,7 @@ export const deleteSubcategory = async (
       message: 'Blog subcategory deleted successfully',
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting blog subcategory:', error);
 
     // Handle invalid ObjectId
@@ -607,6 +615,7 @@ export const toggleSubcategoryStatus = async (
       data: subcategory,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling subcategory status:', error);
     res.status(500).json({
       success: false,

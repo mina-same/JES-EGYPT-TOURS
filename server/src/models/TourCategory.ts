@@ -1,3 +1,4 @@
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { IImage, ImageSchema } from './shared/ImageSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
@@ -316,6 +317,7 @@ TourCategorySchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 TourCategorySchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourCategorySchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 TourCategorySchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+TourCategorySchema.plugin(duplicateInternalLinksPlugin);
 
 
 /**

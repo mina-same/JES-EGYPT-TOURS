@@ -55,6 +55,14 @@
   color: #6c716c;
 }
 
+.requestPrice {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #18211c;
+  overflow-wrap: anywhere;
+}
+
 /* ── Saving pill ─────────────────────────────────────────────────── */
 .savePill {
   display: inline-flex;

@@ -1,3 +1,4 @@
+import { reportDuplicateLinkResponse } from '@/lib/duplicateLinkFeedback';
 import axios from 'axios';
 import { API_URL } from '@/config/api';
 import { toast } from '@/hooks/use-toast';
@@ -79,9 +80,14 @@ axiosInstance.interceptors.request.use(
 // Response interceptor to handle errors
 axiosInstance.interceptors.response.use(
   (response) => {
+    if (['post', 'put', 'patch'].includes(response.config.method || '') &&
+        /(?:^|\/)(?:blog|tours|destinations|general-content|faqs)(?:\/|$)/.test(response.config.url || '')) {
+      reportDuplicateLinkResponse(response.data);
+    }
     return response;
   },
   (error) => {
+    reportDuplicateLinkResponse(error.response?.data);
     // Handle 401 Unauthorized (Invalid/Expired Token)
     if (error.response?.status === 401) {
       // Clear token and redirect to login

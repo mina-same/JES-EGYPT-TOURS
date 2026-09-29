@@ -11,6 +11,7 @@ interface TourInfoBarProps {
   location: string;
   pickupAndDropOff: string;
   activitiesType: string;
+  stylesLabel?: string;
   activateDay: string;
   availability: string;
   /** '#map' — passed only when the tour actually has a map embed. */
@@ -36,6 +37,7 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
   location,
   pickupAndDropOff,
   activitiesType,
+  stylesLabel,
   activateDay,
   availability,
   mapHref,
@@ -66,6 +68,12 @@ export const TourInfoBar: React.FC<TourInfoBarProps> = ({
       icon: glyph("icon-travel-and-tourism"),
       label: t("tourDetails.info.tourType", "Tour Type"),
       value: activitiesType,
+    },
+    {
+      key: 'styles',
+      icon: glyph('icon-travel-and-tourism'),
+      label: t('filters.tourStyles', 'Tour Styles'),
+      value: stylesLabel || '',
     },
     {
       key: "activateDay",

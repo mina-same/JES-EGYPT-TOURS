@@ -1,5 +1,6 @@
 'use client';
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -56,6 +57,7 @@ export default function NewTourPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [activeAdminLanguage, setActiveAdminLanguage] = useState<AdminLanguage>('en');
+  useRevealLinkLocation(setActiveAdminLanguage, setActiveTab);
   const [formErrors, setFormErrors] = useState<FormErrorItem[]>([]);
   const { toast } = useToast();
   
@@ -223,8 +225,7 @@ export default function NewTourPage() {
       // Remove empty optional fields
       if (!cleanData.priceStartingFrom) delete cleanData.priceStartingFrom;
       if (!cleanData.duration) delete cleanData.duration;
-      if (!cleanData.tourType) delete cleanData.tourType;
-      if (!cleanData.tourStyle) delete cleanData.tourStyle;
+
       if (!cleanData.idExternal) delete cleanData.idExternal;
       if (!cleanData.tourMapIframe) delete cleanData.tourMapIframe;
       if (!cleanData.whatYouWillLoveHtml) delete cleanData.whatYouWillLoveHtml;
@@ -358,7 +359,7 @@ export default function NewTourPage() {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           const hasError = formErrors.some(err => {
-            if (tab.id === 'overview') return ['name', 'heading', 'subcategory', 'slug', 'description', 'tourAvailability', 'pickupAndDropOff', 'tourType', 'tourStyle', 'meetingPoint'].some(p => err.path?.startsWith(p));
+            if (tab.id === 'overview') return ['name', 'heading', 'subcategory', 'slug', 'description', 'tourAvailability', 'pickupAndDropOff', 'tourType', 'tourStyles', 'destinations', 'durationHours', 'recommendedOrder', 'meetingPoint'].some(p => err.path?.startsWith(p));
             if (tab.id === 'media') return ['images', 'gallery'].some(p => err.path?.startsWith(p));
             if (tab.id === 'itinerary') return err.path?.startsWith('itinerary');
             if (tab.id === 'details') return ['tourHighlights', 'inclusion', 'exclusion', 'whatToPack', 'notes', 'whatYouWillLoveHtml'].some(p => err.path?.startsWith(p));

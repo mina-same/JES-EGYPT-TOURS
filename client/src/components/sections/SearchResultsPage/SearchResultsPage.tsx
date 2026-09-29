@@ -1,17 +1,19 @@
 "use client";
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
+import FilterChips from '@/components/common/TourListingFilters/FilterChips';
+import { StructuredFilters } from '@/components/common/TourListingFilters/StructuredFilters';
 import React, { useEffect, useMemo, useState } from "react";
+import type { FilterOption } from '@/lib/tours/catalog';
 import { Container, Row, Col } from "react-bootstrap";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { tourAPI } from "@/lib/api/tour";
 import { getAllBlogs, getAllSubCategories, BlogSubCategory } from "@/lib/api/blog";
 import Pagination from "@/components/common/Pagination/Pagination";
 import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGrid";
-import Link from "next/link";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useWishlist } from "@/contexts/WishlistContext";
-import { toast } from "@/hooks/use-toast";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
@@ -70,12 +72,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const { locale } = useParams() as { locale: string };
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { t } = useTranslation('search');
+  const { t: tourT } = useTranslation('tours');
   const { currency, currencySymbol } = useCurrency();
   const [filterError, setFilterError] = useState<string | null>(null);
 
   // Filter options state
-  const [tourTypeOptions, setTourTypeOptions] = useState<string[]>([]);
-  const [tourStyleOptions, setTourStyleOptions] = useState<string[]>([]);
+  const [tourTypeOptions, setTourTypeOptions] = useState<FilterOption[]>([]);
+  const [tourStyleOptions, setTourStyleOptions] = useState<FilterOption[]>([]);
+  const [destinationOptions, setDestinationOptions] = useState<FilterOption[]>([]);
 
   // Video reviews state
   const [isOpen, setOpen] = useState(false);
@@ -105,9 +109,11 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     minPrice: toStr((effectiveParams as any).minPrice) || "",
     maxPrice: toStr((effectiveParams as any).maxPrice) || "",
     tourType: toStr((effectiveParams as any).tourType) || "",
-    tourStyle: toStr((effectiveParams as any).tourStyle) || "",
+    tourStyles: toStr((effectiveParams as any).tourStyles) || "",
+    destinations: toStr((effectiveParams as any).destinations) || "",
+    durationRange: toStr((effectiveParams as any).durationRange) || "",
     blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
-    sort: toStr((effectiveParams as any).sort) || "-createdAt",
+    sort: toStr((effectiveParams as any).sort) || "recommended",
   });
 
   const [appliedFilters, setAppliedFilters] = useState(draftFilters);
@@ -118,9 +124,11 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       minPrice: toStr((effectiveParams as any).minPrice) || "",
       maxPrice: toStr((effectiveParams as any).maxPrice) || "",
       tourType: toStr((effectiveParams as any).tourType) || "",
-      tourStyle: toStr((effectiveParams as any).tourStyle) || "",
+      tourStyles: toStr((effectiveParams as any).tourStyles) || "",
+    destinations: toStr((effectiveParams as any).destinations) || "",
+    durationRange: toStr((effectiveParams as any).durationRange) || "",
       blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
-      sort: toStr((effectiveParams as any).sort) || "-createdAt",
+      sort: toStr((effectiveParams as any).sort) || "recommended",
     };
     setDraftFilters(next);
     setAppliedFilters(next);
@@ -140,7 +148,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     };
 
     // Reset pagination when searching or filtering
-    if (patch.q !== undefined || patch.minPrice !== undefined || patch.maxPrice !== undefined || patch.tourType !== undefined || patch.tourStyle !== undefined || patch.sort !== undefined) {
+    if (patch.q !== undefined || patch.minPrice !== undefined || patch.maxPrice !== undefined || patch.tourType !== undefined || patch.tourStyles !== undefined || patch.destinations !== undefined || patch.durationRange !== undefined || patch.sort !== undefined) {
       next.page = "1";
     }
     if (patch.q !== undefined || patch.blogSubCategory !== undefined) {
@@ -167,9 +175,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       minPrice: "",
       maxPrice: "",
       tourType: "",
-      tourStyle: "",
+      destinations: "", durationRange: "", tourStyles: "",
       blogSubCategory: "",
-      sort: "-createdAt",
+      sort: "recommended",
     };
     setDraftFilters(empty);
     setAppliedFilters(empty);
@@ -177,12 +185,12 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     router.push(searchBasePath);
   };
 
-  const removeTourFilter = (key: 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyle') => {
-    const next = { ...appliedFilters, [key]: '' };
+  const removeTourFilter = (key: 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyles' | 'destinations' | 'durationRange', remaining = '') => {
+    const next = { ...appliedFilters, [key]: remaining };
     setDraftFilters(next);
     setAppliedFilters(next);
     setFilterError(null);
-    updateUrl({ [key]: '', page: '1', ...(key === 'q' ? { blogPage: '1' } : {}) });
+    updateUrl({ [key]: remaining, page: '1', ...(key === 'q' ? { blogPage: '1' } : {}) });
   };
 
   useEffect(() => {
@@ -225,12 +233,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           minPrice: appliedFilters.minPrice ? Number(appliedFilters.minPrice) : undefined,
           maxPrice: appliedFilters.maxPrice ? Number(appliedFilters.maxPrice) : undefined,
           tourType: appliedFilters.tourType || undefined,
-          tourStyle: appliedFilters.tourStyle || undefined,
+          tourStyles: appliedFilters.tourStyles || undefined,
+          destinations: appliedFilters.destinations || undefined,
+          durationRange: appliedFilters.durationRange || undefined,
           currency,
         }, locale, controller.signal);
 
         if (!res.success) {
-          setToursError(res.error || "Failed to load tours");
+          setToursError(tourT('status.errorFetching'));
           setTours([]);
           setToursTotal(0);
           setToursTotalPages(1);
@@ -267,7 +277,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
               getLocalizedValue(tour.Description?.text, locale) ||
               "",
             meta: [
-              { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || "Location", icon: "icon-location" },
+              { id: 1, title: formatTourDestinations(tour.destinations, locale), icon: "icon-location" },
               { id: 2, title: `${getLocalizedValue(tour.duration, locale) || '3 Days'}`, icon: "icon-clock" },
               ...(getDisplayName(tour.subcategory, locale)
                   ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: "icon-flag" }]
@@ -285,18 +295,10 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           return;
         }
 
-        // Derive options if not already set or whenever we have new results
-        if (res.data && Array.isArray(res.data)) {
-            const types = Array.from(new Set(res.data.map((t: any) => getLocalizedValue(t.tourType, 'en')).filter(Boolean))).sort();
-            const styles = Array.from(new Set(res.data.map((t: any) => getLocalizedValue(t.tourStyle, 'en')).filter(Boolean))).sort();
-            setTourTypeOptions(prev => Array.from(new Set([...prev, ...types as string[]])));
-            setTourStyleOptions(prev => Array.from(new Set([...prev, ...styles as string[]])));
-        }
-
       } catch (e: any) {
         if (e?.code === 'ERR_CANCELED') return;
         console.error(e);
-        setToursError("An error occurred while loading tours");
+        setToursError(tourT('status.errorFetching'));
         setTours([]);
         setToursTotal(0);
         setToursTotalPages(1);
@@ -307,7 +309,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
 
     void fetchTours();
     return () => controller.abort();
-  }, [q, page, appliedFilters.sort, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyle, locale, currency]);
+  }, [q, page, appliedFilters.sort, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyles, appliedFilters.destinations, appliedFilters.durationRange, locale, currency]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -316,6 +318,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
         if (response.success && response.data) {
           setTourTypeOptions(response.data.tourTypes);
           setTourStyleOptions(response.data.tourStyles);
+          setDestinationOptions(response.data.destinations);
         }
       })
       .catch((error) => {
@@ -409,7 +412,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                         value={draftFilters.sort}
                         onChange={(e) => setDraftFilters(p => ({ ...p, sort: e.target.value }))}
                       >
-                        <option value="-createdAt">{t('newest')}</option>
+                        <option value="recommended">{tourT('listing.sortOptions.recommended')}</option>
+                        <option value="durationHours">{tourT('listing.sortOptions.durationAsc')}</option>
+                        <option value="-durationHours">{tourT('listing.sortOptions.durationDesc')}</option>
                         <option value="priceStartingFrom">{t('priceLowToHigh')}</option>
                         <option value="-priceStartingFrom">{t('priceHighToLow')}</option>
                       </select>
@@ -451,35 +456,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     </div>
                     {filterError && <p className="text-danger small" role="alert">{filterError}</p>}
 
-                    <div className="mb-3">
-                      <label htmlFor="search-tour-type" className="form-label font-weight-bold small">{t('tourType')}</label>
-                      <select
-                        id="search-tour-type"
-                        className="form-select form-select-sm"
-                        value={draftFilters.tourType}
-                        onChange={(e) => setDraftFilters(p => ({ ...p, tourType: e.target.value }))}
-                      >
-                        <option value="">{t('anyType')}</option>
-                        {tourTypeOptions.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="mb-3">
-                      <label htmlFor="search-tour-style" className="form-label font-weight-bold small">{t('tourStyle')}</label>
-                      <select
-                        id="search-tour-style"
-                        className="form-select form-select-sm"
-                        value={draftFilters.tourStyle}
-                        onChange={(e) => setDraftFilters(p => ({ ...p, tourStyle: e.target.value }))}
-                      >
-                        <option value="">{t('anyStyle')}</option>
-                        {tourStyleOptions.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <StructuredFilters values={draftFilters} update={patch => setDraftFilters(previous => ({ ...previous, ...patch }))} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={tourT} />
                   </div>
 
                   <hr style={{ margin: '8px 0', opacity: 0.1 }} />
@@ -539,13 +516,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             {/* TOURS RESULTS */}
             <div className="results-wrapper mb-5 pb-5">
               <div className="d-flex flex-wrap gap-2 mb-3">
-                {(['q', 'minPrice', 'maxPrice', 'tourType', 'tourStyle'] as const)
-                  .filter((key) => appliedFilters[key])
-                  .map((key) => (
-                    <button key={key} type="button" className="btn btn-sm btn-outline-secondary rounded-pill d-inline-flex align-items-center gap-1" onClick={() => removeTourFilter(key)}>
-                      {appliedFilters[key]} <X size={14} aria-hidden="true" />
-                    </button>
-                  ))}
+                <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} t={tourT} remove={(key, remaining) => removeTourFilter(key as 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyles' | 'destinations' | 'durationRange', remaining)} />
               </div>
               <div className="d-flex align-items-center justify-content-between mb-4">
                 <h2 className="section-title mb-0" style={{ fontSize: 24 }}>{t('experiencesFound')}</h2>

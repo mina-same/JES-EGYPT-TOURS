@@ -1,6 +1,7 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { currencyAPI } from "@/lib/api/currency";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, startTransition } from "react";
+// Not currencyAPI (lib/api/currency): it imports axios, and this provider is on every page.
+import { getCurrencyRates } from "@/lib/api/currencyRates";
 import { currencyForCountry } from "@/lib/currency/countryCurrency";
 import {
   isCurrencyCode,
@@ -135,6 +136,16 @@ export const CurrencyProvider: React.FC<{
    *  still in flight — the reply is then discarded instead of overruling them. */
   const hasExplicitCurrency = useRef(Boolean(initialCurrency));
 
+  /*
+   * Every update this provider makes on its own — the one-time migration, the
+   * geo guess and the rates below — is a transition. They land shortly after
+   * hydration, and a plain update to this context reaches every Suspense
+   * boundary below it that is still waiting for its code (the tour page's
+   * booking form): React then throws that boundary's server HTML away and
+   * shows its placeholder. A transition is held back until the boundary has
+   * hydrated instead. The visitor's own choice (setCurrency) stays urgent.
+   */
+
   // Resolve the currency: the cookie the server already applied, then a
   // preference left behind in localStorage by the old build, then the
   // visitor's country, then the USD default.
@@ -159,7 +170,7 @@ export const CurrencyProvider: React.FC<{
     if (isCurrencyCode(legacy)) {
       hasExplicitCurrency.current = true;
       writeCurrencyCookie(legacy);
-      setCurrencyState(legacy);
+      startTransition(() => setCurrencyState(legacy));
       return;
     }
 
@@ -173,7 +184,7 @@ export const CurrencyProvider: React.FC<{
         // Not written to storage: a guess must stay a guess, so that it can be
         // re-derived if the visitor travels, and so it never masquerades as a
         // decision they made.
-        setCurrencyState(currencyForCountry(data?.country));
+        startTransition(() => setCurrencyState(currencyForCountry(data?.country)));
       } catch {
         // Aborted, offline, or not deployed behind the edge — stays USD.
       }
@@ -187,31 +198,33 @@ export const CurrencyProvider: React.FC<{
     const fetchRates = async () => {
       const cached = readRatesCache();
       if (cached && !cached.expired) {
-        setRates(cached.rates);
-        setIsLoading(false);
+        startTransition(() => {
+          setRates(cached.rates);
+          setIsLoading(false);
+        });
         return;
       }
 
       try {
-        const response = await currencyAPI.getRates();
+        const response = await getCurrencyRates();
         if (response.success && response.data) {
           const freshRates = {
             USD: 1,
             EUR: response.data.rates.EUR,
             GBP: response.data.rates.GBP,
           };
-          setRates(freshRates);
+          startTransition(() => setRates(freshRates));
           writeRatesCache(freshRates);
         } else if (cached?.rates) {
-          setRates(cached.rates);
+          startTransition(() => setRates(cached.rates));
         }
       } catch (error) {
         console.warn("Failed to fetch currency rates, using defaults:", error);
         if (cached?.rates) {
-          setRates(cached.rates);
+          startTransition(() => setRates(cached.rates));
         }
       } finally {
-        setIsLoading(false);
+        startTransition(() => setIsLoading(false));
       }
     };
 

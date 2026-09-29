@@ -1,5 +1,6 @@
 'use client';
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -40,6 +41,7 @@ const EMPTY_LOCALIZED = { en: '', de: '', it: '', es: '' };
 
 const INITIAL_FORM = {
   name: { ...EMPTY_LOCALIZED },
+  shortName: { ...EMPTY_LOCALIZED },
   slug: { ...EMPTY_LOCALIZED },
   subheader: { ...EMPTY_LOCALIZED },
   description: { ...EMPTY_LOCALIZED },
@@ -78,6 +80,7 @@ export default function DestinationFormPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>('en');
+  useRevealLinkLocation(setActiveLanguage, setActiveTab);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditing);
   const [allBlogs, setAllBlogs] = useState<any[]>([]);
@@ -93,6 +96,7 @@ export default function DestinationFormPage() {
           const d = res.data;
           setFormData({
             name: d.name || EMPTY_LOCALIZED,
+            shortName: d.shortName || EMPTY_LOCALIZED,
             slug: d.slug || EMPTY_LOCALIZED,
             subheader: d.subheader || EMPTY_LOCALIZED,
             description: d.description || EMPTY_LOCALIZED,
@@ -351,6 +355,7 @@ export default function DestinationFormPage() {
                       placeholder="e.g. Luxor"
                       required
                     />
+                    <LocalizedInput label="Short name (tour filters)" value={formData.shortName} activeLanguage={activeLanguage} onChange={(val) => handleChange('shortName', val)} />
                     <LocalizedInput
                       label="Slug (URL)"
                       value={formData.slug}
@@ -418,6 +423,7 @@ export default function DestinationFormPage() {
                       placeholder="e.g. Discover Ancient Luxor"
                     />
                     <LocalizedRichText
+                      fieldPath="heroDescription"
                       label="Hero Description"
                       value={formData.heroDescription}
                       activeLanguage={activeLanguage}

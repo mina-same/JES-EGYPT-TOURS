@@ -1,5 +1,6 @@
+import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
 import mongoose, { Schema, Document } from 'mongoose';
-import { ILocalizedString, LocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
+import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 import { revalidateTags } from '../services/revalidate';
@@ -7,6 +8,7 @@ import { revalidateTags } from '../services/revalidate';
 export interface IDestination extends Document {
   // Basic Info
   name: ILocalizedString;
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   subheader?: ILocalizedString;
   description?: ILocalizedString;
@@ -75,6 +77,7 @@ const DestinationSchema: Schema = new Schema(
       type: LocalizedStringSchema,
       required: [true, 'Destination name is required'],
     },
+    shortName: { type: OptionalLocalizedStringSchema },
     slug: {
       type: LocalizedStringSchema,
       required: true,
@@ -215,6 +218,7 @@ DestinationSchema.pre('validate', sanitizeDocumentPaths(RICH_TEXT_PATHS));
 DestinationSchema.pre('findOneAndUpdate', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 DestinationSchema.pre('updateOne', sanitizeUpdatePaths(RICH_TEXT_PATHS));
 DestinationSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
+DestinationSchema.plugin(duplicateInternalLinksPlugin);
 
 
 /**
@@ -238,7 +242,7 @@ DestinationSchema.pre('updateMany', sanitizeUpdatePaths(RICH_TEXT_PATHS));
  * Fire-and-forget: revalidateTags never throws and is never awaited, so an
  * admin save cannot fail because the front end is unreachable.
  */
-const revalidateDestinationCaches = () => revalidateTags(['destinations']);
+const revalidateDestinationCaches = () => revalidateTags(['destinations', 'tours']);
 
 DestinationSchema.post('save', revalidateDestinationCaches);
 DestinationSchema.post('findOneAndUpdate', revalidateDestinationCaches);

@@ -1,9 +1,10 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import TourSubcategory from '../models/TourSubcategory';
 import { FilterQuery } from 'mongoose';
 import { ITourSubcategory } from '../models/TourSubcategory';
-import { blogCardPopulate } from '../utils/blogCardPopulate';
+import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
 
 // ==================== INTERFACES ====================
 
@@ -129,6 +130,7 @@ export const getAllSubcategories = async (
       data: localizePreservingSlugs(subcategories, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour subcategories:', error);
     res.status(500).json({
       success: false,
@@ -168,6 +170,7 @@ export const getSubcategoriesByCategory = async (
       data: localizePreservingSlugs(subcategories, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching subcategories by category:', error);
     
     // Handle invalid ObjectId
@@ -200,7 +203,7 @@ export const getSubcategoryById = async (
     const subcategory = await TourSubcategory.findById(req.params.id)
       .populate('category', 'name slug description')
       .populate('toursCount')
-      .populate('featuredBlogs')
+      .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
       .populate('featuredDestinations')
       .lean();
 
@@ -217,6 +220,7 @@ export const getSubcategoryById = async (
       data: subcategory,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour subcategory:', error);
     
     // Handle invalid ObjectId
@@ -287,6 +291,7 @@ export const getSubcategoryBySlug = async (
       data: localizePreservingSlugs(subcategory, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching tour subcategory by slug:', error);
     res.status(500).json({
       success: false,
@@ -317,6 +322,7 @@ export const createSubcategory = async (
       data: subcategory,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error creating tour subcategory:', error);
 
     // Handle duplicate key error
@@ -416,6 +422,7 @@ export const updateSubcategory = async (
       data: subcategory,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error updating tour subcategory:', error);
 
     // Handle invalid ObjectId
@@ -491,6 +498,7 @@ export const deleteSubcategory = async (
       message: 'Tour subcategory deleted successfully',
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting tour subcategory:', error);
 
     // Handle invalid ObjectId
@@ -549,6 +557,7 @@ export const toggleSubcategoryStatus = async (
       data: subcategory,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling subcategory status:', error);
     res.status(500).json({
       success: false,

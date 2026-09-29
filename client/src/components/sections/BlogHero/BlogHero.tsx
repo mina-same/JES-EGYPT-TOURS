@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'next/navigation';
 import { normalizeLocale } from '@/lib/url';
 import Breadcrumb from '@/components/common/Breadcrumb/Breadcrumb';
+import { useCanAnimateIn } from '@/hooks/useCanAnimateIn';
 
 interface BlogHeroProps {
   title: string;
@@ -25,6 +26,12 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
   const { t } = useTranslation('common');
   const params = useParams();
   const locale = normalizeLocale(params?.locale);
+  // The breadcrumb, heading, description and stats below used to start at
+  // opacity 0 in the server HTML, so a blog page's <h1> stayed invisible until
+  // hydration had played the animation — and for good with JavaScript off. On
+  // a server-rendered page they now start visible; a hero that mounts during a
+  // client-side navigation still animates in. See useCanAnimateIn.
+  const animateIn = useCanAnimateIn();
 
   return (
     <section className="relative min-h-[500px] flex items-center overflow-hidden py-36 md:py-40">
@@ -65,7 +72,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
               The motion wrapper is a <div>, not the <nav>, so the landmark
               stays inside the component that owns it. */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={animateIn ? { opacity: 0, y: -20 } : false}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
@@ -79,8 +86,8 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
             />
           </motion.div>
 
-          <motion.h1 
-            initial={{ opacity: 0, x: -30 }}
+          <motion.h1
+            initial={animateIn ? { opacity: 0, x: -30 } : false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
             className="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight drop-shadow-lg"
@@ -90,7 +97,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
 
           {subTitle && (
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={animateIn ? { opacity: 0 } : false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
               className="html-content text-white/95 text-lg md:text-xl font-light max-w-3xl mb-8 leading-8 md:leading-9 whitespace-pre-line break-words [&_p]:mb-3 [&_p:last-child]:mb-0 px-4 py-3 rounded-xl bg-gradient-to-br from-black/25 to-black/10 border-l-[3px] border-[#d4af37] backdrop-blur-sm"
@@ -99,8 +106,8 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
           )}
 
           {stats && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+            <motion.div
+              initial={animateIn ? { opacity: 0, y: 20 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
               className="flex flex-wrap gap-6 text-white/80"

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { tourAPI } from "@/lib/api/tour";
@@ -57,7 +58,7 @@ function mapTour(tour: any, locale: string): FeatureTwoItem {
 
   const duration = getLocalizedValue(tour.duration, locale) || "1 Day";
   const location =
-    getLocalizedValue(tour.tourLocation, locale) || "Egypt";
+    formatTourDestinations(tour.destinations, locale);
 
   return {
     id: tour._id || tour.id || slug,

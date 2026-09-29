@@ -1,8 +1,8 @@
 /*
  * Structural layer on top of the theme's .listing-card-four classes.
  *
- * Only the pieces that changed live here — badges, wishlist/media buttons,
- * rating, title, price and CTA still use the theme styles untouched.
+ * Keeps the theme's visual treatment while adapting card spacing and the
+ * price/CTA layout to the card's available width.
  * Selectors are doubled (.card.card) to outrank the theme's single-class rules
  * regardless of stylesheet order, without resorting to !important.
  */
@@ -126,16 +126,68 @@
 .footer {
   border-top: 1px solid var(--gotur-border-color, #e5e5e5);
   padding-top: 16px;
+  container: tour-card-footer / inline-size;
 }
 
-/*
- * The "Price on request" fallback occupies the price slot, so it keeps the
- * amount's weight and colour — but it must never wrap. At some widths the
- * phrase broke onto a second line, taking the price box from 32px to 64px.
- * That is past the CTA height, which is what actually sets the row height, so
- * those cards grew taller than their priced neighbours in the same grid row.
- * One line keeps every card aligned, in all four languages.
- */
+/* Let the card's available width, rather than the viewport, govern wrapping. */
+.priceRow.priceRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.priceRow > :global(.listing-card-four__price) {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .priceOnRequest.priceOnRequest {
+  font-size: 16px;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Keep the label on one line and the arrow centered, even when the row wraps. */
+.card .viewTour.viewTour {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 9px 8px 9px 20px;
   white-space: nowrap;
+}
+
+.card .viewTour.viewTour :global(.icon) {
+  position: static;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+}
+
+/* Dark, not the brand gold: the ring sits on the white card, where #d4af37
+   was 2.10:1 (#1d231f: 16:1). */
+.card .viewTour.viewTour:focus-visible {
+  outline: 2px solid var(--gotur-black, #1d231f) !important;
+  outline-offset: 3px;
+}
+
+/* Sidebar grids can have narrow cards even on desktop. Give the request
+ * message and CTA their own rows instead of squeezing either one. */
+@container tour-card-footer (max-width: 300px) {
+  .requestRow.requestRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .requestRow .viewTour.viewTour {
+    width: 100%;
+  }
 }

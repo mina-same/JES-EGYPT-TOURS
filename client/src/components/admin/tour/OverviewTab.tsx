@@ -1,4 +1,6 @@
-import React from 'react';
+import TourFilterFields from './TourFilterFields';
+import React, { useEffect } from 'react';
+import { findDurationOption } from '@/lib/tours/duration';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -29,6 +31,12 @@ const LANGUAGE_NAMES: Record<AdminLanguage, string> = {
 
 export default function OverviewTab({ formData, subcategories, handleChange, activeLanguage, formErrors = [] }: OverviewTabProps) {
   const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
+  const durationOption = findDurationOption(formData.duration);
+  useEffect(() => {
+    // Only repair absent numeric metadata for an unambiguous saved choice.
+    // Preserve existing numeric values and ambiguous legacy text until selected.
+    if (formData.durationHours == null && durationOption) handleChange('durationHours', durationOption.hours);
+  }, [formData.durationHours, durationOption, handleChange]);
 
   return (
     <div className="space-y-6">
@@ -81,6 +89,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
 
           <div>
             <LocalizedRichText
+              fieldPath="headingDescription"
               label="Tour Heading Description"
               value={formData.headingDescription || { en: '', de: '', it: '', es: '' }}
               onChange={(val, lang) => handleChange('headingDescription', val, lang)}
@@ -164,6 +173,7 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
         </CardHeader>
         <CardContent>
           <LocalizedRichText
+            fieldPath="description.text"
             label="Description Content"
             data-field="description.text.en"
             value={formData.description?.text || { en: '', de: '', it: '', es: '' }}
@@ -174,28 +184,25 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
         </CardContent>
       </Card>
 
+      <TourFilterFields value={formData} onChange={handleChange} />
       {/* Tour Details */}
       <Card>
         <CardHeader>
           <CardTitle>Tour Details</CardTitle>
-          <CardDescription>Location, availability, and logistics</CardDescription>
+          <CardDescription>Duration, availability, and logistics</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <LocalizedInput
-              label="Location"
-              value={formData.tourLocation || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('tourLocation', val, lang)}
-              placeholder="Cairo, Egypt"
-              activeLanguage={activeLanguage}
-            />
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* No language tabs: one pick writes all four languages, so there is
                 nothing per-language left for the admin to fill in. */}
+            <div>
             <DurationSelect
               value={formData.duration}
-              onChange={(val) => handleChange('duration', val)}
+              onChange={(val, hours) => { handleChange('duration', val); handleChange('durationHours', hours); }}
             />
+            {(!(formData.durationHours > 0) || (durationOption && durationOption.hours !== formData.durationHours)) &&
+              <p className="mt-2 text-sm text-amber-800">Select a duration from the list to keep this tour&apos;s duration filter accurate.</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -210,25 +217,11 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
               activeLanguage={activeLanguage}
             />
 
-            <LocalizedInput
-              label={hasError('tourType') || hasError('tourType.en') ? 'Tour Type ⚠' : 'Tour Type'}
-              value={formData.tourType || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('tourType', val, lang)}
-              placeholder="Private / Group"
-              error={hasError('tourType') || hasError('tourType.en')}
-              activeLanguage={activeLanguage}
-            />
+
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <LocalizedInput
-              label={hasError('tourStyle') || hasError('tourStyle.en') ? 'Tour Style ⚠' : 'Tour Style'}
-              value={formData.tourStyle || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('tourStyle', val, lang)}
-              placeholder="Adventure, Cultural, Luxury"
-              error={hasError('tourStyle') || hasError('tourStyle.en')}
-              activeLanguage={activeLanguage}
-            />
+
 
             <LocalizedInput
               label={hasError('meetingPoint') || hasError('meetingPoint.en') ? 'Meeting Point ⚠' : 'Meeting Point'}

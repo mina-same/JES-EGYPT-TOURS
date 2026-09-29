@@ -1,3 +1,4 @@
+import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { Request, Response } from 'express';
 import Blog, { completeOgFromMeta } from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
@@ -11,7 +12,13 @@ import {
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { localizePreservingSlugs } from '../utils/localize';
 import { narrowBlocksToLocale } from '../utils/blogBlocks';
-import { BLOG_CARD_FIELDS, blogCardPopulate } from '../utils/blogCardPopulate';
+import {
+  BLOG_CARD_FIELDS,
+  BLOG_LISTING_FIELDS,
+  BLOG_LISTING_POPULATE,
+  blogCardPopulate,
+} from '../utils/blogCardPopulate';
+import { toPublicBlogComments } from '../utils/publicBlogComments';
 
 const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
   const searchRegex = createSearchRegex(search);
@@ -99,7 +106,11 @@ export const getAllBlogs = async (
     const skip = (Number(page) - 1) * Number(limit);
 
     const blogs = await Blog.find(query)
-      .populate('author', 'name email')
+      // The account's display name only, never its email address: this is a
+      // public response, and visitor pages read nothing but the name (the
+      // byline's fallback when an article has no editorial author). The
+      // address stays on the authenticated admin endpoints, which use it.
+      .populate('author', 'name')
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
@@ -126,6 +137,7 @@ export const getAllBlogs = async (
       },
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blogs:', error);
     res.status(500).json({
       success: false,
@@ -238,6 +250,7 @@ export const getAllBlogsAdmin = async (
       },
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blogs (admin):', error);
     res.status(500).json({
       success: false,
@@ -262,7 +275,8 @@ export const getFeaturedBlogs = async (
       status: 'published',
       isFeatured: true 
     })
-      .populate('author', 'name email')
+      // Display name only — a public response; see getAllBlogs.
+      .populate('author', 'name')
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
@@ -283,6 +297,7 @@ export const getFeaturedBlogs = async (
       data: payload,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching featured blogs:', error);
     res.status(500).json({
       success: false,
@@ -312,14 +327,16 @@ export const getBlogBySlug = async (
         { 'slug.es': slug },
       ]
     })
-      .populate('author', 'name email')
+      // Display name only — the public article page; see getAllBlogs. The
+      // byline and the JSON-LD author read the name, nothing reads the email.
+      .populate('author', 'name')
       .populate('editorialAuthor')
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       // Related posts are drawn with the same card as everywhere else, so they
       // are populated with the same field set — see blogCardPopulate.
       .populate(blogCardPopulate('relatedPosts'))
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
+      .populate({ path: 'relatedTours', select: 'heading slug images gallery duration destinations priceStartingFrom reviews videoLink', populate: { path: 'destinations', select: 'name shortName' } });
 
     if (!blog) {
       res.status(404).json({
@@ -335,12 +352,18 @@ export const getBlogBySlug = async (
     // handled here, where the block-visibility rule lives.
     const localized = localizePreservingSlugs(blog, req.locale);
     localized.contentBlocks = narrowBlocksToLocale(localized.contentBlocks, req.locale);
+    // Approved comments only, and only what the comment card draws: pending
+    // submissions and every commenter's email stay on the server. This holds
+    // for `bypass` too, which returns the raw document and which any caller
+    // can send. The admin endpoints keep the full comment records.
+    localized.comments = toPublicBlogComments(localized.comments);
 
     res.status(200).json({
       success: true,
       data: localized,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog:', error);
     res.status(500).json({
       success: false,
@@ -398,6 +421,7 @@ export const getBlogTags = async (
       data: rows,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog tags:', error);
     res.status(500).json({
       success: false,
@@ -451,6 +475,7 @@ export const getBlogByIdPublic = async (
       data: localizePreservingSlugs(blog, req.locale),
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog:', error);
     res.status(500).json({
       success: false,
@@ -579,6 +604,7 @@ export const createBlog = async (
       data: blog,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error creating blog:', error);
 
     if (error instanceof PublishingValidationError) {
@@ -757,6 +783,7 @@ export const updateBlog = async (
       data: blog,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     if (error instanceof PublishingValidationError) {
       res.status(400).json({
         success: false,
@@ -880,6 +907,7 @@ export const deleteBlog = async (
       message: 'Blog post deleted successfully',
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error deleting blog:', error);
     res.status(500).json({
       success: false,
@@ -933,6 +961,7 @@ export const addComment = async (
       message: 'Comment submitted successfully. It will be visible after approval.',
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error adding comment:', error);
     res.status(500).json({
       success: false,
@@ -957,7 +986,7 @@ export const getBlogById = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       .populate('destination', 'name slug')
-      .populate('relatedTours', 'heading slug images gallery duration tourLocation priceStartingFrom reviews videoLink');
+      .populate({ path: 'relatedTours', select: 'heading slug images gallery duration destinations priceStartingFrom reviews videoLink', populate: { path: 'destinations', select: 'name shortName' } });
 
     if (!blog) {
       res.status(404).json({
@@ -972,6 +1001,7 @@ export const getBlogById = async (
       data: blog,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blog:', error);
     res.status(500).json({
       success: false,
@@ -1012,6 +1042,7 @@ export const publishBlog = async (
       data: blog,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error publishing blog:', error);
     res.status(500).json({
       success: false,
@@ -1051,6 +1082,7 @@ export const unpublishBlog = async (
       data: blog,
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error unpublishing blog:', error);
     res.status(500).json({
       success: false,
@@ -1092,6 +1124,7 @@ export const toggleComments = async (
       },
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error toggling comments:', error);
     res.status(500).json({
       success: false,
@@ -1099,6 +1132,28 @@ export const toggleComments = async (
     });
   }
 };
+
+/**
+ * One page of published article CARDS for a category or subcategory listing,
+ * and the total its pager needs.
+ *
+ * Only what a card draws (BLOG_LISTING_FIELDS), as plain objects:
+ * localizePreservingSlugs treats them exactly as it treated the documents, and
+ * none of the three models involved has a getter or virtual a card relies on.
+ * The page and the count do not depend on each other, so they run together
+ * instead of one after the other.
+ */
+const findListingPage = (filter: Record<string, unknown>, skip: number, limit: number) =>
+  Promise.all([
+    Blog.find(filter)
+      .select(BLOG_LISTING_FIELDS)
+      .populate(BLOG_LISTING_POPULATE)
+      .sort({ publishedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Blog.countDocuments(filter),
+  ]);
 
 /**
  * @desc    Get blogs by category slug
@@ -1113,7 +1168,7 @@ export const getBlogsByCategory = async (
     const { slug } = req.params;
     const { page = 1, limit = 10 } = req.query;
 
-    // 1. Find category by slug
+    // 1. Find category by slug — only its id is used below.
     const category = await BlogCategory.findOne({
       $or: [
         { 'slug.en': slug },
@@ -1123,7 +1178,7 @@ export const getBlogsByCategory = async (
         { 'slug.fr': slug },
         { 'slug.ru': slug },
       ]
-    });
+    }).select('_id').lean();
 
     if (!category) {
       res.status(404).json({
@@ -1133,24 +1188,11 @@ export const getBlogsByCategory = async (
       return;
     }
 
-    // 2. Find blogs in this category
+    // 2. Find blogs in this category — as cards, not articles.
     const skip = (Number(page) - 1) * Number(limit);
     const query = { category: category._id, status: 'published' };
 
-    const blogs = await Blog.find(query)
-      .populate('author', 'name email')
-      .populate('editorialAuthor')
-      .populate('category', 'name slug')
-      .populate('subCategory', 'name slug')
-      // Cards, not articles. `-comments` alone still shipped every content
-      // block in four languages for every post in the listing — the same
-      // weight /blogs/all was fixed for.
-      .select('-comments -contentBlocks')
-      .sort({ publishedAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    const total = await Blog.countDocuments(query);
+    const [blogs, total] = await findListingPage(query, skip, Number(limit));
 
     res.status(200).json({
       success: true,
@@ -1165,6 +1207,7 @@ export const getBlogsByCategory = async (
       },
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blogs by category:', error);
     res.status(500).json({
       success: false,
@@ -1198,7 +1241,7 @@ export const getBlogsBySubCategory = async (
         { 'slug.fr': slug },
         { 'slug.ru': slug },
       ]
-    });
+    }).select('_id').lean();
 
     if (!subCategory) {
       res.status(404).json({
@@ -1208,24 +1251,11 @@ export const getBlogsBySubCategory = async (
       return;
     }
 
-    // 2. Find blogs in this subcategory
+    // 2. Find blogs in this subcategory — as cards, not articles.
     const skip = (Number(page) - 1) * Number(limit);
     const query = { subCategory: subCategory._id, status: 'published' };
 
-    const blogs = await Blog.find(query)
-      .populate('author', 'name email')
-      .populate('editorialAuthor')
-      .populate('category', 'name slug')
-      .populate('subCategory', 'name slug')
-      // Cards, not articles. `-comments` alone still shipped every content
-      // block in four languages for every post in the listing — the same
-      // weight /blogs/all was fixed for.
-      .select('-comments -contentBlocks')
-      .sort({ publishedAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
-    const total = await Blog.countDocuments(query);
+    const [blogs, total] = await findListingPage(query, skip, Number(limit));
 
     res.status(200).json({
       success: true,
@@ -1240,6 +1270,7 @@ export const getBlogsBySubCategory = async (
       },
     });
   } catch (error: any) {
+    if (respondToDuplicateInternalLinks(error, res)) return;
     console.error('Error fetching blogs by subcategory:', error);
     res.status(500).json({
       success: false,

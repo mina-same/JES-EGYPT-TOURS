@@ -1,7 +1,9 @@
+import { reportDuplicateLinkResponse } from '@/lib/duplicateLinkFeedback';
 import { API_URL } from '@/config/api';
-import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
-import { IFAQ } from '@/types/tour';
-import { BlogPost, PaginationData } from './blog';
+import type { ILocalizedString, ILocalizedMixed } from '@/types/shared';
+import type { IFAQ } from '@/types/tour';
+import type { BlogListItem, BlogPost, PaginationData } from './blog';
+import { blogListingCacheOptions, normalizeBlogPage } from './blogCachePolicy';
 
 export interface DestinationCoverImage {
   url: string;
@@ -13,6 +15,7 @@ export interface DestinationCoverImage {
 export interface Destination {
   _id: string;
   name: ILocalizedString;
+  shortName?: ILocalizedString;
   slug: ILocalizedString;
   subheader?: ILocalizedString;
   description?: ILocalizedString;
@@ -60,7 +63,8 @@ export interface Destination {
 
 export interface DestinationBlogsResponse {
   success: boolean;
-  data: BlogPost[];
+  /** Article cards: the blog listings' field set, localized, slugs kept whole. */
+  data: BlogListItem[];
   pagination: PaginationData;
 }
 
@@ -96,29 +100,44 @@ export async function getAllDestinations(params?: {
 }
 
 /**
- * Get a destination by its slug (any locale)
- * Used in SSR slug router
- */
-/**
+ * Get a destination by its slug (any locale), for the [slug] route's resolver
+ * flow on the server.
+ *
  * `locale` reaches the API as the X-Locale header. Without it the server falls
  * back to Accept-Language — absent on server-side renders, present in a browser —
  * so the same page could render in two different languages.
+ *
+ * Null means one thing only: the API answered 404, the destination does not
+ * exist. Any other failure — a 5xx, an unreachable API — throws, as resolveSlug
+ * does. Returning null for an outage would make the route call notFound() and
+ * answer 404 for a live page, which tells crawlers to drop it.
  */
 export async function getDestinationBySlug(slug: string, locale?: string): Promise<Destination | null> {
+  let res: Response;
   try {
-    const res = await fetch(
+    res = await fetch(
       `${API_URL}/destinations/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
       {
         next: { revalidate: 3600, tags: ['destinations'] },
         ...(locale ? { headers: { 'X-Locale': locale } } : {}),
       }
     );
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.success ? json.data : null;
-  } catch {
-    return null;
+  } catch (error) {
+    console.error(`[destination] request failed reading "${slug}" (locale=${locale}):`, error);
+    throw error;
   }
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    // The status only: an upstream error body may be HTML, empty, or carry
+    // detail that does not belong in a log.
+    console.error(`[destination] ${res.status} reading "${slug}" (locale=${locale})`);
+    throw new Error(`Destination read failed with ${res.status}`);
+  }
+
+  const json = (await res.json()) as { success?: boolean; data?: Destination };
+  return json.success && json.data ? json.data : null;
 }
 
 /**
@@ -138,12 +157,20 @@ export async function getDestinationById(id: string): Promise<Destination | null
 }
 
 /**
- * Get paginated blogs tagged with this destination
- */
-/**
- * `locale` reaches the API as the X-Locale header. Without it the server falls
- * back to Accept-Language — absent on server-side renders, present in a browser —
- * so the same page could render in two different languages.
+ * One page of a destination's article cards.
+ *
+ * Read on the server for every render of the destination page, so it is
+ * cached like the blog category and subcategory listings: BLOG_LISTING_TTL
+ * under `blog`, pages up to MAX_CACHEABLE_BLOG_PAGE only, the page normalized
+ * first. `blog` covers everything this list is built from — the articles, and
+ * the categories and subcategories whose featuredDestinations pull articles
+ * in — so a new or edited article shows on the next request. Nothing in it
+ * comes from the destination document, whose `destinations` tag is not needed.
+ *
+ * `locale` reaches the API as the X-Locale header AND as a query parameter.
+ * The header is what the API reads; the query parameter gives each language
+ * its own cache entry, so one locale's cards are never replayed to another.
+ * The API ignores the extra parameter.
  */
 export async function getBlogsByDestination(
   id: string,
@@ -151,9 +178,13 @@ export async function getBlogsByDestination(
   limit = 9,
   locale?: string
 ): Promise<DestinationBlogsResponse> {
+  const listingPage = normalizeBlogPage(page);
   const res = await fetch(
-    `${API_URL}/destinations/${id}/blogs?page=${page}&limit=${limit}`,
-    { cache: 'no-store', ...(locale ? { headers: { 'X-Locale': locale } } : {}) }
+    `${API_URL}/destinations/${id}/blogs?page=${listingPage}&limit=${limit}${locale ? `&locale=${locale}` : ''}`,
+    {
+      ...blogListingCacheOptions(listingPage),
+      ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+    }
   );
   if (!res.ok) throw new Error('Failed to fetch destination blogs');
   return res.json();
@@ -171,7 +202,7 @@ export async function createDestination(
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(data),
   });
-  return res.json();
+  return reportDuplicateLinkResponse(await res.json());
 }
 
 /**
@@ -187,7 +218,7 @@ export async function updateDestination(
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(data),
   });
-  return res.json();
+  return reportDuplicateLinkResponse(await res.json());
 }
 
 /**
@@ -201,7 +232,7 @@ export async function deleteDestination(
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
-  return res.json();
+  return reportDuplicateLinkResponse(await res.json());
 }
 
 /**
@@ -215,5 +246,5 @@ export async function toggleDestinationStatus(
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
   });
-  return res.json();
+  return reportDuplicateLinkResponse(await res.json());
 }

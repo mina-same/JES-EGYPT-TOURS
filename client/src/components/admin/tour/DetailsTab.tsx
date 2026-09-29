@@ -45,6 +45,7 @@ export default function DetailsTab({
         </CardHeader>
         <CardContent>
           <LocalizedRichText
+            fieldPath="tourHighlights"
             value={mixedToHtml(formData.tourHighlights)}
             onChange={(val) => handleChange('tourHighlights', val)}
             placeholder="e.g. Visit the Pyramids, Sphinx, Egyptian Museum…"
@@ -61,6 +62,7 @@ export default function DetailsTab({
         </CardHeader>
         <CardContent>
           <LocalizedRichText
+            fieldPath="whatYouWillLoveHtml"
             label="Why travelers will love this tour"
             value={formData.whatYouWillLoveHtml || { en: '', de: '', it: '', es: '' }}
             onChange={(val) => handleChange('whatYouWillLoveHtml', val)}
@@ -79,6 +81,7 @@ export default function DetailsTab({
           </CardHeader>
           <CardContent>
             <LocalizedRichText
+              fieldPath="inclusion"
               value={mixedToHtml(formData.inclusion)}
               onChange={(val) => handleChange('inclusion', val)}
               placeholder="e.g. Hotel pickup, private guide, entrance fees…"
@@ -94,6 +97,7 @@ export default function DetailsTab({
           </CardHeader>
           <CardContent>
             <LocalizedRichText
+              fieldPath="exclusion"
               value={mixedToHtml(formData.exclusion)}
               onChange={(val) => handleChange('exclusion', val)}
               placeholder="e.g. Tips, personal expenses, international flights…"
@@ -111,6 +115,7 @@ export default function DetailsTab({
         </CardHeader>
         <CardContent>
           <LocalizedRichText
+            fieldPath="whatToPack"
             value={mixedToHtml(formData.whatToPack)}
             onChange={(val) => handleChange('whatToPack', val)}
             placeholder="e.g. Sunscreen, hat, comfortable shoes…"
@@ -169,6 +174,7 @@ export default function DetailsTab({
                     />
 
                     <LocalizedRichText
+                      fieldPath={`notes.${index}.text`}
                       label="Content"
                       value={note.text || { en: '', de: '', it: '', es: '' }}
                       onChange={(val) => updateTourNote(index, 'text', val)}

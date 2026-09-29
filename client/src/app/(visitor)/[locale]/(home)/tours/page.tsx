@@ -12,7 +12,25 @@ import ToursHubView, { type CategoryWithSubcategories } from "./_views/ToursHubV
  * category exists in the visitor's language at all.
  */
 async function getJson(path: string) {
-  const res = await fetch(`${API_URL}${path}`, { next: { revalidate: 3600 } });
+  /*
+   * X-Locale: bypass, because this page genuinely wants the RAW records.
+   *
+   * ToursHubView localizes them itself — getDisplayName(category, locale) and
+   * getLocalizedValue(category.name, locale) — and getStrictLocalizedSlug needs
+   * the untouched slug object to tell whether a category exists in the
+   * visitor's language at all.
+   *
+   * Sending no header did NOT achieve that. The API resolves a missing
+   * X-Locale to 'en', which collapses `name` to an English string, so
+   * getDisplayName had nothing left to choose from and every locale rendered
+   * English card titles — beside a header menu that was correctly German,
+   * because the menu fetch does send the header. `bypass` is the documented
+   * way to ask for all four languages at once.
+   */
+  const res = await fetch(`${API_URL}${path}`, {
+    next: { revalidate: 3600 },
+    headers: { 'X-Locale': 'bypass' },
+  });
   if (!res.ok) throw new Error(`Request failed: ${path}`);
   return res.json();
 }

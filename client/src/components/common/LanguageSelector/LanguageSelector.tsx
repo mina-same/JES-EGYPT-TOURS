@@ -315,7 +315,8 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                   "flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors text-sm",
                   props.isFocused ? "bg-[#b79c5c]/10 text-[#b79c5c]" : (theme === "dark" ? "text-white" : "text-black"),
                   "hover:bg-[#b79c5c]/10 hover:text-[#b79c5c]",
-                  props.isSelected ? "bg-[#b79c5c] text-white" : "",
+                  // Dark on the gold fill: white was 2.65:1, #1d231f is 6.01:1.
+                  props.isSelected ? "bg-[#b79c5c] text-[#1d231f]" : "",
                   props.isDisabled && "opacity-45 cursor-not-allowed hover:bg-transparent hover:text-inherit"
                 )}
                 aria-disabled={props.isDisabled}

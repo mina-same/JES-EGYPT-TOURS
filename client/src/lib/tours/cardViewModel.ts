@@ -1,3 +1,4 @@
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import { getDisplayName } from '@/lib/displayName';
 import { getLocalizedValue } from '@/lib/localize';
 import { TOUR_IMAGE_PLACEHOLDER } from '@/lib/images/placeholders';
@@ -46,7 +47,7 @@ export const mapApiTourToCard = (
       getLocalizedValue(tour.Description?.text, locale) ||
       '',
     meta: [
-      { id: 1, title: getLocalizedValue(tour.tourLocation, locale) || fallbacks.location, icon: 'icon-location' },
+      { id: 1, title: formatTourDestinations(tour.destinations, locale), icon: 'icon-location' },
       { id: 2, title: getLocalizedValue(tour.duration, locale) || fallbacks.duration, icon: 'icon-clock' },
       ...(getDisplayName(tour.subcategory, locale)
         ? [{ id: 4, title: getDisplayName(tour.subcategory, locale), icon: 'icon-flag' }]

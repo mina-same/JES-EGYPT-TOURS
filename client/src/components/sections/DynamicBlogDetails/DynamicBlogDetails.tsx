@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTourDestinations } from '@/lib/tours/destinations';
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlogPost, formatBlogDate } from "@/lib/api/blog";
@@ -63,8 +64,14 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     const fetchSideData = async () => {
       try {
-        // Related tours — use plain fetch (no auth token) for public endpoint
-        const toursRes = await fetch(`${API_URL}/tours?limit=3&isActive=true&isFeatured=true`);
+        // Related tours — use plain fetch (no auth token) for public endpoint.
+        // X-Locale is explicit: this call bypasses the axios interceptor that
+        // would otherwise add it, and the API no longer reads Accept-Language,
+        // so without this header the strip would render in English on every
+        // non-English article.
+        const toursRes = await fetch(`${API_URL}/tours?limit=3&isActive=true&isFeatured=true`, {
+          headers: { 'X-Locale': locale },
+        });
         if (isMounted && toursRes.ok) {
           const data = await toursRes.json();
           setRelatedTours(data.data?.slice(0, 3) || []);
@@ -76,7 +83,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 
     fetchSideData();
     return () => { isMounted = false; };
-  }, [blog._id]);
+    // locale is a dependency now that it selects the response language: a
+    // client-side language switch has to refetch, or the strip keeps showing
+    // the previous language.
+  }, [blog._id, locale]);
 
 
 
@@ -478,7 +488,7 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           "",
         meta: [
           { id: 1, title: `${getLocalizedValue(tour.duration, locale) || '7 Days'}`, icon: "icon-clock" },
-          { id: 3, title: getLocalizedValue(tour.tourLocation, locale) || 'Egypt', icon: "icon-location" },
+          { id: 3, title: formatTourDestinations(tour.destinations, locale), icon: "icon-location" },
         ],
       };
 

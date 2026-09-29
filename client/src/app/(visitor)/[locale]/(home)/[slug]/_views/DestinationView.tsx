@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Container, Row, Col } from "react-bootstrap";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { Trophy, Link2, Clock, Sun } from "lucide-react";
 
 import Layout from "@/components/layout/Layout/Layout";
@@ -20,9 +19,9 @@ import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA
 import BlogHero from "@/components/sections/BlogHero/BlogHero";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 
-import { getDestinationBySlug, getBlogsByDestination, Destination } from "@/lib/api/destination";
+import type { Destination, DestinationBlogsResponse } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
-import { Loader2 } from "lucide-react";
+import { useCanAnimateIn } from "@/hooks/useCanAnimateIn";
 
 import enBlogs from "@/i18n/locales/en/blogs.json";
 import deBlogs from "@/i18n/locales/de/blogs.json";
@@ -32,6 +31,10 @@ import esBlogs from "@/i18n/locales/es/blogs.json";
 interface DestinationViewProps {
   slug: string;
   locale: string;
+  /** The destination the route already resolved; the view does not read it again. */
+  destination: Destination;
+  /** This page's article cards, read on the server for the route's ?page=. */
+  blogsData: DestinationBlogsResponse;
 }
 
 const translations: any = { en: enBlogs, de: deBlogs, it: itBlogs, es: esBlogs };
@@ -71,7 +74,7 @@ const AT_A_GLANCE_ITEMS = [
   },
 ];
 
-export default function DestinationView({ slug, locale }: DestinationViewProps) {
+export default function DestinationView({ slug, locale, destination, blogsData }: DestinationViewProps) {
   const searchParams = useSearchParams();
   const page = Number(searchParams?.get("page")) || 1;
   const t = (key: string, params?: Record<string, string | number>) => {
@@ -82,59 +85,20 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
     return value;
   };
 
-  const [loading, setLoading] = useState(true);
-  const [destination, setDestination] = useState<Destination | null>(null);
-  const [blogsData, setBlogsData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Everything below is in the server HTML now, so it must start in its final
+  // state: an entrance animation starting from opacity 0 would leave it
+  // invisible until the page's JavaScript ran. See useCanAnimateIn.
+  const animateIn = useCanAnimateIn();
 
+  // The pager is links to ?page=N: the route re-renders on the server and this
+  // view receives that page's cards as props. Bring the list into view when the
+  // page changes, as the blog listings do — not on the first render.
+  const articlesRef = useRef<HTMLElement>(null);
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const dest = await getDestinationBySlug(slug, locale);
-        if (!dest) throw new Error('Destination not found');
-        const blogs = await getBlogsByDestination(dest._id, page, 9, locale);
-        setDestination(dest);
-        setBlogsData(blogs);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load destination');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [slug, page]);
-
-  if (loading) {
-    return (
-      <Layout>
-        <TopbarOne />
-        {/* dark links: this branch has no PageHeader, so the transparent header
-            sits on white and light links would be invisible. */}
-        <HeaderOne linkTheme="dark" />
-        <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
-          <Loader2 className="animate-spin" style={{ color: '#b79c5c', width: 48, height: 48 }} />
-        </div>
-        <FooterOne />
-      </Layout>
-    );
-  }
-
-  if (error || !destination) {
-    return (
-      <Layout>
-        <TopbarOne />
-        <HeaderOne linkTheme="light" />
-        <div className="text-center py-5" style={{ minHeight: '60vh' }}>
-          <h2 className="text-2xl font-bold text-gray-700">{t('destinationNotFound')}</h2>
-          <Link href={`/${locale}`} className="mt-4 inline-block text-[#b79c5c] underline">
-            {t('returnHome')}
-          </Link>
-        </div>
-        <FooterOne />
-      </Layout>
-    );
-  }
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    articlesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [page]);
 
   const name = getLocalizedValue(destination.name, locale);
   const subheader = getLocalizedValue(destination.subheader, locale);
@@ -172,7 +136,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                 <Col lg={coverImageUrl ? 7 : 12}>
                   {heroTitle && (
                     <motion.div
-                      initial={{ opacity: 0, x: -30 }}
+                      initial={animateIn ? { opacity: 0, x: -30 } : false}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.6 }}
@@ -190,7 +154,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                   )}
                   {getLocalizedValue(destination.description, locale) && (
                     <motion.p
-                      initial={{ opacity: 0 }}
+                      initial={animateIn ? { opacity: 0 } : false}
                       whileInView={{ opacity: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: 0.1, duration: 0.6 }}
@@ -201,7 +165,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                   )}
                   {heroDescription && (
                     <motion.div
-                      initial={{ opacity: 0 }}
+                      initial={animateIn ? { opacity: 0 } : false}
                       whileInView={{ opacity: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: 0.2, duration: 0.6 }}
@@ -226,7 +190,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                 {coverImageUrl && (
                   <Col lg={5}>
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.97 }}
+                      initial={animateIn ? { opacity: 0, scale: 0.97 } : false}
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.7, ease: 'easeOut' }}
@@ -262,7 +226,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
           <section style={{ paddingTop: '0', paddingBottom: '80px' }}>
             <Container>
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={animateIn ? { opacity: 0, y: 20 } : false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 className="d-flex flex-column align-items-center text-center mb-5"
@@ -283,7 +247,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
                   return (
                     <Col lg={3} md={6} key={item.key}>
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={animateIn ? { opacity: 0, y: 20 } : false}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: idx * 0.1 }}
@@ -327,7 +291,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
           <section style={{ paddingTop: '0', paddingBottom: '80px', background: '#fdf7f0' }}>
             <Container>
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={animateIn ? { opacity: 0, y: 20 } : false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 className="d-flex flex-column align-items-center text-center mb-5"
@@ -351,16 +315,16 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
         )}
 
         {/* ── All Articles ──────────────────────────────────────────────────── */}
-        <section className="section-space">
+        <section ref={articlesRef} className="section-space">
           <div className="container">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={animateIn ? { opacity: 0, y: 20 } : false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="d-flex flex-column align-items-center text-center mb-5"
             >
               <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={animateIn ? { opacity: 0, scale: 0.8 } : false}
                 whileInView={{ opacity: 1, scale: 1 }}
                 style={{ color: '#b79c5c', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.5rem' }}
               >
@@ -372,7 +336,7 @@ export default function DestinationView({ slug, locale }: DestinationViewProps) 
               <div style={{ width: '48px', height: '2px', background: '#e5e7eb', marginTop: '1rem', borderRadius: '999px' }} />
             </motion.div>
 
-            {blogsData?.data && blogsData.data.length > 0 ? (
+            {blogsData.data.length > 0 ? (
               <DynamicBlogGrid
                 blogs={blogsData.data}
                 pagination={blogsData.pagination}

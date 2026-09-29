@@ -163,12 +163,7 @@ export const tourSeed = {
       alt: { en: 'Karnak Temple Pillars', de: '', it: '', es: '' },
     },
   ],
-  tourLocation: { 
-    en: 'Aswan, Kom Ombo, Edfu, Luxor',
-    de: 'Assuan, Kom Ombo, Edfu, Luxor',
-    it: 'Assuan, Kom Ombo, Edfu, Luxor',
-    es: 'Asuán, Kom Ombo, Edfu, Lúxor'
-  },
+
   tourAvailability: { 
     en: 'Weekly Departures (Fridays)',
     de: 'Wöchentliche Abfahrten (Freitags)',
@@ -181,18 +176,8 @@ export const tourSeed = {
     it: 'Incluso da Assuan a Luxor.',
     es: 'Incluido de Asuán a Lúxor.'
   },
-  tourType: { 
-    en: 'Shared Cruise, Private Guided Tours',
-    de: 'Gruppenkreuzfahrt, Private Touren',
-    it: 'Crociera, Tour Privati',
-    es: 'Crucero Compartido, Tours Privados'
-  },
-  tourStyle: { 
-    en: 'Luxury Cultural & Historical',
-    de: 'Luxus & Kultur',
-    it: 'Lusso & Cultura',
-    es: 'Lujo y Cultura'
-  },
+  tourType: undefined, // Classify explicitly in Admin.
+  tourStyles: [], // Choose canonical styles in Admin.
   tourHighlights: [
     { 
       en: 'Explore the majestic Philae Temple and High Dam in Aswan',

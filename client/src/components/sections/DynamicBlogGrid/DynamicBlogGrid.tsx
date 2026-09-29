@@ -1,6 +1,6 @@
 "use client";
 
-import { BlogPost, PaginationData } from "@/lib/api/blog";
+import type { BlogListItem, PaginationData } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -12,7 +12,8 @@ import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 import styles from "./DynamicBlogGrid.module.css";
 
 interface DynamicBlogGridProps {
-  blogs: BlogPost[];
+  /** Card-sized articles; a full BlogPost fits too (see BlogListItem). */
+  blogs: BlogListItem[];
   pagination?: PaginationData;
   /**
    * Where the pager navigates. MUST carry the locale prefix — a locale-less

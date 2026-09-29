@@ -1,5 +1,6 @@
 "use client";
 
+import { useRevealLinkLocation } from '@/hooks/useRevealLinkLocation';
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -16,7 +17,6 @@ import AdminLanguageTabs, { type AdminLanguage } from "@/components/admin/AdminL
 import LocalizedField from "@/components/admin/LocalizedField";
 import FaqPlacementField from "@/components/admin/FaqPlacementField";
 import RichTextEditor from "@/components/ui/RichTextEditor";
-import { InternalLinksAudit } from "@/components/admin/InternalLinksAudit";
 
 const AdminFAQCreate: React.FC = () => {
   const router = useRouter();
@@ -25,6 +25,7 @@ const AdminFAQCreate: React.FC = () => {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [activeLanguage, setActiveLanguage] = useState<AdminLanguage>("en");
+  useRevealLinkLocation(setActiveLanguage);
   const [formData, setFormData] = useState<FAQCreateRequest>({
     question: { en: "", de: "", it: "", es: "" },
     answer: { en: "", de: "", it: "", es: "" },
@@ -97,6 +98,7 @@ const AdminFAQCreate: React.FC = () => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-4">
                 <LocalizedField
+                  fieldPath="question"
                   label="Question *"
                   value={formData.question}
                   globalLanguage={activeLanguage}
@@ -136,6 +138,7 @@ const AdminFAQCreate: React.FC = () => {
 
             <div className="space-y-4">
               <LocalizedField
+                fieldPath="answer"
                 label="Answer *"
                 value={formData.answer}
                 globalLanguage={activeLanguage}
@@ -191,7 +194,6 @@ const AdminFAQCreate: React.FC = () => {
         </CardContent>
       </Card>
 
-      <InternalLinksAudit entity={formData} />
     </div>
   );
 };

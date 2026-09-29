@@ -307,7 +307,8 @@ a {
 
 .hfaq-subtitle {
   font-size: 16px;
-  color: #7c7c7c;
+  /* #7c7c7c was 3.96:1 on the #faf9f6 section; the lightest grey past 4.5:1. */
+  color: #707070;
   max-width: 500px;
   margin: 14px auto 0;
   line-height: 1.7;
@@ -387,9 +388,10 @@ a {
 }
 
 /* `.hfaq-item` set `outline: none` with nothing in its place, which left
-   keyboard users with no visible focus at all. */
+   keyboard users with no visible focus at all. The brand gold ring was only
+   1.94-2.00:1 on the item; the text gold is 5.6-5.7:1. */
 .hfaq-item__head:focus-visible {
-  outline: 2px solid var(--gotur-base, #d4af37);
+  outline: 2px solid var(--gotur-gold-text, #7a5f12);
   outline-offset: -3px;
   border-radius: 4px;
 }
@@ -466,7 +468,8 @@ a {
 
 .hfaq-answer {
   font-size: 15px;
-  color: #6b7280;
+  /* #6b7280 was 4.43-4.47:1 on the open item's #f8f6ee; one step darker. */
+  color: #666d7a;
   line-height: 1.85;
   padding: 0 16px 24px 50px;
 }

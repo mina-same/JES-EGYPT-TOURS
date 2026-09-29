@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import { Camera, CheckCircle, Clock, Compass, Landmark, Map, Search, Ticket, Users } from 'lucide-react';
 import { API_URL } from '@/config/api';
@@ -14,6 +15,12 @@ import DynamicBlogGrid from '@/components/sections/DynamicBlogGrid/DynamicBlogGr
 import AuthorPhoto from '@/components/common/AuthorPhoto/AuthorPhoto';
 import Breadcrumb from '@/components/common/Breadcrumb/Breadcrumb';
 import type { BlogPost } from '@/lib/api/blog';
+import {
+  BLOG_ENTITY_TTL,
+  BLOG_TAG,
+  blogCacheOptions,
+  MAX_CACHEABLE_BLOG_PAGE,
+} from '@/lib/api/blogCachePolicy';
 import {
   getLocalizedStaticPath,
   getSeoBaseUrl,
@@ -115,27 +122,57 @@ function givenName(fullName: string): string {
  * The author, their promoted articles, and ONE page of the rest.
  *
  * `page` is part of the request because the server does the paging now. Both
- * `generateMetadata` and the component call this with the same arguments, so
- * React's fetch memoisation collapses them into a single round trip per
- * request rather than two.
+ * `generateMetadata` and the component call this with the same arguments, and
+ * React's cache() hands them the same call: one round trip per request, and
+ * one moment the data arrives. Fetch memoisation alone stopped guaranteeing
+ * the second once the fetch became cacheable — on a cache miss the metadata
+ * resolved after the page and was streamed into the body instead of <head>.
+ *
+ * Null means one thing only: the API answered 404, there is no such author,
+ * and the page answers 404. Any other failure throws and the page answers 500.
+ * Returning null for an outage would call notFound() on a live page, which
+ * tells a crawler to drop it. Only the status is logged, never the body.
  */
-async function getAuthor(slug: string, locale: string, page: number) {
-  const response = await fetch(
-    `${API_URL}/blog/authors/${encodeURIComponent(slug)}?page=${page}&limit=${PAGE_SIZE}&featuredLimit=${FEATURED_COUNT}`,
-    {
-      // Cached until something invalidates the tag. The admin calls the
-      // revalidation route on every publish, so this is fresh AND cached —
-      // where `no-store` was fresh at the cost of a database read on every
-      // single visit, and a plain timer was cached at the cost of serving a
-      // deleted article for the length of the window.
-      next: { tags: [`author:${slug}`, 'blog'] },
-      headers: { 'X-Locale': locale },
-    }
-  );
-  if (!response.ok) return null;
+const getAuthor = cache(async (slug: string, locale: string, page: number) => {
+  // The API looks authors up lowercased, so every casing of the URL is the
+  // same author — and one cache entry, not one per spelling.
+  const authorSlug = slug.trim().toLowerCase();
+  let response: Response;
+  try {
+    response = await fetch(
+      `${API_URL}/blog/authors/${encodeURIComponent(authorSlug)}?page=${page}&limit=${PAGE_SIZE}&featuredLimit=${FEATURED_COUNT}&locale=${locale}`,
+      {
+        /*
+         * Cached for an hour under the author's tag and `blog`, both emitted by
+         * the API: EditorialAuthor clears them on every write, and every
+         * article, category and subcategory write clears `blog`. A publish, an
+         * edit or a profile change is live on the next request; the hour is
+         * only the backstop. With tags but no revalidate this was never cached
+         * at all — Next stores no fetch without a revalidate or cache option —
+         * so every visit waited on the API.
+         *
+         * `locale` rides in the URL as well as the header, so each language
+         * has its own entry. Pages past MAX_CACHEABLE_BLOG_PAGE are not stored.
+         */
+        ...blogCacheOptions(BLOG_ENTITY_TTL, [`author:${authorSlug}`, BLOG_TAG], page <= MAX_CACHEABLE_BLOG_PAGE),
+        headers: { 'X-Locale': locale },
+      }
+    );
+  } catch (error) {
+    console.error(`[author] request failed reading "${slug}" (locale=${locale}, page=${page}):`, error);
+    throw error;
+  }
+
+  if (response.status === 404) return null;
+
+  if (!response.ok) {
+    console.error(`[author] ${response.status} reading "${slug}" (locale=${locale}, page=${page})`);
+    throw new Error(`Author read failed with ${response.status}`);
+  }
+
   const payload = await response.json();
   return payload?.data ?? null;
-}
+});
 
 /**
  * The languages this author has a biography in, as the API reports them.

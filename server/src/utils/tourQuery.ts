@@ -24,20 +24,6 @@ export const toTourCurrency = (value: unknown): TourCurrency =>
     ? (value as TourCurrency)
     : 'USD';
 
-export const escapeSearchPattern = (value: string): string =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-export const exactLocalizedValueFilter = (
-  field: 'tourType' | 'tourStyle',
-  locale: TourLocale,
-  value: string
-): Record<string, { $regex: string; $options: 'i' }> => ({
-  [`${field}.${locale}`]: {
-    $regex: `^${escapeSearchPattern(value.trim())}$`,
-    $options: 'i',
-  },
-});
-
 export const parseTourPagination = (pageValue?: string, limitValue?: string) => {
   const parsedPage = Number(pageValue ?? 1);
   const parsedLimit = Number(limitValue ?? 10);
@@ -51,7 +37,9 @@ export const parseTourPagination = (pageValue?: string, limitValue?: string) => 
 };
 
 const parseOptionalPrice = (value: string | undefined, label: string): number | undefined => {
-  if (value === undefined || value.trim() === '') return undefined;
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') throw new TourQueryValidationError(`Invalid ${label}`);
+  if (value.trim() === '') return undefined;
 
   const price = Number(value);
   if (!Number.isFinite(price) || price < 0) {
@@ -76,16 +64,8 @@ export const applyStartingPriceFilter = (
 
   if (minPrice === undefined && maxPrice === undefined) return;
 
-  if (currency === 'USD') {
-    const range: { $gte?: number; $lte?: number } = {};
-    if (minPrice !== undefined) range.$gte = minPrice;
-    if (maxPrice !== undefined) range.$lte = maxPrice;
-    filter['priceStartingFrom.USD'] = range;
-    return;
-  }
-
   const price = effectiveStartingPriceExpression(currency, conversionRate);
-  const comparisons: Record<string, unknown>[] = [];
+  const comparisons: Record<string, unknown>[] = [{ $gt: [price, 0] }];
   if (minPrice !== undefined) comparisons.push({ $gte: [price, minPrice] });
   if (maxPrice !== undefined) comparisons.push({ $lte: [price, maxPrice] });
   (filter as FilterQuery<ITour> & { $expr?: unknown }).$expr =
@@ -96,8 +76,8 @@ export const applyStartingPriceFilter = (
 export const effectiveStartingPriceExpression = (
   currency: TourCurrency,
   conversionRate = 1
-): Record<string, unknown> | string =>
-  currency === 'USD'
+): Record<string, unknown> => {
+  const raw = currency === 'USD'
     ? '$priceStartingFrom.USD'
     : {
         $ifNull: [
@@ -105,13 +85,30 @@ export const effectiveStartingPriceExpression = (
           { $multiply: ['$priceStartingFrom.USD', conversionRate] },
         ],
       };
+  // CurrencyContext displays whole amounts >= 10 and two decimals below 10.
+  // Apply the same precision before filtering so a displayed 81 matches min=81.
+  return { $let: { vars: { price: raw }, in: {
+    $cond: [{ $isNumber: '$$price' }, {
+      $cond: [{ $gte: ['$$price', 10] }, { $floor: { $add: ['$$price', 0.5] } },
+        { $divide: [{ $floor: { $add: [{ $multiply: ['$$price', 100] }, 0.5] } }, 100] }],
+    }, null],
+  } } };
+};
+
+export function effectiveStartingPrice(
+  prices: Partial<Record<TourCurrency, number>> | undefined, currency: TourCurrency, rate: number
+): number | undefined {
+  const raw = prices?.[currency] ?? (typeof prices?.USD === 'number' ? prices.USD * rate : undefined);
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return undefined;
+  return raw >= 10 ? Math.round(raw) : Math.round(raw * 100) / 100;
+}
 
 export const parseTourSort = (
   sortParam: string | undefined,
   locale: TourLocale,
   currency: TourCurrency
 ): string => {
-  if (!sortParam) return '-createdAt';
+  if (!sortParam || sortParam === 'recommended') return 'recommended';
 
   const descending = sortParam.startsWith('-');
   const requested = descending ? sortParam.slice(1) : sortParam;
@@ -121,13 +118,13 @@ export const parseTourSort = (
 
   let target: string;
   switch (field) {
+    case 'durationHours':
     case 'createdAt':
     case 'updatedAt':
       if (explicitLocale) return '-createdAt';
       target = field;
       break;
-    case 'heading':
-    case 'tourLocation': {
+    case 'heading': {
       if (explicitLocale && !TOUR_LOCALES.includes(explicitLocale as TourLocale)) {
         return '-createdAt';
       }
@@ -147,8 +144,8 @@ export const parseTourSort = (
 
 export const PUBLIC_TOUR_LIST_FIELDS = new Set([
   'heading', 'name', 'slug', 'images', 'gallery', 'cardDescription',
-  'Description', 'tourLocation', 'duration', 'priceStartingFrom',
-  'subcategory', 'category', 'tourType', 'tourStyle', 'specialOfferDiscount',
+  'Description', 'duration', 'priceStartingFrom',
+  'subcategory', 'category', 'tourType', 'tourStyles', 'destinations', 'durationHours', 'recommendedOrder', 'specialOfferDiscount',
   'isActive', 'isFeatured', 'scheduledAt', 'createdAt', 'updatedAt', 'reviews.url',
 ]);
 

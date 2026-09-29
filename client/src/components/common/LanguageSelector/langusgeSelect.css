@@ -30,6 +30,14 @@
   cursor: pointer;
 }
 
+/* The `box-shadow: none !important` above, with react-select's own
+   `outline: 0 !important`, left keyboard focus invisible. A ring while the
+   control is focused, on the dark top bar and sticky header. react-select
+   marks it focused after a mouse click as well, so it shows then too. */
+.custom-select__control.custom-select__control--is-focused {
+  box-shadow: 0 0 0 2px #f4d03f !important;
+}
+
 .custom-select__single-value {
   font-style: normal;
   font-weight: 400;

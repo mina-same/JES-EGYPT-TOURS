@@ -11,6 +11,7 @@ interface LocalizedRichTextProps {
   label?: string;
   placeholder?: string;
   className?: string;
+  fieldPath?: string;
   activeLanguage?: AdminLanguage;
 }
 
@@ -20,10 +21,12 @@ const LocalizedRichText: React.FC<LocalizedRichTextProps> = ({
   label,
   placeholder,
   className = "",
+  fieldPath,
   activeLanguage,
 }) => {
   return (
     <LocalizedField
+      fieldPath={fieldPath}
       label={label}
       value={value}
       globalLanguage={activeLanguage}

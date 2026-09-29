@@ -22,7 +22,8 @@
   bottom: 28px;
   left: 28px;
   background: var(--gotur-primary, #f7921e);
-  color: #fff;
+  /* Dark on the yellow pill: white was 1.51:1 (#1d231f: 10.62:1). */
+  color: var(--gotur-black, #1d231f);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;

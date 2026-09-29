@@ -2,7 +2,8 @@
 
 import { Filter } from 'lucide-react';
 import { useId, type Dispatch, type FormEvent, type SetStateAction } from 'react';
-import { getDisplayName } from '@/lib/displayName';
+import type { FilterOption } from '@/lib/tours/catalog';
+import { StructuredFilters } from './StructuredFilters';
 import type { TourFilterValues } from '@/lib/tours/listingFilters';
 
 interface TourListingFiltersProps {
@@ -11,8 +12,9 @@ interface TourListingFiltersProps {
   setDraftFilters: Dispatch<SetStateAction<TourFilterValues>>;
   subcategories?: any[];
   locale: string;
-  tourTypeOptions: string[];
-  tourStyleOptions: string[];
+  tourTypeOptions: FilterOption[];
+  destinationOptions: FilterOption[];
+  tourStyleOptions: FilterOption[];
   handleApplyFilters: () => void;
   handleResetFilters: () => void;
   currencySymbol?: string;
@@ -26,8 +28,7 @@ export default function TourListingFilters({
   t,
   draftFilters,
   setDraftFilters,
-  subcategories,
-  locale,
+  destinationOptions,
   tourTypeOptions,
   tourStyleOptions,
   handleApplyFilters,
@@ -78,16 +79,7 @@ export default function TourListingFilters({
           <input id={fieldId('search')} type="search" className="form-control rounded-3" style={{ padding: '10px 15px' }} value={draftFilters.search} onChange={(event) => update({ search: event.target.value })} placeholder={t('filters.searchPlaceholder')} />
         </div>
 
-        {subcategories && (
-          <div>
-            <label htmlFor={fieldId('subcategory')} className="form-label" style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.subcategory')}</label>
-            <select id={fieldId('subcategory')} className="form-select rounded-3" style={{ padding: 10 }} value={draftFilters.subcategoryId || ''} onChange={(event) => update({ subcategoryId: event.target.value })}>
-              <option value="">{t('filters.all')}</option>
-              {subcategories.map((subcategory) => <option key={subcategory._id} value={subcategory._id}>{getDisplayName(subcategory, locale)}</option>)}
-            </select>
-          </div>
-        )}
-
+        <StructuredFilters values={draftFilters} update={update} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={t} part="places-duration" />
         <div className="row g-2 align-items-end">
           {(['minPrice', 'maxPrice'] as const).map((name) => (
             <div className="col-6" key={name}>
@@ -114,21 +106,7 @@ export default function TourListingFilters({
 
         {validationError && <p id={fieldId('price-error')} className="text-danger mb-0" role="alert" style={{ fontSize: 13 }}>{validationError}</p>}
 
-        <div>
-          <label htmlFor={fieldId('tour-type')} className="form-label" style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourType')}</label>
-          <select id={fieldId('tour-type')} className="form-select rounded-3" style={{ padding: 10 }} value={draftFilters.tourType} onChange={(event) => update({ tourType: event.target.value })}>
-            <option value="">{t('filters.all')}</option>
-            {tourTypeOptions.map((option) => <option key={option} value={option}>{option}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor={fieldId('tour-style')} className="form-label" style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.tourStyle')}</label>
-          <select id={fieldId('tour-style')} className="form-select rounded-3" style={{ padding: 10 }} value={draftFilters.tourStyle} onChange={(event) => update({ tourStyle: event.target.value })}>
-            <option value="">{t('filters.all')}</option>
-            {tourStyleOptions.map((option) => <option key={option} value={option}>{option}</option>)}
-          </select>
-        </div>
+        <StructuredFilters values={draftFilters} update={update} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={t} part="type-styles" />
       </div>
 
       <div style={{ padding: noBorder ? '24px 20px' : 18, borderTop: '1px solid #f0f0f0', marginTop: 'auto' }}>

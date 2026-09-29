@@ -47,9 +47,9 @@ const seedTestTour = async () => {
         text: { en: '<p>Complete tour description with all multi-currency prices.</p>' }
       },
       duration: { en: '5 Days' },
-      tourType: { en: 'Private' },
-      tourLocation: { en: 'Cairo' },
-      tourStyle: { en: 'Luxury' },
+      tourType: undefined, // Classify explicitly in Admin.
+
+      tourStyles: [], // Choose canonical styles in Admin.
       priceStartingFrom: { USD: 500, EUR: 450, GBP: 400 },
       pricingPlans: [{
         planName: 'AFFORDABLE',

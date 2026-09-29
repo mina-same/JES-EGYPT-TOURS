@@ -1,4 +1,5 @@
 import type { ILocalizedString, ILocalizedMixed, IImage } from './shared';
+import type { TourStyleId, TourTypeId } from '../lib/tours/catalog';
 export type { ILocalizedString, ILocalizedMixed, IImage };
 
 // FAQ-specific localized type — all locales are optional so each language
@@ -119,11 +120,13 @@ export interface ITour {
   price?: number;
   priceStartingFrom?: ICurrencyPrice;
   duration?: ILocalizedString;
-  tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: ILocalizedString;
-  tourStyle?: ILocalizedString;
+  tourType?: TourTypeId;
+  tourStyles?: TourStyleId[];
+  destinations?: Array<string | import('@/lib/tours/destinations').TourDestination>;
+  durationHours?: number | null;
+  recommendedOrder?: number | null;
   /** Day tour or package — decides which pricing plans are allowed and
    *  whether the booking form asks the visitor to choose one. */
   tourKind?: 'DAY_TOUR' | 'PACKAGE';
@@ -335,11 +338,13 @@ export interface TourFormData {
   headingDescription?: ILocalizedMixed;
   /** Short teaser for the tour card (two clamped lines). */
   cardDescription?: ILocalizedString;
-  tourLocation?: ILocalizedString;
   tourAvailability?: ILocalizedString;
   pickupAndDropOff?: ILocalizedString;
-  tourType?: ILocalizedString;
-  tourStyle?: ILocalizedString;
+  tourType?: TourTypeId | ''; // Local drafts may be incomplete; API saves require a valid ID.
+  tourStyles?: TourStyleId[];
+  destinations?: string[];
+  durationHours?: number | null;
+  recommendedOrder?: number | null;
   /** Day tour or package — decides which pricing plans are allowed and
    *  whether the booking form asks the visitor to choose one. */
   tourKind?: 'DAY_TOUR' | 'PACKAGE';
