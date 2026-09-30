@@ -23,6 +23,14 @@ test('unknown IDs and injection-shaped values are rejected', () => {
   assert.throws(() => parseFilterIds({ $ne: null }));
 });
 
+test('visitor types use OR without changing the single stored type contract', () => {
+  const filter = structuredTourFilters({ tourType: 'nile-cruise,day-tour,day-tour', tourStyles: 'family' });
+  assert.deepEqual(filter.tourType, { $in: ['day-tour', 'nile-cruise'] });
+  assert.deepEqual(filter.tourStyles, { $in: ['family'] });
+  assert.equal(structuredTourFilters({ tourType: 'day-tour' }).tourType, 'day-tour');
+  assert.throws(() => structuredTourFilters({ tourType: 'day-tour,unknown' }));
+});
+
 
 
 

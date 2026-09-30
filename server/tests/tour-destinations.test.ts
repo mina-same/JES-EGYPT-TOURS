@@ -161,8 +161,10 @@ test('the three requested catalog records validate with minimal content and no i
   for (const name of ['Abu Simbel', 'Edfu', 'Kom Ombo']) {
     const labels = Object.fromEntries(['en', 'de', 'it', 'es'].map(locale => [locale, name]));
     const slugs = Object.fromEntries(['en', 'de', 'it', 'es'].map(locale => [locale, name.toLowerCase().replace(/ /g, '-')]));
-    const record = new Destination({ name: labels, shortName: labels, slug: slugs, isActive: true, noIndex: true });
+    const record = new Destination({ name: labels, shortName: labels, slug: slugs, status: 'draft', isActive: true, noIndex: true });
     await record.validate();
+    // A catalog entry for tours, with no public page of its own.
+    assert.equal(record.status, 'draft');
     assert.equal(record.description, undefined);
     assert.equal(record.metaDescription, undefined);
   }

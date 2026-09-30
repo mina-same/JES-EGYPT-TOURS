@@ -69,6 +69,7 @@ export const validateTourPriceRange = (
   return null;
 };
 
-export const countActiveTourFilters = (filters: TourFilterValues): number =>
-  Object.values(filters).filter((value) => typeof value === 'string' && value.trim()).length;
+export const countActiveTourFilters = (filters: Partial<TourFilterValues> & { q?: string }): number =>
+  (['search', 'q', 'minPrice', 'maxPrice', 'tourType', 'tourStyles', 'destinations', 'durationRange', 'subcategoryId'] as const)
+    .filter(key => typeof filters[key] === 'string' && filters[key]?.trim()).length;
 

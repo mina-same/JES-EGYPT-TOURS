@@ -1,9 +1,38 @@
 import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, PopulateOptions } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 import { revalidateTags } from '../services/revalidate';
+
+export const DESTINATION_STATUSES = ['draft', 'published'] as const;
+export type DestinationStatus = (typeof DESTINATION_STATUSES)[number];
+
+export const isDestinationStatus = (value: unknown): value is DestinationStatus =>
+  DESTINATION_STATUSES.includes(value as DestinationStatus);
+
+/**
+ * The one rule for "this destination has a public landing page": published,
+ * and not switched off.
+ *
+ * It governs the page and only the page: the slug resolver, the public
+ * destination reads, the sitemap, and the cards that link to the page. Tours
+ * are deliberately outside it. A tour may reference a draft destination, keeps
+ * showing it under Places Visited and keeps offering it as a filter, because
+ * publishing a destination's page and classifying a tour are separate
+ * concerns. Do not add this filter to a tour read.
+ */
+export const PUBLIC_DESTINATION_FILTER: Record<string, unknown> = Object.freeze({
+  status: 'published',
+  isActive: { $ne: false },
+});
+
+/** Populates a destination reference for a public page: landing pages only. */
+export const publicDestinationPopulate = (path: string, select?: string): PopulateOptions => ({
+  path,
+  ...(select ? { select } : {}),
+  match: { ...PUBLIC_DESTINATION_FILTER },
+});
 
 export interface IDestination extends Document {
   // Basic Info
@@ -61,6 +90,9 @@ export interface IDestination extends Document {
   // Indexing Control
   noIndex: boolean;
   noFollow: boolean;
+
+  // Publication of the landing page
+  status: DestinationStatus;
 
   // Status
   isActive: boolean;
@@ -174,6 +206,12 @@ const DestinationSchema: Schema = new Schema(
     // === INDEXING CONTROL ===
     noIndex: { type: Boolean, default: false },
     noFollow: { type: Boolean, default: false },
+
+    // === PUBLICATION ===
+    // Draft until an editor publishes it, so a new destination has no public
+    // page. See PUBLIC_DESTINATION_FILTER for what the status does and does
+    // not control.
+    status: { type: String, enum: [...DESTINATION_STATUSES], default: 'draft' },
 
     // === STATUS ===
     isActive: { type: Boolean, default: true },

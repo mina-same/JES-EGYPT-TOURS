@@ -70,7 +70,7 @@ test('listing fetch identity includes scope, locale, currency, sorting, page and
   try {
     await tourServerAPI.getListing({ category: 'scope', currency: 'EUR', sort: 'durationHours', page: 2, tourStyles: 'luxury,honeymoon' }, 'de', false);
     const url = new URL(requests[0].url);
-    for (const [key, expected] of Object.entries({ category: 'scope', currency: 'EUR', sort: 'durationHours', page: '2', tourStyles: 'luxury,honeymoon', locale: 'de' })) {
+    for (const [key, expected] of Object.entries({ category: 'scope', currency: 'EUR', sort: 'durationHours', page: '2', tourStyles: 'honeymoon,luxury', locale: 'de' })) {
       assert.equal(url.searchParams.get(key), expected);
     }
     assert.equal(requests[0].options?.cache, 'no-store');

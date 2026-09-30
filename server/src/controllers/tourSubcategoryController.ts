@@ -5,6 +5,7 @@ import TourSubcategory from '../models/TourSubcategory';
 import { FilterQuery } from 'mongoose';
 import { ITourSubcategory } from '../models/TourSubcategory';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
 
 // ==================== INTERFACES ====================
 
@@ -273,7 +274,9 @@ export const getSubcategoryBySlug = async (
       .populate('toursCount')
       // Cards, not articles — see blogCardPopulate.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate('featuredDestinations')
+      // Featured landing pages, so published destinations only. This is not
+      // the tours' own Places Visited, which never depends on publication.
+      .populate(publicDestinationPopulate('featuredDestinations'))
       .lean();
 
     if (!subcategory) {

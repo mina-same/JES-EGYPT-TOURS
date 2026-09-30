@@ -6,6 +6,7 @@ import { FilterQuery } from 'mongoose';
 import { ITourCategory } from '../models/TourCategory';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
 
 // ==================== INTERFACES ====================
 
@@ -194,7 +195,9 @@ export const getCategoryBySlug = async (
       // this, and an unprojected populate shipped whole article bodies in
       // four languages to do it.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate('featuredDestinations')
+      // Featured landing pages, so published destinations only. This is not
+      // the tours' own Places Visited, which never depends on publication.
+      .populate(publicDestinationPopulate('featuredDestinations'))
       .lean();
 
     if (!category) {

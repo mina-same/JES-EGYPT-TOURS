@@ -75,7 +75,8 @@
 }
 
 .mobile-filter-drawer__header {
-  padding: 24px 20px;
+  padding: 16px 20px;
+  flex-shrink: 0;
   border-bottom: 2px solid #f7f3ed;
   display: flex;
   justify-content: space-between;
@@ -92,7 +93,8 @@
 
 .mobile-filter-drawer__body {
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden;
+  min-height: 0;
   flex: 1;
   -webkit-overflow-scrolling: touch;
 }

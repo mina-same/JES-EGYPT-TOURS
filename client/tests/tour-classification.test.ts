@@ -90,12 +90,24 @@ test('form changes keep scalar type IDs for every locale and reject localized le
   assert.equal(form.tourKind, 'DAY_TOUR');
   assert.deepEqual(form.tourStyles, []);
 });
-const Fields = loadSource('../src/components/admin/tour/TourFilterFields.tsx', {
+const FieldsModule = loadSource('../src/components/admin/tour/TourFilterFields.tsx', {
   '@/lib/tours/catalog': catalog,
   './TourStyleSelect': () => null,
-  '@/lib/api/destination': {},
+  '@/lib/api/blogAdmin': {},
   react: { ...React, useId: () => 'test', useEffect() {}, useState: (initial: unknown) => [initial, () => {}] },
-}).default;
+});
+const Fields = FieldsModule.default;
+test('a draft destination is a selectable Places Visited option, labelled as a draft', () => {
+  const name = { en: 'Abu Simbel', de: 'Abu Simbel', it: 'Abu Simbel', es: 'Abu Simbel' };
+  assert.deepEqual(FieldsModule.destinationOption({ _id: 'a', name, status: 'draft' }), { value: 'a', label: 'Abu Simbel (Draft)' });
+  assert.deepEqual(FieldsModule.destinationOption({ _id: 'b', name, status: 'published' }), { value: 'b', label: 'Abu Simbel' });
+  assert.deepEqual(
+    FieldsModule.destinationOption({ _id: 'c', name: { ...name, en: 'Visit Giza: Complete Travel Guide' }, shortName: { ...name, en: 'Giza' }, status: 'published' }),
+    { value: 'c', label: 'Giza' }
+  );
+  // An option is never disabled: tours may reference a draft destination.
+  assert.equal('isDisabled' in FieldsModule.destinationOption({ _id: 'a', name, status: 'draft' }), false);
+});
 function nodes(tree: any): any[] {
   if (!tree || typeof tree !== 'object') return [];
   if (Array.isArray(tree)) return tree.flatMap(nodes);

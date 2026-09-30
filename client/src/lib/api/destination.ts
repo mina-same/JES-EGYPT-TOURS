@@ -12,6 +12,8 @@ export interface DestinationCoverImage {
   alt?: ILocalizedString;
 }
 
+export type DestinationStatus = 'draft' | 'published';
+
 export interface Destination {
   _id: string;
   name: ILocalizedString;
@@ -56,6 +58,8 @@ export interface Destination {
   noFollow: boolean;
 
   relatedDestinations?: Partial<Destination>[];
+  /** Whether the destination's own landing page is public. Tours may reference either. */
+  status: DestinationStatus;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -78,7 +82,9 @@ export interface DestinationsListResponse {
 }
 
 /**
- * Get all destinations (used in SSR and admin)
+ * The public destination list: published destinations only. Sent without a
+ * token, so the API leaves drafts out. The Admin reads the full list, drafts
+ * included, through destinationAPI (lib/api/blogAdmin.ts).
  */
 export async function getAllDestinations(params?: {
   isActive?: boolean;

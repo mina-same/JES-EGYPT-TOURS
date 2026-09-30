@@ -1,0 +1,27 @@
+.visitor-filters { color: #183343; }
+.visitor-filters :is(input, select, button):focus-visible,
+.visitor-filter-chip:focus-visible, .visitor-filter-open:focus-visible,
+.visitor-sort select:focus-visible, .visitor-search :is(input, button):focus-visible {
+  outline: 3px solid #183343 !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px #fff !important;
+}
+.visitor-filters input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; accent-color: #725817; }
+.visitor-filters input[aria-invalid="true"] { border-color: #b42318 !important; }
+.visitor-filter-apply.gotur-btn, button.visitor-filter-open {
+  color: #183343 !important; background: #d4af37 !important;
+  min-height: 44px; font-weight: 700;
+}
+.visitor-filter-apply.gotur-btn::before, .visitor-filter-apply.gotur-btn::after { display: none; }
+.visitor-filter-apply.gotur-btn:hover, button.visitor-filter-open:hover { background: #e0bf58 !important; }
+.visitor-filter-reset.gotur-btn { min-height: 44px; padding: 12px 16px; }
+.visitor-filter-reset.gotur-btn::before, .visitor-filter-reset.gotur-btn::after { display: none; }
+.visitor-filter-chip { max-width: 100%; min-height: 44px; white-space: normal; overflow-wrap: anywhere; text-align: start; color: #183343; border-color: #687985; }
+.visitor-filters legend { float: none; margin-bottom: 4px; }
+.visitor-filters small { color: #52616a !important; }
+.visitor-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 100%; }
+.visitor-sort label { font-size: 13px; font-weight: 700; color: #183343; }
+.visitor-sort select { padding: 10px 12px; min-height: 44px; max-width: 100%; min-width: 0; border-radius: 10px; border: 1px solid #687985; background: white; color: #183343; }
+.visitor-filter-actions { background: #fff; padding-bottom: max(16px, env(safe-area-inset-bottom)) !important; }
+.mobile-filter-drawer__content :focus-visible { outline: 3px solid #183343; outline-offset: 2px; }
+.visitor-filter-actions .gotur-btn { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 48px; padding: 12px 8px; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; }

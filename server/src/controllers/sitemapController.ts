@@ -7,7 +7,7 @@ import TourSubcategory from '../models/TourSubcategory';
 import Blog from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
-import Destination from '../models/Destination';
+import Destination, { PUBLIC_DESTINATION_FILTER } from '../models/Destination';
 import EditorialAuthor from '../models/EditorialAuthor';
 import Faq from '../models/Faq';
 import { hasTextForLocale } from '../utils/blogBlocks';
@@ -87,7 +87,8 @@ export const SITEMAP_VISIBILITY = {
   blogCategories: { isActive: { $ne: false } },
   blogSubcategories: { isActive: { $ne: false } },
   blogs: { status: 'published' },
-  destinations: { isActive: { $ne: false } },
+  // Draft destinations have no landing page, so no URL to list.
+  destinations: PUBLIC_DESTINATION_FILTER,
 } as const;
 
 const ENTITY_PROJECTION = { slug: 1, updatedAt: 1, noIndex: 1 } as const;

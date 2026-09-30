@@ -14,10 +14,8 @@ export function parseFilterIds(value: unknown, allowed?: string[]): string[] {
 
 export function structuredTourFilters(query: { tourType?: string; tourStyles?: string; destinations?: string; durationRange?: string }) {
   const filter: Record<string, unknown> = {};
-  if (query.tourType) {
-    if (!Object.hasOwnProperty.call(catalog.types, query.tourType)) throw new TourQueryValidationError('Unknown tour type');
-    filter.tourType = query.tourType;
-  }
+  const types = parseFilterIds(query.tourType, Object.keys(catalog.types));
+  if (types.length) filter.tourType = types.length === 1 ? types[0] : { $in: types };
   const styles = parseFilterIds(query.tourStyles, Object.keys(catalog.styles));
   if (styles.length) filter.tourStyles = { $in: styles };
   const destinations = parseFilterIds(query.destinations);

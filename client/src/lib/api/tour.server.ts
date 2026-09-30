@@ -26,6 +26,7 @@
  * fetch in (home)/layout.tsx.
  */
 import { API_URL } from '@/config/api';
+import { sanitizeTourFilters } from '../tours/filterValues';
 import type { ApiResponse, QueryParams } from './tour';
 
 /* ── Tags ──────────────────────────────────────────────────────────────────
@@ -38,6 +39,12 @@ import type { ApiResponse, QueryParams } from './tour';
 export const TOUR_TAG = 'tours';
 export const TOUR_CATEGORY_TAG = 'tour-categories';
 export const TOUR_SUBCATEGORY_TAG = 'tour-subcategories';
+/*
+ * The category and subcategory pages embed destination documents
+ * (featuredDestinations), so they also depend on the tag a destination save
+ * clears: server/src/models/Destination.ts -> ['destinations', 'tours'].
+ */
+const DESTINATION_TAG = 'destinations';
 
 /* ── TTLs ──────────────────────────────────────────────────────────────────
  * Tag invalidation is the PRIMARY freshness mechanism; these are the fallback
@@ -194,7 +201,7 @@ export const tourServerAPI = {
       locale,
       tags: [TOUR_TAG],
       revalidate: LISTING_TTL,
-      params: { ...params, filterVersion: 2 } as Record<string, unknown>,
+      params: { ...sanitizeTourFilters(params), filterVersion: 3 } as Record<string, unknown>,
       cache: cacheable,
     }),
 };
@@ -203,7 +210,7 @@ export const tourCategoryServerAPI = {
   getBySlug: (slug: string, locale: string) =>
     getEntity<any>(`tours/categories/slug/${encodeURIComponent(slug)}`, {
       locale,
-      tags: [TOUR_CATEGORY_TAG],
+      tags: [TOUR_CATEGORY_TAG, DESTINATION_TAG],
       revalidate: CMS_TTL,
     }),
 };
@@ -212,7 +219,7 @@ export const tourSubcategoryServerAPI = {
   getBySlug: (slug: string, locale: string, categoryId?: string) =>
     getEntity<any>(`tours/subcategories/slug/${encodeURIComponent(slug)}`, {
       locale,
-      tags: [TOUR_SUBCATEGORY_TAG],
+      tags: [TOUR_SUBCATEGORY_TAG, DESTINATION_TAG],
       revalidate: CMS_TTL,
       params: categoryId ? { category: categoryId } : undefined,
     }),

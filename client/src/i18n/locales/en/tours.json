@@ -26,7 +26,15 @@
       "7-9": "7–9 Days",
       "10-12": "10–12 Days",
       "13-plus": "13+ Days"
-    }
+    },
+    "priceFrom": "Price from {{amount}}",
+    "priceUpTo": "Up to {{amount}}",
+    "searchValue": "Search: {{value}}",
+    "searchPlaces": "Search places",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "noPlaces": "No places match your search.",
+    "clearFilters": "Clear filters"
   },
   "listing": {
     "resultsCount": "{{count}} tours found",
@@ -42,7 +50,9 @@
       "durationDesc": "Duration: Long to Short"
     },
     "noToursCategory": "No tours found in this category.",
-    "noToursSubcategory": "No tours found in this subcategory."
+    "noToursSubcategory": "No tours found in this subcategory.",
+    "noMatchingTours": "No tours match your current filters.",
+    "noToursAvailable": "No tours available."
   },
   "status": {
     "notFound": "Not Found",

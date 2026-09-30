@@ -1,6 +1,10 @@
 'use client';
 import { formatTourDestinations } from '@/lib/tours/destinations';
+import TourEmptyState from '@/components/common/TourListingFilters/TourEmptyState';
+import TourSort from '@/components/common/TourListingFilters/TourSort';
+import TourFilterDrawer from '@/components/common/TourListingFilters/TourFilterDrawer';
 import React, { useState, useEffect, useRef } from "react";
+import { sanitizeTourFilters } from '@/lib/tours/filterValues';
 import FilterChips from '@/components/common/TourListingFilters/FilterChips';
 import type { FilterOption } from '@/lib/tours/catalog';
 import { Col, Container, Row } from "react-bootstrap";
@@ -9,7 +13,7 @@ import Link from "next/link";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import Pagination from "@/components/common/Pagination/Pagination";
 import { tourAPI, tourSubcategoryAPI } from "@/lib/api/tour";
-import { Loader2, ChevronRight, Check, X, SlidersHorizontal } from "lucide-react";
+import { Loader2, ChevronRight, Check, SlidersHorizontal } from "lucide-react";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -56,6 +60,7 @@ export default function SubcategoryView({
   const { t, i18n } = useTranslation('tours');
   const { currency, currencySymbol } = useCurrency();
   const initialListing = readTourListingState(searchParams);
+  initialListing.filters = sanitizeTourFilters(initialListing.filters);
   const initialCards = (Array.isArray(initialTours?.data) ? initialTours.data : [])
     .map((tour: any) => mapApiTourToCard(tour, locale, {
       location: t('fallback.location'),
@@ -90,11 +95,13 @@ export default function SubcategoryView({
   const skipInitialFetchRef = useRef(Boolean(initialTours?.success));
   const [draftFilters, setDraftFilters] = useState(initialListing.filters);
   const [appliedFilters, setAppliedFilters] = useState(initialListing.filters);
+  const draftSnapshot = useRef(JSON.stringify({ slug, locale, filters: initialListing.filters }));
   const [filterError, setFilterError] = useState<string | null>(null);
   const [totalResults, setTotalResults] = useState(initialTours?.total || 0);
   const [tourTypeOptions, setTourTypeOptions] = useState<FilterOption[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<FilterOption[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<FilterOption[]>([]);
+  const [filterOptionsReady, setFilterOptionsReady] = useState(false);
   const closeFilters = () => setIsFilterOpen(false);
   const { dialogRef, triggerRef } = useAccessibleDrawer(isFilterOpen, closeFilters);
 
@@ -113,15 +120,20 @@ export default function SubcategoryView({
     };
     setCurrentPage(safePage);
     setSort(fromSort);
-    setDraftFilters(next);
-    setAppliedFilters(next);
+    const clean = sanitizeTourFilters(next);
+    const signature = JSON.stringify({ slug, locale, filters: clean });
+    if (draftSnapshot.current !== signature) {
+      setDraftFilters(clean);
+      draftSnapshot.current = signature;
+    }
+    setAppliedFilters(sanitizeTourFilters(next));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, searchParams]);
+  }, [slug, locale, searchParams]);
 
   const buildUrl = (overrides?: Partial<{ page: number; sort: string }> & Partial<typeof appliedFilters>) => {
     const p = overrides?.page ?? currentPage;
     const s = overrides?.sort ?? sort;
-    const f = { ...appliedFilters, ...overrides };
+    const f = sanitizeTourFilters({ ...appliedFilters, ...overrides }, filterOptionsReady ? destinationOptions : undefined);
     const sp = new URLSearchParams();
     if (p && p !== 1) sp.set("page", String(p));
     if (s && s !== "recommended") sp.set("sort", s);
@@ -150,10 +162,12 @@ export default function SubcategoryView({
       return;
     }
     setFilterError(null);
-    setAppliedFilters(draftFilters);
+    const clean = sanitizeTourFilters(draftFilters, filterOptionsReady ? destinationOptions : undefined);
+    setDraftFilters(clean);
+    setAppliedFilters(clean);
     setCurrentPage(1);
     setFilterError(null);
-    updateListingUrl(buildUrl({ page: 1, ...draftFilters }));
+    updateListingUrl(buildUrl({ page: 1, ...clean }));
   };
 
   const handleResetFilters = () => {
@@ -333,12 +347,14 @@ export default function SubcategoryView({
     const subcategoryId = initialSubcategory?._id || subcategory?._id;
     if (!subcategoryId) return;
     const controller = new AbortController();
+    setFilterOptionsReady(false);
     tourAPI.getFilterOptions({ subcategory: subcategoryId, currency }, locale, controller.signal)
       .then((response) => {
         if (response.success && response.data) {
           setTourTypeOptions(response.data.tourTypes);
           setTourStyleOptions(response.data.tourStyles);
           setDestinationOptions(response.data.destinations);
+          setFilterOptionsReady(true);
         }
       })
       .catch((err) => {
@@ -398,16 +414,7 @@ export default function SubcategoryView({
       <TopbarOne /><HeaderOne linkTheme="light" /><HeaderOneCloned />
 
       {/* Mobile Filter Drawer (Top-level for proper stacking context) */}
-      <div className={`mobile-filter-drawer ${isFilterOpen ? 'is-open' : ''} d-lg-none`} aria-hidden={!isFilterOpen}>
-        <button type="button" className="mobile-filter-drawer__overlay" onClick={closeFilters} tabIndex={-1} aria-label={t('filters.close')} />
-        <div ref={dialogRef} id="tour-filter-dialog" className="mobile-filter-drawer__content" role="dialog" aria-modal="true" aria-labelledby="tour-filter-title">
-          <div className="mobile-filter-drawer__header">
-            <span id="tour-filter-title" className="m-0" style={{ fontWeight: 800, fontSize: '20px' }}>{t('filters.title')}</span>
-            <button type="button" onClick={closeFilters} className="btn-close-filter" aria-label={t('filters.close')}>
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-          <div className="mobile-filter-drawer__body">
+      <TourFilterDrawer open={isFilterOpen} close={closeFilters} dialogRef={dialogRef} title={t('filters.title')} closeLabel={t('filters.close')}>
             <TourListingFilters
               t={t}
               draftFilters={draftFilters}
@@ -423,9 +430,7 @@ export default function SubcategoryView({
               hideHeader={true}
               fullHeight={true}
             />
-          </div>
-        </div>
-      </div>
+      </TourFilterDrawer>
       <PageHeader
         title={getLocalizedValue(subcategory.name, locale)}
         subTitle={getLocalizedValue(subcategory.description, locale)}
@@ -573,7 +578,7 @@ export default function SubcategoryView({
                   <button
                     ref={triggerRef}
                     type="button"
-                    className="d-lg-none flex items-center gap-2 px-4 py-2 bg-[#b79c5c] text-white rounded-lg font-bold"
+                    className="visitor-filter-open d-lg-none flex items-center gap-2 px-4 py-2 bg-[#b79c5c] text-white rounded-lg font-bold"
                     onClick={() => setIsFilterOpen(true)}
                     aria-expanded={isFilterOpen}
                     aria-controls="tour-filter-dialog"
@@ -582,21 +587,13 @@ export default function SubcategoryView({
                     <span>{t('filters.title')}</span>
                   </button>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>{t('listing.sortBy')}</span>
-                  <select aria-label={t('listing.sortBy')} value={sort} onChange={(e) => handleSortChange(e.target.value)} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #e5e5e5", background: "#fff", minWidth: 220 }}>
-                    <option value="recommended">{t('listing.sortOptions.recommended')}</option>
-                    <option value="durationHours">{t('listing.sortOptions.durationAsc')}</option>
-                    <option value="-durationHours">{t('listing.sortOptions.durationDesc')}</option>
-                    <option value="priceStartingFrom">{t('listing.sortOptions.priceAsc')}</option>
-                    <option value="-priceStartingFrom">{t('listing.sortOptions.priceDesc')}</option>
-                  </select>
-                </div>
+                <span className="text-muted" aria-live="polite">{t('listing.resultsCount', { count: totalResults })}</span>
+                <TourSort value={sort} onChange={handleSortChange} t={t} />
               </div>
               <div className="d-flex flex-wrap align-items-center gap-2 mb-4" aria-live="polite">
-                <span className="text-muted">{t('listing.resultsCount', { count: totalResults })}</span>
-                <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} t={t} remove={(key, remaining) => removeFilter(key as keyof typeof appliedFilters, remaining)} />
-                {countActiveTourFilters(appliedFilters) > 1 && (
+
+                <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} currencySymbol={currencySymbol} t={t} remove={(key, remaining) => removeFilter(key as keyof typeof appliedFilters, remaining)} />
+                {countActiveTourFilters(appliedFilters) > 0 && (
                   <button type="button" className="btn btn-sm btn-link" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
                 )}
               </div>
@@ -608,7 +605,7 @@ export default function SubcategoryView({
                   // the filter sidebar, so ~252px rather than the default ~360px.
                   tours.map((item: any) => (<Col lg={4} md={6} key={item.id}><TourCard item={item} imageSizes={LISTING_CARD_IMAGE_SIZES} toggleWishlist={toggleWishlist} isInWishlist={isInWishlist} openVideoReviews={item.videoIds?.length ? () => openVideoReviewsFor(item.videoIds) : undefined} /></Col>))
                 ) : pageLoading || error ? null : (
-                  <div className="flex items-center justify-center min-h-[200px] w-full"><p className="text-xl text-gray-500">{t('listing.noToursSubcategory')}</p></div>
+                  <TourEmptyState filtered={countActiveTourFilters(appliedFilters) > 0} emptyText={t('listing.noToursSubcategory')} clear={handleResetFilters} t={t} />
                 )}
                 <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} /></Col>
               </Row>

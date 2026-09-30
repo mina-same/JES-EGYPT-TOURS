@@ -5,7 +5,18 @@ import Select from 'react-select';
 import { catalogOptions } from '@/lib/tours/catalog';
 import type { TourStyleId } from '@/lib/tours/catalog';
 import TourStyleSelect from './TourStyleSelect';
-import { getAllDestinations, type Destination } from '@/lib/api/destination';
+import { destinationAPI } from '@/lib/api/blogAdmin';
+import type { Destination } from '@/lib/api/destination';
+
+/**
+ * One Places Visited option. A draft destination stays selectable: a tour may
+ * visit a place whose own page is not published yet. The label says so, and
+ * nothing about the tour changes when that page is published later.
+ */
+export const destinationOption = (destination: Pick<Destination, '_id' | 'name' | 'shortName' | 'status'>) => {
+  const label = destination.shortName?.en || (typeof destination.name === 'string' ? destination.name : destination.name.en);
+  return { value: destination._id, label: destination.status === 'draft' ? `${label} (Draft)` : label };
+};
 
 export default function TourFilterFields({ value, onChange }: {
   value: { tourType?: string; tourStyles?: TourStyleId[]; destinations?: string[]; durationHours?: number | null; recommendedOrder?: number | null };
@@ -22,9 +33,10 @@ export default function TourFilterFields({ value, onChange }: {
       let page = 1;
       let totalPages = 1;
       do {
-        const result = await getAllDestinations({ page, limit: 100 });
-        items.push(...result.data);
-        totalPages = result.totalPages;
+        // The Admin's authenticated list: the public one leaves drafts out.
+        const result = await destinationAPI.getAll({ page, limit: 100 });
+        items.push(...(result.data || []));
+        totalPages = result.totalPages ?? 1;
         page++;
       } while (page <= totalPages);
       if (!cancelled) setDestinations(items);
@@ -32,7 +44,7 @@ export default function TourFilterFields({ value, onChange }: {
     fetchAll().catch(() => { if (!cancelled) setError('Could not load destinations. Reload to try again.'); }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
-  const options = destinations.map(d => ({ value: d._id, label: d.shortName?.en || (typeof d.name === 'string' ? d.name : d.name.en) }));
+  const options = destinations.map(destinationOption);
   // Keep unresolved saved IDs selected, including when the request fails.
   const selected = (value.destinations || []).map(saved => options.find(o => o.value === saved) || { value: saved, label: loading ? 'Loading saved destination...' : 'Saved destination (unavailable)' });
   const missing = [!value.tourType && 'Tour Type', !value.destinations?.length && 'Places Visited', !(Number(value.durationHours) > 0) && 'Duration (in Tour Details)'].filter(Boolean);

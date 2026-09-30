@@ -115,6 +115,9 @@ test('entities, the featured strip and the directories are tagged for an hour', 
     assert.equal(call.url, url);
     const expected = entity();
     if (url.startsWith('/blog/posts/slug/')) expected.next.tags.push('tours');
+    // The category and topic pages embed destination cards, so a destination
+    // save (which clears `destinations`, not `blog`) refreshes them too.
+    if (/^\/blog\/(sub)?categories\/slug\//.test(url)) expected.next.tags.push('destinations');
     assert.deepEqual(call.init, { ...expected, ...extra }, url);
   }
 });

@@ -13,9 +13,9 @@ test('Mongo evaluates membership, precise durations, prices, ranking and paginat
     await mongoose.connect(process.env.MONGODB_URI!);
     try {
       const documents = [
-        { _id: 1, durationHours: 8, tourStyles: ['luxury', 'honeymoon'], recommendedOrder: 2, priceStartingFrom: { USD: 88 } },
-        { _id: 2, durationHours: 4, tourStyles: ['family'], recommendedOrder: 1, priceStartingFrom: { USD: 110, EUR: 80 } },
-        { _id: 3, durationHours: 72, tourStyles: ['honeymoon'], priceStartingFrom: { USD: 0 } },
+        { _id: 1, tourType: 'day-tour', durationHours: 8, tourStyles: ['luxury', 'honeymoon'], recommendedOrder: 2, priceStartingFrom: { USD: 88 } },
+        { _id: 2, tourType: 'nile-cruise', durationHours: 4, tourStyles: ['family'], recommendedOrder: 1, priceStartingFrom: { USD: 110, EUR: 80 } },
+        { _id: 3, tourType: 'multi-day', durationHours: 72, tourStyles: ['honeymoon'], priceStartingFrom: { USD: 0 } },
         { _id: 4, durationHours: 73, tourStyles: ['classic'] },
         { _id: 5, durationHours: 144, tourStyles: ['accessible'] },
         { _id: 6, durationHours: 145 }, { _id: 7, durationHours: 216 },
@@ -27,6 +27,9 @@ test('Mongo evaluates membership, precise durations, prices, ranking and paginat
           pipeline: [{ $documents: documents }, ...pipeline], cursor: {} });
         return result.cursor.firstBatch.map((row: { _id: number }) => row._id);
       };
+      assert.deepEqual(await query([{ $match: structuredTourFilters({ tourType: 'day-tour,nile-cruise' }) }]), [1, 2]);
+      assert.deepEqual(await query([{ $match: structuredTourFilters({ tourType: 'day-tour,nile-cruise', tourStyles: 'luxury' }) }]), [1]);
+      assert.deepEqual(await query([{ $match: structuredTourFilters({ tourType: 'day-tour' }) }]), [1]);
       assert.deepEqual(await query([{ $match: structuredTourFilters({ tourStyles: 'luxury,honeymoon' }) }]), [1, 3]);
       assert.deepEqual(await query([{ $match: structuredTourFilters({ tourStyles: 'luxury' }) }]), [1]);
       const combined = structuredTourFilters({ tourStyles: 'luxury,honeymoon', durationRange: '1-3' });

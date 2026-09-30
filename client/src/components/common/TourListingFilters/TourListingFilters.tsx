@@ -5,6 +5,8 @@ import { useId, type Dispatch, type FormEvent, type SetStateAction } from 'react
 import type { FilterOption } from '@/lib/tours/catalog';
 import { StructuredFilters } from './StructuredFilters';
 import type { TourFilterValues } from '@/lib/tours/listingFilters';
+import { validateTourPriceRange } from '@/lib/tours/listingFilters';
+import './visitorFilters.css';
 
 interface TourListingFiltersProps {
   t: (key: string) => string;
@@ -22,6 +24,7 @@ interface TourListingFiltersProps {
   noBorder?: boolean;
   hideHeader?: boolean;
   fullHeight?: boolean;
+  hideSearch?: boolean;
 }
 
 export default function TourListingFilters({
@@ -38,6 +41,7 @@ export default function TourListingFilters({
   noBorder = false,
   hideHeader = false,
   fullHeight = false,
+  hideSearch = false,
 }: TourListingFiltersProps) {
   const id = useId();
   const fieldId = (name: string) => `${id}-${name}`;
@@ -46,12 +50,21 @@ export default function TourListingFilters({
   const submit = (event: FormEvent) => {
     event.preventDefault();
     handleApplyFilters();
+    if (validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice)) {
+      const invalidName = validateTourPriceRange('', draftFilters.maxPrice) && !validateTourPriceRange(draftFilters.minPrice, '') ? 'maxPrice' : 'minPrice';
+      const input = event.currentTarget.querySelector<HTMLInputElement>(`[id="${fieldId(invalidName)}"]`);
+      requestAnimationFrame(() => {
+        input?.focus({ preventScroll: true });
+        input?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+    }
   };
 
   return (
     <form
       onSubmit={submit}
-      className="listing__sidebar__item__inner"
+      noValidate
+      className="listing__sidebar__item__inner visitor-filters"
       style={{
         borderRadius: noBorder ? 0 : 14,
         border: noBorder ? 'none' : '1px solid #eee',
@@ -73,11 +86,11 @@ export default function TourListingFilters({
         </div>
       )}
 
-      <div style={{ padding: noBorder ? (hideHeader ? '10px 20px 24px' : '24px 20px') : 18, display: 'grid', gap: 14, flex: fullHeight ? 1 : 'none' }}>
-        <div>
+      <div className="visitor-filter-content" style={{ minHeight: 0, overflowY: fullHeight ? 'auto' : undefined, alignContent: 'start', padding: noBorder ? (hideHeader ? '10px 20px 24px' : '24px 20px') : 18, display: 'grid', gap: 14, flex: fullHeight ? 1 : 'none' }}>
+        {!hideSearch && <div>
           <label htmlFor={fieldId('search')} className="form-label" style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.search')}</label>
           <input id={fieldId('search')} type="search" className="form-control rounded-3" style={{ padding: '10px 15px' }} value={draftFilters.search} onChange={(event) => update({ search: event.target.value })} placeholder={t('filters.searchPlaceholder')} />
-        </div>
+        </div>}
 
         <StructuredFilters values={draftFilters} update={update} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={t} part="places-duration" />
         <div className="row g-2 align-items-end">
@@ -109,10 +122,10 @@ export default function TourListingFilters({
         <StructuredFilters values={draftFilters} update={update} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={t} part="type-styles" />
       </div>
 
-      <div style={{ padding: noBorder ? '24px 20px' : 18, borderTop: '1px solid #f0f0f0', marginTop: 'auto' }}>
+      <div className="visitor-filter-actions" style={{ flexShrink: 0, padding: noBorder ? '16px 20px' : 18, borderTop: '1px solid #f0f0f0', marginTop: 'auto' }}>
         <div className="row g-2">
-          <div className="col-6"><button type="submit" className="gotur-btn" style={{ width: '100%', borderRadius: 10 }}>{t('filters.apply')}</button></div>
-          <div className="col-6"><button type="button" onClick={handleResetFilters} className="gotur-btn" style={{ width: '100%', background: 'transparent', color: '#111', border: '1px solid #e5e5e5', borderRadius: 10 }}>{t('filters.reset')}</button></div>
+          <div className="col-6"><button type="submit" className="gotur-btn visitor-filter-apply" style={{ width: '100%', borderRadius: 10 }}>{t('filters.apply')}</button></div>
+          <div className="col-6"><button type="button" onClick={handleResetFilters} className="gotur-btn visitor-filter-reset" style={{ width: '100%', background: 'transparent', color: '#111', border: '1px solid #e5e5e5', borderRadius: 10 }}>{t('filters.reset')}</button></div>
         </div>
       </div>
     </form>

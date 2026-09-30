@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { DestinationStatus } from '@/lib/api/destination';
+import {
   ArrowLeft, Save, Loader2, LayoutDashboard, 
   ImageIcon, HelpCircle, Settings, MapPin, 
   Star, Globe, Share2, ShieldCheck
@@ -66,6 +68,8 @@ const INITIAL_FORM = {
   ogImage: '',
   noIndex: false,
   noFollow: false,
+  // A new destination has no public page until it is published.
+  status: 'draft' as DestinationStatus,
   isActive: true,
 };
 
@@ -121,6 +125,7 @@ export default function DestinationFormPage() {
             ogImage: d.ogImage || '',
             noIndex: d.noIndex || false,
             noFollow: d.noFollow || false,
+            status: d.status === 'published' ? 'published' : 'draft',
             isActive: d.isActive ?? true,
           });
         }
@@ -281,6 +286,21 @@ export default function DestinationFormPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 bg-gray-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
+              <Label htmlFor="status" className="text-sm font-bold">Status</Label>
+              <Select value={formData.status} onValueChange={(v: DestinationStatus) => handleChange('status', v)}>
+                <SelectTrigger id="status" className="h-8 w-[130px] bg-white dark:bg-slate-900" aria-describedby="status-help">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                </SelectContent>
+              </Select>
+              <span id="status-help" className="text-xs text-gray-500 dark:text-gray-400">
+                {formData.status === 'published' ? 'Page is live' : 'Not public'}
+              </span>
+            </div>
             <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
               <Switch
                 checked={formData.isActive}

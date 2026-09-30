@@ -7,6 +7,7 @@ import { FilterQuery } from 'mongoose';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
 
 // ==================== INTERFACES ====================
 
@@ -201,10 +202,8 @@ export const getCategoryBySlug = async (
       // neither `tags` nor `subCategory` nor `editorialAuthor`, so its cards
       // could not draw a section label or a real byline at all.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate({
-        path: 'featuredDestinations',
-        select: 'name slug coverImage',
-      })
+      // Each card links to the destination's page, so drafts are left out.
+      .populate(publicDestinationPopulate('featuredDestinations', 'name slug coverImage'))
       .lean();
 
     if (!category) {

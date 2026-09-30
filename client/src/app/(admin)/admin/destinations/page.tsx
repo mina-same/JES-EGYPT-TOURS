@@ -38,7 +38,9 @@ export default function DestinationsListPage() {
         search: searchTerm.trim() || undefined,
         limit,
       };
-      if (statusFilter !== 'all') {
+      if (statusFilter === 'published' || statusFilter === 'draft') {
+        params.status = statusFilter;
+      } else if (statusFilter !== 'all') {
         params.isActive = statusFilter === 'active';
       }
       const res = await destinationAPI.getAll(params);
@@ -135,13 +137,23 @@ export default function DestinationsListPage() {
     {
       header: 'Status',
       render: (dest) => (
-        <span className={`status-badge ${dest.isActive ? 'status-active' : 'status-inactive'}`}>
-          {dest.isActive ? (
-            <><CheckCircle size={14} /> Active</>
-          ) : (
-            <><XCircle size={14} /> Inactive</>
-          )}
-        </span>
+        <div className="flex flex-col items-start gap-1">
+          {/* Whether the destination's own page is public. */}
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              dest.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            {dest.status === 'published' ? 'Published' : 'Draft'}
+          </span>
+          <span className={`status-badge ${dest.isActive ? 'status-active' : 'status-inactive'}`}>
+            {dest.isActive ? (
+              <><CheckCircle size={14} /> Active</>
+            ) : (
+              <><XCircle size={14} /> Inactive</>
+            )}
+          </span>
+        </div>
       ),
     },
     {
@@ -220,6 +232,8 @@ export default function DestinationsListPage() {
             }}
           >
             <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>

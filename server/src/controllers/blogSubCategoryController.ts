@@ -8,6 +8,7 @@ import { IBlogSubCategory } from '../models/BlogSubCategory';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
 
 // ==================== INTERFACES ====================
 
@@ -267,7 +268,8 @@ export const getSubcategoryBySlug = async (
       .populate('category', 'name slug description')
       // Cards, not articles — see blogCardPopulate.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate('featuredDestinations')
+      // Public page: destinations with a landing page only, never a draft.
+      .populate(publicDestinationPopulate('featuredDestinations'))
       .lean();
 
     if (!subcategory) {

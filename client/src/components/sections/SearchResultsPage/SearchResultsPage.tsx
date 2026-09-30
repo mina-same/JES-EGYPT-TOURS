@@ -1,8 +1,16 @@
 "use client";
 
+import '@/components/common/TourListingFilters/visitorFilters.css';
+
 import { formatTourDestinations } from '@/lib/tours/destinations';
+import { sanitizeTourFilters } from '@/lib/tours/filterValues';
 import FilterChips from '@/components/common/TourListingFilters/FilterChips';
-import { StructuredFilters } from '@/components/common/TourListingFilters/StructuredFilters';
+import TourEmptyState from '@/components/common/TourListingFilters/TourEmptyState';
+import TourSort from '@/components/common/TourListingFilters/TourSort';
+import TourListingFilters from '@/components/common/TourListingFilters/TourListingFilters';
+import TourFilterDrawer from '@/components/common/TourListingFilters/TourFilterDrawer';
+import { useAccessibleDrawer } from '@/hooks/useAccessibleDrawer';
+import type { TourFilterValues } from '@/lib/tours/listingFilters';
 import React, { useEffect, useMemo, useState } from "react";
 import type { FilterOption } from '@/lib/tours/catalog';
 import { Container, Row, Col } from "react-bootstrap";
@@ -23,7 +31,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
-import { validateTourPriceRange } from "@/lib/tours/listingFilters";
+import { countActiveTourFilters, validateTourPriceRange } from "@/lib/tours/listingFilters";
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -76,10 +84,15 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const { currency, currencySymbol } = useCurrency();
   const [filterError, setFilterError] = useState<string | null>(null);
 
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const closeFilters = () => setIsFilterOpen(false);
+  const { dialogRef, triggerRef } = useAccessibleDrawer(isFilterOpen, closeFilters);
+
   // Filter options state
   const [tourTypeOptions, setTourTypeOptions] = useState<FilterOption[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<FilterOption[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<FilterOption[]>([]);
+  const [filterOptionsReady, setFilterOptionsReady] = useState(false);
 
   // Video reviews state
   const [isOpen, setOpen] = useState(false);
@@ -104,7 +117,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     return obj;
   }, [searchParams, initialSearchParams]);
 
-  const [draftFilters, setDraftFilters] = useState({
+  // The URL is the committed snapshot: page, sort and filters change together.
+  const appliedFilters = useMemo(() => sanitizeTourFilters({
     q: toStr((effectiveParams as any).q) || "",
     minPrice: toStr((effectiveParams as any).minPrice) || "",
     maxPrice: toStr((effectiveParams as any).maxPrice) || "",
@@ -114,25 +128,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     durationRange: toStr((effectiveParams as any).durationRange) || "",
     blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
     sort: toStr((effectiveParams as any).sort) || "recommended",
-  });
-
-  const [appliedFilters, setAppliedFilters] = useState(draftFilters);
-
+  }), [effectiveParams]);
+  const [draftFilters, setDraftFilters] = useState(appliedFilters);
+  const filterSignature = JSON.stringify({ ...appliedFilters, sort: undefined });
   useEffect(() => {
-    const next = {
-      q: toStr((effectiveParams as any).q) || "",
-      minPrice: toStr((effectiveParams as any).minPrice) || "",
-      maxPrice: toStr((effectiveParams as any).maxPrice) || "",
-      tourType: toStr((effectiveParams as any).tourType) || "",
-      tourStyles: toStr((effectiveParams as any).tourStyles) || "",
-    destinations: toStr((effectiveParams as any).destinations) || "",
-    durationRange: toStr((effectiveParams as any).durationRange) || "",
-      blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
-      sort: toStr((effectiveParams as any).sort) || "recommended",
-    };
-    setDraftFilters(next);
-    setAppliedFilters(next);
-  }, [effectiveParams]);
+    setDraftFilters(appliedFilters);
+    // Page/sort-only navigation must not discard un-applied filter edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterSignature, locale]);
 
   const q = appliedFilters.q;
   const page = toNum((effectiveParams as any).page, 1);
@@ -155,18 +158,19 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       next.blogPage = "1";
     }
 
-    router.push(`${searchBasePath}${buildQueryString(next)}`);
+    router.push(`${searchBasePath}${buildQueryString(sanitizeTourFilters(next, filterOptionsReady ? destinationOptions : undefined))}`);
   };
 
   const handleApplyFilters = () => {
     const priceIssue = validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice);
     if (priceIssue) {
+
       setFilterError(t(priceIssue === 'range' ? 'priceRangeError' : 'priceInvalidError'));
       return;
     }
     setFilterError(null);
-    setAppliedFilters(draftFilters);
-    updateUrl({ ...draftFilters, page: "1", blogPage: "1" });
+    updateUrl({ ...draftFilters, sort: appliedFilters.sort, blogSubCategory: appliedFilters.blogSubCategory, page: "1", blogPage: "1" });
+    setIsFilterOpen(false);
   };
 
   const handleResetFilters = () => {
@@ -180,15 +184,27 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       sort: "recommended",
     };
     setDraftFilters(empty);
-    setAppliedFilters(empty);
     setFilterError(null);
     router.push(searchBasePath);
   };
 
+  const tourFilterForm = (mobile = false) => <TourListingFilters
+    t={tourT} locale={locale} draftFilters={{ ...draftFilters, search: draftFilters.q }}
+    setDraftFilters={(action: React.SetStateAction<TourFilterValues>) => setDraftFilters(previous => {
+      const next = typeof action === 'function' ? action({ ...previous, search: previous.q }) : action;
+      const { search, ...rest } = next;
+      return { ...previous, ...rest, q: search };
+    })}
+    tourTypeOptions={tourTypeOptions} tourStyleOptions={tourStyleOptions} destinationOptions={destinationOptions}
+    currencySymbol={currencySymbol} validationError={filterError} hideSearch
+    handleApplyFilters={handleApplyFilters}
+    handleResetFilters={() => { handleResetFilters(); closeFilters(); }}
+    fullHeight={mobile} noBorder={mobile} hideHeader={mobile}
+  />;
+
   const removeTourFilter = (key: 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyles' | 'destinations' | 'durationRange', remaining = '') => {
     const next = { ...appliedFilters, [key]: remaining };
     setDraftFilters(next);
-    setAppliedFilters(next);
     setFilterError(null);
     updateUrl({ [key]: remaining, page: '1', ...(key === 'q' ? { blogPage: '1' } : {}) });
   };
@@ -313,12 +329,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
 
   useEffect(() => {
     const controller = new AbortController();
+    setFilterOptionsReady(false);
     tourAPI.getFilterOptions({ currency }, locale, controller.signal)
       .then((response) => {
         if (response.success && response.data) {
           setTourTypeOptions(response.data.tourTypes);
           setTourStyleOptions(response.data.tourStyles);
           setDestinationOptions(response.data.destinations);
+          setFilterOptionsReady(true);
         }
       })
       .catch((error) => {
@@ -361,7 +379,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
         {/* Keyword Search Bar at Top */}
         <Row className="mb-5">
           <Col lg={10} className="mx-auto">
-            <div className="search-box-wrapper">
+            <div className="search-box-wrapper visitor-search">
               <div className="input-group shadow-sm rounded-pill overflow-hidden border bg-white">
                 <input
                   type="search"
@@ -390,77 +408,18 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           </Col>
         </Row>
 
+        <TourFilterDrawer open={isFilterOpen} close={closeFilters} dialogRef={dialogRef} title={tourT('filters.title')} closeLabel={tourT('filters.close')}>
+          {tourFilterForm(true)}
+        </TourFilterDrawer>
+        <div className="d-lg-none mb-3">
+          <button ref={triggerRef} type="button" className="btn visitor-filter-open" aria-expanded={isFilterOpen} aria-controls="tour-filter-dialog" onClick={() => setIsFilterOpen(true)}>{tourT('filters.title')}</button>
+        </div>
         <Row className="gutter-y-40">
           {/* SIDEBAR FILTERS */}
           <Col lg={4} xl={3}>
-            <aside className="listing__sidebar">
-              <div className="listing__sidebar__item__inner" style={{ borderRadius: 14, border: "1px solid #eee", background: "#fff", position: 'sticky', top: 100 }}>
-                <div style={{ padding: 18, borderBottom: "1px solid #f0f0f0" }}>
-                  <h3 className="listing__sidebar__title" style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{t('filterResults')}</h3>
-                </div>
-
-                <div style={{ padding: 18, display: "grid", gap: 16 }}>
-                  {/* TOURS FILTER SECTION */}
-                  <div className="filter-group">
-                    <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>{t('experiences')}</h4>
-                    
-                    <div className="mb-3">
-                      <label htmlFor="search-tour-sort" className="form-label font-weight-bold small">{t('sortToursBy')}</label>
-                      <select
-                        id="search-tour-sort"
-                        className="form-select form-select-sm"
-                        value={draftFilters.sort}
-                        onChange={(e) => setDraftFilters(p => ({ ...p, sort: e.target.value }))}
-                      >
-                        <option value="recommended">{tourT('listing.sortOptions.recommended')}</option>
-                        <option value="durationHours">{tourT('listing.sortOptions.durationAsc')}</option>
-                        <option value="-durationHours">{tourT('listing.sortOptions.durationDesc')}</option>
-                        <option value="priceStartingFrom">{t('priceLowToHigh')}</option>
-                        <option value="-priceStartingFrom">{t('priceHighToLow')}</option>
-                      </select>
-                    </div>
-
-                    <div className="row g-2 mb-3">
-                       <div className="col-6">
-                         <label htmlFor="search-min-price" className="form-label font-weight-bold small">{t('minPrice')}</label>
-                         <div className="input-group input-group-sm">
-                           <span className="input-group-text bg-white border-end-0">{currencySymbol}</span>
-                           <input
-                              id="search-min-price"
-                              type="number"
-                              min="0"
-                              step="any"
-                              className="form-control border-start-0"
-                              value={draftFilters.minPrice}
-                              onChange={(e) => setDraftFilters(p => ({ ...p, minPrice: e.target.value }))}
-                              placeholder="0"
-                            />
-                         </div>
-                       </div>
-                       <div className="col-6">
-                         <label htmlFor="search-max-price" className="form-label font-weight-bold small">{t('maxPrice')}</label>
-                         <div className="input-group input-group-sm">
-                           <span className="input-group-text bg-white border-end-0">{currencySymbol}</span>
-                           <input
-                              id="search-max-price"
-                              type="number"
-                              min="0"
-                              step="any"
-                              className="form-control border-start-0"
-                              value={draftFilters.maxPrice}
-                              onChange={(e) => setDraftFilters(p => ({ ...p, maxPrice: e.target.value }))}
-                              placeholder="9999"
-                            />
-                         </div>
-                       </div>
-                    </div>
-                    {filterError && <p className="text-danger small" role="alert">{filterError}</p>}
-
-                    <StructuredFilters values={draftFilters} update={patch => setDraftFilters(previous => ({ ...previous, ...patch }))} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={tourT} />
-                  </div>
-
-                  <hr style={{ margin: '8px 0', opacity: 0.1 }} />
-
+            <aside className="listing__sidebar visitor-filters">
+              <div className="d-none d-lg-block">{tourFilterForm()}</div>
+              <div className="p-3 border rounded mt-3">
                   {/* BLOGS FILTER SECTION */}
                   <div className="filter-group">
                     <h4 style={{ fontSize: 14, textTransform: 'uppercase', color: '#b79c5c', fontWeight: 800, marginBottom: 12, borderLeft: '3px solid #b79c5c', paddingLeft: 8 }}>{t('knowledge')}</h4>
@@ -481,32 +440,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                     </div>
 
                   </div>
-                </div>
-
-                <div style={{ padding: 18, borderTop: "1px solid #f0f0f0", background: '#f9f9f9', borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }}>
-                  <div className="row g-2">
-                    <div className="col-8">
-                      <button
-                        type="button"
-                        className="gotur-btn w-100"
-                        onClick={handleApplyFilters}
-                        style={{ height: 42, fontSize: 14 }}
-                      >
-                        {t('applyFilters')}
-                      </button>
-                    </div>
-                    <div className="col-4">
-                      <button
-                        type="button"
-                        className="gotur-btn w-100"
-                        onClick={handleResetFilters}
-                        style={{ height: 42, fontSize: 14, background: "transparent", color: "#111", border: "1px solid #ddd" }}
-                      >
-                        {t('reset')}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <button type="button" className="btn btn-outline-dark" onClick={() => updateUrl({ blogSubCategory: draftFilters.blogSubCategory })}>{t('applyFilters')}</button>
               </div>
             </aside>
           </Col>
@@ -516,11 +450,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             {/* TOURS RESULTS */}
             <div className="results-wrapper mb-5 pb-5">
               <div className="d-flex flex-wrap gap-2 mb-3">
-                <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} t={tourT} remove={(key, remaining) => removeTourFilter(key as 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyles' | 'destinations' | 'durationRange', remaining)} />
+                <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} currencySymbol={currencySymbol} t={tourT} remove={(key, remaining) => removeTourFilter(key as 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyles' | 'destinations' | 'durationRange', remaining)} />
+                {countActiveTourFilters(appliedFilters) > 0 && <button type="button" className="btn btn-link" onClick={handleResetFilters}>{tourT('filters.clearAll')}</button>}
               </div>
-              <div className="d-flex align-items-center justify-content-between mb-4">
+              <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
                 <h2 className="section-title mb-0" style={{ fontSize: 24 }}>{t('experiencesFound')}</h2>
                 <span className="badge bg-light text-dark px-3 py-2 rounded-pill border" aria-live="polite">{t('showingResults', { count: toursTotal })}</span>
+                <TourSort value={appliedFilters.sort} onChange={sort => updateUrl({ sort, page: '1' })} t={tourT} />
               </div>
 
               {toursLoading ? (
@@ -530,10 +466,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
               ) : toursError ? (
                 <div className="alert alert-danger shadow-sm border-0">{toursError}</div>
               ) : tours.length === 0 ? (
-                <div className="text-center py-5 border rounded bg-light shadow-inner">
-                  <i className="icon-search h1 text-muted d-block opacity-25"></i>
-                  <p className="mt-3 text-muted">{t('noExperiences')}</p>
-                </div>
+                <TourEmptyState filtered={countActiveTourFilters(appliedFilters) > 0} emptyText={tourT('listing.noToursAvailable')} clear={handleResetFilters} t={tourT} />
               ) : (
                 <>
                   <Row className="gutter-y-30">

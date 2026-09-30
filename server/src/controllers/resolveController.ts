@@ -6,7 +6,7 @@ import TourSubcategory from '../models/TourSubcategory';
 import Blog from '../models/Blog';
 import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
-import Destination from '../models/Destination';
+import Destination, { PUBLIC_DESTINATION_FILTER } from '../models/Destination';
 
 /**
  * Slug -> content type, in one request.
@@ -87,7 +87,8 @@ const CANDIDATES: Candidate[] = [
   { type: 'blog-category', model: BlogCategory, filter: { isActive: { $ne: false } } },
   { type: 'blog-subcategory', model: BlogSubCategory, filter: { isActive: { $ne: false } } },
   { type: 'blog', model: Blog, filter: { status: 'published' } },
-  { type: 'destination', model: Destination, filter: { isActive: { $ne: false } } },
+  // A draft destination has no landing page, so its slug does not resolve.
+  { type: 'destination', model: Destination, filter: PUBLIC_DESTINATION_FILTER },
 ];
 
 const SUPPORTED_LOCALES = ['en', 'de', 'it', 'es'] as const;
