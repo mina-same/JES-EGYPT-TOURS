@@ -5,7 +5,7 @@
     "clearAll": "Clear all",
     "priceRangeError": "Minimum price cannot be greater than maximum price.",
     "priceInvalidError": "Enter a valid non-negative price.",
-    "title": "Find Your Perfect Tour",
+    "title": "Filter Tours",
     "search": "Search",
     "searchPlaceholder": "Search tours",
     "subcategory": "Subcategory",
@@ -26,7 +26,19 @@
       "7-9": "7–9 Days",
       "10-12": "10–12 Days",
       "13-plus": "13+ Days"
-    }
+    },
+    "priceFrom": "Price from {{amount}}",
+    "priceUpTo": "Up to {{amount}}",
+    "searchValue": "Search: {{value}}",
+    "searchPlaces": "Search places",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "noPlaces": "No places match your search.",
+    "clearFilters": "Clear filters",
+    "price": "Price",
+    "minPlaceholder": "Min",
+    "maxPlaceholder": "Max",
+    "applyLabel": "Apply Filters"
   },
   "listing": {
     "resultsCount": "{{count}} tours found",
@@ -42,7 +54,10 @@
       "durationDesc": "Duration: Long to Short"
     },
     "noToursCategory": "No tours found in this category.",
-    "noToursSubcategory": "No tours found in this subcategory."
+    "noToursSubcategory": "No tours found in this subcategory.",
+    "noMatchingTours": "No tours match your current filters.",
+    "noToursAvailable": "No tours available.",
+    "adjustFiltersHelp": "Try adjusting your filters or clearing them to see more tours."
   },
   "status": {
     "notFound": "Not Found",

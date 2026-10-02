@@ -37,10 +37,10 @@ export interface SitemapEntity {
   slug: Partial<Record<SitemapLocale, string>>;
   /** ISO timestamp of the entity's last write, when it has one. */
   updatedAt?: string;
-  /** The editor's "No Index" switch. */
-  noIndex?: true;
   /** Articles only: the languages the article has text of its own in. */
   locales?: SitemapLocale[];
+  /** Existing unfiltered listing pages, including page one. */
+  pageCounts?: Partial<Record<SitemapLocale, number>>;
 }
 
 export interface SitemapData {

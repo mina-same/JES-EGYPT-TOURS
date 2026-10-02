@@ -30,6 +30,8 @@ import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
 import { useToast } from '@/hooks/use-toast';
 import FaqManager from '@/components/admin/FaqManager';
 import { blogAPI, destinationAPI } from '@/lib/api/blogAdmin';
+import { destinationLabel } from '@/lib/admin/featuredDestinations';
+import { useFeaturedDestinationLookup } from '@/hooks/useFeaturedDestinations';
 import { Search, MessageSquare } from 'lucide-react';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
@@ -160,6 +162,7 @@ export default function NewCategoryPage() {
   const [isSearchingDests, setIsSearchingDests] = useState(false);
   const [selectedDestObjects, setSelectedDestObjects] = useState<any[]>([]);
   const [isDestSearchFocused, setIsDestSearchFocused] = useState(false);
+  const describeFeaturedDestination = useFeaturedDestinationLookup(selectedDestObjects);
 
   // Fetch category data if editing
   useEffect(() => {
@@ -1468,19 +1471,21 @@ export default function NewCategoryPage() {
               activeLanguage={activeLanguage}
             />
 
-            {/* Selected destinations list */}
-            {selectedDestObjects.length > 0 && (
+            {/* Selected destinations list: every saved id, resolved to a name
+                (with "(Draft)" where it applies), never the raw id */}
+            {(formData.featuredDestinations || []).length > 0 && (
               <div className="space-y-2 pt-2">
-                {selectedDestObjects.map((dest) => {
-                  const thumbUrl = dest.coverImage?.url;
-                  const title = dest.name?.en || dest.name || 'Untitled';
+                {(formData.featuredDestinations || []).map((destId: string) => {
+                  const featured = describeFeaturedDestination(destId);
+                  const thumbUrl = featured.destination?.coverImage?.url;
+                  const title = featured.label;
                   return (
-                    <div key={dest._id} className="flex items-center gap-3 p-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                    <div key={destId} className="flex items-center gap-3 p-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
                       {thumbUrl && (
                         <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
                       )}
-                      <span className="flex-1 text-sm font-medium text-emerald-800 dark:text-emerald-200 truncate">{title}</span>
-                      <button type="button" onClick={() => removeFeaturedDest(dest._id)} className="flex-shrink-0 text-emerald-600 hover:text-red-600 transition-colors">
+                      <span className="flex-1 text-sm font-medium text-emerald-800 dark:text-emerald-200 truncate" title={featured.state === 'unavailable' ? `Destination ID ${destId}` : undefined}>{title}</span>
+                      <button type="button" onClick={() => removeFeaturedDest(destId)} aria-label={`Remove ${title}`} className="flex-shrink-0 text-emerald-600 hover:text-red-600 transition-colors">
                         <X size={16} />
                       </button>
                     </div>
@@ -1489,7 +1494,7 @@ export default function NewCategoryPage() {
               </div>
             )}
 
-            {selectedDestObjects.length === 0 && (
+            {(formData.featuredDestinations || []).length === 0 && (
               <p className="text-sm text-gray-400 italic">No destinations selected yet. Search below to add.</p>
             )}
 
@@ -1522,7 +1527,7 @@ export default function NewCategoryPage() {
                       .filter(dest => !(formData.featuredDestinations || []).includes(dest._id))
                       .map((dest) => {
                         const thumbUrl = dest.coverImage?.url;
-                        const title = dest.name?.en || dest.name || 'Untitled';
+                        const title = destinationLabel(dest);
                         return (
                           <button
                             key={dest._id}

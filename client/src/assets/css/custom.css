@@ -40,16 +40,12 @@ html, body {
 }
 
 /* Ensure carousels don't leak */
-.instagram-one, 
-.destination-carousel-two,
+.instagram-one,
 .client-carousel {
   overflow: hidden;
 }
 
 /* Ensure HomeIntro card design works even if Tailwind is missing */
-.home-intro-v2 .container {
-  max-width: 1200px;
-}
 
 
 /* ==========================================================================
@@ -66,40 +62,6 @@ html, body {
 }
 
 /* Ensure tour slider items always stretch to full slide width */
-.tour-one__carousel .item,
-.tour-one__carousel .item > div,
-.tour-one__item {
-  width: 100%;
-}
-
-.tour-one__carousel .tns-item {
-  display: flex;
-}
-
-.tour-one__carousel .tns-item > div {
-  width: 100%;
-}
-
-.tour-one__slide-frame {
-  height: clamp(320px, 32vw, 395px) !important;
-  max-height: none !important;
-}
-
-.tour-one__slide-image {
-  object-fit: cover;
-}
-
-@media (max-width: 767px) {
-  .tour-one__slide-frame {
-    height: 320px !important;
-  }
-}
-
-@media (min-width: 1400px) {
-  .tour-one__slide-frame {
-    height: 395px !important;
-  }
-}
 
 .listing-card-four__btns,
 .listing-card-four__btns__hover {
@@ -281,17 +243,6 @@ html, body {
    3. BOOKING FORM (Professional & Modern)
    ========================================================================== */
 
-.booking-header {
-  background-color: var(--gotur-black, #1d231f);
-  color: #fff;
-  text-align: center;
-  padding: 20px;
-  font-size: 22px;
-  font-weight: 700;
-  font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-  letter-spacing: 0.5px;
-}
-
 /* The card is now beside the photos rather than far down the page, so its
    height decides how much of the form a visitor sees before scrolling. Eleven
    rows at a 20px gap spent 200px on gaps alone; 14px keeps the fields clearly
@@ -320,7 +271,6 @@ html, body {
 /* Inputs */
 .booking-input,
 .booking-select,
-.booking-select-code,
 .booking-date-input,
 .booking-textarea {
   width: 100%;
@@ -337,7 +287,6 @@ html, body {
 
 .booking-input:focus,
 .booking-select:focus,
-.booking-select-code:focus,
 .booking-date-input:focus,
 .booking-textarea:focus {
   border-color: var(--gotur-base, #d4af37);
@@ -559,9 +508,6 @@ html, body {
   display: flex;
   gap: 15px;
 }
-
-.booking-col-code { flex: 0 0 32%; }
-.booking-col-mobile { flex: 1; }
 .booking-col-date { flex: 1; }
 
 .date-input-wrapper {
@@ -1013,11 +959,7 @@ body {
   max-width: 100%;
 }
 
-.mobile-nav__wrapper,
-.header-right-sidebar,
-.main-menu .main-menu__list > .megamenu.megamenu-clickable > ul,
-.mobile-nav__container .main-menu__list > .megamenu.megamenu-clickable > ul,
-.stricky-header .main-menu__list > .megamenu.megamenu-clickable > ul {
+.mobile-nav__wrapper {
   width: 100% !important;
 }
 
@@ -1107,70 +1049,6 @@ html:has(> body.megamenu-popup-active) {
 /* ==========================================================================
    4. AMENITIES CARDS (Premium Design)
    ========================================================================== */
-.amenities-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid #f0f0f0;
-}
-
-.amenities-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-}
-
-.amenities-card-header {
-  padding: 30px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  border-bottom: 2px solid #f5f5f5;
-  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
-}
-
-.amenities-icon-wrapper {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.amenities-icon-wrapper i {
-  font-size: 28px;
-  z-index: 2;
-  position: relative;
-}
-
-.inclusion-icon {
-  background: linear-gradient(135deg, #b79c5c, #d4af37);
-  box-shadow: 0 8px 20px rgba(183, 156, 92, 0.25);
-}
-
-.inclusion-icon i {
-  color: #fff;
-}
-
-.exclusion-icon {
-  background: linear-gradient(135deg, #dc3545, #c82333);
-  box-shadow: 0 8px 20px rgba(220, 53, 69, 0.25);
-}
-
-.exclusion-icon i {
-  color: #fff;
-}
-
-.amenities-card:hover .amenities-icon-wrapper {
-  transform: rotate(5deg) scale(1.05);
-}
 
 .amenities-card-title {
   font-size: 22px;
@@ -1235,13 +1113,6 @@ html:has(> body.megamenu-popup-active) {
 
 /* Responsive adjustments */
 @media (max-width: 991px) {
-  .amenities-card {
-    margin-bottom: 30px;
-  }
-  
-  .amenities-card-header {
-    padding: 24px;
-  }
   
   .amenities-card-list {
     padding: 24px;
@@ -2380,9 +2251,8 @@ html:has(> body.megamenu-popup-active) {
   }
 
   .booking-input,
-  .booking-select,
-  .booking-select-code,
-  .booking-date-input {
+.booking-select,
+.booking-date-input {
     min-height: 44px;
     padding: 10px 16px;
     font-size: 14px;
@@ -2569,9 +2439,8 @@ html:has(> body.megamenu-popup-active) {
   }
 
   .booking-input,
-  .booking-select,
-  .booking-select-code,
-  .booking-date-input {
+.booking-select,
+.booking-date-input {
     min-height: 47px;
     padding: 11px 17px;
     font-size: 15px;
@@ -2693,9 +2562,8 @@ html:has(> body.megamenu-popup-active) {
   }
 
   .booking-input,
-  .booking-select,
-  .booking-select-code,
-  .booking-date-input {
+.booking-select,
+.booking-date-input {
     min-height: 50px;
     padding: 13px 18px;
     font-size: 15px;
@@ -2844,10 +2712,6 @@ html:has(> body.megamenu-popup-active) {
 
 .tour-listing-details .section-space-bottom {
   padding-bottom: 56px;
-}
-
-.tour-listing-details .tour-one.section-space-top {
-  padding-top: 40px;
 }
 
 /* 50px margin + 30px padding put 80px above the "Location / Type / Price" row. */
@@ -3085,9 +2949,6 @@ html:has(> body.megamenu-popup-active) {
 /* ==========================================================================
    8. TOUR REVIEWS
    ========================================================================== */
-.tour-reviews-section {
-    padding: 3rem 0;
-}
 
 
 
@@ -3096,175 +2957,6 @@ html:has(> body.megamenu-popup-active) {
     font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
     font-size: 16px;
 }
-
-.tour-reviews-featured-image {
-    position: relative;
-    height: 550px;
-    width: 320px;
-    border-radius: 30px;
-    overflow: hidden;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
-}
-
-.tour-reviews-featured-image img {
-    object-fit: cover;
-}
-
-.tour-reviews-stats-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 1rem;
-}
-
-
-
-
-
-.tour-reviews-testimonial-box {
-    background-color: #F5F6F8 !important;
-    border-radius: 30px;
-    padding: 2.5rem;
-    margin-bottom: 2rem;
-    position: relative;
-    min-height: 320px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.tour-reviews-quote-icon {
-    margin-bottom: 1.5rem;
-}
-
-.tour-reviews-text {
-    font-size: 18px;
-    line-height: 1.8;
-    color: var(--gotur-text, #697488);
-    margin-bottom: 2rem;
-    font-weight: 500;
-    font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
-}
-
-.tour-reviews-name {
-    color: var(--gotur-black, #0A2B4B);
-    font-weight: 700;
-    font-size: 1.125rem; /* text-lg */
-    margin-bottom: 0;
-    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-}
-
-.tour-reviews-verified {
-    color: #9CA3AF;
-    font-size: 0.875rem; /* text-sm */
-    margin: 0.25rem 0 0 0;
-    font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
-}
-
-.tour-reviews-nav-buttons {
-    display: none;
-}
-
-@media (min-width: 768px) {
-    .tour-reviews-nav-buttons {
-        position: absolute;
-        bottom: 2.5rem;
-        right: 2.5rem;
-        z-index: 10;
-        display: flex;
-        gap: 0.75rem;
-    }
-}
-
-.tour-reviews-nav-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-}
-
-.tour-reviews-nav-prev {
-    border: 1px solid #b79c5c;
-    color: #b79c5c;
-    background: transparent;
-}
-
-.tour-reviews-nav-prev:hover {
-    background-color: rgba(183, 156, 92, 0.12);
-}
-
-.tour-reviews-nav-next {
-    background-color: #b79c5c;
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.tour-reviews-nav-next:hover {
-    background-color: #a48952;
-}
-
-.tour-reviews-nav-btn:disabled,
-.tour-reviews-nav-btn[aria-disabled="true"] {
-    opacity: 0.45;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-.tour-reviews-nav-btn:disabled:hover,
-.tour-reviews-nav-btn[aria-disabled="true"]:hover {
-    background-color: #b79c5c;
-}
-
-.tour-reviews-platform-card {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border: 1px solid #E5E7EB;
-    border-radius: 24px;
-    background-color: white;
-    height: 100%;
-    transition: box-shadow 0.3s ease;
-}
-
-.tour-reviews-platform-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.tour-reviews-platform-logo {
-    margin-right: 1rem;
-    flex-shrink: 0;
-}
-
-.tour-reviews-platform-name {
-    display: block;
-    font-weight: 700;
-    font-size: 1rem; /* text-base */
-    font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
-}
-
-.tour-reviews-platform-rating {
-    display: flex;
-    align-items: center;
-    font-size: 0.75rem; /* text-xs */
-    color: #F5A31B;
-    margin-top: 0.25rem;
-    font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
-}
-
-.tour-reviews-platform-score {
-    color: #4B5563;
-    margin-right: 0.5rem;
-    font-weight: 500;
-}
-
-.text-google-blue { color: #0a2b4b; }
-.text-tripadvisor-green { color: #34E0A1; }
-.text-feefo-gray { color: #4B5563; }
 /* What You Will Love Section.
    Only the margin is still live. The padding, radius, amber background, amber
    border and amber text colour were left over from an earlier design and were
@@ -3568,13 +3260,6 @@ html:has(> body.megamenu-popup-active) {
 }
 
 /* Hide hover image to prevent it from showing */
-.destinations-card-two__hover {
-  display: none;
-}
-
-.destinations-card-two:hover .destinations-card-two__hover {
-  display: none;
-}
 
 /* Add background to Why Choose Us section */
 #why-choose-us {
@@ -3778,11 +3463,6 @@ div[suppressHydrationWarning] {
   box-shadow: 0 0 40px rgba(0,0,0,0.5);
 }
 
-.tour-gallery-link:hover .tour-gallery-image {
-  transform: scale(1.05);
-  transition: transform 0.4s ease;
-}
-
 /* ==========================================================================
    FIX: Bootstrap Accordion Collapse Visibility Issue
    ========================================================================== */
@@ -3861,18 +3541,6 @@ div[suppressHydrationWarning] {
   }
 
   /* Tour Header Stacking */
-  .tour-listing-details__destination__inner {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 20px;
-  }
-
-  .tour-listing-details__destination__right {
-    width: 100% !important;
-    justify-content: space-between !important;
-    flex-direction: row-reverse !important;
-    display: flex !important;
-  }
 
   /* Horizontally Scrollable Nav */
   .tour-details-nav-wrapper {
@@ -4281,15 +3949,6 @@ div[suppressHydrationWarning] {
     font-size: 18px !important;
   }
 
-  .amenities-card-header {
-    padding: 20px !important;
-  }
-
-  .tour-listing-details__destination__right {
-    flex-wrap: wrap !important;
-    gap: 10px !important;
-  }
-
   .mobile-sticky-booking-bar {
     left: 10px;
     right: 10px;
@@ -4343,26 +4002,6 @@ div[suppressHydrationWarning] {
 }
 
 /* --- Responsive Shrinking for Pricing & Comments Mobile --- */
-@media (max-width: 991px) {
-  /* Pricing plan styles now live with the component, addressed by class
-     name. The nth-child chains that used to sit here targeted an inline-
-     styled DOM that no longer exists. */
-
-  /* Tour Reviews Comments */
-  .tour-reviews-testimonial-box {
-    padding: 20px 15px !important;
-  }
-  .tour-reviews-text {
-    font-size: 14px !important;
-    line-height: 1.5 !important;
-  }
-  .tour-reviews-stats-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 10px !important;
-    margin-bottom: 20px !important;
-  }
-}
 
 /* ==========================================================================
    7. HTML CONTENT RENDERING (for dangerousSetInnerHTML)
@@ -5937,8 +5576,7 @@ button[data-action="stop"] {
    ───────────────────────────────────────────────────────────── */
 .gotur-btn:focus-visible,
 .tns-outer .tns-controls button:focus-visible,
-.gotur-owl__carousel--basic-nav.owl-carousel .owl-nav button:focus-visible,
-.gotur-owl__carousel--basic-nav.owl-carousel .owl-dots .owl-dot:focus-visible {
+.gotur-owl__carousel--basic-nav.owl-carousel .owl-nav button:focus-visible {
   outline: 3px solid var(--gotur-black, #1d231f) !important;
   outline-offset: 3px;
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.9);
@@ -6054,8 +5692,7 @@ button[data-action="stop"] {
    as the native control allows — a fully controlled list would have to stop
    being a <select>.
    ========================================================================== */
-.booking-select option,
-.booking-select-code option {
+.booking-select option {
   background-color: #fff;
   color: var(--gotur-black, #1d231f);
   font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
@@ -6066,8 +5703,7 @@ button[data-action="stop"] {
    from the brand tone so white text on it stays legible. */
 .booking-select option:checked,
 .booking-select option:hover,
-.booking-select option:focus,
-.booking-select-code option:checked {
+.booking-select option:focus {
   background: #8f7333 linear-gradient(#8f7333, #8f7333);
   color: #fff;
 }
@@ -6075,8 +5711,7 @@ button[data-action="stop"] {
 /* Windows Chromium reads the control's own colour scheme when painting the
    popup; declaring it light keeps the list white on machines set to dark mode
    instead of inheriting a grey the rest of the form does not use. */
-.booking-select,
-.booking-select-code {
+.booking-select {
   color-scheme: light;
 }
 

@@ -8,7 +8,7 @@ import type { Swiper as SwiperClass } from "swiper";
 import "swiper/css";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
-import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
+import { Gallery as PhotoSwipeGallery, Item } from "@/components/common/LazyPhotoSwipe/LazyPhotoSwipe";
 import { ChevronDown, MessageCircle, ArrowRight } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 

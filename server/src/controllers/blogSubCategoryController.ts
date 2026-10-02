@@ -8,6 +8,8 @@ import { IBlogSubCategory } from '../models/BlogSubCategory';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
+import { destinationPopulateFor } from '../utils/destinationAccess';
 
 // ==================== INTERFACES ====================
 
@@ -189,7 +191,7 @@ export const getSubcategoriesByCategory = async (
 /**
  * @desc    Get single blog subcategory by ID
  * @route   GET /api/blog/subcategories/:id
- * @access  Public
+ * @access  Public (published featured destinations); Admin token (all of them)
  */
 export const getSubcategoryById = async (
   req: Request,
@@ -199,7 +201,9 @@ export const getSubcategoryById = async (
     const subcategory = await BlogSubCategory.findById(req.params.id)
       .populate('category', 'name slug description')
       .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
-      .populate('featuredDestinations')
+      // The Admin's editor gets every saved reference back, drafts included,
+      // or a save would drop them; anyone else gets landing pages only.
+      .populate(destinationPopulateFor(req, 'featuredDestinations'))
       .lean();
 
     if (!subcategory) {
@@ -267,7 +271,8 @@ export const getSubcategoryBySlug = async (
       .populate('category', 'name slug description')
       // Cards, not articles — see blogCardPopulate.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate('featuredDestinations')
+      // Public page: destinations with a landing page only, never a draft.
+      .populate(publicDestinationPopulate('featuredDestinations'))
       .lean();
 
     if (!subcategory) {

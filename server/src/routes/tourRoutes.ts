@@ -21,6 +21,7 @@ import {
 import {
   getAllTours,
   getTourFilterOptions,
+  getTourDestinationKeys,
   getFeaturedTours,
   getToursBySubcategory,
   getTourById,
@@ -60,9 +61,9 @@ router.get('/categories/slug/:slug', getCategoryBySlug);
 /**
  * @route   GET /api/tours/categories/:id
  * @desc    Get single tour category by ID
- * @access  Public
+ * @access  Public (published featured destinations); Admin token (all of them)
  */
-router.get('/categories/:id', getCategoryById);
+router.get('/categories/:id', optionalProtect, getCategoryById);
 
 /**
  * @route   POST /api/tours/categories
@@ -117,9 +118,9 @@ router.get('/subcategories/slug/:slug', getSubcategoryBySlug);
 /**
  * @route   GET /api/tours/subcategories/:id
  * @desc    Get single tour subcategory by ID
- * @access  Public
+ * @access  Public (published featured destinations); Admin token (all of them)
  */
-router.get('/subcategories/:id', getSubcategoryById);
+router.get('/subcategories/:id', optionalProtect, getSubcategoryById);
 
 /**
  * @route   POST /api/tours/subcategories
@@ -178,6 +179,7 @@ router.get('/by-ids', getToursByIds);
  * @access  Public (inactive content requires an authorized admin)
  */
 router.get('/filter-options', optionalProtect, getTourFilterOptions);
+router.get('/destination-keys', getTourDestinationKeys);
 
 /**
  * @route   GET /api/tours/slug/:slug

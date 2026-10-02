@@ -1,4 +1,4 @@
-import catalog from '../../../../server/src/config/tourFilters.json';
+import catalog from '../../../../server/src/config/tourFilters.json' with { type: 'json' };
 
 export { catalog };
 /** Unknown/legacy values are not visitor-facing labels. */

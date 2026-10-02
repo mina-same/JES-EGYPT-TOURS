@@ -49,9 +49,8 @@ export async function generateMetadata({
     },
     // The site is intentionally kept OUT of search indexes during development:
     // noindex, nofollow unless NEXT_PUBLIC_SITE_INDEXABLE is explicitly 'true'
-    // at launch (lib/seo/robots.ts; robots.txt follows the same flag). Pages
-    // whose entity has an editor "No Index" set their own value through the
-    // same helper, so the site switch still wins there.
+    // at launch (lib/seo/robots.ts; robots.txt follows the same flag). Every
+    // visitor page inherits this; only not-found pages set their own value.
     robots: getRobotsMetadata(),
   };
 }
@@ -63,17 +62,36 @@ const bodyFont = Manrope({
   variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
+  // The default, stated so this call differs from the admin layout's otherwise
+  // identical one. Identical calls share a font module, and Turbopack then
+  // linked the admin font CSS - with its preloaded Playfair italic - on every
+  // visitor page.
+  preload: true,
 });
 
 // Display face. Reached only through --gotur-display-font, never through
-// --gotur-heading-font (that token also drives prices and buttons). The italic
+// --gotur-heading-font (that token also drives prices and buttons). Its italic
 // style replaces Caveat as the decorative accent, so the site needs two
 // families total rather than three. `latin` covers de/it/es diacritics.
 const displayFont = Playfair_Display({
   variable: "--font-display",
   subsets: ["latin"],
   display: "swap",
-  style: ["normal", "italic"],
+  style: ["normal"],
+});
+
+// The italic style of the same family, declared on its own so it is NOT
+// preloaded: on most routes it only appears below the fold, and a preload made
+// its ~39 KB compete with the render-blocking CSS before first paint. Being the
+// same family, --font-display still reaches it for any italic text. Routes that
+// paint it in the first viewport preload it themselves (src/lib/fonts/). Its
+// variable is applied only so the face is always emitted; nothing reads it.
+const displayItalicFont = Playfair_Display({
+  variable: "--font-display-italic",
+  subsets: ["latin"],
+  display: "swap",
+  style: ["italic"],
+  preload: false,
 });
 
 export default async function RootLayout({
@@ -112,7 +130,7 @@ export default async function RootLayout({
     // a descendant. On <body> those tokens silently resolved to their fallbacks.
     <html
       lang={locale || "en"}
-      className={`${bodyFont.variable} ${displayFont.variable}`}
+      className={`${bodyFont.variable} ${displayFont.variable} ${displayItalicFont.variable}`}
       suppressHydrationWarning
     >
       <head></head>

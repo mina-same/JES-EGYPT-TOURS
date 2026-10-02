@@ -3,6 +3,9 @@ import test from 'node:test';
 // Declares `req.locale`, which these controllers read. The full build sees it
 // through tsconfig's include; a single test file only when it loads it.
 import '../src/middleware/i18n';
+// Declares `req.user`, which the destination reads use to tell the Admin from
+// an anonymous caller.
+import type {} from '../src/types/express';
 import Blog from '../src/models/Blog';
 import BlogCategory from '../src/models/BlogCategory';
 import BlogSubCategory from '../src/models/BlogSubCategory';
@@ -117,18 +120,20 @@ const assertNoComments = (json: string, label: string) => {
 };
 
 const entity = { _id: 'e1', name: { en: 'Entity' }, slug: { en: 'entity' }, featuredBlogs: ['a1', 'a2'], featuredDestinations: [] };
-const BY_ID_ROUTES: [string, { findById: unknown }, Handler][] = [
-  ['/blog/categories/:id', BlogCategory, getBlogCategoryById],
-  ['/blog/subcategories/:id', BlogSubCategory, getBlogSubcategoryById],
-  ['/destinations/:id', Destination, getDestinationById],
-  ['/tours/categories/:id', TourCategory, getTourCategoryById],
-  ['/tours/subcategories/:id', TourSubcategory, getTourSubcategoryById],
+// The destination read is a findOne: for an anonymous caller it also filters
+// on the publication rule, which findById cannot carry.
+const BY_ID_ROUTES: [string, { findById: unknown; findOne: unknown }, Handler, 'findById' | 'findOne'][] = [
+  ['/blog/categories/:id', BlogCategory, getBlogCategoryById, 'findById'],
+  ['/blog/subcategories/:id', BlogSubCategory, getBlogSubcategoryById, 'findById'],
+  ['/destinations/:id', Destination, getDestinationById, 'findOne'],
+  ['/tours/categories/:id', TourCategory, getTourCategoryById, 'findById'],
+  ['/tours/subcategories/:id', TourSubcategory, getTourSubcategoryById, 'findById'],
 ];
 
-for (const [route, model, handler] of BY_ID_ROUTES) {
+for (const [route, model, handler, read] of BY_ID_ROUTES) {
   test(`${route} embeds its featured articles without their stored comments`, async () => {
-    const original = model.findById;
-    model.findById = () => entityQuery(entity);
+    const original = model[read];
+    model[read] = () => entityQuery(entity);
     try {
       const { status, json } = await respond(handler, { params: { id: 'e1' }, locale: 'bypass' });
       const featured = JSON.parse(json).data.featuredBlogs;
@@ -139,7 +144,7 @@ for (const [route, model, handler] of BY_ID_ROUTES) {
       assert.deepEqual(featured.map((article: Doc) => article._id), ['a1', 'a2']);
       assert.ok(featured.every((article: Doc) => Array.isArray(article.contentBlocks)));
     } finally {
-      model.findById = original;
+      model[read] = original;
     }
   });
 }

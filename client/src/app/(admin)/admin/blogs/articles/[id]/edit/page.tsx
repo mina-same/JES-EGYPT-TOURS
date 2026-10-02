@@ -90,8 +90,6 @@ const INITIAL_BLOG_EDIT: any = {
   ogDescription: { en: '', de: '', it: '', es: '' },
   ogImage: '',
   ogType: 'article',
-  noIndex: false,
-  noFollow: false,
   focusKeyword: { en: '', de: '', it: '', es: '' },
   breadcrumbs: [],
   relatedPosts: [],
@@ -435,8 +433,6 @@ export default function EditBlogPage() {
           ogDescription: normalizeLocalizedString(blog.ogDescription),
           ogImage: blog.ogImage || '',
           ogType: blog.ogType || 'article',
-          noIndex: blog.noIndex || false,
-          noFollow: blog.noFollow || false,
           focusKeyword: normalizeLocalizedString(blog.focusKeyword),
           breadcrumbs: (blog.breadcrumbs || []).map((b: any) => ({
             ...b,
@@ -1516,25 +1512,6 @@ export default function EditBlogPage() {
                         activeLanguage={activeLanguage}
                       />
 
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="noIndex"
-                          checked={formData.noIndex}
-                          onCheckedChange={(checked) => handleChange('noIndex', checked)}
-                        />
-                        <Label htmlFor="noIndex">No Index</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="noFollow"
-                          checked={formData.noFollow}
-                          onCheckedChange={(checked) => handleChange('noFollow', checked)}
-                        />
-                        <Label htmlFor="noFollow">No Follow</Label>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

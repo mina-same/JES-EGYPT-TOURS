@@ -27,6 +27,8 @@ import { faqService, type FAQ } from "@/services/faqService";
 import { sliderService } from "@/services/sliderService";
 import type { SliderItem, SliderUnderPromo } from "@/types/slider";
 import { Metadata } from "next";
+// The slider subtitle paints in Playfair italic in the first viewport.
+import "@/lib/fonts/displayItalicHome";
 
 // Upper bound for the homepage Featured Tours carousel (looping slider shows
 // all of them, filtered to the active locale). Generous but bounded for perf.

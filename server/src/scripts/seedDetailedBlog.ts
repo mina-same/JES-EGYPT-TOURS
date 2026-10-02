@@ -178,10 +178,6 @@ const seedDetailedBlog = async () => {
       ogImage: SEED_IMAGE_PLACEHOLDER,
       ogType: 'article',
       
-      // Indexing
-      noIndex: false,
-      noFollow: false,
-      
       // Focus Keyword
       focusKeyword: { en: 'luxury egypt itinerary' },
       

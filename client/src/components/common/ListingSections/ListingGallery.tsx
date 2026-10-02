@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 import Masonry from 'react-masonry-css';
-import { Gallery as PhotoSwipeGallery, Item } from 'react-photoswipe-gallery';
+import { Gallery as PhotoSwipeGallery, Item } from '@/components/common/LazyPhotoSwipe/LazyPhotoSwipe';
 import 'photoswipe/dist/photoswipe.css';
 
 interface ListingGalleryProps {

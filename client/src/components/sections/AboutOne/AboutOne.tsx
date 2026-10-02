@@ -9,6 +9,7 @@ import Link from "next/link";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import "./AboutOne.css";
 // Eye of Horus (no icon library ships one) — same stroke style as the site's lucide icons
 const EyeOfHorusIcon = () => (
   <svg
@@ -76,26 +77,33 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
         <Row className='gutter-y-40'>
           <Col lg={6}>
             <div className='about-one__thumb'>
+              {/* width/height are the photo's own proportions (1149×1369): the
+                  browser sizes the box from them before the file arrives, so
+                  the text below no longer jumps when it does. */}
               <div className='about-one__thumb__item'>
                 <Image
                   src={images.mainImage}
                   alt={t("about.mainImageAlt")}
-                  width={600}
-                  height={480}
+                  width={1149}
+                  height={1369}
                   sizes='(max-width: 991px) 100vw, 50vw'
                   style={{ objectFit: "cover", width: "100%", height: "100%" }}
                 />
               </div>
               {/* NOTE: no `sizes` here — the absolutely-positioned container
                   shrink-wraps, so the browser derives the DISPLAY size from the
-                  chosen source file; a `sizes` attr visibly shrinks the photo. */}
+                  chosen source file; a `sizes` attr visibly shrinks the photo.
+                  AboutOne.css now reserves that size before the file arrives;
+                  256×216 is the delivered files' shape (same 1x/2x candidates
+                  as before). */}
               <div className='about-one__thumb__item-small'>
                 <Image
                   src={images.smallImage}
                   alt={t("about.smallImageAlt")}
-                  width={220}
-                  height={180}
-                  style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                  width={256}
+                  height={216}
+                  className='about-one__small-photo'
+                  style={{ objectFit: "cover" }}
                 />
               </div>
               <div className='about-one__thumb__item-popup'>

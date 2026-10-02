@@ -376,9 +376,9 @@ const seedDestinations = async () => {
     for (const data of destinationsData) {
       await Destination.create({
         ...data,
-        isActive: true,
-        noIndex: false,
-        noFollow: false
+        // Fully written pages: published, unlike a new destination's default.
+        status: 'published',
+        isActive: true
       });
     }
 

@@ -4,8 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { localizeInternalUrl } from '@/lib/url';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import { ArrowUpRight, Clock, ArrowRight } from 'lucide-react';
+import { entrance, useEntranceOnMount } from '@/components/common/Entrance/Entrance';
 import { getLocalizedValue } from '@/lib/localize';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import enBlogs from '@/i18n/locales/en/blogs.json';
@@ -38,6 +38,9 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
   articleCount,
 }) => {
   const previewBlogs = featuredBlogs.slice(0, 3);
+  // Scroll-triggered entrances: armed only below the fold, never on content
+  // the server already painted on screen. See Entrance.ts.
+  const animateIn = useEntranceOnMount('below-fold');
   const t = (key: string, params?: Record<string, string | number>) => {
     let value = translations[locale]?.[key] || translations.en?.[key] || key;
     Object.entries(params || {}).forEach(([paramKey, paramValue]) => {
@@ -78,41 +81,33 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
         }}
       />
 
-      {/* Large decorative quote mark */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-        viewport={{ once: true }}
-        className="position-absolute"
-        style={{
+      {/* Large decorative quote mark. This style said `opacity: 0.08`, but the
+          Framer Motion entrance animated opacity to 1 over it, so the mark has
+          always rendered fully opaque; it stays that way here. */}
+      <div
+        {...entrance(animateIn, { scale: 0.8, duration: 0.8, delay: 0.3, inView: 'once' }, {
           top: '-20px',
           left: '5%',
           fontSize: '180px',
           lineHeight: 1,
           color: '#b79c5c',
-          opacity: 0.08,
           fontFamily: 'var(--gotur-display-font, Georgia), "Times New Roman", serif',
           fontWeight: 900,
           zIndex: 1,
           userSelect: 'none',
           pointerEvents: 'none',
-        }}
+        })}
+        className="position-absolute"
       >
-        "
-      </motion.div>
+        {'"'}
+      </div>
 
       <div className="container position-relative" style={{ zIndex: 2, paddingTop: '100px', paddingBottom: '100px' }}>
         <div className="row align-items-center g-5">
 
           {/* ── LEFT COLUMN ── */}
           <div className="col-lg-6">
-            <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, ease: 'easeOut' }}
-              viewport={{ once: true }}
-            >
+            <div {...entrance(animateIn, { x: -40, duration: 0.7, inView: 'once' })}>
               {/* Tagline */}
               <p
                 style={{
@@ -212,7 +207,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                   <ArrowRight size={16} />
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* ── RIGHT COLUMN — Mini Blog Cards ── */}
@@ -229,12 +224,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
 
                   return (
                     <React.Fragment key={blog._id}>
-                      <motion.div
-                        initial={{ opacity: 0, x: 40 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: index * 0.15 }}
-                        viewport={{ once: true }}
-                      >
+                      <div {...entrance(animateIn, { x: 40, duration: 0.5, delay: index * 0.15, inView: 'once' })}>
                         <Link
                           href={`/${locale}/${slug}`}
                           className="d-flex align-items-center gap-3 position-relative text-decoration-none blog-cta-card"
@@ -329,7 +319,7 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                             style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}
                           />
                         </Link>
-                      </motion.div>
+                      </div>
 
                       {/* Divider between cards */}
                       {index < previewBlogs.length - 1 && (

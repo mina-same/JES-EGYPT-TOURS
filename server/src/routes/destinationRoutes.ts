@@ -9,16 +9,17 @@ import {
   deleteDestination,
   toggleDestinationStatus,
 } from '../controllers/destinationController';
-import { protect, permit } from '../middleware/auth';
+import { protect, optionalProtect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getAllDestinations);
+// Public routes. The list and by-id reads return published destinations to an
+// anonymous caller and every destination to the Admin (optionalProtect).
+router.get('/', optionalProtect, getAllDestinations);
 router.get('/slug/:slug', getDestinationBySlug);
 router.get('/:id/blogs', getBlogsByDestination);
-router.get('/:id', getDestinationById);
+router.get('/:id', optionalProtect, getDestinationById);
 
 // Admin routes
 router.post('/', protect, permit(PERMISSIONS.BLOG_CREATE), createDestination);

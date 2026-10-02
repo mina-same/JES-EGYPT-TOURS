@@ -36,7 +36,8 @@ async function main() {
       if (!exists) {
         const destination = new Destination({
           name: localized(entry.name), shortName: localized(entry.name),
-          slug: localized(entry.slug), isActive: true, noIndex: true,
+          // A catalog entry with no content: usable by tours, no public page.
+          slug: localized(entry.slug), status: 'draft', isActive: true,
         });
         await destination.validate();
         missing.push(destination);

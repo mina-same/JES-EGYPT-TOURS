@@ -7,6 +7,8 @@ import { FilterQuery } from 'mongoose';
 import { normalizeDocumentImage, normalizeImageValue } from '../utils/image';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
+import { destinationPopulateFor } from '../utils/destinationAccess';
 
 // ==================== INTERFACES ====================
 
@@ -129,7 +131,7 @@ export const getAllCategories = async (
 /**
  * @desc    Get single blog category by ID
  * @route   GET /api/blog/categories/:id
- * @access  Public
+ * @access  Public (published featured destinations); Admin token (all of them)
  */
 export const getCategoryById = async (
   req: Request,
@@ -139,7 +141,9 @@ export const getCategoryById = async (
     const category = await BlogCategory.findById(req.params.id)
       .populate('subcategoriesCount')
       .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
-      .populate('featuredDestinations')
+      // The Admin's editor gets every saved reference back, drafts included,
+      // or a save would drop them; anyone else gets landing pages only.
+      .populate(destinationPopulateFor(req, 'featuredDestinations'))
       .lean();
 
     if (!category) {
@@ -201,10 +205,8 @@ export const getCategoryBySlug = async (
       // neither `tags` nor `subCategory` nor `editorialAuthor`, so its cards
       // could not draw a section label or a real byline at all.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate({
-        path: 'featuredDestinations',
-        select: 'name slug coverImage',
-      })
+      // Each card links to the destination's page, so drafts are left out.
+      .populate(publicDestinationPopulate('featuredDestinations', 'name slug coverImage'))
       .lean();
 
     if (!category) {

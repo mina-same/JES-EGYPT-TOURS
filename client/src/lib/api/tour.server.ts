@@ -26,6 +26,7 @@
  * fetch in (home)/layout.tsx.
  */
 import { API_URL } from '@/config/api';
+import { sanitizeTourFilters } from '../tours/filterValues';
 import type { ApiResponse, QueryParams } from './tour';
 
 /* ── Tags ──────────────────────────────────────────────────────────────────
@@ -38,6 +39,12 @@ import type { ApiResponse, QueryParams } from './tour';
 export const TOUR_TAG = 'tours';
 export const TOUR_CATEGORY_TAG = 'tour-categories';
 export const TOUR_SUBCATEGORY_TAG = 'tour-subcategories';
+/*
+ * The category and subcategory pages embed destination documents
+ * (featuredDestinations), so they also depend on the tag a destination save
+ * clears: server/src/models/Destination.ts -> ['destinations', 'tours'].
+ */
+const DESTINATION_TAG = 'destinations';
 
 /* ── TTLs ──────────────────────────────────────────────────────────────────
  * Tag invalidation is the PRIMARY freshness mechanism; these are the fallback
@@ -194,16 +201,25 @@ export const tourServerAPI = {
       locale,
       tags: [TOUR_TAG],
       revalidate: LISTING_TTL,
-      params: { ...params, filterVersion: 2 } as Record<string, unknown>,
+      params: { ...sanitizeTourFilters(params), filterVersion: 4 } as Record<string, unknown>,
       cache: cacheable,
     }),
 };
+
+/** Global key registry validates direct visitor URLs even for a zero-inventory scope. */
+export async function getPublicDestinationKeys(): Promise<string[]> {
+  const result = await getEntity<string[]>('tours/destination-keys', {
+    locale: 'en', tags: [DESTINATION_TAG, TOUR_TAG], revalidate: CMS_TTL,
+  });
+  if (!result?.success || !Array.isArray(result.data)) throw new Error('Destination key registry unavailable');
+  return result.data;
+}
 
 export const tourCategoryServerAPI = {
   getBySlug: (slug: string, locale: string) =>
     getEntity<any>(`tours/categories/slug/${encodeURIComponent(slug)}`, {
       locale,
-      tags: [TOUR_CATEGORY_TAG],
+      tags: [TOUR_CATEGORY_TAG, DESTINATION_TAG],
       revalidate: CMS_TTL,
     }),
 };
@@ -212,7 +228,7 @@ export const tourSubcategoryServerAPI = {
   getBySlug: (slug: string, locale: string, categoryId?: string) =>
     getEntity<any>(`tours/subcategories/slug/${encodeURIComponent(slug)}`, {
       locale,
-      tags: [TOUR_SUBCATEGORY_TAG],
+      tags: [TOUR_SUBCATEGORY_TAG, DESTINATION_TAG],
       revalidate: CMS_TTL,
       params: categoryId ? { category: categoryId } : undefined,
     }),
@@ -277,6 +293,7 @@ export function isCanonicalListing(query: {
   tourType?: string;
   tourStyles?: string;
   destinations?: string;
+  destinationKeys?: string;
   durationRange?: string;
   sort?: string;
   page?: number;
@@ -286,7 +303,7 @@ export function isCanonicalListing(query: {
   if (query.minPrice !== undefined) return false;
   if (query.maxPrice !== undefined) return false;
   if (query.tourType) return false;
-  if (query.tourStyles || query.destinations || query.durationRange) return false;
+  if (query.tourStyles || query.destinations || query.destinationKeys || query.durationRange) return false;
 
   if (query.sort && !CACHEABLE_SORTS.has(query.sort)) return false;
   if (query.page !== undefined && (query.page < 1 || query.page > MAX_CACHEABLE_PAGE)) return false;

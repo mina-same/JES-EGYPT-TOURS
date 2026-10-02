@@ -1,4 +1,4 @@
-/// <reference path="../src/types/express.d.ts" />
+import type {} from '../src/types/express';
 import '../src/middleware/i18n';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -23,7 +23,7 @@ test('options use the complete visible scope and localized short destination lab
     { priceStartingFrom: { USD: 0 } }, { priceStartingFrom: { USD: 90 } }, {},
   ] }) }));
   context.mock.method(Destination, 'find', (filter: any) => ({ select: () => ({ lean: async () => [
-    { _id: cairo, shortName: { de: 'Kairo' }, name: { en: 'Explore Cairo', de: 'Kairo entdecken' } },
+    { _id: cairo, filterKey: 'cairo', shortName: { de: 'Kairo' }, name: { en: 'Explore Cairo', de: 'Kairo entdecken' } },
     { _id: alexandria, name: { en: 'Alexandria', de: 'Alexandria' } },
   ].filter(d => filter._id.$in.some((id: Types.ObjectId) => id.equals(d._id))) }) }));
   let status: number | undefined;
@@ -31,7 +31,7 @@ test('options use the complete visible scope and localized short destination lab
   const res: any = { status(value: number) { status = value; return this; }, json(value: unknown) { response = value; } };
   await getTourFilterOptions({ locale: 'de', query: { category, page: '9', limit: '1', tourStyles: 'classic', search: 'other', sort: '-durationHours' } } as any, res);
   assert.equal(status, 200);
-  assert.deepEqual(response.data.destinations, [{ id: String(cairo), label: 'Kairo' }]);
+  assert.deepEqual(response.data.destinations, [{ id: 'cairo', label: 'Kairo' }]);
   assert.deepEqual(response.data.tourStyles, [{ id: 'luxury', label: 'Luxus' }, { id: 'honeymoon', label: 'Flitterwochen' }]);
   assert.deepEqual(response.data.priceRange, { min: 90, max: 90, currency: 'USD' });
   for (const filter of filters) {

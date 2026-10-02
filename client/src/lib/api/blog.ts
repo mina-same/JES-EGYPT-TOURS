@@ -10,6 +10,14 @@ import type { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import type { ISEO } from '@/types/blog';
 import type { IFAQ } from '@/types/tour';
 
+/**
+ * The category and topic pages embed destination documents (the featured
+ * destination cards), so those two reads depend on destinations as well as on
+ * the blog. A destination save clears `destinations`
+ * (server/src/models/Destination.ts) and refreshes exactly these reads, without
+ * being treated as a blog write that clears every article cache.
+ */
+const DESTINATION_TAG = 'destinations';
 
 export interface BlogCategory {
 
@@ -304,7 +312,7 @@ export async function getCategoryBySlug(slug: string, locale?: string): Promise<
   const res = await fetchEntity(
     `${API_URL}/blog/categories/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
     {
-      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG, DESTINATION_TAG]),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     },
     { what: 'category', slug, locale }
@@ -367,7 +375,7 @@ export async function getSubCategoryBySlug(slug: string, locale?: string): Promi
   const res = await fetchEntity(
     `${API_URL}/blog/subcategories/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
     {
-      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]),
+      ...blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG, DESTINATION_TAG]),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
     },
     { what: 'subcategory', slug, locale }

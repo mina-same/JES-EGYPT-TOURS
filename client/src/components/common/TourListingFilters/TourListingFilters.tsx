@@ -1,10 +1,11 @@
 'use client';
 
-import { Filter } from 'lucide-react';
-import { useId, type Dispatch, type FormEvent, type SetStateAction } from 'react';
+import { useId, type Dispatch, type FocusEvent, type FormEvent, type SetStateAction } from 'react';
 import type { FilterOption } from '@/lib/tours/catalog';
 import { StructuredFilters } from './StructuredFilters';
 import type { TourFilterValues } from '@/lib/tours/listingFilters';
+import { validateTourPriceRange } from '@/lib/tours/listingFilters';
+import './visitorFilters.css';
 
 interface TourListingFiltersProps {
   t: (key: string) => string;
@@ -22,6 +23,7 @@ interface TourListingFiltersProps {
   noBorder?: boolean;
   hideHeader?: boolean;
   fullHeight?: boolean;
+  hideSearch?: boolean;
 }
 
 export default function TourListingFilters({
@@ -38,20 +40,43 @@ export default function TourListingFilters({
   noBorder = false,
   hideHeader = false,
   fullHeight = false,
+  hideSearch = false,
 }: TourListingFiltersProps) {
   const id = useId();
   const fieldId = (name: string) => `${id}-${name}`;
   const update = (patch: Partial<TourFilterValues>) =>
     setDraftFilters((previous) => ({ ...previous, ...patch }));
+  const revealFocusedControl = (event: FocusEvent<HTMLFormElement>) => {
+    if (fullHeight || !window.matchMedia('(min-width: 992px)').matches) return;
+    const actions = event.currentTarget.querySelector('.visitor-filter-actions');
+    if (!actions || actions.contains(event.target)) return;
+    const target = event.target.closest('.visitor-filter-option') || event.target;
+    const controlBounds = target.getBoundingClientRect();
+    const actionBounds = actions.getBoundingClientRect();
+    // Native focus scrolling does not account for a sticky sibling footer.
+    if (controlBounds.bottom > actionBounds.top && controlBounds.top < actionBounds.bottom) {
+      target.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+  };
   const submit = (event: FormEvent) => {
     event.preventDefault();
     handleApplyFilters();
+    if (validateTourPriceRange(draftFilters.minPrice, draftFilters.maxPrice)) {
+      const invalidName = validateTourPriceRange('', draftFilters.maxPrice) && !validateTourPriceRange(draftFilters.minPrice, '') ? 'maxPrice' : 'minPrice';
+      const input = event.currentTarget.querySelector<HTMLInputElement>(`[id="${fieldId(invalidName)}"]`);
+      requestAnimationFrame(() => {
+        input?.focus({ preventScroll: true });
+        input?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+    }
   };
 
   return (
     <form
       onSubmit={submit}
-      className="listing__sidebar__item__inner"
+      onFocusCapture={revealFocusedControl}
+      noValidate
+      className={`listing__sidebar__item__inner visitor-filters ${fullHeight ? 'visitor-filters--drawer' : 'visitor-filters--page'}`}
       style={{
         borderRadius: noBorder ? 0 : 14,
         border: noBorder ? 'none' : '1px solid #eee',
@@ -61,41 +86,34 @@ export default function TourListingFilters({
         flexDirection: 'column',
       }}
     >
-      {!hideHeader && (
-        <div
-          style={{ padding: noBorder ? '0 0 18px 0' : 18, borderBottom: '1px solid #f0f0f0' }}
-          className="d-flex justify-content-between align-items-center"
-        >
-          <span className="listing__sidebar__title" style={{ margin: 0, fontSize: noBorder ? 22 : 18, fontWeight: 800, color: '#1d231f', display: 'block' }}>
-            {t('filters.title')}
-          </span>
-          <Filter className="w-5 h-5 text-[#b79c5c]" aria-hidden="true" />
-        </div>
-      )}
+      {!hideHeader && <div className="visitor-filter-heading">{t('filters.title')}</div>}
 
-      <div style={{ padding: noBorder ? (hideHeader ? '10px 20px 24px' : '24px 20px') : 18, display: 'grid', gap: 14, flex: fullHeight ? 1 : 'none' }}>
-        <div>
+      <div className="visitor-filter-content" style={{ minHeight: 0, overflowY: fullHeight ? 'auto' : undefined, flex: fullHeight ? 1 : 'none' }}>
+        {!hideSearch && <div className="visitor-filter-group">
           <label htmlFor={fieldId('search')} className="form-label" style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t('filters.search')}</label>
           <input id={fieldId('search')} type="search" className="form-control rounded-3" style={{ padding: '10px 15px' }} value={draftFilters.search} onChange={(event) => update({ search: event.target.value })} placeholder={t('filters.searchPlaceholder')} />
-        </div>
+        </div>}
 
         <StructuredFilters values={draftFilters} update={update} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={t} part="places-duration" />
-        <div className="row g-2 align-items-end">
+        <fieldset className="visitor-filter-group visitor-filter-price">
+          <legend>{t('filters.price')}</legend>
+          <div className="row g-2 align-items-end">
           {(['minPrice', 'maxPrice'] as const).map((name) => (
             <div className="col-6" key={name}>
               <label htmlFor={fieldId(name)} className="form-label" style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{t(`filters.${name}`)}</label>
-              <div className="input-group">
+              <div className="input-group visitor-price-input">
                 <span className="input-group-text bg-white border-end-0" aria-hidden="true">{currencySymbol}</span>
                 <input
                   id={fieldId(name)}
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   step="any"
                   className="form-control border-start-0 rounded-end-3"
                   style={{ padding: 10 }}
                   value={draftFilters[name]}
                   onChange={(event) => update({ [name]: event.target.value })}
-                  placeholder={name === 'minPrice' ? '0' : '9999'}
+                  placeholder={t(name === 'minPrice' ? 'filters.minPlaceholder' : 'filters.maxPlaceholder')}
                   aria-invalid={Boolean(validationError)}
                   aria-describedby={validationError ? fieldId('price-error') : undefined}
                 />
@@ -105,15 +123,14 @@ export default function TourListingFilters({
         </div>
 
         {validationError && <p id={fieldId('price-error')} className="text-danger mb-0" role="alert" style={{ fontSize: 13 }}>{validationError}</p>}
+        </fieldset>
 
         <StructuredFilters values={draftFilters} update={update} destinations={destinationOptions} types={tourTypeOptions} styles={tourStyleOptions} t={t} part="type-styles" />
       </div>
 
-      <div style={{ padding: noBorder ? '24px 20px' : 18, borderTop: '1px solid #f0f0f0', marginTop: 'auto' }}>
-        <div className="row g-2">
-          <div className="col-6"><button type="submit" className="gotur-btn" style={{ width: '100%', borderRadius: 10 }}>{t('filters.apply')}</button></div>
-          <div className="col-6"><button type="button" onClick={handleResetFilters} className="gotur-btn" style={{ width: '100%', background: 'transparent', color: '#111', border: '1px solid #e5e5e5', borderRadius: 10 }}>{t('filters.reset')}</button></div>
-        </div>
+      <div className="visitor-filter-actions">
+        <button type="submit" className="gotur-btn visitor-filter-apply">{t('filters.applyLabel')}</button>
+        <button type="button" onClick={handleResetFilters} className="visitor-filter-reset">{t('filters.reset')}</button>
       </div>
     </form>
   );

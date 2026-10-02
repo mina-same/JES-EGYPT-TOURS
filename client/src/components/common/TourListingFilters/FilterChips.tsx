@@ -1,27 +1,19 @@
 'use client';
-import { catalogOptions, type FilterOption } from '@/lib/tours/catalog';
-import { splitFilterValues } from './StructuredFilters';
+import type { FilterOption } from '@/lib/tours/catalog';
+import { tourFilterChips } from '@/lib/tours/filterValues';
 
-export default function FilterChips({ values, destinations, locale, t, remove }: {
+export default function FilterChips({ values, destinations, locale, currencySymbol, t, remove }: {
   values: object;
   destinations: FilterOption[];
   locale: string;
-  t: (key: string) => string;
+  currencySymbol: string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   remove: (key: string, remaining: string) => void;
 }) {
-  const labels = [...catalogOptions('types', locale), ...catalogOptions('styles', locale), ...destinations];
-  return <>{Object.entries(values).filter(([key, value]) => value && !['sort', 'blogSubCategory'].includes(key)).flatMap(([key, value]) => {
-    const multi = ['tourStyles', 'destinations', 'durationRange'].includes(key);
-    const selected = multi ? splitFilterValues(value) : [value!];
-    return selected.map(id => {
-      if (key === 'tourStyles' && !catalogOptions('styles', locale).some(option => option.id === id)) return null;
-      const label = key === 'durationRange' ? t(`filters.durationRanges.${id}`)
-        : labels.find(option => option.id === id)?.label || id;
-      return <button key={`${key}-${id}`} type="button" className="btn btn-sm btn-outline-secondary rounded-pill"
-        aria-label={`${t('filters.remove')} ${label}`}
-        onClick={() => remove(key, multi ? selected.filter(item => item !== id).join(',') : '')}>
-        {label} <span aria-hidden="true">×</span>
-      </button>;
-    });
-  })}</>;
+  return <>{tourFilterChips(values, destinations, locale, currencySymbol, t).map(chip =>
+    <button key={chip.key + '-' + chip.id} type="button" className="visitor-filter-chip btn btn-sm btn-outline-secondary rounded-pill"
+      aria-label={t('filters.remove') + ' ' + chip.label} onClick={() => remove(chip.key, chip.remaining)}>
+      {chip.label} <span aria-hidden="true">&times;</span>
+    </button>
+  )}</>;
 }

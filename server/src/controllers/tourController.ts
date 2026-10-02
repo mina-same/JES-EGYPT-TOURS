@@ -2,6 +2,7 @@ import { hasNestedTourType, validTourType } from '../utils/tourType';
 import { listingSortStages } from '../utils/tourListingSort';
 import { validTourStyles } from '../utils/tourStyles';
 import { structuredTourFilters } from '../utils/tourFilterContract';
+import { normalizeDestinationFilterKey } from '../utils/destinationFilterKey';
 import filterCatalog from '../config/tourFilters.json';
 import Destination from '../models/Destination';
 import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
@@ -51,6 +52,8 @@ interface QueryParams {
   tourType?: string;
   tourStyles?: string;
   destinations?: string;
+  /** Visitor-facing stable keys; resolved to ObjectIds before building the Mongo filter. */
+  destinationKeys?: string;
   durationRange?: string;
   currency?: string;
   page?: string;
@@ -221,7 +224,18 @@ const buildQueryFilter = async (
     ];
   }
 
-  Object.assign(filter, structuredTourFilters(queryParams));
+  let resolvedDestinations = queryParams.destinations;
+  if (queryParams.destinationKeys !== undefined) {
+    if (queryParams.destinations !== undefined) throw new TourQueryValidationError('Conflicting destination filters');
+    if (typeof queryParams.destinationKeys !== 'string' || queryParams.destinationKeys.length > 2000) throw new TourQueryValidationError('Invalid destination keys');
+    const keys = [...new Set(queryParams.destinationKeys.split(',').map(key => key.trim()).filter(Boolean))].sort();
+    if (keys.length > 100) throw new TourQueryValidationError('Invalid destination keys');
+    if (keys.some(key => normalizeDestinationFilterKey(key) !== key)) throw new TourQueryValidationError('Invalid destination key');
+    const documents = await Destination.find({ filterKey: { $in: keys } }).select('_id filterKey').lean();
+    if (documents.length !== keys.length) throw new TourQueryValidationError('Unknown destination key');
+    resolvedDestinations = documents.map(document => String(document._id)).join(',');
+  }
+  Object.assign(filter, structuredTourFilters({ ...queryParams, destinations: resolvedDestinations }));
 
   applyStartingPriceFilter(filter, queryParams.minPrice, queryParams.maxPrice, currency, currencyRate);
 
@@ -434,7 +448,7 @@ export const getTourFilterOptions = async (
       Object.entries(filterCatalog[group]).filter(([id]) => values.includes(id))
         .map(([id, labels]) => ({ id, label: labels[locale] || labels.en }));
     const destinations = await Destination.find({ _id: { $in: destinationIds }, isActive: { $ne: false } })
-      .select('name shortName').lean();
+      .select('name shortName filterKey').lean();
 
     const prices = pricedTours.map(tour => effectiveStartingPrice(tour.priceStartingFrom, currency, currencyRate))
       .filter((price): price is number => typeof price === 'number' && price > 0);
@@ -444,7 +458,7 @@ export const getTourFilterOptions = async (
       data: {
         tourTypes: optionValues('types', rawTypes),
         tourStyles: optionValues('styles', rawStyles),
-        destinations: destinations.map(d => ({ id: String(d._id), label: d.shortName?.[locale] || d.name?.[locale] || d.shortName?.en || d.name.en })).sort((a,b) => a.label.localeCompare(b.label, locale)),
+        destinations: destinations.filter(d => d.filterKey).map(d => ({ id: d.filterKey, label: d.shortName?.[locale] || d.name?.[locale] || d.shortName?.en || d.name.en })).sort((a,b) => a.label.localeCompare(b.label, locale)),
         priceRange: {
           min: prices.length ? Math.min(...prices) : null,
           max: prices.length ? Math.max(...prices) : null,
@@ -460,6 +474,16 @@ export const getTourFilterOptions = async (
       error: isValidationError ? error.message : 'Failed to fetch tour filter options',
       message: getErrorMessage(error),
     });
+  }
+};
+
+/** Global validity list, independent of one category's current inventory. */
+export const getTourDestinationKeys = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const rows = await Destination.find({ filterKey: { $type: 'string' } }).select('filterKey').lean();
+    res.status(200).json({ success: true, data: rows.map(row => row.filterKey).filter(key => normalizeDestinationFilterKey(key) === key).sort() });
+  } catch {
+    res.status(500).json({ success: false, error: 'Failed to load destination keys' });
   }
 };
 

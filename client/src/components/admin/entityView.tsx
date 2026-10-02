@@ -329,7 +329,6 @@ export function SeoHealthPanel({
   readiness,
   showOg = false,
   showFocusKeyword = false,
-  showIndexing = false,
   socialImageUrl = null,
   focusKeywordDensity,
   readyLabels,
@@ -338,7 +337,6 @@ export function SeoHealthPanel({
   readiness: ReadinessItem[];
   showOg?: boolean;
   showFocusKeyword?: boolean;
-  showIndexing?: boolean;
   socialImageUrl?: string | null;
   focusKeywordDensity?: number | null;
   readyLabels?: { ready: string; notReady: string };
@@ -418,9 +416,6 @@ export function SeoHealthPanel({
           <Field label="Focus keyword density (EN)">
             {focusKeywordDensity != null ? `${focusKeywordDensity}%  ·  ideal 0.5–2.5%` : '—'}
           </Field>
-        )}
-        {showIndexing && (
-          <Field label="Indexing">{seo?.noIndex ? 'noindex' : 'index'}{seo?.noFollow ? ', nofollow' : ', follow'}</Field>
         )}
       </div>
     </Section>

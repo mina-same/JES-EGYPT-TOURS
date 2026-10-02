@@ -5,6 +5,8 @@ import TourSubcategory from '../models/TourSubcategory';
 import { FilterQuery } from 'mongoose';
 import { ITourSubcategory } from '../models/TourSubcategory';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
+import { destinationPopulateFor } from '../utils/destinationAccess';
 
 // ==================== INTERFACES ====================
 
@@ -193,7 +195,7 @@ export const getSubcategoriesByCategory = async (
 /**
  * @desc    Get single tour subcategory by ID
  * @route   GET /api/tours/subcategories/:id
- * @access  Public
+ * @access  Public (published featured destinations); Admin token (all of them)
  */
 export const getSubcategoryById = async (
   req: Request,
@@ -204,7 +206,10 @@ export const getSubcategoryById = async (
       .populate('category', 'name slug description')
       .populate('toursCount')
       .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
-      .populate('featuredDestinations')
+      // Featured landing pages, not the tours' Places Visited. The Admin's
+      // editor gets every saved reference back, drafts included, or a save
+      // would drop them; anyone else gets published destinations only.
+      .populate(destinationPopulateFor(req, 'featuredDestinations'))
       .lean();
 
     if (!subcategory) {
@@ -273,7 +278,9 @@ export const getSubcategoryBySlug = async (
       .populate('toursCount')
       // Cards, not articles — see blogCardPopulate.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate('featuredDestinations')
+      // Featured landing pages, so published destinations only. This is not
+      // the tours' own Places Visited, which never depends on publication.
+      .populate(publicDestinationPopulate('featuredDestinations'))
       .lean();
 
     if (!subcategory) {

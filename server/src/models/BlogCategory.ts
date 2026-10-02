@@ -32,10 +32,6 @@ export interface IBlogCategory extends Document {
   ogImage?: string;
   ogType?: string;
   
-  // Indexing Control
-  noIndex: boolean;
-  noFollow: boolean;
-  
   // Status
   isActive: boolean;
   editVersion: number;
@@ -135,16 +131,6 @@ const BlogCategorySchema: Schema = new Schema(
     ogType: {
       type: String,
       default: 'website',
-    },
-    
-    // === INDEXING CONTROL ===
-    noIndex: {
-      type: Boolean,
-      default: false,
-    },
-    noFollow: {
-      type: Boolean,
-      default: false,
     },
     
     // === STATUS ===

@@ -5,7 +5,7 @@
     "clearAll": "Cancella tutto",
     "priceRangeError": "Il prezzo minimo non può superare il prezzo massimo.",
     "priceInvalidError": "Inserisci un prezzo valido e non negativo.",
-    "title": "Trova il tuo tour perfetto",
+    "title": "Filtra tour",
     "search": "Cerca",
     "searchPlaceholder": "Cerca tour",
     "subcategory": "Sottocategoria",
@@ -26,7 +26,19 @@
       "7-9": "7–9 Giorni",
       "10-12": "10–12 Giorni",
       "13-plus": "13+ Giorni"
-    }
+    },
+    "priceFrom": "Prezzo da {{amount}}",
+    "priceUpTo": "Fino a {{amount}}",
+    "searchValue": "Ricerca: {{value}}",
+    "searchPlaces": "Cerca luoghi",
+    "showMore": "Mostra di più",
+    "showLess": "Mostra meno",
+    "noPlaces": "Nessun luogo corrisponde alla ricerca.",
+    "clearFilters": "Cancella filtri",
+    "price": "Prezzo",
+    "minPlaceholder": "Min",
+    "maxPlaceholder": "Max",
+    "applyLabel": "Applica filtri"
   },
   "listing": {
     "resultsCount": "{{count}} tour trovati",
@@ -42,7 +54,10 @@
       "durationDesc": "Durata: dalla più lunga"
     },
     "noToursCategory": "Nessun tour trovato in questa categoria.",
-    "noToursSubcategory": "Nessun tour trovato in questa sottocategoria."
+    "noToursSubcategory": "Nessun tour trovato in questa sottocategoria.",
+    "noMatchingTours": "Nessun tour corrisponde ai filtri attuali.",
+    "noToursAvailable": "Nessun tour disponibile.",
+    "adjustFiltersHelp": "Modifica o cancella i filtri per vedere altri tour."
   },
   "status": {
     "notFound": "Non trovato",

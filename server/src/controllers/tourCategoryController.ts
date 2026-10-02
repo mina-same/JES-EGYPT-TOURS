@@ -6,6 +6,8 @@ import { FilterQuery } from 'mongoose';
 import { ITourCategory } from '../models/TourCategory';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
+import { publicDestinationPopulate } from '../models/Destination';
+import { destinationPopulateFor } from '../utils/destinationAccess';
 
 // ==================== INTERFACES ====================
 
@@ -124,7 +126,7 @@ export const getAllCategories = async (
 /**
  * @desc    Get single tour category by ID
  * @route   GET /api/tours/categories/:id
- * @access  Public
+ * @access  Public (published featured destinations); Admin token (all of them)
  */
 export const getCategoryById = async (
   req: Request,
@@ -134,7 +136,10 @@ export const getCategoryById = async (
     const category = await TourCategory.findById(req.params.id)
       .populate('subcategoriesCount')
       .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
-      .populate('featuredDestinations')
+      // Featured landing pages, not the tours' Places Visited. The Admin's
+      // editor gets every saved reference back, drafts included, or a save
+      // would drop them; anyone else gets published destinations only.
+      .populate(destinationPopulateFor(req, 'featuredDestinations'))
       .lean();
 
     if (!category) {
@@ -194,7 +199,9 @@ export const getCategoryBySlug = async (
       // this, and an unprojected populate shipped whole article bodies in
       // four languages to do it.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate('featuredDestinations')
+      // Featured landing pages, so published destinations only. This is not
+      // the tours' own Places Visited, which never depends on publication.
+      .populate(publicDestinationPopulate('featuredDestinations'))
       .lean();
 
     if (!category) {

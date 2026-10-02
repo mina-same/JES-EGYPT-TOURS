@@ -31,6 +31,8 @@ export default function DestinationViewPage() {
 
   const title = getLocalizedValue(entity.name) || '(untitled)';
   const isActive = entity.isActive !== false;
+  // The page is public only when it is published and active.
+  const isPublished = entity.status === 'published';
   const socialImageUrl = entity.ogImage || getImageUrl(entity.metaImage);
   const coverUrl = getImageUrl(entity.coverImage);
   const faqs: any[] = Array.isArray(entity.faqs) ? entity.faqs : [];
@@ -68,6 +70,13 @@ export default function DestinationViewPage() {
         <div>
           <h1 className="admin-page-title flex items-center gap-3 flex-wrap">
             <span>{title}</span>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                isPublished ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              }`}
+            >
+              {isPublished ? 'Published' : 'Draft'}
+            </span>
             <ActiveBadge active={isActive} />
           </h1>
           <p className="admin-page-subtitle flex items-center gap-2"><span>Destination · read-only</span><LanguageBadges entity={entity} /></p>
@@ -78,7 +87,13 @@ export default function DestinationViewPage() {
         </div>
       </div>
 
-      <LiveUrlPreview slug={entity.slug} live={isActive} warning={<>This destination is <b>inactive</b> — its live URLs return 404 until it is activated.</>} />
+      <LiveUrlPreview
+        slug={entity.slug}
+        live={isPublished && isActive}
+        warning={isPublished
+          ? <>This destination is <b>inactive</b> — its live URLs return 404 until it is activated.</>
+          : <>This destination is a <b>draft</b> — it has no public page until it is published. Tours can still list it under Places Visited.</>}
+      />
 
       <TranslationMatrix rows={matrixRows} />
 
@@ -86,6 +101,7 @@ export default function DestinationViewPage() {
 
       <Section title="At a glance" icon={<Info size={14} />}>
         <div className="detail-grid">
+          <Field label="Status">{isPublished ? 'Published' : 'Draft'}</Field>
           <Field label="Active">{isActive ? 'Yes' : 'No'}</Field>
           <Field label="Region">{getLocalizedValue(entity.region) || '—'}</Field>
           <Field label="Time needed">{getLocalizedValue(entity.timeNeeded) || '—'}</Field>
@@ -136,7 +152,6 @@ export default function DestinationViewPage() {
         seo={entity}
         readiness={readiness}
         showOg
-        showIndexing
         socialImageUrl={socialImageUrl}
         readyLabels={{ ready: 'Ready to go live', notReady: 'Not ready to go live' }}
       />
@@ -148,7 +163,6 @@ export default function DestinationViewPage() {
           <Field label="OG title (EN)">{getLocalizedValue(entity.ogTitle) || '—'}</Field>
           <Field label="OG description (EN)">{getLocalizedValue(entity.ogDescription) || '—'}</Field>
           <Field label="OG image">{entity.ogImage || getImageUrl(entity.metaImage) || '—'}</Field>
-          <Field label="Indexing">{entity.noIndex ? 'noindex' : 'index'}{entity.noFollow ? ', nofollow' : ', follow'}</Field>
         </div>
       </Section>
 

@@ -1,0 +1,101 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { catalog, catalogOptions } from '../src/lib/tours/catalog';
+import { splitFilterValues } from '../src/lib/tours/filterValues';
+import { PUBLIC_SORTS } from '../src/lib/tours/publicListingUrl';
+
+function component(name: string) {
+  const url = new URL(`../src/components/common/TourListingFilters/${name}.tsx`, import.meta.url);
+  const require = createRequire(url);
+  const compiledModule = { exports: {} as any };
+  const code = ts.transpileModule(readFileSync(url, 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+    fileName: fileURLToPath(url),
+  }).outputText;
+  const overrides: Record<string, unknown> = {
+    '@/lib/tours/catalog': { catalog }, '@/lib/tours/filterValues': { splitFilterValues },
+    '@/lib/tours/publicListingUrl': { PUBLIC_SORTS },
+  };
+  new Function('require', 'module', 'exports', code)((id: string) => overrides[id] ?? require(id), compiledModule, compiledModule.exports);
+  return compiledModule.exports;
+}
+const { StructuredFilters } = component('StructuredFilters');
+const { default: TourEmptyState } = component('TourEmptyState');
+const { default: TourSort } = component('TourSort');
+const base = { values: { tourType: 'day-tour,nile-cruise', tourStyles: '', destinations: '' }, update() {},
+  destinations: [], types: catalogOptions('types'), styles: [], t: (key: string) => key };
+
+test('visitor type renders multiple checked choices while empty style/place groups disappear', () => {
+  const html = renderToStaticMarkup(React.createElement(StructuredFilters, base));
+  assert.equal((html.match(/checked=""/g) || []).length, 2);
+  assert.ok(!html.includes('filters.tourStyles'));
+  assert.ok(!html.includes('filters.destinations'));
+  assert.equal((html.match(/type="checkbox"/g) || []).length, 9); // four types, five duration ranges
+  assert.ok(!html.includes('<select'));
+  assert.ok(!html.includes('filters.anySelected'));
+  assert.ok(!html.includes('filters.durationHelp'));
+});
+
+test('a sole type is hidden unless selected; a sole style or place remains a meaningful subset', () => {
+  const props = { ...base, types: catalogOptions('types').slice(0, 1), values: { ...base.values, tourType: '' },
+    destinations: [{ id: 'place', label: 'Luxor' }], styles: catalogOptions('styles').slice(0, 1) };
+  const html = renderToStaticMarkup(React.createElement(StructuredFilters, props));
+  assert.ok(!html.includes('filters.tourType'));
+  assert.ok(html.includes('filters.tourStyles'));
+  assert.ok(html.includes('filters.destinations'));
+  const selected = renderToStaticMarkup(React.createElement(StructuredFilters, { ...props, values: { ...props.values, tourType: props.types[0].id } }));
+  assert.ok(selected.includes('filters.tourType'));
+  assert.ok(selected.includes('checked=""'));
+});
+
+test('short destination lists stay simple; long lists initially show eight and offer local search', () => {
+  const destinations = Array.from({ length: 10 }, (_, i) => ({ id: String(i), label: `Place ${i}` }));
+  const small = renderToStaticMarkup(React.createElement(StructuredFilters, { ...base, destinations: destinations.slice(0, 6), part: 'places-duration' }));
+  assert.ok(small.includes('Place 5'));
+  assert.ok(!small.includes('filters.searchPlaces'));
+  const long = renderToStaticMarkup(React.createElement(StructuredFilters, { ...base, destinations, part: 'places-duration' }));
+  assert.ok(long.includes('Place 7'));
+  assert.ok(!long.includes('Place 8'));
+  assert.ok(long.includes('filters.searchPlaces'));
+  assert.ok(long.includes('filters.showMore'));
+  assert.ok(!long.includes('max-height'));
+});
+
+test('empty results offer recovery only when filtered', () => {
+  const props = { filtered: true, emptyText: 'No tours here', clear() {}, t: base.t };
+  const filtered = renderToStaticMarkup(React.createElement(TourEmptyState, props));
+  assert.ok(filtered.includes('listing.noMatchingTours'));
+  assert.ok(filtered.includes('filters.clearFilters'));
+  const empty = renderToStaticMarkup(React.createElement(TourEmptyState, { ...props, filtered: false }));
+  assert.ok(empty.includes('No tours here'));
+  assert.ok(!empty.includes('<button'));
+});
+
+test('sort exposes a labeled combobox and a translated current choice before hydration', () => {
+  for (const value of PUBLIC_SORTS) {
+    const html = renderToStaticMarkup(React.createElement(TourSort, { value, onChange() {}, t: (key: string) => `Translated ${key}` }));
+    assert.ok(html.includes('role="combobox"'));
+    assert.ok(html.includes('aria-labelledby='));
+    assert.ok(html.includes('Translated listing.sortOptions.'));
+    assert.ok(html.includes('aria-expanded="false"'));
+  }
+});
+
+test('new visitor labels exist in every language without replacement characters or currency in input labels', () => {
+  for (const locale of ['en', 'de', 'it', 'es']) {
+    const messages = JSON.parse(readFileSync(new URL(`../src/i18n/locales/${locale}/tours.json`, import.meta.url), 'utf8'));
+    for (const key of ['searchPlaces', 'showMore', 'showLess', 'noPlaces', 'clearFilters', 'priceFrom', 'priceUpTo', 'searchValue']) {
+      assert.ok(messages.filters[key]);
+      assert.ok(!/[?\uFFFD]/.test(messages.filters[key]), `${locale}: ${key}`);
+    }
+    const search = JSON.parse(readFileSync(new URL(`../src/i18n/locales/${locale}/search.json`, import.meta.url), 'utf8'));
+    assert.ok(!/[$?\uFFFD]/.test(search.minPrice + search.maxPrice));
+  }
+  assert.equal(catalogOptions('styles', 'es').find(option => option.id === 'family')?.label, 'Familiar');
+});

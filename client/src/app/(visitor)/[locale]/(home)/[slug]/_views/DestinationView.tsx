@@ -4,7 +4,6 @@ import React, { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Container, Row, Col } from "react-bootstrap";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { Trophy, Link2, Clock, Sun } from "lucide-react";
 
 import Layout from "@/components/layout/Layout/Layout";
@@ -21,7 +20,8 @@ import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel"
 
 import type { Destination, DestinationBlogsResponse } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
-import { useCanAnimateIn } from "@/hooks/useCanAnimateIn";
+import { entrance, useEntranceOnMount } from "@/components/common/Entrance/Entrance";
+import "./DestinationView.css";
 
 import enBlogs from "@/i18n/locales/en/blogs.json";
 import deBlogs from "@/i18n/locales/de/blogs.json";
@@ -87,8 +87,8 @@ export default function DestinationView({ slug, locale, destination, blogsData }
 
   // Everything below is in the server HTML now, so it must start in its final
   // state: an entrance animation starting from opacity 0 would leave it
-  // invisible until the page's JavaScript ran. See useCanAnimateIn.
-  const animateIn = useCanAnimateIn();
+  // invisible until the page's JavaScript ran. See Entrance.ts.
+  const animateIn = useEntranceOnMount();
 
   // The pager is links to ?page=N: the route re-renders on the server and this
   // view receives that page's cards as props. Bring the list into view when the
@@ -135,12 +135,7 @@ export default function DestinationView({ slug, locale, destination, blogsData }
               <Row className="align-items-center gutter-y-40">
                 <Col lg={coverImageUrl ? 7 : 12}>
                   {heroTitle && (
-                    <motion.div
-                      initial={animateIn ? { opacity: 0, x: -30 } : false}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6 }}
-                    >
+                    <div {...entrance(animateIn, { x: -30, duration: 0.6, inView: 'once' })}>
                       <div className="d-flex align-items-center gap-3 mb-4">
                         <div style={{ height: '3px', width: '40px', background: '#b79c5c', borderRadius: '2px' }} />
                         <span style={{ fontSize: '11px', fontWeight: 900, color: '#b79c5c', textTransform: 'uppercase', letterSpacing: '0.25em' }}>
@@ -150,26 +145,18 @@ export default function DestinationView({ slug, locale, destination, blogsData }
                       <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 800, color: '#1d231f', lineHeight: 1.2, marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
                         {heroTitle}
                       </h2>
-                    </motion.div>
+                    </div>
                   )}
                   {getLocalizedValue(destination.description, locale) && (
-                    <motion.p
-                      initial={animateIn ? { opacity: 0 } : false}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.1, duration: 0.6 }}
-                      style={{ color: '#4b5563', fontSize: '1.125rem', fontWeight: 500, marginBottom: '2rem', lineHeight: 1.6 }}
+                    <p
+                      {...entrance(animateIn, { delay: 0.1, duration: 0.6, inView: 'once' }, { color: '#4b5563', fontSize: '1.125rem', fontWeight: 500, marginBottom: '2rem', lineHeight: 1.6 })}
                     >
                       {getLocalizedValue(destination.description, locale)}
-                    </motion.p>
+                    </p>
                   )}
                   {heroDescription && (
-                    <motion.div
-                      initial={animateIn ? { opacity: 0 } : false}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.2, duration: 0.6 }}
-                      style={{ color: '#6b7280', lineHeight: 1.8, fontSize: '1.0625rem' }}
+                    <div
+                      {...entrance(animateIn, { delay: 0.2, duration: 0.6, inView: 'once' }, { color: '#6b7280', lineHeight: 1.8, fontSize: '1.0625rem' })}
                     >
                       {Array.isArray(heroDescription) ? (
                         <ul className="list-unstyled space-y-3">
@@ -183,18 +170,14 @@ export default function DestinationView({ slug, locale, destination, blogsData }
                       ) : (
                         <div dangerouslySetInnerHTML={{ __html: heroDescription }} />
                       )}
-                    </motion.div>
+                    </div>
                   )}
                 </Col>
 
                 {coverImageUrl && (
                   <Col lg={5}>
-                    <motion.div
-                      initial={animateIn ? { opacity: 0, scale: 0.97 } : false}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.7, ease: 'easeOut' }}
-                      style={{ position: 'relative', borderRadius: '2rem', overflow: 'hidden', aspectRatio: '4/3' }}
+                    <div
+                      {...entrance(animateIn, { scale: 0.97, duration: 0.7, inView: 'once' }, { position: 'relative', borderRadius: '2rem', overflow: 'hidden', aspectRatio: '4/3' })}
                     >
                       <Image
                         src={coverImageUrl}
@@ -213,7 +196,7 @@ export default function DestinationView({ slug, locale, destination, blogsData }
                       }}>
                         {getLocalizedValue(destination.region, locale) || 'Egypt'}
                       </div>
-                    </motion.div>
+                    </div>
                   </Col>
                 )}
               </Row>
@@ -225,10 +208,8 @@ export default function DestinationView({ slug, locale, destination, blogsData }
         {hasGlanceData && (
           <section style={{ paddingTop: '0', paddingBottom: '80px' }}>
             <Container>
-              <motion.div
-                initial={animateIn ? { opacity: 0, y: 20 } : false}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+              <div
+                {...entrance(animateIn, { y: 20, inView: 'once' })}
                 className="d-flex flex-column align-items-center text-center mb-5"
               >
                 <span style={{ fontSize: '11px', fontWeight: 900, color: '#b79c5c', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '0.5rem' }}>
@@ -237,7 +218,7 @@ export default function DestinationView({ slug, locale, destination, blogsData }
                 <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f', margin: 0 }}>
                   {t('atAGlance')}
                 </h2>
-              </motion.div>
+              </div>
 
               <Row className="gutter-y-20" style={{ '--bs-gutter-x': '20px' } as any}>
                 {AT_A_GLANCE_ITEMS.map((item, idx) => {
@@ -246,21 +227,15 @@ export default function DestinationView({ slug, locale, destination, blogsData }
                   const IconComponent = item.icon;
                   return (
                     <Col lg={3} md={6} key={item.key}>
-                      <motion.div
-                        initial={animateIn ? { opacity: 0, y: 20 } : false}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: idx * 0.1 }}
-                        style={{
+                      <div
+                        className="destination-glance-card"
+                        {...entrance(animateIn, { y: 20, delay: idx * 0.1, inView: 'once' }, {
                           background: '#fff',
                           border: '1px solid #f0f0f0',
                           borderRadius: '1.5rem',
                           padding: '1.75rem',
                           height: '100%',
-                          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                          transition: 'box-shadow 0.3s ease',
-                        }}
-                        whileHover={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)', translateY: -4 }}
+                        })}
                       >
                         <div style={{
                           width: '52px', height: '52px',
@@ -277,7 +252,7 @@ export default function DestinationView({ slug, locale, destination, blogsData }
                         <p style={{ fontSize: '1rem', fontWeight: 700, color: '#1d231f', margin: 0, lineHeight: 1.4 }}>
                           {value}
                         </p>
-                      </motion.div>
+                      </div>
                     </Col>
                   );
                 })}
@@ -290,12 +265,9 @@ export default function DestinationView({ slug, locale, destination, blogsData }
         {destination.featuredBlogs && destination.featuredBlogs.length > 0 && (
           <section style={{ paddingTop: '0', paddingBottom: '80px', background: '#fdf7f0' }}>
             <Container>
-              <motion.div
-                initial={animateIn ? { opacity: 0, y: 20 } : false}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+              <div
+                {...entrance(animateIn, { y: 20, inView: 'once' }, { paddingTop: '60px' })}
                 className="d-flex flex-column align-items-center text-center mb-5"
-                style={{ paddingTop: '60px' }}
               >
                 <span style={{ fontSize: '11px', fontWeight: 900, color: '#b79c5c', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '0.5rem' }}>
                   {t('handpickedArticles')}
@@ -303,7 +275,7 @@ export default function DestinationView({ slug, locale, destination, blogsData }
                 <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f', margin: 0 }}>
                   {getLocalizedValue(destination.featuredBlogsSectionTitle, locale) || t('featuredContent')}
                 </h2>
-              </motion.div>
+              </div>
 
               <DynamicBlogGrid
                 blogs={destination.featuredBlogs}
@@ -317,24 +289,21 @@ export default function DestinationView({ slug, locale, destination, blogsData }
         {/* ── All Articles ──────────────────────────────────────────────────── */}
         <section ref={articlesRef} className="section-space">
           <div className="container">
-            <motion.div
-              initial={animateIn ? { opacity: 0, y: 20 } : false}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
+              {...entrance(animateIn, { y: 20, inView: 'once' })}
               className="d-flex flex-column align-items-center text-center mb-5"
             >
-              <motion.span
-                initial={animateIn ? { opacity: 0, scale: 0.8 } : false}
-                whileInView={{ opacity: 1, scale: 1 }}
-                style={{ color: '#b79c5c', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.5rem' }}
+              {/* No `viewport.once` in the Framer version: replays on re-entry. */}
+              <span
+                {...entrance(animateIn, { scale: 0.8, inView: 'repeat' }, { color: '#b79c5c', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.5rem' })}
               >
                 {t('allArticles')}
-              </motion.span>
+              </span>
               <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f' }}>
                 {t('exploreDestination', { name })}
               </h2>
               <div style={{ width: '48px', height: '2px', background: '#e5e7eb', marginTop: '1rem', borderRadius: '999px' }} />
-            </motion.div>
+            </div>
 
             {blogsData.data.length > 0 ? (
               <DynamicBlogGrid

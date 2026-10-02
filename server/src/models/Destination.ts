@@ -1,15 +1,46 @@
 import { duplicateInternalLinksPlugin } from '../utils/duplicateInternalLinksPlugin';
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, PopulateOptions } from 'mongoose';
 import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 import { revalidateTags } from '../services/revalidate';
+import { initialDestinationFilterKey, normalizeDestinationFilterKey } from '../utils/destinationFilterKey';
+
+export const DESTINATION_STATUSES = ['draft', 'published'] as const;
+export type DestinationStatus = (typeof DESTINATION_STATUSES)[number];
+
+export const isDestinationStatus = (value: unknown): value is DestinationStatus =>
+  DESTINATION_STATUSES.includes(value as DestinationStatus);
+
+/**
+ * The one rule for "this destination has a public landing page": published,
+ * and not switched off.
+ *
+ * It governs the page and only the page: the slug resolver, the public
+ * destination reads, the sitemap, and the cards that link to the page. Tours
+ * are deliberately outside it. A tour may reference a draft destination, keeps
+ * showing it under Places Visited and keeps offering it as a filter, because
+ * publishing a destination's page and classifying a tour are separate
+ * concerns. Do not add this filter to a tour read.
+ */
+export const PUBLIC_DESTINATION_FILTER: Record<string, unknown> = Object.freeze({
+  status: 'published',
+  isActive: { $ne: false },
+});
+
+/** Populates a destination reference for a public page: landing pages only. */
+export const publicDestinationPopulate = (path: string, select?: string): PopulateOptions => ({
+  path,
+  ...(select ? { select } : {}),
+  match: { ...PUBLIC_DESTINATION_FILTER },
+});
 
 export interface IDestination extends Document {
   // Basic Info
   name: ILocalizedString;
   shortName?: ILocalizedString;
   slug: ILocalizedString;
+  filterKey: string;
   subheader?: ILocalizedString;
   description?: ILocalizedString;
   region?: ILocalizedString;
@@ -58,9 +89,8 @@ export interface IDestination extends Document {
   ogImage?: string;
   ogType?: string;
 
-  // Indexing Control
-  noIndex: boolean;
-  noFollow: boolean;
+  // Publication of the landing page
+  status: DestinationStatus;
 
   // Status
   isActive: boolean;
@@ -81,6 +111,17 @@ const DestinationSchema: Schema = new Schema(
     slug: {
       type: LocalizedStringSchema,
       required: true,
+    },
+    filterKey: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      immutable: true,
+      validate: {
+        validator: (value: unknown) => normalizeDestinationFilterKey(value) === value,
+        message: 'Destination filterKey must be a stable lowercase kebab-case key',
+      },
     },
     subheader: {
       type: LocalizedStringSchema,
@@ -171,9 +212,11 @@ const DestinationSchema: Schema = new Schema(
     ogImage: { type: String, trim: true },
     ogType: { type: String, default: 'website' },
 
-    // === INDEXING CONTROL ===
-    noIndex: { type: Boolean, default: false },
-    noFollow: { type: Boolean, default: false },
+    // === PUBLICATION ===
+    // Draft until an editor publishes it, so a new destination has no public
+    // page. See PUBLIC_DESTINATION_FILTER for what the status does and does
+    // not control.
+    status: { type: String, enum: [...DESTINATION_STATUSES], default: 'draft' },
 
     // === STATUS ===
     isActive: { type: Boolean, default: true },
@@ -186,6 +229,7 @@ DestinationSchema.index({ 'slug.en': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.de': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.it': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
+DestinationSchema.index({ filterKey: 1 }, { unique: true, partialFilterExpression: { filterKey: { $type: 'string' } } });
 DestinationSchema.index({ isActive: 1 });
 DestinationSchema.index({ name: 'text', description: 'text' });
 
@@ -199,6 +243,15 @@ DestinationSchema.pre<IDestination>('save', function (next) {
   this.ogDescription = completeOgFromMeta(this.ogDescription, this.metaDescription) as any;
   if (!this.ogImage) {
     this.ogImage = (this.metaImage as any)?.url || this.coverImage?.url;
+  }
+  next();
+});
+
+DestinationSchema.pre<IDestination>('validate', function (next) {
+  // A newly-created destination receives its key once. Editing localized SEO
+  // slugs afterwards must never silently change a filter URL.
+  if (this.isNew && !this.filterKey) {
+    this.filterKey = initialDestinationFilterKey(this.slug?.en) || '';
   }
   next();
 });

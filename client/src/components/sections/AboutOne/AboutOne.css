@@ -1,0 +1,17 @@
+/* The small overlapping photo: its box, reserved before the file arrives.
+ *
+ * Its absolutely-positioned container shrink-wraps the photo, which is shown
+ * at the chosen file's natural size — the 1x file (256 px) on a 1 dppx screen,
+ * the 2x file (shown at 320 px) on anything denser, as Chrome picks it from
+ * 1.1 dppx up. Until the file arrived the box was empty, then it grew to
+ * that size. These widths are the same sizes plus the 8 px white border
+ * (border-box); the height follows from the width/height attributes, and on
+ * narrow screens `max-width: 100%` still caps it as before. */
+.about-one__small-photo {
+  width: 272px;
+}
+@media (-webkit-min-device-pixel-ratio: 1.001), (min-resolution: 1.001dppx) {
+  .about-one__small-photo {
+    width: 336px;
+  }
+}

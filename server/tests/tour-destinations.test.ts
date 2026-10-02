@@ -45,6 +45,27 @@ test('search resolves localized destination names to references and retains AND 
   assert.deepEqual(res.body.data[0].destinations[0].shortName, { en: 'Cairo', de: '' });
 });
 
+test('public destination keys resolve to ObjectIds before the Tour query and unknown keys fail', async context => {
+  const seen: any[] = [];
+  context.mock.method(Destination, 'find', (filter: any) => {
+    seen.push(filter);
+    return { select: () => ({ lean: async () => [{ _id: new Types.ObjectId(first), filterKey: 'aswan' }] }) };
+  });
+  let match: any;
+  context.mock.method(Tour, 'aggregate', async (stages: any[]) => { match = stages[0].$match; return []; });
+  context.mock.method(Tour, 'populate', async () => []);
+  context.mock.method(Tour, 'countDocuments', async () => 0);
+  const valid = response();
+  await getAllTours({ locale: 'en', query: { destinationKeys: 'aswan', tourStyles: 'luxury' } } as any, valid as any);
+  assert.equal(valid.code, 200);
+  assert.deepEqual(seen[0], { filterKey: { $in: ['aswan'] } });
+  assert.equal(String(match.destinations.$in[0]), first);
+  assert.deepEqual(match.tourStyles.$in, ['luxury']);
+  const invalid = response();
+  await getAllTours({ locale: 'en', query: { destinationKeys: 'unknown,aswan' } } as any, invalid as any);
+  assert.equal(invalid.code, 400);
+});
+
 test('wishlist batches destination population for all requested tours', async context => {
   const populations: any[] = [];
   const query: any = { select() { return this; }, populate(options: any) { populations.push(options); return this; }, async lean() { return [{ destinations: [] }, { destinations: [{ name: { en: 'Luxor' } }] }]; } };
@@ -161,8 +182,10 @@ test('the three requested catalog records validate with minimal content and no i
   for (const name of ['Abu Simbel', 'Edfu', 'Kom Ombo']) {
     const labels = Object.fromEntries(['en', 'de', 'it', 'es'].map(locale => [locale, name]));
     const slugs = Object.fromEntries(['en', 'de', 'it', 'es'].map(locale => [locale, name.toLowerCase().replace(/ /g, '-')]));
-    const record = new Destination({ name: labels, shortName: labels, slug: slugs, isActive: true, noIndex: true });
+    const record = new Destination({ name: labels, shortName: labels, slug: slugs, status: 'draft', isActive: true });
     await record.validate();
+    // A catalog entry for tours, with no public page of its own.
+    assert.equal(record.status, 'draft');
     assert.equal(record.description, undefined);
     assert.equal(record.metaDescription, undefined);
   }

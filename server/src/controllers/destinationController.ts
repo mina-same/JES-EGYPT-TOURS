@@ -1,7 +1,13 @@
 import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
-import Destination, { IDestination } from '../models/Destination';
+import Destination, {
+  IDestination,
+  PUBLIC_DESTINATION_FILTER,
+  isDestinationStatus,
+  publicDestinationPopulate,
+} from '../models/Destination';
+import { canReadAllDestinations } from '../utils/destinationAccess';
 import Blog from '../models/Blog';
 import { FilterQuery } from 'mongoose';
 import BlogCategory from '../models/BlogCategory';
@@ -16,21 +22,33 @@ import {
 
 interface QueryParams {
   isActive?: string;
+  status?: string;
   search?: string;
   page?: string;
   limit?: string;
   sort?: string;
 }
 
-const buildFilter = (query: QueryParams): FilterQuery<IDestination> => {
+// The list and by-id routes are shared with the Admin; canReadAllDestinations
+// decides who sees drafts through them.
+const buildFilter = (query: QueryParams, includeDrafts: boolean): FilterQuery<IDestination> => {
   const filter: FilterQuery<IDestination> = {};
   if (query.isActive !== undefined) filter.isActive = query.isActive === 'true';
+  if (includeDrafts && isDestinationStatus(query.status)) filter.status = query.status;
   const searchRegex = createSearchRegex(query.search);
   if (searchRegex) {
     filter.$or = localizedSearchFilters(['name', 'slug', 'description', 'region'], searchRegex);
   }
+  // Applied last, so no query parameter can widen what an anonymous caller sees.
+  if (!includeDrafts) Object.assign(filter, PUBLIC_DESTINATION_FILTER);
   return filter;
 };
+
+/** `status` decides what is public, so it is the one field checked before a save. */
+const hasInvalidStatus = (body: { status?: unknown }): boolean =>
+  body.status !== undefined && !isDestinationStatus(body.status);
+
+const RELATED_DESTINATION_FIELDS = 'name slug coverImage';
 
 const parsePagination = (query: QueryParams) => {
   const page = parseInt(query.page || '1', 10);
@@ -41,15 +59,15 @@ const parsePagination = (query: QueryParams) => {
 /**
  * @desc    Get all destinations
  * @route   GET /api/destinations
- * @access  Public
+ * @access  Public (published only); Admin token (all, optional ?status=)
  */
 export const getAllDestinations = async (
-  req: Request<{}, {}, {}, QueryParams>,
+  req: Request<Record<string, never>, unknown, unknown, QueryParams>,
   res: Response
 ): Promise<void> => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const filter = buildFilter(req.query);
+    const filter = buildFilter(req.query, canReadAllDestinations(req));
     const sort = req.query.sort || 'name.en';
 
     const [destinations, total] = await Promise.all([
@@ -76,13 +94,23 @@ export const getAllDestinations = async (
 /**
  * @desc    Get destination by ID
  * @route   GET /api/destinations/:id
- * @access  Public
+ * @access  Public (published only); Admin token (all)
  */
 export const getDestinationById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const destination = await Destination.findById(req.params.id)
+    // The Admin's editor and view read this; its saved references, drafts
+    // included, must come back whole or a save would drop them.
+    const includeDrafts = canReadAllDestinations(req);
+    const destination = await Destination.findOne({
+      _id: req.params.id,
+      ...(includeDrafts ? {} : PUBLIC_DESTINATION_FILTER),
+    })
       .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
-      .populate('relatedDestinations', 'name slug coverImage')
+      .populate(
+        includeDrafts
+          ? { path: 'relatedDestinations', select: RELATED_DESTINATION_FIELDS }
+          : publicDestinationPopulate('relatedDestinations', RELATED_DESTINATION_FIELDS)
+      )
       .lean();
 
     if (!destination) {
@@ -108,8 +136,10 @@ export const getDestinationById = async (req: Request, res: Response): Promise<v
 export const getDestinationBySlug = async (req: Request, res: Response): Promise<void> => {
   try {
     const { slug } = req.params;
+    // The landing page's own read: published destinations only, the same rule
+    // the slug resolver applies before the page ever asks for this.
     const destination = await Destination.findOne({
-      isActive: { $ne: false },
+      ...PUBLIC_DESTINATION_FILTER,
       $or: [
         { 'slug.en': slug },
         { 'slug.de': slug },
@@ -121,7 +151,7 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
       // typed the article in — populating `author` here is what produced the
       // "By Admin" bylines on this page.
       .populate(blogCardPopulate('featuredBlogs'))
-      .populate('relatedDestinations', 'name slug coverImage')
+      .populate(publicDestinationPopulate('relatedDestinations', RELATED_DESTINATION_FIELDS))
       .lean();
 
     if (!destination) {
@@ -214,7 +244,14 @@ export const createDestination = async (req: Request, res: Response): Promise<vo
       res.status(400).json({ success: false, error: 'English name is required' });
       return;
     }
+    if (hasInvalidStatus(req.body)) {
+      res.status(400).json({ success: false, error: 'Status must be draft or published' });
+      return;
+    }
+    // No status sent: the schema default applies, and a new destination is a draft.
     const body = { ...req.body };
+    // Identity is derived by the model, never supplied as translated Admin text.
+    delete body.filterKey;
     if (body.metaImage?.url) {
       body.ogImage = body.metaImage.url;
     }
@@ -244,15 +281,20 @@ export const createDestination = async (req: Request, res: Response): Promise<vo
 export const updateDestination = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('Updating Destination:', req.params.id, req.body);
-    let destination = await Destination.findById(req.params.id);
+    const destination = await Destination.findById(req.params.id);
     
     if (!destination) {
       res.status(404).json({ success: false, error: 'Destination not found' });
       return;
     }
+    if (hasInvalidStatus(req.body)) {
+      res.status(400).json({ success: false, error: 'Status must be draft or published' });
+      return;
+    }
 
-    // Update fields
+    // Update fields. A body without `status` leaves the publication state as it is.
     const body = { ...req.body };
+    delete body.filterKey;
     if (body.metaImage?.url) {
       body.ogImage = body.metaImage.url;
     }

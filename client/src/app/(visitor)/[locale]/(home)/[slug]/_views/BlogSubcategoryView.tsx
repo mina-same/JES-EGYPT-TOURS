@@ -16,7 +16,7 @@ import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 import BlogHero from "@/components/sections/BlogHero/BlogHero";
 import BlogSubcategoryNav from "@/components/sections/BlogSubcategoryNav/BlogSubcategoryNav";
-import { motion } from "framer-motion";
+import { entrance, useEntranceOnMount } from "@/components/common/Entrance/Entrance";
 import { Row, Col } from "react-bootstrap";
 import Image from "next/image";
 
@@ -56,6 +56,10 @@ export default function BlogSubcategoryView({
   siblingSubcategories,
 }: BlogSubcategoryViewProps) {
   const t = (key: string) => translations[locale]?.[key] || translations['en'][key];
+  // Scroll-triggered entrances: armed only below the fold, never on content
+  // the server already painted on screen. These replay on every re-entry, as
+  // they did without `viewport.once`. See Entrance.ts.
+  const animateIn = useEntranceOnMount("below-fold");
 
   const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name, locale) : '';
   const parentSlug = typeof subcategory.category === 'object' ? getStrictLocalizedSlug((subcategory.category as any).slug, locale as SupportedLocale) : null;
@@ -144,11 +148,9 @@ export default function BlogSubcategoryView({
                 </div>
               </Col>
               <Col lg={5} className="mt-5 mt-lg-0">
-                <motion.div 
-                  initial={{ opacity: 0, x: 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                <div
+                  {...entrance(animateIn, { x: 50, inView: 'repeat' }, { height: '400px' })}
                   className="relative rounded-3xl overflow-hidden shadow-2xl"
-                  style={{ height: '400px' }}
                 >
                   <Image 
                     src={subcategory.sideImage?.url || (typeof subcategory.image === 'object' ? subcategory.image?.url : subcategory.image) || BLOG_IMAGE_PLACEHOLDER} 
@@ -158,7 +160,7 @@ export default function BlogSubcategoryView({
                     className="object-cover"
                   />
                   <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-3xl" />
-                </motion.div>
+                </div>
               </Col>
             </Row>
           </div>
@@ -173,13 +175,12 @@ export default function BlogSubcategoryView({
           </div>
           <div className="container relative z-10">
             <div className="flex flex-col items-center mb-10">
-              <motion.span 
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+              <span
+                {...entrance(animateIn, { scale: 0.8, inView: 'repeat' })}
                 className="text-[#b79c5c] font-bold text-sm uppercase tracking-widest mb-2"
               >
                 {t('topPicks')}
-              </motion.span>
+              </span>
               <h2 className="text-4xl font-extrabold text-[#1d231f] text-center">
                 {getLocalizedValue(subcategory.featuredBlogsSectionTitle, locale) || t('featuredBlogs')}
               </h2>
@@ -199,13 +200,12 @@ export default function BlogSubcategoryView({
       <section className="section-space">
         <div className="container">
           <div className="flex flex-col items-center mb-10">
-            <motion.span 
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+            <span
+              {...entrance(animateIn, { scale: 0.8, inView: 'repeat' })}
               className="text-[#b79c5c] font-bold text-sm uppercase tracking-widest mb-2"
             >
               {t('exploreMore')}
-            </motion.span>
+            </span>
             <h2 className="text-4xl font-extrabold text-[#1d231f] text-center">
               {getLocalizedValue(subcategory.blogsSectionTitle, locale) || t('allArticles')}
             </h2>
