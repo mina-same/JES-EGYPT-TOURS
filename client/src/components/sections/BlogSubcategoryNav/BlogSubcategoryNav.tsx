@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { getLocalizedValue } from '@/lib/localize';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
-import { motion } from 'framer-motion';
+import { entrance } from '@/components/common/Entrance/Entrance';
 
 interface BlogSubcategoryNavProps {
   subcategories: any[];
@@ -28,11 +28,11 @@ const BlogSubcategoryNav: React.FC<BlogSubcategoryNavProps> = ({ subcategories, 
             const isActive = slug === currentSlug;
 
             return (
-              <motion.div
+              // A CSS entrance from first paint, on every load: it ends in
+              // the final state with or without JavaScript. See Entrance.ts.
+              <div
                 key={sub._id || index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                {...entrance(true, { y: 10, delay: index * 0.05 })}
               >
                 <Link
                   href={`/${locale}/${slug}`}
@@ -44,7 +44,7 @@ const BlogSubcategoryNav: React.FC<BlogSubcategoryNavProps> = ({ subcategories, 
                 >
                   {getLocalizedValue(sub.name, locale)}
                 </Link>
-              </motion.div>
+              </div>
             );
           })}
         </div>

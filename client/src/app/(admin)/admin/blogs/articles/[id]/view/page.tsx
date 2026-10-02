@@ -230,7 +230,6 @@ export default function BlogViewPage() {
         readiness={readiness}
         showOg
         showFocusKeyword
-        showIndexing
         socialImageUrl={ogImageUrl}
         focusKeywordDensity={blog.focusKeywordDensity}
       />
@@ -245,7 +244,6 @@ export default function BlogViewPage() {
           <Field label="OG title (EN)">{getLocalizedValue(blog.ogTitle) || '—'}</Field>
           <Field label="OG description (EN)">{getLocalizedValue(blog.ogDescription) || '—'}</Field>
           <Field label="OG image">{blog.ogImage || getImageUrl(blog.metaImage) || '—'}</Field>
-          <Field label="Indexing">{blog.noIndex ? 'noindex' : 'index'}{blog.noFollow ? ', nofollow' : ', follow'}</Field>
         </div>
       </Section>
 

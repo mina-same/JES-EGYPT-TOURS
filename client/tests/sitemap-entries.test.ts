@@ -33,6 +33,20 @@ const contentUrls = (data: SitemapData) => {
   return urls(data).filter((url) => !statics.has(url));
 };
 
+test('only existing unfiltered Tour listing pages enter the sitemap', () => {
+  const entries = contentUrls({
+    ...empty(),
+    tourCategories: [{ slug: { en: 'egypt-tour-packages', de: 'aegypten-rundreise' }, pageCounts: { en: 3, de: 2 } }],
+    tourSubcategories: [{ slug: { en: 'aswan-tours' }, pageCounts: { en: 2 } }],
+  });
+  assert.deepEqual(entries, [
+    `${BASE}/en/egypt-tour-packages`, `${BASE}/en/egypt-tour-packages?page=2`, `${BASE}/en/egypt-tour-packages?page=3`,
+    `${BASE}/de/aegypten-rundreise`, `${BASE}/de/aegypten-rundreise?page=2`,
+    `${BASE}/en/aswan-tours`, `${BASE}/en/aswan-tours?page=2`,
+  ]);
+  assert.ok(entries.every(url => !/[?&](?:q|destinations|duration|tourType|tourStyles|minPrice|maxPrice|sort)=/.test(url)));
+});
+
 test('static pages: the same URLs the sitemap always listed, with no invented dates', () => {
   // The previous sitemap's static block, reproduced.
   const expected: string[] = [];
@@ -78,22 +92,26 @@ test('articles are listed only in the languages they have text in', () => {
   assert.deepEqual(contentUrls({ ...empty(), blogs: [{ slug: { en: 'no-text' } }] }), []);
 });
 
-test('every family is included; "No Index" is respected', () => {
+test('every family is included, every entity the API sends is listed', () => {
+  // The API sends published entities only (drafts never reach the builder),
+  // and there is no per-page opt-out any more.
   const data: SitemapData = {
     ...empty(),
     tourCategories: [{ slug: { en: 'egypt-tour-packages', de: 'aegypten-rundreise' } }],
     tourSubcategories: [{ slug: { en: 'egypt-classic-tours' } }],
     blogCategories: [{ slug: { en: 'egypt-blog' } }],
-    blogSubcategories: [{ slug: { en: 'travel-tips' }, noIndex: true }],
-    destinations: [{ slug: { en: 'cairo', de: 'kairo' } }, { slug: { en: 'giza' }, noIndex: true }],
+    blogSubcategories: [{ slug: { en: 'travel-tips' } }],
+    destinations: [{ slug: { en: 'cairo', de: 'kairo' } }, { slug: { en: 'giza' } }],
   };
   assert.deepEqual(contentUrls(data), [
     `${BASE}/en/egypt-tour-packages`,
     `${BASE}/de/aegypten-rundreise`,
     `${BASE}/en/egypt-classic-tours`,
     `${BASE}/en/egypt-blog`,
+    `${BASE}/en/travel-tips`,
     `${BASE}/en/cairo`,
     `${BASE}/de/kairo`,
+    `${BASE}/en/giza`,
   ]);
 });
 
@@ -133,14 +151,14 @@ test('a URL is listed only for the entity the resolver answers it with', () => {
     [`${BASE}/en/first-article`, `${BASE}/de/shared-slug`]
   );
 
-  // A "No Index" entity still answers its URL, so nothing else is listed there.
+  // A slug held by a higher-precedence family is that family's URL, listed once.
   assert.deepEqual(
     contentUrls({ ...empty(), tours: [{ slug: { en: 'giza' } }], destinations: [{ slug: { en: 'giza' } }] }).length,
     1
   );
   assert.deepEqual(
-    contentUrls({ ...empty(), tourCategories: [{ slug: { en: 'giza' }, noIndex: true }], destinations: [{ slug: { en: 'giza' } }] }),
-    []
+    contentUrls({ ...empty(), tourCategories: [{ slug: { en: 'giza' } }], destinations: [{ slug: { en: 'giza' } }] }),
+    [`${BASE}/en/giza`]
   );
 });
 

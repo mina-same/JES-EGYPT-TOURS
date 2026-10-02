@@ -5,7 +5,7 @@
     "clearAll": "Alle löschen",
     "priceRangeError": "Der Mindestpreis darf nicht höher als der Höchstpreis sein.",
     "priceInvalidError": "Geben Sie einen gültigen, nicht negativen Preis ein.",
-    "title": "Finden Sie Ihre perfekte Tour",
+    "title": "Reisen filtern",
     "search": "Suchen",
     "searchPlaceholder": "Touren suchen",
     "subcategory": "Unterkategorie",
@@ -34,7 +34,11 @@
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",
     "noPlaces": "Keine Orte entsprechen Ihrer Suche.",
-    "clearFilters": "Filter zurücksetzen"
+    "clearFilters": "Filter zurücksetzen",
+    "price": "Preis",
+    "minPlaceholder": "Min.",
+    "maxPlaceholder": "Max.",
+    "applyLabel": "Filter anwenden"
   },
   "listing": {
     "resultsCount": "{{count}} Touren gefunden",
@@ -52,7 +56,8 @@
     "noToursCategory": "Keine Touren in dieser Kategorie gefunden.",
     "noToursSubcategory": "Keine Touren in dieser Unterkategorie gefunden.",
     "noMatchingTours": "Keine Reisen entsprechen Ihren aktuellen Filtern.",
-    "noToursAvailable": "Keine Reisen verfügbar."
+    "noToursAvailable": "Keine Reisen verfügbar.",
+    "adjustFiltersHelp": "Passen Sie Ihre Filter an oder setzen Sie sie zurück, um weitere Reisen zu sehen."
   },
   "status": {
     "notFound": "Nicht gefunden",

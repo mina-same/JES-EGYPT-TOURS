@@ -21,6 +21,7 @@ import "./_views/mobileFilterDrawer.css";
  */
 import {
   isCanonicalListing,
+  getPublicDestinationKeys,
   tourCategoryServerAPI,
   tourServerAPI,
   tourSubcategoryServerAPI,
@@ -47,7 +48,8 @@ import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
-import { getNotFoundRobotsMetadata, getRobotsMetadata } from "@/lib/seo/robots";
+import { getListingRobotsMetadata, getNotFoundRobotsMetadata } from "@/lib/seo/robots";
+import { parsePublicListingQuery, PUBLIC_SORT_TO_API, shouldRedirectPublicQuery, type PublicListingParse } from '@/lib/tours/publicListingUrl';
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
 import { Metadata } from "next";
@@ -104,9 +106,6 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
-
-const firstQueryValue = (value: string | string[] | undefined): string | undefined =>
-  Array.isArray(value) ? value[0] : value;
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.jesegypttours.com";
 
@@ -308,11 +307,48 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
   }
 });
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+async function parseRouteListingQuery(query: Record<string, string | string[] | undefined>): Promise<PublicListingParse> {
+  const destinationKeys = query.destinations ? await getPublicDestinationKeys() : undefined;
+  const parsed = parsePublicListingQuery(query, { destinationKeys });
+  if (parsed.error) notFound();
+  return parsed;
+}
+
+async function getTourListingAlternates(
+  locale: string, slug: string, data: any, type: 'category' | 'subcategory', parsed: PublicListingParse,
+): Promise<NonNullable<Metadata['alternates']>> {
+  const base = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
+  if (parsed.isUtility) return { canonical: base.canonical };
+  if (parsed.state.page === 1) return base;
+  const page = parsed.state.page;
+  const baseLanguages = base.languages || {};
+  const languages: Record<string, string> = {};
+  // A Tour enters only languages where slug.<locale> exists. Check each
+  // translated listing independently before emitting a page-N alternate.
+  const checks = await Promise.all(['en', 'de', 'it', 'es'].map(async (language) => {
+    const baseLanguageUrl = (baseLanguages as Record<string, string | URL | undefined>)[language];
+    if (!baseLanguageUrl) return { language, baseLanguageUrl: '', exists: false };
+    const listing = await tourServerAPI.getListing({
+      page: 1, limit: 9, sort: 'recommended',
+      ...(type === 'category' ? { category: data._id } : { subcategory: data._id }),
+    }, language, true);
+    if (!listing?.success) throw new Error('Category pagination count unavailable');
+    return { language, baseLanguageUrl: String(baseLanguageUrl), exists: (listing.totalPages || 1) >= page };
+  }));
+  if (!checks.some(check => check.language === locale && check.exists)) notFound();
+  for (const check of checks) {
+    if (check.exists) languages[check.language] = `${check.baseLanguageUrl}?page=${page}`;
+  }
+  if (languages.en) languages['x-default'] = languages.en;
+  return { canonical: `${base.canonical}?page=${page}`, languages };
+}
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug, locale } = await params;
   const resolved = await resolveSlugContent(slug, locale);
 
   if (resolved?.type === "category") {
+    const parsed = await parseRouteListingQuery(await searchParams);
     const data = resolved.data;
     const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
     const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
@@ -320,12 +356,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
     const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
 
-    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
+    const alternates = await getTourListingAlternates(locale, slug, data, 'category', parsed);
     return {
       title: seoTitle ? seoTitle : "JES Egypt Tours",
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getListingRobotsMetadata(parsed.isUtility),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: seoTitle || "JES Egypt Tours",
@@ -344,6 +381,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   if (resolved?.type === "subcategory") {
+    const parsed = await parseRouteListingQuery(await searchParams);
     const data = resolved.data;
     const seoTitle = getLocalizedValue(data.seo?.metaTitle, locale);
     const seoDescription = getLocalizedValue(data.seo?.metaDescription, locale);
@@ -351,12 +389,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const keywords = getLocalizedValue(data.seo?.metaKeywords, locale);
     const image = getSeoImage(data.seo?.metaImage, data.image, locale, seoTitle || getLocalizedValue(data.name, locale));
 
-    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: data.slug, baseUrl });
+    const alternates = await getTourListingAlternates(locale, slug, data, 'subcategory', parsed);
     return {
       title: seoTitle ? seoTitle : "JES Egypt Tours",
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getListingRobotsMetadata(parsed.isUtility),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: seoTitle || "JES Egypt Tours",
@@ -391,7 +430,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
-      robots: getRobotsMetadata(cAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -426,7 +464,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
-      robots: getRobotsMetadata(sAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -467,7 +504,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       keywords: keywords || undefined,
       authors: [{ name: publicAuthorName, ...(publicAuthorUrl ? { url: publicAuthorUrl } : {}) }],
       alternates,
-      robots: getRobotsMetadata(bAny.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -498,7 +534,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       keywords: keywords || undefined,
       alternates,
-      robots: getRobotsMetadata(destination.noIndex),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: seoTitle || getLocalizedValue(destination.name, locale),
@@ -572,28 +607,28 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   const page = Number.isFinite(parsedPage) && parsedPage > 0
     ? Math.floor(parsedPage)
     : 1;
+  const resolved = await resolveSlugContent(slug, locale);
+  const listingParsed = resolved?.type === 'category' || resolved?.type === 'subcategory'
+    ? await parseRouteListingQuery(query)
+    : null;
+  if (listingParsed && shouldRedirectPublicQuery(query, listingParsed)) {
+    permanentRedirect(`/${locale}/${resolved!.correctSlug}${listingParsed.redirectSearch}`);
+  }
   const currency = parseCurrencyCookie(
     (await cookies()).get(CURRENCY_COOKIE)?.value
   ) || 'USD';
-  const minPriceValue = firstQueryValue(query.minPrice);
-  const maxPriceValue = firstQueryValue(query.maxPrice);
-  const parsedMinPrice = minPriceValue ? Number(minPriceValue) : undefined;
-  const parsedMaxPrice = maxPriceValue ? Number(maxPriceValue) : undefined;
-  const validPriceRange =
-    (parsedMinPrice === undefined || (Number.isFinite(parsedMinPrice) && parsedMinPrice >= 0)) &&
-    (parsedMaxPrice === undefined || (Number.isFinite(parsedMaxPrice) && parsedMaxPrice >= 0)) &&
-    !(parsedMinPrice !== undefined && parsedMaxPrice !== undefined && parsedMinPrice > parsedMaxPrice);
-  const listingQuery = validPriceRange ? {
-    page,
+  const state = listingParsed?.state;
+  const listingQuery = state ? {
+    page: state.page,
     limit: 9,
-    sort: firstQueryValue(query.sort) || 'recommended',
-    search: firstQueryValue(query.search) || undefined,
-    minPrice: parsedMinPrice,
-    maxPrice: parsedMaxPrice,
-    tourType: firstQueryValue(query.tourType) || undefined,
-    tourStyles: firstQueryValue(query.tourStyles) || undefined,
-    destinations: firstQueryValue(query.destinations) || undefined,
-    durationRange: firstQueryValue(query.durationRange) || undefined,
+    sort: PUBLIC_SORT_TO_API[state.sort],
+    search: state.q || undefined,
+    minPrice: state.minPrice ? Number(state.minPrice) : undefined,
+    maxPrice: state.maxPrice ? Number(state.maxPrice) : undefined,
+    tourType: state.tourType || undefined,
+    tourStyles: state.tourStyles || undefined,
+    destinationKeys: state.destinations || undefined,
+    durationRange: state.duration || undefined,
     currency,
   } : null;
   /*
@@ -604,13 +639,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
    * exactly as they do today. Only the shapes a visitor can reach by clicking
    * — scope, locale, currency, page, whitelisted sort — are cached.
    */
-  const listingCacheable =
-    !!listingQuery &&
-    isCanonicalListing({
-      ...listingQuery,
-      subcategory: firstQueryValue(query.subcategory) || undefined,
-    });
-  const resolved = await resolveSlugContent(slug, locale);
+  const listingCacheable = !!listingQuery && !listingParsed?.isUtility && isCanonicalListing(listingQuery);
 
   // ── 1. Category ──────────────────────────────────────────────────────────
   {
@@ -622,7 +651,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     try {
       if (resolved?.type === "category") {
         if (resolved.correctSlug !== slug) {
-          redirectTarget = `/${locale}/${resolved.correctSlug}`;
+          redirectTarget = `/${locale}/${resolved.correctSlug}${listingParsed?.redirectSearch || ''}`;
         } else {
           categoryData = resolved.data;
           renderCategory = true;
@@ -641,7 +670,6 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
                   {
                     ...listingQuery,
                     category: categoryData._id,
-                    subcategory: firstQueryValue(query.subcategory) || undefined,
                   },
                   locale,
                   listingCacheable
@@ -655,7 +683,11 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     } catch { /* API error — fall through to next lookup */ }
     // Call permanentRedirect OUTSIDE the try-catch so Next.js can throw NEXT_REDIRECT
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderCategory) return <CategoryView slug={slug} locale={locale} initialCategory={categoryData} initialSubcategories={initialSubcategories} initialTours={initialTours} />;
+    if (renderCategory) {
+      if (!initialTours?.success) throw new Error('Category listing unavailable');
+      if (state!.page > (initialTours.totalPages || 1)) notFound();
+      return <CategoryView slug={slug} locale={locale} initialCategory={categoryData} initialSubcategories={initialSubcategories} initialTours={initialTours} />;
+    }
   }
 
   // ── 2. Subcategory ────────────────────────────────────────────────────────
@@ -668,7 +700,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     try {
       if (resolved?.type === "subcategory") {
         if (resolved.correctSlug !== slug) {
-          redirectTarget = `/${locale}/${resolved.correctSlug}`;
+          redirectTarget = `/${locale}/${resolved.correctSlug}${listingParsed?.redirectSearch || ''}`;
         } else {
           subcategoryData = resolved.data;
           renderSubcategory = true;
@@ -695,7 +727,11 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
     } catch { /* API error — fall through to next lookup */ }
     // Call permanentRedirect OUTSIDE the try-catch
     if (redirectTarget) permanentRedirect(redirectTarget);
-    if (renderSubcategory) return <SubcategoryView slug={slug} locale={locale} initialSubcategory={subcategoryData} initialSiblings={initialSiblings} initialTours={initialTours} />;
+    if (renderSubcategory) {
+      if (!initialTours?.success) throw new Error('Subcategory listing unavailable');
+      if (state!.page > (initialTours.totalPages || 1)) notFound();
+      return <SubcategoryView slug={slug} locale={locale} initialSubcategory={subcategoryData} initialSiblings={initialSiblings} initialTours={initialTours} />;
+    }
   }
 
   // ── 3. Blog Category ───────────────────────────────────────────────────────

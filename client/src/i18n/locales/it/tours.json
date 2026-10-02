@@ -5,7 +5,7 @@
     "clearAll": "Cancella tutto",
     "priceRangeError": "Il prezzo minimo non può superare il prezzo massimo.",
     "priceInvalidError": "Inserisci un prezzo valido e non negativo.",
-    "title": "Trova il tuo tour perfetto",
+    "title": "Filtra tour",
     "search": "Cerca",
     "searchPlaceholder": "Cerca tour",
     "subcategory": "Sottocategoria",
@@ -34,7 +34,11 @@
     "showMore": "Mostra di più",
     "showLess": "Mostra meno",
     "noPlaces": "Nessun luogo corrisponde alla ricerca.",
-    "clearFilters": "Cancella filtri"
+    "clearFilters": "Cancella filtri",
+    "price": "Prezzo",
+    "minPlaceholder": "Min",
+    "maxPlaceholder": "Max",
+    "applyLabel": "Applica filtri"
   },
   "listing": {
     "resultsCount": "{{count}} tour trovati",
@@ -52,7 +56,8 @@
     "noToursCategory": "Nessun tour trovato in questa categoria.",
     "noToursSubcategory": "Nessun tour trovato in questa sottocategoria.",
     "noMatchingTours": "Nessun tour corrisponde ai filtri attuali.",
-    "noToursAvailable": "Nessun tour disponibile."
+    "noToursAvailable": "Nessun tour disponibile.",
+    "adjustFiltersHelp": "Modifica o cancella i filtri per vedere altri tour."
   },
   "status": {
     "notFound": "Non trovato",

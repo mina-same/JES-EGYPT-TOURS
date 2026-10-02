@@ -8,6 +8,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { catalog, catalogOptions } from '../src/lib/tours/catalog';
 import { splitFilterValues } from '../src/lib/tours/filterValues';
+import { PUBLIC_SORTS } from '../src/lib/tours/publicListingUrl';
 
 function component(name: string) {
   const url = new URL(`../src/components/common/TourListingFilters/${name}.tsx`, import.meta.url);
@@ -19,6 +20,7 @@ function component(name: string) {
   }).outputText;
   const overrides: Record<string, unknown> = {
     '@/lib/tours/catalog': { catalog }, '@/lib/tours/filterValues': { splitFilterValues },
+    '@/lib/tours/publicListingUrl': { PUBLIC_SORTS },
   };
   new Function('require', 'module', 'exports', code)((id: string) => overrides[id] ?? require(id), compiledModule, compiledModule.exports);
   return compiledModule.exports;
@@ -36,6 +38,20 @@ test('visitor type renders multiple checked choices while empty style/place grou
   assert.ok(!html.includes('filters.destinations'));
   assert.equal((html.match(/type="checkbox"/g) || []).length, 9); // four types, five duration ranges
   assert.ok(!html.includes('<select'));
+  assert.ok(!html.includes('filters.anySelected'));
+  assert.ok(!html.includes('filters.durationHelp'));
+});
+
+test('a sole type is hidden unless selected; a sole style or place remains a meaningful subset', () => {
+  const props = { ...base, types: catalogOptions('types').slice(0, 1), values: { ...base.values, tourType: '' },
+    destinations: [{ id: 'place', label: 'Luxor' }], styles: catalogOptions('styles').slice(0, 1) };
+  const html = renderToStaticMarkup(React.createElement(StructuredFilters, props));
+  assert.ok(!html.includes('filters.tourType'));
+  assert.ok(html.includes('filters.tourStyles'));
+  assert.ok(html.includes('filters.destinations'));
+  const selected = renderToStaticMarkup(React.createElement(StructuredFilters, { ...props, values: { ...props.values, tourType: props.types[0].id } }));
+  assert.ok(selected.includes('filters.tourType'));
+  assert.ok(selected.includes('checked=""'));
 });
 
 test('short destination lists stay simple; long lists initially show eight and offer local search', () => {
@@ -61,9 +77,14 @@ test('empty results offer recovery only when filtered', () => {
   assert.ok(!empty.includes('<button'));
 });
 
-test('sort offers exactly the catalog choices in the approved order', () => {
-  const html = renderToStaticMarkup(React.createElement(TourSort, { value: 'recommended', onChange() {}, t: base.t }));
-  assert.deepEqual([...html.matchAll(/<option value="([^"]+)"/g)].map(match => match[1]), catalog.sorts);
+test('sort exposes a labeled combobox and a translated current choice before hydration', () => {
+  for (const value of PUBLIC_SORTS) {
+    const html = renderToStaticMarkup(React.createElement(TourSort, { value, onChange() {}, t: (key: string) => `Translated ${key}` }));
+    assert.ok(html.includes('role="combobox"'));
+    assert.ok(html.includes('aria-labelledby='));
+    assert.ok(html.includes('Translated listing.sortOptions.'));
+    assert.ok(html.includes('aria-expanded="false"'));
+  }
 });
 
 test('new visitor labels exist in every language without replacement characters or currency in input labels', () => {

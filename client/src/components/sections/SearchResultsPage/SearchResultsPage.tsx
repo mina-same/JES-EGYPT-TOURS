@@ -32,6 +32,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
 import { countActiveTourFilters, validateTourPriceRange } from "@/lib/tours/listingFilters";
+import { parsePublicListingQuery, publicListingUrl, PUBLIC_SORT_TO_API, type PublicSort } from '@/lib/tours/publicListingUrl';
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -92,7 +93,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   const [tourTypeOptions, setTourTypeOptions] = useState<FilterOption[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<FilterOption[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<FilterOption[]>([]);
-  const [filterOptionsReady, setFilterOptionsReady] = useState(false);
 
   // Video reviews state
   const [isOpen, setOpen] = useState(false);
@@ -118,17 +118,16 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   }, [searchParams, initialSearchParams]);
 
   // The URL is the committed snapshot: page, sort and filters change together.
-  const appliedFilters = useMemo(() => sanitizeTourFilters({
-    q: toStr((effectiveParams as any).q) || "",
-    minPrice: toStr((effectiveParams as any).minPrice) || "",
-    maxPrice: toStr((effectiveParams as any).maxPrice) || "",
-    tourType: toStr((effectiveParams as any).tourType) || "",
-    tourStyles: toStr((effectiveParams as any).tourStyles) || "",
-    destinations: toStr((effectiveParams as any).destinations) || "",
-    durationRange: toStr((effectiveParams as any).durationRange) || "",
-    blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
-    sort: toStr((effectiveParams as any).sort) || "recommended",
-  }), [effectiveParams]);
+  const appliedFilters = useMemo(() => {
+    const state = parsePublicListingQuery(effectiveParams, { allowBlogKeys: true }).state;
+    return {
+      q: state.q, minPrice: state.minPrice, maxPrice: state.maxPrice,
+      tourType: state.tourType, tourStyles: state.tourStyles,
+      destinations: state.destinations, durationRange: state.duration,
+      blogSubCategory: toStr((effectiveParams as any).blogSubCategory) || "",
+      sort: state.sort,
+    };
+  }, [effectiveParams]);
   const [draftFilters, setDraftFilters] = useState(appliedFilters);
   const filterSignature = JSON.stringify({ ...appliedFilters, sort: undefined });
   useEffect(() => {
@@ -138,7 +137,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   }, [filterSignature, locale]);
 
   const q = appliedFilters.q;
-  const page = toNum((effectiveParams as any).page, 1);
+  const page = parsePublicListingQuery(effectiveParams, { allowBlogKeys: true }).state.page;
   const blogPage = toNum((effectiveParams as any).blogPage, 1);
   const searchBasePath = `/${locale}/search`;
 
@@ -158,7 +157,18 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       next.blogPage = "1";
     }
 
-    router.push(`${searchBasePath}${buildQueryString(sanitizeTourFilters(next, filterOptionsReady ? destinationOptions : undefined))}`);
+    const clean = sanitizeTourFilters(next);
+    const url = publicListingUrl(searchBasePath, {
+      q: clean.q || '', destinations: clean.destinations || '', duration: clean.durationRange || '',
+      tourType: clean.tourType || '', tourStyles: clean.tourStyles || '',
+      minPrice: clean.minPrice || '', maxPrice: clean.maxPrice || '',
+      sort: clean.sort as PublicSort, page: Number(clean.page) || 1,
+    });
+    const blogQuery = buildQueryString({
+      blogSubCategory: clean.blogSubCategory || undefined,
+      blogPage: clean.blogPage && clean.blogPage !== '1' ? clean.blogPage : undefined,
+    });
+    router.push(`${url}${blogQuery ? `${url.includes('?') ? '&' : '?'}${blogQuery.slice(1)}` : ''}`);
   };
 
   const handleApplyFilters = () => {
@@ -181,7 +191,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
       tourType: "",
       destinations: "", durationRange: "", tourStyles: "",
       blogSubCategory: "",
-      sort: "recommended",
+      sort: "recommended" as const,
     };
     setDraftFilters(empty);
     setFilterError(null);
@@ -245,12 +255,12 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           page,
           limit: 9,
           search: q || undefined,
-          sort: appliedFilters.sort || undefined,
+          sort: PUBLIC_SORT_TO_API[appliedFilters.sort] || undefined,
           minPrice: appliedFilters.minPrice ? Number(appliedFilters.minPrice) : undefined,
           maxPrice: appliedFilters.maxPrice ? Number(appliedFilters.maxPrice) : undefined,
           tourType: appliedFilters.tourType || undefined,
           tourStyles: appliedFilters.tourStyles || undefined,
-          destinations: appliedFilters.destinations || undefined,
+          destinationKeys: appliedFilters.destinations || undefined,
           durationRange: appliedFilters.durationRange || undefined,
           currency,
         }, locale, controller.signal);
@@ -329,14 +339,12 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
 
   useEffect(() => {
     const controller = new AbortController();
-    setFilterOptionsReady(false);
     tourAPI.getFilterOptions({ currency }, locale, controller.signal)
       .then((response) => {
         if (response.success && response.data) {
           setTourTypeOptions(response.data.tourTypes);
           setTourStyleOptions(response.data.tourStyles);
           setDestinationOptions(response.data.destinations);
-          setFilterOptionsReady(true);
         }
       })
       .catch((error) => {
@@ -451,7 +459,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
             <div className="results-wrapper mb-5 pb-5">
               <div className="d-flex flex-wrap gap-2 mb-3">
                 <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} currencySymbol={currencySymbol} t={tourT} remove={(key, remaining) => removeTourFilter(key as 'q' | 'minPrice' | 'maxPrice' | 'tourType' | 'tourStyles' | 'destinations' | 'durationRange', remaining)} />
-                {countActiveTourFilters(appliedFilters) > 0 && <button type="button" className="btn btn-link" onClick={handleResetFilters}>{tourT('filters.clearAll')}</button>}
+                {countActiveTourFilters(appliedFilters) > 0 && <button type="button" className="visitor-filter-clear" onClick={handleResetFilters}>{tourT('filters.clearAll')}</button>}
               </div>
               <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
                 <h2 className="section-title mb-0" style={{ fontSize: 24 }}>{t('experiencesFound')}</h2>
@@ -515,10 +523,12 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
                   <DynamicBlogGrid
                     blogs={blogs}
                     pagination={{ ...blogsPagination, pages: 1 }}
-                    basePath={`${searchBasePath}${buildQueryString({
-                      ...appliedFilters,
-                      page: String(page),
-                    })}`}
+                    basePath={publicListingUrl(searchBasePath, {
+                      q: appliedFilters.q, destinations: appliedFilters.destinations,
+                      duration: appliedFilters.durationRange, tourType: appliedFilters.tourType,
+                      tourStyles: appliedFilters.tourStyles, minPrice: appliedFilters.minPrice,
+                      maxPrice: appliedFilters.maxPrice, sort: appliedFilters.sort, page,
+                    })}
                   />
                   <div className="mt-5 pt-3">
                     <Pagination

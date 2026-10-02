@@ -201,10 +201,19 @@ export const tourServerAPI = {
       locale,
       tags: [TOUR_TAG],
       revalidate: LISTING_TTL,
-      params: { ...sanitizeTourFilters(params), filterVersion: 3 } as Record<string, unknown>,
+      params: { ...sanitizeTourFilters(params), filterVersion: 4 } as Record<string, unknown>,
       cache: cacheable,
     }),
 };
+
+/** Global key registry validates direct visitor URLs even for a zero-inventory scope. */
+export async function getPublicDestinationKeys(): Promise<string[]> {
+  const result = await getEntity<string[]>('tours/destination-keys', {
+    locale: 'en', tags: [DESTINATION_TAG, TOUR_TAG], revalidate: CMS_TTL,
+  });
+  if (!result?.success || !Array.isArray(result.data)) throw new Error('Destination key registry unavailable');
+  return result.data;
+}
 
 export const tourCategoryServerAPI = {
   getBySlug: (slug: string, locale: string) =>
@@ -284,6 +293,7 @@ export function isCanonicalListing(query: {
   tourType?: string;
   tourStyles?: string;
   destinations?: string;
+  destinationKeys?: string;
   durationRange?: string;
   sort?: string;
   page?: number;
@@ -293,7 +303,7 @@ export function isCanonicalListing(query: {
   if (query.minPrice !== undefined) return false;
   if (query.maxPrice !== undefined) return false;
   if (query.tourType) return false;
-  if (query.tourStyles || query.destinations || query.durationRange) return false;
+  if (query.tourStyles || query.destinations || query.destinationKeys || query.durationRange) return false;
 
   if (query.sort && !CACHEABLE_SORTS.has(query.sort)) return false;
   if (query.page !== undefined && (query.page < 1 || query.page > MAX_CACHEABLE_PAGE)) return false;

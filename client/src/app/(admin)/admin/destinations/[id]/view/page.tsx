@@ -152,7 +152,6 @@ export default function DestinationViewPage() {
         seo={entity}
         readiness={readiness}
         showOg
-        showIndexing
         socialImageUrl={socialImageUrl}
         readyLabels={{ ready: 'Ready to go live', notReady: 'Not ready to go live' }}
       />
@@ -164,7 +163,6 @@ export default function DestinationViewPage() {
           <Field label="OG title (EN)">{getLocalizedValue(entity.ogTitle) || '—'}</Field>
           <Field label="OG description (EN)">{getLocalizedValue(entity.ogDescription) || '—'}</Field>
           <Field label="OG image">{entity.ogImage || getImageUrl(entity.metaImage) || '—'}</Field>
-          <Field label="Indexing">{entity.noIndex ? 'noindex' : 'index'}{entity.noFollow ? ', nofollow' : ', follow'}</Field>
         </div>
       </Section>
 

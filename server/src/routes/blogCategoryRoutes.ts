@@ -9,16 +9,17 @@ import {
   toggleCategoryStatus,
 } from '../controllers/blogCategoryController';
 import { getBlogsByCategory } from '../controllers/blogController';
-import { protect, permit } from '../middleware/auth';
+import { optionalProtect, protect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
 
 const router = express.Router();
 
-// Public routes
+// Public routes. The by-id read is shared with the Admin's editor: its token
+// (optionalProtect) also gets draft featured destinations back.
 router.get('/', getAllCategories);
 router.get('/slug/:slug', getCategoryBySlug);
 router.get('/:slug/posts', getBlogsByCategory);
-router.get('/:id', getCategoryById);
+router.get('/:id', optionalProtect, getCategoryById);
 
 // Admin routes
 router.post('/', protect, permit(PERMISSIONS.BLOG_CREATE), createCategory);

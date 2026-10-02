@@ -2,15 +2,15 @@ import { catalog, catalogOptions, type FilterOption } from './catalog';
 
 export const splitFilterValues = (value = '') => [...new Set(value.split(',').map(v => v.trim()).filter(Boolean))].sort();
 type StructuredValues = { tourType?: string; tourStyles?: string; durationRange?: string; destinations?: string };
-/** Check destination membership only after scope options have loaded. */
-export function sanitizeTourFilters<T extends StructuredValues>(values: T, destinations?: FilterOption[]): T {
+/** Keep syntactically valid keys even when this scope has no matching inventory. */
+export function sanitizeTourFilters<T extends StructuredValues>(values: T): T {
   const next = { ...values };
   const allowed = { tourType: catalog.types, tourStyles: catalog.styles, durationRange: catalog.durations };
   for (const key of Object.keys(allowed) as (keyof typeof allowed)[]) {
     if (typeof values[key] === 'string') next[key] = splitFilterValues(values[key]).filter(id => Object.hasOwn(allowed[key], id)).join(',');
   }
   if (typeof values.destinations === 'string') next.destinations = splitFilterValues(values.destinations).filter(id =>
-    /^[a-f\d]{24}$/i.test(id) && (!destinations || destinations.some(option => option.id === id))
+    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(id) && !/^[a-f\d]{24}$/i.test(id)
   ).join(',');
   return next;
 }

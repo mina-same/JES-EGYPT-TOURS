@@ -38,6 +38,8 @@ import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
 import TourListingFilters from "@/components/common/TourListingFilters/TourListingFilters";
 import { countActiveTourFilters, readTourListingState, validateTourPriceRange } from "@/lib/tours/listingFilters";
+import { apiTourSort, buildTourListingUrl } from '@/lib/tours/listingFilters';
+import type { PublicSort } from '@/lib/tours/publicListingUrl';
 import { useAccessibleDrawer } from "@/hooks/useAccessibleDrawer";
 import { mapApiTourToCard } from "@/lib/tours/cardViewModel";
 
@@ -86,7 +88,7 @@ export default function SubcategoryView({
   const [videoIds, setVideoIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(initialListing.page);
   const [totalPages, setTotalPages] = useState(initialTours?.totalPages || 1);
-  const [sort, setSort] = useState<string>(initialListing.sort);
+  const [sort, setSort] = useState<PublicSort>(initialListing.sort);
   const toursPerPage = 9;
   // Seeded with the current slug when the server already resolved the
   // subcategory: starting at null made the first effect see a "new slug" and
@@ -101,52 +103,28 @@ export default function SubcategoryView({
   const [tourTypeOptions, setTourTypeOptions] = useState<FilterOption[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<FilterOption[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<FilterOption[]>([]);
-  const [filterOptionsReady, setFilterOptionsReady] = useState(false);
   const closeFilters = () => setIsFilterOpen(false);
   const { dialogRef, triggerRef } = useAccessibleDrawer(isFilterOpen, closeFilters);
 
   useEffect(() => {
-    const fromQueryPage = Number(searchParams?.get("page") || "1");
-    const safePage = Number.isFinite(fromQueryPage) && fromQueryPage > 0 ? Math.floor(fromQueryPage) : 1;
-    const fromSort = searchParams?.get("sort") || "recommended";
-    const next = {
-      search: searchParams?.get("search") || "",
-      minPrice: searchParams?.get("minPrice") || "",
-      maxPrice: searchParams?.get("maxPrice") || "",
-      tourType: searchParams?.get("tourType") || "",
-      tourStyles: searchParams?.get("tourStyles") || "",
-      destinations: searchParams?.get("destinations") || "",
-      durationRange: searchParams?.get("durationRange") || "",
-    };
-    setCurrentPage(safePage);
-    setSort(fromSort);
-    const clean = sanitizeTourFilters(next);
+    const listing = readTourListingState(searchParams);
+    setCurrentPage(listing.page);
+    setSort(listing.sort);
+    const clean = sanitizeTourFilters(listing.filters);
     const signature = JSON.stringify({ slug, locale, filters: clean });
     if (draftSnapshot.current !== signature) {
       setDraftFilters(clean);
       draftSnapshot.current = signature;
     }
-    setAppliedFilters(sanitizeTourFilters(next));
+    setAppliedFilters(clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, locale, searchParams]);
 
-  const buildUrl = (overrides?: Partial<{ page: number; sort: string }> & Partial<typeof appliedFilters>) => {
+  const buildUrl = (overrides?: Partial<{ page: number; sort: PublicSort }> & Partial<typeof appliedFilters>) => {
     const p = overrides?.page ?? currentPage;
     const s = overrides?.sort ?? sort;
-    const f = sanitizeTourFilters({ ...appliedFilters, ...overrides }, filterOptionsReady ? destinationOptions : undefined);
-    const sp = new URLSearchParams();
-    if (p && p !== 1) sp.set("page", String(p));
-    if (s && s !== "recommended") sp.set("sort", s);
-    if (f.search) sp.set("search", f.search);
-    if (f.minPrice) sp.set("minPrice", f.minPrice);
-    if (f.maxPrice) sp.set("maxPrice", f.maxPrice);
-    if (f.tourType) sp.set("tourType", f.tourType);
-    if (f.destinations) sp.set("destinations", f.destinations);
-    if (f.durationRange) sp.set("durationRange", f.durationRange);
-    if (f.tourStyles) sp.set("tourStyles", f.tourStyles);
-    const qs = sp.toString();
-    // Flat URL — just the subcategory slug
-    return `/${locale}/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
+    const f = sanitizeTourFilters({ ...appliedFilters, ...overrides });
+    return buildTourListingUrl(`/${locale}/${encodeURIComponent(slug)}`, f, s, p);
   };
 
   const handlePageChange = (page: number) => {
@@ -162,7 +140,7 @@ export default function SubcategoryView({
       return;
     }
     setFilterError(null);
-    const clean = sanitizeTourFilters(draftFilters, filterOptionsReady ? destinationOptions : undefined);
+    const clean = sanitizeTourFilters(draftFilters);
     setDraftFilters(clean);
     setAppliedFilters(clean);
     setCurrentPage(1);
@@ -180,7 +158,7 @@ export default function SubcategoryView({
     updateListingUrl(`/${locale}/${encodeURIComponent(slug)}`);
   };
 
-  const handleSortChange = (nextSort: string) => {
+  const handleSortChange = (nextSort: PublicSort) => {
     setSort(nextSort);
     setCurrentPage(1);
     updateListingUrl(buildUrl({ page: 1, sort: nextSort }));
@@ -265,12 +243,12 @@ export default function SubcategoryView({
           subcategory: subId,
           page: currentPage,
           limit: toursPerPage,
-          sort,
+          sort: apiTourSort(sort),
           ...(appliedFilters.search ? { search: appliedFilters.search } : {}),
           ...(appliedFilters.minPrice ? { minPrice: Number(appliedFilters.minPrice) } : {}),
           ...(appliedFilters.maxPrice ? { maxPrice: Number(appliedFilters.maxPrice) } : {}),
           ...(appliedFilters.tourType ? { tourType: appliedFilters.tourType } : {}),
-          destinations: appliedFilters.destinations || undefined,
+          destinationKeys: appliedFilters.destinations || undefined,
           durationRange: appliedFilters.durationRange || undefined,
           ...(appliedFilters.tourStyles ? { tourStyles: appliedFilters.tourStyles } : {}),
           currency,
@@ -347,14 +325,12 @@ export default function SubcategoryView({
     const subcategoryId = initialSubcategory?._id || subcategory?._id;
     if (!subcategoryId) return;
     const controller = new AbortController();
-    setFilterOptionsReady(false);
     tourAPI.getFilterOptions({ subcategory: subcategoryId, currency }, locale, controller.signal)
       .then((response) => {
         if (response.success && response.data) {
           setTourTypeOptions(response.data.tourTypes);
           setTourStyleOptions(response.data.tourStyles);
           setDestinationOptions(response.data.destinations);
-          setFilterOptionsReady(true);
         }
       })
       .catch((err) => {
@@ -532,7 +508,7 @@ export default function SubcategoryView({
           <Row className='gutter-y-40'>
             {/* Desktop Sidebar */}
             <Col lg={4} xl={3} className="d-none d-lg-block p-0">
-              <aside className='listing__sidebar sticky-top' style={{ top: '0', height: '100vh', padding: '120px 20px 40px', background: '#fff', borderRight: '1px solid #f0f0f0', overflowY: 'auto' }}>
+              <aside className='listing__sidebar visitor-filter-sidebar'>
                 <TourListingFilters
                   t={t}
                   draftFilters={draftFilters}
@@ -594,7 +570,7 @@ export default function SubcategoryView({
 
                 <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} currencySymbol={currencySymbol} t={t} remove={(key, remaining) => removeFilter(key as keyof typeof appliedFilters, remaining)} />
                 {countActiveTourFilters(appliedFilters) > 0 && (
-                  <button type="button" className="btn btn-sm btn-link" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
+                  <button type="button" className="visitor-filter-clear" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
                 )}
               </div>
               {error && <div className="alert alert-danger" role="alert">{error}</div>}
@@ -607,7 +583,7 @@ export default function SubcategoryView({
                 ) : pageLoading || error ? null : (
                   <TourEmptyState filtered={countActiveTourFilters(appliedFilters) > 0} emptyText={t('listing.noToursSubcategory')} clear={handleResetFilters} t={t} />
                 )}
-                <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} /></Col>
+                <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} hrefForPage={sort === 'recommended' && countActiveTourFilters(appliedFilters) === 0 ? page => buildUrl({ page }) : undefined} /></Col>
               </Row>
             </Col>
           </Row>

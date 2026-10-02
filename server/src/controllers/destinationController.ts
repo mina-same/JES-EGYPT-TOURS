@@ -7,7 +7,7 @@ import Destination, {
   isDestinationStatus,
   publicDestinationPopulate,
 } from '../models/Destination';
-import { PERMISSIONS } from '../permissions';
+import { canReadAllDestinations } from '../utils/destinationAccess';
 import Blog from '../models/Blog';
 import { FilterQuery } from 'mongoose';
 import BlogCategory from '../models/BlogCategory';
@@ -29,23 +29,8 @@ interface QueryParams {
   sort?: string;
 }
 
-/**
- * Who may read drafts through the list and by-id routes.
- *
- * Both routes are public, because the Admin and the visitor site share them.
- * An anonymous caller gets landing pages only (PUBLIC_DESTINATION_FILTER), so
- * an unfinished page is not readable through the API. The Admin's requests
- * carry its token and see every destination: its editors, and the tour form's
- * Places Visited picker, which may select a draft.
- */
-const canReadAllDestinations = (req: { user?: Request['user'] }): boolean => {
-  const user = req.user;
-  if (!user) return false;
-  if (user.role === 'superadmin') return true;
-  const permissions = Array.isArray(user.permissions) ? user.permissions : [];
-  return permissions.includes(PERMISSIONS.BLOG_READ) || permissions.includes(PERMISSIONS.TOUR_READ);
-};
-
+// The list and by-id routes are shared with the Admin; canReadAllDestinations
+// decides who sees drafts through them.
 const buildFilter = (query: QueryParams, includeDrafts: boolean): FilterQuery<IDestination> => {
   const filter: FilterQuery<IDestination> = {};
   if (query.isActive !== undefined) filter.isActive = query.isActive === 'true';
@@ -77,7 +62,7 @@ const parsePagination = (query: QueryParams) => {
  * @access  Public (published only); Admin token (all, optional ?status=)
  */
 export const getAllDestinations = async (
-  req: Request<{}, {}, {}, QueryParams>,
+  req: Request<Record<string, never>, unknown, unknown, QueryParams>,
   res: Response
 ): Promise<void> => {
   try {
@@ -265,6 +250,8 @@ export const createDestination = async (req: Request, res: Response): Promise<vo
     }
     // No status sent: the schema default applies, and a new destination is a draft.
     const body = { ...req.body };
+    // Identity is derived by the model, never supplied as translated Admin text.
+    delete body.filterKey;
     if (body.metaImage?.url) {
       body.ogImage = body.metaImage.url;
     }
@@ -294,7 +281,7 @@ export const createDestination = async (req: Request, res: Response): Promise<vo
 export const updateDestination = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('Updating Destination:', req.params.id, req.body);
-    let destination = await Destination.findById(req.params.id);
+    const destination = await Destination.findById(req.params.id);
     
     if (!destination) {
       res.status(404).json({ success: false, error: 'Destination not found' });
@@ -307,6 +294,7 @@ export const updateDestination = async (req: Request, res: Response): Promise<vo
 
     // Update fields. A body without `status` leaves the publication state as it is.
     const body = { ...req.body };
+    delete body.filterKey;
     if (body.metaImage?.url) {
       body.ogImage = body.metaImage.url;
     }

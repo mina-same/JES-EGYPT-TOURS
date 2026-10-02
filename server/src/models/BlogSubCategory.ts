@@ -56,10 +56,6 @@ export interface IBlogSubCategory extends Document {
   ogImage?: string;
   ogType?: string;
   
-  // Indexing Control
-  noIndex: boolean;
-  noFollow: boolean;
-  
   // Breadcrumbs
   breadcrumbs?: Array<{
     name: ILocalizedString;
@@ -197,16 +193,6 @@ const BlogSubCategorySchema: Schema = new Schema(
     ogType: {
       type: String,
       default: 'website',
-    },
-    
-    // === INDEXING CONTROL ===
-    noIndex: {
-      type: Boolean,
-      default: false,
-    },
-    noFollow: {
-      type: Boolean,
-      default: false,
     },
     
     // === BREADCRUMBS ===

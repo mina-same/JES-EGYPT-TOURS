@@ -1,0 +1,61 @@
+/* Entrance animations — markup from entrance() in Entrance.ts.
+ *
+ * Nothing here applies without `data-entrance-state`, which only script sets:
+ * the server HTML, a page without JavaScript and a visitor asking for reduced
+ * motion all get the final state and nothing else. Only opacity and the
+ * individual `translate` / `scale` properties are touched, so no state can
+ * move the layout, and a hover `transform` on the same element keeps working. */
+
+:root {
+  /* Framer Motion 12's default transitions, reproduced.
+     Opacity without a duration: a 0.3 s tween on Framer's own curve. */
+  --entrance-ease-fade: cubic-bezier(0.25, 0.1, 0.35, 1);
+  /* Any value with an explicit duration: Framer's "easeOut". */
+  --entrance-ease-out: cubic-bezier(0, 0, 0.58, 1);
+  /* x / y without a duration: Framer's spring (stiffness 500, damping 25),
+     sampled until it comes to rest — 297 ms for a 20 px offset, overshoot
+     included (within 0.7 px of the exact curve for the 10–50 px used here). */
+  --entrance-spring: linear(0, 0.0225, 0.0823, 0.1687, 0.2721, 0.3843, 0.4985, 0.6094, 0.7128, 0.806, 0.8871, 0.9553, 1.0105, 1.0532, 1.0842, 1.1047, 1.1163, 1.1202, 1.1181, 1.1114, 1.1013, 1.089, 1.0756, 1.0619, 1.0485, 1.0359, 1.0246, 1.0146, 1.0062, 0.9994, 1);
+  /* scale without a duration: Framer's spring (stiffness 550, damping 30).
+     Measured on the Framer build, it overshoots by ~7 % of the distance at
+     ~174 ms and snaps to rest once within 0.005 — ~250 ms for 0.85 -> 1
+     (within 0.004 of the measured scale throughout). */
+  --entrance-spring-scale: linear(0, 0.0248, 0.0894, 0.1802, 0.2863, 0.3987, 0.5104, 0.6162, 0.7128, 0.798, 0.8706, 0.9305, 0.9782, 1.0146, 1.0408, 1.0583, 1.0685, 1.0729, 1.0726, 1.069, 1.0631, 1.0557, 1.0476, 1.0393, 1.0313, 1);
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  /* Armed: waiting below the fold, at the start values. */
+  [data-entrance][data-entrance-state="pending"] {
+    opacity: var(--entrance-opacity, 0);
+    translate: var(--entrance-x, 0px) var(--entrance-y, 0px);
+    scale: var(--entrance-scale, 1);
+  }
+
+  /* Playing. `backwards` holds the start values through the delay; once the
+     animation ends nothing of it remains on the element. */
+  [data-entrance][data-entrance-state="in"] {
+    animation-name: entrance-fade, entrance-move;
+    animation-duration: 0.3s, 297ms;
+    animation-timing-function: var(--entrance-ease-fade), var(--entrance-spring);
+    animation-delay: var(--entrance-delay, 0s);
+    animation-fill-mode: backwards;
+  }
+  [data-entrance="spring-scale"][data-entrance-state="in"] {
+    animation-duration: 0.3s, 250ms;
+    animation-timing-function: var(--entrance-ease-fade), var(--entrance-spring-scale);
+  }
+  [data-entrance="tween"][data-entrance-state="in"] {
+    animation-duration: var(--entrance-duration);
+    animation-timing-function: var(--entrance-ease-out);
+  }
+}
+
+@keyframes entrance-fade {
+  from { opacity: var(--entrance-opacity, 0); }
+}
+@keyframes entrance-move {
+  from {
+    translate: var(--entrance-x, 0px) var(--entrance-y, 0px);
+    scale: var(--entrance-scale, 1);
+  }
+}

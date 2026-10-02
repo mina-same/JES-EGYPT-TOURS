@@ -26,6 +26,7 @@ export interface QueryParams {
   tourType?: string;
   tourStyles?: string;
   destinations?: string;
+  destinationKeys?: string;
   durationRange?: string;
   currency?: CurrencyCode;
   fields?: string;

@@ -147,7 +147,7 @@ const duration = loadSource('../src/lib/tours/duration.ts');
 test('opening an existing tour fills only missing reliable metadata and preserves saved hours', () => {
   const Stub = () => null;
   const Overview = loadSource('../src/components/admin/tour/OverviewTab.tsx', {
-    './TourFilterFields': Stub, './DurationSelect': Stub,
+    './TourFilterFields': Stub, './DurationSelect': Stub, './AvailabilityField': Stub,
     react: { ...React, useEffect: (run: () => void) => run() },
     '@/lib/tours/duration': duration,
     '@/components/ui/card': { Card: Stub, CardContent: Stub, CardHeader: Stub, CardTitle: Stub, CardDescription: Stub },

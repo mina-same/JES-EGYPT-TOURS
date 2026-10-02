@@ -7,12 +7,14 @@ interface PaginationProps {
     currentPage?: number;
     totalPages?: number;
     onPageChange?: (page: number) => void;
+    hrefForPage?: (page: number) => string;
 }
 
 const Pagination: React.FC<PaginationProps> = ({ 
     currentPage = 1, 
     totalPages = 1, 
-    onPageChange = () => {} 
+    onPageChange = () => {},
+    hrefForPage,
 }) => {
     const { t } = useTranslation('common');
     // If totalPages is 1 or less (and not 0), we don't need to show pagination
@@ -38,15 +40,23 @@ const Pagination: React.FC<PaginationProps> = ({
         return pages;
     };
 
+    const control = (target: number, label: React.ReactNode, className: string, style: React.CSSProperties, current = false) => {
+        const disabled = target < 1 || target > totalPages;
+        const shared = {
+            className,
+            style: { ...style, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' } as React.CSSProperties,
+            'aria-current': current ? 'page' as const : undefined,
+        };
+        if (hrefForPage && !disabled) {
+            return <a href={hrefForPage(target)} aria-label={typeof label === 'number' ? t('pagination.page', { page: target }) : undefined} {...shared}>{label}</a>;
+        }
+        return <button type="button" onClick={() => !disabled && onPageChange(target)} disabled={disabled} aria-label={typeof label === 'number' ? t('pagination.page', { page: target }) : undefined} {...shared}>{label}</button>;
+    };
+
     return (
         <ul className='post-pagination justify-content-center' aria-label={t('pagination.label')}>
             <li>
-                <button 
-                    type="button"
-                    className={`previous ${currentPage === 1 ? 'disabled' : ''}`}
-                    onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    style={{ 
+                {control(currentPage - 1, t('pagination.previous'), `previous ${currentPage === 1 ? 'disabled' : ''}`, {
                         border: '1px solid #eee', 
                         background: 'white',
                         padding: '8px 16px',
@@ -54,20 +64,12 @@ const Pagination: React.FC<PaginationProps> = ({
                         marginRight: '8px',
                         cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                         opacity: currentPage === 1 ? 0.5 : 1
-                    }}
-                >
-                    {t('pagination.previous')}
-                </button>
+                    })}
             </li>
             
             {getPageNumbers().map(page => (
                 <li key={page} className={currentPage === page ? 'active' : ''}>
-                    <button 
-                        type="button"
-                        onClick={() => onPageChange(page)}
-                        aria-label={t('pagination.page', { page })}
-                        aria-current={currentPage === page ? 'page' : undefined}
-                        style={{ 
+                    {control(page, page, '', {
                             border: '1px solid #eee', 
                             background: currentPage === page ? 'var(--gotur-primary, #b79c5c)' : 'white',
                             color: currentPage === page ? 'white' : 'inherit',
@@ -77,20 +79,12 @@ const Pagination: React.FC<PaginationProps> = ({
                             margin: '0 4px',
                             cursor: 'pointer',
                             fontWeight: currentPage === page ? 'bold' : 'normal'
-                        }}
-                    >
-                        {page}
-                    </button>
+                        }, currentPage === page)}
                 </li>
             ))}
 
             <li>
-                <button 
-                    type="button"
-                    className={`next ${currentPage === totalPages ? 'disabled' : ''}`}
-                    onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    style={{ 
+                {control(currentPage + 1, t('pagination.next'), `next ${currentPage === totalPages ? 'disabled' : ''}`, {
                         border: '1px solid #eee', 
                         background: 'white',
                         padding: '8px 16px',
@@ -98,10 +92,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         marginLeft: '8px',
                         cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                         opacity: currentPage === totalPages ? 0.5 : 1
-                    }}
-                >
-                    {t('pagination.next')}
-                </button>
+                    })}
             </li>
         </ul>
     );

@@ -87,8 +87,6 @@ const INITIAL_BLOG_POST = {
   ogDescription: { en: '', de: '', it: '', es: '' },
   ogImage: '',
   ogType: 'article',
-  noIndex: false,
-  noFollow: false,
   focusKeyword: { en: '', de: '', it: '', es: '' },
   breadcrumbs: [],
   relatedPosts: [],
@@ -1267,25 +1265,6 @@ export default function NewBlogPage() {
                         activeLanguage={activeLanguage}
                       />
 
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="noIndex"
-                          checked={formData.noIndex}
-                          onCheckedChange={(checked) => handleChange('noIndex', checked)}
-                        />
-                        <Label htmlFor="noIndex">No Index</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="noFollow"
-                          checked={formData.noFollow}
-                          onCheckedChange={(checked) => handleChange('noFollow', checked)}
-                        />
-                        <Label htmlFor="noFollow">No Follow</Label>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

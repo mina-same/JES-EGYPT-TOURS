@@ -1,3 +1,8 @@
+import {
+  parsePublicListingQuery, publicListingUrl, PUBLIC_SORT_TO_API,
+  type PublicListingState, type PublicSort,
+} from './publicListingUrl';
+
 export interface TourFilterValues {
   search: string;
   minPrice: string;
@@ -6,12 +11,11 @@ export interface TourFilterValues {
   tourStyles: string;
   destinations: string;
   durationRange: string;
-  subcategoryId?: string;
 }
 
 export interface TourListingState {
   page: number;
-  sort: string;
+  sort: PublicSort;
   filters: TourFilterValues;
 }
 
@@ -29,28 +33,47 @@ export const EMPTY_TOUR_FILTERS: TourFilterValues = {
 
 export const readTourListingState = (
   params: SearchParamsReader | null | undefined,
-  includeSubcategory = false
 ): TourListingState => {
-  const requestedPage = Number(params?.get('page') || '1');
-  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const parsed = parsePublicListingQuery(new URLSearchParams(
+    ['q', 'destinations', 'duration', 'tourType', 'tourStyles', 'minPrice', 'maxPrice', 'sort', 'page']
+      .flatMap(key => params?.get(key) === null || params?.get(key) === undefined ? [] : [[key, params!.get(key)!] as [string, string]]),
+  ));
+  const state = parsed.state;
   const filters: TourFilterValues = {
-    search: params?.get('search') || '',
-    minPrice: params?.get('minPrice') || '',
-    maxPrice: params?.get('maxPrice') || '',
-    tourType: params?.get('tourType') || '',
-    tourStyles: params?.get('tourStyles') || '',
-    destinations: params?.get('destinations') || '',
-    durationRange: params?.get('durationRange') || '',
+    search: state.q,
+    minPrice: state.minPrice,
+    maxPrice: state.maxPrice,
+    tourType: state.tourType,
+    tourStyles: state.tourStyles,
+    destinations: state.destinations,
+    durationRange: state.duration,
   };
-
-  if (includeSubcategory) filters.subcategoryId = params?.get('subcategory') || '';
-
   return {
-    page,
-    sort: params?.get('sort') || 'recommended',
+    page: state.page,
+    sort: state.sort,
     filters,
   };
 };
+
+export function toPublicListingState(filters: TourFilterValues, sort: PublicSort, page: number): PublicListingState {
+  return {
+    q: filters.search,
+    destinations: filters.destinations,
+    duration: filters.durationRange,
+    tourType: filters.tourType,
+    tourStyles: filters.tourStyles,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    sort,
+    page,
+  };
+}
+
+export function buildTourListingUrl(path: string, filters: TourFilterValues, sort: PublicSort, page: number): string {
+  return publicListingUrl(path, toPublicListingState(filters, sort, page));
+}
+
+export const apiTourSort = (sort: PublicSort) => PUBLIC_SORT_TO_API[sort];
 
 export const validateTourPriceRange = (
   minValue: string,
@@ -59,7 +82,7 @@ export const validateTourPriceRange = (
   const parse = (value: string): number | undefined => {
     if (!value.trim()) return undefined;
     const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed >= 0 ? parsed : Number.NaN;
+    return /^\d+(?:\.\d+)?$/.test(value.trim()) && Number.isFinite(parsed) && parsed >= 0 && parsed <= Number.MAX_SAFE_INTEGER ? parsed : Number.NaN;
   };
 
   const min = parse(minValue);
@@ -70,6 +93,6 @@ export const validateTourPriceRange = (
 };
 
 export const countActiveTourFilters = (filters: Partial<TourFilterValues> & { q?: string }): number =>
-  (['search', 'q', 'minPrice', 'maxPrice', 'tourType', 'tourStyles', 'destinations', 'durationRange', 'subcategoryId'] as const)
+  (['search', 'q', 'minPrice', 'maxPrice', 'tourType', 'tourStyles', 'destinations', 'durationRange'] as const)
     .filter(key => typeof filters[key] === 'string' && filters[key]?.trim()).length;
 

@@ -17,7 +17,7 @@ import ListingFaqs from '@/components/common/ListingSections/ListingFaqs';
 import ClientCarousel from '@/components/sections/ClientCarousel/ClientCarousel';
 import BlogHero from '@/components/sections/BlogHero/BlogHero';
 import BlogCategoryCTA from '@/components/sections/BlogCategoryCTA/BlogCategoryCTA';
-import { motion } from 'framer-motion';
+import { entrance, useEntranceOnMount } from '@/components/common/Entrance/Entrance';
 import { Container, Row, Col } from 'react-bootstrap';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -107,6 +107,9 @@ export default function BlogCategoryView({
   const page = Number(searchParams?.get('page')) || 1;
   const allBlogsRef = useRef<HTMLElement>(null);
   const destinationSliderRef = useRef<TinySliderHandle>(null);
+  // Scroll-triggered entrances: armed only below the fold, never on content
+  // the server already painted on screen. See Entrance.ts.
+  const animateIn = useEntranceOnMount('below-fold');
   const t = (key: string) => translations[locale]?.[key] || translations['en']?.[key] || key;
 
   // Scroll to All Blogs section on page change (not first load)
@@ -159,11 +162,7 @@ export default function BlogCategoryView({
           <Container>
             <Row className="align-items-center">
               <Col lg={6}>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                >
+                <div {...entrance(animateIn, { x: -20, inView: 'once' })}>
                   <span style={{ color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>
                     About {categoryName}
                   </span>
@@ -174,16 +173,13 @@ export default function BlogCategoryView({
                     style={{ fontSize: '17px', color: '#555', lineHeight: 1.8, marginBottom: '32px' }}
                     dangerouslySetInnerHTML={{ __html: getLocalizedValue(category.heroDescription, locale) || getLocalizedValue(category.description, locale) }}
                   />
-                </motion.div>
+                </div>
               </Col>
               
               {category.sideImage?.url && (
                 <Col lg={6} className="mt-5 mt-lg-0">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    style={{ position: 'relative', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+                  <div
+                    {...entrance(animateIn, { scale: 0.95, inView: 'once' }, { position: 'relative', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' })}
                   >
                     <Image
                       src={category.sideImage.url}
@@ -193,7 +189,7 @@ export default function BlogCategoryView({
                       height={600}
                       style={{ width: '100%', height: 'auto', display: 'block' }}
                     />
-                  </motion.div>
+                  </div>
                 </Col>
               )}
             </Row>
@@ -208,23 +204,16 @@ export default function BlogCategoryView({
         <section style={{ background: '#f8f5f0', padding: '80px 0' }}>
           <Container>
             <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-              <motion.span
-                initial={{ opacity: 0, scale: 0.85 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+              <span
+                {...entrance(animateIn, { scale: 0.85, inView: 'once' }, { display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' })}
               >
                 Explore Topics
-              </motion.span>
-              <motion.h2
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                viewport={{ once: true }}
-                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+              </span>
+              <h2
+                {...entrance(animateIn, { y: 12, delay: 0.1, inView: 'once' }, { fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' })}
               >
                 Browse by Topic
-              </motion.h2>
+              </h2>
               <div style={{ width: '64px', height: '3px', background: '#b79c5c', margin: '0 auto', borderRadius: '2px' }} />
             </div>
 
@@ -236,7 +225,7 @@ export default function BlogCategoryView({
                 // linking to a fallback (English) URL from a non-English page.
                 if (!subSlug) return null;
                 return (
-                  <motion.div key={sub._id || index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }} viewport={{ once: true }}>
+                  <div key={sub._id || index} {...entrance(animateIn, { y: 20, delay: index * 0.07, inView: 'once' })}>
                     <Link href={`/${locale}/${subSlug}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
                       <div
                         style={{
@@ -304,7 +293,7 @@ export default function BlogCategoryView({
                         </div>
                       </div>
                     </Link>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -320,23 +309,16 @@ export default function BlogCategoryView({
           <Container>
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '52px' }}>
-              <motion.span
-                initial={{ opacity: 0, scale: 0.85 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+              <span
+                {...entrance(animateIn, { scale: 0.85, inView: 'once' }, { display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' })}
               >
                 Explore Destinations
-              </motion.span>
-              <motion.h2
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                viewport={{ once: true }}
-                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+              </span>
+              <h2
+                {...entrance(animateIn, { y: 12, delay: 0.1, inView: 'once' }, { fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' })}
               >
                 {getLocalizedValue(category.destinationsSectionTitle, locale) || 'Where Will You Go?'}
-              </motion.h2>
+              </h2>
               <div style={{ width: '64px', height: '3px', background: '#b79c5c', margin: '0 auto', borderRadius: '2px' }} />
             </div>
 
@@ -448,23 +430,16 @@ export default function BlogCategoryView({
           <Container>
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '52px' }}>
-              <motion.span
-                initial={{ opacity: 0, scale: 0.85 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+              <span
+                {...entrance(animateIn, { scale: 0.85, inView: 'once' }, { display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' })}
               >
                 {t('topPicks')}
-              </motion.span>
-              <motion.h2
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                viewport={{ once: true }}
-                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+              </span>
+              <h2
+                {...entrance(animateIn, { y: 12, delay: 0.1, inView: 'once' }, { fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' })}
               >
                 {getLocalizedValue(category.featuredBlogsSectionTitle, locale) || t('popularArticles')}
-              </motion.h2>
+              </h2>
               <div style={{ width: '64px', height: '3px', background: '#b79c5c', margin: '0 auto', borderRadius: '2px' }} />
             </div>
 
@@ -484,23 +459,16 @@ export default function BlogCategoryView({
         <Container>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '52px' }}>
-            <motion.span
-              initial={{ opacity: 0, scale: 0.85 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              style={{ display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}
+            <span
+              {...entrance(animateIn, { scale: 0.85, inView: 'once' }, { display: 'inline-block', color: '#b79c5c', fontSize: '11px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' })}
             >
               {t('exploreMore')}
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              viewport={{ once: true }}
-              style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' }}
+            </span>
+            <h2
+              {...entrance(animateIn, { y: 12, delay: 0.1, inView: 'once' }, { fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, color: '#1a1a1a', marginBottom: '16px' })}
             >
               {getLocalizedValue(category.blogsSectionTitle, locale) || t('allArticles')}
-            </motion.h2>
+            </h2>
             <div style={{ width: '64px', height: '3px', background: '#e5e5e5', margin: '0 auto', borderRadius: '2px' }} />
           </div>
 

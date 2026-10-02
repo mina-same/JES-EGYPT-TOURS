@@ -54,8 +54,6 @@ export interface Destination {
   ogDescription?: ILocalizedString;
   ogImage?: string;
   ogType?: string;
-  noIndex: boolean;
-  noFollow: boolean;
 
   relatedDestinations?: Partial<Destination>[];
   /** Whether the destination's own landing page is public. Tours may reference either. */

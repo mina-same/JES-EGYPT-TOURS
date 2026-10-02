@@ -4,30 +4,9 @@ import React, { useEffect, useMemo } from "react";
 import { I18nextProvider } from "react-i18next";
 import i18n from "@/lib/i18n";
 import type { LocaleResources } from "@/i18n/bundles";
+import { seedResources } from "@/i18n/seedResources";
 
 const isServer = typeof window === "undefined";
-
-/**
- * Seeds an i18next instance with the resources the server loaded for this
- * request. Idempotent and synchronous: it has to complete before the first
- * render output, or `t()` returns raw key paths on the initial paint.
- */
-function seedResources(
-  instance: typeof i18n,
-  resources: LocaleResources | undefined
-) {
-  if (!resources) return;
-
-  for (const [locale, namespaces] of Object.entries(resources)) {
-    if (!namespaces) continue;
-    for (const [namespace, data] of Object.entries(namespaces)) {
-      if (instance.hasResourceBundle(locale, namespace)) continue;
-      // deep = true, overwrite = true: a bundle is only ever added once per
-      // locale/namespace, so these only matter if a locale is re-seeded.
-      instance.addResourceBundle(locale, namespace, data, true, true);
-    }
-  }
-}
 
 export function I18nProvider({
   children,

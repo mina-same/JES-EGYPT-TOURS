@@ -12,25 +12,23 @@ import type { Metadata } from "next";
 export const isSiteIndexable = (): boolean => process.env.NEXT_PUBLIC_SITE_INDEXABLE === "true";
 
 /**
- * robots metadata for a visitor page, in two layers:
+ * robots metadata for a visitor page: the site switch alone. While the site is
+ * not indexable every page is noindex, nofollow; once it is, index, follow.
  *
- *   1. The site switch. While the site is not indexable, every page is
- *      noindex, nofollow — whatever the page or its editor says.
- *   2. The editor's "No Index" on the page's own entity (articles, blog
- *      categories and topics, destinations): noindex, follow. The page stays
- *      live and its links are still followed; it just is not listed — the
- *      same entities the sitemap leaves out.
- *
- * Otherwise index, follow.
- *
- * A page that sets `robots` replaces the layout's value outright rather than
- * merging with it, which is why layer 1 is applied here as well: no page can
- * reopen indexing that the site switch has closed.
+ * There is no per-page override. Content that should not be found is not
+ * published (a draft, or inactive), so it has no public page at all; a page
+ * that exists is meant to be indexed. The [locale] layout applies this to
+ * every visitor page.
  */
-export function getRobotsMetadata(entityNoIndex?: boolean | null): NonNullable<Metadata["robots"]> {
+export function getRobotsMetadata(): NonNullable<Metadata["robots"]> {
   if (!isSiteIndexable()) return { index: false, follow: false };
-  if (entityNoIndex === true) return { index: false, follow: true };
   return { index: true, follow: true };
+}
+
+/** Utility listing/search URLs remain followable but are never SEO pages. */
+export function getListingRobotsMetadata(isUtility: boolean): NonNullable<Metadata["robots"]> {
+  if (!isSiteIndexable()) return { index: false, follow: false };
+  return isUtility ? { index: false, follow: true } : { index: true, follow: true };
 }
 
 /**

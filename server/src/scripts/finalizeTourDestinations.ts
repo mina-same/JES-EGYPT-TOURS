@@ -37,7 +37,7 @@ async function main() {
         const destination = new Destination({
           name: localized(entry.name), shortName: localized(entry.name),
           // A catalog entry with no content: usable by tours, no public page.
-          slug: localized(entry.slug), status: 'draft', isActive: true, noIndex: true,
+          slug: localized(entry.slug), status: 'draft', isActive: true,
         });
         await destination.validate();
         missing.push(destination);

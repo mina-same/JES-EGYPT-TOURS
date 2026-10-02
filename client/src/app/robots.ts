@@ -22,7 +22,15 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: [{ userAgent: '*', allow: '/', disallow: ['/admin', '/admin/'] }],
+    rules: [{
+      userAgent: '*',
+      allow: '/',
+      disallow: [
+        '/admin', '/admin/',
+        ...['q', 'destinations', 'duration', 'tourType', 'tourStyles', 'minPrice', 'maxPrice', 'sort']
+          .map(key => `/*?*${key}=`),
+      ],
+    }],
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

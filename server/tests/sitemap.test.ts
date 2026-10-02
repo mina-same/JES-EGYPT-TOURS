@@ -122,14 +122,18 @@ test('the endpoint returns slugs, dates and flags only, for every family', async
       { _id: 2, slug: 'legacy-string-slug', updatedAt: 'not a date' },
     ]],
     [MODELS.tourCategories, [{ _id: 3, slug: { en: 'egypt-tours' }, updatedAt: updated }]],
-    [MODELS.tourSubcategories, []],
-    [MODELS.blogCategories, [{ _id: 4, slug: { en: 'egypt-blog', de: 'aegypten-blog' }, updatedAt: updated, noIndex: true }]],
+    [MODELS.tourSubcategories, [{ _id: 7, category: 3, slug: { en: 'classic-tours' }, updatedAt: updated }]],
+    [MODELS.blogCategories, [{ _id: 4, slug: { en: 'egypt-blog', de: 'aegypten-blog' }, updatedAt: updated }]],
     [MODELS.blogSubcategories, []],
-    [MODELS.destinations, [{ _id: 5, slug: { en: 'cairo', de: 'kairo' }, updatedAt: updated, noIndex: false }]],
+    [MODELS.destinations, [{ _id: 5, slug: { en: 'cairo', de: 'kairo' }, updatedAt: updated }]],
   ]);
   stub(t, Object.values(MODELS).filter((m) => m !== MODELS.blogs), 'find', (model) => (filter: unknown, projection: unknown) => {
     queries.push({ model, filter, projection });
     return { sort: () => ({ lean: async () => docsFor.get(model) ?? [] }) };
+  });
+  stub(t, [MODELS.tours], 'aggregate', () => async (stages: any[]) => {
+    const match = stages[0].$match;
+    return match['slug.en'] ? [{ _id: 7, count: 19 }] : match['slug.de'] ? [{ _id: 7, count: 9 }] : [];
   });
 
   let pipeline: unknown;
@@ -186,7 +190,7 @@ test('the endpoint returns slugs, dates and flags only, for every family', async
 
   // Filters are the resolver's; the projection never includes content.
   for (const q of queries) {
-    assert.deepEqual(q.projection, { slug: 1, updatedAt: 1, noIndex: 1 });
+    assert.deepEqual(q.projection, { slug: 1, updatedAt: 1, category: 1 });
   }
   assert.deepEqual((pipeline as unknown[])[0], { $match: SITEMAP_VISIBILITY.blogs });
   assert.ok(!JSON.stringify(pipeline).includes('"contentBlocks":1'), 'article bodies must not be projected');
@@ -196,9 +200,10 @@ test('the endpoint returns slugs, dates and flags only, for every family', async
     { slug: { en: 'nile-cruise', de: 'nil-kreuzfahrt' }, updatedAt: updated.toISOString() },
     { slug: {} },
   ]);
-  assert.deepEqual(data.tourCategories, [{ slug: { en: 'egypt-tours' }, updatedAt: updated.toISOString() }]);
+  assert.deepEqual(data.tourCategories, [{ slug: { en: 'egypt-tours' }, updatedAt: updated.toISOString(), pageCounts: { en: 3, de: 1, it: 1, es: 1 } }]);
+  assert.deepEqual(data.tourSubcategories, [{ slug: { en: 'classic-tours' }, updatedAt: updated.toISOString(), pageCounts: { en: 3, de: 1, it: 1, es: 1 } }]);
   assert.deepEqual(data.blogCategories, [
-    { slug: { en: 'egypt-blog', de: 'aegypten-blog' }, updatedAt: updated.toISOString(), noIndex: true },
+    { slug: { en: 'egypt-blog', de: 'aegypten-blog' }, updatedAt: updated.toISOString() },
   ]);
   assert.deepEqual(data.destinations, [{ slug: { en: 'cairo', de: 'kairo' }, updatedAt: updated.toISOString() }]);
   assert.deepEqual(data.blogs, [

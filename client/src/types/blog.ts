@@ -12,8 +12,6 @@ export interface ISEO {
   ogDescription?: ILocalizedString;
   ogImage?: string;
   ogType?: string;
-  noIndex?: boolean;
-  noFollow?: boolean;
   focusKeyword?: ILocalizedString;
 }
 

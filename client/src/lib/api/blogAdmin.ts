@@ -73,8 +73,6 @@ export interface BlogFormData {
   ogDescription?: ILocalizedString;
   ogImage?: string;
   ogType?: string;
-  noIndex?: boolean;
-  noFollow?: boolean;
   focusKeyword?: ILocalizedString;
   breadcrumbs?: {
     name: ILocalizedString;

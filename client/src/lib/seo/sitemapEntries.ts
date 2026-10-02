@@ -88,8 +88,8 @@ const lastModifiedOf = (updatedAt: string | undefined): Pick<Entry, 'lastModifie
  * hreflang alternates use — and only:
  *   - the canonical slug for that language, under the pages' strict slug rule,
  *     and exactly as stored (a slug that needs trimming does not resolve);
- *   - for the entity the resolver actually answers that URL with;
- *   - never for an entity whose editor switched on "No Index";
+ *   - for the entity the resolver actually answers that URL with (the API
+ *     sends published entities only, so a draft has no URL here);
  *   - for articles, only in the languages the article has text in (the page
  *     404s in the others);
  *   - never under a segment a static route or redirect owns.
@@ -125,7 +125,6 @@ export function buildSitemapEntries(data: SitemapData, baseUrl: string): Metadat
   const resolve = createResolver(data);
   for (const family of SITEMAP_FAMILIES) {
     for (const entity of data[family]) {
-      if (entity.noIndex) continue;
       for (const locale of SUPPORTED_LOCALES) {
         const slug = getStrictLocalizedSlug(entity.slug, locale);
         if (!slug || slug !== entity.slug[locale]) continue;
@@ -137,6 +136,15 @@ export function buildSitemapEntries(data: SitemapData, baseUrl: string): Metadat
           ...lastModifiedOf(entity.updatedAt),
           ...FAMILY_SETTINGS[family],
         });
+        if (family === 'tourCategories' || family === 'tourSubcategories') {
+          for (let page = 2; page <= (entity.pageCounts?.[locale] || 1); page += 1) {
+            entries.push({
+              url: `${baseUrl}/${locale}/${slug}?page=${page}`,
+              ...lastModifiedOf(entity.updatedAt),
+              ...FAMILY_SETTINGS[family],
+            });
+          }
+        }
       }
     }
   }

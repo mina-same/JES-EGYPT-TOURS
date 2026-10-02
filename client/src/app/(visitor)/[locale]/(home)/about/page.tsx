@@ -11,6 +11,8 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { Metadata } from "next";
+// The page header accent paints in Playfair italic in the first viewport.
+import "@/lib/fonts/displayItalicAbout";
 
 export async function generateMetadata({
   params,

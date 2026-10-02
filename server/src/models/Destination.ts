@@ -4,6 +4,7 @@ import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema,
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 import { revalidateTags } from '../services/revalidate';
+import { initialDestinationFilterKey, normalizeDestinationFilterKey } from '../utils/destinationFilterKey';
 
 export const DESTINATION_STATUSES = ['draft', 'published'] as const;
 export type DestinationStatus = (typeof DESTINATION_STATUSES)[number];
@@ -39,6 +40,7 @@ export interface IDestination extends Document {
   name: ILocalizedString;
   shortName?: ILocalizedString;
   slug: ILocalizedString;
+  filterKey: string;
   subheader?: ILocalizedString;
   description?: ILocalizedString;
   region?: ILocalizedString;
@@ -87,10 +89,6 @@ export interface IDestination extends Document {
   ogImage?: string;
   ogType?: string;
 
-  // Indexing Control
-  noIndex: boolean;
-  noFollow: boolean;
-
   // Publication of the landing page
   status: DestinationStatus;
 
@@ -113,6 +111,17 @@ const DestinationSchema: Schema = new Schema(
     slug: {
       type: LocalizedStringSchema,
       required: true,
+    },
+    filterKey: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      immutable: true,
+      validate: {
+        validator: (value: unknown) => normalizeDestinationFilterKey(value) === value,
+        message: 'Destination filterKey must be a stable lowercase kebab-case key',
+      },
     },
     subheader: {
       type: LocalizedStringSchema,
@@ -203,10 +212,6 @@ const DestinationSchema: Schema = new Schema(
     ogImage: { type: String, trim: true },
     ogType: { type: String, default: 'website' },
 
-    // === INDEXING CONTROL ===
-    noIndex: { type: Boolean, default: false },
-    noFollow: { type: Boolean, default: false },
-
     // === PUBLICATION ===
     // Draft until an editor publishes it, so a new destination has no public
     // page. See PUBLIC_DESTINATION_FILTER for what the status does and does
@@ -224,6 +229,7 @@ DestinationSchema.index({ 'slug.en': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.de': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.it': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
+DestinationSchema.index({ filterKey: 1 }, { unique: true, partialFilterExpression: { filterKey: { $type: 'string' } } });
 DestinationSchema.index({ isActive: 1 });
 DestinationSchema.index({ name: 'text', description: 'text' });
 
@@ -237,6 +243,15 @@ DestinationSchema.pre<IDestination>('save', function (next) {
   this.ogDescription = completeOgFromMeta(this.ogDescription, this.metaDescription) as any;
   if (!this.ogImage) {
     this.ogImage = (this.metaImage as any)?.url || this.coverImage?.url;
+  }
+  next();
+});
+
+DestinationSchema.pre<IDestination>('validate', function (next) {
+  // A newly-created destination receives its key once. Editing localized SEO
+  // slugs afterwards must never silently change a filter URL.
+  if (this.isNew && !this.filterKey) {
+    this.filterKey = initialDestinationFilterKey(this.slug?.en) || '';
   }
   next();
 });

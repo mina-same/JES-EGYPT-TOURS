@@ -13,6 +13,8 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getStaticLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { getFaqsForLocale, getLocalesWithFaqs } from "@/lib/faqLocales";
+// The sidebar sub-title paints in Playfair italic in the first viewport.
+import "@/lib/fonts/displayItalicFaq";
 
 // Generate dynamic metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {

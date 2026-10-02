@@ -107,9 +107,9 @@ const request = (parts: Record<string, unknown>) => ({ query: {}, params: {}, bo
 const admin = { role: 'superadmin', permissions: [], isActive: true };
 
 const name = (en: string) => ({ en, de: en, it: en, es: en });
-const cairo = { _id: new ObjectId(), name: name('Cairo'), slug: name('cairo'), status: 'published', isActive: true, noIndex: false };
-const abuSimbel = { _id: new ObjectId(), name: name('Abu Simbel'), slug: name('abu-simbel'), status: 'draft', isActive: true, noIndex: false };
-const retired = { _id: new ObjectId(), name: name('Retired'), slug: name('retired'), status: 'published', isActive: false, noIndex: false };
+const cairo = { _id: new ObjectId(), name: name('Cairo'), slug: name('cairo'), filterKey: 'cairo', status: 'published', isActive: true };
+const abuSimbel = { _id: new ObjectId(), name: name('Abu Simbel'), slug: name('abu-simbel'), filterKey: 'abu-simbel', status: 'draft', isActive: true };
+const retired = { _id: new ObjectId(), name: name('Retired'), slug: name('retired'), status: 'published', isActive: false };
 const legacy = { _id: new ObjectId(), name: name('Legacy'), slug: name('legacy'), isActive: true };
 const ALL = [cairo, abuSimbel, retired, legacy];
 
@@ -164,7 +164,7 @@ test('the resolver answers a published destination and treats a draft as not fou
   assert.equal((live.body?.data as Doc).type, 'destination');
 
   // A draft: the same answer as a slug that does not exist, with no identity
-  // in the response. Nothing about it depends on noIndex, which is false here.
+  // in the response. Its status alone decides it; there is no robots flag.
   const missing = await resolve('no-such-slug');
   for (const slug of ['abu-simbel', 'retired', 'legacy']) {
     const draft = await resolve(slug);
@@ -176,11 +176,12 @@ test('the resolver answers a published destination and treats a draft as not fou
 // ── sitemap ─────────────────────────────────────────────────────────────────
 test('the sitemap lists published destinations and never a draft', async (context) => {
   const updatedAt = new Date('2026-09-01T10:00:00.000Z');
-  const giza = { ...cairo, _id: new ObjectId(), slug: name('giza'), noIndex: true, updatedAt };
+  const giza = { ...cairo, _id: new ObjectId(), slug: name('giza'), updatedAt };
   const stored = [{ ...cairo, updatedAt }, { ...abuSimbel, updatedAt }, { ...retired, updatedAt }, giza];
   for (const model of [Tour, TourCategory, TourSubcategory, BlogCategory, BlogSubCategory]) {
     replace(context,model as unknown as { find: unknown }, 'find', () => chain([]));
   }
+  replace(context,Tour, 'aggregate', async () => []);
   replace(context,Destination, 'find', (filter: Doc) => chain(stored.filter((doc) => matches(doc, filter))));
   replace(context,Blog, 'aggregate', async () => []);
   replace(context,EditorialAuthor, 'find', () => chain([]));
@@ -191,8 +192,6 @@ test('the sitemap lists published destinations and never a draft', async (contex
   assert.equal(out.status, 200);
   const destinations = (out.body?.data as SitemapData).destinations;
   assert.deepEqual(destinations.map((entity) => entity.slug.en), ['cairo', 'giza']);
-  // The legacy editor flag still travels for a published destination.
-  assert.deepEqual(destinations.map((entity) => entity.noIndex), [undefined, true]);
 });
 
 // ── public destination reads ────────────────────────────────────────────────
@@ -268,9 +267,15 @@ test('public category pages feature published destinations; Admin reads keep eve
     await handlers[family.bySlug](request({ params: { slug: 'any' } }), fakeResponse().res);
     assert.deepEqual(featured()?.match, PUBLIC, `${family.model.modelName} by slug`);
 
+    // By id: the same rule for an anonymous caller; the Admin's editor gets
+    // every saved reference back.
     populated.length = 0;
     await handlers[family.byId](request({ params: { id: String(new ObjectId()) } }), fakeResponse().res);
-    assert.ok(populated.includes('featuredDestinations'), `${family.model.modelName} by id populates every reference`);
+    assert.deepEqual(featured()?.match, PUBLIC, `${family.model.modelName} by id, anonymous`);
+
+    populated.length = 0;
+    await handlers[family.byId](request({ params: { id: String(new ObjectId()) }, user: admin }), fakeResponse().res);
+    assert.ok(featured() && !('match' in featured()!), `${family.model.modelName} by id, Admin populates every reference`);
   }
 });
 
@@ -300,7 +305,7 @@ test('create: a destination is a draft unless it is published explicitly', async
 
 test('edit: a draft stays a draft, publishes, and goes back, with one revalidation per save', async (context) => {
   stubDriver();
-  const doc = new Destination({ name: name('Abu Simbel'), slug: name('abu-simbel') });
+  const doc = new Destination({ name: name('Abu Simbel'), slug: name('abu-simbel'), filterKey: 'abu-simbel' });
   doc.isNew = false;
   replace(context,Destination, 'findById', async () => doc);
   replace(context,console, 'log', () => {});

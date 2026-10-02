@@ -79,10 +79,6 @@ export interface IBlog extends Document {
   ogImage?: string;
   ogType?: string;
   
-  // Indexing Control
-  noIndex: boolean;
-  noFollow: boolean;
-  
   // Focus Keyword & Readability
   focusKeyword?: ILocalizedString;
   focusKeywordDensity?: number;
@@ -305,16 +301,6 @@ const BlogSchema: Schema = new Schema(
     ogType: {
       type: String,
       default: 'article',
-    },
-    
-    // === INDEXING CONTROL ===
-    noIndex: {
-      type: Boolean,
-      default: false,
-    },
-    noFollow: {
-      type: Boolean,
-      default: false,
     },
     
     // === FOCUS KEYWORD & READABILITY ===

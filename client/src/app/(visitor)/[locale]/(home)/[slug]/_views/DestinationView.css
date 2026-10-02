@@ -1,0 +1,26 @@
+/* The At-a-Glance cards' hover lift — formerly Framer Motion's `whileHover`
+   (shadow tween, 4 px lift on its default spring). Like Framer's hover
+   gesture, it ignores touch. */
+.destination-glance-card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  .destination-glance-card {
+    transition: box-shadow 0.3s ease, transform 297ms var(--entrance-spring);
+  }
+}
+@media (hover: hover) {
+  .destination-glance-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .destination-glance-card {
+    transition: box-shadow 0.3s ease;
+  }
+  .destination-glance-card:hover {
+    transform: none;
+  }
+}

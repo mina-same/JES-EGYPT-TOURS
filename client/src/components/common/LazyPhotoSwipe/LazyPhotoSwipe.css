@@ -1,0 +1,66 @@
+/*
+ * The clicked gallery photo while PhotoSwipe loads for the first time.
+ *
+ * LazyPhotoSwipe sets `data-pswp-loading` and `aria-busy="true"` on the
+ * clicked button or link only, and removes both as soon as the lightbox opens,
+ * the load fails or another click takes over. Once the module has loaded they
+ * are never set again, so later opens show nothing.
+ *
+ * Measured on production, the first load is ~0.2-0.3 s on fast 4G and 0.8-3 s
+ * on slow 4G. The spinner therefore stays invisible for its first 300 ms: a
+ * fast connection opens the lightbox before it would ever appear.
+ *
+ * `::before`, not `::after`: the mosaic tiles already use `::after` for their
+ * hover tint. `position: relative` adds no offset, so nothing moves (the mosaic
+ * tiles are relative already); `isolation` keeps the spinner's z-index inside
+ * the photo, below the sticky header. The selector names the element and both
+ * attributes so it outranks Bootstrap's `[type="button"]:not(:disabled)
+ * { cursor: pointer }` on the mosaic's buttons.
+ */
+a[data-pswp-loading][aria-busy="true"],
+button[data-pswp-loading][aria-busy="true"] {
+  position: relative;
+  isolation: isolate;
+  cursor: progress;
+}
+
+a[data-pswp-loading][aria-busy="true"]::before,
+button[data-pswp-loading][aria-busy="true"]::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-top-color: var(--jes-gold, #b79c5c);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  animation:
+    lazy-pswp-spin 0.8s linear infinite,
+    lazy-pswp-reveal 0.15s ease-out 0.3s forwards;
+}
+
+@keyframes lazy-pswp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lazy-pswp-reveal {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Asked not to see motion: still shown after the same delay, turning slowly. */
+@media (prefers-reduced-motion: reduce) {
+  a[data-pswp-loading][aria-busy="true"]::before,
+  button[data-pswp-loading][aria-busy="true"]::before {
+    animation-duration: 2.4s, 0.15s;
+  }
+}

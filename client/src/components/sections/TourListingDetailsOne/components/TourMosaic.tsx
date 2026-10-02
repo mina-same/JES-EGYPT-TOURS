@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import { Gallery as PhotoSwipeGallery, Item } from "react-photoswipe-gallery";
+import { Gallery as PhotoSwipeGallery, Item } from "@/components/common/LazyPhotoSwipe/LazyPhotoSwipe";
 import { useTranslation } from "react-i18next";
 import { Images } from "lucide-react";
 

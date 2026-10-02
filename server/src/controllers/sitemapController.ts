@@ -38,9 +38,8 @@ import { narrowFaqsToLocale } from '../utils/localize';
  * ── Shape ──
  * Raw per-locale slugs, not URLs. Which slugs become URLs is decided in one
  * place, the front end's sitemap builder, with the same strict slug rule the
- * pages use for hreflang. `noIndex` travels as a flag instead of filtering the
- * entity out here: a noIndex entity still answers its URLs, so the builder has
- * to know those slugs are taken even though it will not list them.
+ * pages use for hreflang. Whether an entity is listed at all is its
+ * publication state alone (SITEMAP_VISIBILITY); there is no per-page opt-out.
  *
  * All of it is projection: no article bodies, FAQs, images or SEO text leave
  * the database — for articles, MongoDB itself reduces each content block to
@@ -56,10 +55,11 @@ export interface SitemapEntity {
   slug: LocalizedSlugs;
   /** ISO timestamp of the document's last write, when it has one. */
   updatedAt?: string;
-  /** The editor's "No Index" switch (articles, blog categories/topics, destinations). */
-  noIndex?: true;
   /** Articles only: the languages the article has text of its own in. */
   locales?: Locale[];
+  pageCounts?: Partial<Record<Locale, number>>;
+  sourceId?: string;
+  categoryId?: string;
 }
 
 export interface SitemapData {
@@ -91,7 +91,7 @@ export const SITEMAP_VISIBILITY = {
   destinations: PUBLIC_DESTINATION_FILTER,
 } as const;
 
-const ENTITY_PROJECTION = { slug: 1, updatedAt: 1, noIndex: 1 } as const;
+const ENTITY_PROJECTION = { slug: 1, updatedAt: 1, category: 1 } as const;
 
 /**
  * Only string values of the four languages. A slug stored as a bare string
@@ -107,12 +107,13 @@ const pickSlugs = (slug: unknown): LocalizedSlugs => {
   return out;
 };
 
-const toEntity = (doc: { slug?: unknown; updatedAt?: unknown; noIndex?: unknown }): SitemapEntity => ({
+const toEntity = (doc: { _id?: unknown; category?: unknown; slug?: unknown; updatedAt?: unknown }): SitemapEntity => ({
   slug: pickSlugs(doc.slug),
+  ...(doc._id ? { sourceId: String(doc._id) } : {}),
+  ...(doc.category ? { categoryId: String(doc.category) } : {}),
   ...(doc.updatedAt instanceof Date && !Number.isNaN(doc.updatedAt.getTime())
     ? { updatedAt: doc.updatedAt.toISOString() }
     : {}),
-  ...(doc.noIndex === true ? { noIndex: true as const } : {}),
 });
 
 type ProjectableModel = {
@@ -156,7 +157,6 @@ export const BLOG_TEXT_PIPELINE: PipelineStage[] = [
     $project: {
       slug: 1,
       updatedAt: 1,
-      noIndex: 1,
       blocks: {
         $map: {
           input: { $cond: [{ $isArray: '$contentBlocks' }, '$contentBlocks', []] },
@@ -259,14 +259,48 @@ export const getSitemapData = async (_req: Request, res: Response): Promise<void
       readFaqLocales(),
     ]);
 
+    // One aggregate supplies the exact base-listing inventory; categories count
+    // active Tours in active Subcategories, just as the listing endpoint does.
+    const countsByLocale = await Promise.all(LOCALES.map(async locale => {
+      const counts = await Tour.aggregate<{ _id: unknown; count: number }>([
+        { $match: { ...SITEMAP_VISIBILITY.tours, [`slug.${locale}`]: { $exists: true, $nin: ['', null] } } },
+        { $group: { _id: '$subcategory', count: { $sum: 1 } } },
+      ]);
+      return new Map(counts.map(row => [String(row._id), row.count]));
+    }));
+    const pageCount = (count: number) => Math.max(1, Math.ceil(count / 9));
+    const categoryCounts = new Map<string, Partial<Record<Locale, number>>>();
+    for (const subcategory of tourSubcategories) {
+      if (!subcategory.categoryId) continue;
+      const category = categoryCounts.get(subcategory.categoryId) || {};
+      const pages: Partial<Record<Locale, number>> = {};
+      LOCALES.forEach((locale, index) => {
+        const count = countsByLocale[index].get(subcategory.sourceId || '') || 0;
+        category[locale] = (category[locale] || 0) + count;
+        pages[locale] = pageCount(count);
+      });
+      categoryCounts.set(subcategory.categoryId, category);
+      subcategory.pageCounts = pages;
+    }
+    for (const category of tourCategories) {
+      const counts = categoryCounts.get(category.sourceId || '') || {};
+      category.pageCounts = Object.fromEntries(LOCALES.map(locale => [locale, pageCount(counts[locale] || 0)]));
+    }
+    const publicEntity = (entity: SitemapEntity): SitemapEntity => {
+      const result = { ...entity };
+      delete result.sourceId;
+      delete result.categoryId;
+      return result;
+    };
+
     const data: SitemapData = {
-      tours,
-      tourCategories,
-      tourSubcategories,
-      blogCategories,
-      blogSubcategories,
-      blogs,
-      destinations,
+      tours: tours.map(publicEntity),
+      tourCategories: tourCategories.map(publicEntity),
+      tourSubcategories: tourSubcategories.map(publicEntity),
+      blogCategories: blogCategories.map(publicEntity),
+      blogSubcategories: blogSubcategories.map(publicEntity),
+      blogs: blogs.map(publicEntity),
+      destinations: destinations.map(publicEntity),
       authors,
       faqLocales,
     };

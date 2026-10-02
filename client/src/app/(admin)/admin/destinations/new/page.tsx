@@ -66,8 +66,6 @@ const INITIAL_FORM = {
   ogTitle: { ...EMPTY_LOCALIZED },
   ogDescription: { ...EMPTY_LOCALIZED },
   ogImage: '',
-  noIndex: false,
-  noFollow: false,
   // A new destination has no public page until it is published.
   status: 'draft' as DestinationStatus,
   isActive: true,
@@ -123,8 +121,6 @@ export default function DestinationFormPage() {
             ogTitle: d.ogTitle || EMPTY_LOCALIZED,
             ogDescription: d.ogDescription || EMPTY_LOCALIZED,
             ogImage: d.ogImage || '',
-            noIndex: d.noIndex || false,
-            noFollow: d.noFollow || false,
             status: d.status === 'published' ? 'published' : 'draft',
             isActive: d.isActive ?? true,
           });
@@ -633,26 +629,6 @@ export default function DestinationFormPage() {
                         maxImages={1}
                         activeLanguage={activeLanguage}
                       />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader><CardTitle>Indexing Control</CardTitle></CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>No Index</Label>
-                        <p className="text-xs text-gray-400">Prevent search engines from indexing this page</p>
-                      </div>
-                      <Switch checked={formData.noIndex} onCheckedChange={v => handleChange('noIndex', v)} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>No Follow</Label>
-                        <p className="text-xs text-gray-400">Prevent search engines from following links on this page</p>
-                      </div>
-                      <Switch checked={formData.noFollow} onCheckedChange={v => handleChange('noFollow', v)} />
                     </div>
                   </CardContent>
                 </Card>

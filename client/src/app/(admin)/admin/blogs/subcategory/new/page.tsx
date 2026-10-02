@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { blogCategoryAPI, blogSubcategoryAPI, blogAPI } from '@/lib/api/blogAdmin';
+import { destinationLabel } from '@/lib/admin/featuredDestinations';
+import { useFeaturedDestinationLookup } from '@/hooks/useFeaturedDestinations';
 import { BlogCategory } from '@/lib/api/blog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -152,6 +154,7 @@ export default function NewBlogSubCategoryPage() {
   const [isSearchingDests, setIsSearchingDests] = useState(false);
   const [selectedDestObjects, setSelectedDestObjects] = useState<any[]>([]);
   const [isDestSearchFocused, setIsDestSearchFocused] = useState(false);
+  const describeFeaturedDestination = useFeaturedDestinationLookup(selectedDestObjects);
 
   const { formData, setFormData, clearDraft, hasDraft } = useFormDraft<BlogSubCategoryFormData>(
     draftKey,
@@ -1093,7 +1096,7 @@ export default function NewBlogSubCategoryPage() {
                         .filter(dest => !(formData.featuredDestinations || []).includes(dest._id))
                         .map((dest) => {
                           const thumbUrl = dest.coverImage?.url;
-                          const title = dest.name?.en || dest.name || 'Untitled';
+                          const title = destinationLabel(dest);
                           return (
                             <button
                               key={dest._id}
@@ -1126,17 +1129,18 @@ export default function NewBlogSubCategoryPage() {
                 <Label>Selected Featured Destinations</Label>
                 <div className="grid gap-2">
                   {formData.featuredDestinations.map((destId) => {
-                    const destObj = selectedDestObjects.find(d => d._id === destId);
-                    const thumbUrl = destObj?.coverImage?.url;
-                    const title = destObj ? (typeof destObj.name === 'object' ? destObj.name.en : destObj.name) : destId;
+                    // Resolved to a name (with "(Draft)" where it applies), never the raw id.
+                    const featured = describeFeaturedDestination(destId);
+                    const thumbUrl = featured.destination?.coverImage?.url;
+                    const title = featured.label;
 
                     return (
                       <div key={destId} className="flex items-center gap-3 p-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
                         {thumbUrl && (
                           <img src={thumbUrl} alt={title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
                         )}
-                        <span className="flex-1 text-sm font-medium text-emerald-800 dark:text-emerald-200 truncate">{title}</span>
-                        <button type="button" onClick={() => removeFeaturedDest(destId)} className="flex-shrink-0 text-emerald-600 hover:text-red-600 transition-colors">
+                        <span className="flex-1 text-sm font-medium text-emerald-800 dark:text-emerald-200 truncate" title={featured.state === 'unavailable' ? `Destination ID ${destId}` : undefined}>{title}</span>
+                        <button type="button" onClick={() => removeFeaturedDest(destId)} aria-label={`Remove ${title}`} className="flex-shrink-0 text-emerald-600 hover:text-red-600 transition-colors">
                           <X size={16} />
                         </button>
                       </div>

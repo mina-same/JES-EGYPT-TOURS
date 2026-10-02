@@ -38,6 +38,8 @@ import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { getTourReviewVideoIds } from "@/lib/video/youtube";
 import TourListingFilters from "@/components/common/TourListingFilters/TourListingFilters";
 import { countActiveTourFilters, readTourListingState, validateTourPriceRange } from "@/lib/tours/listingFilters";
+import { apiTourSort, buildTourListingUrl } from '@/lib/tours/listingFilters';
+import type { PublicSort } from '@/lib/tours/publicListingUrl';
 import { useAccessibleDrawer } from "@/hooks/useAccessibleDrawer";
 import { mapApiTourToCard } from "@/lib/tours/cardViewModel";
 
@@ -59,7 +61,7 @@ export default function CategoryView({
   const searchParams = useSearchParams();
   const { t, i18n } = useTranslation('tours');
   const { currency, currencySymbol } = useCurrency();
-  const initialListing = readTourListingState(searchParams, true);
+  const initialListing = readTourListingState(searchParams);
   initialListing.filters = sanitizeTourFilters(initialListing.filters);
   const initialCards = (Array.isArray(initialTours?.data) ? initialTours.data : [])
     .map((tour: any) => mapApiTourToCard(tour, locale, {
@@ -88,7 +90,7 @@ export default function CategoryView({
   const [videoIds, setVideoIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(initialListing.page);
   const [totalPages, setTotalPages] = useState(initialTours?.totalPages || 1);
-  const [sort, setSort] = useState<string>(initialListing.sort);
+  const [sort, setSort] = useState<PublicSort>(initialListing.sort);
   const [draftFilters, setDraftFilters] = useState(initialListing.filters);
   const [appliedFilters, setAppliedFilters] = useState(initialListing.filters);
   const draftSnapshot = useRef(JSON.stringify({ slug, locale, filters: initialListing.filters }));
@@ -103,57 +105,29 @@ export default function CategoryView({
   const [tourTypeOptions, setTourTypeOptions] = useState<FilterOption[]>([]);
   const [tourStyleOptions, setTourStyleOptions] = useState<FilterOption[]>([]);
   const [destinationOptions, setDestinationOptions] = useState<FilterOption[]>([]);
-  const [filterOptionsReady, setFilterOptionsReady] = useState(false);
   const closeFilters = () => setIsFilterOpen(false);
   const { dialogRef, triggerRef } = useAccessibleDrawer(isFilterOpen, closeFilters);
 
   useEffect(() => {
-    const fromQueryPage = Number(searchParams?.get("page") || "1");
-    const safePage = Number.isFinite(fromQueryPage) && fromQueryPage > 0 ? Math.floor(fromQueryPage) : 1;
-    const fromSort = searchParams?.get("sort") || "recommended";
-
-    const next = {
-      search: searchParams?.get("search") || "",
-      minPrice: searchParams?.get("minPrice") || "",
-      maxPrice: searchParams?.get("maxPrice") || "",
-      subcategoryId: searchParams?.get("subcategory") || "",
-      tourType: searchParams?.get("tourType") || "",
-      tourStyles: searchParams?.get("tourStyles") || "",
-      destinations: searchParams?.get("destinations") || "",
-      durationRange: searchParams?.get("durationRange") || "",
-    };
-
-    setCurrentPage(safePage);
-    setSort(fromSort);
-    const clean = sanitizeTourFilters(next);
+    const listing = readTourListingState(searchParams);
+    setCurrentPage(listing.page);
+    setSort(listing.sort);
+    const clean = sanitizeTourFilters(listing.filters);
     const signature = JSON.stringify({ slug, locale, filters: clean });
     if (draftSnapshot.current !== signature) {
       setDraftFilters(clean);
       draftSnapshot.current = signature;
     }
-    setAppliedFilters(sanitizeTourFilters(next));
+    setAppliedFilters(clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, locale, searchParams]);
 
-  const buildUrl = (overrides?: Partial<{ page: number; sort: string }> & Partial<typeof appliedFilters>) => {
+  const buildUrl = (overrides?: Partial<{ page: number; sort: PublicSort }> & Partial<typeof appliedFilters>) => {
     const p = overrides?.page ?? currentPage;
     const s = overrides?.sort ?? sort;
-    const f = sanitizeTourFilters({ ...appliedFilters, ...overrides }, filterOptionsReady ? destinationOptions : undefined);
+    const f = sanitizeTourFilters({ ...appliedFilters, ...overrides });
 
-    const sp = new URLSearchParams();
-    if (p && p !== 1) sp.set("page", String(p));
-    if (s && s !== "recommended") sp.set("sort", s);
-    if (f.search) sp.set("search", f.search);
-    if (f.minPrice) sp.set("minPrice", f.minPrice);
-    if (f.maxPrice) sp.set("maxPrice", f.maxPrice);
-    if (f.subcategoryId) sp.set("subcategory", f.subcategoryId);
-    if (f.tourType) sp.set("tourType", f.tourType);
-    if (f.destinations) sp.set("destinations", f.destinations);
-    if (f.durationRange) sp.set("durationRange", f.durationRange);
-    if (f.tourStyles) sp.set("tourStyles", f.tourStyles);
-
-    const qs = sp.toString();
-    return `/${locale}/${encodeURIComponent(slug)}${qs ? `?${qs}` : ""}`;
+    return buildTourListingUrl(`/${locale}/${encodeURIComponent(slug)}`, f, s, p);
   };
 
   useEffect(() => {
@@ -212,15 +186,14 @@ export default function CategoryView({
 
         const toursResponse = await tourAPI.getAll({
           category: catId,
-          ...(appliedFilters.subcategoryId ? { subcategory: appliedFilters.subcategoryId } : {}),
           page: currentPage,
           limit: toursPerPage,
-          sort,
+          sort: apiTourSort(sort),
           ...(appliedFilters.search ? { search: appliedFilters.search } : {}),
           ...(appliedFilters.minPrice ? { minPrice: Number(appliedFilters.minPrice) } : {}),
           ...(appliedFilters.maxPrice ? { maxPrice: Number(appliedFilters.maxPrice) } : {}),
           ...(appliedFilters.tourType ? { tourType: appliedFilters.tourType } : {}),
-          destinations: appliedFilters.destinations || undefined,
+          destinationKeys: appliedFilters.destinations || undefined,
           durationRange: appliedFilters.durationRange || undefined,
           ...(appliedFilters.tourStyles ? { tourStyles: appliedFilters.tourStyles } : {}),
           currency,
@@ -292,20 +265,18 @@ export default function CategoryView({
 
     void fetchData();
     return () => controller.abort();
-  }, [slug, currentPage, sort, currency, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.subcategoryId, appliedFilters.tourType, appliedFilters.tourStyles, appliedFilters.destinations, appliedFilters.durationRange, locale]);
+  }, [slug, currentPage, sort, currency, appliedFilters.search, appliedFilters.minPrice, appliedFilters.maxPrice, appliedFilters.tourType, appliedFilters.tourStyles, appliedFilters.destinations, appliedFilters.durationRange, locale]);
 
   useEffect(() => {
     const categoryId = initialCategory?._id || category?._id;
     if (!categoryId) return;
     const controller = new AbortController();
-    setFilterOptionsReady(false);
     tourAPI.getFilterOptions({ category: categoryId, currency }, locale, controller.signal)
       .then((response) => {
         if (response.success && response.data) {
           setTourTypeOptions(response.data.tourTypes);
           setTourStyleOptions(response.data.tourStyles);
           setDestinationOptions(response.data.destinations);
-          setFilterOptionsReady(true);
         }
       })
       .catch((err) => {
@@ -336,7 +307,7 @@ export default function CategoryView({
       return;
     }
     setFilterError(null);
-    const clean = sanitizeTourFilters(draftFilters, filterOptionsReady ? destinationOptions : undefined);
+    const clean = sanitizeTourFilters(draftFilters);
     setDraftFilters(clean);
     setAppliedFilters(clean);
     setCurrentPage(1);
@@ -344,7 +315,7 @@ export default function CategoryView({
   };
 
   const handleResetFilters = () => {
-    const empty = { search: "", minPrice: "", maxPrice: "", subcategoryId: "", tourType: "", destinations: "", durationRange: "", tourStyles: "" };
+    const empty = { search: "", minPrice: "", maxPrice: "", tourType: "", destinations: "", durationRange: "", tourStyles: "" };
     setDraftFilters(empty);
     setAppliedFilters(empty);
     setSort("recommended");
@@ -353,7 +324,7 @@ export default function CategoryView({
     updateListingUrl(`/${locale}/${encodeURIComponent(slug)}`);
   };
 
-  const handleSortChange = (nextSort: string) => {
+  const handleSortChange = (nextSort: PublicSort) => {
     setSort(nextSort);
     setCurrentPage(1);
     updateListingUrl(buildUrl({ page: 1, sort: nextSort }));
@@ -472,7 +443,7 @@ export default function CategoryView({
             <div className="subcategory-slider-wrapper">
               <div className="subcategory-slider">
                 {subcategories.map((sub: any) => {
-                  const isActive = appliedFilters.subcategoryId === sub._id;
+                  const isActive = false;
                   const subSlug = getStrictLocalizedSlug(sub.slug, locale as SupportedLocale);
                   if (!isActive && !subSlug) return null;
                   const subName = getDisplayName(sub, locale);
@@ -525,7 +496,7 @@ export default function CategoryView({
           <Row className='gutter-y-40'>
             {/* Desktop Sidebar */}
             <Col lg={4} xl={3} className="d-none d-lg-block p-0">
-              <aside className='listing__sidebar sticky-top' style={{ top: '0', height: '100vh', padding: '120px 20px 40px', background: '#fff', borderRight: '1px solid #f0f0f0', overflowY: 'auto' }}>
+              <aside className='listing__sidebar visitor-filter-sidebar'>
                 <TourListingFilters
                   t={t} 
                   draftFilters={draftFilters} 
@@ -588,7 +559,7 @@ export default function CategoryView({
 
                 <FilterChips values={appliedFilters} destinations={destinationOptions} locale={locale} currencySymbol={currencySymbol} t={t} remove={(key, remaining) => removeFilter(key as keyof typeof appliedFilters, remaining)} />
                 {countActiveTourFilters(appliedFilters) > 0 && (
-                  <button type="button" className="btn btn-sm btn-link" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
+                  <button type="button" className="visitor-filter-clear" onClick={handleResetFilters}>{t('filters.clearAll')}</button>
                 )}
               </div>
               {error && <div className="alert alert-danger" role="alert">{error}</div>}
@@ -602,7 +573,7 @@ export default function CategoryView({
                 ) : pageLoading || error ? null : (
                   <TourEmptyState filtered={countActiveTourFilters(appliedFilters) > 0} emptyText={t('listing.noToursCategory')} clear={handleResetFilters} t={t} />
                 )}
-                <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} /></Col>
+                <Col xs={12} className="pb-5 mt-4"><Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} hrefForPage={sort === 'recommended' && countActiveTourFilters(appliedFilters) === 0 ? page => buildUrl({ page }) : undefined} /></Col>
               </Row>
             </Col>
           </Row>

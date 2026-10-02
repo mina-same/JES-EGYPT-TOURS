@@ -10,7 +10,7 @@ import {
   toggleSubcategoryStatus,
 } from '../controllers/blogSubCategoryController';
 import { getBlogsBySubCategory } from '../controllers/blogController';
-import { protect, permit } from '../middleware/auth';
+import { optionalProtect, protect, permit } from '../middleware/auth';
 import { PERMISSIONS } from '../permissions';
 
 const router = express.Router();
@@ -24,7 +24,9 @@ router.get('/', getAllSubcategories);
 router.get('/category/:categoryId', getSubcategoriesByCategory);
 router.get('/slug/:slug', getSubcategoryBySlug);
 router.get('/:slug/posts', getBlogsBySubCategory);
-router.get('/:id', getSubcategoryById);
+// Shared with the Admin's editor: its token (optionalProtect) also gets draft
+// featured destinations back.
+router.get('/:id', optionalProtect, getSubcategoryById);
 
 // Admin routes
 router.post('/', protect, permit(PERMISSIONS.BLOG_CREATE), createSubcategory);

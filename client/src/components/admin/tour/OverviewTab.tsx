@@ -11,6 +11,7 @@ import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
 import LocalizedTagsInput from '@/components/admin/LocalizedTagsInput';
 import DurationSelect from './DurationSelect';
+import AvailabilityField from './AvailabilityField';
 import { cn } from '@/lib/utils';
 import type { FormErrorItem } from '@/lib/parseApiError';
 
@@ -206,13 +207,9 @@ export default function OverviewTab({ formData, subcategories, handleChange, act
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <LocalizedInput
-              label={hasError('tourAvailability') || hasError('tourAvailability.en') ? 'Availability ⚠' : 'Availability'}
-              value={formData.tourAvailability || { en: '', de: '', it: '', es: '' }}
-              onChange={(val, lang) => handleChange('tourAvailability', val, lang)}
-              placeholder="Daily"
-              maxLength={24}
-              helperText="Best at 5–16 characters. Up to 22 still fits; 24 is the limit."
+            <AvailabilityField
+              value={formData.tourAvailability}
+              onChange={(val) => handleChange('tourAvailability', val)}
               error={hasError('tourAvailability') || hasError('tourAvailability.en')}
               activeLanguage={activeLanguage}
             />
