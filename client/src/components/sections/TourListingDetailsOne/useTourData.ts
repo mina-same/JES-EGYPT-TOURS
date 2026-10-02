@@ -1,22 +1,15 @@
 "use client";
 import { formatTourDestinations } from '@/lib/tours/destinations';
 import { tourTypeLabel, tourStyleLabels } from '@/lib/tours/catalog';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { tourAPI } from "@/lib/api/tour";
-import { getBlogsByIds } from "@/lib/api/blog";
-import { RELATED_BLOGS_FALLBACK_LIMIT } from "@/lib/tour/relatedBlogs";
-import axiosInstance from "@/lib/api/axios";
 import tourDetailsOneData from "@/data/tourDetailsOneData";
 import { TourDetailsOneData } from "./types";
-import type { FeatureTwoItem } from "../FeatureTwo/types";
-import { getDisplayName } from "@/lib/displayName";
-import { getStrictLocalizedSlug } from "@/lib/url";
 import {
   isEmptyAccommodation,
   resolveAccommodationIcon,
 } from "@/lib/accommodationIcon";
-import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 
 function getYouTubeVideoId(url: string): string {
   if (!url) return '';
@@ -79,55 +72,7 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     return v[currentLang] || v.en || '';
   };
 
-
-  // Map a tour object (raw or localized) to FeatureTwo item
-  const mapTourToItem = (t: any): FeatureTwoItem | null => {
-    if (!t) return null;
-    
-    const tourSlug = getStrictLocalizedSlug(t?.slug, currentLang);
-    if (!tourSlug) return null;
-    const tourTitle = getLocalizedValue(t?.heading) || t?.name || "";
-    // The site's own stand-in, not a third-party placeholder service.
-    const fallback = TOUR_IMAGE_PLACEHOLDER;
-    
-    // Consolidate images for the gallery
-    const rawImages = safeArray<any>(t?.images);
-    const mainImage = rawImages[0] || {};
-    const allImages = rawImages.map(img => img?.url).filter(Boolean);
-    if (allImages.length === 0) allImages.push(fallback);
-
-    // Build metadata for the card (Location first — it gets its own row).
-    const meta = [];
-    const loc = formatTourDestinations(t?.destinations, currentLang);
-    if (loc) {
-      meta.push({ id: 1, title: loc, icon: "icon-location" });
-    }
-    const dur = getLocalizedValue(t?.duration);
-    if (dur) {
-      meta.push({ id: 2, title: dur, icon: "icon-clock" });
-    }
-    const subName = getDisplayName(t?.subcategory);
-    if (subName) {
-      meta.push({ id: 3, title: subName, icon: "icon-flag" });
-    }
-
-    return {
-      id: t._id || t.id,
-      slug: tourSlug,
-      image: mainImage?.url || fallback,
-      imageAlt: getLocalizedValue(mainImage?.alt) || tourTitle,
-      allImages: allImages,
-      title: tourTitle || "Tour",
-      link: `/${currentLang}/${tourSlug}`,
-      price: t.priceStartingFrom || t.price || 0,
-      videoId: t.videoLink || "",
-      discount: t.discount || "",
-      description: getLocalizedValue(t?.cardDescription) || getLocalizedValue(t?.Description?.text) || "",
-      meta: meta,
-    };
-  };
-
-  const mapRawTourData = (tour: any, fetchedRelatedTours: any[] = []): TourDetailsOneData => {
+  const mapRawTourData = (tour: any): TourDetailsOneData => {
     const tourId = tour._id;
     // Per-image language visibility: absent/empty languages = all locales.
     // Must run BEFORE mapping — the map drops every field except url/alt/title.
@@ -193,12 +138,9 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
         title: getLocalizedValue(n?.title),
         text: getLocalizedValue(n?.text),
       })),
-      // A type guard, not a cast: `.filter(Boolean)` does not narrow
-      // `(FeatureTwoItem | null)[]`, which is the only reason this line
-      // used to end in `as any[]`.
-      relatedTours: fetchedRelatedTours
-        .map(mapTourToItem)
-        .filter((item): item is FeatureTwoItem => item !== null),
+      // The curated related tours are loaded and rendered by
+      // TourRelatedContent, so they never have to replace the tour itself.
+      relatedTours: [],
       images: galleryImages,
       // Strict locale lookup — no fallback to English.
       // Only include rows where the active locale has both question and answer.
@@ -276,10 +218,20 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
     return { ...tourDetailsOneData, map: "" };
   });
 
+  /**
+   * The raw tour and language `tourData` was last mapped from. Mapping the same
+   * tour in the same language again yields an equal copy, and storing that copy
+   * re-rendered the whole page - which used to happen on every visit, once the
+   * related content had loaded.
+   */
+  const mappedFrom = useRef<{ tour: any; lang: string } | null>(
+    initialRawTour ? { tour: initialRawTour, lang: currentLang } : null
+  );
+  /** Only for the no-seed path; the tour page always supplies initialRawTour. */
+  const [fetchedTour, setFetchedTour] = useState<any>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [moreTours, setMoreTours] = useState<FeatureTwoItem[]>([]);
-  const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
   /**
    * Whether a real tour is available to render. True from the first render when
    * the server supplied one. The page uses this to decide whether a failure is
@@ -288,192 +240,43 @@ export const useTourData = (id?: string, initialRawTour?: any) => {
   const [hasTourContent, setHasTourContent] = useState<boolean>(Boolean(initialRawTour));
 
   useEffect(() => {
-    const fetchAll = async () => {
-      if (!id && !initialRawTour) return;
+    // Server-supplied tour: re-map only when the tour or the language changed.
+    if (initialRawTour) {
+      const from = mappedFrom.current;
+      if (from && from.tour === initialRawTour && from.lang === currentLang) return;
+      mappedFrom.current = { tour: initialRawTour, lang: currentLang };
+      setTourData(mapRawTourData(initialRawTour));
+      return;
+    }
+    if (!id) return;
+
+    const fetchTour = async () => {
       try {
         // Only show the skeleton when there is genuinely nothing to show. The
-        // server-rendered tour is already painted, so flipping `loading` here
+        // server-rendered tour is already painted, so flipping `loading` for it
         // used to tear the whole page down and rebuild it on every visit — a
         // visible flash, wasted SSR, and a fresh DOM that invalidated refs.
-        if (!initialRawTour) setLoading(true);
-
-        // 1. Use the server-fetched tour when available (avoids a redundant
-        //    client getBySlug); otherwise fetch the main tour by slug (raw data).
-        let tour: any;
-        if (initialRawTour) {
-          tour = initialRawTour;
-        } else {
-          if (!id) {
-            setError("Failed to load tour details");
-            return;
-          }
-          const tourRes = await tourAPI.getBySlug(id);
-          if (!tourRes.success || !tourRes.data) {
-            setError("Failed to load tour details");
-            return;
-          }
-          tour = tourRes.data;
+        setLoading(true);
+        const tourRes = await tourAPI.getBySlug(id);
+        if (!tourRes.success || !tourRes.data) {
+          setError("Failed to load tour details");
+          return;
         }
-
-        const tourId = tour._id;
-        const getTourId = (value: any): string => {
-          if (typeof value === 'string') return value;
-          const valueId = value?.id ?? value?._id;
-          return valueId == null ? '' : String(valueId);
-        };
-        const curatedRelatedTourIds = new Set(
-          safeArray<any>(tour.relatedTours).map(getTourId).filter(Boolean)
-        );
-        const excludedMoreTourIds = new Set([
-          ...(tourId ? [String(tourId)] : []),
-          ...curatedRelatedTourIds,
-        ]);
-        const isEligibleMoreTour = (candidate: any) => {
-          const candidateId = getTourId(candidate);
-          return Boolean(candidateId) && !excludedMoreTourIds.has(candidateId);
-        };
-
-        // Ensure subcategory ID and Category ID
-        const subId = typeof tour.subcategory === 'object'
-          ? tour.subcategory?._id || tour.subcategory
-          : tour.subcategory;
-
-        // The subcategory object often contains the category ID
-        const catId = typeof tour.subcategory === 'object' && tour.subcategory?.category
-          ? (typeof tour.subcategory.category === 'object' ? tour.subcategory.category._id : tour.subcategory.category)
-          : undefined;
-
-        // 2. Curated Content Promises
-        const commonDataPromises = [
-          // Resolve every curated tour in one request. Rebuild the array in the
-          // admin-selected order because MongoDB's `$in` query does not preserve it.
-          (async () => {
-            const selectedIds = Array.from(curatedRelatedTourIds);
-            if (selectedIds.length === 0) return [];
-
-            try {
-              const res = await tourAPI.getByIds(selectedIds);
-              if (!res?.success || !res?.data) return [];
-
-              const toursById = new Map(
-                safeArray<any>(res.data)
-                  .filter((relatedTour) => relatedTour?.isActive !== false)
-                  .map((relatedTour) => [getTourId(relatedTour), relatedTour])
-              );
-
-              return selectedIds
-                .map((selectedId) => toursById.get(selectedId))
-                .filter(Boolean);
-            } catch {
-              return [];
-            }
-          })(),
-          // Resolve every curated article in one request, in the editor's
-          // order. The language travels with the request so /de, /it and /es
-          // receive localized cards rather than English ones.
-          (async () => {
-            const selectedBlogIds = safeArray<any>(tour.blogReferences)
-              .map((ref) => String(ref?.id || ''))
-              .filter(Boolean);
-            try {
-              return await getBlogsByIds(selectedBlogIds, currentLang);
-            } catch {
-              return [];
-            }
-          })(),
-        ];
-
-        // 3. Fallback "More Tours" (try subcategory, then category, then anything)
-        //
-        // Own try/catch on purpose. These three lookups feed ONE decorative
-        // carousel, yet an unhandled rejection here used to jump straight to the
-        // fatal catch below and blank a page whose real content had already
-        // rendered. A failure now just leaves the section empty, and whatever was
-        // collected before the throw is still used.
-        const fetchedMoreToursRaw: any[] = [];
-        try {
-          const mergeUnique = (candidates: any[]) => {
-            const existingIds = new Set(fetchedMoreToursRaw.map(getTourId).filter(Boolean));
-            candidates.filter(isEligibleMoreTour).forEach((candidate) => {
-              const candidateId = getTourId(candidate);
-              if (candidateId && !existingIds.has(candidateId)) {
-                fetchedMoreToursRaw.push(candidate);
-                existingIds.add(candidateId);
-              }
-            });
-          };
-
-          const moreToursRes = subId
-            ? await tourAPI.getBySubcategory(String(subId), { limit: 12, isActive: true })
-            : { success: false, data: [] };
-          if (moreToursRes.success) mergeUnique(safeArray<any>(moreToursRes.data));
-
-          // If subcategory count is low (< 9), try category fallback
-          if (fetchedMoreToursRaw.length < 9 && catId) {
-            const catMoreRes = await tourAPI.getAll({
-              category: String(catId),
-              limit: 15,
-              isActive: true
-            });
-            if (catMoreRes.success) mergeUnique(safeArray<any>(catMoreRes.data));
-          }
-
-          // Final fallback: if still < 9, show any other tours
-          if (fetchedMoreToursRaw.length < 9) {
-            const allMoreRes = await tourAPI.getAll({
-              limit: 15,
-              isActive: true
-            });
-            if (allMoreRes.success) mergeUnique(safeArray<any>(allMoreRes.data));
-          }
-        } catch (moreToursError) {
-          console.warn('useTourData: "more tours" lookup failed; hiding that section only', moreToursError);
-        }
-
-        const [relatedToursData, blogDataRaw] = await Promise.all(commonDataPromises);
-        
-        // Final fallback for blogs: if no curated blogs, fetch featured blogs
-        let fetchedRelatedBlogs = safeArray<any>(blogDataRaw).filter(Boolean);
-        if (fetchedRelatedBlogs.length === 0) {
-          try {
-             const res = await axiosInstance.get(`/blog/posts/featured?limit=${RELATED_BLOGS_FALLBACK_LIMIT}`);
-             if (res.data?.success) {
-               fetchedRelatedBlogs = safeArray(res.data.data);
-             }
-          } catch { /* ignore */ }
-        }
-
-        const fetchedRelatedTours = safeArray(relatedToursData).filter(Boolean);
-
-        // ── Consolidate mappings ──
-        const mappedData = mapRawTourData(tour, fetchedRelatedTours);
-
-        // Posts are stored raw and shaped into cards by buildBlogCardViewModel
-        // at render time. This hook used to map them itself, which is how the
-        // tour page ended up with an English month on the German site and a
-        // byline of "Admin": its private copy of the mapping never received
-        // the fixes the shared one did.
-        setRelatedBlogs(fetchedRelatedBlogs);
-        setMoreTours(
-          fetchedMoreToursRaw
-            .map(mapTourToItem)
-            .filter((item): item is FeatureTwoItem => item !== null)
-        );
-        setTourData(mappedData);
+        mappedFrom.current = { tour: tourRes.data, lang: currentLang };
+        setFetchedTour(tourRes.data);
+        setTourData(mapRawTourData(tourRes.data));
         setHasTourContent(true);
       } catch (err) {
         console.error("useTourData error:", err);
-        // Fatal ONLY when nothing is renderable. The tour itself comes from the
-        // server, so a failure in this effect must not replace a page that
-        // already displays correct content with an error screen — which is what
-        // happened when any secondary request was blocked or timed out.
-        if (!initialRawTour) setError("Failed to load tour details");
+        setError("Failed to load tour details");
       } finally {
         setLoading(false);
       }
     };
-    fetchAll();
+    fetchTour();
   }, [id, currentLang]);
 
-  return { tourData, loading, error, moreTours, relatedBlogs, hasTourContent };
+  // The related content (curated tours, "More Tours", articles) is loaded by
+  // TourRelatedContent from this raw tour.
+  return { tourData, loading, error, hasTourContent, rawTour: initialRawTour || fetchedTour };
 };
