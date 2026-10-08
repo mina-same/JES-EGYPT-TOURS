@@ -63,6 +63,21 @@
 .visitor-filters .visitor-filter-group legend { font-size: 13px; font-weight: 700; margin-bottom: 6px; float: left; width: 100%; }
 .visitor-filter-group legend + div { clear: both; }
 .visitor-filter-options { display: grid; gap: 0; }
+.visitor-filter-expand {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 44px; max-width: 100%; margin-top: 4px; padding: 8px 4px;
+  border: 0; border-radius: 4px; background: transparent;
+  color: #8a6b24; font: inherit; font-size: 14px; font-weight: 600;
+  line-height: 1.4; text-align: start; cursor: pointer;
+  text-decoration: underline; text-decoration-color: #e3d7b9; text-underline-offset: 4px;
+}
+.visitor-filter-expand::after {
+  content: ''; flex: 0 0 7px; width: 7px; height: 7px;
+  border: solid currentColor; border-width: 0 1.5px 1.5px 0;
+  transform: translateY(-2px) rotate(45deg);
+}
+.visitor-filter-expand[aria-expanded="true"]::after { transform: translateY(2px) rotate(225deg); }
+.visitor-filter-expand:hover { color: #70551b; background: #fcfaf5; text-decoration-color: currentColor; }
 .visitor-filter-option { display: flex; align-items: center; gap: 9px; min-height: 34px; margin: 0; padding: 4px 0; font-size: 14px; line-height: 1.4; cursor: pointer; }
 .visitor-filters .form-control { font-size: 14px; min-height: 40px; }
 .visitor-price-input { flex-wrap: nowrap; border-radius: 8px; }

@@ -5,7 +5,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlogPost, formatBlogDate } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
-import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
@@ -30,7 +29,7 @@ import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
 interface DynamicBlogDetailsProps {
   blog: BlogPost;
-  showSidebar?: 'left' | 'right' | 'none';
+  showSidebar?: 'right' | 'none';
 }
 
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
@@ -39,7 +38,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 }) => {
   const { t, i18n } = useTranslation("blogs");
   const locale = (i18n.language || 'en');
-  const blogsPath = `/${locale}/blogs`;
 
   const [scrollProgress, setScrollProgress] = useState(0);
   const [relatedTours, setRelatedTours] = useState<any[]>([]);
@@ -548,12 +546,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       />
       <Container>
         <Row className='justify-content-center'>
-          {showSidebar === 'left' && (
-            <Col lg={4}>
-              <BlogSidebar />
-            </Col>
-          )}
-          
           <Col lg={8}>
             <div className='blog-details'>
               {/* Blog Image */}
@@ -649,28 +641,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 </div>
               </div>
 
-              {/* Blog Tags */}
-              {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
-                <div className='blog-details__meta'>
-                  <div className='blog-details__categories'>
-                    <h4 className='blog-details__meta__title'>{t('tags')}</h4>
-                    <div className='blog-details__categories__box'>
-                      {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
-                        <Link
-                          // /blogs ignores ?tag= — /blogs/all is the filtering route.
-                          href={`${blogsPath}/all?tag=${encodeURIComponent(tag)}`}
-                          key={index}
-                          className='blog-details__categories__btn gotur-btn'
-                        >
-                          {tag}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-              )}
-
               {/* Comments */}
               {blog.commentsEnabled && approvedComments.length > 0 && (
                 <div className='comments-one'>
@@ -722,12 +692,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           {showSidebar === 'right' && (
             <Col lg={4}>
               <div className="blog-sidebar-wrapper">
-                {/* Sticky Sidebar — TOC and Tags stay on screen as you scroll */}
+                {/* Sticky Sidebar — the TOC stays on screen as you scroll */}
                 <div className="blog-toc-sticky">
                   <BlogTOC contentSelector="#blog-content" />
-                  <div className="mt-4">
-                    <BlogSidebar />
-                  </div>
                 </div>
               </div>
             </Col>

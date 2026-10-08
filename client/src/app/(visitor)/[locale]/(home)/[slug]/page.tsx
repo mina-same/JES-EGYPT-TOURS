@@ -45,8 +45,8 @@ import {
   type DestinationBlogsResponse,
 } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
-import { getDisplayName } from "@/lib/displayName";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { buildTourBreadcrumbs } from "@/lib/tour/breadcrumbs";
+import { getServerTranslation } from "@/lib/i18n-server";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { getListingRobotsMetadata, getNotFoundRobotsMetadata } from "@/lib/seo/robots";
 import { parsePublicListingQuery, PUBLIC_SORT_TO_API, shouldRedirectPublicQuery, type PublicListingParse } from '@/lib/tours/publicListingUrl';
@@ -881,14 +881,6 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
       const publicAuthorSlug = blogData.editorialAuthor?.slug || (isEditorialAuthor(publicAuthorName) ? EDITORIAL_AUTHOR_SLUG : undefined);
       const publicAuthorUrl = publicAuthorSlug ? `${baseUrl}/${locale}/authors/${publicAuthorSlug}` : undefined;
 
-      const blogSubCat = blogData.subCategory;
-      const blogCat = blogSubCat?.category;
-      const blogCatName = blogCat && typeof blogCat === 'object' ? getLocalizedValue(blogCat.name, locale) : 'Blog';
-      const blogCatSlug = blogCat && typeof blogCat === 'object'
-        ? getStrictLocalizedSlug(blogCat.slug, locale as SupportedLocale)
-        : null;
-      const blogCatUrl = blogCatSlug ? `${baseUrl}/${locale}/${blogCatSlug}` : null;
-
       const blogJsonLd = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
@@ -923,40 +915,13 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
         },
       };
 
-      const blogBreadcrumbJsonLd = {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": `${baseUrl}/${locale}`,
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": blogCatName,
-            ...(blogCatUrl ? { "item": blogCatUrl } : {}),
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": blogTitle,
-            "item": `${baseUrl}/${locale}/${slug}`,
-          },
-        ],
-      };
-
+      // The BreadcrumbList is published by the trail in BlogHero, from the
+      // items it draws — not written out here a second time.
       return (
         <>
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: serializeJsonLd(blogJsonLd) }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: serializeJsonLd(blogBreadcrumbJsonLd) }}
           />
           <BlogDetailView slug={slug} locale={locale} initialBlog={blogData} />
         </>
@@ -1031,25 +996,9 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
       const name = getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale) || "Tour Details";
 
       // ── Breadcrumbs — flat URLs for category and subcategory ────────────────
-      const subcategory = tour.subcategory;
-      const category = subcategory?.category;
-      const breadcrumbs: { label: string; href?: string }[] = [];
-
-      const catSlug = getStrictLocalizedSlug(category?.slug, locale as SupportedLocale);
-      if (catSlug && (category?.name || category?.shortName)) {
-        breadcrumbs.push({
-          label: getDisplayName(category, locale),
-          href: `/${locale}/${catSlug}`,
-        });
-      }
-      const subSlug = getStrictLocalizedSlug(subcategory?.slug, locale as SupportedLocale);
-      if (subSlug && (subcategory?.name || subcategory?.shortName)) {
-        breadcrumbs.push({
-          label: getDisplayName(subcategory, locale),
-          href: `/${locale}/${subSlug}`,
-        });
-      }
-      breadcrumbs.push({ label: name as string });
+      // One array feeds both the visible trail and the BreadcrumbList below.
+      const breadcrumbs = buildTourBreadcrumbs(tour, locale, name as string);
+      const { t: tCommon } = await getServerTranslation(locale, "common");
 
       // ── JSON-LD @graph — fully dynamic, no fake reviews/ratings ────────────
       // Currency defaults to USD at SSR time (localStorage unavailable server-side).
@@ -1070,6 +1019,8 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
           // email: add real contact email when available
         },
         breadcrumbs,
+        // The same word the visible trail prints ("Startseite", "Inicio"…).
+        homeLabel: tCommon("home"),
       });
 
       return (
@@ -1086,6 +1037,10 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
               title={name || "Tour Details"}
               subTitle={getLocalizedValue(tour.headingDescription, locale)}
               breadcrumbs={breadcrumbs}
+              // The @graph above already carries this trail's BreadcrumbList,
+              // and its WebPage points at it by @id. A second list from the
+              // header would give the page two competing trails.
+              breadcrumbJsonLd={false}
               bgImage={
                 // The site's own stand-in, not a hotlinked Google Images
                 // thumbnail. That URL sat here as the fallback: it leaked a

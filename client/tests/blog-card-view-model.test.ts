@@ -56,22 +56,21 @@ test('a language with no tags shows none rather than borrowing English', () => {
   assert.deepEqual(getLocalizedStringList(['  ', 'Assuan'], 'de'), ['Assuan']);
 });
 
-test('the tag fallback labels a card that has no sub-category — both API shapes', () => {
-  // The regression: reading `tags` with getLocalizedValue returned the first
-  // tag as a STRING for the flattened shape, the caller's Array.isArray guard
-  // rejected it, and this label came out empty on every localized page.
-  for (const post of [localizedPost(), rawPost()]) {
-    const card = buildBlogCardViewModel(post, 'de');
-    assert.ok(card);
-    assert.equal(card.category, 'Ägypten Reisetipps');
-    assert.equal(
-      card.categoryLink,
-      `/de/blogs/all?tag=${encodeURIComponent('Ägypten Reisetipps')}`
-    );
+test('a card with no sub-category gets no chip, never a tag link — both API shapes', () => {
+  // A tag used to stand in for the section label, linked to the tag-filtered
+  // /blogs/all listing. That listing is gone and a tag has no page of its own,
+  // so a tagged post without a sub-category shows no chip at all.
+  for (const locale of ['en', 'de']) {
+    for (const post of [localizedPost(), rawPost()]) {
+      const card = buildBlogCardViewModel(post, locale);
+      assert.ok(card);
+      assert.equal(card.category, '');
+      assert.equal(card.categoryLink, '');
+    }
   }
 });
 
-test('a sub-category outranks the tag, and links to its own page', () => {
+test('a sub-category labels the card even when it has tags, and links to its own page', () => {
   const card = buildBlogCardViewModel(
     localizedPost({
       subCategory: { name: 'Nilkreuzfahrten', slug: { en: 'nile-cruises', de: 'nilkreuzfahrten' } },

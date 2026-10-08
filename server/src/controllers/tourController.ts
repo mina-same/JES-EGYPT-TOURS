@@ -783,10 +783,12 @@ export const getTourBySlug = async (
     })
       .populate({
         path: 'subcategory',
-        select: 'name shortName slug description category',
+        // isActive: the tour page's breadcrumb drops a switched-off parent,
+        // whose own page answers 404, instead of linking to it.
+        select: 'name shortName slug description category isActive',
         populate: {
           path: 'category',
-          select: 'name shortName slug description',
+          select: 'name shortName slug description isActive',
         },
       })
       .populate({ path: 'destinations', select: 'name shortName' }).lean();

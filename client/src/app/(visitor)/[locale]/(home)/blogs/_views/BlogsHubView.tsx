@@ -115,13 +115,6 @@ export default function BlogsHubView({
               );
             })}
           </Row>
-
-          <div className="text-center mt-5">
-            <Link href={`/${currentLocale}/blogs/all`} className="gotur-btn">
-               {t('viewAllNews')}
-               <span className="icon"><i className="icon-right"></i></span>
-            </Link>
-          </div>
         </Container>
       </section>
 

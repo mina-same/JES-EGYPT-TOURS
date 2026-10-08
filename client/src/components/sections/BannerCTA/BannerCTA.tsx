@@ -77,7 +77,7 @@ const BannerCTA: React.FC<BannerCTAProps> = ({
   const resolvedVariant: ResolvedVariant = variant ?? 'default';
 
   const primaryHref = localizeInternalUrl('/tailor-made', locale);
-  const secondaryHref = `/${locale}/tours`;
+  const secondaryHref = `/${locale}/search`;
 
   const destinationContext = contextName || t('cta.defaults.destinationContext');
   const categoryContext = contextName || t('cta.defaults.categoryContext');

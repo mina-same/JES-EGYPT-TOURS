@@ -1,0 +1,234 @@
+/* Listing sections — ListingPromo, ListingFaqs, ListingGallery, ListingBlogs.
+ *
+ * These rules were `<style jsx global>` blocks inside the four components.
+ * styled-jsx has no server registry in this app, so none of them reached the
+ * page before hydration: the server HTML showed the promo text unclamped and
+ * every title at its desktop size, and the sections changed height the moment
+ * the scripts ran. As a stylesheet they are in the first response.
+ *
+ * Three things keep the result identical to the blocks they replace:
+ *
+ *  - ORDER. The blocks sat in the document in this order — promo, FAQs,
+ *    gallery, blogs — and several of their rules tie on specificity (the
+ *    promo's 60px padding against the gallery's 50px on the same section).
+ *    The later block won, so they stay in that order, in one file.
+ *
+ *  - SPECIFICITY. `:where()` adds a scope without adding weight, so every
+ *    selector still weighs what it did.
+ *
+ *  - REACH. A `global` block applied to the whole page, but only while its
+ *    component was mounted; a stylesheet stays loaded after a client-side
+ *    navigation. So the rules that style a section's own markup are scoped to
+ *    that section's root (`.about-one` and `.faq-page` are theme classes the
+ *    About and FAQ pages use too), and the few that really did reach across
+ *    the page — the mobile title size, the gallery's section padding — are
+ *    written `body:has(<section>)`: page-wide, and only on a page that has it.
+ */
+
+/* ── ListingPromo ─────────────────────────────────────────────────────────── */
+
+.about-one:where(.listing-promo) {
+  position: relative;
+  overflow: hidden;
+}
+:where(.listing-promo) .about-one__element-one,
+:where(.listing-promo) .about-one__element-two {
+  display: block !important;
+  z-index: 0;
+}
+:where(.listing-promo) .about-one__element-one img {
+  filter: brightness(0) grayscale(1);
+  opacity: 0.1; /* Usually these shapes look better with low opacity if black */
+}
+@media (max-width: 991px) {
+  .about-one:where(.listing-promo) {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+  :where(.listing-promo) .about-one__right {
+    text-align: center;
+  }
+  :where(.listing-promo) .about-one__right .sec-title {
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  :where(.listing-promo) .about-one__right .sec-title__title {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  :where(.listing-promo) .about-one__top__text {
+    text-align: center;
+  }
+}
+
+/* Ensure images and links in description are responsive and styled */
+:where(.listing-promo) .about-one__top__text img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+}
+
+:where(.listing-promo) .about-one__top__text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #666;
+  scrollbar-width: thin;
+  scrollbar-color: #b79c5c #f1f1f1;
+}
+
+:where(.listing-promo) .about-one__top__text.is-expanded {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  padding-right: 15px;
+}
+
+:where(.listing-promo) .about-one__top__text.is-collapsed {
+  max-height: 250px !important;
+  overflow-y: hidden !important;
+  padding-right: 0;
+}
+
+:where(.listing-promo) .about-one__top__text a {
+  color: #b79c5c !important;
+  text-decoration: underline !important;
+  font-weight: 600 !important;
+  transition: color 0.3s ease !important;
+}
+
+:where(.listing-promo) .about-one__top__text a:hover {
+  color: #1d231f !important;
+  text-decoration: none !important;
+}
+
+:where(.listing-promo) .about-one__top__text h1,
+:where(.listing-promo) .about-one__top__text h2,
+:where(.listing-promo) .about-one__top__text h3,
+:where(.listing-promo) .about-one__top__text h4,
+:where(.listing-promo) .about-one__top__text h5,
+:where(.listing-promo) .about-one__top__text h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #1d231f;
+  font-weight: 700;
+}
+
+:where(.listing-promo) .about-one__top__text p {
+  margin-bottom: 1.25rem;
+}
+
+:where(.listing-promo) .about-one__top__text ul,
+:where(.listing-promo) .about-one__top__text ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  list-style-position: outside;
+}
+
+:where(.listing-promo) .about-one__top__text ul {
+  list-style-type: disc;
+}
+
+:where(.listing-promo) .about-one__top__text ol {
+  list-style-type: decimal;
+}
+
+:where(.listing-promo) .about-one__top__text li {
+  margin-bottom: 0.5rem;
+}
+
+:where(.listing-promo) .about-one__top__text strong,
+:where(.listing-promo) .about-one__top__text b {
+  color: #1d231f;
+  font-weight: 700;
+}
+
+/* Custom Scrollbar for expanded text */
+:where(.listing-promo) .about-one__top__text::-webkit-scrollbar {
+  width: 5px;
+}
+:where(.listing-promo) .about-one__top__text::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+:where(.listing-promo) .about-one__top__text::-webkit-scrollbar-thumb {
+  background: #b79c5c;
+  border-radius: 10px;
+}
+:where(.listing-promo) .about-one__top__text::-webkit-scrollbar-thumb:hover {
+  background: #1d231f;
+}
+
+/* With scripting off "Read More" cannot open the text. While these rules were
+   styled-jsx such a visitor never got the clamp at all; now that it is in the
+   stylesheet, it is lifted for them explicitly, together with the fade that
+   sits over the last lines and the button that would do nothing. */
+@media (scripting: none) {
+  :where(.listing-promo) .about-one__top__text.is-collapsed {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  :where(.listing-promo) .about-one__top__text.is-collapsed + div,
+  :where(.listing-promo) .about-one__right button {
+    display: none;
+  }
+}
+
+/* ── ListingFaqs ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 991px) {
+  .faq-page:where(.listing-faqs) {
+    padding: 60px 0;
+  }
+  :where(.listing-faqs) .faq-page__sidebar {
+    margin-bottom: 40px;
+  }
+  :where(.listing-faqs) .faq-page__sidebar__cta {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  /* Every section title on a page that has this section, not only its own.
+     The first rule is the section's own title on its own, so a browser
+     without `:has()` drops the page-wide half and keeps this one. */
+  :where(.listing-faqs) .sec-title__title {
+    font-size: 28px !important;
+  }
+  :where(body:has(.listing-faqs)) .sec-title__title {
+    font-size: 28px !important;
+  }
+}
+
+/* ── ListingGallery ───────────────────────────────────────────────────────── */
+
+/* Both reach across the page: the titles and the padding of every
+   `.section-space` section on a page that has the gallery. As above, the
+   gallery's own title and padding come first, without `:has()`. */
+@media (max-width: 768px) {
+  :where(.listing-gallery) .sec-title__title {
+    font-size: 28px !important;
+  }
+  .section-space:where(.listing-gallery) {
+    padding: 50px 0;
+  }
+  :where(body:has(.listing-gallery)) .sec-title__title {
+    font-size: 28px !important;
+  }
+  :where(body:has(.listing-gallery)) .section-space {
+    padding: 50px 0;
+  }
+}
+
+/* ── ListingBlogs ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 991px) {
+  .listing-blogs .blog-card-two {
+    margin-bottom: 20px;
+  }
+  .listing-blogs .sec-title__title {
+    font-size: 28px;
+  }
+  .listing-blogs.section-space {
+    padding: 40px 0;
+  }
+}

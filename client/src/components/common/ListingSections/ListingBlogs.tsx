@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getLocalizedValue } from '@/lib/localize';
 import BlogCard from '@/components/common/BlogCard/BlogCard';
 import { buildBlogCardViewModels } from '@/lib/blog/cardViewModel';
+import './ListingSections.css';
 
 interface ListingBlogsProps {
   blogs?: any[];
@@ -45,17 +46,6 @@ const ListingBlogs: React.FC<ListingBlogsProps> = ({ blogs, title, sectionTitle,
           ))}
         </Row>
       </Container>
-      {/* `global` is required — the cards are rendered by BlogCard, not by this
-          component's own JSX — but every selector is scoped to this section.
-          Unscoped, simply mounting this teaser re-set `.sec-title__title` and
-          `.section-space` for EVERY other section on the page below 991px. */}
-      <style jsx global>{`
-        @media (max-width: 991px) {
-          .listing-blogs .blog-card-two { margin-bottom: 20px; }
-          .listing-blogs .sec-title__title { font-size: 28px; }
-          .listing-blogs.section-space { padding: 40px 0; }
-        }
-      `}</style>
     </section>
   );
 };

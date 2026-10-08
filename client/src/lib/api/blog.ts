@@ -388,10 +388,11 @@ export async function getSubCategoryBySlug(slug: string, locale?: string): Promi
 
 // Fetch all blogs with pagination
 /**
- * The all-articles listing (/blogs/all) on the server, and the search page in
- * the browser. Stored like the other listings only in its canonical shape: a
- * page within the bound, no tag and no search. A tag or a search term is free
- * text, so each distinct value would be a new cache entry; those go to the API.
+ * One page of published articles across every category — the search page reads
+ * it in the browser. A server-side read is stored like the other listings only
+ * in its canonical shape: a page within the bound, no tag and no search. A tag
+ * or a search term is free text, so each distinct value would be a new cache
+ * entry; those go to the API.
  */
 export async function getAllBlogs(
   pageOrOptions:

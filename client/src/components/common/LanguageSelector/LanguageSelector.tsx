@@ -38,10 +38,7 @@ const STATIC_PATHS = new Set([
   "/payment-cancellation-policy",
   "/search",
   "/wishlist",
-  "/tours",
-  "/tours/all",
   "/blogs",
-  "/blogs/all",
   "/404",
 ]);
 

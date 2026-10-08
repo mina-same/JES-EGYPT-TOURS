@@ -181,13 +181,6 @@ const seedDetailedBlog = async () => {
       // Focus Keyword
       focusKeyword: { en: 'luxury egypt itinerary' },
       
-      // Breadcrumbs
-      breadcrumbs: [
-        { name: { en: 'Home' }, url: '/' },
-        { name: { en: 'Blog' }, url: '/blogs' },
-        { name: { en: 'Luxury Itinerary' }, url: '#' }
-      ],
-      
       // Analytics
       shareCount: 85,
       averageTimeOnPage: 320,

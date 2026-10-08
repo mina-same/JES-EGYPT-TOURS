@@ -113,6 +113,14 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
   const list = Array.isArray(items) ? items : [];
 
   /*
+   * Only the LAST unlinked item is the page being viewed. An unlinked item
+   * earlier in the trail ("Authors", which has no index page) is a step, not
+   * the current page, so it must not announce itself as one.
+   */
+  const isCurrent = (item: BreadcrumbItem, index: number) =>
+    !item.href && index === list.length - 1;
+
+  /*
    * The schema is a SIBLING of the <nav>, not a child of it.
    *
    * A <script> inside the landmark is valid and invisible, but it lands in the
@@ -130,12 +138,14 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
     />
   ) : null;
 
+  // Every pill crumb is one line that ends in "…" when its column is narrower
+  // than its text.
+  const pillCrumb = "min-w-0 truncate text-sm";
+  const pillLink = `${pillCrumb} text-white/80 hover:text-white transition-colors`;
+
   const homeLink =
     variant === "pill" ? (
-      <Link
-        href={`/${locale}`}
-        className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0"
-      >
+      <Link href={`/${locale}`} className={pillLink}>
         {homeLabel}
       </Link>
     ) : (
@@ -146,32 +156,54 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
     return (
       <>
         {schema}
-        {/* A flex row rather than a list: the "/" separators are content
+        {/* A one-row grid rather than a list: the "/" separators are content
             between the items. The classic skin draws its chevron with ::after
             on the <li> instead, which is the only reason the two differ
-            structurally at all. */}
+            structurally at all.
+
+            ── Why a grid ──
+            The columns alternate crumb, separator, crumb… A crumb's column is
+            `minmax(0, max-content)`: on a wide screen every crumb is as wide
+            as its text and the capsule hugs them. When the row is too narrow,
+            the space is dealt out EQUALLY, each crumb taking its share until
+            its text fits — short crumbs stay whole and the long ones split
+            what is left. As a flex row the links never shrank, so on a phone
+            the article title got only the leftovers: one clipped letter, or
+            nothing, and a fixed 350px cap cut it on a desktop with room to
+            spare.
+
+            ── `border-[1px]` and `px-[1rem]`, not `border` and `px-4` ──
+            Bootstrap is loaded too, and its `.border` and `.px-4` are
+            `!important`: they turned the 20%-white border into an opaque grey
+            one and the 16px padding into 24px. The arbitrary-value classes
+            say the same thing under names Bootstrap does not have. */}
         <nav
           aria-label={ariaLabel || "Breadcrumb"}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 max-w-full overflow-hidden whitespace-nowrap ${className}`.trim()}
+          className={`inline-grid grid-flow-col auto-cols-[minmax(0,max-content)_max-content] items-center gap-2 px-[1rem] py-2 rounded-full bg-white/10 backdrop-blur-md border-[1px] border-white/20 max-w-full overflow-hidden whitespace-nowrap ${className}`.trim()}
         >
           {homeLink}
           {list.map((item, index) => (
             <span key={`${item.label}-${index}`} className="contents">
-              <span className="text-white/40 flex-shrink-0">/</span>
+              {/* Decoration: without aria-hidden a screen reader says "slash"
+                  between every two crumbs. */}
+              <span aria-hidden="true" className="text-white/40">/</span>
               {item.href ? (
-                <Link
-                  href={item.href}
-                  className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0"
-                >
+                <Link href={item.href} className={pillLink} title={item.label}>
                   {item.label}
                 </Link>
-              ) : (
-                // The current page: gold, and truncated rather than allowed to
-                // push the capsule past the viewport on a long title.
+              ) : isCurrent(item, index) ? (
+                // The current page: gold and bold.
                 <span
-                  className="text-[#b79c5c] text-sm font-bold truncate block max-w-[150px] md:max-w-[350px]"
+                  className={`${pillCrumb} font-bold text-[#b79c5c]`}
                   title={item.label}
+                  aria-current="page"
                 >
+                  {item.label}
+                </span>
+              ) : (
+                // A step with no page to link to: drawn like the links around
+                // it, not like the current page.
+                <span className={`${pillCrumb} text-white/80`} title={item.label}>
                   {item.label}
                 </span>
               )}
@@ -193,7 +225,11 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
           <li>{homeLink}</li>
           {list.map((item, index) => (
             <li key={`${item.label}-${index}`}>
-              {item.href ? <Link href={item.href}>{item.label}</Link> : <span>{item.label}</span>}
+              {item.href ? (
+                <Link href={item.href}>{item.label}</Link>
+              ) : (
+                <span aria-current={isCurrent(item, index) ? "page" : undefined}>{item.label}</span>
+              )}
             </li>
           ))}
         </ul>

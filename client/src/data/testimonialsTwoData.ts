@@ -132,4 +132,29 @@ const testimonialsTwoData = {
   ] as TestimonialItem[],
 };
 
+/** One testimonial in one language: what the homepage carousel renders. */
+export interface LocalizedTestimonial {
+  id: number;
+  name: string;
+  text: string;
+}
+
+/**
+ * The testimonials in `locale`, in the order above.
+ *
+ * Called by the homepage on the server, which hands the result to
+ * TestimonialsTwo as a prop. The carousel used to import this file itself, so
+ * all four languages of every quote were part of the JavaScript each visitor
+ * downloaded in order to show one of them. A missing translation falls back
+ * to English, as it did in the component.
+ */
+export function getTestimonialsForLocale(locale: string): LocalizedTestimonial[] {
+  const lang = locale.split("-")[0] as keyof TestimonialItem["name"];
+  return testimonialsTwoData.testimonials.map(({ id, name, text }) => ({
+    id,
+    name: name[lang] ?? name.en,
+    text: text[lang] ?? text.en,
+  }));
+}
+
 export default testimonialsTwoData;

@@ -115,8 +115,8 @@ export const getAllBlogs = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       // Article bodies are for the article page, never for a list of cards.
-      // Shipping them made /blogs/all a 984 KB page — four languages of every
-      // content block for nine articles nobody had opened yet.
+      // Shipping them made a nine-card listing a 984 KB page — four languages
+      // of every content block for nine articles nobody had opened yet.
       .select('-comments -contentBlocks')
       .sort('-publishedAt')
       .skip(skip)
@@ -331,8 +331,15 @@ export const getBlogBySlug = async (
       // byline and the JSON-LD author read the name, nothing reads the email.
       .populate('author', 'name')
       .populate('editorialAuthor')
-      .populate('category', 'name slug')
-      .populate('subCategory', 'name slug')
+      // The breadcrumb reads the sub-category's OWN category, so the article's
+      // trail matches the one on the sub-category page; `isActive` lets it
+      // drop a switched-off parent, whose page answers 404, instead of linking.
+      .populate('category', 'name slug isActive')
+      .populate({
+        path: 'subCategory',
+        select: 'name slug category isActive',
+        populate: { path: 'category', select: 'name slug isActive' },
+      })
       // Related posts are drawn with the same card as everywhere else, so they
       // are populated with the same field set — see blogCardPopulate.
       .populate(blogCardPopulate('relatedPosts'))

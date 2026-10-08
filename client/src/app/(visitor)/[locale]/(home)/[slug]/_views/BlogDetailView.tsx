@@ -11,7 +11,8 @@ import DynamicBlogDetails from "@/components/sections/DynamicBlogDetails/Dynamic
 import { getBlogBySlug } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { getSeoBaseUrl } from "@/lib/url";
+import { buildBlogBreadcrumbs } from "@/lib/blog/breadcrumbs";
 import { Loader2 } from "lucide-react";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
 
@@ -89,28 +90,8 @@ export default function BlogDetailView({ slug, locale, initialBlog }: BlogDetail
 
   const localizedSlugs = typeof blog.slug === 'object' ? blog.slug : { en: slug };
 
-  const breadcrumbs: { label: any; href?: string }[] = [];
-  
-  const blogSubCat = blog.subCategory;
-  const blogCat = blogSubCat?.category;
-
-  if (blogCat && typeof blogCat === 'object') {
-    const blogCatSlug = getStrictLocalizedSlug(blogCat.slug, locale as SupportedLocale);
-    breadcrumbs.push({
-      label: getLocalizedValue(blogCat.name, locale),
-      href: blogCatSlug ? `/${locale}/${blogCatSlug}` : undefined
-    });
-  }
-
-  if (blogSubCat && typeof blogSubCat === 'object') {
-    const blogSubCatSlug = getStrictLocalizedSlug(blogSubCat.slug, locale as SupportedLocale);
-    breadcrumbs.push({
-      label: getLocalizedValue(blogSubCat.name, locale),
-      href: blogSubCatSlug ? `/${locale}/${blogSubCatSlug}` : undefined
-    });
-  }
-
-  breadcrumbs.push({ label: title });
+  // The visible trail and its BreadcrumbList both come from this one array.
+  const breadcrumbs = buildBlogBreadcrumbs(blog, locale, title);
 
   return (
     <>
@@ -130,6 +111,7 @@ export default function BlogDetailView({ slug, locale, initialBlog }: BlogDetail
               : title
           }
           breadcrumbs={breadcrumbs}
+          currentUrl={`${getSeoBaseUrl()}/${locale}/${slug}`}
         />
         <DynamicBlogDetails blog={blog} showSidebar='right' />
         <ClientCarousel />

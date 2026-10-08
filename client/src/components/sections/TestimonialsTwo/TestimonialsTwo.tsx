@@ -1,7 +1,7 @@
 "use client";
 
 import { Container, Row, Col } from "react-bootstrap";
-import testimonialsTwoData, { TestimonialItem } from "@/data/testimonialsTwoData";
+import type { LocalizedTestimonial } from "@/data/testimonialsTwoData";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import {
   TinySliderWrapper as TinySlider,
@@ -10,17 +10,20 @@ import {
 import { useTranslation } from "react-i18next";
 import { useRef } from "react";
 
-type SupportedLang = "en" | "de" | "it" | "es";
+type TestimonialsTwoProps = {
+  /**
+   * The quotes, already in the page's language: the homepage picks them on
+   * the server (getTestimonialsForLocale). Only the type is imported from the
+   * data file here — importing its contents put all four languages of every
+   * quote into the JavaScript this section ships.
+   */
+  testimonials: LocalizedTestimonial[];
+};
 
-const TestimonialsTwo = () => {
+const TestimonialsTwo = ({ testimonials }: TestimonialsTwoProps) => {
   const sliderRef = useRef<TinySliderHandle>(null);
   const { t, i18n } = useTranslation("common");
-  const lang = (i18n.language?.split("-")[0] as SupportedLang) ?? "en";
-
-  // Only the quotes come from the data file; the section header used to sit
-  // there as English literals, so a German visitor read localized testimonials
-  // under an English heading.
-  const { testimonials } = testimonialsTwoData;
+  const lang = i18n.language?.split("-")[0] ?? "en";
 
   if (!testimonials || testimonials.length === 0) return null;
 
@@ -89,11 +92,9 @@ const TestimonialsTwo = () => {
               placeholderClassName="testimonials-two__carousel tns-placeholder-single"
               className='testimonials-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme'
             >
-              {testimonials.map((testimonial: TestimonialItem) => {
-                const name = testimonial.name[lang] ?? testimonial.name.en;
-                const text = testimonial.text[lang] ?? testimonial.text.en;
+              {testimonials.map(({ id, name, text }) => {
                 return (
-                  <div key={testimonial.id}>
+                  <div key={id}>
                     <div className='testimonials-two-card'>
                       <div className='testimonials-two-card__inner' style={{ paddingTop: 30 }}>
                         {/* Quote mark sits in normal flow ABOVE the content

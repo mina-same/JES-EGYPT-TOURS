@@ -177,35 +177,6 @@ const BlogCategoryCTA: React.FC<BlogCategoryCTAProps> = ({
                   {t('planYourJourney')}
                   <ArrowRight size={16} />
                 </Link>
-
-                <Link
-                  href={`/${locale}/blogs/all`}
-                  className="d-flex align-items-center gap-2"
-                  style={{
-                    background: 'transparent',
-                    color: 'rgba(255,255,255,0.8)',
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    borderRadius: '50px',
-                    padding: '14px 32px',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    textDecoration: 'none',
-                    transition: 'border-color 0.3s, color 0.3s, transform 0.2s',
-                  }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.7)';
-                    (e.currentTarget as HTMLElement).style.color = '#ffffff';
-                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)';
-                    (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.8)';
-                    (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
-                  }}
-                >
-                  {t('browseAllArticles')}
-                  <ArrowRight size={16} />
-                </Link>
               </div>
             </div>
           </div>

@@ -88,7 +88,6 @@ const INITIAL_BLOG_POST = {
   ogImage: '',
   ogType: 'article',
   focusKeyword: { en: '', de: '', it: '', es: '' },
-  breadcrumbs: [],
   relatedPosts: [],
   relatedTours: [],
   category: '',
@@ -448,7 +447,6 @@ export default function NewBlogPage() {
       if (htmlAllEmpty(cleanData.summary)) delete cleanData.summary;
       if (htmlAllEmpty(cleanData.keyTakeaways)) delete cleanData.keyTakeaways;
 
-      if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       cleanData.relatedPosts = Array.from(
         new Set((cleanData.relatedPosts || []).filter((postId: string) => postId && postId !== 'none'))
       );

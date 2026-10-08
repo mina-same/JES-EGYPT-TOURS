@@ -91,7 +91,6 @@ const INITIAL_BLOG_EDIT: any = {
   ogImage: '',
   ogType: 'article',
   focusKeyword: { en: '', de: '', it: '', es: '' },
-  breadcrumbs: [],
   relatedPosts: [],
   relatedTours: [],
   category: '',
@@ -434,10 +433,6 @@ export default function EditBlogPage() {
           ogImage: blog.ogImage || '',
           ogType: blog.ogType || 'article',
           focusKeyword: normalizeLocalizedString(blog.focusKeyword),
-          breadcrumbs: (blog.breadcrumbs || []).map((b: any) => ({
-            ...b,
-            name: normalizeLocalizedString(b.name)
-          })),
           relatedPosts: blog.relatedPosts?.map((post: any) => post._id || post) || [],
           relatedTours: blog.relatedTours?.map((tour: any) => tour._id || tour) || [],
           category: blog.category?._id || blog.category || '',
@@ -623,7 +618,6 @@ export default function EditBlogPage() {
       if (htmlAllEmpty(cleanData.summary)) delete cleanData.summary;
       if (htmlAllEmpty(cleanData.keyTakeaways)) delete cleanData.keyTakeaways;
 
-      if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       cleanData.relatedPosts = Array.from(
         new Set((cleanData.relatedPosts || []).filter((postId: string) => postId && postId !== 'none'))
       );

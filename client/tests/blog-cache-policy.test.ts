@@ -86,7 +86,7 @@ test('category, subcategory and destination listings are tagged, bounded and nor
   }
 });
 
-test('the all-articles listing stores only its canonical shape', async () => {
+test('getAllBlogs stores only its canonical shape', async () => {
   const [canonical] = await callsOf(() => getAllBlogs({ page: 3, limit: 9, locale: 'en' }));
   assert.equal(canonical.url, '/blog/posts?page=3&limit=9&locale=en');
   assert.deepEqual(canonical.init, { ...listing(), headers: { 'X-Locale': 'en' } });

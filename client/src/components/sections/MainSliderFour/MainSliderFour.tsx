@@ -124,12 +124,18 @@ const baseSettings = {
 
 type MainSliderFourProps = {
   initialSliders?: ApiSliderItem[];
+  /**
+   * The promo bar as the server fetched it. `null` is an answer — there is no
+   * promo to show — and is final; `undefined` means the server has none to
+   * give (its fetch failed, or the caller did not fetch), and only then does
+   * this component ask the API itself.
+   */
   initialPromo?: SliderUnderPromo | null;
 };
 
 const MainSliderFour: React.FC<MainSliderFourProps> = ({
   initialSliders = [],
-  initialPromo = null,
+  initialPromo,
 }) => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -146,7 +152,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
   );
 
   const [slides, setSlides] = useState<SlideVM[]>(initialSlides);
-  const [promo, setPromo] = useState<SliderUnderPromo | null>(initialPromo);
+  const [promo, setPromo] = useState<SliderUnderPromo | null>(initialPromo ?? null);
   const [activeSlide, setActiveSlide] = useState(0);
 
   // Keep slides in sync with the server data / active language.
@@ -182,10 +188,11 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
     };
   }, [initialSlides, lang]);
 
-  // Client fallback: fetch the promo only when the server didn't provide it.
+  // Client fallback: fetch the promo only when the server didn't provide an
+  // answer. "No promo" (`null`) is one; asking again would return it again.
   // Same locale rule as the slides above.
   useEffect(() => {
-    if (initialPromo) return;
+    if (initialPromo !== undefined) return;
     let alive = true;
     sliderService
       .getPublicSliderPromo(lang)

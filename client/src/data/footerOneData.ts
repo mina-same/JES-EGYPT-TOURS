@@ -47,7 +47,6 @@ export const footerOneData: FooterDataType = {
   },
   // Only real, existing routes are listed (no dead template/demo routes).
   destinations: [
-    { translationKey: "footer.destinations.tours", href: "/tours" },
     { translationKey: "footer.destinations.specialOffers", href: "/special-offers" },
     { translationKey: "footer.destinations.tailorMade", href: "/tailor-made" },
     { translationKey: "footer.destinations.blog", href: "/blogs" },

@@ -17,7 +17,7 @@
 
 import { formatBlogDate } from "@/lib/api/blog";
 import { BLOG_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
-import { getLocalizedStringList, getLocalizedValue } from "@/lib/localize";
+import { getLocalizedValue } from "@/lib/localize";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import { resolveBlogByline } from "./author";
 
@@ -40,7 +40,7 @@ export interface BlogCardViewModel {
   author: string;
   /** Author-page URL, or "" when the byline has no page. */
   authorLink: string;
-  /** Sub-category name when the post has one, else its first tag, else "". */
+  /** Sub-category name, or "" when the post has none in this language. */
   category: string;
   categoryLink: string;
   /**
@@ -93,10 +93,10 @@ export function buildBlogCardViewModel(
   const byline = resolveBlogByline(post, locale);
 
   // The sub-category is the article's real classification: it has a name, a
-  // localized slug and a page of its own. A tag is a keyword with no page
-  // beyond the filtered listing, so it is the fallback, not the first choice —
-  // and the tag link goes to /blogs/all, the route that actually filters
-  // (/blogs is the hub page and ignores the parameter).
+  // localized slug and a page of its own, so it is the only section label a
+  // card shows. A tag is a keyword with no page of its own, so a post without
+  // a sub-category in this language gets no chip rather than a tag that
+  // links nowhere.
   const subCategory =
     post?.subCategory && typeof post.subCategory === "object"
       ? post.subCategory
@@ -108,22 +108,11 @@ export function buildBlogCardViewModel(
     ? getStrictLocalizedSlug(subCategory.slug, locale as SupportedLocale)
     : null;
 
-  // `tags` arrives flattened from the endpoints that localize their response
-  // and raw from the ones that do not, so it goes through the helper that
-  // reads both. Reading it with getLocalizedValue handled only the raw shape:
-  // given the flat array it returned the first tag as a string, the
-  // Array.isArray guard here rejected that, and the fallback below never ran
-  // on any localized page — a post with no sub-category showed no label at all.
-  const firstTag = getLocalizedStringList(post?.tags, locale)[0] || "";
-
   let category = "";
   let categoryLink = "";
   if (subCategoryName && subCategorySlug) {
     category = subCategoryName;
     categoryLink = `/${locale}/${subCategorySlug}`;
-  } else if (firstTag) {
-    category = firstTag;
-    categoryLink = `/${locale}/blogs/all?tag=${encodeURIComponent(firstTag)}`;
   }
 
   const readingTime =

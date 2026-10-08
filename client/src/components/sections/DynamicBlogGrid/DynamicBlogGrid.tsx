@@ -27,12 +27,6 @@ interface DynamicBlogGridProps {
    */
   basePath?: string;
   variant?: 'standard' | 'featured';
-  /**
-   * Eager-loads the first row's images. Only for a grid that is the page's
-   * main content and sits at the top of it — on a section further down, an
-   * eager image competes with the real LCP element instead of being it.
-   */
-  prioritizeFirstRow?: boolean;
 }
 
 /**
@@ -65,16 +59,11 @@ function buildPageList(current: number, total: number): (number | 'gap')[] {
   return withGaps;
 }
 
-/** Cards per row on desktop, for each skin — how many can be the LCP image. */
-const FEATURED_ROW = 4;
-const STANDARD_ROW = 3;
-
 const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
   blogs,
   pagination,
   basePath,
   variant = 'standard',
-  prioritizeFirstRow = false,
 }) => {
   const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
@@ -102,12 +91,11 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
   if (variant === 'featured') {
     return (
       <Row className='gutter-y-20'>
-        {cards.map((post, index) => (
+        {cards.map((post) => (
           <Col lg={3} md={6} key={post.id}>
             <BlogCard
               post={post}
               variant='minimal'
-              priority={prioritizeFirstRow && index < FEATURED_ROW}
               sizes='(max-width: 768px) 100vw, (max-width: 992px) 50vw, 25vw'
             />
           </Col>
@@ -120,12 +108,11 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
     <section className='blog-page'>
       <Container>
         <Row className='gutter-y-30'>
-          {cards.map((post, index) => (
+          {cards.map((post) => (
             <Col lg={4} md={6} key={post.id}>
               <BlogCard
                 post={post}
                 variant='classic'
-                priority={prioritizeFirstRow && index < STANDARD_ROW}
               />
             </Col>
           ))}
