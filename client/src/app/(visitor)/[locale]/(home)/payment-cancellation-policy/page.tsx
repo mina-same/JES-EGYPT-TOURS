@@ -202,7 +202,6 @@ export default async function PaymentCancellationPolicyPage({
   const { locale } = await params;
   const lang = normalizeLocale(locale);
   const pageUrl = `${SEO_BASE_URL}/${lang}/payment-cancellation-policy`;
-  const homeUrl = `${SEO_BASE_URL}/${lang}`;
   const contactHref = localizeInternalUrl("/contact", lang);
   const tailorMadeHref = localizeInternalUrl("/tailor-made", lang);
   const privacyHref = localizeInternalUrl("/privacy-policy", lang);
@@ -219,47 +218,22 @@ export default async function PaymentCancellationPolicyPage({
     isPartOf: { "@id": `${SEO_BASE_URL}/#website` },
   };
 
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: homeUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: PAGE_TITLE,
-        item: pageUrl,
-      },
-    ],
-  };
-
   return (
     <Layout>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <PageHeader
-        /* This page publishes its own BreadcrumbList below. */
-        breadcrumbJsonLd={false}
         title={PAGE_TITLE}
         subTitle="How we confirm bookings and handle deposits, final payments, changes, cancellations, and eligible refunds."
         bgImage="/images/backgrounds/jes-egypt-tours-payment-cancellation-policy.webp"
         alt="Payment and travel documents overlooking the Nile and Giza pyramids"
         imageTitle="JES Egypt Tours payment and cancellation policy"
-        breadcrumbs={[{ label: PAGE_TITLE }]}
+        breadcrumbLabelKey="pageNames.paymentPolicy"
       />
 
       <main className={styles.page}>

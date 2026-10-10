@@ -21,36 +21,6 @@ html, body {
   width: 100%;
 }
 
-/* Breadcrumb labels are localized editorial content, so preserve the exact
-   capitalization stored for every language. */
-.gotur-breadcrumb li {
-  text-transform: none;
-}
-
-/* The theme gives the current-page crumb `line-height: 1em`. A long tour title
-   wraps on a phone, and at 1em its lines sat 16px apart, nearly touching.
-   Inheriting the trail's 170% spaces them like the trail's other rows. On one
-   line it also lifts the label 1px, onto the same line as the links beside it. */
-.gotur-breadcrumb li span {
-  line-height: inherit;
-}
-
-/* The theme paints every unlinked crumb gold, the colour of the current page.
-   Only the last one IS the current page (it carries aria-current); a parent
-   with no page in this language — "Day Tours" on a German sub-category — is
-   also unlinked, and must read as a step, not as where the reader is. */
-.gotur-breadcrumb li span:not([aria-current="page"]) {
-  color: inherit;
-}
-
-/* The chevron is an icon-font glyph in generated content, which a screen
-   reader meets as a stray character after every crumb. The `/ ""` gives it an
-   empty text alternative. A browser that does not know this syntax drops the
-   declaration and keeps the theme's plain `content`, so the chevron stays. */
-.gotur-breadcrumb li:not(:last-of-type)::after {
-  content: "\e917" / "";
-}
-
 /* Fix for oversized background shapes in Offer section */
 [class*="offer-two__element"] {
   max-width: 100vw;
@@ -8006,7 +7976,7 @@ button[data-action="stop"] {
 }
 
 /* ---------------------------------------------------------------------------
-   Editorial section heading (author pages, tours/blogs hub views).
+   Editorial section heading (author pages, the video-reviews section).
    These <h2>s previously had no rule of their own and simply inherited the
    h1-h6 body face. They are marketing headings, so they opt in to the display
    serif - unlike .subcategory-header__title and .tour-listing-details__title,
@@ -8015,7 +7985,7 @@ button[data-action="stop"] {
    leaving size alone left the layout untouched. What that actually left was an
    <h2> inheriting 16px — the same size as the body copy underneath it, so a
    section heading read as a label. Every place using this class had it: the
-   author page, the blogs hub, the tours hub and the video-reviews section.
+   author page, the video-reviews section and the two hub pages since removed.
 
    Size and line-height only. Margins and colour are still left to the theme,
    so the spacing of each of those layouts is genuinely untouched.

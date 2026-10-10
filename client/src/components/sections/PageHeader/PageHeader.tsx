@@ -14,6 +14,17 @@ interface PageHeaderProps {
   bgImage?: string;
   breadcrumbs?: BreadcrumbItem[];
   /**
+   * For a page that sits directly under Home: a key in the `common`
+   * namespace naming it (`pageNames.about`), translated HERE into the
+   * reader's language and shown as the trail's current page. Used when
+   * `breadcrumbs` is not given.
+   *
+   * A key rather than a label because some callers cannot translate: the 404
+   * page is not handed the locale, and About and Sign In print a fixed English
+   * title. Without a name the trail was "Home" and nothing else.
+   */
+  breadcrumbLabelKey?: string;
+  /**
    * Set false on a page that already publishes its own BreadcrumbList, so the
    * document does not carry two competing trails.
    */
@@ -34,10 +45,11 @@ interface PageHeaderProps {
    */
   decorativeBackground?: boolean;
 }
-const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, alt, imageTitle, decorativeBackground, breadcrumbJsonLd = true }) => {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, breadcrumbLabelKey, alt, imageTitle, decorativeBackground, breadcrumbJsonLd = true }) => {
   const { t } = useTranslation('common');
   const params = useParams();
   const locale = normalizeLocale(params?.locale);
+  const trail = breadcrumbs ?? (breadcrumbLabelKey ? [{ label: t(breadcrumbLabelKey) }] : undefined);
   const backgroundImage = bgImage || bg.src;
   const imageAlt = decorativeBackground ? "" : (alt || title || "Page Header");
 
@@ -60,14 +72,18 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
         <div className="page-header__content" style={{ textAlign: 'center' }}>
           {/* The shared trail. It used to be written out here, which is why the
               author page ended up with a second copy of the same markup when it
-              needed the breadcrumb without this component's banner. */}
+              needed the breadcrumb without this component's banner.
+
+              The capsule is an inline grid, so this block's `text-align:
+              center` centres it. Its margin is `mb-[20px]`, not `mb-5`:
+              Bootstrap owns `mb-0`…`mb-5` with `!important` (`mb-5` is 3rem). */}
           <Breadcrumb
             locale={locale}
             homeLabel={t('home')}
-            items={breadcrumbs}
+            items={trail}
             ariaLabel={t('breadcrumb')}
             jsonLd={breadcrumbJsonLd}
-            className="mb-3"
+            className="mb-[20px]"
           />
           <h1 className="page-header__title bw-split-in-right">{title}</h1>
           {subTitle && (

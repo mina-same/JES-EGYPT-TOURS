@@ -13,20 +13,9 @@ interface FaqStructuredDataProps {
   description: string;
 }
 
-interface BreadcrumbStructuredDataProps {
-  category?: string;
-}
-
 interface HowToStructuredDataProps {
   question: string;
   answer: string;
-}
-
-interface BreadcrumbItem {
-  "@type": "ListItem";
-  "position": number;
-  "name": string;
-  "item"?: string;
 }
 
 const BASE_URL = 'https://www.jesegypttours.com';
@@ -88,52 +77,6 @@ export const FaqStructuredData: React.FC<FaqStructuredDataProps> = ({
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: json }}
-    />
-  );
-};
-
-export const FaqBreadcrumbStructuredData: React.FC<BreadcrumbStructuredDataProps> = ({ 
-  category 
-}) => {
-  const { i18n } = useTranslation();
-  const pathname = usePathname();
-  const locale = getLocaleFromPath(pathname, normalizeLocale(i18n.language));
-  const localeHomeUrl = `${BASE_URL}/${locale}`;
-  const faqPageUrl = `${localeHomeUrl}/faq`;
-
-  const breadcrumbs: BreadcrumbItem[] = [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": localeHomeUrl
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "FAQ",
-      "item": faqPageUrl
-    }
-  ];
-
-  if (category) {
-    breadcrumbs.push({
-      "@type": "ListItem",
-      "position": 3,
-      "name": category
-    });
-  }
-
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": breadcrumbs
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
     />
   );
 };

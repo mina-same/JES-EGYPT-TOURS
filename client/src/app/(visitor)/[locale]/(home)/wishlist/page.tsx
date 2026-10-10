@@ -194,7 +194,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title={t('pageTitle')} subTitle={t('pageSubTitle')} />
+      <PageHeader title={t('pageTitle')} subTitle={t('pageSubTitle')} breadcrumbLabelKey="pageNames.wishlist" />
 
       <section className="section-space">
         <Container>

@@ -367,7 +367,7 @@ export default function SubcategoryView({
     return (
       <Layout>
         <TopbarOne /><HeaderOne linkTheme="light" />
-        <PageHeader title={t('status.notFound')} />
+        <PageHeader title={t('status.notFound')} breadcrumbLabelKey="pageNames.notFound" />
         <div className="flex items-center justify-center min-h-[400px] text-red-500">
           <h3>{error || t('status.subcategoryNotFound')}</h3>
         </div>

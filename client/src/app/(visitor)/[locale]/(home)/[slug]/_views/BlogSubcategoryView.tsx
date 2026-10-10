@@ -10,7 +10,7 @@ import DynamicBlogGrid from "@/components/sections/DynamicBlogGrid/DynamicBlogGr
 import type { BlogListResponse, BlogSubCategory } from "@/lib/api/blog";
 import { SlugManager } from "@/components/common/SlugManager";
 import { getLocalizedValue } from "@/lib/localize";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { getSubcategoryParent } from "@/lib/blog/subcategoryParent";
 import ListingFaqs from "@/components/common/ListingSections/ListingFaqs";
 import BannerCTA from "../../../../../../components/sections/BannerCTA/BannerCTA";
 import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel";
@@ -61,8 +61,9 @@ export default function BlogSubcategoryView({
   // they did without `viewport.once`. See Entrance.ts.
   const animateIn = useEntranceOnMount("below-fold");
 
-  const parentName = typeof subcategory.category === 'object' ? getLocalizedValue((subcategory.category as any).name, locale) : '';
-  const parentSlug = typeof subcategory.category === 'object' ? getStrictLocalizedSlug((subcategory.category as any).slug, locale as SupportedLocale) : null;
+  // Null when the parent category is missing (deleted, or not populated).
+  const parent = getSubcategoryParent(subcategory.category, locale);
+  const parentName = parent?.name ?? '';
   const subcategoryName = getLocalizedValue(subcategory.name, locale);
   const subcategoryImageTitle = getImageTitle(subcategory.image, locale, subcategoryName);
 
@@ -80,7 +81,7 @@ export default function BlogSubcategoryView({
         imageAlt={typeof subcategory.image === 'object' ? getLocalizedValue(subcategory.image?.alt, locale) || subcategoryImageTitle : subcategoryImageTitle}
         imageTitle={subcategoryImageTitle}
         breadcrumbs={[
-          ...(subcategory.category ? [{ label: parentName, href: parentSlug ? `/${locale}/${parentSlug}` : undefined }] : []),
+          ...(parent ? [{ label: parent.name, href: parent.href }] : []),
           { label: subcategoryName }
         ]}
         stats={{

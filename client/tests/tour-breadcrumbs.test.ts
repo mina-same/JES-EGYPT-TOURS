@@ -114,21 +114,19 @@ test('the tour route publishes the trail once, from the @graph, with the localiz
   assert.match(tourBlock, /<PageHeader[\s\S]*?breadcrumbJsonLd=\{false\}[\s\S]*?\/>/);
 });
 
-test('only the last unlinked crumb is marked as the current page, in both skins', () => {
+test('only the last unlinked crumb is marked as the current page', () => {
   const items = [
     { label: 'Authors' },
     { label: 'Category', href: '/en/category' },
     { label: 'Current page' },
   ];
-  for (const variant of ['classic', 'pill']) {
-    const html = renderToStaticMarkup(React.createElement(Breadcrumb, {
-      locale: 'en', homeLabel: 'Home', items, variant, jsonLd: false,
-    }));
-    assert.equal(html.match(/aria-current="page"/g)?.length, 1, variant);
-    assert.match(html, /<span[^>]*aria-current="page"[^>]*>Current page<\/span>/, variant);
-    assert.doesNotMatch(html, /aria-current="page"[^>]*>Authors</, variant);
-    assert.ok(!html.includes('application/ld+json'), `${variant}: jsonLd={false} emits no schema`);
-  }
+  const html = renderToStaticMarkup(React.createElement(Breadcrumb, {
+    locale: 'en', homeLabel: 'Home', items, jsonLd: false,
+  }));
+  assert.equal(html.match(/aria-current="page"/g)?.length, 1);
+  assert.match(html, /<span[^>]*aria-current="page"[^>]*>Current page<\/span>/);
+  assert.doesNotMatch(html, /aria-current="page"[^>]*>Authors</);
+  assert.ok(!html.includes('application/ld+json'), 'jsonLd={false} emits no schema');
   // A trail whose last item is a link has no current-page crumb to mark.
   const linked = renderToStaticMarkup(React.createElement(Breadcrumb, {
     locale: 'en', homeLabel: 'Home', items: [{ label: 'Category', href: '/en/category' }], jsonLd: false,
@@ -143,4 +141,77 @@ test('the header trail still publishes its own BreadcrumbList by default', () =>
   const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]);
   assert.equal(schema['@type'], 'BreadcrumbList');
   assert.equal(schema.itemListElement[0].name, 'Startseite');
+});
+
+const appSource = (relative: string) =>
+  readFileSync(new URL(`../src/app/(visitor)/[locale]/(home)/${relative}`, import.meta.url), 'utf8');
+
+test('the tour page draws its parents in the capsule and leaves its own name to the <h1>', () => {
+  const route = appSource('[slug]/page.tsx');
+  const tourBlock = route.slice(route.indexOf('// ── 6. Tour'));
+  assert.match(tourBlock, /const visibleBreadcrumbs = breadcrumbs\.slice\(0, -1\);/);
+  const header = tourBlock.match(/<PageHeader[\s\S]*?\n {12}\/>/)![0];
+  assert.match(header, /breadcrumbs=\{visibleBreadcrumbs\}/);
+  // The schema still ends with the tour itself: it gets the full array.
+  const schemaCall = tourBlock.match(/generateTourJsonLd\(\{[\s\S]*?\}\);/)![0];
+  assert.match(schemaCall, /\n {8}breadcrumbs,\r?\n/);
+  assert.ok(!schemaCall.includes('visibleBreadcrumbs'));
+
+  // What a visitor then sees for a tour two levels deep: three links, nothing
+  // marked as the current page, nothing in the current-page gold.
+  const trail = buildTourBreadcrumbs({ subcategory }, 'en', 'Private Giza Pyramids Tour').slice(0, -1);
+  const html = renderToStaticMarkup(React.createElement(Breadcrumb, {
+    locale: 'en', homeLabel: 'Home', items: trail, jsonLd: false,
+  }));
+  assert.deepEqual([...html.matchAll(/<a [^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/g)].map((m) => [m[1], m[2]]), [
+    ['/en', 'Home'],
+    ['/en/egypt-tour-packages', 'Egypt Tour Packages'],
+    ['/en/egypt-classic-tours', 'Classic Tours'],
+  ]);
+  assert.ok(!html.includes('Private Giza Pyramids Tour'));
+  assert.ok(!html.includes('aria-current') && !html.includes('#b79c5c'));
+});
+
+test('a tour with no linkable parent still shows a trail: Home alone', () => {
+  const trail = buildTourBreadcrumbs({ subcategory }, 'it', 'Tour').slice(0, -1);
+  assert.deepEqual(trail, []);
+  const html = renderToStaticMarkup(React.createElement(Breadcrumb, {
+    locale: 'it', homeLabel: 'Home', items: trail, jsonLd: false,
+  }));
+  assert.match(html, /<nav[^>]*><a [^>]*href="\/it"[^>]*>Home<\/a><\/nav>/);
+});
+
+test('every page header draws the one capsule, and the old chevron skin is gone', () => {
+  const read = (relative: string) => readFileSync(new URL(relative, import.meta.url), 'utf8');
+
+  // The header has no skin to choose: it renders the shared trail as it is.
+  const header = read('../src/components/sections/PageHeader/PageHeader.tsx');
+  const crumb = header.match(/<Breadcrumb[\s\S]*?\/>/)![0];
+  assert.ok(!/variant/i.test(header), 'PageHeader passes no variant');
+  // Bootstrap's `.mb-5` is `3rem !important`; the capsule's gap must not be one of its names.
+  assert.match(crumb, /className="mb-\[20px\]"/);
+
+  // The component draws one thing, whatever a caller passes.
+  const component = read('../src/components/common/Breadcrumb/Breadcrumb.tsx');
+  assert.ok(!component.includes('gotur-breadcrumb') && !/variant/.test(component));
+  const html = renderToStaticMarkup(React.createElement(Breadcrumb, {
+    locale: 'en', homeLabel: 'Home', items: [{ label: 'Contact' }], jsonLd: false,
+  }));
+  assert.match(html, /<nav[^>]*class="inline-grid [^"]*rounded-full/);
+  assert.ok(!html.includes('<ul') && !html.includes('<li'));
+
+  // Nothing styles the old list any more, and no caller still asks for a skin.
+  for (const css of ['../src/assets/css/gotur.css', '../src/assets/css/custom.css']) {
+    assert.ok(!read(css).includes('gotur-breadcrumb'), css);
+  }
+  for (const file of [
+    '[slug]/page.tsx',
+    '[slug]/_views/CategoryView.tsx',
+    '[slug]/_views/SubcategoryView.tsx',
+    'special-offers/_views/SpecialOffersView.tsx',
+    'authors/[slug]/page.tsx',
+  ]) {
+    assert.ok(!/(breadcrumbVariant|variant="(pill|classic)")/.test(appSource(file)), file);
+  }
+  assert.ok(!read('../src/components/sections/BlogHero/BlogHero.tsx').includes('variant='));
 });

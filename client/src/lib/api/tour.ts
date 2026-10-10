@@ -1,7 +1,42 @@
-import axiosInstance from './axios';
+import { publicGet, type PublicGetOptions } from './publicGet';
 import type { CurrencyCode } from '@/contexts/CurrencyContext';
 
 const API_BASE = 'tours';
+
+// ==================== TRANSPORT ====================
+
+/**
+ * The shared axios instance, loaded when a call needs it.
+ *
+ * Imported at the top of this file it put axios into the JavaScript of every
+ * visitor page that reads a tour (the listings, special offers, search, the
+ * wishlist), though a visitor only ever reads here. Every write below, and
+ * every call made from an admin page, still goes through it.
+ */
+const loadAxios = () => import('./axios').then((module) => module.default);
+
+/**
+ * A read.
+ *
+ * In a visitor's browser it is a fetch (./publicGet.ts, which sends the
+ * request axios sent and settles as axios settled). The endpoints read here
+ * are public or `optionalProtect`, so the axios instance's 401 handling had
+ * nothing to act on for a visitor.
+ *
+ * Under /admin, and during server rendering, it stays on the axios instance:
+ * the admin pages rely on its response interceptor (session expiry, duplicate
+ * link feedback) and read with `includeInactive` behind a token. "/admin" is
+ * the test the instance's own request interceptor applies.
+ */
+async function get<T>(url: string, config?: PublicGetOptions): Promise<T> {
+  if (typeof window !== 'undefined' && !window.location.pathname.includes('/admin')) {
+    return publicGet<T>(`/${url}`, config);
+  }
+
+  const axiosInstance = await loadAxios();
+  const response = await axiosInstance.get<T>(url, config);
+  return response.data;
+}
 
 // ==================== TYPES ====================
 
@@ -63,40 +98,38 @@ export const tourCategoryAPI = {
    * Get all tour categories
    */
   getAll: async (params?: QueryParams) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}/categories`,
       { params }
     );
-    return response.data;
   },
 
   /**
    * Get category by ID
    */
   getById: async (id: string) => {
-    const response = await axiosInstance.get<ApiResponse<any>>(
+    return get<ApiResponse<any>>(
       `${API_BASE}/categories/${id}`
     );
-    return response.data;
   },
 
   /**
    * Get category by slug
    */
   getBySlug: async (slug: string, locale?: string) => {
-    const response = await axiosInstance.get<ApiResponse<any>>(
+    return get<ApiResponse<any>>(
       `${API_BASE}/categories/slug/${slug}`,
       {
         headers: locale ? { 'X-Locale': locale } : undefined
       }
     );
-    return response.data;
   },
 
   /**
    * Create new category
    */
   create: async (data: any) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.post<ApiResponse<any>>(
       `${API_BASE}/categories`,
       data
@@ -109,6 +142,7 @@ export const tourCategoryAPI = {
    */
   update: async (id: string, data: any) => {
     try {
+      const axiosInstance = await loadAxios();
       const response = await axiosInstance.put<ApiResponse<any>>(
         `${API_BASE}/categories/${id}`,
         data
@@ -124,6 +158,7 @@ export const tourCategoryAPI = {
    * Toggle category status
    */
   toggleStatus: async (id: string) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.patch<ApiResponse<any>>(
       `${API_BASE}/categories/${id}/toggle-active`
     );
@@ -134,6 +169,7 @@ export const tourCategoryAPI = {
    * Delete category
    */
   delete: async (id: string) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.delete<ApiResponse<any>>(
       `${API_BASE}/categories/${id}`
     );
@@ -148,11 +184,10 @@ export const tourSubcategoryAPI = {
    * Get all subcategories
    */
   getAll: async (params?: QueryParams) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}/subcategories`,
       { params }
     );
-    return response.data;
   },
 
   /**
@@ -170,24 +205,22 @@ export const tourSubcategoryAPI = {
    * locale receiving English subcategory names. Server callers must pass it.
    */
   getByCategory: async (categoryId: string, params?: QueryParams, locale?: string) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}/categories/${categoryId}/subcategories`,
       {
         params,
         headers: locale ? { 'X-Locale': locale } : undefined
       }
     );
-    return response.data;
   },
 
   /**
    * Get subcategory by ID
    */
   getById: async (id: string) => {
-    const response = await axiosInstance.get<ApiResponse<any>>(
+    return get<ApiResponse<any>>(
       `${API_BASE}/subcategories/${id}`
     );
-    return response.data;
   },
 
   /**
@@ -195,20 +228,20 @@ export const tourSubcategoryAPI = {
    */
   getBySlug: async (slug: string, categoryId?: string, locale?: string) => {
     const params = categoryId ? { category: categoryId } : undefined;
-    const response = await axiosInstance.get<ApiResponse<any>>(
+    return get<ApiResponse<any>>(
       `${API_BASE}/subcategories/slug/${slug}`,
       {
         params,
         headers: locale ? { 'X-Locale': locale } : undefined
       }
     );
-    return response.data;
   },
 
   /**
    * Create new subcategory
    */
   create: async (data: any) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.post<ApiResponse<any>>(
       `${API_BASE}/subcategories`,
       data
@@ -220,6 +253,7 @@ export const tourSubcategoryAPI = {
    * Update subcategory
    */
   update: async (id: string, data: any) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.put<ApiResponse<any>>(
       `${API_BASE}/subcategories/${id}`,
       data
@@ -231,6 +265,7 @@ export const tourSubcategoryAPI = {
    * Toggle subcategory status
    */
   toggleStatus: async (id: string) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.patch<ApiResponse<any>>(
       `${API_BASE}/subcategories/${id}/toggle-active`
     );
@@ -241,6 +276,7 @@ export const tourSubcategoryAPI = {
    * Delete subcategory
    */
   delete: async (id: string) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.delete<ApiResponse<any>>(
       `${API_BASE}/subcategories/${id}`
     );
@@ -255,7 +291,7 @@ export const tourAPI = {
    * Get all tours with filtering
    */
   getAll: async (params?: QueryParams, locale?: string, signal?: AbortSignal) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}`,
       {
         params,
@@ -263,7 +299,6 @@ export const tourAPI = {
         signal,
       }
     );
-    return response.data;
   },
 
   /** Get all values available to the filters in a listing scope. */
@@ -272,7 +307,7 @@ export const tourAPI = {
     locale?: string,
     signal?: AbortSignal
   ) => {
-    const response = await axiosInstance.get<ApiResponse<TourFilterOptions>>(
+    return get<ApiResponse<TourFilterOptions>>(
       `${API_BASE}/filter-options`,
       {
         params,
@@ -280,39 +315,35 @@ export const tourAPI = {
         signal,
       }
     );
-    return response.data;
   },
 
   /**
    * Get featured tours
    */
   getFeatured: async (limit?: number) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}/featured`,
       { params: { limit } }
     );
-    return response.data;
   },
 
   /**
    * Get tours by subcategory
    */
   getBySubcategory: async (subcategoryId: string, params?: QueryParams) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}/subcategories/${subcategoryId}/tours`,
       { params }
     );
-    return response.data;
   },
 
   /**
    * Get tour by ID
    */
   getById: async (id: string) => {
-    const response = await axiosInstance.get<ApiResponse<any>>(
+    return get<ApiResponse<any>>(
       `${API_BASE}/${id}`
     );
-    return response.data;
   },
 
   /**
@@ -325,51 +356,48 @@ export const tourAPI = {
    * longer exists is simply absent from the reply.
    */
   getByIds: async (ids: string[]) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}/by-ids`,
       { params: { ids: ids.join(',') } }
     );
-    return response.data;
   },
 
   /**
    * Get tour by slug
    */
   getBySlug: async (slug: string, locale?: string) => {
-    const response = await axiosInstance.get<ApiResponse<any>>(
+    return get<ApiResponse<any>>(
       `${API_BASE}/slug/${slug}`,
       {
         headers: locale ? { 'X-Locale': locale } : undefined
       }
     );
-    return response.data;
   },
 
   /**
    * Get tour by external ID
    */
   getByExternalId: async (externalId: string) => {
-    const response = await axiosInstance.get<ApiResponse<any>>(
+    return get<ApiResponse<any>>(
       `${API_BASE}/external/${externalId}`
     );
-    return response.data;
   },
 
   /**
    * Get related tours
    */
   getRelated: async (id: string, limit?: number) => {
-    const response = await axiosInstance.get<ApiResponse<any[]>>(
+    return get<ApiResponse<any[]>>(
       `${API_BASE}/${id}/related`,
       { params: { limit } }
     );
-    return response.data;
   },
 
   /**
    * Create new tour
    */
   create: async (data: any) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.post<ApiResponse<any>>(
       `${API_BASE}`,
       data
@@ -381,6 +409,7 @@ export const tourAPI = {
    * Update tour
    */
   update: async (id: string, data: any) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.put<ApiResponse<any>>(
       `${API_BASE}/${id}`,
       data
@@ -392,6 +421,7 @@ export const tourAPI = {
    * Toggle tour active status
    */
   toggleStatus: async (id: string) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.patch<ApiResponse<any>>(
       `${API_BASE}/${id}/toggle-active`
     );
@@ -402,6 +432,7 @@ export const tourAPI = {
    * Toggle tour featured status
    */
   toggleFeatured: async (id: string) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.patch<ApiResponse<any>>(
       `${API_BASE}/${id}/toggle-featured`
     );
@@ -412,6 +443,7 @@ export const tourAPI = {
    * Delete tour
    */
   delete: async (id: string) => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.delete<ApiResponse<any>>(
       `${API_BASE}/${id}`
     );
@@ -422,6 +454,7 @@ export const tourAPI = {
    * Get tour statistics
    */
   getStats: async () => {
+    const axiosInstance = await loadAxios();
     const response = await axiosInstance.get<ApiResponse<any>>(
       `${API_BASE}/stats`
     );

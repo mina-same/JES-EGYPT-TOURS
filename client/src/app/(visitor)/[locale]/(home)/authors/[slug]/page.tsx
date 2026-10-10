@@ -420,10 +420,8 @@ export default async function EditorialAuthorPage({
             ariaLabel={tCommon('breadcrumb')}
             items={[{ label: t('breadcrumb') }, { label: author.name }]}
             currentUrl={pageUrl}
-            /* The same glass capsule the article hero uses. It reads on this
-               navy the way it reads on the article's photograph, and it is the
-               shared component's own skin — not a copy of it. */
-            variant="pill"
+            /* The same glass capsule every hero uses. It reads on this navy
+               the way it reads on a photograph. */
             className={styles.authorHeroCrumb}
           />
           <Row className={`align-items-center gutter-y-40 ${styles.authorHeroBody}`}>

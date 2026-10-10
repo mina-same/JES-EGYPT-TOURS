@@ -358,7 +358,7 @@ export default function CategoryView({
     return (
       <Layout>
         <TopbarOne /><HeaderOne linkTheme="light" />
-        <PageHeader title={t('status.notFound')} />
+        <PageHeader title={t('status.notFound')} breadcrumbLabelKey="pageNames.notFound" />
         <div className="flex items-center justify-center min-h-[400px] text-red-500">
           <h3>{error || t('status.categoryNotFound')}</h3>
         </div>

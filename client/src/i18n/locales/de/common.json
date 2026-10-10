@@ -55,6 +55,7 @@
     }
   },
   "language": {
+    "label": "Sprache",
     "english": "English",
     "german": "Deutsch",
     "italian": "Italienisch",
@@ -290,6 +291,16 @@
     "title": "Video-Bewertungen"
   },
   "breadcrumb": "Brotkrümelnavigation",
+  "pageNames": {
+    "about": "Über uns",
+    "faq": "FAQ",
+    "wishlist": "Merkliste",
+    "search": "Suche",
+    "tailorMade": "Individualreisen",
+    "signIn": "Anmelden",
+    "notFound": "Seite nicht gefunden",
+    "paymentPolicy": "Zahlungs- und Stornierungsbedingungen"
+  },
   "nav": {
     "home": "Startseite",
     "tailorMade": "Individualreise",

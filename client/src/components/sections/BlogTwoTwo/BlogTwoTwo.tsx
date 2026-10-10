@@ -17,12 +17,12 @@ import { API_URL } from "@/config/api";
 import { BlogPost, BlogResponse } from "@/lib/api/blog";
 import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 import { useTranslation } from "react-i18next";
-import { localizeInternalUrl } from "@/lib/url";
+import { normalizeLocale, type SupportedLocale } from "@/lib/url";
 
 interface BlogData {
   tagline: string;
   title: string;
-  link: string;
+  linkByLocale: Readonly<Record<SupportedLocale, string>>;
   linkLabel: string;
   blogData: unknown[];
 }
@@ -38,11 +38,10 @@ type BlogTwoTwoProps = {
 const FEATURED_FETCH_POOL = 24;
 
 const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
-  // Locale-prefixed at render time. The raw '/blogs' from blogTwoTwoData had
-  // no locale segment, so the middleware resolved the language from the
-  // NEXT_LOCALE cookie: a visitor landing on /de from search, with no cookie,
-  // was sent to the ENGLISH blog index.
-  const { link }: BlogData = blogTwoInfo;
+  // The Egypt Blog hub in the visitor's language. Its slug differs per
+  // language, so the link is picked from the locale's own entry rather than
+  // built by putting the locale in front of one path.
+  const { linkByLocale }: BlogData = blogTwoInfo;
   const { t, i18n } = useTranslation("blogs");
   const currentLocale = i18n.language || 'en';
   const [featuredBlogs, setFeaturedBlogs] = useState<BlogPost[]>(() => initialBlogs);
@@ -137,7 +136,7 @@ const BlogTwoTwo = ({ initialBlogs = [] }: BlogTwoTwoProps) => {
                 )}
                 <div className='blog-two__top__btn'>
                   {mounted ? (
-                    <Link href={localizeInternalUrl(link, currentLocale)} className='gotur-btn gotur-btn--base'>
+                    <Link href={linkByLocale[normalizeLocale(currentLocale)]} className='gotur-btn gotur-btn--base'>
                       {t('seeMoreArticle')}{" "}
                       <span className='icon'>
                         <i className='icon-right'></i>

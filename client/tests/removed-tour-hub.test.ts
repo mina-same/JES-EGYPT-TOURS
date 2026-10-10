@@ -32,7 +32,7 @@ test('removed directory and alias have no files, navigation writers or locale ex
   }
 });
 
-test('sitemap retains real Tour hierarchy and Blogs while excluding removed visitor routes', () => {
+test('sitemap retains real Tour hierarchy while excluding removed visitor routes', () => {
   const localized = (slug: string) => Object.fromEntries(locales.map(locale => [locale, slug]));
   const data: SitemapData = {
     tours: [{ slug: localized('sample-tour') }],
@@ -43,7 +43,7 @@ test('sitemap retains real Tour hierarchy and Blogs while excluding removed visi
   const paths = buildSitemapEntries(data, 'https://www.example.test').map(entry => new URL(entry.url).pathname);
   assert.ok(paths.every(path => !removedPath.test(path)));
   for (const locale of locales) {
-    for (const slug of ['egypt-tour-packages', 'aswan-tours', 'sample-tour', 'blogs']) assert.ok(paths.includes(`/${locale}/${slug}`));
+    for (const slug of ['egypt-tour-packages', 'aswan-tours', 'sample-tour']) assert.ok(paths.includes(`/${locale}/${slug}`));
   }
 });
 

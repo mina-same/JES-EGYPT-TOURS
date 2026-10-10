@@ -12,7 +12,7 @@ type Entry = MetadataRoute.Sitemap[number];
 type Family = (typeof SITEMAP_FAMILIES)[number];
 
 /** Route folders under app/(visitor)/[locale]/(home), listed in every language. */
-export const STATIC_PAGES = ['', '/faq', '/blogs', '/privacy-policy', '/payment-cancellation-policy'];
+export const STATIC_PAGES = ['', '/faq', '/privacy-policy', '/payment-cancellation-policy'];
 
 /** Static pages with a per-locale slug (lib/url/staticSlugs.ts). */
 export const LOCALIZED_STATIC_PAGES = ['special-offers', 'tailor-made', 'contact', 'about', 'travel-trade'];
@@ -25,7 +25,7 @@ export const LOCALIZED_STATIC_PAGES = ['special-offers', 'tailor-made', 'contact
  * checks this list against the folders on disk.
  */
 export const ROUTE_FOLDERS = [
-  '404', 'about', 'authors', 'blogs', 'contact', 'faq', 'login', 'payment-cancellation-policy',
+  '404', 'about', 'authors', 'contact', 'faq', 'login', 'payment-cancellation-policy',
   'privacy-policy', 'search', 'special-offers', 'tailor-made', 'travel-trade', 'wishlist',
 ];
 

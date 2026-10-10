@@ -253,7 +253,7 @@ export default function EditMenuPage() {
   const isBlogsNode = (it: MenuItem) => {
     const label = String(getLocalizedValue(it.label, 'en') || '').trim().toLowerCase();
     const url = String(getLocalizedValue(it.url as any, 'en') || '').trim().toLowerCase();
-    return label === 'blogs' || ['/blogs', '/blog'].includes(url);
+    return label === 'blogs' || url === '/blog';
   };
 
   const syncTourCategories = async (path: number[]) => {

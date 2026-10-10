@@ -26,7 +26,7 @@ export default function CustomNotFound() {
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title='Page Not Found' subTitle='404' />
+      <PageHeader title='Page Not Found' subTitle='404' breadcrumbLabelKey="pageNames.notFound" />
       <Error404 />
       <FooterOne />
     </Layout>

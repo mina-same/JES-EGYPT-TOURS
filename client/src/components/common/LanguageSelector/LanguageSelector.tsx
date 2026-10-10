@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import Select from "react-select";
+import React, { useState, useEffect, useRef, useId } from "react";
 import './langusgeSelect.css'
 import i18n from "@/lib/i18n";
 import { useTranslation } from "react-i18next";
@@ -38,7 +37,6 @@ const STATIC_PATHS = new Set([
   "/payment-cancellation-policy",
   "/search",
   "/wishlist",
-  "/blogs",
   "/404",
 ]);
 
@@ -68,6 +66,11 @@ function isLikelyDynamicSlugPath(path: string): boolean {
   return segments.length === 1;
 }
 
+/** The languages a visitor can move to: the links in the list, in order. */
+function getLanguageLinks(menu: HTMLUListElement | null): HTMLAnchorElement[] {
+  return Array.from(menu?.querySelectorAll<HTMLAnchorElement>("a[href]") ?? []);
+}
+
 interface LanguageSelectorProps {
   theme?: "light" | "dark";
   isOpen?: boolean;
@@ -78,6 +81,15 @@ interface LanguageSelectorProps {
 const OPEN_DELAY_MS = 160;
 const CLOSE_DELAY_MS = 250;
 
+/**
+ * The language switcher: a button that discloses a list of links, one per
+ * language, each to this page in that language.
+ *
+ * It was a react-select. That put react-select and Emotion into the JavaScript
+ * of every visitor page for one four-item menu, and gave assistive technology
+ * a combobox with no name. Links are what the items are: choosing one
+ * navigates.
+ */
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   theme = "dark",
   isOpen,
@@ -128,6 +140,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const [canHoverOpen, setCanHoverOpen] = useState(false);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
+  // The end of the list an arrow key asked for while the list was closed.
+  const pendingFocusRef = useRef<"first" | "last" | null>(null);
+  // True while the list is open because the pointer came to rest on it.
+  const openedByHoverRef = useRef(false);
+  const menuId = useId();
   const isControlled = typeof isOpen === "boolean";
   const menuIsOpen = isControlled ? isOpen : internalIsOpen;
 
@@ -165,11 +185,33 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     onClose?.();
   };
 
+  const toggleMenu = () => {
+    clearOpenTimer();
+    clearCloseTimer();
+
+    // The pointer resting on the button has already opened the list. The click
+    // that follows is the visitor reaching for it, not sending it away.
+    if (menuIsOpen && openedByHoverRef.current) {
+      openedByHoverRef.current = false;
+      return;
+    }
+
+    if (menuIsOpen) {
+      closeMenu();
+      return;
+    }
+
+    openMenu();
+  };
+
   const handlePointerEnter = () => {
     if (!canHoverOpen) return;
     clearCloseTimer();
     clearOpenTimer();
-    openTimerRef.current = setTimeout(openMenu, OPEN_DELAY_MS);
+    openTimerRef.current = setTimeout(() => {
+      if (menuRef.current?.hidden) openedByHoverRef.current = true;
+      openMenu();
+    }, OPEN_DELAY_MS);
   };
 
   const handlePointerLeave = () => {
@@ -177,6 +219,114 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     clearOpenTimer();
     clearCloseTimer();
     closeTimerRef.current = setTimeout(closeMenu, CLOSE_DELAY_MS);
+  };
+
+  /** Where a language leads from this page; null when the page has no version in it. */
+  const getTargetUrl = (locale: string): string | null => {
+    // Static pages with per-locale slugs switch to the TARGET locale's
+    // slug ("/sonderangebote" → "/offerte-speciali"); other paths pass
+    // through unchanged.
+    let targetPath = localizeStaticPathSegment(normalizedPath, locale);
+
+    // If we have localized slugs, we need to replace the last segment of the path
+    if (isDynamicSlugPage) {
+      const newSlug = getStrictSlug(localizedSlugs?.[locale]);
+      if (!newSlug && locale !== currentLocale) {
+        return null;
+      }
+      if (newSlug) {
+        const pathParts = normalizedPath.split("/");
+        // Assuming the slug is the last part of relevant paths (tours/slug, category/slug, etc.)
+        if (pathParts.length > 1) {
+          pathParts[pathParts.length - 1] = newSlug;
+          targetPath = pathParts.join("/");
+        }
+      }
+    }
+
+    return isDynamicSlugPage
+      ? `/${locale}${targetPath === "/" ? "/" : targetPath}`
+      : localizeInternalUrl(normalizedPath, locale);
+  };
+
+  const selectLanguage = (option: (typeof options)[number]) => {
+    if (option.isDisabled) return;
+
+    const target = getTargetUrl(option.value);
+    if (!target) return;
+
+    setSelectedOption(option);
+    closeMenu();
+    i18n.changeLanguage(option.value);
+    try {
+      localStorage.setItem("i18nextLng", option.value);
+    } catch {}
+    try {
+      document.cookie = `NEXT_LOCALE=${option.value};path=/`;
+    } catch {}
+
+    router.push(target);
+  };
+
+  const handleLinkClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    option: (typeof options)[number]
+  ) => {
+    // A modified click (new tab, new window, download) is the browser's.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    event.preventDefault();
+    // The link is about to be hidden; focus goes back to the button first.
+    buttonRef.current?.focus();
+    selectLanguage(option);
+  };
+
+  // Tab and Shift+Tab walk the button and the links as they would any links.
+  // The arrow keys, Home and End are the optional extras of the disclosure
+  // pattern, and are what the menu this replaces answered to.
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+
+    const links = getLanguageLinks(menuRef.current);
+    const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+    const focusLink = (position: number) =>
+      links[(position + links.length) % links.length]?.focus();
+
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowUp": {
+        event.preventDefault();
+        const down = event.key === "ArrowDown";
+        if (!menuIsOpen) {
+          pendingFocusRef.current = down ? "first" : "last";
+          clearOpenTimer();
+          openMenu();
+        } else if (index === -1) {
+          focusLink(down ? 0 : -1);
+        } else {
+          focusLink(index + (down ? 1 : -1));
+        }
+        break;
+      }
+      case "Home":
+      case "End":
+        if (!menuIsOpen) return;
+        event.preventDefault();
+        focusLink(event.key === "Home" ? 0 : -1);
+        break;
+      case " ":
+        // A link answers to Enter alone; Space chose a language before.
+        if (index === -1) return;
+        event.preventDefault();
+        links[index].click();
+        break;
+    }
+  };
+
+  const handleBlur = (event: React.FocusEvent<HTMLDivElement>) => {
+    const next = event.relatedTarget as Node | null;
+    // Focus has moved on to another control: the list does not stay behind.
+    if (menuIsOpen && next && !event.currentTarget.contains(next)) closeMenu();
   };
 
   useEffect(() => {
@@ -196,7 +346,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
       const hasPreference = localStorage.getItem("i18nextLng");
       if (!hasPreference) {
           let detectedLocale = 'en'; // Default
-          
+
           // Detection using timezone (as requested)
           const tz = timezone.toLowerCase();
           if (tz.includes('berlin') || tz.includes('zurich') || tz.includes('vienna') || tz.includes('germany') || tz.includes('europe/london') === false && (navigator.language.startsWith('de'))) {
@@ -240,169 +390,131 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     };
   }, []);
 
+  // While the list is open: Escape closes it from anywhere (it may be open
+  // under the pointer with focus elsewhere), and so does pressing outside it.
+  useEffect(() => {
+    if (!menuIsOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      clearOpenTimer();
+      clearCloseTimer();
+      // Out of the list before it is hidden, so focus is never left on nothing.
+      if (rootRef.current?.contains(document.activeElement)) buttonRef.current?.focus();
+      closeMenu();
+    };
+    const handlePressOutside = (event: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("pointerdown", handlePressOutside);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("pointerdown", handlePressOutside);
+    };
+  });
+
+  useEffect(() => {
+    if (!menuIsOpen) {
+      openedByHoverRef.current = false;
+      return;
+    }
+
+    const end = pendingFocusRef.current;
+    pendingFocusRef.current = null;
+    if (!end) return;
+
+    const links = getLanguageLinks(menuRef.current);
+    (end === "first" ? links[0] : links[links.length - 1])?.focus();
+  }, [menuIsOpen]);
+
   if (!mounted) {
     return <div style={{ width: '120px', height: '40px' }} />;
   }
 
+  const CurrentFlag = FLAG_COMPONENTS[selectedOption.flag] || GB;
+
   return (
     <div
+      ref={rootRef}
       className={cn("top-one__language-sort", theme === "light" && "light")}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
+      onKeyDown={handleKeyDown}
+      onBlur={handleBlur}
       suppressHydrationWarning
     >
-      <Select
-        className={cn("language-select", menuIsOpen && "is-open")}
-        classNamePrefix="custom-select"
-        value={selectedOption}
-        onChange={(option: any) => {
-          if (!option) return;
-          if (option.isDisabled) return;
+      <div className={cn("language-switcher", menuIsOpen && "is-open")}>
+        <button
+          ref={buttonRef}
+          type="button"
+          className="language-switcher__btn"
+          aria-expanded={menuIsOpen}
+          aria-controls={menuId}
+          onClick={toggleMenu}
+        >
+          <span className="sr-only">{t("language.label")}: </span>
+          <span className={cn("flex items-center gap-2 whitespace-nowrap overflow-visible", theme === "dark" ? "text-white" : "text-black")}>
+            <CurrentFlag aria-hidden="true" className="w-5 h-3.5 rounded-sm object-cover shadow-sm flex-shrink-0" />
+            <span className="font-medium whitespace-nowrap">{selectedOption.label}</span>
+          </span>
+          <svg
+            className="language-switcher__chevron"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z" />
+          </svg>
+        </button>
 
-          // Static pages with per-locale slugs switch to the TARGET locale's
-          // slug ("/sonderangebote" → "/offerte-speciali"); other paths pass
-          // through unchanged.
-          let targetPath = localizeStaticPathSegment(normalizedPath, option.value);
+        <ul
+          ref={menuRef}
+          id={menuId}
+          className="language-switcher__menu"
+          aria-label={t("language.label")}
+          hidden={!menuIsOpen}
+        >
+          {options.map((option) => {
+            const Flag = FLAG_COMPONENTS[option.flag] || GB;
+            const isCurrent = option.value === selectedOption.value;
+            const href = option.isDisabled ? null : getTargetUrl(option.value);
 
-          // If we have localized slugs, we need to replace the last segment of the path
-          if (isDynamicSlugPage) {
-            const newSlug = getStrictSlug(localizedSlugs?.[option.value]);
-            if (!newSlug && option.value !== currentLocale) {
-              return;
-            }
-            if (newSlug) {
-              const pathParts = normalizedPath.split("/");
-              // Assuming the slug is the last part of relevant paths (tours/slug, category/slug, etc.)
-              if (pathParts.length > 1) {
-                pathParts[pathParts.length - 1] = newSlug;
-                targetPath = pathParts.join("/");
-              }
-            }
-          }
-
-          setSelectedOption(option);
-          closeMenu();
-          i18n.changeLanguage(option.value);
-          try {
-            localStorage.setItem("i18nextLng", option.value);
-          } catch {}
-          try {
-            document.cookie = `NEXT_LOCALE=${option.value};path=/`;
-          } catch {}
-
-          const target = isDynamicSlugPage
-            ? `/${option.value}${targetPath === "/" ? "/" : targetPath}`
-            : localizeInternalUrl(normalizedPath, option.value);
-          router.push(target);
-        }}
-        options={options}
-        isSearchable={false}
-        menuIsOpen={menuIsOpen}
-        onMenuOpen={openMenu}
-        onMenuClose={closeMenu}
-        isOptionDisabled={(option: any) => !!option.isDisabled}
-        components={{
-          IndicatorSeparator: () => null,
-          Option: (props: any) => {
-            const Flag = FLAG_COMPONENTS[props.data.flag] || GB;
             return (
-              <div
-                {...props.innerProps}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors text-sm",
-                  props.isFocused ? "bg-[#b79c5c]/10 text-[#b79c5c]" : (theme === "dark" ? "text-white" : "text-black"),
-                  "hover:bg-[#b79c5c]/10 hover:text-[#b79c5c]",
-                  // Dark on the gold fill: white was 2.65:1, #1d231f is 6.01:1.
-                  props.isSelected ? "bg-[#b79c5c] text-[#1d231f]" : "",
-                  props.isDisabled && "opacity-45 cursor-not-allowed hover:bg-transparent hover:text-inherit"
+              <li key={option.value}>
+                {href ? (
+                  <a
+                    href={href}
+                    hrefLang={option.value}
+                    className={cn("language-switcher__item", isCurrent && "is-current")}
+                    aria-current={isCurrent ? "page" : undefined}
+                    onClick={(event) => handleLinkClick(event, option)}
+                  >
+                    <Flag aria-hidden="true" className="w-5 h-3.5 rounded-sm object-cover shadow-sm" />
+                    <span>{option.label}</span>
+                  </a>
+                ) : (
+                  // No version of this page in that language: a link that leads nowhere.
+                  <a
+                    role="link"
+                    aria-disabled="true"
+                    className="language-switcher__item is-disabled"
+                    title={`${option.label} unavailable for this page`}
+                  >
+                    <Flag aria-hidden="true" className="w-5 h-3.5 rounded-sm object-cover shadow-sm" />
+                    <span>{option.label}</span>
+                  </a>
                 )}
-                aria-disabled={props.isDisabled}
-                title={props.isDisabled ? `${props.data.label} unavailable for this page` : props.data.label}
-              >
-                <Flag className="w-5 h-3.5 rounded-sm object-cover shadow-sm" />
-                <span>{props.data.label}</span>
-              </div>
+              </li>
             );
-          },
-          SingleValue: (props: any) => {
-            const Flag = FLAG_COMPONENTS[props.data.flag] || GB;
-            return (
-              <div className={cn("flex items-center gap-2 whitespace-nowrap overflow-visible", theme === "dark" ? "text-white" : "text-black")}>
-                <Flag className="w-5 h-3.5 rounded-sm object-cover shadow-sm flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap">{props.data.label}</span>
-              </div>
-            );
-          }
-        }}
-        styles={{
-          container: (base) => ({
-            ...base,
-            width: 'max-content',
-            minWidth: 0,
-          }),
-          control: (base) => ({
-            ...base,
-            backgroundColor: 'transparent',
-            border: '1px solid rgba(183, 156, 92, 0.3)',
-            borderRadius: '8px',
-            width: 'max-content',
-            minWidth: 0,
-            minHeight: '38px',
-            height: '38px',
-            display: 'flex !important',
-            flexDirection: 'row !important' as any,
-            flexWrap: 'nowrap !important' as any,
-            alignItems: 'center !important' as any,
-            justifyContent: 'flex-start',
-            cursor: 'pointer',
-            boxShadow: 'none',
-            '&:hover': {
-              borderColor: '#b79c5c'
-            }
-          }),
-          menu: (base) => ({
-            ...base,
-            backgroundColor: theme === "dark" ? '#1a1a1a' : '#fff',
-            border: '1px solid rgba(183, 156, 92, 0.2)',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            minWidth: '160px',
-            zIndex: 999,
-            animation: 'language-dropdown-enter 170ms ease-out'
-          }),
-          menuList: (base) => ({
-            ...base,
-            minWidth: '160px',
-          }),
-          valueContainer: (base) => ({
-            ...base,
-            padding: '0 4px 0 8px',
-            display: 'flex !important',
-            flexDirection: 'row !important' as any,
-            flexWrap: 'nowrap !important' as any,
-            alignItems: 'center !important' as any,
-            gap: '8px',
-            overflow: 'visible',
-            flex: '0 0 auto',
-          }),
-          indicatorsContainer: (base) => ({
-            ...base,
-            height: '38px',
-            alignItems: 'center',
-            flex: '0 0 auto',
-            paddingRight: '0'
-          }),
-          dropdownIndicator: (base) => ({
-            ...base,
-            color: '#b79c5c',
-            padding: '8px 8px 8px 1px',
-            '&:hover': {
-              color: '#d4bb7d'
-            }
-          })
-        }}
-      />
+          })}
+        </ul>
+      </div>
     </div>
   );
 };

@@ -3,11 +3,13 @@
 import blogImg1 from '@/assets/images/blog/blog-2-4.jpg';
 import blogImg2 from '@/assets/images/blog/blog-2-5.jpg';
 import blogImg3 from '@/assets/images/blog/blog-2-6.jpg';
+import { BLOG_HUB_HREF_BY_LOCALE } from '@/data/blogHub';
 
 export const blogTwoInfo = {
   tagline: 'Blog & News',
   title: 'Our Latest News',
-  link: '/blogs',
+  // The Egypt Blog hub, which has its own slug in each language.
+  linkByLocale: BLOG_HUB_HREF_BY_LOCALE,
   linkLabel: 'See More Article',
 blogData : [
     {

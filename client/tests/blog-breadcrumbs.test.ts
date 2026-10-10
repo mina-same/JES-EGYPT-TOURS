@@ -106,7 +106,7 @@ const pillItems = [
   { label: 'How to Plan a Trip to Egypt' },
 ];
 const pill = (props: Record<string, unknown> = {}) => renderToStaticMarkup(React.createElement(Breadcrumb, {
-  locale: 'en', homeLabel: 'Home', items: pillItems, variant: 'pill', jsonLd: false, ...props,
+  locale: 'en', homeLabel: 'Home', items: pillItems, jsonLd: false, ...props,
 }));
 
 test('pill: an unlinked step is drawn like a link, only the current page is gold', () => {
@@ -171,12 +171,6 @@ test('the blog hero publishes the trail\'s BreadcrumbList; the article route doe
   const blogBlock = route.slice(route.indexOf('// ── 5. Blog Post'), route.indexOf('// ── 5.5. Destination'));
   assert.ok(blogBlock.includes('"BlogPosting"'));
   assert.ok(!blogBlock.includes('BreadcrumbList"'), 'no hand-written BreadcrumbList in the article route');
-});
-
-test('classic: an unlinked step is not gold, and the chevron has an empty text alternative', () => {
-  const css = source('../src/assets/css/custom.css');
-  assert.match(css, /\.gotur-breadcrumb li span:not\(\[aria-current="page"\]\)\s*\{\s*color: inherit;/);
-  assert.match(css, /\.gotur-breadcrumb li:not\(:last-of-type\)::after\s*\{\s*content: "\\e917" \/ "";/);
 });
 
 test('the API gives the article trail its parents with isActive, and articles store no breadcrumbs', () => {

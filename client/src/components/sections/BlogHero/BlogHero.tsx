@@ -56,7 +56,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
 
       <div className="container relative z-10">
         <div className="max-w-4xl">
-          {/* The shared trail, in its `pill` skin.
+          {/* The shared trail.
 
               This markup used to live here — a third hand-written breadcrumb
               after PageHeader's and the author page's — and it carried a bug
@@ -83,7 +83,6 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
               ariaLabel={t('breadcrumb')}
               items={breadcrumbs}
               currentUrl={currentUrl}
-              variant="pill"
             />
           </div>
 

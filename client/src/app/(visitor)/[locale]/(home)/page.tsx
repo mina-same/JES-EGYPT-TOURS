@@ -236,8 +236,9 @@ async function getInitialHomeFaqs(locale: string): Promise<FAQ[]> {
  * keyword-dense prose on the homepage — never reached the server-rendered
  * HTML, and the section popped in after hydration at a different height.
  *
- * A plain fetch, not generalContentAPI: that helper is built on axios, which
- * cannot participate in Next's Data Cache at all. The response is the raw
+ * A plain fetch, not generalContentAPI: that helper is the browser's read
+ * (the visitor's cookies and X-Locale, no revalidation), which Next's Data
+ * Cache cannot share between visitors. The response is the raw
  * all-locales document, so one cache entry serves every language.
  */
 async function getInitialHomeIntro(): Promise<HomeIntroContent | null> {

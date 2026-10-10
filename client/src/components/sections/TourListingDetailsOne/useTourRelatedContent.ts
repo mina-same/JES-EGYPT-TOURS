@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { formatTourDestinations } from "@/lib/tours/destinations";
 import { tourAPI } from "@/lib/api/tour";
 import { getBlogsByIds } from "@/lib/api/blog";
-import axiosInstance from "@/lib/api/axios";
+import { publicGet } from "@/lib/api/publicGet";
 import { RELATED_BLOGS_FALLBACK_LIMIT } from "@/lib/tour/relatedBlogs";
 import { loadTourRelatedContent, type TourRelatedContentApi } from "@/lib/tour/relatedContent";
 import { getDisplayName } from "@/lib/displayName";
@@ -78,8 +78,7 @@ const api: TourRelatedContentApi = {
   getBlogsByIds: (ids, locale) => getBlogsByIds(ids, locale),
   getToursBySubcategory: (subcategoryId, params) => tourAPI.getBySubcategory(subcategoryId, params),
   getTours: (params) => tourAPI.getAll(params),
-  getFeaturedBlogs: async (limit) =>
-    (await axiosInstance.get(`/blog/posts/featured?limit=${limit}`)).data,
+  getFeaturedBlogs: (limit) => publicGet(`/blog/posts/featured?limit=${limit}`),
 };
 
 /**

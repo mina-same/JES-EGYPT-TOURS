@@ -18,102 +18,138 @@
   --lang-sort-border: rgba(183, 156, 92, 0.3);
 }
 
-/* Custom styles for react-select with classNamePrefix="custom-select" */
-.custom-select__control {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0;
+/* The switcher: a button and, under it, the list of languages. The sizes are
+   the ones the react-select control and menu had. */
+.language-switcher {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.language-switcher__btn {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
   width: max-content;
   min-width: 0;
-  min-height: auto;
+  height: 38px;
+  min-height: 38px;
+  margin: 0;
+  padding: 0 8px 0 0;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  box-shadow: none;
+  outline: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: none;
   cursor: pointer;
+  transition: box-shadow 100ms;
 }
 
-/* The `box-shadow: none !important` above, with react-select's own
-   `outline: 0 !important`, left keyboard focus invisible. A ring while the
-   control is focused, on the dark top bar and sticky header. react-select
-   marks it focused after a mouse click as well, so it shows then too. */
-.custom-select__control.custom-select__control--is-focused {
-  box-shadow: 0 0 0 2px #f4d03f !important;
+/* Keyboard focus, on the dark top bar and sticky header. */
+.language-switcher__btn:focus-visible {
+  box-shadow: 0 0 0 2px #f4d03f;
 }
 
-.custom-select__single-value {
-  font-style: normal;
-  font-weight: 400;
-  font-size: 14px !important;
-  line-height: 20px;
-  color: var(--lang-sort-text) !important;
-}
-
-.custom-select__value-container {
-  padding: 0 0 0 4px;
-}
-
-.custom-select__indicator {
-  padding: 0 6px;
-  color: #b79c5c !important;
-}
-
-.language-select .custom-select__dropdown-indicator svg {
+.language-switcher__chevron {
+  display: block;
+  flex: 0 0 auto;
+  margin-left: 10px;
+  color: #b79c5c;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 0;
   transform: rotate(0deg);
   transform-box: fill-box;
   transform-origin: center;
   transition: transform 180ms ease;
 }
 
-.language-select.is-open .custom-select__dropdown-indicator svg {
+.language-switcher.is-open .language-switcher__chevron {
   transform: rotate(180deg);
 }
 
-/* The menu list wrapper */
-.custom-select__menu-list {
-  padding: 4px 0 !important;
+/* The list */
+.language-switcher__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10000;
+  box-sizing: border-box;
+  width: 100%;
   min-width: 160px;
-  max-height: 200px;
-  overflow-y: auto;
+  margin: 8px 0;
+  padding: 4px 0;
+  overflow: hidden;
+  list-style: none;
+  background: var(--lang-sort-bg);
+  border: 1px solid var(--lang-sort-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  animation: language-dropdown-enter 170ms ease-out;
 }
 
-/* Each option in the list */
-.custom-select__option {
-  font-size: 14px !important;
-  line-height: 1.5;
-  padding: 8px 12px !important;
-  color: var(--lang-sort-text) !important;
-  background-color: transparent !important;
+.language-switcher__menu[hidden] {
+  display: none;
+}
+
+.language-switcher__menu > li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Each language in the list.
+   The items are links, and the header styles every link inside it: white,
+   16px, its own transition (.main-header--one.main-header--links-light
+   .main-header__info a). The selectors below are written out in full so the
+   sticky header's copy of the list looks like the top bar's. */
+.top-one__language-sort .language-switcher .language-switcher__menu .language-switcher__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--lang-sort-text);
+  background-color: transparent;
+  text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* The language of this page. Dark on the gold fill: white was 2.65:1,
+   #1d231f is 6.01:1. */
+.top-one__language-sort .language-switcher .language-switcher__menu .language-switcher__item.is-current {
+  color: #1d231f;
+  background-color: #b79c5c;
 }
 
 /* Hover/focus */
-.custom-select__option--is-focused {
-  background-color: rgba(183, 156, 92, 0.1) !important;
-  color: #b79c5c !important;
+.top-one__language-sort .language-switcher .language-switcher__menu a.language-switcher__item[href]:hover,
+.top-one__language-sort .language-switcher .language-switcher__menu a.language-switcher__item[href]:not(.is-current):focus-visible {
+  color: #b79c5c;
+  background-color: rgba(183, 156, 92, 0.1);
 }
 
-/* Selected item */
-.custom-select__option--is-selected {
-  background-color: #b79c5c !important;
-  color: #fff !important;
-  font-weight: 600 !important;
+/* The current language keeps its gold fill under keyboard focus, so the tint
+   cannot be what shows where focus is: a ring does, on every item. */
+.top-one__language-sort .language-switcher .language-switcher__menu .language-switcher__item:focus-visible {
+  outline: 2px solid #f4d03f;
+  outline-offset: -2px;
 }
 
-/* Scrollbar (optional) */
-.custom-select__menu-list::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-select__menu-list::-webkit-scrollbar-thumb {
-  background-color: #b79c5c;
-  border-radius: 3px;
-}
-
-.custom-select__menu {
-  background: var(--lang-sort-bg) !important;
-  border: 1px solid var(--lang-sort-border) !important;
-  border-radius: 8px !important;
-  margin-top: 8px !important;
-  min-width: 160px !important;
-  z-index: 10000 !important;
+/* No version of this page in that language */
+.top-one__language-sort .language-switcher .language-switcher__menu .language-switcher__item.is-disabled,
+.top-one__language-sort .language-switcher .language-switcher__menu .language-switcher__item.is-disabled:hover {
+  color: var(--lang-sort-text);
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 @keyframes language-dropdown-enter {
@@ -128,15 +164,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .custom-select__menu {
-    animation: none !important;
+  .language-switcher__menu {
+    animation: none;
   }
 
-  .language-select .custom-select__dropdown-indicator svg {
-    transition: none !important;
+  .language-switcher__chevron,
+  .top-one__language-sort .language-switcher .language-switcher__menu .language-switcher__item {
+    transition: none;
   }
-}
-
-.custom-select__value-container.custom-select__value-container--has-value {
-  padding: 0 !important;
 }

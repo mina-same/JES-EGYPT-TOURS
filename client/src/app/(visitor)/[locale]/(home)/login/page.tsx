@@ -30,7 +30,7 @@ export default function SignInPage() {
       <TopbarOne/>
       <HeaderOne linkTheme="light"/>
       <HeaderOneCloned />
-      <PageHeader title='Sign In' subTitle='Sign In' />
+      <PageHeader title='Sign In' subTitle='Sign In' breadcrumbLabelKey="pageNames.signIn" />
       <AuthProvider>
         <LoginSection />
       </AuthProvider>

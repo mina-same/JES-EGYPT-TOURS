@@ -68,24 +68,38 @@ const TextAnimation: React.FC<TextAnimationProps> = ({
     // Anything at or above the fold may already have been read. Leave it.
     if (node.getBoundingClientRect().top < window.innerHeight) return;
 
-    node.dataset.reveal = "pending";
+    // Arm in a microtask, after every heading mounted in this pass has
+    // measured itself. Arming straight away dirtied style, so the next
+    // heading's measurement forced a style and layout pass of its own. The
+    // microtask still runs before the browser renders, so the first frame is
+    // unchanged.
+    let cancelled = false;
+    let observer: IntersectionObserver | null = null;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      node.dataset.reveal = "pending";
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        node.dataset.reveal = "in";
-        observer.disconnect();
-      },
-      // Fires just BEFORE the heading reaches the viewport rather than once a
-      // tenth of it is already showing: a heading caught at the very edge by
-      // the old threshold could sit there visibly blank until the visitor
-      // scrolled further. Starting early means the entrance is already under
-      // way by the time it is properly on screen.
-      { rootMargin: "0px 0px 15% 0px", threshold: 0 }
-    );
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          node.dataset.reveal = "in";
+          io.disconnect();
+        },
+        // Fires just BEFORE the heading reaches the viewport rather than once a
+        // tenth of it is already showing: a heading caught at the very edge by
+        // the old threshold could sit there visibly blank until the visitor
+        // scrolled further. Starting early means the entrance is already under
+        // way by the time it is properly on screen.
+        { rootMargin: "0px 0px 15% 0px", threshold: 0 }
+      );
+      observer = io;
+      io.observe(node);
+    });
 
-    observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      cancelled = true;
+      observer?.disconnect();
+    };
   }, []);
 
   /**

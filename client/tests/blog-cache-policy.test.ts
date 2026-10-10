@@ -16,7 +16,6 @@ import {
   getBlogsByCategory,
   getBlogsByIds,
   getBlogsBySubCategory,
-  getCategories,
   getCategoryBySlug,
   getFeaturedBlogs,
   getSubCategoriesByCategory,
@@ -108,7 +107,6 @@ test('entities, the featured strip and the directories are tagged for an hour', 
     ['/blog/posts/featured?limit=6&locale=de', () => getFeaturedBlogs(6, 'de'), { headers: { 'X-Locale': 'de' } }],
     ['/blog/subcategories/category/c1?locale=de', () => getSubCategoriesByCategory('c1', 'de'), { headers: { 'X-Locale': 'de' } }],
     ['/blog/subcategories/category/c1', () => getSubCategoriesByCategory('c1'), {}],
-    ['/blog/categories', () => getCategories(), {}],
   ];
   for (const [url, read, extra] of reads) {
     const [call] = await callsOf(read);

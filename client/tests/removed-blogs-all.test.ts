@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
+import { BLOG_HUB_HREF_BY_LOCALE } from '../src/data/blogHub';
 import { buildBlogCardViewModel } from '../src/lib/blog/cardViewModel';
 import { buildSitemapEntries } from '../src/lib/seo/sitemapEntries';
 import type { SitemapData } from '../src/lib/api/sitemap';
@@ -9,8 +10,8 @@ const clientSource = new URL('../src/', import.meta.url);
 const serverSource = new URL('../../server/src/', import.meta.url);
 const locales = ['en', 'de', 'it', 'es'] as const;
 
-/** The removed listing, and the Tour hub removed before it. */
-const removedPath = /^\/(?:en|de|it|es)\/(?:blogs\/all|tours(?:\/all)?)\/?$/;
+/** The removed listing, the /blogs hub removed after it and the Tour hub removed before it. */
+const removedPath = /^\/(?:en|de|it|es)\/(?:blogs(?:\/all)?|tours(?:\/all)?)\/?$/;
 /** A route literal or href builder for the removed listing or its tag filter. */
 const routeReference = /blogs\/all|\/all\?tag=/;
 /** Lists retired menu URLs in order to DELETE them from stored menus. */
@@ -25,12 +26,10 @@ function sourceFiles(directory: URL, found: URL[] = []): URL[] {
   return found;
 }
 
-test('the /blogs/all route is gone and the Blog hub route is untouched', () => {
+test('the /blogs/all route is gone, and so is the /blogs folder it lived in', () => {
   const blogs = new URL('app/(visitor)/[locale]/(home)/blogs/', clientSource);
   assert.equal(existsSync(new URL('all', blogs)), false);
-  for (const file of ['page.tsx', 'layout.tsx', '_views/BlogsHubView.tsx']) {
-    assert.ok(existsSync(new URL(file, blogs)), file);
-  }
+  assert.equal(existsSync(blogs), false);
 });
 
 test('no source writes a /blogs/all href, tag link, menu entry or language exception', () => {
@@ -44,12 +43,11 @@ test('no source writes a /blogs/all href, tag link, menu entry or language excep
   assert.deepEqual(references, []);
 });
 
-test('LanguageSelector keeps /blogs and has no /blogs/all special case', () => {
+test('LanguageSelector has no /blogs/all special case', () => {
   const selector = readFileSync(
     new URL('components/common/LanguageSelector/LanguageSelector.tsx', clientSource),
     'utf8'
   );
-  assert.ok(selector.includes('"/blogs"'));
   assert.equal(selector.includes('/blogs/all'), false);
 });
 
@@ -71,7 +69,7 @@ test('a card never links to a tag listing; a sub-category still links to its pag
   }
 });
 
-test('the sitemap lists the Blog hub and its real hierarchy, never /blogs/all', () => {
+test('the sitemap lists the Egypt Blog category and its real hierarchy, never /blogs/all', () => {
   const localized = (slug: string) => Object.fromEntries(locales.map(locale => [locale, slug]));
   const data: SitemapData = {
     tours: [], tourCategories: [], tourSubcategories: [],
@@ -87,7 +85,7 @@ test('the sitemap lists the Blog hub and its real hierarchy, never /blogs/all', 
   });
   assert.ok(paths.every(path => !/\/blogs\/all/.test(path)));
   for (const locale of locales) {
-    for (const slug of ['blogs', 'egypt-blog', 'egypt-travel-tips', 'karnak-temple-visitor-guide', 'luxor']) {
+    for (const slug of ['egypt-blog', 'egypt-travel-tips', 'karnak-temple-visitor-guide', 'luxor']) {
       assert.ok(paths.includes(`/${locale}/${slug}`), `${locale}/${slug}`);
     }
   }
@@ -97,7 +95,7 @@ test('the route-only labels are gone in every language and shared Blog labels re
   for (const locale of locales) {
     const messages = JSON.parse(readFileSync(new URL(`i18n/locales/${locale}/blogs.json`, clientSource), 'utf8'));
     for (const key of ['allNews', 'viewAllNews', 'browseAllArticles']) assert.equal(key in messages, false, `${locale}.${key}`);
-    for (const key of ['ourBlog', 'pageMetaTitle', 'exploreArticles', 'planYourJourney']) assert.ok(messages[key], `${locale}.${key}`);
+    for (const key of ['ourBlog', 'planYourJourney']) assert.ok(messages[key], `${locale}.${key}`);
   }
 });
 
@@ -114,11 +112,12 @@ test('HTTP: /blogs/all answers 404 in every state and the Blog pages keep workin
     }
   }
 
-  // Kept: hub in four languages, then a category, a topic, a destination, an
-  // article and Search with its Blog filter and Blog pagination.
+  // Kept: the Egypt Blog category in four languages, then its second page, a
+  // topic, a destination, an article and Search with its Blog filter and Blog
+  // pagination.
   const paths = [
-    ...locales.map(locale => `/${locale}/blogs`),
-    '/en/egypt-blog', '/en/egypt-blog?page=2', '/en/egypt-travel-tips', '/en/luxor',
+    ...locales.map(locale => BLOG_HUB_HREF_BY_LOCALE[locale]),
+    '/en/egypt-blog?page=2', '/en/egypt-travel-tips', '/en/luxor',
     '/en/what-to-see-at-saqqara', '/en/search', '/en/search?q=pyramids&blogPage=2',
   ];
   for (const path of paths) {
@@ -132,13 +131,12 @@ test('HTTP: /blogs/all answers 404 in every state and the Blog pages keep workin
     assert.match(html, /noindex, nofollow/, 'Pre-launch protection remains');
   }
 
-  const hub = await (await fetch(`${origin}/en/blogs`)).text();
-  assert.match(hub, /href="\/en\/egypt-blog"/, 'the hub still lists its categories');
+  const hub = await (await fetch(`${origin}/en/egypt-blog`)).text();
   assert.match(hub, /href="\/en\/egypt-travel-tips"/, 'the hub still lists its topics');
 
   const sitemap = await (await fetch(`${origin}/sitemap.xml`)).text();
   for (const match of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
     assert.equal(removedPath.test(new URL(match[1]).pathname), false, match[1]);
   }
-  assert.ok(sitemap.includes('/en/blogs</loc>'));
+  assert.ok(sitemap.includes('/en/egypt-blog</loc>'));
 });

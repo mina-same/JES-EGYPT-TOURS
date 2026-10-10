@@ -55,6 +55,7 @@
     }
   },
   "language": {
+    "label": "Idioma",
     "english": "Inglés",
     "german": "Alemán",
     "italian": "Italiano",
@@ -290,6 +291,16 @@
     "title": "Reseñas en Vídeo"
   },
   "breadcrumb": "Ruta de navegación",
+  "pageNames": {
+    "about": "Sobre nosotros",
+    "faq": "Preguntas frecuentes",
+    "wishlist": "Favoritos",
+    "search": "Buscar",
+    "tailorMade": "Viajes a medida",
+    "signIn": "Iniciar sesión",
+    "notFound": "Página no encontrada",
+    "paymentPolicy": "Pagos y cancelaciones"
+  },
   "nav": {
     "home": "Inicio",
     "tailorMade": "A medida",

@@ -8,7 +8,7 @@
  *   Data                                          TTL    Tags
  *   Article, category, subcategory                3600   blog
  *   Homepage featured strip                       3600   blog
- *   Category directory, topic and sibling lists   3600   blog
+ *   Topic and sibling lists                       3600   blog
  *   Category, subcategory and destination           60   blog
  *     listings, pages 1–20
  *   Author page (profile + one page), pages 1–20  3600   author:<slug>, blog

@@ -998,6 +998,11 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
       // ── Breadcrumbs — flat URLs for category and subcategory ────────────────
       // One array feeds both the visible trail and the BreadcrumbList below.
       const breadcrumbs = buildTourBreadcrumbs(tour, locale, name as string);
+      // The visible trail stops at the tour's parents. Its last entry is the
+      // tour's own name, which the <h1> prints directly underneath — as a
+      // crumb it was the same long sentence twice in a row. The schema keeps
+      // the full trail: a BreadcrumbList ends with the page it is on.
+      const visibleBreadcrumbs = breadcrumbs.slice(0, -1);
       const { t: tCommon } = await getServerTranslation(locale, "common");
 
       // ── JSON-LD @graph — fully dynamic, no fake reviews/ratings ────────────
@@ -1036,7 +1041,7 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
             <PageHeader
               title={name || "Tour Details"}
               subTitle={getLocalizedValue(tour.headingDescription, locale)}
-              breadcrumbs={breadcrumbs}
+              breadcrumbs={visibleBreadcrumbs}
               // The @graph above already carries this trail's BreadcrumbList,
               // and its WebPage points at it by @id. A second list from the
               // header would give the page two competing trails.

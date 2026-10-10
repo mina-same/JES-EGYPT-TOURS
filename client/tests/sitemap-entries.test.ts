@@ -48,9 +48,9 @@ test('only existing unfiltered Tour listing pages enter the sitemap', () => {
 });
 
 test('static pages: active routes only, with no invented dates', () => {
-  // The current static route inventory, excluding the removed Tour directory.
+  // The current static route inventory, excluding the removed Tour and Blog directories.
   const expected: string[] = [];
-  for (const path of ['', '/faq', '/blogs', '/privacy-policy', '/payment-cancellation-policy']) {
+  for (const path of ['', '/faq', '/privacy-policy', '/payment-cancellation-policy']) {
     for (const locale of LOCALES) {
       if (path === '/faq' && locale === 'it') continue;
       expected.push(`${BASE}/${locale}${path}`);
