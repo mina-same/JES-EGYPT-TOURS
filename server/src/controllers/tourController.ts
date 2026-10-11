@@ -1,3 +1,5 @@
+import TourSubcategory from '../models/TourSubcategory';
+import { subcategoryVisibility } from '../utils/subcategoryAccess';
 import { hasNestedTourType, validTourType } from '../utils/tourType';
 import { listingSortStages } from '../utils/tourListingSort';
 import { validTourStyles } from '../utils/tourStyles';
@@ -576,6 +578,14 @@ export const getToursBySubcategory = async (
         success: false,
         error: 'Not authorized to include inactive tours',
       });
+      return;
+    }
+
+    const subcategory = await TourSubcategory.findOne({
+      _id: subcategoryId, ...subcategoryVisibility(req),
+    }).select('_id').lean();
+    if (!subcategory) {
+      res.status(404).json({ success: false, error: 'Tour subcategory not found' });
       return;
     }
 

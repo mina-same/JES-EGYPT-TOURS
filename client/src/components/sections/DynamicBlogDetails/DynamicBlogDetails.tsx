@@ -17,6 +17,7 @@ import { API_URL } from "@/config/api";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { visibleBlocksFor } from "@/lib/blogBlocks";
 import { EDITORIAL_AUTHOR_SLUG, resolveBlogByline } from "@/lib/blog/author";
+import { getArticleDestinationLink } from "@/lib/blog/destinationLink";
 import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
@@ -112,6 +113,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const editorialAuthorHref = byline.link || `/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`;
   const authorRole = getLocalizedValue(selectedAuthor?.role, locale);
   const authorBio = getLocalizedValue(selectedAuthor?.bio, locale);
+  // Where the article is about: a link beside the byline, not a step in the
+  // breadcrumb — the trail runs through the topic, and a destination is not
+  // that topic's child.
+  const destinationLink = getArticleDestinationLink(blog.destination, locale);
 
   /*
    * The byline avatar is `avatar`, NOT `image`.
@@ -584,6 +589,20 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       <i className='icon-calendar' style={{ color: '#b79c5c' }}></i>
                       <span>{new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
+                    {destinationLink && (
+                      <>
+                        <div className="blog-meta-bar__divider" />
+                        <div className="blog-meta-bar__item">
+                          <i className='icon-location' style={{ color: '#b79c5c' }}></i>
+                          <span>
+                            {t('destinationLabel')}:{" "}
+                            <Link href={destinationLink.href} className="blog-meta-bar__destination-link">
+                              <strong>{destinationLink.name}</strong>
+                            </Link>
+                          </span>
+                        </div>
+                      </>
+                    )}
                     {approvedComments.length > 0 && (
                       <>
                         <div className="blog-meta-bar__divider" />
@@ -764,13 +783,15 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         }
 
         .blog-author-box__name-link,
-        .blog-meta-bar__author-link {
+        .blog-meta-bar__author-link,
+        .blog-meta-bar__destination-link {
           color: inherit;
           text-decoration: none;
         }
 
         .blog-author-box__name-link:hover,
-        .blog-meta-bar__author-link:hover {
+        .blog-meta-bar__author-link:hover,
+        .blog-meta-bar__destination-link:hover {
           color: inherit;
           text-decoration: underline;
         }

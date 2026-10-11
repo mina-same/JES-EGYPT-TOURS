@@ -10,8 +10,6 @@ import Destination, {
 import { canReadAllDestinations } from '../utils/destinationAccess';
 import Blog from '../models/Blog';
 import { FilterQuery } from 'mongoose';
-import BlogCategory from '../models/BlogCategory';
-import BlogSubCategory from '../models/BlogSubCategory';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import {
   BLOG_LISTING_FIELDS,
@@ -168,7 +166,7 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
 };
 
 /**
- * @desc    Get all published blogs tagged with this destination
+ * @desc    Get the published blogs whose own destination is this one
  * @route   GET /api/destinations/:id/blogs
  * @access  Public
  */
@@ -178,24 +176,14 @@ export const getBlogsByDestination = async (req: Request, res: Response): Promis
     const limit = parseInt(req.query.limit as string || '9', 10);
     const skip = (page - 1) * limit;
 
-    const destinationId = req.params.id;
-
-    // 1. Find categories that feature this destination
-    const featuredInCategories = await BlogCategory.find({ featuredDestinations: destinationId }).select('_id').lean();
-    const categoryIds = featuredInCategories.map(c => c._id);
-
-    // 2. Find subcategories that feature this destination
-    const featuredInSubcategories = await BlogSubCategory.find({ featuredDestinations: destinationId }).select('_id').lean();
-    const subcategoryIds = featuredInSubcategories.map(s => s._id);
-
-    // 3. Build filter for Blogs
+    // An article belongs to a destination through its own `destination` and
+    // nothing else. A category's or topic's featuredDestinations says which
+    // destinations that page promotes; it is not a statement about the
+    // articles filed under it, and reading it as one put every article of a
+    // category on the page of every destination the category featured.
     const filter: FilterQuery<any> = {
       status: 'published',
-      $or: [
-        { destination: destinationId },
-        { category: { $in: categoryIds } },
-        { subCategory: { $in: subcategoryIds } }
-      ]
+      destination: req.params.id,
     };
 
     const [blogs, total] = await Promise.all([

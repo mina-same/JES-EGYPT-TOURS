@@ -287,37 +287,36 @@ export default function DestinationView({ slug, locale, destination, blogsData }
         )}
 
         {/* ── All Articles ──────────────────────────────────────────────────── */}
-        <section ref={articlesRef} className="section-space">
-          <div className="container">
-            <div
-              {...entrance(animateIn, { y: 20, inView: 'once' })}
-              className="d-flex flex-column align-items-center text-center mb-5"
-            >
-              {/* No `viewport.once` in the Framer version: replays on re-entry. */}
-              <span
-                {...entrance(animateIn, { scale: 0.8, inView: 'repeat' }, { color: '#b79c5c', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.5rem' })}
+        {/* The articles filed under this destination. With none to show the
+            whole section is left out — heading, list and pager — rather than a
+            title over an empty space. The handpicked section above is separate. */}
+        {blogsData.data.length > 0 && (
+          <section ref={articlesRef} className="section-space">
+            <div className="container">
+              <div
+                {...entrance(animateIn, { y: 20, inView: 'once' })}
+                className="d-flex flex-column align-items-center text-center mb-5"
               >
-                {t('allArticles')}
-              </span>
-              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f' }}>
-                {t('exploreDestination', { name })}
-              </h2>
-              <div style={{ width: '48px', height: '2px', background: '#e5e7eb', marginTop: '1rem', borderRadius: '999px' }} />
-            </div>
+                {/* No `viewport.once` in the Framer version: replays on re-entry. */}
+                <span
+                  {...entrance(animateIn, { scale: 0.8, inView: 'repeat' }, { color: '#b79c5c', fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '0.5rem' })}
+                >
+                  {t('allArticles')}
+                </span>
+                <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: '#1d231f' }}>
+                  {t('exploreDestination', { name })}
+                </h2>
+                <div style={{ width: '48px', height: '2px', background: '#e5e7eb', marginTop: '1rem', borderRadius: '999px' }} />
+              </div>
 
-            {blogsData.data.length > 0 ? (
               <DynamicBlogGrid
                 blogs={blogsData.data}
                 pagination={blogsData.pagination}
                 basePath={`/${locale}/${slug}`}
               />
-            ) : (
-              <div className="text-center py-5">
-                <p style={{ color: '#9ca3af', fontWeight: 600 }}>No articles found for this destination yet.</p>
-              </div>
-            )}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
         {/* ── FAQs ─────────────────────────────────────────────────────────── */}
         {destination.faqs && destination.faqs.length > 0 && (

@@ -5,10 +5,16 @@ import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 import User from '../models/User';
 import EditorialAuthor from '../models/EditorialAuthor';
+import { publicDestinationPopulate } from '../models/Destination';
 import {
   parseFutureSchedule,
   PublishingValidationError,
 } from '../utils/publishing';
+import {
+  ARTICLE_DESTINATION_FIELDS,
+  assertPublishableClassification,
+  normalizeBlogClassification,
+} from '../utils/blogClassification';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { localizePreservingSlugs } from '../utils/localize';
 import { narrowBlocksToLocale } from '../utils/blogBlocks';
@@ -340,6 +346,9 @@ export const getBlogBySlug = async (
         select: 'name slug category isActive',
         populate: { path: 'category', select: 'name slug isActive' },
       })
+      // The article names its destination and links to that page: only what
+      // the link needs, and only a destination that has a public page.
+      .populate(publicDestinationPopulate('destination', ARTICLE_DESTINATION_FIELDS))
       // Related posts are drawn with the same card as everywhere else, so they
       // are populated with the same field set — see blogCardPopulate.
       .populate(blogCardPopulate('relatedPosts'))
@@ -588,6 +597,7 @@ export const createBlog = async (
     }
     
     stripEmptyLocalizedSlugs(body.slug);
+    normalizeBlogClassification(body);
 
     if (body.status === 'scheduled') {
       body.scheduledAt = parseFutureSchedule(body.scheduledAt);
@@ -599,6 +609,11 @@ export const createBlog = async (
       } else {
         delete body.publishedAt;
       }
+    }
+
+    // Publish guard: a draft may still be unclassified, a public article not.
+    if (body.status === 'published' || body.status === 'scheduled') {
+      await assertPublishableClassification(body);
     }
 
     const blog = await Blog.create(body);
@@ -676,7 +691,7 @@ export const updateBlog = async (
 
     const existingBlog = await Blog.findById(
       req.params.id,
-      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status scheduledAt publishedAt'
+      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status scheduledAt publishedAt category subCategory destination'
     ).lean();
     if (!existingBlog) {
       res.status(404).json({ success: false, error: 'Blog post not found' });
@@ -711,6 +726,7 @@ export const updateBlog = async (
     }
 
     stripEmptyLocalizedSlugs(body.slug);
+    normalizeBlogClassification(body);
 
     // Complete OG from meta, language by language (EN←EN, DE←DE, …).
     // findByIdAndUpdate skips the model's pre-save hook, so the same
@@ -744,6 +760,17 @@ export const updateBlog = async (
     const ex: any = existingBlog;
     const targetStatus = body.status ?? ex.status;
     const fieldsToUnset: Record<string, 1> = {};
+
+    // Publish guard, on the classification the article will have after this
+    // save: what the update sets, and what it leaves as stored. It covers a
+    // draft being published and a published article being edited alike.
+    if (targetStatus === 'published' || targetStatus === 'scheduled') {
+      await assertPublishableClassification({
+        category: 'category' in body ? body.category : ex.category,
+        subCategory: 'subCategory' in body ? body.subCategory : ex.subCategory,
+        destination: 'destination' in body ? body.destination : ex.destination,
+      });
+    }
 
     if (targetStatus === 'scheduled') {
       body.scheduledAt = parseFutureSchedule(body.scheduledAt ?? ex.scheduledAt);
@@ -1037,6 +1064,8 @@ export const publishBlog = async (
       return;
     }
 
+    await assertPublishableClassification(blog);
+
     blog.status = 'published';
     blog.publishedAt = new Date();
     blog.scheduledAt = undefined;
@@ -1050,6 +1079,13 @@ export const publishBlog = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (error instanceof PublishingValidationError) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+      return;
+    }
     console.error('Error publishing blog:', error);
     res.status(500).json({
       success: false,

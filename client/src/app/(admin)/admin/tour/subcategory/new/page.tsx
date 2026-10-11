@@ -83,7 +83,7 @@ const INITIAL_TOUR_SUBCAT: TourSubcategoryFormData = {
     image1: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
     image2: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   },
-  isActive: true,
+  isActive: false,
 };
 
 export default function NewSubcategoryPage() {
@@ -509,7 +509,7 @@ export default function NewSubcategoryPage() {
   };
 
   // Submit form
-  const performUpdate = async (stayOnPage = false) => {
+  const performUpdate = async (stayOnPage = false, publish = formData.isActive) => {
     if (isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch')) {
       toast({
         title: 'Saving blocked - stale draft',
@@ -524,6 +524,14 @@ export default function NewSubcategoryPage() {
       return;
     }
     
+    const identityErrors: FormErrorItem[] = [];
+    if (!formData.name?.en?.trim()) identityErrors.push({ field: 'Name', message: 'English name is required to save a draft or publish.' });
+    if (!formData.slug?.en?.trim()) identityErrors.push({ field: 'Slug', message: 'English slug is required to save a draft or publish.' });
+    if (identityErrors.length) {
+      setFormErrors(identityErrors);
+      return;
+    }
+
     try {
       setLoading(true);
       setFormErrors([]);
@@ -565,7 +573,7 @@ export default function NewSubcategoryPage() {
         name: formData.name,
         shortName: formData.shortName,
         slug: formData.slug,
-        isActive: formData.isActive,
+        isActive: publish,
       };
 
       if (hasEn(formData.description)) payload.description = formData.description;
@@ -669,7 +677,9 @@ export default function NewSubcategoryPage() {
       }
       
       if (response.success) {
-        toast({ title: isEditMode ? 'Subcategory Updated' : 'Subcategory Created', description: `Tour subcategory ${isEditMode ? 'updated' : 'created'} successfully.` });
+        toast({ title: publish ? 'Subcategory Published' : 'Draft Saved', description: publish ? 'This subcategory is visible on the website.' : 'Saved on the server. Hidden from visitors and the sitemap.' });
+        const savedFormData = { ...formData, isActive: publish };
+        setFormData(savedFormData);
         if (isEditMode) {
           const newVersion: number = response.data?.editVersion ?? (knownEditVersion + 1);
           setKnownEditVersion(newVersion);
@@ -678,7 +688,7 @@ export default function NewSubcategoryPage() {
         }
         clearDraft();
         if (isEditMode) {
-          setOriginalFormData(cloneFormData(formData));
+          setOriginalFormData(cloneFormData(savedFormData));
         }
         if (!stayOnPage) {
           router.push('/admin/tour/subcategory');
@@ -706,7 +716,7 @@ export default function NewSubcategoryPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    void performUpdate(false);
+    void performUpdate(false, true);
   };
 
   // Get selected category name
@@ -859,13 +869,10 @@ export default function NewSubcategoryPage() {
               activeLanguage={activeLanguage}
             />
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) => handleChange('isActive', checked)}
-              />
-              <Label htmlFor="isActive">Active (visible to users)</Label>
+            <div className="rounded border p-3 text-sm">
+              <strong>Status: {formData.isActive ? 'Published' : 'Draft'}</strong>
+              <p>Save as Draft to keep working privately, or Publish when ready. Drafts are saved on the server and hidden from visitors and the sitemap.</p>
+              <p>A category, English name and slug are required to save.</p>
             </div>
           </CardContent>
         </Card>
@@ -1642,6 +1649,11 @@ export default function NewSubcategoryPage() {
               Update & Continue
             </Button>
           )}
+          <Button type="button" variant="outline" disabled={loading || !formData.category}
+            onClick={() => void performUpdate(false, false)}>
+            <Save className="w-4 h-4 mr-2" />
+            {isEditMode && originalFormData?.isActive ? 'Convert to Draft' : 'Save as Draft'}
+          </Button>
           <Button type="submit" disabled={loading || !formData.category}>
             {loading ? (
               <>
@@ -1651,7 +1663,7 @@ export default function NewSubcategoryPage() {
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                {isEditMode ? 'Update Subcategory' : 'Save Subcategory'}
+                {isEditMode && originalFormData?.isActive ? 'Update Published Subcategory' : 'Publish Subcategory'}
               </>
             )}
           </Button>

@@ -1,3 +1,4 @@
+import { subcategoryVisibility } from '../utils/subcategoryAccess';
 import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
@@ -101,7 +102,7 @@ export const getAllSubcategories = async (
 ): Promise<void> => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const filter = buildQueryFilter(req.query);
+    const filter = { ...buildQueryFilter(req.query), ...subcategoryVisibility(req) };
     const sort = parseSort(req.query.sort);
 
     // Execute query with pagination
@@ -161,6 +162,8 @@ export const getSubcategoriesByCategory = async (
       filter.isActive = isActive === 'true';
     }
 
+    Object.assign(filter, subcategoryVisibility(req));
+
     const subcategories = await TourSubcategory.find(filter)
       .populate('toursCount')
       .sort('name')
@@ -202,7 +205,7 @@ export const getSubcategoryById = async (
   res: Response
 ): Promise<void> => {
   try {
-    const subcategory = await TourSubcategory.findById(req.params.id)
+    const subcategory = await TourSubcategory.findOne({ _id: req.params.id, ...subcategoryVisibility(req) })
       .populate('category', 'name slug description')
       .populate('toursCount')
       .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
@@ -318,7 +321,7 @@ export const createSubcategory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const subcategory = await TourSubcategory.create(req.body);
+    const subcategory = await TourSubcategory.create({ ...req.body, isActive: req.body.isActive === true });
 
     // Populate category details
     await subcategory.populate('category', 'name slug');

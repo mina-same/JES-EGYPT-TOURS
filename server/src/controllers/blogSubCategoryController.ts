@@ -10,6 +10,11 @@ import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
 import { publicDestinationPopulate } from '../models/Destination';
 import { destinationPopulateFor } from '../utils/destinationAccess';
+import {
+  assertNoPublicArticlesUnder,
+  respondToPublishingValidation,
+  switchesOff,
+} from '../utils/blogClassification';
 
 // ==================== INTERFACES ====================
 
@@ -402,7 +407,7 @@ export const updateSubcategory = async (
     delete req.body._editVersion;
 
     const currentSubcategory = await BlogSubCategory.findById(req.params.id).select(
-      'editVersion ogTitle ogDescription metaTitle metaDescription'
+      'editVersion ogTitle ogDescription metaTitle metaDescription isActive'
     );
 
     if (!currentSubcategory) {
@@ -429,6 +434,12 @@ export const updateSubcategory = async (
         error: 'English name is required',
       });
       return;
+    }
+
+    // Switching the subcategory off: refused while a published or scheduled
+    // article is filed under it. Any other edit goes through untouched.
+    if (switchesOff(req.body.isActive) && currentSubcategory.isActive !== false) {
+      await assertNoPublicArticlesUnder('subCategory', req.params.id, 'deactivate');
     }
 
     const body = {
@@ -485,6 +496,7 @@ export const updateSubcategory = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     console.error('Error updating blog subcategory:', error);
 
     // Handle invalid ObjectId
@@ -553,6 +565,9 @@ export const deleteSubcategory = async (
       return;
     }
 
+    // A published or scheduled article filed under it would be left pointing at nothing.
+    await assertNoPublicArticlesUnder('subCategory', subcategory._id, 'delete');
+
     // This will trigger any pre-remove middleware
     await subcategory.deleteOne();
 
@@ -562,6 +577,7 @@ export const deleteSubcategory = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     console.error('Error deleting blog subcategory:', error);
 
     // Handle invalid ObjectId
@@ -610,6 +626,11 @@ export const toggleSubcategoryStatus = async (
       return;
     }
 
+    // On its way off: refused while a published or scheduled article is filed under it.
+    if (subcategory.isActive !== false) {
+      await assertNoPublicArticlesUnder('subCategory', subcategory._id, 'deactivate');
+    }
+
     subcategory.isActive = !subcategory.isActive;
     subcategory.editVersion = (subcategory.editVersion ?? 0) + 1;
     await subcategory.save();
@@ -621,6 +642,7 @@ export const toggleSubcategoryStatus = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     console.error('Error toggling subcategory status:', error);
     res.status(500).json({
       success: false,

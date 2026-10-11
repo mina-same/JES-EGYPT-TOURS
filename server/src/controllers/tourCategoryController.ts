@@ -1,3 +1,4 @@
+import { categoryVisibility } from '../utils/subcategoryAccess';
 import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
 import { localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
@@ -83,7 +84,7 @@ export const getAllCategories = async (
 ): Promise<void> => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const filter = buildQueryFilter(req.query);
+    const filter = { ...buildQueryFilter(req.query), ...categoryVisibility(req) };
     const sort = parseSort(req.query.sort);
 
     // Execute query with pagination
@@ -133,7 +134,7 @@ export const getCategoryById = async (
   res: Response
 ): Promise<void> => {
   try {
-    const category = await TourCategory.findById(req.params.id)
+    const category = await TourCategory.findOne({ _id: req.params.id, ...categoryVisibility(req) })
       .populate('subcategoriesCount')
       .populate('featuredBlogs', BLOG_WITHOUT_COMMENTS)
       // Featured landing pages, not the tours' Places Visited. The Admin's
@@ -239,7 +240,7 @@ export const createCategory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const category = await TourCategory.create(req.body);
+    const category = await TourCategory.create({ ...req.body, isActive: req.body.isActive === true });
 
     res.status(201).json({
       success: true,

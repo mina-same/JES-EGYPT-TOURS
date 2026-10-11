@@ -235,7 +235,7 @@ const TourSubcategorySchema = new Schema<ITourSubcategory>(
     },
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     editVersion: {
       type: Number,

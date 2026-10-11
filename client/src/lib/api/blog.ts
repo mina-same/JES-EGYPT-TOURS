@@ -89,11 +89,24 @@ export interface ImageObject {
   alt?: string | ILocalizedString;
 }
 
+/** An article's destination as GET /blog/posts/slug/:slug populates it. */
+export interface BlogPostDestination {
+  _id: string;
+  name: string | ILocalizedString;
+  shortName?: string | ILocalizedString;
+  slug: ILocalizedString;
+}
+
 export interface BlogPost {
   _id: string;
   title: ILocalizedString;
   slug: ILocalizedString;
   subCategory: BlogSubCategory;
+  /**
+   * Where the article is about. Populated by the article endpoint, and only
+   * with a destination that has a public page; the bare id or null elsewhere.
+   */
+  destination?: BlogPostDestination | string | null;
   author: {
     _id: string;
     name: string;

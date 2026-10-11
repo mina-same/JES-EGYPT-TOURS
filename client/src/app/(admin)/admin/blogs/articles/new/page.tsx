@@ -40,6 +40,13 @@ import { useFormDraft } from '@/hooks/useFormDraft';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import {
+  PUBLISH_CLASSIFICATION_HINT,
+  isPublishedDestination,
+  isPublishing,
+  publishClassificationErrors,
+} from '@/lib/admin/blogClassification';
+import { destinationLabel } from '@/lib/admin/featuredDestinations';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 import { mixedToHtml, htmlAllEmpty } from '@/lib/localizedHtml';
 import {
@@ -337,6 +344,8 @@ export default function NewBlogPage() {
       if (!formData.featuredImage?.url?.trim()) {
         validationErrors.push({ field: 'Featured Image', message: 'A featured image is required', path: 'featuredImage-url' });
       }
+      // A draft may be unclassified; a published or scheduled article may not.
+      validationErrors.push(...publishClassificationErrors(formData, { destinations }));
       if (validationErrors.length > 0) {
         setFormErrors(validationErrors);
         setLoading(false);
@@ -457,6 +466,7 @@ export default function NewBlogPage() {
       // Clean up category/subcategory IDs (must be valid Mongo IDs or removed)
       if (!cleanData.category || cleanData.category === '') delete cleanData.category;
       if (!cleanData.subCategory || cleanData.subCategory === '') delete cleanData.subCategory;
+      if (!cleanData.destination || cleanData.destination === '') delete cleanData.destination;
 
 
 
@@ -799,7 +809,7 @@ export default function NewBlogPage() {
                           value={formData.category || "none"} 
                           onValueChange={(value) => handleChange('category', value === "none" ? "" : value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="category">
                             <SelectValue placeholder="Select Category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -818,14 +828,20 @@ export default function NewBlogPage() {
                           value={formData.destination || "none"} 
                           onValueChange={(value) => handleChange('destination', value === "none" ? "" : value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="destination">
                             <SelectValue placeholder="Select Destination" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">None</SelectItem>
                             {destinations.map((dest) => (
-                              <SelectItem key={dest._id} value={dest._id}>
-                                {dest.name?.en || dest.name}
+                              // A draft destination has no page yet: a draft
+                              // article may be filed under it, a public one not.
+                              <SelectItem
+                                key={dest._id}
+                                value={dest._id}
+                                disabled={isPublishing(formData.status) && !isPublishedDestination(dest)}
+                              >
+                                {destinationLabel(dest)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -839,7 +855,7 @@ export default function NewBlogPage() {
                           onValueChange={(value) => handleChange('subCategory', value === "none" ? "" : value)}
                           disabled={!formData.category}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="subCategory">
                             <SelectValue placeholder="Select Subcategory" />
                           </SelectTrigger>
                           <SelectContent>
@@ -853,6 +869,7 @@ export default function NewBlogPage() {
                         </Select>
                       </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">{PUBLISH_CLASSIFICATION_HINT}</p>
 
                     <div className="space-y-2">
                       <LocalizedTextArea

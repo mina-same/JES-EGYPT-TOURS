@@ -14,6 +14,13 @@ import {
   localizeInternalUrl,
   localizeStaticPathSegment,
 } from "@/lib/url";
+import {
+  canTakeFocus,
+  clearLanguageFocus,
+  hasPendingLanguageFocus,
+  isKeyboardClick,
+  markLanguageFocus,
+} from "./languageFocus";
 
 const FLAG_COMPONENTS: Record<string, any> = {
   en: GB,
@@ -76,6 +83,8 @@ interface LanguageSelectorProps {
   isOpen?: boolean;
   onOpen?: () => void;
   onClose?: () => void;
+  /** -1 keeps the button and its links out of the tab order (see SiteHeader's sticky copy). */
+  tabIndex?: number;
 }
 
 const OPEN_DELAY_MS = 160;
@@ -95,6 +104,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   isOpen,
   onOpen,
   onClose,
+  tabIndex,
 }) => {
   const { t } = useTranslation("common");
   const { localizedSlugs } = useSlugs();
@@ -249,7 +259,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
       : localizeInternalUrl(normalizedPath, locale);
   };
 
-  const selectLanguage = (option: (typeof options)[number]) => {
+  const selectLanguage = (option: (typeof options)[number], fromKeyboard = false) => {
     if (option.isDisabled) return;
 
     const target = getTargetUrl(option.value);
@@ -265,6 +275,11 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
       document.cookie = `NEXT_LOCALE=${option.value};path=/`;
     } catch {}
 
+    // The page in the new language rebuilds the header: its selector takes
+    // the focus back (languageFocus.ts). Choosing the current language goes
+    // nowhere, and leaves nothing to restore.
+    if (fromKeyboard && option.value !== currentLocale) markLanguageFocus(target);
+
     router.push(target);
   };
 
@@ -278,7 +293,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     event.preventDefault();
     // The link is about to be hidden; focus goes back to the button first.
     buttonRef.current?.focus();
-    selectLanguage(option);
+    selectLanguage(option, isKeyboardClick(event));
   };
 
   // Tab and Shift+Tab walk the button and the links as they would any links.
@@ -431,6 +446,20 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     (end === "first" ? links[0] : links[links.length - 1])?.focus();
   }, [menuIsOpen]);
 
+  // The page a keyboard-made switch arrives on: the selector it shows takes
+  // the focus back, without scrolling. A copy the visitor cannot see (the top
+  // bar's below its breakpoint, the sticky header's while it is off screen)
+  // leaves the request alone; SiteHeader handles the width where the sticky
+  // copy is the only one.
+  useEffect(() => {
+    if (!mounted || !hasPendingLanguageFocus()) return;
+    const button = buttonRef.current;
+    if (!canTakeFocus(button)) return;
+
+    clearLanguageFocus();
+    button.focus({ preventScroll: true });
+  }, [mounted]);
+
   if (!mounted) {
     return <div style={{ width: '120px', height: '40px' }} />;
   }
@@ -452,6 +481,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           ref={buttonRef}
           type="button"
           className="language-switcher__btn"
+          tabIndex={tabIndex}
           aria-expanded={menuIsOpen}
           aria-controls={menuId}
           onClick={toggleMenu}
@@ -491,6 +521,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                   <a
                     href={href}
                     hrefLang={option.value}
+                    tabIndex={tabIndex}
                     className={cn("language-switcher__item", isCurrent && "is-current")}
                     aria-current={isCurrent ? "page" : undefined}
                     onClick={(event) => handleLinkClick(event, option)}
