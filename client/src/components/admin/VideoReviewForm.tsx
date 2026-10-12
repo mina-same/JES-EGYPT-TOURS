@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ChevronLeft, Loader2, Save, Youtube, Info, 
-  MapPin, Hash, CheckCircle2, Play 
+  MapPin, Hash, Play 
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { videoReviewService, VideoReviewItem } from '@/services/videoReviewService';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ImagePreviewButton } from './ImagePreview';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
 
@@ -109,7 +110,7 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
               {isEdit ? 'Edit Video Review' : 'Add New Video Review'}
             </h1>
             <p className='text-gray-500 dark:text-gray-400 font-medium'>
-              Configure traveler testimonials for the "Reflective Reviews" section
+              Configure traveler testimonials for the &quot;Reflective Reviews&quot; section
             </p>
           </div>
         </div>
@@ -229,7 +230,7 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
               </span>
             </label>
             <p className='mt-3 text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed'>
-              When enabled, this video will appear automatically in the "Reflective Reviews" sections of the website.
+              When enabled, this video will appear automatically in the &quot;Reflective Reviews&quot; sections of the website.
             </p>
           </div>
 
@@ -261,6 +262,7 @@ export default function VideoReviewForm({ initialData, isEdit }: VideoReviewForm
                </div>
              )}
 
+             {previewId && <div className='mt-3'><ImagePreviewButton images={[{ url: `https://img.youtube.com/vi/${previewId}/maxresdefault.jpg`, alt: 'Video thumbnail' }]} /></div>}
              <div className='mt-5'>
                 <p className='text-white font-bold text-sm truncate'>
                   {typeof formData.title === 'string' ? formData.title : (formData.title[activeLanguage] || formData.title.en || 'Review Title Here')}

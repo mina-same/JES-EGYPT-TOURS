@@ -42,7 +42,7 @@ export default async function SearchPage({ searchParams, params }: SearchProps) 
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title={t('pageHeaderTitle')} subTitle={t('pageHeaderSubTitle')} />
+      <PageHeader title={t('pageHeaderTitle')} subTitle={t('pageHeaderSubTitle')} breadcrumbLabelKey="pageNames.search" />
       <SearchResultsPage initialSearchParams={rawQuery} />
       <FooterOne />
     </Layout>

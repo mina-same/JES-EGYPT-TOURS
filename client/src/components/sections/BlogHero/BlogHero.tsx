@@ -15,13 +15,15 @@ interface BlogHeroProps {
   imageAlt?: string;
   imageTitle?: string;
   breadcrumbs: { label: string; href?: string }[];
+  /** Absolute URL of this page, for the last entry of the BreadcrumbList. */
+  currentUrl?: string;
   stats?: {
     articles?: number;
     updatedAt?: string;
   };
 }
 
-const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt, imageTitle, breadcrumbs, stats }) => {
+const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt, imageTitle, breadcrumbs, currentUrl, stats }) => {
   const { t } = useTranslation('common');
   const params = useParams();
   const locale = normalizeLocale(params?.locale);
@@ -54,7 +56,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
 
       <div className="container relative z-10">
         <div className="max-w-4xl">
-          {/* The shared trail, in its `pill` skin.
+          {/* The shared trail.
 
               This markup used to live here — a third hand-written breadcrumb
               after PageHeader's and the author page's — and it carried a bug
@@ -63,8 +65,11 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
               a cookie, so a German reader clicking Home could land on the
               English homepage. The shared component builds `/${locale}`.
 
-              `jsonLd={false}` because the route above publishes the page's
-              BreadcrumbList already; this keeps the document at exactly one.
+              The trail publishes the page's BreadcrumbList itself, from the
+              same items it draws. It used to pass `jsonLd={false}` on the
+              belief that every route published its own — only the article
+              route did, by hand, and with a different middle step; the blog
+              category, sub-category and destination pages had none.
 
               The animated wrapper is a <div>, not the <nav>, so the landmark
               stays inside the component that owns it. */}
@@ -77,8 +82,7 @@ const BlogHero: React.FC<BlogHeroProps> = ({ title, subTitle, bgImage, imageAlt,
               homeLabel={t('home')}
               ariaLabel={t('breadcrumb')}
               items={breadcrumbs}
-              variant="pill"
-              jsonLd={false}
+              currentUrl={currentUrl}
             />
           </div>
 

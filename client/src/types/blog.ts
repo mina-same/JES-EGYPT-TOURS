@@ -102,7 +102,6 @@ export interface IBlogPost {
   commentsEnabled: boolean;
   comments?: IComment[];
   seo?: ISEO;
-  breadcrumbs?: IBreadcrumb[];
   relatedPosts?: IBlogPost[] | string[];
   relatedTours?: any[] | string[];
   shareCount?: number;
@@ -124,11 +123,6 @@ export interface IComment {
   avatar?: string;
   isApproved: boolean;
   createdAt: Date | string;
-}
-
-export interface IBreadcrumb {
-  name: ILocalizedString;
-  url: string;
 }
 
 // ==================== FORM DATA TYPES ====================
@@ -181,7 +175,6 @@ export interface BlogFormData {
   scheduledAt?: Date;
   commentsEnabled: boolean;
   seo?: ISEO;
-  breadcrumbs?: IBreadcrumb[];
   relatedPosts?: string[];
   relatedTours?: string[];
 }

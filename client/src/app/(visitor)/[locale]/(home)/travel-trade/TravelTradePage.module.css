@@ -60,39 +60,6 @@
   margin-bottom: 34px;
 }
 
-.breadcrumb ol {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: #7b858b;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.breadcrumb li {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.breadcrumb li + li::before {
-  content: "/";
-  color: var(--trade-gold);
-}
-
-.breadcrumb a {
-  color: var(--trade-heading);
-  transition: color 180ms ease;
-}
-
-.breadcrumb a:hover {
-  color: var(--trade-gold-dark);
-}
-
 .heroGrid {
   position: relative;
   z-index: 1;

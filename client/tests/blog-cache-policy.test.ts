@@ -16,7 +16,6 @@ import {
   getBlogsByCategory,
   getBlogsByIds,
   getBlogsBySubCategory,
-  getCategories,
   getCategoryBySlug,
   getFeaturedBlogs,
   getSubCategoriesByCategory,
@@ -86,7 +85,7 @@ test('category, subcategory and destination listings are tagged, bounded and nor
   }
 });
 
-test('the all-articles listing stores only its canonical shape', async () => {
+test('getAllBlogs stores only its canonical shape', async () => {
   const [canonical] = await callsOf(() => getAllBlogs({ page: 3, limit: 9, locale: 'en' }));
   assert.equal(canonical.url, '/blog/posts?page=3&limit=9&locale=en');
   assert.deepEqual(canonical.init, { ...listing(), headers: { 'X-Locale': 'en' } });
@@ -108,7 +107,6 @@ test('entities, the featured strip and the directories are tagged for an hour', 
     ['/blog/posts/featured?limit=6&locale=de', () => getFeaturedBlogs(6, 'de'), { headers: { 'X-Locale': 'de' } }],
     ['/blog/subcategories/category/c1?locale=de', () => getSubCategoriesByCategory('c1', 'de'), { headers: { 'X-Locale': 'de' } }],
     ['/blog/subcategories/category/c1', () => getSubCategoriesByCategory('c1'), {}],
-    ['/blog/categories', () => getCategories(), {}],
   ];
   for (const [url, read, extra] of reads) {
     const [call] = await callsOf(read);

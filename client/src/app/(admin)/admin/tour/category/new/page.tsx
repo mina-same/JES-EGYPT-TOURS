@@ -80,7 +80,7 @@ const INITIAL_TOUR_CATEGORY: TourCategoryFormData = {
     image1: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
     image2: { url: '', fileName: '', title: { en: '', de: '', it: '', es: '' }, alt: { en: '', de: '', it: '', es: '' } },
   },
-  isActive: true,
+  isActive: false,
 };
 
 export default function NewCategoryPage() {
@@ -563,13 +563,21 @@ export default function NewCategoryPage() {
   };
 
   // Submit form
-  const performUpdate = async (stayOnPage = false) => {
+  const performUpdate = async (stayOnPage = false, publish = formData.isActive) => {
     if (isEditMode && (draftStatus === 'stale-no-version' || draftStatus === 'stale-version-mismatch')) {
       toast({
         title: 'Saving blocked - stale draft',
         description: 'This draft may be older than the current category. Copy any important content, then click "Discard draft & load latest" before saving.',
         variant: 'destructive',
       });
+      return;
+    }
+
+    const identityErrors: FormErrorItem[] = [];
+    if (!formData.name?.en?.trim()) identityErrors.push({ field: 'Name', message: 'English name is required to save a draft or publish.' });
+    if (!formData.slug?.en?.trim()) identityErrors.push({ field: 'Slug', message: 'English slug is required to save a draft or publish.' });
+    if (identityErrors.length) {
+      setFormErrors(identityErrors);
       return;
     }
 
@@ -614,7 +622,7 @@ export default function NewCategoryPage() {
         name: formData.name,
         shortName: formData.shortName,
         slug: formData.slug,
-        isActive: formData.isActive,
+        isActive: publish,
       };
       
       if (hasEn(formData.description)) payload.description = formData.description;
@@ -719,7 +727,9 @@ export default function NewCategoryPage() {
       }
       
       if (response.success) {
-        toast({ title: isEditMode ? 'Category Updated' : 'Category Created', description: `Tour category ${isEditMode ? 'updated' : 'created'} successfully.` });
+        toast({ title: publish ? 'Category Published' : 'Draft Saved', description: publish ? 'This category is visible on the website.' : 'Saved on the server. Hidden from visitors and the sitemap.' });
+        const savedFormData = { ...formData, isActive: publish };
+        setFormData(savedFormData);
         if (isEditMode) {
           const newVersion: number = response.data?.editVersion ?? (knownEditVersion + 1);
           setKnownEditVersion(newVersion);
@@ -728,7 +738,7 @@ export default function NewCategoryPage() {
         }
         clearDraft();
         if (isEditMode) {
-          setOriginalFormData(cloneFormData(formData));
+          setOriginalFormData(cloneFormData(savedFormData));
         }
         if (!stayOnPage) {
           router.push('/admin/tour/category');
@@ -759,7 +769,7 @@ export default function NewCategoryPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    void performUpdate(false);
+    void performUpdate(false, true);
   };
 
   if (fetchingData) {
@@ -887,13 +897,10 @@ export default function NewCategoryPage() {
               activeLanguage={activeLanguage}
             />
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) => handleChange('isActive', checked)}
-              />
-              <Label htmlFor="isActive">Active (visible to users)</Label>
+            <div className="rounded border p-3 text-sm">
+              <strong>Status: {formData.isActive ? 'Published' : 'Draft'}</strong>
+              <p>Save as Draft to keep working privately, or Publish when ready. Drafts are saved on the server and hidden from visitors and the sitemap.</p>
+              <p>An English name and slug are required to save.</p>
             </div>
           </CardContent>
         </Card>
@@ -1676,6 +1683,11 @@ export default function NewCategoryPage() {
               Update & Continue
             </Button>
           )}
+          <Button type="button" variant="outline" disabled={loading}
+            onClick={() => void performUpdate(false, false)}>
+            <Save className="w-4 h-4 mr-2" />
+            {isEditMode && originalFormData?.isActive ? 'Convert to Draft' : 'Save as Draft'}
+          </Button>
           <Button type="submit" disabled={loading}>
             {loading ? (
               <>
@@ -1685,7 +1697,7 @@ export default function NewCategoryPage() {
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                {isEditMode ? 'Update Category' : 'Create Category'}
+                {isEditMode && originalFormData?.isActive ? 'Update Published Category' : 'Publish Category'}
               </>
             )}
           </Button>

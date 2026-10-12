@@ -41,6 +41,13 @@ interface TinySliderWrapperProps {
    * imperative instance even when the React child keys stay the same.
    */
   rebuildKey?: React.Key;
+  /**
+   * Keep the slides React already rendered when the slider activates, and let
+   * tiny-slider enhance them in place. By default the pre-mount placeholder is
+   * swapped for a freshly mounted runtime, which unmounts and rebuilds every
+   * slide. The markup before activation is the same either way.
+   */
+  keepSlidesOnInit?: boolean;
   onClick?: TinySliderClickCallback;
   onInit?: (initialized: boolean) => void;
   onIndexChanged?: TinySliderEventCallback;
@@ -64,10 +71,12 @@ type SliderCallbacks = Pick<
 >;
 
 interface SliderRuntimeProps
-  extends Omit<
-    TinySliderWrapperProps,
-    "placeholderClassName" | "placeholderStyle" | "rebuildKey"
-  > {
+  extends Omit<TinySliderWrapperProps, "rebuildKey" | "keepSlidesOnInit"> {
+  /**
+   * False while a kept-slides runtime still renders the placeholder markup;
+   * tiny-slider is created once this turns true.
+   */
+  active: boolean;
   callbacksRef: MutableRefObject<SliderCallbacks>;
   instanceRef: MutableRefObject<TinySliderInstance | null>;
 }
@@ -142,9 +151,12 @@ const createSliderSettings = (
 };
 
 const SliderRuntime = ({
+  active,
   settings,
   children,
   className,
+  placeholderClassName,
+  placeholderStyle,
   style,
   callbacksRef,
   instanceRef,
@@ -155,6 +167,8 @@ const SliderRuntime = ({
   const settingsRef = useRef(settings);
 
   useLayoutEffect(() => {
+    if (!active) return;
+
     let cancelled = false;
     let instance: TinySliderInstance | null = null;
 
@@ -202,7 +216,7 @@ const SliderRuntime = ({
       // while its stable React-owned host still exists.
       instance?.destroy();
     };
-  }, [callbacksRef, instanceRef]);
+  }, [active, callbacksRef, instanceRef]);
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const callback = callbacksRef.current.onClick;
@@ -218,14 +232,24 @@ const SliderRuntime = ({
     callback(info.slideItems[info.index] ?? null, info, event);
   };
 
+  // Until it is active this renders exactly the wrapper's placeholder, so the
+  // same host, container and slides carry on into the live slider.
   return (
     <div
       ref={hostRef}
       className="tiny-slider-host"
       data-tiny-slider-host=""
-      onClick={handleClick}
+      onClick={active ? handleClick : undefined}
     >
-      <div ref={containerRef} className={className} style={style}>
+      <div
+        ref={containerRef}
+        className={
+          active
+            ? className
+            : placeholderClassName || className || "tiny-slider-placeholder"
+        }
+        style={active ? style : placeholderStyle}
+      >
         {children}
       </div>
     </div>
@@ -252,6 +276,7 @@ export const TinySliderWrapper = forwardRef<
       placeholderStyle,
       style,
       rebuildKey,
+      keepSlidesOnInit = false,
       onClick,
       onInit,
       onIndexChanged,
@@ -300,7 +325,7 @@ export const TinySliderWrapper = forwardRef<
       JSON.stringify(style ?? {}),
     ].join("::");
 
-    if (!isMounted) {
+    if (!isMounted && !keepSlidesOnInit) {
       return (
         <div className="tiny-slider-host" data-tiny-slider-host="">
           <div
@@ -315,11 +340,17 @@ export const TinySliderWrapper = forwardRef<
       );
     }
 
+    // With keepSlidesOnInit the keyed runtime is rendered from the start, so
+    // activation only flips `active` on the same element: React keeps every
+    // slide instead of remounting them under a new element type.
     return (
       <SliderRuntime
         key={lifecycleKey}
+        active={isMounted}
         settings={settings}
         className={className}
+        placeholderClassName={placeholderClassName}
+        placeholderStyle={placeholderStyle}
         style={style}
         callbacksRef={callbacksRef}
         instanceRef={instanceRef}

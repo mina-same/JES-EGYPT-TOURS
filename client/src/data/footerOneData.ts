@@ -1,6 +1,8 @@
 import { PHONE_DISPLAY } from "@/config/contact";
 // Social profiles live in config/contact.ts — see SOCIAL_PROFILES for why.
 import { StaticImageData } from 'next/image';
+import { BLOG_HUB_HREF_BY_LOCALE } from "@/data/blogHub";
+import type { SupportedLocale } from "@/lib/url";
 
 import logo from "@/assets/images/logo-light.png";
 import cardImage from "@/assets/images/shapes/footer-card-1-1.png";
@@ -16,12 +18,24 @@ import shape2 from "@/assets/images/shapes/footer-shape-1-2.png";
  * rendered in English. Each link carries a `translationKey` instead of a
  * `title`, following the same convention aboutOne.ts already uses.
  */
-export interface FooterLink {
+export type FooterLink = {
   /** Key under "footer.*" in common.json. */
   translationKey: string;
-  /** Locale-prefixed at render time by localizeInternalUrl. */
-  href: string;
-}
+} & (
+  | {
+      /** Locale-prefixed at render time by localizeInternalUrl. */
+      href: string;
+      hrefByLocale?: undefined;
+    }
+  | {
+      /**
+       * For a CMS page, which has its own slug in each language and so cannot
+       * be one path with the locale put in front.
+       */
+      hrefByLocale: Readonly<Record<SupportedLocale, string>>;
+      href?: undefined;
+    }
+);
 
 export interface FooterDataType {
   logo: StaticImageData;
@@ -47,10 +61,9 @@ export const footerOneData: FooterDataType = {
   },
   // Only real, existing routes are listed (no dead template/demo routes).
   destinations: [
-    { translationKey: "footer.destinations.tours", href: "/tours" },
     { translationKey: "footer.destinations.specialOffers", href: "/special-offers" },
     { translationKey: "footer.destinations.tailorMade", href: "/tailor-made" },
-    { translationKey: "footer.destinations.blog", href: "/blogs" },
+    { translationKey: "footer.destinations.blog", hrefByLocale: BLOG_HUB_HREF_BY_LOCALE },
     { translationKey: "footer.destinations.faq", href: "/faq" },
   ],
   usefulLinks: [

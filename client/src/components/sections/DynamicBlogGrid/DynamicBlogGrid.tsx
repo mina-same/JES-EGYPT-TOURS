@@ -27,12 +27,6 @@ interface DynamicBlogGridProps {
    */
   basePath?: string;
   variant?: 'standard' | 'featured';
-  /**
-   * Eager-loads the first row's images. Only for a grid that is the page's
-   * main content and sits at the top of it — on a section further down, an
-   * eager image competes with the real LCP element instead of being it.
-   */
-  prioritizeFirstRow?: boolean;
 }
 
 /**
@@ -65,16 +59,11 @@ function buildPageList(current: number, total: number): (number | 'gap')[] {
   return withGaps;
 }
 
-/** Cards per row on desktop, for each skin — how many can be the LCP image. */
-const FEATURED_ROW = 4;
-const STANDARD_ROW = 3;
-
 const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
   blogs,
   pagination,
   basePath,
   variant = 'standard',
-  prioritizeFirstRow = false,
 }) => {
   const { t, i18n } = useTranslation('blogs');
   const currentLocale = i18n.language || 'en';
@@ -92,9 +81,14 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
    * saw no route to page 2, so every article past the first page was reachable
    * only through a link somewhere else on the site, and the pages could not be
    * opened in a new tab or shared.
+   *
+   * Page 1 is the listing's own URL and has no other spelling: `?page=1`
+   * redirects there, so a link to it would send every reader and crawler
+   * through that redirect.
    */
   const pageHref = (page: number) => {
     if (!basePath) return "#";
+    if (page <= 1) return basePath;
     const separator = basePath.includes("?") ? "&" : "?";
     return `${basePath}${separator}page=${page}`;
   };
@@ -102,12 +96,11 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
   if (variant === 'featured') {
     return (
       <Row className='gutter-y-20'>
-        {cards.map((post, index) => (
+        {cards.map((post) => (
           <Col lg={3} md={6} key={post.id}>
             <BlogCard
               post={post}
               variant='minimal'
-              priority={prioritizeFirstRow && index < FEATURED_ROW}
               sizes='(max-width: 768px) 100vw, (max-width: 992px) 50vw, 25vw'
             />
           </Col>
@@ -120,12 +113,11 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
     <section className='blog-page'>
       <Container>
         <Row className='gutter-y-30'>
-          {cards.map((post, index) => (
+          {cards.map((post) => (
             <Col lg={4} md={6} key={post.id}>
               <BlogCard
                 post={post}
                 variant='classic'
-                priority={prioritizeFirstRow && index < STANDARD_ROW}
               />
             </Col>
           ))}
@@ -143,7 +135,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
                 <ul className={styles.paginationList}>
                   {/* Previous Button */}
                   <li className={styles.directionItem}>
-                    {pagination.page === 1 ? (
+                    {pagination.page <= 1 ? (
                       <span
                         className={`${styles.directionLink} ${styles.isDisabled}`}
                         aria-disabled='true'
@@ -203,9 +195,10 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
                     )
                   )}
 
-                  {/* Next Button */}
+                  {/* Next Button — never past the last page: compared with `>=`,
+                      a page beyond it cannot link one further out again. */}
                   <li className={styles.directionItem}>
-                    {pagination.page === pagination.pages ? (
+                    {pagination.page >= pagination.pages ? (
                       <span
                         className={`${styles.directionLink} ${styles.isDisabled}`}
                         aria-disabled='true'

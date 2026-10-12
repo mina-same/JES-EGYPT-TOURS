@@ -41,6 +41,13 @@ import { getLocalizedValue } from '@/lib/localize';
 import { useFormDraft } from '@/hooks/useFormDraft';
 import { userAPI, User as AuthUser } from '@/lib/api/auth';
 import { parseApiError, type FormErrorItem } from '@/lib/parseApiError';
+import {
+  PUBLISH_CLASSIFICATION_HINT,
+  isPublishedDestination,
+  isPublishing,
+  publishClassificationErrors,
+} from '@/lib/admin/blogClassification';
+import { destinationLabel } from '@/lib/admin/featuredDestinations';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 import { mixedToHtml, htmlAllEmpty } from '@/lib/localizedHtml';
@@ -91,7 +98,6 @@ const INITIAL_BLOG_EDIT: any = {
   ogImage: '',
   ogType: 'article',
   focusKeyword: { en: '', de: '', it: '', es: '' },
-  breadcrumbs: [],
   relatedPosts: [],
   relatedTours: [],
   category: '',
@@ -434,10 +440,6 @@ export default function EditBlogPage() {
           ogImage: blog.ogImage || '',
           ogType: blog.ogType || 'article',
           focusKeyword: normalizeLocalizedString(blog.focusKeyword),
-          breadcrumbs: (blog.breadcrumbs || []).map((b: any) => ({
-            ...b,
-            name: normalizeLocalizedString(b.name)
-          })),
           relatedPosts: blog.relatedPosts?.map((post: any) => post._id || post) || [],
           relatedTours: blog.relatedTours?.map((tour: any) => tour._id || tour) || [],
           category: blog.category?._id || blog.category || '',
@@ -512,6 +514,8 @@ export default function EditBlogPage() {
       if (!formData.title?.en?.trim()) {
         validationErrors.push({ field: 'Blog Title', message: 'English title is required', lang: 'en', path: 'title-en' });
       }
+      // A draft may be unclassified; a published or scheduled article may not.
+      validationErrors.push(...publishClassificationErrors(formData, { destinations }));
       if (validationErrors.length > 0) {
         setFormErrors(validationErrors);
         setLoading(false);
@@ -623,7 +627,6 @@ export default function EditBlogPage() {
       if (htmlAllEmpty(cleanData.summary)) delete cleanData.summary;
       if (htmlAllEmpty(cleanData.keyTakeaways)) delete cleanData.keyTakeaways;
 
-      if (!cleanData.breadcrumbs?.length) cleanData.breadcrumbs = [];
       cleanData.relatedPosts = Array.from(
         new Set((cleanData.relatedPosts || []).filter((postId: string) => postId && postId !== 'none'))
       );
@@ -1002,7 +1005,7 @@ export default function EditBlogPage() {
                           value={formData.category || "none"} 
                           onValueChange={(value) => handleChange('category', value === "none" ? "" : value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="category">
                             <SelectValue placeholder="Select Category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1021,14 +1024,20 @@ export default function EditBlogPage() {
                           value={formData.destination || "none"} 
                           onValueChange={(value) => handleChange('destination', value === "none" ? "" : value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="destination">
                             <SelectValue placeholder="Select Destination" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">None</SelectItem>
                             {destinations.map((dest) => (
-                              <SelectItem key={dest._id} value={dest._id}>
-                                {dest.name?.en || dest.name}
+                              // A draft destination has no page yet: a draft
+                              // article may be filed under it, a public one not.
+                              <SelectItem
+                                key={dest._id}
+                                value={dest._id}
+                                disabled={isPublishing(formData.status) && !isPublishedDestination(dest)}
+                              >
+                                {destinationLabel(dest)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1042,7 +1051,7 @@ export default function EditBlogPage() {
                           onValueChange={(value) => handleChange('subCategory', value === "none" ? "" : value)}
                           disabled={!formData.category}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="subCategory">
                             <SelectValue placeholder="Select Subcategory" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1056,6 +1065,7 @@ export default function EditBlogPage() {
                         </Select>
                       </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">{PUBLISH_CLASSIFICATION_HINT}</p>
                     
                     <div className="space-y-2">
                       <LocalizedField

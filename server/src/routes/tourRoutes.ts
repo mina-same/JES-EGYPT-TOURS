@@ -49,7 +49,7 @@ const router = express.Router();
  * @access  Public
  * @query   ?isActive=true&search=adventure&page=1&limit=10&sort=name
  */
-router.get('/categories', getAllCategories);
+router.get('/categories', optionalProtect, getAllCategories);
 
 /**
  * @route   GET /api/tours/categories/slug/:slug
@@ -97,7 +97,7 @@ router.get('/categories/:id', optionalProtect, getCategoryById);
  * @access  Public
  * @query   ?category=categoryId&isActive=true&search=safari&page=1&limit=10&sort=name
  */
-router.get('/subcategories', getAllSubcategories);
+router.get('/subcategories', optionalProtect, getAllSubcategories);
 
 /**
  * @route   GET /api/tours/categories/:categoryId/subcategories
@@ -105,7 +105,7 @@ router.get('/subcategories', getAllSubcategories);
  * @access  Public
  * @query   ?isActive=true
  */
-router.get('/categories/:categoryId/subcategories', getSubcategoriesByCategory);
+router.get('/categories/:categoryId/subcategories', optionalProtect, getSubcategoriesByCategory);
 
 /**
  * @route   GET /api/tours/subcategories/slug/:slug

@@ -29,7 +29,6 @@ import {
 import { resolveSlug } from "@/lib/api/resolve.server";
 import {
   type BlogCategory,
-  type BlogListResponse,
   type BlogSubCategory,
   getBlogsByCategory,
   getBlogsBySubCategory,
@@ -42,14 +41,22 @@ import {
   getBlogsByDestination,
   getDestinationBySlug,
   type Destination,
-  type DestinationBlogsResponse,
 } from "@/lib/api/destination";
 import { getLocalizedValue } from "@/lib/localize";
-import { getDisplayName } from "@/lib/displayName";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { buildTourBreadcrumbs } from "@/lib/tour/breadcrumbs";
+import { getServerTranslation } from "@/lib/i18n-server";
 import { getStrictSlugLocaleAlternates } from "@/lib/seo/localeAlternates";
 import { getListingRobotsMetadata, getNotFoundRobotsMetadata } from "@/lib/seo/robots";
 import { parsePublicListingQuery, PUBLIC_SORT_TO_API, shouldRedirectPublicQuery, type PublicListingParse } from '@/lib/tours/publicListingUrl';
+import {
+  BLOG_LISTING_PAGE_SIZE,
+  getBlogListingAlternates,
+  getBlogListingRobots,
+  resolveBlogListingRequest,
+  withPageNumber,
+  type BlogListingPage,
+  type ListingQuery,
+} from "@/lib/blog/listingPage";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
 import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
 import { Metadata } from "next";
@@ -314,6 +321,73 @@ async function parseRouteListingQuery(query: Record<string, string | string[] | 
   return parsed;
 }
 
+/**
+ * A Blog listing request, settled before anything is rendered: the page it
+ * asks for and that page's articles, or null when there is no such page. A
+ * redirect is thrown from here. The rules and their order are
+ * resolveBlogListingRequest's (lib/blog/listingPage.ts).
+ *
+ * generateMetadata and the page both come through here with the same
+ * arguments, so they reach the same answer, and the listing both need is one
+ * fetch: Next serves the second identical request from the first.
+ *
+ * A listing that cannot be read throws. The article list is what these pages
+ * are for, and rendering without it would answer a 200 with nothing to index —
+ * a 500 is retried by a crawler; an empty 200 is indexed as thin.
+ */
+async function settleBlogListing<T extends BlogListingPage>(
+  resolved: ResolvedSlugContent,
+  slug: string,
+  locale: string,
+  query: ListingQuery,
+  read: (page: number) => Promise<T>,
+) {
+  const outcome = await resolveBlogListingRequest({ query, locale, slug, canonicalSlug: resolved.correctSlug, read });
+  if (outcome.status === 308) permanentRedirect(outcome.location);
+  return outcome.status === 404 ? null : outcome;
+}
+
+/** The same, for the page: no such page is its 404. */
+async function readBlogListingPage<T extends BlogListingPage>(...request: Parameters<typeof settleBlogListing<T>>) {
+  const settled = await settleBlogListing(...request);
+  if (!settled) notFound();
+  return settled;
+}
+
+/*
+ * What generateMetadata answers for a URL the page answers 404 to. It never
+ * reaches the 404's server HTML; that head comes from (home)/not-found.tsx.
+ * It is not dead, though: the 404 is sent as Next's error shell, and the
+ * browser renders the page from the RSC payload that carries THIS metadata.
+ * It is the title and robots the visitor's document ends up with.
+ */
+const notFoundMetadata = (): Metadata => ({ title: "Not Found | JES Egypt Tours", robots: getNotFoundRobotsMetadata() });
+
+/*
+ * One page of the articles each kind of Blog listing lists.
+ *
+ * A category's and a topic's are keyed by the English slug: the endpoint
+ * matches any language's slug, and one spelling keeps one cache entry per page
+ * and locale. A destination's are keyed by its id.
+ */
+const englishSlugOf = (entity: { slug?: unknown }, fallback: string): string => {
+  const english = typeof entity.slug === "object" ? (entity.slug as { en?: unknown } | null)?.en : entity.slug;
+  return (typeof english === "string" && english) || fallback;
+};
+const readCategoryArticles = (category: BlogCategory, canonicalSlug: string, locale: string) => (page: number) =>
+  getBlogsByCategory(englishSlugOf(category, canonicalSlug), page, BLOG_LISTING_PAGE_SIZE, locale);
+const readTopicArticles = (topic: BlogSubCategory, canonicalSlug: string, locale: string) => (page: number) =>
+  getBlogsBySubCategory(englishSlugOf(topic, canonicalSlug), page, BLOG_LISTING_PAGE_SIZE, locale);
+const readDestinationArticles = (destination: Destination, locale: string) => (page: number) =>
+  getBlogsByDestination(destination._id, page, BLOG_LISTING_PAGE_SIZE, locale);
+
+/** A listing's title with its page after it, from page 2 on: "… – Page 2". */
+async function withListingPage(title: string, page: number, locale: string): Promise<string> {
+  if (page === 1) return title;
+  const { t } = await getServerTranslation(locale, "common");
+  return withPageNumber(title, page, t("pagination.page"));
+}
+
 async function getTourListingAlternates(
   locale: string, slug: string, data: any, type: 'category' | 'subcategory', parsed: PublicListingParse,
 ): Promise<NonNullable<Metadata['alternates']>> {
@@ -416,6 +490,11 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   if (resolved?.type === "blogCategory") {
     const category = resolved.data;
     const cAny = category as any;
+    const settled = await settleBlogListing(
+      resolved, slug, locale, await searchParams, readCategoryArticles(category, resolved.correctSlug, locale),
+    );
+    if (!settled) return notFoundMetadata();
+    const { page, listing } = settled;
     const seoTitle = getLocalizedValue(cAny.metaTitle, locale);
     const seoDescription = getLocalizedValue(cAny.metaDescription, locale);
     const description = stripHtml(seoDescription || "");
@@ -424,12 +503,15 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     const ogTitle = ownLocaleValue(cAny.ogTitle, locale) || seoTitle || "JES Egypt Tours";
     const ogDescription = stripHtml(ownLocaleValue(cAny.ogDescription, locale)) || description;
 
-    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: category.slug, baseUrl });
+    const alternates = getBlogListingAlternates({
+      role: "archive", page, locale, slug, slugs: category.slug, baseUrl, articles: listing.data,
+    });
     return {
-      title: seoTitle ? seoTitle : "JES Egypt Tours",
+      title: await withListingPage(seoTitle ? seoTitle : "JES Egypt Tours", page, locale),
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getBlogListingRobots("archive", page),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -450,6 +532,11 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   if (resolved?.type === "blogSubcategory") {
     const subcategory = resolved.data;
     const sAny = subcategory as any;
+    const settled = await settleBlogListing(
+      resolved, slug, locale, await searchParams, readTopicArticles(subcategory, resolved.correctSlug, locale),
+    );
+    if (!settled) return notFoundMetadata();
+    const { page, listing } = settled;
     const seoTitle = getLocalizedValue(sAny.metaTitle, locale);
     const seoDescription = getLocalizedValue(sAny.metaDescription, locale);
     const description = stripHtml(seoDescription || "");
@@ -458,12 +545,15 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     const ogTitle = ownLocaleValue(sAny.ogTitle, locale) || seoTitle || "JES Egypt Tours";
     const ogDescription = stripHtml(ownLocaleValue(sAny.ogDescription, locale)) || description;
 
-    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: subcategory.slug, baseUrl });
+    const alternates = getBlogListingAlternates({
+      role: "archive", page, locale, slug, slugs: subcategory.slug, baseUrl, articles: listing.data,
+    });
     return {
-      title: seoTitle ? seoTitle : "JES Egypt Tours",
+      title: await withListingPage(seoTitle ? seoTitle : "JES Egypt Tours", page, locale),
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getBlogListingRobots("archive", page),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: ogTitle,
@@ -528,12 +618,23 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     const description = stripHtml(seoDescription || "");
     const keywords = getLocalizedValue(destination.metaKeywords, locale);
     const image = getSeoImage(destination.metaImage, destination.ogImage || destination.coverImage, locale, seoTitle || getLocalizedValue(destination.name, locale));
-    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: destination.slug, baseUrl });
+    // Only the article section pages. A later page is a state of this landing
+    // page, not a page of its own: it points at the clean URL and stays out of
+    // the index, so the title and the rest describe the destination as before.
+    const settled = await settleBlogListing(
+      resolved, slug, locale, await searchParams, readDestinationArticles(destination, locale),
+    );
+    if (!settled) return notFoundMetadata();
+    const { page } = settled;
+    const alternates = getBlogListingAlternates({
+      role: "landing", page, locale, slug, slugs: destination.slug, baseUrl,
+    });
     return {
       title: seoTitle || `${getLocalizedValue(destination.name, locale)} | JES Egypt Tours`,
       description,
       keywords: keywords || undefined,
       alternates,
+      robots: getBlogListingRobots("landing", page),
       openGraph: {
         ...ogSiteDefaults(locale),
         title: seoTitle || getLocalizedValue(destination.name, locale),
@@ -589,24 +690,13 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     };
   }
 
-  /*
-   * Nothing resolved, so the page below calls notFound(). This never reaches
-   * the 404's server HTML; that head comes from (home)/not-found.tsx. It is
-   * not dead, though: the 404 is sent as Next's error shell, and the browser
-   * renders the page from the RSC payload that carries THIS metadata. It is
-   * the title and robots the visitor's document ends up with.
-   */
-  return { title: "Not Found | JES Egypt Tours", robots: getNotFoundRobotsMetadata() };
+  // Nothing resolved, so the page below calls notFound().
+  return notFoundMetadata();
 }
 
 export default async function SlugPage({ params, searchParams }: PageProps) {
   const { slug, locale } = await params;
   const query = await searchParams;
-  const rawPage = Array.isArray(query.page) ? query.page[0] : query.page;
-  const parsedPage = Number(rawPage);
-  const page = Number.isFinite(parsedPage) && parsedPage > 0
-    ? Math.floor(parsedPage)
-    : 1;
   const resolved = await resolveSlugContent(slug, locale);
   const listingParsed = resolved?.type === 'category' || resolved?.type === 'subcategory'
     ? await parseRouteListingQuery(query)
@@ -735,127 +825,65 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   }
 
   // ── 3. Blog Category ───────────────────────────────────────────────────────
-  {
-    let redirectTarget: string | null = null;
-    let renderBlogCategory = false;
-    let categoryData: BlogCategory | null = null;
-    let initialSubcategories: BlogSubCategory[] = [];
-    let initialBlogsData: BlogListResponse | null = null;
-    let blogListingError: unknown = null;
-    try {
-      if (resolved?.type === "blogCategory") {
-        if (resolved.correctSlug !== slug) {
-          redirectTarget = `/${locale}/${resolved.correctSlug}`;
-        } else {
-          const data = resolved.data as BlogCategory;
-          categoryData = data;
-          renderBlogCategory = true;
-
-          /*
-           * The two reads BlogCategoryView used to make in the browser after
-           * hydration, with the same arguments, made here instead — so the
-           * HTML carries the heading, the topic cards and the article cards
-           * rather than a spinner. Both need only what the resolver already
-           * returned, so they run together.
-           *
-           * The listing is keyed by the English slug, as the view always did:
-           * the endpoint matches any language's slug, and one spelling keeps
-           * one cache entry per page and locale. `page` is this route's own
-           * parse of ?page=, so a crawler following the pager's
-           * <a href="?page=2"> gets page 2's cards in the HTML.
-           */
-          const baseSlug = typeof data.slug === "object" ? data.slug?.en : data.slug;
-          const [subcategoriesResult, blogsResult] = await Promise.allSettled([
-            getBlogSubCategoriesByCategory(data._id, locale),
-            getBlogsByCategory(baseSlug || slug, page, 9, locale),
-          ]);
-
-          // The topic cards are secondary: without them the page still has its
-          // heading, copy and articles, so a failure drops just that section.
-          if (subcategoriesResult.status === "fulfilled" && Array.isArray(subcategoriesResult.value)) {
-            initialSubcategories = subcategoriesResult.value;
-          }
-          // The article list IS the page. Rendering without it would answer a
-          // 200 with nothing to index, so the failure is rethrown below — a
-          // 500 is retried by a crawler; an empty 200 is indexed as thin.
-          if (blogsResult.status === "fulfilled") {
-            initialBlogsData = blogsResult.value;
-          } else {
-            blogListingError = blogsResult.reason;
-          }
-        }
-      }
-    } catch { /* API error — fall through */ }
-    if (redirectTarget) permanentRedirect(redirectTarget);
-    if (blogListingError) throw blogListingError;
-    if (renderBlogCategory && categoryData && initialBlogsData) {
-      return (
-        <BlogCategoryView
-          slug={slug}
-          locale={locale}
-          category={categoryData}
-          subcategories={initialSubcategories}
-          blogsData={initialBlogsData}
-        />
-      );
-    }
+  if (resolved?.type === "blogCategory") {
+    const categoryData = resolved.data as BlogCategory;
+    /*
+     * The two reads BlogCategoryView used to make in the browser after
+     * hydration, made here instead — so the HTML carries the heading, the
+     * topic cards and the article cards rather than a spinner. Both need only
+     * what the resolver already returned, so they run together.
+     *
+     * The article list IS the page, so its request is what decides the
+     * response: a 404, a redirect, or the page of cards a crawler following
+     * the pager's <a href="?page=2"> gets in the HTML (readBlogListingPage).
+     * The topic cards are secondary: without them the page still has its
+     * heading, copy and articles, so a failure drops just that section.
+     */
+    const [initialSubcategories, { listing }] = await Promise.all([
+      getBlogSubCategoriesByCategory(categoryData._id, locale).then(
+        (subcategories) => (Array.isArray(subcategories) ? subcategories : []),
+        () => [] as BlogSubCategory[],
+      ),
+      readBlogListingPage(
+        resolved, slug, locale, query, readCategoryArticles(categoryData, resolved.correctSlug, locale),
+      ),
+    ]);
+    return (
+      <BlogCategoryView
+        slug={slug}
+        locale={locale}
+        category={categoryData}
+        subcategories={initialSubcategories}
+        blogsData={listing}
+      />
+    );
   }
 
   // ── 4. Blog Subcategory ────────────────────────────────────────────────────
-  {
-    let redirectTarget: string | null = null;
-    let renderBlogSubcategory = false;
-    let subcategoryData: BlogSubCategory | null = null;
-    let initialBlogsData: BlogListResponse | null = null;
-    let initialSiblingSubcategories: BlogSubCategory[] = [];
-    let blogListingError: unknown = null;
-    try {
-      if (resolved?.type === "blogSubcategory") {
-        if (resolved.correctSlug !== slug) {
-          redirectTarget = `/${locale}/${resolved.correctSlug}`;
-        } else {
-          const data = resolved.data as BlogSubCategory;
-          subcategoryData = data;
-          renderBlogSubcategory = true;
-
-          const categoryId = typeof data.category === "object"
-            ? data.category?._id
-            : data.category;
-          const baseSlug = typeof data.slug === "object"
-            ? data.slug?.en
-            : data.slug;
-
-          const [siblingsResult, blogsResult] = await Promise.allSettled([
-            categoryId
-              ? getBlogSubCategoriesByCategory(categoryId, locale)
-              : Promise.resolve([]),
-            getBlogsBySubCategory(baseSlug || slug, page, 9, locale),
-          ]);
-
-          if (siblingsResult.status === "fulfilled") {
-            initialSiblingSubcategories = siblingsResult.value;
-          }
-          if (blogsResult.status === "fulfilled") {
-            initialBlogsData = blogsResult.value;
-          } else {
-            blogListingError = blogsResult.reason;
-          }
-        }
-      }
-    } catch { /* API error — fall through */ }
-    if (redirectTarget) permanentRedirect(redirectTarget);
-    if (blogListingError) throw blogListingError;
-    if (renderBlogSubcategory && subcategoryData && initialBlogsData) {
-      return (
-        <BlogSubcategoryView
-          slug={slug}
-          locale={locale}
-          subcategory={subcategoryData}
-          blogsData={initialBlogsData}
-          siblingSubcategories={initialSiblingSubcategories}
-        />
-      );
-    }
+  if (resolved?.type === "blogSubcategory") {
+    const subcategoryData = resolved.data as BlogSubCategory;
+    const categoryId = typeof subcategoryData.category === "object"
+      ? subcategoryData.category?._id
+      : subcategoryData.category;
+    // As for the category: the sibling rail is secondary, the article list is
+    // the page.
+    const [initialSiblingSubcategories, { listing }] = await Promise.all([
+      categoryId
+        ? getBlogSubCategoriesByCategory(categoryId, locale).catch(() => [] as BlogSubCategory[])
+        : Promise.resolve([] as BlogSubCategory[]),
+      readBlogListingPage(
+        resolved, slug, locale, query, readTopicArticles(subcategoryData, resolved.correctSlug, locale),
+      ),
+    ]);
+    return (
+      <BlogSubcategoryView
+        slug={slug}
+        locale={locale}
+        subcategory={subcategoryData}
+        blogsData={listing}
+        siblingSubcategories={initialSiblingSubcategories}
+      />
+    );
   }
 
   // ── 5. Blog Post ───────────────────────────────────────────────────────────
@@ -880,14 +908,6 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
       const publicAuthorName = blogData.editorialAuthor?.name || getPublicAuthorName(blogData.author?.name);
       const publicAuthorSlug = blogData.editorialAuthor?.slug || (isEditorialAuthor(publicAuthorName) ? EDITORIAL_AUTHOR_SLUG : undefined);
       const publicAuthorUrl = publicAuthorSlug ? `${baseUrl}/${locale}/authors/${publicAuthorSlug}` : undefined;
-
-      const blogSubCat = blogData.subCategory;
-      const blogCat = blogSubCat?.category;
-      const blogCatName = blogCat && typeof blogCat === 'object' ? getLocalizedValue(blogCat.name, locale) : 'Blog';
-      const blogCatSlug = blogCat && typeof blogCat === 'object'
-        ? getStrictLocalizedSlug(blogCat.slug, locale as SupportedLocale)
-        : null;
-      const blogCatUrl = blogCatSlug ? `${baseUrl}/${locale}/${blogCatSlug}` : null;
 
       const blogJsonLd = {
         "@context": "https://schema.org",
@@ -923,40 +943,13 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
         },
       };
 
-      const blogBreadcrumbJsonLd = {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": `${baseUrl}/${locale}`,
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": blogCatName,
-            ...(blogCatUrl ? { "item": blogCatUrl } : {}),
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": blogTitle,
-            "item": `${baseUrl}/${locale}/${slug}`,
-          },
-        ],
-      };
-
+      // The BreadcrumbList is published by the trail in BlogHero, from the
+      // items it draws — not written out here a second time.
       return (
         <>
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: serializeJsonLd(blogJsonLd) }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: serializeJsonLd(blogBreadcrumbJsonLd) }}
           />
           <BlogDetailView slug={slug} locale={locale} initialBlog={blogData} />
         </>
@@ -965,48 +958,29 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   }
 
   // ── 5.5. Destination ──────────────────────────────────────────────────
-  {
-    let redirectTarget: string | null = null;
-    let destinationData: Destination | null = null;
-    let initialBlogsData: DestinationBlogsResponse | null = null;
-    let blogListingError: unknown = null;
-    try {
-      if (resolved?.type === "destination") {
-        if (resolved.correctSlug !== slug) {
-          redirectTarget = `/${locale}/${resolved.correctSlug}`;
-        } else {
-          /*
-           * DestinationView used to read the destination and its article list
-           * in the browser after hydration, so the HTML carried a spinner. The
-           * destination is the entity the resolver already read; only the
-           * article list is fetched here, for this route's own parse of ?page=,
-           * so a crawler following the pager's <a href="?page=2"> gets page 2's
-           * cards in the HTML.
-           */
-          destinationData = resolved.data as Destination;
-          try {
-            initialBlogsData = await getBlogsByDestination(destinationData._id, page, 9, locale);
-          } catch (error) {
-            // Rendering without the article list would answer a 200 missing
-            // this page's cards and links; a 500 is retried by a crawler, as
-            // the blog listings do.
-            blogListingError = error;
-          }
-        }
-      }
-    } catch { /* API error — fall through */ }
-    if (redirectTarget) permanentRedirect(redirectTarget);
-    if (blogListingError) throw blogListingError;
-    if (destinationData && initialBlogsData) {
-      return (
-        <DestinationView
-          slug={slug}
-          locale={locale}
-          destination={destinationData}
-          blogsData={initialBlogsData}
-        />
-      );
-    }
+  if (resolved?.type === "destination") {
+    /*
+     * DestinationView used to read the destination and its article list in
+     * the browser after hydration, so the HTML carried a spinner. The
+     * destination is the entity the resolver already read; only the article
+     * list is fetched here, for the page this URL asks for, so a crawler
+     * following the pager's <a href="?page=2"> gets page 2's cards in the
+     * HTML. The same URL contract as the blog listings applies: a page the
+     * destination does not have is a 404, not the landing page without its
+     * article section.
+     */
+    const destinationData = resolved.data as Destination;
+    const { listing } = await readBlogListingPage(
+      resolved, slug, locale, query, readDestinationArticles(destinationData, locale),
+    );
+    return (
+      <DestinationView
+        slug={slug}
+        locale={locale}
+        destination={destinationData}
+        blogsData={listing}
+      />
+    );
   }
 
   // ── 6. Tour ───────────────────────────────────────────────────────────────
@@ -1031,25 +1005,14 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
       const name = getLocalizedValue(tour.heading, locale) || getLocalizedValue(tour.name, locale) || "Tour Details";
 
       // ── Breadcrumbs — flat URLs for category and subcategory ────────────────
-      const subcategory = tour.subcategory;
-      const category = subcategory?.category;
-      const breadcrumbs: { label: string; href?: string }[] = [];
-
-      const catSlug = getStrictLocalizedSlug(category?.slug, locale as SupportedLocale);
-      if (catSlug && (category?.name || category?.shortName)) {
-        breadcrumbs.push({
-          label: getDisplayName(category, locale),
-          href: `/${locale}/${catSlug}`,
-        });
-      }
-      const subSlug = getStrictLocalizedSlug(subcategory?.slug, locale as SupportedLocale);
-      if (subSlug && (subcategory?.name || subcategory?.shortName)) {
-        breadcrumbs.push({
-          label: getDisplayName(subcategory, locale),
-          href: `/${locale}/${subSlug}`,
-        });
-      }
-      breadcrumbs.push({ label: name as string });
+      // One array feeds both the visible trail and the BreadcrumbList below.
+      const breadcrumbs = buildTourBreadcrumbs(tour, locale, name as string);
+      // The visible trail stops at the tour's parents. Its last entry is the
+      // tour's own name, which the <h1> prints directly underneath — as a
+      // crumb it was the same long sentence twice in a row. The schema keeps
+      // the full trail: a BreadcrumbList ends with the page it is on.
+      const visibleBreadcrumbs = breadcrumbs.slice(0, -1);
+      const { t: tCommon } = await getServerTranslation(locale, "common");
 
       // ── JSON-LD @graph — fully dynamic, no fake reviews/ratings ────────────
       // Currency defaults to USD at SSR time (localStorage unavailable server-side).
@@ -1070,6 +1033,8 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
           // email: add real contact email when available
         },
         breadcrumbs,
+        // The same word the visible trail prints ("Startseite", "Inicio"…).
+        homeLabel: tCommon("home"),
       });
 
       return (
@@ -1085,7 +1050,11 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
             <PageHeader
               title={name || "Tour Details"}
               subTitle={getLocalizedValue(tour.headingDescription, locale)}
-              breadcrumbs={breadcrumbs}
+              breadcrumbs={visibleBreadcrumbs}
+              // The @graph above already carries this trail's BreadcrumbList,
+              // and its WebPage points at it by @id. A second list from the
+              // header would give the page two competing trails.
+              breadcrumbJsonLd={false}
               bgImage={
                 // The site's own stand-in, not a hotlinked Google Images
                 // thumbnail. That URL sat here as the fallback: it leaked a

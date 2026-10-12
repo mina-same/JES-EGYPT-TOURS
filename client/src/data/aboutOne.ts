@@ -6,7 +6,7 @@ import { PHONE_DISPLAY } from "@/config/contact";
 // This file keeps only non-translatable config: links, icons, phone, images.
 export const aboutOneData = {
   button: {
-    link: "tours",
+    link: "search",
     callIcon: "fab fa-whatsapp",
     phone: PHONE_DISPLAY,
   },

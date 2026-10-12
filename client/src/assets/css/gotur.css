@@ -2146,50 +2146,6 @@ body.megamenu-popup-active .mobile-nav__content {
   }
 }
 
-/******* Breadcrumb *********/
-.gotur-breadcrumb {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  margin: 0;
-}
-.gotur-breadcrumb li {
-  text-transform: capitalize;
-  display: flex;
-  align-items: center;
-  color: var(--gotur-white, #fff);
-  font-style: normal;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 170%;
-}
-.gotur-breadcrumb li:not(:last-of-type)::after {
-  content: "\e917";
-  position: relative;
-  font-family: "icomoon" !important;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: normal;
-  margin-top: 3px;
-  top: 0px;
-  margin-left: 10px;
-  margin-right: 10px;
-}
-.gotur-breadcrumb li a {
-  color: inherit;
-}
-.gotur-breadcrumb li span {
-  color: inherit;
-  display: inline-flex;
-  line-height: 1em;
-  font-weight: 400;
-  color: var(--gotur-primary, #f7921e);
-}
-.gotur-breadcrumb li a:hover {
-  color: var(--gotur-primary, #f7921e);
-}
-
 /*--------------------------------------------------------------
 # Form
 --------------------------------------------------------------*/
@@ -2813,9 +2769,9 @@ body.megamenu-popup-active .mobile-nav__content {
   overflow: hidden;
   height: 895px;
 }
-.main-slider-four__slider-placeholder > div:not(:first-child) {
-  display: none;
-}
+/* (Slides 2..n of the placeholder are no longer `display: none` here: all
+   slides share one grid cell before and after init — see "One height for
+   every slide" in custom.css.) */
 @media (max-width: 767px) {
   .main-slider-four {
     min-height: 748px;

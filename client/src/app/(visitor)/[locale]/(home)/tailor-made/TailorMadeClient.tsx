@@ -315,6 +315,7 @@ const TailorMadePage: React.FC = () => {
       <PageHeader 
         title={t('pageTitle')}
         subTitle={t('pageSubTitle')}
+        breadcrumbLabelKey="pageNames.tailorMade"
       />
 
       <section className="tailor-made-section">

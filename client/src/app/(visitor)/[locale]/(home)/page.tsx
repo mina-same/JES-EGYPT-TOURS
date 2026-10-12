@@ -18,6 +18,7 @@ import ClientCarousel from "@/components/sections/ClientCarousel/ClientCarousel"
 import HomeFAQ from "@/components/sections/FaqSection/HomeFAQ";
 import HomeIntro, { type HomeIntroContent } from "@/components/sections/HomeIntro/HomeIntro";
 import { API_URL } from "@/config/api";
+import { getTestimonialsForLocale } from "@/data/testimonialsTwoData";
 import { getFeaturedBlogs, type BlogPost } from "@/lib/api/blog";
 import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
 import { getServerTranslation } from "@/lib/i18n-server";
@@ -132,14 +133,26 @@ async function getInitialSliders(locale: string): Promise<SliderItem[]> {
   }
 }
 
-async function getInitialSliderPromo(locale: string): Promise<SliderUnderPromo | null> {
+/**
+ * `null` and `undefined` are different answers here, and MainSliderFour acts
+ * on the difference.
+ *
+ * `null` is the API saying there is no promo to show (none saved, or switched
+ * off). `undefined` is this fetch failing. Both used to come back as `null`,
+ * and the hero treats a missing promo as "the server gave me nothing, ask
+ * again" — so with the promo switched off, every homepage view sent a second
+ * request from the browser for an answer the server already had.
+ */
+async function getInitialSliderPromo(
+  locale: string
+): Promise<SliderUnderPromo | null | undefined> {
   try {
     return await sliderService.getPublicSliderPromo(locale, {
       revalidate: HOME_CACHE_SECONDS,
       tags: ["slider"],
     });
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -223,8 +236,9 @@ async function getInitialHomeFaqs(locale: string): Promise<FAQ[]> {
  * keyword-dense prose on the homepage — never reached the server-rendered
  * HTML, and the section popped in after hydration at a different height.
  *
- * A plain fetch, not generalContentAPI: that helper is built on axios, which
- * cannot participate in Next's Data Cache at all. The response is the raw
+ * A plain fetch, not generalContentAPI: that helper is the browser's read
+ * (the visitor's cookies and X-Locale, no revalidation), which Next's Data
+ * Cache cannot share between visitors. The response is the raw
  * all-locales document, so one cache entry serves every language.
  */
 async function getInitialHomeIntro(): Promise<HomeIntroContent | null> {
@@ -279,7 +293,7 @@ export default async function HomeThree({
       <OfferTwo />
       <OfferOne />
       <DestinationCarouselTwo />
-      <TestimonialsTwo />
+      <TestimonialsTwo testimonials={getTestimonialsForLocale(locale)} />
       <VideoReviewsTwo reviews={initialVideoReviews} />
       <LazyInstagramSection />
       <HomeFAQ initialFaqs={initialFaqs} />

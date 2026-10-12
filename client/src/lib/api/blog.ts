@@ -89,11 +89,24 @@ export interface ImageObject {
   alt?: string | ILocalizedString;
 }
 
+/** An article's destination as GET /blog/posts/slug/:slug populates it. */
+export interface BlogPostDestination {
+  _id: string;
+  name: string | ILocalizedString;
+  shortName?: string | ILocalizedString;
+  slug: ILocalizedString;
+}
+
 export interface BlogPost {
   _id: string;
   title: ILocalizedString;
   slug: ILocalizedString;
   subCategory: BlogSubCategory;
+  /**
+   * Where the article is about. Populated by the article endpoint, and only
+   * with a destination that has a public page; the bare id or null elsewhere.
+   */
+  destination?: BlogPostDestination | string | null;
   author: {
     _id: string;
     name: string;
@@ -236,34 +249,10 @@ export interface SingleBlogResponse {
   data: BlogPost;
 }
 
-export interface CategoriesResponse {
-  success: boolean;
-  count: number;
-  data: BlogCategory[];
-}
-
 export interface SubCategoriesResponse {
   success: boolean;
   count: number;
   data: BlogSubCategory[];
-}
-
-// Fetch all categories
-/**
- * The Blogs Hub's category directory. The API returns the records raw, all
- * four languages, so one entry serves every locale. Tagged `blog`, which
- * BlogCategory and BlogSubCategory clear on every write (each category
- * carries its subcategory count).
- */
-export async function getCategories(): Promise<BlogCategory[]> {
-  const res = await fetch(`${API_URL}/blog/categories`, blogCacheOptions(BLOG_ENTITY_TTL, [BLOG_TAG]));
-  
-  if (!res.ok) {
-    throw new Error('Failed to fetch categories');
-  }
-  
-  const json: CategoriesResponse = await res.json();
-  return json.data;
 }
 
 /**
@@ -325,8 +314,8 @@ export async function getCategoryBySlug(slug: string, locale?: string): Promise<
 
 // Fetch subcategories by category ID
 /**
- * A category's topics: the Browse by Topic cards, a subcategory page's
- * siblings and the Blogs Hub's topic lists. Tagged `blog`, which
+ * A category's topics: the Browse by Topic cards and a subcategory page's
+ * siblings. Tagged `blog`, which
  * BlogSubCategory clears on every write, so a renamed, added or removed topic
  * shows on the next request rather than up to an hour later.
  *
@@ -388,10 +377,11 @@ export async function getSubCategoryBySlug(slug: string, locale?: string): Promi
 
 // Fetch all blogs with pagination
 /**
- * The all-articles listing (/blogs/all) on the server, and the search page in
- * the browser. Stored like the other listings only in its canonical shape: a
- * page within the bound, no tag and no search. A tag or a search term is free
- * text, so each distinct value would be a new cache entry; those go to the API.
+ * One page of published articles across every category — the search page reads
+ * it in the browser. A server-side read is stored like the other listings only
+ * in its canonical shape: a page within the bound, no tag and no search. A tag
+ * or a search term is free text, so each distinct value would be a new cache
+ * entry; those go to the API.
  */
 export async function getAllBlogs(
   pageOrOptions:

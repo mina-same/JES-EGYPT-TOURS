@@ -5,10 +5,16 @@ import BlogCategory from '../models/BlogCategory';
 import BlogSubCategory from '../models/BlogSubCategory';
 import User from '../models/User';
 import EditorialAuthor from '../models/EditorialAuthor';
+import { publicDestinationPopulate } from '../models/Destination';
 import {
   parseFutureSchedule,
   PublishingValidationError,
 } from '../utils/publishing';
+import {
+  ARTICLE_DESTINATION_FIELDS,
+  assertPublishableClassification,
+  normalizeBlogClassification,
+} from '../utils/blogClassification';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { localizePreservingSlugs } from '../utils/localize';
 import { narrowBlocksToLocale } from '../utils/blogBlocks';
@@ -19,6 +25,7 @@ import {
   blogCardPopulate,
 } from '../utils/blogCardPopulate';
 import { toPublicBlogComments } from '../utils/publicBlogComments';
+import { readPublicPagination } from '../utils/publicPagination';
 
 const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
   const searchRegex = createSearchRegex(search);
@@ -115,8 +122,8 @@ export const getAllBlogs = async (
       .populate('category', 'name slug')
       .populate('subCategory', 'name slug')
       // Article bodies are for the article page, never for a list of cards.
-      // Shipping them made /blogs/all a 984 KB page — four languages of every
-      // content block for nine articles nobody had opened yet.
+      // Shipping them made a nine-card listing a 984 KB page — four languages
+      // of every content block for nine articles nobody had opened yet.
       .select('-comments -contentBlocks')
       .sort('-publishedAt')
       .skip(skip)
@@ -331,8 +338,18 @@ export const getBlogBySlug = async (
       // byline and the JSON-LD author read the name, nothing reads the email.
       .populate('author', 'name')
       .populate('editorialAuthor')
-      .populate('category', 'name slug')
-      .populate('subCategory', 'name slug')
+      // The breadcrumb reads the sub-category's OWN category, so the article's
+      // trail matches the one on the sub-category page; `isActive` lets it
+      // drop a switched-off parent, whose page answers 404, instead of linking.
+      .populate('category', 'name slug isActive')
+      .populate({
+        path: 'subCategory',
+        select: 'name slug category isActive',
+        populate: { path: 'category', select: 'name slug isActive' },
+      })
+      // The article names its destination and links to that page: only what
+      // the link needs, and only a destination that has a public page.
+      .populate(publicDestinationPopulate('destination', ARTICLE_DESTINATION_FIELDS))
       // Related posts are drawn with the same card as everywhere else, so they
       // are populated with the same field set — see blogCardPopulate.
       .populate(blogCardPopulate('relatedPosts'))
@@ -581,6 +598,7 @@ export const createBlog = async (
     }
     
     stripEmptyLocalizedSlugs(body.slug);
+    normalizeBlogClassification(body);
 
     if (body.status === 'scheduled') {
       body.scheduledAt = parseFutureSchedule(body.scheduledAt);
@@ -592,6 +610,11 @@ export const createBlog = async (
       } else {
         delete body.publishedAt;
       }
+    }
+
+    // Publish guard: a draft may still be unclassified, a public article not.
+    if (body.status === 'published' || body.status === 'scheduled') {
+      await assertPublishableClassification(body);
     }
 
     const blog = await Blog.create(body);
@@ -669,7 +692,7 @@ export const updateBlog = async (
 
     const existingBlog = await Blog.findById(
       req.params.id,
-      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status scheduledAt publishedAt'
+      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status scheduledAt publishedAt category subCategory destination'
     ).lean();
     if (!existingBlog) {
       res.status(404).json({ success: false, error: 'Blog post not found' });
@@ -704,6 +727,7 @@ export const updateBlog = async (
     }
 
     stripEmptyLocalizedSlugs(body.slug);
+    normalizeBlogClassification(body);
 
     // Complete OG from meta, language by language (EN←EN, DE←DE, …).
     // findByIdAndUpdate skips the model's pre-save hook, so the same
@@ -737,6 +761,17 @@ export const updateBlog = async (
     const ex: any = existingBlog;
     const targetStatus = body.status ?? ex.status;
     const fieldsToUnset: Record<string, 1> = {};
+
+    // Publish guard, on the classification the article will have after this
+    // save: what the update sets, and what it leaves as stored. It covers a
+    // draft being published and a published article being edited alike.
+    if (targetStatus === 'published' || targetStatus === 'scheduled') {
+      await assertPublishableClassification({
+        category: 'category' in body ? body.category : ex.category,
+        subCategory: 'subCategory' in body ? body.subCategory : ex.subCategory,
+        destination: 'destination' in body ? body.destination : ex.destination,
+      });
+    }
 
     if (targetStatus === 'scheduled') {
       body.scheduledAt = parseFutureSchedule(body.scheduledAt ?? ex.scheduledAt);
@@ -1030,6 +1065,8 @@ export const publishBlog = async (
       return;
     }
 
+    await assertPublishableClassification(blog);
+
     blog.status = 'published';
     blog.publishedAt = new Date();
     blog.scheduledAt = undefined;
@@ -1043,6 +1080,13 @@ export const publishBlog = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (error instanceof PublishingValidationError) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+      return;
+    }
     console.error('Error publishing blog:', error);
     res.status(500).json({
       success: false,
@@ -1166,7 +1210,9 @@ export const getBlogsByCategory = async (
 ): Promise<void> => {
   try {
     const { slug } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const pagination = readPublicPagination(req.query, res, 10);
+    if (!pagination) return;
+    const { page, limit, skip } = pagination;
 
     // 1. Find category by slug — only its id is used below.
     const category = await BlogCategory.findOne({
@@ -1189,10 +1235,9 @@ export const getBlogsByCategory = async (
     }
 
     // 2. Find blogs in this category — as cards, not articles.
-    const skip = (Number(page) - 1) * Number(limit);
     const query = { category: category._id, status: 'published' };
 
-    const [blogs, total] = await findListingPage(query, skip, Number(limit));
+    const [blogs, total] = await findListingPage(query, skip, limit);
 
     res.status(200).json({
       success: true,
@@ -1200,10 +1245,10 @@ export const getBlogsByCategory = async (
       // Localized, with `slug` kept raw so the per-locale card links resolve.
       data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         total,
-        pages: Math.ceil(total / Number(limit)),
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error: any) {
@@ -1227,7 +1272,9 @@ export const getBlogsBySubCategory = async (
 ): Promise<void> => {
   try {
     const { slug } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const pagination = readPublicPagination(req.query, res, 10);
+    if (!pagination) return;
+    const { page, limit, skip } = pagination;
 
     // 1. Find subcategory by slug
     // Note: Since subcategory slugs might not be unique across categories, we typically search all
@@ -1252,10 +1299,9 @@ export const getBlogsBySubCategory = async (
     }
 
     // 2. Find blogs in this subcategory — as cards, not articles.
-    const skip = (Number(page) - 1) * Number(limit);
     const query = { subCategory: subCategory._id, status: 'published' };
 
-    const [blogs, total] = await findListingPage(query, skip, Number(limit));
+    const [blogs, total] = await findListingPage(query, skip, limit);
 
     res.status(200).json({
       success: true,
@@ -1263,10 +1309,10 @@ export const getBlogsBySubCategory = async (
       // Localized, with `slug` kept raw so the per-locale card links resolve.
       data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         total,
-        pages: Math.ceil(total / Number(limit)),
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error: any) {

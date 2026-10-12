@@ -5,7 +5,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { BlogPost, formatBlogDate } from "@/lib/api/blog";
 import { Col, Container, Row } from "react-bootstrap";
-import BlogSidebar from "@/components/common/BlogSidebar/BlogSidebar";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
@@ -18,6 +17,7 @@ import { API_URL } from "@/config/api";
 import TourCard from "@/components/common/TourCard/TourCard";
 import { visibleBlocksFor } from "@/lib/blogBlocks";
 import { EDITORIAL_AUTHOR_SLUG, resolveBlogByline } from "@/lib/blog/author";
+import { getArticleDestinationLink } from "@/lib/blog/destinationLink";
 import { useWishlist } from "@/contexts/WishlistContext";
 import VideoModal from "@/components/common/VideoModal/VideoModal";
 import BlogImage from "@/components/common/BlogImage/BlogImage";
@@ -30,7 +30,7 @@ import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
 interface DynamicBlogDetailsProps {
   blog: BlogPost;
-  showSidebar?: 'left' | 'right' | 'none';
+  showSidebar?: 'right' | 'none';
 }
 
 const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({ 
@@ -39,7 +39,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
 }) => {
   const { t, i18n } = useTranslation("blogs");
   const locale = (i18n.language || 'en');
-  const blogsPath = `/${locale}/blogs`;
 
   const [scrollProgress, setScrollProgress] = useState(0);
   const [relatedTours, setRelatedTours] = useState<any[]>([]);
@@ -114,6 +113,10 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
   const editorialAuthorHref = byline.link || `/${locale}/authors/${EDITORIAL_AUTHOR_SLUG}`;
   const authorRole = getLocalizedValue(selectedAuthor?.role, locale);
   const authorBio = getLocalizedValue(selectedAuthor?.bio, locale);
+  // Where the article is about: a link beside the byline, not a step in the
+  // breadcrumb — the trail runs through the topic, and a destination is not
+  // that topic's child.
+  const destinationLink = getArticleDestinationLink(blog.destination, locale);
 
   /*
    * The byline avatar is `avatar`, NOT `image`.
@@ -548,12 +551,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
       />
       <Container>
         <Row className='justify-content-center'>
-          {showSidebar === 'left' && (
-            <Col lg={4}>
-              <BlogSidebar />
-            </Col>
-          )}
-          
           <Col lg={8}>
             <div className='blog-details'>
               {/* Blog Image */}
@@ -592,6 +589,20 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                       <i className='icon-calendar' style={{ color: '#b79c5c' }}></i>
                       <span>{new Date(blog.publishedAt || blog.createdAt).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
+                    {destinationLink && (
+                      <>
+                        <div className="blog-meta-bar__divider" />
+                        <div className="blog-meta-bar__item">
+                          <i className='icon-location' style={{ color: '#b79c5c' }}></i>
+                          <span>
+                            {t('destinationLabel')}:{" "}
+                            <Link href={destinationLink.href} className="blog-meta-bar__destination-link">
+                              <strong>{destinationLink.name}</strong>
+                            </Link>
+                          </span>
+                        </div>
+                      </>
+                    )}
                     {approvedComments.length > 0 && (
                       <>
                         <div className="blog-meta-bar__divider" />
@@ -649,28 +660,6 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
                 </div>
               </div>
 
-              {/* Blog Tags */}
-              {getLocalizedValue(blog.tags) && (getLocalizedValue(blog.tags) as any).length > 0 && (
-                <div className='blog-details__meta'>
-                  <div className='blog-details__categories'>
-                    <h4 className='blog-details__meta__title'>{t('tags')}</h4>
-                    <div className='blog-details__categories__box'>
-                      {(getLocalizedValue(blog.tags) as string[]).map((tag, index) => (
-                        <Link
-                          // /blogs ignores ?tag= — /blogs/all is the filtering route.
-                          href={`${blogsPath}/all?tag=${encodeURIComponent(tag)}`}
-                          key={index}
-                          className='blog-details__categories__btn gotur-btn'
-                        >
-                          {tag}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-              )}
-
               {/* Comments */}
               {blog.commentsEnabled && approvedComments.length > 0 && (
                 <div className='comments-one'>
@@ -722,12 +711,9 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           {showSidebar === 'right' && (
             <Col lg={4}>
               <div className="blog-sidebar-wrapper">
-                {/* Sticky Sidebar — TOC and Tags stay on screen as you scroll */}
+                {/* Sticky Sidebar — the TOC stays on screen as you scroll */}
                 <div className="blog-toc-sticky">
                   <BlogTOC contentSelector="#blog-content" />
-                  <div className="mt-4">
-                    <BlogSidebar />
-                  </div>
                 </div>
               </div>
             </Col>
@@ -797,13 +783,15 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
         }
 
         .blog-author-box__name-link,
-        .blog-meta-bar__author-link {
+        .blog-meta-bar__author-link,
+        .blog-meta-bar__destination-link {
           color: inherit;
           text-decoration: none;
         }
 
         .blog-author-box__name-link:hover,
-        .blog-meta-bar__author-link:hover {
+        .blog-meta-bar__author-link:hover,
+        .blog-meta-bar__destination-link:hover {
           color: inherit;
           text-decoration: underline;
         }
@@ -926,82 +914,47 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           overflow-wrap: break-word;
         }
 
-        /* ── Unordered lists ──────────────────────────── */
-        .blog-details-card__text ul {
-          list-style: none;
-          padding-left: 0;
-          margin: 0.8rem 0 1.8rem;
-        }
-
-        /* Hanging indent via an absolutely-positioned marker — NOT flex on the
-           <li>. Flex would turn every inline run (text, <strong>, <a>) into a
-           separate flex item that wraps on its own narrow column, shattering
-           any line that mixes bold/links with plain text. */
-        .blog-details-card__text ul > li {
-          position: relative;
-          padding-left: 17px;
-          font-size: 1.08rem;
-          line-height: 1.75;
-          color: #2d3436;
-          margin-bottom: 0.65rem;
-          overflow-wrap: break-word;
-        }
-
-        .blog-details-card__text ul > li::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          top: 0.54em;
-          width: 7px;
-          height: 7px;
-          background: #c7a24a;
-          border-radius: 50%;
-        }
-
-        /* ── Ordered lists ───────────────────────────── */
+        /* Use native markers for both legacy HTML and Quill's data-list items.
+           One marker per item; native numbering preserves start/value/reversed. */
+        .blog-details-card__text ul,
         .blog-details-card__text ol {
-          list-style: none;
-          padding-left: 0;
+          padding-inline-start: 1.8em;
           margin: 0.8rem 0 1.8rem;
-          counter-reset: article-list;
+          list-style-position: outside;
         }
 
+        .blog-details-card__text ul > li,
         .blog-details-card__text ol > li {
-          position: relative;
-          padding-left: calc(1.6em + 10px);
+          display: list-item;
+          padding-inline-start: 0.35em;
           font-size: 1.08rem;
           line-height: 1.75;
           color: #2d3436;
           margin-bottom: 0.65rem;
-          counter-increment: article-list;
           overflow-wrap: break-word;
         }
 
+        .blog-details-card__text ul > li { list-style-type: disc; }
+        .blog-details-card__text ol > li { list-style-type: decimal; }
+        .blog-details-card__text li[data-list="bullet"] { list-style-type: disc !important; }
+        .blog-details-card__text li[data-list="ordered"] { list-style-type: decimal !important; }
+
+        .blog-details-card__text ul > li::before,
         .blog-details-card__text ol > li::before {
-          content: counter(article-list) ".";
-          position: absolute;
-          left: 0;
-          top: 0;
-          min-width: 1.6em;
-          font-weight: 700;
-          font-size: 0.95em;
+          content: none;
+        }
+
+        .blog-details-card__text li::marker {
           color: #c7a24a;
-          line-height: 1.75;
+          font-weight: 700;
         }
 
-        /* ── Nested lists second level ───────────────── */
-        .blog-details-card__text ul ul,
-        .blog-details-card__text ol ul {
-          margin: 0.5rem 0 0.5rem 0.5rem;
+        .blog-details-card__text li > ul,
+        .blog-details-card__text li > ol {
+          margin-block: 0.5rem;
         }
 
-        .blog-details-card__text ul ul > li::before {
-          width: 5px;
-          height: 5px;
-          background: transparent;
-          border: 1.5px solid #c7a24a;
-          top: 0.58em;
-        }
+        .blog-details-card__text ul ul > li:not([data-list]) { list-style-type: circle; }
 
         .blog-details-page .blog-details-card__content__inner .blog-details-card__text h2.blog-details-card__title {
           display: block;
@@ -1025,7 +978,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           margin-top: 12px;
         }
 
-        .blog-details-card__text h3 {
+        .blog-details-card__text h2:not(.blog-details-card__title),
+        .blog-details-card__text h3,
+        .blog-details-card__text h4,
+        .blog-details-card__text h5,
+        .blog-details-card__text h6 {
           position: relative;
           font-size: 21px;
           font-weight: 700;
@@ -1036,7 +993,11 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           padding-left: 16px;
         }
 
-        .blog-details-card__text h3::before {
+        .blog-details-card__text h2:not(.blog-details-card__title)::before,
+        .blog-details-card__text h3::before,
+        .blog-details-card__text h4::before,
+        .blog-details-card__text h5::before,
+        .blog-details-card__text h6::before {
           content: "";
           position: absolute;
           left: 0;
@@ -1047,8 +1008,21 @@ const DynamicBlogDetails: React.FC<DynamicBlogDetailsProps> = ({
           border-radius: 999px;
         }
 
+        .blog-details-card__text h2:not(.blog-details-card__title) { font-size: 26px; }
+        .blog-details-card__text h4 { font-size: 19px; }
+        .blog-details-card__text h5,
+        .blog-details-card__text h6 { font-size: 17px; }
+
+        .blog-details-card__text blockquote {
+          margin-block: 1.25em;
+          padding-inline-start: 16px;
+          border-inline-start: 4px solid rgba(183, 156, 92, 0.35);
+          text-transform: none;
+        }
+
         /* Elegant Pull Quotes */
         .blog-details__inner__text-one {
+          text-transform: none;
           font-style: italic;
           font-size: 1.4rem !important;
           background-color: #fdfaf3 !important;

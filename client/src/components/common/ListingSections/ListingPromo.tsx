@@ -7,6 +7,7 @@ import { getLocalizedValue } from '@/lib/localize';
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
 import { aboutOneData } from "@/data/aboutOne";
 import { useTranslation } from "react-i18next";
+import "./ListingSections.css";
 
 interface ListingPromoProps {
   title?: any;
@@ -85,7 +86,7 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
   const shouldShowReadMore = promoDesc && promoDesc.length > 800;
 
   return (
-    <section className={`about-one section-space mt-5 ${extraclass}`} id='about' style={{ background: '#f8f9fa' }}>
+    <section className={`about-one section-space mt-5 listing-promo ${extraclass}`} id='about' style={{ background: '#f8f9fa' }}>
       <Container>
         <Row className='gutter-y-40'>
           <Col lg={6}>
@@ -144,153 +145,6 @@ const ListingPromo: React.FC<ListingPromoProps> = ({
       <div className='about-one__element-one pointer-events-none'>
         <Image src={shape1} alt='element' width={293} height={155} />
       </div>
-      <style jsx global>{`
-        .about-one {
-          position: relative;
-          overflow: hidden;
-        }
-        .about-one__element-one, .about-one__element-two {
-          display: block !important;
-          z-index: 0;
-        }
-        .about-one__element-one img {
-          filter: brightness(0) grayscale(1);
-          opacity: 0.1; /* Usually these shapes look better with low opacity if black */
-        }
-        @media (max-width: 991px) {
-          .about-one {
-            padding-top: 60px;
-            padding-bottom: 60px;
-          }
-          .about-one__right {
-            text-align: center;
-          }
-          .about-one__right .sec-title {
-            justify-content: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-          }
-          .about-one__right .sec-title__title {
-            margin-left: auto;
-            margin-right: auto;
-          }
-          .about-one__top__text {
-            text-align: center;
-          }
-          .about-one__right .flex.justify-start {
-            justify-content: center !important;
-          }
-          .about-one__feature-list {
-            text-align: left;
-            display: inline-block;
-          }
-          .about-one__feature-vestion {
-            text-align: left;
-          }
-          .about-one__button {
-            justify-content: center;
-            align-items: center;
-          }
-        }
-        
-        /* Ensure images and links in description are responsive and styled */
-        .about-one__top__text img {
-          max-width: 100%;
-          height: auto;
-          border-radius: 12px;
-          margin: 1.5rem 0;
-        }
-
-        .about-one__top__text {
-          font-size: 16px;
-          line-height: 1.8;
-          color: #666;
-          scrollbar-width: thin;
-          scrollbar-color: #b79c5c #f1f1f1;
-        }
-
-        .about-one__top__text.is-expanded {
-          max-height: 400px !important;
-          overflow-y: auto !important;
-          padding-right: 15px;
-        }
-
-        .about-one__top__text.is-collapsed {
-          max-height: 250px !important;
-          overflow-y: hidden !important;
-          padding-right: 0;
-        }
-
-        .about-one__top__text a {
-            color: #b79c5c !important;
-            text-decoration: underline !important;
-            font-weight: 600 !important;
-            transition: color 0.3s ease !important;
-        }
-
-        .about-one__top__text a:hover {
-            color: #1d231f !important;
-            text-decoration: none !important;
-        }
-
-        .about-one__top__text h1, 
-        .about-one__top__text h2, 
-        .about-one__top__text h3, 
-        .about-one__top__text h4, 
-        .about-one__top__text h5, 
-        .about-one__top__text h6 {
-          margin-top: 1.5rem;
-          margin-bottom: 1rem;
-          color: #1d231f;
-          font-weight: 700;
-        }
-
-        .about-one__top__text p {
-          margin-bottom: 1.25rem;
-        }
-
-        .about-one__top__text ul, 
-        .about-one__top__text ol {
-          margin-bottom: 1.5rem;
-          padding-left: 1.5rem;
-          list-style-position: outside;
-        }
-
-        .about-one__top__text ul {
-          list-style-type: disc;
-        }
-
-        .about-one__top__text ol {
-          list-style-type: decimal;
-        }
-
-        .about-one__top__text li {
-          margin-bottom: 0.5rem;
-        }
-
-        .about-one__top__text strong, 
-        .about-one__top__text b {
-          color: #1d231f;
-          font-weight: 700;
-        }
-
-        /* Custom Scrollbar for expanded text */
-        .about-one__top__text::-webkit-scrollbar {
-          width: 5px;
-        }
-        .about-one__top__text::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        .about-one__top__text::-webkit-scrollbar-thumb {
-          background: #b79c5c;
-          border-radius: 10px;
-        }
-        .about-one__top__text::-webkit-scrollbar-thumb:hover {
-          background: #1d231f;
-        }
-      `}</style>
     </section>
   );
 };

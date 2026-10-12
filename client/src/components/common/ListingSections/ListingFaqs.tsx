@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import faqSidebarImage from "@/assets/images/resources/faq-sidebar.png";
 import FaqAccordion from '@/components/common/Faq/FaqAccordion';
+import './ListingSections.css';
 
 interface FAQ {
   question: any;
@@ -33,7 +34,7 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
   const sidebarImageLabel = t('sidebarTitle');
 
   return (
-    <section className="faq-page section-space-top section-space-bottom" style={style}>
+    <section className="faq-page section-space-top section-space-bottom listing-faqs" style={style}>
       <Container>
         <div className="sec-title text-center mb-5">
           <h2 className="sec-title__title">{displayTitle}</h2>
@@ -85,20 +86,6 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
           </Col>
         </Row>
       </Container>
-      <style jsx global>{`
-        @media (max-width: 991px) {
-          .faq-page { padding: 60px 0; }
-          .faq-page__sidebar { margin-bottom: 40px; }
-          .faq-page__sidebar__cta { max-width: 400px; margin: 0 auto; }
-          .sec-title__title { font-size: 28px !important; }
-        }
-        @media (max-width: 575px) {
-          .faq-question-title { font-size: 15px !important; font-weight: 700 !important; }
-          .faq-icon-box { display: none !important; }
-          .faq-header-content { gap: 10px !important; }
-          .faq-accordion .accordion-button { padding: 15px !important; }
-        }
-      `}</style>
     </section>
   );
 };

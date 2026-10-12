@@ -74,10 +74,6 @@ export interface BlogFormData {
   ogImage?: string;
   ogType?: string;
   focusKeyword?: ILocalizedString;
-  breadcrumbs?: {
-    name: ILocalizedString;
-    url: string;
-  }[];
   relatedPosts?: string[];
   relatedTours?: string[];
   category?: string;

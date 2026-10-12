@@ -34,7 +34,9 @@ const FooterOne: React.FC = () => {
   const renderLinks = (links: FooterLink[]) =>
     links.map((item) => (
       <li key={item.translationKey}>
-        <Link href={localizeInternalUrl(item.href, locale)}>{t(item.translationKey)}</Link>
+        <Link href={item.hrefByLocale ? item.hrefByLocale[locale] : localizeInternalUrl(item.href, locale)}>
+          {t(item.translationKey)}
+        </Link>
       </li>
     ));
 

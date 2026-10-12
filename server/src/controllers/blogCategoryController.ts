@@ -9,6 +9,11 @@ import { createSearchRegex, localizedSearchFilters } from '../utils/search';
 import { BLOG_WITHOUT_COMMENTS, blogCardPopulate } from '../utils/blogCardPopulate';
 import { publicDestinationPopulate } from '../models/Destination';
 import { destinationPopulateFor } from '../utils/destinationAccess';
+import {
+  assertNoPublicArticlesUnder,
+  respondToPublishingValidation,
+  switchesOff,
+} from '../utils/blogClassification';
 
 // ==================== INTERFACES ====================
 
@@ -325,7 +330,7 @@ export const updateCategory = async (
     delete req.body._editVersion;
 
     const currentCategory = await BlogCategory.findById(req.params.id).select(
-      'editVersion ogTitle ogDescription metaTitle metaDescription'
+      'editVersion ogTitle ogDescription metaTitle metaDescription isActive'
     );
 
     if (!currentCategory) {
@@ -352,6 +357,12 @@ export const updateCategory = async (
         error: 'English name is required',
       });
       return;
+    }
+
+    // Switching the category off: refused while a published or scheduled
+    // article is filed under it. Any other edit goes through untouched.
+    if (switchesOff(req.body.isActive) && currentCategory.isActive !== false) {
+      await assertNoPublicArticlesUnder('category', req.params.id, 'deactivate');
     }
 
     const body = {
@@ -408,6 +419,7 @@ export const updateCategory = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     console.error('Error updating blog category:', error);
 
     // Handle invalid ObjectId
@@ -468,6 +480,9 @@ export const deleteCategory = async (
       return;
     }
 
+    // A published or scheduled article filed under it would be left pointing at nothing.
+    await assertNoPublicArticlesUnder('category', category._id, 'delete');
+
     // This will trigger any pre-remove middleware (if we add checks later)
     await category.deleteOne();
 
@@ -477,6 +492,7 @@ export const deleteCategory = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     console.error('Error deleting blog category:', error);
 
     // Handle invalid ObjectId
@@ -525,6 +541,11 @@ export const toggleCategoryStatus = async (
       return;
     }
 
+    // On its way off: refused while a published or scheduled article is filed under it.
+    if (category.isActive !== false) {
+      await assertNoPublicArticlesUnder('category', category._id, 'deactivate');
+    }
+
     category.isActive = !category.isActive;
     category.editVersion = (category.editVersion ?? 0) + 1;
     await category.save();
@@ -536,6 +557,7 @@ export const toggleCategoryStatus = async (
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     console.error('Error toggling category status:', error);
     res.status(500).json({
       success: false,

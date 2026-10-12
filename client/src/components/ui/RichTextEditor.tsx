@@ -6,6 +6,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import { normalizeRichTextInternalLinks } from '@/lib/richTextLinks';
 import { uploadAPI } from '@/lib/api/upload';
 import { useToast } from '@/hooks/use-toast';
+import { ImagePreviewButton, type PreviewImage } from '@/components/admin/ImagePreview';
 
 /* Dynamic import to avoid SSR issues with Quill. The inner wrapper exists
    because `next/dynamic` does not forward refs, and the image handler needs the
@@ -240,8 +241,17 @@ export default function RichTextEditor({
   // Sanitize initial value
   const sanitizedValue = useMemo(() => sanitizeHTML(value), [value]);
 
+  const [previewImages, setPreviewImages] = useState<PreviewImage[]>([]);
+  useEffect(() => {
+    const doc = new DOMParser().parseFromString(sanitizedValue, 'text/html');
+    setPreviewImages(Array.from(doc.querySelectorAll('img')).map(image => ({
+      url: image.getAttribute('src') || '', alt: image.alt,
+    })).filter(image => !!image.url));
+  }, [sanitizedValue]);
+
   return (
     <div className={`rich-text-editor ${className}`}>
+      {previewImages.length > 0 && <div className="mb-2"><ImagePreviewButton images={previewImages} /></div>}
       <ReactQuill
         forwardedRef={registerQuill}
         theme="snow"

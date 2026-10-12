@@ -3,8 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, usePathname } from "next/navigation";
 import { Container } from "react-bootstrap";
-import { Swiper, SwiperSlide } from "swiper/react";
-import type { Swiper as SwiperClass } from "swiper";
 import "swiper/css";
 import Image from "next/image";
 import Masonry from "react-masonry-css";
@@ -13,8 +11,6 @@ import { ChevronDown, MessageCircle, ArrowRight } from "lucide-react";
 import TourListingDetailsOneSkeleton from "./TourListingDetailsOneSkeleton";
 
 import EmptyState from "@/components/common/EmptyState/EmptyState";
-import BlogCard from "@/components/common/BlogCard/BlogCard";
-import { buildBlogCardViewModels } from "@/lib/blog/cardViewModel";
 
 // Import types
 import { TourListingOneDetailsProps } from "./types";
@@ -40,7 +36,8 @@ import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import { useLineClamp } from "@/hooks/useLineClamp";
-import FeatureTwo from "../FeatureTwo/FeatureTwo";
+import TourRelatedContent from "./TourRelatedContent";
+import RichHtml from "@/components/common/RichHtml/RichHtml";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
 /** Questions shown before the "Read More" button. The rest are rendered too —
@@ -66,8 +63,19 @@ const NOTES_VISIBLE_ON_PHONE = 3;
 const DESCRIPTION_VISIBLE_LINES_DESKTOP = 3;
 const DESCRIPTION_VISIBLE_LINES_MOBILE = 5;
 
+/* #595959 is the page's one secondary-text tone. The description was #444, the
+   itinerary #666 and the fact strips #595959 — three greys a few percent apart,
+   all meaning the same thing. Contrast here goes 9.74:1 -> 7.00:1, still well
+   clear of AA. A constant, not an inline object, so RichHtml is handed the same
+   style on every render. */
+const DESCRIPTION_TEXT_STYLE: React.CSSProperties = {
+  color: '#595959',
+  fontSize: '1rem',
+  lineHeight: '1.8',
+};
+
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
-  const { tourData, loading, error, moreTours, relatedBlogs, hasTourContent } = useTourData(id, initialRawTour);
+  const { tourData, loading, error, hasTourContent, rawTour } = useTourData(id, initialRawTour);
   const [activeSection, setActiveSection] = useState("description");
   const navRef = useRef<HTMLDivElement>(null);
   const navPlaceholderRef = useRef<HTMLDivElement>(null);
@@ -121,7 +129,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const relatedBlogsSliderRef = useRef<SwiperClass | null>(null);
 
   const params = useParams() as { locale: string };
   const pathname = usePathname();
@@ -133,11 +140,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     [pathname]
   );
   const { t, i18n } = useTranslation("tours");
-
-  const relatedBlogCards = React.useMemo(
-    () => buildBlogCardViewModels(relatedBlogs, i18n.language || params?.locale || "en"),
-    [relatedBlogs, i18n.language, params?.locale]
-  );
 
   useEffect(() => {
     if (params?.locale && i18n.resolvedLanguage !== params.locale) {
@@ -393,7 +395,6 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
     activateDay,
     availability,
     price,
-    relatedTours,
     sliderImages,
     amenities,
     amenitiesTwo,
@@ -616,15 +617,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       ref={setDescriptionEl}
                       className={`tour-description-wrapper ${isDescriptionExpanded ? '' : 'collapsed'}`}
                     >
-                      <div
+                      <RichHtml
                         className='tour-listing-details__text html-content'
-                        /* #595959 is the page's one secondary-text tone. This
-                           block was #444, the itinerary #666 and the fact strips
-                           #595959 — three greys a few percent apart, all meaning
-                           the same thing. Contrast here goes 9.74:1 -> 7.00:1,
-                           still well clear of AA. */
-                        style={{ color: '#595959', fontSize: '1rem', lineHeight: '1.8' }}
-                        dangerouslySetInnerHTML={{ __html: overviewHtml }}
+                        style={DESCRIPTION_TEXT_STYLE}
+                        html={overviewHtml}
                       />
                     </div>
 
@@ -677,9 +673,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                   highlight and names none of them. */}
                               <i className='icon-check-star' aria-hidden="true"></i>
                             </div>
-                            <span
+                            <RichHtml
+                              as="span"
                               className="text-dark fw-medium html-content tour-highlight__text"
-                              dangerouslySetInnerHTML={{ __html: item }}
+                              html={item}
                             />
                           </div>
                         </li>
@@ -742,7 +739,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {includedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-check" aria-hidden="true" />
-                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: item }} />
+                                    <RichHtml as="span" className="html-content" html={item} />
                                   </li>
                                 ))}
                               </ul>
@@ -759,7 +756,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {excludedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-times text-danger" aria-hidden="true" />
-                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: item }} />
+                                    <RichHtml as="span" className="html-content" html={item} />
                                   </li>
                                 ))}
                               </ul>
@@ -822,9 +819,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           {note.title && (
                             <h3 className="tour-note__title">{note.title}</h3>
                           )}
-                          <div
+                          <RichHtml
                             className="tour-note__text tour-listing-details__text html-content"
-                            dangerouslySetInnerHTML={{ __html: note.text }}
+                            html={note.text}
                           />
                         </div>
                       ))}
@@ -872,10 +869,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         whatToPackOrdered ? "ol" : "ul",
                         { className: whatToPackListClass },
                         whatToPackItems.map((item, index) => (
-                          <li
+                          <RichHtml
+                            as="li"
                             key={index}
                             className="tour-pack__item html-content"
-                            dangerouslySetInnerHTML={{ __html: item }}
+                            html={item}
                           />
                         ))
                       )}
@@ -938,17 +936,17 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       {whatYouWillLoveSections ? (
                         <div className='tour-listing-details__text tour-listing-details__what-you-love__columns'>
                           {whatYouWillLoveSections.map((section, index) => (
-                            <div
+                            <RichHtml
                               key={index}
                               className='html-content'
-                              dangerouslySetInnerHTML={{ __html: section }}
+                              html={section}
                             />
                           ))}
                         </div>
                       ) : (
-                        <div
+                        <RichHtml
                           className='tour-listing-details__text html-content'
-                          dangerouslySetInnerHTML={{ __html: whatYouWillLoveHtml }}
+                          html={whatYouWillLoveHtml}
                         />
                       )}
                     </div>
@@ -1258,101 +1256,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
           </div>
         </Container>
 
-        {/* ── Related Tours (curated in the admin) ── */}
-        {relatedTours.length > 0 && (
-          <FeatureTwo
-            id="related-tours"
-            extraClass="section-space-top"
-            itemsPerRow={4}
-            homeThree={false}
-            showShape={false}
-            tours={relatedTours}
-            title={t("tourDetails.relatedTours.title", "Related Tours")}
-            titleSpan=""
-            subtitle={t("tourDetails.relatedTours.tagline", "Curated Selection")}
-          />
-        )}
-
-        {/* Related Blogs carousel: curated set, or a featured fallback. */}
-        {relatedBlogCards.length > 0 && (
-          <div className="section-space-top section-space-bottom" style={{ background: '#f8f9fb' }}>
-            <Container>
-                {/* `mb-5` gave the cards barely more air than the tagline
-                    gives the title. The extra room is what lets the row read
-                    as its own section rather than as a caption's overflow. */}
-                <div className="sec-title text-center related-blogs-head">
-                  <h6 className='sec-title__tagline'>{t("tourDetails.relatedBlogs.tagline", "Travel Stories")}</h6>
-                  <h3 className='sec-title__title'>{t("tourDetails.relatedBlogs.title", "Related Blogs")}</h3>
-                  <p className='related-blogs-head__text'>
-                    {t(
-                      "tourDetails.relatedBlogs.description",
-                      "More travel inspiration, guides, and stories from Egypt."
-                    )}
-                  </p>
-                  {relatedBlogCards.length > 1 && (
-                    <div className='related-blogs-nav feature-package__bottom__nav owl-nav'>
-                      <button
-                        type='button'
-                        className='owl-prev'
-                        aria-label={t(
-                          "tourDetails.relatedBlogs.previous",
-                          "Previous related articles"
-                        )}
-                        onClick={() => relatedBlogsSliderRef.current?.slidePrev()}
-                      >
-                        <span className='icon-arrow-left' aria-hidden='true'></span>
-                      </button>
-                      <button
-                        type='button'
-                        className='owl-next'
-                        aria-label={t(
-                          "tourDetails.relatedBlogs.next",
-                          "Next related articles"
-                        )}
-                        onClick={() => relatedBlogsSliderRef.current?.slideNext()}
-                      >
-                        <span className='icon-arrow-right' aria-hidden='true'></span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <Swiper
-                  onSwiper={(instance) => {
-                    relatedBlogsSliderRef.current = instance;
-                  }}
-                  className='related-blogs-carousel'
-                  spaceBetween={30}
-                  rewind
-                  speed={700}
-                  breakpoints={{
-                    0: { slidesPerView: 1 },
-                    576: { slidesPerView: 2 },
-                    992: { slidesPerView: 3 },
-                  }}
-                >
-                  {relatedBlogCards.map((post) => (
-                    <SwiperSlide key={post.id}>
-                      <BlogCard post={post} variant='feature' />
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-            </Container>
-          </div>
-        )}
-
-        {/* ── More Tours from Same Category (full-width carousel) ── */}
-        {moreTours.length > 0 && (
-          <FeatureTwo
-            extraClass="section-space-top"
-            itemsPerRow={4}
-            homeThree={false}
-            showShape={false}
-            tours={moreTours}
-            title={t("tourDetails.moreTours.title", "More")}
-            titleSpan={t("tourDetails.moreTours.span", "Tours")}
-            subtitle={t("tourDetails.moreTours.subtitle", "More tours from this category")}
-          />
-        )}
+        {/* Related Tours, Related Blogs and More Tours. Their data loads and
+            lives in this child, so its arrival re-renders only these
+            sections instead of the whole tour page. */}
+        <TourRelatedContent id={id} tour={rawTour} />
 
         {/* ── Trusted Partners / Brands ── */}
         <ClientCarousel extraClass="section-space-top section-space-bottom" />

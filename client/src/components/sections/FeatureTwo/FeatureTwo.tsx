@@ -36,6 +36,11 @@ interface FeatureTwoProps {
   titleSpan?: string;
   subtitle?: string;
   showShape?: boolean;
+  /**
+   * Keep the cards rendered before the slider activates instead of rebuilding
+   * them (TinySliderWrapper `keepSlidesOnInit`).
+   */
+  keepCardsOnSliderInit?: boolean;
 }
 const FeatureTwo: React.FC<FeatureTwoProps> = ({
   extraClass,
@@ -48,6 +53,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   titleSpan,
   subtitle,
   showShape = true,
+  keepCardsOnSliderInit = false,
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
@@ -179,6 +185,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                   // all 24 tour cards stacked vertically, then collapsed to a
                   // single row on hydration.
                   placeholderClassName="feature-package__carousel tns-placeholder-single"
+                  keepSlidesOnInit={keepCardsOnSliderInit}
                 >
                   {displayData.items.map((item: FeatureTwoItem) => (
                     <TourCard

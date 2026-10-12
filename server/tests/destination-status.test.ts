@@ -309,6 +309,9 @@ test('edit: a draft stays a draft, publishes, and goes back, with one revalidati
   doc.isNew = false;
   replace(context,Destination, 'findById', async () => doc);
   replace(context,console, 'log', () => {});
+  // Taking a page down asks first whether a published or scheduled article is
+  // filed under the destination (tests/blog-parent-integrity.test.ts). None is.
+  replace(context,Blog, 'countDocuments', async () => 0);
   const update = async (body: Record<string, unknown>) => {
     const { res, out } = fakeResponse();
     const tags = await tagsSentBy(() => updateDestination(request({ params: { id: String(doc._id) }, body }), res));

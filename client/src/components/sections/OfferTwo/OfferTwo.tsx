@@ -3,8 +3,6 @@ import React from "react";
 
 import { Row, Col } from "react-bootstrap";
 import Image from "next/image";
-import CountUp from "react-countup";
-import { useInView } from "react-intersection-observer";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -12,6 +10,7 @@ import { Clock } from "lucide-react";
 import { getLocalizedStaticSlug } from "@/lib/url";
 import { offerTwoData } from "@/data/offerTwoData";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
+import { useCountUpInView } from "@/hooks/useCountUpInView";
 import { useTranslation } from "react-i18next";
 
 const OfferTwo = () => {
@@ -25,14 +24,15 @@ const OfferTwo = () => {
   const locale = (params?.locale as string) || "en";
   const buttonLink = `/${locale}/${getLocalizedStaticSlug("special-offers", locale)}`;
 
-  // Using IntersectionObserver to trigger animations when the section comes into view
-  const { ref, inView } = useInView({
-    triggerOnce: false,
+  // The discount counts up from 0 over two seconds each time half of the
+  // section is on screen. The figure itself is server-rendered — see the hook.
+  const { sectionRef, valueRef, tickerRef } = useCountUpInView(count, {
+    duration: 2000,
     threshold: 0.5,
   });
 
   return (
-    <section className='offer-two section-space-bottom' ref={ref}>
+    <section className='offer-two section-space-bottom' ref={sectionRef}>
       <div className='container'>
         <div className='offer-two__inner'>
           <Row>
@@ -88,8 +88,13 @@ const OfferTwo = () => {
             <div className='offer-two__funfact__item'>
               <div className='offer-two__funfact__item__inner count-box'>
                 <div className='offer-two__funfact__item__count'>
-                  <span className='count-text'>
-                    {inView && <CountUp start={0} end={count} duration={2} />}
+                  <span className='count-text' style={{ position: "relative" }}>
+                    <span ref={valueRef}>{count}</span>
+                    <span
+                      ref={tickerRef}
+                      aria-hidden='true'
+                      style={{ position: "absolute", top: 0, right: 0 }}
+                    />
                   </span>
                   <span>%</span>
                 </div>

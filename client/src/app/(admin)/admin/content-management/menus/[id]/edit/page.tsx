@@ -247,13 +247,13 @@ export default function EditMenuPage() {
   const isToursNode = (it: MenuItem) => {
     const label = String(getLocalizedValue(it.label, 'en') || '').trim().toLowerCase();
     const url = String(getLocalizedValue(it.url as any, 'en') || '').trim().toLowerCase();
-    return label === 'tours' || ['/tours', '/tours/all', '/search'].includes(url);
+    return label === 'tours' || url === '/search';
   };
 
   const isBlogsNode = (it: MenuItem) => {
     const label = String(getLocalizedValue(it.label, 'en') || '').trim().toLowerCase();
     const url = String(getLocalizedValue(it.url as any, 'en') || '').trim().toLowerCase();
-    return label === 'blogs' || ['/blogs', '/blog', '/blogs/all'].includes(url);
+    return label === 'blogs' || url === '/blog';
   };
 
   const syncTourCategories = async (path: number[]) => {

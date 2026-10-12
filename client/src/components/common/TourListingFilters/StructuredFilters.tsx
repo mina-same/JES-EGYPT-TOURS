@@ -32,7 +32,7 @@ export function StructuredFilters({ values, update, destinations, types, styles,
           }} />{option.label}
         </label>)}
       </div>
-      {field === 'destinations' && longPlaces && !placeQuery.trim() && <button type="button" className="btn btn-link px-0" aria-expanded={showAllPlaces} aria-controls={`${placesId}-options`} onClick={() => setShowAllPlaces(value => !value)}>{t(showAllPlaces ? 'filters.showLess' : 'filters.showMore')}</button>}
+      {field === 'destinations' && longPlaces && !placeQuery.trim() && <button type="button" className="visitor-filter-expand" aria-expanded={showAllPlaces} aria-controls={`${placesId}-options`} onClick={() => setShowAllPlaces(value => !value)}>{t(showAllPlaces ? 'filters.showLess' : 'filters.showMore')}</button>}
       {field === 'destinations' && visiblePlaces.length === 0 && <p role="status">{t('filters.noPlaces')}</p>}
     </fieldset>
   );

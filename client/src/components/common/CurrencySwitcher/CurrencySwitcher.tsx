@@ -13,6 +13,8 @@ interface CurrencySwitcherProps {
   isOpen?: boolean;
   onOpen?: () => void;
   onClose?: () => void;
+  /** -1 keeps the button and its options out of the tab order (see SiteHeader's sticky copy). */
+  tabIndex?: number;
 }
 
 const OPEN_DELAY_MS = 160;
@@ -22,6 +24,7 @@ const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
   isOpen,
   onOpen,
   onClose,
+  tabIndex,
 }) => {
   const { currency, setCurrency } = useCurrency();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -144,6 +147,7 @@ const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
       <button 
         className={`currency-switcher__btn ${dropdownIsOpen ? "is-open" : ""}`}
         onClick={toggleDropdown}
+        tabIndex={tabIndex}
         aria-haspopup="true"
         aria-expanded={dropdownIsOpen}
       >
@@ -160,6 +164,7 @@ const CurrencySwitcher: React.FC<CurrencySwitcherProps> = ({
             <li key={c.code}>
               <button
                 className={`currency-switcher__option ${c.code === currency ? "is-active" : ""}`}
+                tabIndex={tabIndex}
                 onClick={() => {
                   setCurrency(c.code);
                   closeDropdown();

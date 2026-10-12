@@ -53,7 +53,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Normalize an accidentally repeated locale prefix without guessing between
-  // different locales. Examples: /en/en/tours -> /en/tours and /de/de -> /de.
+  // different locales. Examples: /en/en/search -> /en/search and /de/de -> /de.
   // Cloning nextUrl preserves the query string while keeping the redirect on
   // the same origin.
   const pathSegments = pathname.split('/');

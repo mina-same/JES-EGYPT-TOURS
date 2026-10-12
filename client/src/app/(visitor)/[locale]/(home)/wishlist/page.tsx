@@ -194,7 +194,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title={t('pageTitle')} subTitle={t('pageSubTitle')} />
+      <PageHeader title={t('pageTitle')} subTitle={t('pageSubTitle')} breadcrumbLabelKey="pageNames.wishlist" />
 
       <section className="section-space">
         <Container>
@@ -213,7 +213,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
               </div>
               <h3 className="text-2xl font-bold text-gray-800 m-0">{t('emptyTitle')}</h3>
               <p className="text-lg text-gray-500 max-w-md text-center m-0 mb-4">{t('emptyText')}</p>
-              <Link href={`/${locale}/tours`} className="gotur-btn gotur-btn--base">
+              <Link href={`/${locale}/search`} className="gotur-btn gotur-btn--base">
                 {t('browseTours')} <i className="icon-right ml-2"></i>
               </Link>
             </div>

@@ -161,15 +161,16 @@ export async function getDestinationById(id: string): Promise<Destination | null
 }
 
 /**
- * One page of a destination's article cards.
+ * One page of a destination's article cards: the published articles whose own
+ * `destination` is this one. A category's or topic's featuredDestinations has
+ * no part in it — that list says which destinations the page promotes.
  *
  * Read on the server for every render of the destination page, so it is
  * cached like the blog category and subcategory listings: BLOG_LISTING_TTL
  * under `blog`, pages up to MAX_CACHEABLE_BLOG_PAGE only, the page normalized
- * first. `blog` covers everything this list is built from — the articles, and
- * the categories and subcategories whose featuredDestinations pull articles
- * in — so a new or edited article shows on the next request. Nothing in it
- * comes from the destination document, whose `destinations` tag is not needed.
+ * first. `blog` covers everything this list is built from — the articles —
+ * so a new or edited article shows on the next request. Nothing in it comes
+ * from the destination document, whose `destinations` tag is not needed.
  *
  * `locale` reaches the API as the X-Locale header AND as a query parameter.
  * The header is what the API reads; the query parameter gives each language

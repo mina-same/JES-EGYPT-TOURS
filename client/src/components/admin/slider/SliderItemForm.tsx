@@ -19,9 +19,6 @@ import {
   CheckCircle,
   Eye,
   EyeOff,
-  Image as ImageIcon,
-  Loader2,
-  Upload,
   XCircle,
 } from 'lucide-react';
 
@@ -31,6 +28,7 @@ import type { ILocalizedString } from '@/types/tour';
 import { uploadAPI } from '@/lib/api/upload';
 import AdminLanguageTabs, { AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedField from '@/components/admin/LocalizedField';
+import ImagePreview from '../ImagePreview';
 
 // ==================== TYPES & HELPERS ====================
 
@@ -669,21 +667,7 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
         <div className='rounded-xl border border-gray-200 bg-white p-4'>
           <div className='mb-3 text-sm font-semibold text-gray-900'>Main Image</div>
 
-          <div className='mb-3 h-44 w-full overflow-hidden rounded-xl border border-dashed border-gray-200 bg-gray-50'>
-            {formData.image.url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={formData.image.url}
-                alt={formData.image.alt.en || 'Preview'}
-                className='h-full w-full object-cover'
-              />
-            ) : (
-              <div className='flex h-full w-full items-center justify-center gap-2 text-sm text-gray-500'>
-                <ImageIcon size={18} />
-                No image
-              </div>
-            )}
-          </div>
+          <ImagePreview images={[formData.image]} onUpload={handleImageUpload} uploading={uploading} />
 
           <label className='mb-3 block text-xs text-gray-600'>
             <div className='mb-1'>Image URL</div>
@@ -693,20 +677,7 @@ export default function SliderItemForm({ value, onChange, saving = false }: Slid
                 value={formData.image.url}
                 onChange={(e) => updateImageField('url', e.target.value)}
               />
-              <label className='inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#63ab45] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#529938] disabled:cursor-not-allowed disabled:opacity-50'>
-                <input
-                  type='file'
-                  accept='image/*'
-                  className='hidden'
-                  disabled={uploading}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) await handleImageUpload(file);
-                  }}
-                />
-                {uploading ? <Loader2 size={16} className='animate-spin' /> : <Upload size={16} />}
-                {uploading ? 'Uploading...' : 'Upload'}
-              </label>
+
             </div>
           </label>
 

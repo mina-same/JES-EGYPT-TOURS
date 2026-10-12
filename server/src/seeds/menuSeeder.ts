@@ -18,17 +18,8 @@ export const seedMenus = async (): Promise<void> => {
           { label: { en: 'All Tours', de: 'Alle Touren', it: 'Tutti i Tour' }, url: '/search', isActive: true, order: 0, children: [] },
         ],
       },
-      {
-        label: { en: 'Blogs', de: 'Blogs', it: 'Blog' },
-        url: '/blogs/all',
-        isActive: true,
-        order: 2,
-        children: [
-          { label: { en: 'All Blog Posts', de: 'Alle Blogbeiträge', it: 'Tutti i post del blog' }, url: '/blogs/all', isActive: true, order: 0, children: [] },
-        ],
-      },
-      { label: { en: 'About', de: 'Über uns', it: 'Chi siamo' }, url: '/about', isActive: true, order: 3, children: [] },
-      { label: { en: 'Contact', de: 'Kontakt', it: 'Contatti' }, url: '/contact', isActive: true, order: 4, children: [] },
+      { label: { en: 'About', de: 'Über uns', it: 'Chi siamo' }, url: '/about', isActive: true, order: 2, children: [] },
+      { label: { en: 'Contact', de: 'Kontakt', it: 'Contatti' }, url: '/contact', isActive: true, order: 3, children: [] },
     ],
   };
 

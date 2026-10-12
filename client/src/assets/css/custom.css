@@ -21,12 +21,6 @@ html, body {
   width: 100%;
 }
 
-/* Breadcrumb labels are localized editorial content, so preserve the exact
-   capitalization stored for every language. */
-.gotur-breadcrumb li {
-  text-transform: none;
-}
-
 /* Fix for oversized background shapes in Offer section */
 [class*="offer-two__element"] {
   max-width: 100vw;
@@ -4210,15 +4204,15 @@ li[data-list="ordered"] {
 /* `:not(li)` matters: a list item carries the same ql-indent-N class, so
    without it an indented <li> collected this padding on top of its own margin
    below — double the indent, and a bullet left stranded 3em from its text. */
-.html-content .ql-indent-1:not(.ql-direction-rtl):not(li) { padding-inline-start: 3em; }
-.html-content .ql-indent-2:not(.ql-direction-rtl):not(li) { padding-inline-start: 6em; }
-.html-content .ql-indent-3:not(.ql-direction-rtl):not(li) { padding-inline-start: 9em; }
-.html-content .ql-indent-4:not(.ql-direction-rtl):not(li) { padding-inline-start: 12em; }
-.html-content .ql-indent-5:not(.ql-direction-rtl):not(li) { padding-inline-start: 15em; }
-.html-content .ql-indent-6:not(.ql-direction-rtl):not(li) { padding-inline-start: 18em; }
-.html-content .ql-indent-7:not(.ql-direction-rtl):not(li) { padding-inline-start: 21em; }
-.html-content .ql-indent-8:not(.ql-direction-rtl):not(li) { padding-inline-start: 24em; }
-.html-content .ql-indent-9:not(.ql-direction-rtl):not(li) { padding-inline-start: 27em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-1:not(.ql-direction-rtl):not(li) { padding-inline-start: 3em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-2:not(.ql-direction-rtl):not(li) { padding-inline-start: 6em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-3:not(.ql-direction-rtl):not(li) { padding-inline-start: 9em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-4:not(.ql-direction-rtl):not(li) { padding-inline-start: 12em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-5:not(.ql-direction-rtl):not(li) { padding-inline-start: 15em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-6:not(.ql-direction-rtl):not(li) { padding-inline-start: 18em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-7:not(.ql-direction-rtl):not(li) { padding-inline-start: 21em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-8:not(.ql-direction-rtl):not(li) { padding-inline-start: 24em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-9:not(.ql-direction-rtl):not(li) { padding-inline-start: 27em; }
 
 /* Margin, not padding, and 3em per level rather than Quill's 4.5em+.
    `list-style-position` is `outside` here, so a marker hangs off the li's
@@ -4226,15 +4220,15 @@ li[data-list="ordered"] {
    the old column. Margin moves the box and the marker together. Quill's 4.5em
    also folds in the 1.5em its editor uses for the marker gutter, which
    `.html-content ul` already provides with its own padding. */
-.html-content li.ql-indent-1:not(.ql-direction-rtl) { margin-inline-start: 3em; }
-.html-content li.ql-indent-2:not(.ql-direction-rtl) { margin-inline-start: 6em; }
-.html-content li.ql-indent-3:not(.ql-direction-rtl) { margin-inline-start: 9em; }
-.html-content li.ql-indent-4:not(.ql-direction-rtl) { margin-inline-start: 12em; }
-.html-content li.ql-indent-5:not(.ql-direction-rtl) { margin-inline-start: 15em; }
-.html-content li.ql-indent-6:not(.ql-direction-rtl) { margin-inline-start: 18em; }
-.html-content li.ql-indent-7:not(.ql-direction-rtl) { margin-inline-start: 21em; }
-.html-content li.ql-indent-8:not(.ql-direction-rtl) { margin-inline-start: 24em; }
-.html-content li.ql-indent-9:not(.ql-direction-rtl) { margin-inline-start: 27em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-1:not(.ql-direction-rtl) { margin-inline-start: 3em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-2:not(.ql-direction-rtl) { margin-inline-start: 6em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-3:not(.ql-direction-rtl) { margin-inline-start: 9em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-4:not(.ql-direction-rtl) { margin-inline-start: 12em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-5:not(.ql-direction-rtl) { margin-inline-start: 15em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-6:not(.ql-direction-rtl) { margin-inline-start: 18em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-7:not(.ql-direction-rtl) { margin-inline-start: 21em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-8:not(.ql-direction-rtl) { margin-inline-start: 24em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-9:not(.ql-direction-rtl) { margin-inline-start: 27em; }
 
 /* Hide TinySlider autoplay buttons */
 button[data-action="start"],
@@ -5010,13 +5004,60 @@ button[data-action="stop"] {
   -webkit-user-select: none;
 }
 
-/* Until tiny-slider has wrapped the slides in .tns-outer, only slide 1 takes
-   part in layout. This covers the server placeholder AND the bare container
-   TinySliderWrapper renders between hydration and the slider's async init —
-   in that gap all six slides used to stack vertically (a hero thousands of
-   pixels tall for a moment), which was the page's load CLS. The host's child
-   is .tns-outer once the slider exists, so this never matches after init. */
+/* One height for every slide.
+ *
+ * tiny-slider's gallery mode keeps only the ACTIVE slide in the flow
+ * (`position: relative`) and parks the others out of it (`absolute`), so the
+ * carousel is exactly as tall as whichever slide is showing. Above 767px that
+ * never mattered: the copy is shorter than the 895px min-height and every
+ * slide measures the same. On a phone the copy is taller than the 660px
+ * minimum, so each slide is as tall as its own headline — 706px to 863px
+ * across the six English slides at 375px, 740px to 969px in German — and every
+ * autoplay tick resized the hero and moved the whole page beneath it.
+ *
+ * So the slides are stacked instead: all of them in one grid cell, all in the
+ * flow, and the cell is as tall as the tallest. No height is written down
+ * anywhere; it is whatever the longest headline needs in the language and at
+ * the width on screen. The slide, its `.item` and (as a grid item, stretched)
+ * `.main-slider-four__item` each fill that cell, so a shorter slide's
+ * photograph covers the whole hero and its copy is centred in it. Which slide
+ * is visible is still tiny-slider's business: its opacity classes and the
+ * `visibility` rule below are untouched.
+ *
+ * The same stack has to hold BEFORE the slider exists — in the server HTML and
+ * in the bare container TinySliderWrapper renders between hydration and the
+ * slider's async init — or the hero would change height the moment it starts.
+ * There the host's child is not yet `.tns-outer`, and slides 2..n used to be
+ * `display: none` (left in the flow they stacked vertically: a hero thousands
+ * of pixels tall for a moment, which was the page's load CLS). They are now
+ * laid out but invisible, which also keeps their links out of the tab order,
+ * and their photographs stay `display: none` until the slider is up, so the
+ * browser still fetches only the first one up front. The host's child is
+ * `.tns-outer` once the slider exists, so those two rules never match after
+ * init. */
+.main-slider-four .tiny-slider-host > div:not(.tns-outer),
+.main-slider-four .tiny-slider-host > div:not(.tns-outer) > *,
+.main-slider-four .tiny-slider-host > div:not(.tns-outer) > * > .item,
+.main-slider-four .tns-gallery,
+.main-slider-four .tns-gallery > .tns-item,
+.main-slider-four .tns-gallery > .tns-item > .item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.main-slider-four .tiny-slider-host > div:not(.tns-outer) > *,
+.main-slider-four .tns-gallery > .tns-item {
+  grid-area: 1 / 1;
+}
+/* In the flow and at the origin, where tiny-slider's own stylesheet has
+   `position: absolute; left: -100%` for a slide that is not active. */
+.main-slider-four .tns-gallery > .tns-item {
+  position: relative;
+  left: 0;
+}
 .main-slider-four .tiny-slider-host > div:not(.tns-outer) > *:not(:first-child) {
+  visibility: hidden;
+}
+.main-slider-four .tiny-slider-host > div:not(.tns-outer) > *:not(:first-child) .main-slider-four__bg {
   display: none;
 }
 
@@ -5030,7 +5071,8 @@ button[data-action="stop"] {
 /* A slide nobody can see must not be a tab stop.
  *
  * Gallery mode keeps every slide in the DOM at `opacity: 0`, parked at
- * `left: -100%`. tiny-slider marks the inactive ones `aria-hidden="true"` and
+ * `left: -100%` (stacked under the active slide instead, since the rule
+ * above). tiny-slider marks the inactive ones `aria-hidden="true"` and
  * `tabindex="-1"`, which is enough for a screen reader but NOT for the
  * keyboard: `tabindex` on an ancestor does not remove its descendants from the
  * tab order, so all twelve hero CTAs stayed focusable. Tabbing past the hero
@@ -5497,7 +5539,7 @@ button[data-action="stop"] {
  *
  * `> *:first-child` because the layout rule hides every slide EXCEPT the
  * first, so the first is the only one on screen; revealing copy inside the
- * others would be pointless work on `display: none` subtrees.
+ * others would be pointless work on `visibility: hidden` subtrees.
  *
  * Four classes to one, so it outranks the `opacity: 0` defaults without
  * !important, and it sets only opacity and transform: no layout property, so
@@ -7934,7 +7976,7 @@ button[data-action="stop"] {
 }
 
 /* ---------------------------------------------------------------------------
-   Editorial section heading (author pages, tours/blogs hub views).
+   Editorial section heading (author pages, the video-reviews section).
    These <h2>s previously had no rule of their own and simply inherited the
    h1-h6 body face. They are marketing headings, so they opt in to the display
    serif - unlike .subcategory-header__title and .tour-listing-details__title,
@@ -7943,7 +7985,7 @@ button[data-action="stop"] {
    leaving size alone left the layout untouched. What that actually left was an
    <h2> inheriting 16px — the same size as the body copy underneath it, so a
    section heading read as a label. Every place using this class had it: the
-   author page, the blogs hub, the tours hub and the video-reviews section.
+   author page, the video-reviews section and the two hub pages since removed.
 
    Size and line-height only. Margins and colour are still left to the theme,
    so the spacing of each of those layouts is genuinely untouched.

@@ -37,11 +37,6 @@ interface IComment {
   createdAt: Date;
 }
 
-interface IBreadcrumb {
-  name: ILocalizedString;
-  url: string;
-}
-
 export interface IBlog extends Document {
   // Basic Info
   title: ILocalizedString;
@@ -84,8 +79,8 @@ export interface IBlog extends Document {
   focusKeywordDensity?: number;
   readingTime?: number;
   
-  // Breadcrumbs
-  breadcrumbs?: IBreadcrumb[];
+  // No stored breadcrumbs: the article page builds its trail from the
+  // sub-category and its category (client/src/lib/blog/breadcrumbs.ts).
   
   // Tags
   tags: ILocalizedMixed; // Localized tags array
@@ -316,18 +311,6 @@ const BlogSchema: Schema = new Schema(
       type: Number,
       min: 0,
     },
-    
-    // === BREADCRUMBS ===
-    breadcrumbs: [{
-      name: {
-        type: LocalizedStringSchema,
-        required: true,
-      },
-      url: {
-        type: String,
-        required: true,
-      },
-    }],
     
     // === TAGS ===
     tags: {

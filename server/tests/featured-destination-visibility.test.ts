@@ -281,3 +281,52 @@ test('a missing parent is a 404, a bad id a 400 and a backend failure a 500, as 
   }
   assert.deepEqual(writes, []);
 });
+
+test('draft subcategories stay private until published', async (context) => {
+  context.mock.method(User, 'findById', lookUpUser);
+  const sub: Doc = tourSubcategories.mixed;
+  try {
+    sub.isActive = false;
+    for (const suffix of ['', '?isActive=false', '?isActive=true']) {
+      for (const path of ['/api/tours/subcategories', `/api/tours/categories/${sub.category}/subcategories`]) {
+        const list = await get(`${path}${suffix}`);
+        assert.equal(list.status, 200);
+        assert.ok(!list.body.data.some((item: Doc) => String(item._id) === String(sub._id)));
+      }
+    }
+    assert.equal((await get(`/api/tours/subcategories/${sub._id}`)).status, 404);
+    assert.equal((await get(`/api/tours/subcategories/${sub._id}/tours`)).status, 404);
+    const auth = `Bearer ${tokenFor('superadmin')}`;
+    assert.equal((await get(`/api/tours/subcategories/${sub._id}`, auth)).status, 200);
+    const admin = await get('/api/tours/subcategories?isActive=false', auth);
+    assert.ok(admin.body.data.some((item: Doc) => String(item._id) === String(sub._id)));
+    sub.isActive = true;
+    assert.equal((await get(`/api/tours/subcategories/${sub._id}`)).status, 200);
+  } finally {
+    sub.isActive = true;
+  }
+});
+
+test('draft tour categories stay private across list and ID reads until published', async (context) => {
+  context.mock.method(User, 'findById', lookUpUser);
+  const category: Doc = tourCategories.mixed;
+  try {
+    category.isActive = false;
+    for (const suffix of ['', '?isActive=false', '?isActive=true']) {
+      const list = await get(`/api/tours/categories${suffix}`);
+      assert.equal(list.status, 200);
+      assert.ok(!list.body.data.some((item: Doc) => String(item._id) === String(category._id)));
+    }
+    assert.equal((await get(`/api/tours/categories/${category._id}`)).status, 404);
+    const auth = `Bearer ${tokenFor('superadmin')}`;
+    assert.equal((await get(`/api/tours/categories/${category._id}`, auth)).status, 200);
+    const admin = await get('/api/tours/categories?isActive=false', auth);
+    assert.ok(admin.body.data.some((item: Doc) => String(item._id) === String(category._id)));
+    category.isActive = true;
+    assert.equal((await get(`/api/tours/categories/${category._id}`)).status, 200);
+    const published = await get('/api/tours/categories');
+    assert.ok(published.body.data.some((item: Doc) => String(item._id) === String(category._id)));
+  } finally {
+    category.isActive = true;
+  }
+});

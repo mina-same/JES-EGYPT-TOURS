@@ -315,7 +315,7 @@ export default function SpecialOffersView({ locale, initialTours, initialTotal, 
                 {t("empty.text")}
               </p>
               <Link
-                href={`/${locale}/tours`}
+                href={`/${locale}/search`}
                 className="gotur-btn"
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 10 }}
               >

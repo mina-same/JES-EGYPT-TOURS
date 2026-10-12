@@ -41,7 +41,6 @@
     "copyright": "© {{year}} JES Egypt Tours. Tutti i diritti riservati.",
     "paymentMethodsAlt": "Metodi di pagamento accettati",
     "destinations": {
-      "tours": "Tour",
       "specialOffers": "Offerte speciali",
       "tailorMade": "Viaggi su misura",
       "blog": "Blog di viaggio",
@@ -56,6 +55,7 @@
     }
   },
   "language": {
+    "label": "Lingua",
     "english": "English",
     "german": "Tedesco",
     "italian": "Italiano",
@@ -291,6 +291,16 @@
     "title": "Recensioni Video"
   },
   "breadcrumb": "Percorso di navigazione",
+  "pageNames": {
+    "about": "Chi siamo",
+    "faq": "FAQ",
+    "wishlist": "Preferiti",
+    "search": "Cerca",
+    "tailorMade": "Viaggi su misura",
+    "signIn": "Accedi",
+    "notFound": "Pagina non trovata",
+    "paymentPolicy": "Pagamenti e cancellazioni"
+  },
   "nav": {
     "home": "Home",
     "tailorMade": "Su misura",

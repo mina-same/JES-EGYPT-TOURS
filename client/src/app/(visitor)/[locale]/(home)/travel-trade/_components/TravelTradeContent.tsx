@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import Breadcrumb from "@/components/common/Breadcrumb/Breadcrumb";
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -153,14 +154,18 @@ export default function TravelTradeContent({
     <main className={styles.page}>
       <section className={styles.hero} aria-labelledby="travel-trade-title">
         <div className="container">
-          <nav className={styles.breadcrumb} aria-label={copy.breadcrumb.ariaLabel}>
-            <ol>
-              <li>
-                <Link href={`/${locale}`}>{copy.breadcrumb.home}</Link>
-              </li>
-              <li aria-current="page">{copy.breadcrumb.current}</li>
-            </ol>
-          </nav>
+          {/* The site's shared trail, in its pale-background colours. page.tsx
+              publishes this trail's BreadcrumbList, which the page's WebPage
+              points at by @id, so the component does not add a second. */}
+          <Breadcrumb
+            locale={locale}
+            homeLabel={copy.breadcrumb.home}
+            items={[{ label: copy.breadcrumb.current }]}
+            ariaLabel={copy.breadcrumb.ariaLabel}
+            jsonLd={false}
+            onLight
+            className={styles.breadcrumb}
+          />
 
           <div className={styles.heroGrid}>
             <div className={styles.heroContent}>

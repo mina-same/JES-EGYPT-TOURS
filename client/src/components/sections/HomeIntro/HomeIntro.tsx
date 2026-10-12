@@ -2,7 +2,6 @@
 
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import { generalContentAPI } from "@/lib/api/generalContent";
 import { ChevronDown, ChevronUp, MapPin, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
@@ -160,6 +159,10 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
     let alive = true;
     const fetchContent = async () => {
       try {
+        // Imported here, not at the top of the file. This client is built on
+        // axios, and a static import made axios part of the JavaScript every
+        // homepage view downloads, for a request only this path sends.
+        const { generalContentAPI } = await import("@/lib/api/generalContent");
         const response = await generalContentAPI.getBySlug("home-intro");
         if (alive && response.success) {
           setContent(response.data);

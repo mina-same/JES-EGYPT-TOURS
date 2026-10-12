@@ -10,6 +10,7 @@ import { Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import './EnhancedSectionHeader.css';
 
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 
@@ -25,8 +26,8 @@ type SectionHeaderButton = {
   newTab?: boolean;
 };
 
+// Also the collapsed `max-height` in EnhancedSectionHeader.css.
 const COLLAPSED_HEIGHT = 250;
-const EXPANDED_HEIGHT = 400;
 
 export default function EnhancedSectionHeader({
   title,
@@ -108,21 +109,7 @@ export default function EnhancedSectionHeader({
   const hasButton = !!button?.label && !!button?.href;
 
   return (
-    <section className="section-space-top">
-      <style jsx>{`
-        :global(.swiper-pagination-bullet) {
-          background: rgba(255, 255, 255, 0.7) !important;
-          opacity: 0.6 !important;
-          width: 10px;
-          height: 10px;
-        }
-        :global(.swiper-pagination-bullet-active) {
-          background: #b79c5c !important;
-          opacity: 1 !important;
-          width: 24px;
-          border-radius: 5px;
-        }
-      `}</style>
+    <section className="enhanced-section-header section-space-top">
       <Container>
         <Row className="align-items-stretch gutter-y-30">
           {hasMedia ? (
@@ -257,99 +244,6 @@ export default function EnhancedSectionHeader({
           </Col>
         </Row>
       </Container>
-      <style jsx global>{`
-        .enhanced-section-header__description {
-          font-size: 16px;
-          line-height: 1.8;
-          color: #666;
-          scrollbar-width: thin;
-          scrollbar-color: #b79c5c #f1f1f1;
-        }
-
-        .enhanced-section-header__description.is-expanded {
-          max-height: ${EXPANDED_HEIGHT}px !important;
-          overflow-y: auto !important;
-          padding-right: 15px;
-        }
-
-        .enhanced-section-header__description.is-collapsed {
-          max-height: ${COLLAPSED_HEIGHT}px !important;
-          overflow-y: hidden !important;
-          padding-right: 0;
-        }
-
-        .enhanced-section-header__description img {
-          max-width: 100%;
-          height: auto;
-          border-radius: 12px;
-          margin: 1.5rem 0;
-        }
-
-        .enhanced-section-header__description h1,
-        .enhanced-section-header__description h2,
-        .enhanced-section-header__description h3,
-        .enhanced-section-header__description h4,
-        .enhanced-section-header__description h5,
-        .enhanced-section-header__description h6 {
-          margin-top: 1.5rem;
-          margin-bottom: 1rem;
-          color: #1d231f;
-          font-weight: 700;
-        }
-
-        .enhanced-section-header__description p {
-          margin-bottom: 1.25rem;
-        }
-
-        .enhanced-section-header__description ul,
-        .enhanced-section-header__description ol {
-          margin-bottom: 1.5rem;
-          padding-left: 1.5rem;
-          list-style-position: outside;
-        }
-
-        .enhanced-section-header__description ul {
-          list-style-type: disc;
-        }
-
-        .enhanced-section-header__description ol {
-          list-style-type: decimal;
-        }
-
-        .enhanced-section-header__description li {
-          margin-bottom: 0.5rem;
-        }
-
-        .enhanced-section-header__description strong,
-        .enhanced-section-header__description b {
-          color: #1d231f;
-          font-weight: 700;
-        }
-
-        .enhanced-section-header__description::-webkit-scrollbar {
-          width: 5px;
-        }
-
-        .enhanced-section-header__description::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-
-        .enhanced-section-header__description::-webkit-scrollbar-thumb {
-          background: #b79c5c;
-          border-radius: 10px;
-        }
-
-        .enhanced-section-header__description::-webkit-scrollbar-thumb:hover {
-          background: #1d231f;
-        }
-
-        @media (max-width: 991px) {
-          .enhanced-section-header__description {
-            text-align: center;
-          }
-        }
-      `}</style>
     </section>
   );
 }

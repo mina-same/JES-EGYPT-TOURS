@@ -35,7 +35,7 @@ export default function About() {
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
-      <PageHeader title='About Us' subTitle='About Us' />
+      <PageHeader title='About Us' subTitle='About Us' breadcrumbLabelKey="pageNames.about" />
       <AboutOne />
       <CtaTwo />
       <HowItWorks />

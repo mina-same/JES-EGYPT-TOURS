@@ -8,7 +8,7 @@ import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
  * It lived inside PageHeader, which is fine until a page wants the trail
  * WITHOUT the rest of that component (the full-bleed photographic banner and
  * the <h1> it draws). The author page needed exactly that and got a
- * hand-copied `<ul className="gotur-breadcrumb">` instead — which promptly
+ * hand-copied list instead — which promptly
  * drifted: the copy hard-coded the English word "Home" and so printed it on
  * the German and Spanish pages too, where the site says "Startseite" and
  * "Inicio". One trail, one place to fix it.
@@ -26,13 +26,12 @@ import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
  * being rendered means they cannot, and every page with a trail gets the
  * markup for free.
  *
- * ── Two skins, one trail ──
- * `classic` is the theme's `.gotur-breadcrumb` — the icomoon chevron and the
- * gold current page, used under the photographic page banner. `pill` is the
- * glass capsule the article hero uses: a rounded, blurred bar with "/"
- * separators. They are variants of ONE component rather than two components,
- * because the difference is genuinely only paint: same items, same links, same
- * schema, same locale handling.
+ * ── One look ──
+ * The trail is a glass capsule: a rounded, blurred bar with "/" separators,
+ * which stays readable over any hero photograph. There used to be a second
+ * skin, the theme's chevron trail in bright gold set straight on the photo,
+ * under the page banners; every page now draws the capsule. `onLight` changes
+ * its colours only, for the one hero that is pale rather than a photograph.
  */
 
 export type BreadcrumbItem = {
@@ -56,10 +55,11 @@ interface BreadcrumbProps {
   /** Opt out where the page already publishes its own BreadcrumbList. */
   jsonLd?: boolean;
   /**
-   * `classic` — the theme's chevron trail, for the dark photo banner.
-   * `pill` — the blurred glass capsule the article hero uses.
+   * The capsule sits on a pale background (the travel-trade hero) instead of
+   * a photograph: dark text, and a dark tint in place of the white glass,
+   * which would vanish on white. Same shape and layout.
    */
-  variant?: "classic" | "pill";
+  onLight?: boolean;
 }
 
 /**
@@ -108,9 +108,17 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
   className = "",
   currentUrl,
   jsonLd = true,
-  variant = "classic",
+  onLight = false,
 }) => {
   const list = Array.isArray(items) ? items : [];
+
+  /*
+   * Only the LAST unlinked item is the page being viewed. An unlinked item
+   * earlier in the trail ("Authors", which has no index page) is a step, not
+   * the current page, so it must not announce itself as one.
+   */
+  const isCurrent = (item: BreadcrumbItem, index: number) =>
+    !item.href && index === list.length - 1;
 
   /*
    * The schema is a SIBLING of the <nav>, not a child of it.
@@ -130,73 +138,88 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
     />
   ) : null;
 
-  const homeLink =
-    variant === "pill" ? (
-      <Link
-        href={`/${locale}`}
-        className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0"
-      >
-        {homeLabel}
-      </Link>
-    ) : (
-      <Link href={`/${locale}`}>{homeLabel}</Link>
-    );
+  // Every crumb is one line that ends in "…" when its column is narrower than
+  // its text. `leading-6` is the "/" separator's line height: without it a
+  // trail of Home alone, which has no separator, made a capsule 4px shorter
+  // than every other page's.
+  const crumbClass = "min-w-0 truncate text-sm leading-6";
 
-  if (variant === "pill") {
-    return (
-      <>
-        {schema}
-        {/* A flex row rather than a list: the "/" separators are content
-            between the items. The classic skin draws its chevron with ::after
-            on the <li> instead, which is the only reason the two differ
-            structurally at all. */}
-        <nav
-          aria-label={ariaLabel || "Breadcrumb"}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 max-w-full overflow-hidden whitespace-nowrap ${className}`.trim()}
-        >
-          {homeLink}
-          {list.map((item, index) => (
-            <span key={`${item.label}-${index}`} className="contents">
-              <span className="text-white/40 flex-shrink-0">/</span>
-              {item.href ? (
-                <Link
-                  href={item.href}
-                  className="text-white/80 hover:text-white text-sm transition-colors flex-shrink-0"
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                // The current page: gold, and truncated rather than allowed to
-                // push the capsule past the viewport on a long title.
-                <span
-                  className="text-[#b79c5c] text-sm font-bold truncate block max-w-[150px] md:max-w-[350px]"
-                  title={item.label}
-                >
-                  {item.label}
-                </span>
-              )}
-            </span>
-          ))}
-        </nav>
-      </>
-    );
-  }
+  // Colours only; every class is written out whole so Tailwind can find it.
+  // The current page's dark bronze on the pale capsule keeps the gold idea
+  // at 4.5:1 contrast, which the photo capsule's lighter gold could not.
+  const colors = onLight
+    ? {
+        capsule: "bg-[#0f2433]/[0.04] border-[#0f2433]/[0.12]",
+        link: "text-[#4f5b63] hover:text-[#0f2433]",
+        step: "text-[#4f5b63]",
+        separator: "text-[#0f2433]/30",
+        current: "text-[#7a5e24]",
+      }
+    : {
+        capsule: "bg-white/10 border-white/20",
+        link: "text-white/80 hover:text-white",
+        step: "text-white/80",
+        separator: "text-white/40",
+        current: "text-[#b79c5c]",
+      };
+  const linkClass = `${crumbClass} ${colors.link} transition-colors`;
 
   return (
     <>
       {schema}
-      {/* The landmark goes on a <nav> wrapping the list, not on the <ul>:
-          role="navigation" there would strip the list semantics its <li>
-          children depend on. */}
-      <nav aria-label={ariaLabel || "Breadcrumb"} className={className}>
-        <ul className="gotur-breadcrumb list-unstyled">
-          <li>{homeLink}</li>
-          {list.map((item, index) => (
-            <li key={`${item.label}-${index}`}>
-              {item.href ? <Link href={item.href}>{item.label}</Link> : <span>{item.label}</span>}
-            </li>
-          ))}
-        </ul>
+      {/* A one-row grid rather than a list: the "/" separators are content
+          between the items.
+
+          ── Why a grid ──
+          The columns alternate crumb, separator, crumb… A crumb's column is
+          `minmax(0, max-content)`: on a wide screen every crumb is as wide
+          as its text and the capsule hugs them. When the row is too narrow,
+          the space is dealt out EQUALLY, each crumb taking its share until
+          its text fits — short crumbs stay whole and the long ones split
+          what is left. As a flex row the links never shrank, so on a phone
+          the article title got only the leftovers: one clipped letter, or
+          nothing, and a fixed 350px cap cut it on a desktop with room to
+          spare.
+
+          ── `border-[1px]` and `px-[1rem]`, not `border` and `px-4` ──
+          Bootstrap is loaded too, and its `.border` and `.px-4` are
+          `!important`: they turned the 20%-white border into an opaque grey
+          one and the 16px padding into 24px. The arbitrary-value classes
+          say the same thing under names Bootstrap does not have. */}
+      <nav
+        aria-label={ariaLabel || "Breadcrumb"}
+        className={`inline-grid grid-flow-col auto-cols-[minmax(0,max-content)_max-content] items-center gap-2 px-[1rem] py-2 rounded-full backdrop-blur-md border-[1px] ${colors.capsule} max-w-full overflow-hidden whitespace-nowrap ${className}`.trim()}
+      >
+        <Link href={`/${locale}`} className={linkClass}>
+          {homeLabel}
+        </Link>
+        {list.map((item, index) => (
+          <span key={`${item.label}-${index}`} className="contents">
+            {/* Decoration: without aria-hidden a screen reader says "slash"
+                between every two crumbs. */}
+            <span aria-hidden="true" className={colors.separator}>/</span>
+            {item.href ? (
+              <Link href={item.href} className={linkClass} title={item.label}>
+                {item.label}
+              </Link>
+            ) : isCurrent(item, index) ? (
+              // The current page: gold and bold.
+              <span
+                className={`${crumbClass} font-bold ${colors.current}`}
+                title={item.label}
+                aria-current="page"
+              >
+                {item.label}
+              </span>
+            ) : (
+              // A step with no page to link to: drawn like the links around
+              // it, not like the current page.
+              <span className={`${crumbClass} ${colors.step}`} title={item.label}>
+                {item.label}
+              </span>
+            )}
+          </span>
+        ))}
       </nav>
     </>
   );

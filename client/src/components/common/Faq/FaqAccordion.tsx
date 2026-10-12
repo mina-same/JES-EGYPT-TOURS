@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Plus, Minus } from "lucide-react";
+import RichHtml from "@/components/common/RichHtml/RichHtml";
 
 export interface FaqAccordionItem {
   question: React.ReactNode;
@@ -88,9 +89,9 @@ const FaqAccordion: React.FC<FaqAccordionProps> = ({
               inert={!isOpen}
             >
               <div className="faq-list__clip">
-                <div
+                <RichHtml
                   className="faq-list__answer html-content"
-                  dangerouslySetInnerHTML={{ __html: item.answer }}
+                  html={item.answer}
                 />
               </div>
             </div>

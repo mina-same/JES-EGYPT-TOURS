@@ -246,11 +246,11 @@ export default function TourSubcategoriesPage() {
         <span className={`status-badge ${subcategory.isActive ? 'status-active' : 'status-inactive'}`}>
           {subcategory.isActive ? (
             <>
-              <CheckCircle size={14} /> Active
+              <CheckCircle size={14} /> Published
             </>
           ) : (
             <>
-              <XCircle size={14} /> Inactive
+              <XCircle size={14} /> Draft
             </>
           )}
         </span>
@@ -317,8 +317,8 @@ export default function TourSubcategoriesPage() {
       {/* Stats Cards */}
       <div className="stats-grid">
         <StatCard icon={Tag} value={stats.total} label="Total Subcategories" iconVariant="total" />
-        <StatCard icon={CheckCircle} value={stats.active} label="Active" iconVariant="active" />
-        <StatCard icon={XCircle} value={stats.inactive} label="Inactive" iconVariant="inactive" />
+        <StatCard icon={CheckCircle} value={stats.active} label="Published" iconVariant="active" />
+        <StatCard icon={XCircle} value={stats.inactive} label="Drafts" iconVariant="inactive" />
         <StatCard icon={Layers} value={stats.totalTours} label="Total Tours" iconVariant="tours" />
       </div>
 
@@ -363,8 +363,8 @@ export default function TourSubcategoriesPage() {
             }}
           >
             <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="active">Published</option>
+            <option value="inactive">Draft</option>
           </select>
         </div>
       </div>

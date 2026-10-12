@@ -1,3 +1,5 @@
+import TourSubcategory from '../models/TourSubcategory';
+import { subcategoryVisibility } from '../utils/subcategoryAccess';
 import { hasNestedTourType, validTourType } from '../utils/tourType';
 import { listingSortStages } from '../utils/tourListingSort';
 import { validTourStyles } from '../utils/tourStyles';
@@ -579,6 +581,14 @@ export const getToursBySubcategory = async (
       return;
     }
 
+    const subcategory = await TourSubcategory.findOne({
+      _id: subcategoryId, ...subcategoryVisibility(req),
+    }).select('_id').lean();
+    if (!subcategory) {
+      res.status(404).json({ success: false, error: 'Tour subcategory not found' });
+      return;
+    }
+
     const filter: FilterQuery<ITour> = { subcategory: subcategoryId };
 
     // Same secure-by-default visibility rule as the main list (see
@@ -783,10 +793,12 @@ export const getTourBySlug = async (
     })
       .populate({
         path: 'subcategory',
-        select: 'name shortName slug description category',
+        // isActive: the tour page's breadcrumb drops a switched-off parent,
+        // whose own page answers 404, instead of linking to it.
+        select: 'name shortName slug description category isActive',
         populate: {
           path: 'category',
-          select: 'name shortName slug description',
+          select: 'name shortName slug description isActive',
         },
       })
       .populate({ path: 'destinations', select: 'name shortName' }).lean();

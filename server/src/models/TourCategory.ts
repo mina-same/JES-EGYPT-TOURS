@@ -228,7 +228,7 @@ const TourCategorySchema = new Schema<ITourCategory>(
     },
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     editVersion: {
       type: Number,

@@ -29,6 +29,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { type AdminLanguage } from '@/components/admin/AdminLanguageTabs';
 import LocalizedInput from '@/components/admin/LocalizedInput';
+import ImagePreview from '../ImagePreview';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -628,42 +629,16 @@ export default function ItineraryTab({
                                                       
                                                       {image?.url ? (
                                                         <div className="flex flex-col md:flex-row gap-4 items-start">
-                                                          <div className="relative group aspect-video w-full md:w-48 rounded-lg overflow-hidden bg-gray-100 border shrink-0">
-                                                            <img
-                                                              src={image.url}
-                                                              alt={(image as any)?.alt?.[activeLanguage] || 'Preview'}
-                                                              className="w-full h-full object-cover"
-                                                            />
-                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                                                              <label className="cursor-pointer bg-white rounded-full p-2 shadow-lg scale-90 group-hover:scale-100 transition-transform">
-                                                                <input
-                                                                  type="file"
-                                                                  accept="image/*"
-                                                                  className="hidden"
-                                                                  onChange={async (e) => {
-                                                                    const file = e.target.files?.[0];
-                                                                    if (file) {
-                                                                      const result = await handleImageUpload(file);
-                                                                      if (result) {
-                                                                        updateActivity(actIndex, 'image', { ...image, url: result.url, fileName: result.fileName });
-                                                                      }
-                                                                    }
-                                                                  }}
-                                                                />
-                                                                <Upload className="h-5 w-5 text-primary" />
-                                                              </label>
-                                                              <Button
-                                                                type="button"
-                                                                variant="destructive"
-                                                                size="icon"
-                                                                className="h-9 w-9 rounded-full ml-2 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform"
-                                                                onClick={() => updateActivity(actIndex, 'image', undefined)}
-                                                              >
-                                                                <Trash2 className="h-5 w-5" />
-                                                              </Button>
-                                                            </div>
+                                                          <div className="w-full md:w-64 shrink-0">
+                                                            <ImagePreview images={[image]} onUpload={async (file) => {
+                                                              const result = await handleImageUpload(file);
+                                                              if (result) updateActivity(actIndex, 'image', { ...image, url: result.url, fileName: result.fileName });
+                                                            }} />
+                                                            <Button type="button" variant="destructive" size="sm" onClick={() => updateActivity(actIndex, 'image', undefined)}>
+                                                              <Trash2 className="mr-2 h-4 w-4" />Remove image
+                                                            </Button>
                                                           </div>
-                                                          
+
                                                           <div className="flex-1 space-y-3 w-full">
                                                             <Input
                                                               value={image.url || ''}

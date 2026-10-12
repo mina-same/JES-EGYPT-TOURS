@@ -153,14 +153,10 @@ test('/destinations/:id/blogs lists article cards, never their stored comments',
   const originals = {
     blogFind: Blog.find,
     count: Blog.countDocuments,
-    categoryFind: BlogCategory.find,
-    subcategoryFind: BlogSubCategory.find,
   };
   const seen: { select?: unknown; populate?: unknown } = {};
   Blog.find = (() => listQuery(ARTICLES, seen)) as unknown as typeof Blog.find;
   Blog.countDocuments = (() => Promise.resolve(ARTICLES.length)) as unknown as typeof Blog.countDocuments;
-  BlogCategory.find = (() => listQuery([])) as unknown as typeof BlogCategory.find;
-  BlogSubCategory.find = (() => listQuery([])) as unknown as typeof BlogSubCategory.find;
 
   try {
     const { status, json } = await respond(getBlogsByDestination, {
@@ -185,7 +181,5 @@ test('/destinations/:id/blogs lists article cards, never their stored comments',
   } finally {
     Blog.find = originals.blogFind;
     Blog.countDocuments = originals.count;
-    BlogCategory.find = originals.categoryFind;
-    BlogSubCategory.find = originals.subcategoryFind;
   }
 });

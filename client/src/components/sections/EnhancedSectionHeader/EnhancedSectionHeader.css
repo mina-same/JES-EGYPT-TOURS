@@ -1,0 +1,131 @@
+/* EnhancedSectionHeader.
+ *
+ * These were two styled-jsx blocks in the component. With no styled-jsx
+ * registry on the server they only applied after hydration, so the server HTML
+ * showed the description at its full height (1641px on a phone, against 945px
+ * once the 250px clamp arrived). As a stylesheet the clamp is in the first
+ * response and hydration changes nothing.
+ */
+
+/* The image slider's pagination bullets. The block these came from styled
+   every swiper on the page and beat swiper's own `.swiper-pagination-bullet`
+   only by being later in the document. Scoped to this section they cannot
+   restyle another slider, and they outweigh swiper's rule instead of relying
+   on which stylesheet the bundler happens to emit last. */
+.enhanced-section-header .swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.7) !important;
+  opacity: 0.6 !important;
+  width: 10px;
+  height: 10px;
+}
+.enhanced-section-header .swiper-pagination-bullet-active {
+  background: #b79c5c !important;
+  opacity: 1 !important;
+  width: 24px;
+  border-radius: 5px;
+}
+
+.enhanced-section-header__description {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #666;
+  scrollbar-width: thin;
+  scrollbar-color: #b79c5c #f1f1f1;
+}
+
+.enhanced-section-header__description.is-expanded {
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  padding-right: 15px;
+}
+
+/* 250px is COLLAPSED_HEIGHT in the component, which measures the text against
+   it to decide whether "Read More" is offered. Change them together. */
+.enhanced-section-header__description.is-collapsed {
+  max-height: 250px !important;
+  overflow-y: hidden !important;
+  padding-right: 0;
+}
+
+.enhanced-section-header__description img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+}
+
+.enhanced-section-header__description h1,
+.enhanced-section-header__description h2,
+.enhanced-section-header__description h3,
+.enhanced-section-header__description h4,
+.enhanced-section-header__description h5,
+.enhanced-section-header__description h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #1d231f;
+  font-weight: 700;
+}
+
+.enhanced-section-header__description p {
+  margin-bottom: 1.25rem;
+}
+
+.enhanced-section-header__description ul,
+.enhanced-section-header__description ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  list-style-position: outside;
+}
+
+.enhanced-section-header__description ul {
+  list-style-type: disc;
+}
+
+.enhanced-section-header__description ol {
+  list-style-type: decimal;
+}
+
+.enhanced-section-header__description li {
+  margin-bottom: 0.5rem;
+}
+
+.enhanced-section-header__description strong,
+.enhanced-section-header__description b {
+  color: #1d231f;
+  font-weight: 700;
+}
+
+.enhanced-section-header__description::-webkit-scrollbar {
+  width: 5px;
+}
+
+.enhanced-section-header__description::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.enhanced-section-header__description::-webkit-scrollbar-thumb {
+  background: #b79c5c;
+  border-radius: 10px;
+}
+
+.enhanced-section-header__description::-webkit-scrollbar-thumb:hover {
+  background: #1d231f;
+}
+
+@media (max-width: 991px) {
+  .enhanced-section-header__description {
+    text-align: center;
+  }
+}
+
+/* With scripting off there is no "Read More" (the component adds it after
+   measuring), so nothing could open a clamped description. While these rules
+   were styled-jsx such a visitor never got the clamp at all; now that it is
+   in the stylesheet, it is lifted for them explicitly. */
+@media (scripting: none) {
+  .enhanced-section-header__description.is-collapsed {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}

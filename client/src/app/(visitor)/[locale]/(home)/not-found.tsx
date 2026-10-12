@@ -1,10 +1,4 @@
-import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
-import FooterOne from "@/components/layout/FooterOne/FooterOne";
-import Layout from "@/components/layout/Layout/Layout";
-import PageHeader from "@/components/sections/PageHeader/PageHeader";
-import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
-import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
-import Error404 from "@/components/sections/Error404/Error404";
+import NotFoundViewLazy from "./NotFoundViewLazy";
 import type { Metadata } from "next";
 import { getNotFoundRobotsMetadata } from "@/lib/seo/robots";
 
@@ -20,15 +14,9 @@ export const metadata: Metadata = {
   robots: getNotFoundRobotsMetadata(),
 };
 
+// The page itself is NotFoundView. It is reached through NotFoundViewLazy so
+// that this file, which Next ships with every page of the segment, does not
+// make each of them fetch the header and footer a second time.
 export default function CustomNotFound() {
-  return (
-    <Layout>
-      <TopbarOne />
-      <HeaderOne linkTheme="light" />
-      <HeaderOneCloned />
-      <PageHeader title='Page Not Found' subTitle='404' />
-      <Error404 />
-      <FooterOne />
-    </Layout>
-  );
+  return <NotFoundViewLazy />;
 }

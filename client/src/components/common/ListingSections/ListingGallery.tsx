@@ -8,6 +8,7 @@ import { getLocalizedValue } from '@/lib/localize';
 import Masonry from 'react-masonry-css';
 import { Gallery as PhotoSwipeGallery, Item } from '@/components/common/LazyPhotoSwipe/LazyPhotoSwipe';
 import 'photoswipe/dist/photoswipe.css';
+import './ListingSections.css';
 
 interface ListingGalleryProps {
   images: any[];
@@ -161,12 +162,6 @@ const ListingGallery: React.FC<ListingGalleryProps> = ({ images, title, sectionT
           </PhotoSwipeGallery>
         )}
       </Container>
-      <style jsx global>{`
-        @media (max-width: 768px) {
-           .sec-title__title { font-size: 28px !important; }
-           .section-space { padding: 50px 0; }
-        }
-      `}</style>
     </section>
   );
 };

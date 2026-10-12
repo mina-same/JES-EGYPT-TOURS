@@ -7,7 +7,7 @@ import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
 import HeaderOneCloned from "@/components/layout/HeaderOneCloned/HeaderOneCloned";
 
 import { getServerTranslation } from "@/lib/i18n-server";
-import { FaqStructuredData, FaqBreadcrumbStructuredData } from "@/components/sections/FaqSection/FaqStructuredData";
+import { FaqStructuredData } from "@/components/sections/FaqSection/FaqStructuredData";
 import { generateFaqMetadata } from "@/lib/seo/faqMetadata";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -53,16 +53,13 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
         title={t('pageTitle')}
         description={t('pageDescription')}
       />
-      <FaqBreadcrumbStructuredData />
       
       <Layout>
        <TopbarOne/>
         <HeaderOne linkTheme="light" />
         <HeaderOneCloned />
         <PageHeader
-          /* FaqBreadcrumbStructuredData publishes this page's trail. */
-          breadcrumbJsonLd={false}
-          
+          breadcrumbLabelKey="pageNames.faq"
           title={t('sectionTitle')}
           subTitle={t('sectionSubTitle')}
         />

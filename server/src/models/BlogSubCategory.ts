@@ -271,7 +271,7 @@ BlogSubCategorySchema.plugin(duplicateInternalLinksPlugin);
 
 
 /**
- * Blog subcategory content — read by the shared [slug] route and the blog hub.
+ * Blog subcategory content — read by the shared [slug] route.
  *
  * Mirrors Blog.ts: the visitor fetch is tagged and served from cache until an
  * editor changes something, at which point the tag is cleared and the change

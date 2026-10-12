@@ -3,7 +3,6 @@
 import { formatTourDestinations } from '@/lib/tours/destinations';
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { tourAPI } from "@/lib/api/tour";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
 import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
@@ -173,8 +172,12 @@ const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({
 
     let alive = true;
 
-    tourAPI
-      .getFeatured(FEATURED_TOURS_LIMIT)
+    // Imported here, not at the top of the file. This client is built on
+    // axios, and a static import made axios part of the JavaScript every
+    // homepage view downloads, for a request only this path sends. A failed
+    // import lands in the same catch as a failed request.
+    import("@/lib/api/tour")
+      .then(({ tourAPI }) => tourAPI.getFeatured(FEATURED_TOURS_LIMIT))
       .then((res) => {
         if (!alive) return;
         // An empty result is a RESULT. The old `res.data.length > 0` guard

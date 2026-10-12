@@ -68,6 +68,11 @@ export interface TourJsonLdInput {
    * Home is prepended automatically.
    */
   breadcrumbs: TourJsonLdBreadcrumb[];
+  /**
+   * Name of the prepended Home entry, in the page's language — the same
+   * `home` string the visible trail prints. Defaults to "Home".
+   */
+  homeLabel?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -368,6 +373,7 @@ export function generateTourJsonLd({
   siteUrl,
   organization,
   breadcrumbs,
+  homeLabel,
 }: TourJsonLdInput): Record<string, unknown> {
   // ── Derived base values ───────────────────────────────────────────────────
 
@@ -467,7 +473,7 @@ export function generateTourJsonLd({
 
   // Prepend Home, then append all breadcrumbs passed from the page
   const crumbItems = [
-    { label: "Home", href: `${siteUrl}/${loc}` },
+    { label: homeLabel || "Home", href: `${siteUrl}/${loc}` },
     ...breadcrumbs,
   ];
 
