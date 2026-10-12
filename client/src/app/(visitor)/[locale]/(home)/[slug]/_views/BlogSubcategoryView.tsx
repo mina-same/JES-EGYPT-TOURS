@@ -1,6 +1,7 @@
 'use client';
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Layout from "@/components/layout/Layout/Layout";
 import TopbarOne from "@/components/common/TopbarOne/TopbarOne";
 import HeaderOne from "@/components/layout/HeaderOne/HeaderOne";
@@ -60,6 +61,18 @@ export default function BlogSubcategoryView({
   // the server already painted on screen. These replay on every re-entry, as
   // they did without `viewport.once`. See Entrance.ts.
   const animateIn = useEntranceOnMount("below-fold");
+
+  // The pager is links to ?page=N, and following one re-renders this view with
+  // that page's cards. Bring the list into view when the page changes, as the
+  // category and destination pages do — not on the first render.
+  const searchParams = useSearchParams();
+  const page = Number(searchParams?.get("page")) || 1;
+  const allArticlesRef = useRef<HTMLElement>(null);
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    allArticlesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [page]);
 
   // Null when the parent category is missing (deleted, or not populated).
   const parent = getSubcategoryParent(subcategory.category, locale);
@@ -198,7 +211,7 @@ export default function BlogSubcategoryView({
       )}
 
       {/* All Articles Section */}
-      <section className="section-space">
+      <section ref={allArticlesRef} className="section-space">
         <div className="container">
           <div className="flex flex-col items-center mb-10">
             <span

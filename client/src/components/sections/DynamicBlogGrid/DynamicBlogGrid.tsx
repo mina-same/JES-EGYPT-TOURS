@@ -81,9 +81,14 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
    * saw no route to page 2, so every article past the first page was reachable
    * only through a link somewhere else on the site, and the pages could not be
    * opened in a new tab or shared.
+   *
+   * Page 1 is the listing's own URL and has no other spelling: `?page=1`
+   * redirects there, so a link to it would send every reader and crawler
+   * through that redirect.
    */
   const pageHref = (page: number) => {
     if (!basePath) return "#";
+    if (page <= 1) return basePath;
     const separator = basePath.includes("?") ? "&" : "?";
     return `${basePath}${separator}page=${page}`;
   };
@@ -130,7 +135,7 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
                 <ul className={styles.paginationList}>
                   {/* Previous Button */}
                   <li className={styles.directionItem}>
-                    {pagination.page === 1 ? (
+                    {pagination.page <= 1 ? (
                       <span
                         className={`${styles.directionLink} ${styles.isDisabled}`}
                         aria-disabled='true'
@@ -190,9 +195,10 @@ const DynamicBlogGrid: React.FC<DynamicBlogGridProps> = ({
                     )
                   )}
 
-                  {/* Next Button */}
+                  {/* Next Button — never past the last page: compared with `>=`,
+                      a page beyond it cannot link one further out again. */}
                   <li className={styles.directionItem}>
-                    {pagination.page === pagination.pages ? (
+                    {pagination.page >= pagination.pages ? (
                       <span
                         className={`${styles.directionLink} ${styles.isDisabled}`}
                         aria-disabled='true'

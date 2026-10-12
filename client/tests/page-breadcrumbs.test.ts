@@ -79,7 +79,7 @@ test('the header translates the key itself, so pages without a locale still get 
   assert.match(header, /const trail = breadcrumbs \?\? \(breadcrumbLabelKey \? \[\{ label: t\(breadcrumbLabelKey\) \}\] : undefined\);/);
   assert.match(header, /items=\{trail\}/);
   // The 404 page receives no locale; it relies on exactly this.
-  assert.match(read('../src/app/(visitor)/[locale]/(home)/not-found.tsx'), /breadcrumbLabelKey="pageNames\.notFound"/);
+  assert.match(read('../src/app/(visitor)/[locale]/(home)/NotFoundView.tsx'), /breadcrumbLabelKey="pageNames\.notFound"/);
 });
 
 test('the FAQ and payment-policy trails are published by the header, in the page language', () => {

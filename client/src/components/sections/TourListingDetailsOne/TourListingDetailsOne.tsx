@@ -37,6 +37,7 @@ import { splitRichTextByHeading } from "@/lib/richTextSections";
 import { calculateBookingSidebarLayout } from "@/lib/bookingSidebarUx";
 import { useLineClamp } from "@/hooks/useLineClamp";
 import TourRelatedContent from "./TourRelatedContent";
+import RichHtml from "@/components/common/RichHtml/RichHtml";
 import ClientCarousel from "../ClientCarousel/ClientCarousel";
 
 /** Questions shown before the "Read More" button. The rest are rendered too —
@@ -61,6 +62,17 @@ const NOTES_VISIBLE_ON_PHONE = 3;
  */
 const DESCRIPTION_VISIBLE_LINES_DESKTOP = 3;
 const DESCRIPTION_VISIBLE_LINES_MOBILE = 5;
+
+/* #595959 is the page's one secondary-text tone. The description was #444, the
+   itinerary #666 and the fact strips #595959 — three greys a few percent apart,
+   all meaning the same thing. Contrast here goes 9.74:1 -> 7.00:1, still well
+   clear of AA. A constant, not an inline object, so RichHtml is handed the same
+   style on every render. */
+const DESCRIPTION_TEXT_STYLE: React.CSSProperties = {
+  color: '#595959',
+  fontSize: '1rem',
+  lineHeight: '1.8',
+};
 
 const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initialRawTour }) => {
   const { tourData, loading, error, hasTourContent, rawTour } = useTourData(id, initialRawTour);
@@ -605,15 +617,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       ref={setDescriptionEl}
                       className={`tour-description-wrapper ${isDescriptionExpanded ? '' : 'collapsed'}`}
                     >
-                      <div
+                      <RichHtml
                         className='tour-listing-details__text html-content'
-                        /* #595959 is the page's one secondary-text tone. This
-                           block was #444, the itinerary #666 and the fact strips
-                           #595959 — three greys a few percent apart, all meaning
-                           the same thing. Contrast here goes 9.74:1 -> 7.00:1,
-                           still well clear of AA. */
-                        style={{ color: '#595959', fontSize: '1rem', lineHeight: '1.8' }}
-                        dangerouslySetInnerHTML={{ __html: overviewHtml }}
+                        style={DESCRIPTION_TEXT_STYLE}
+                        html={overviewHtml}
                       />
                     </div>
 
@@ -666,9 +673,10 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                   highlight and names none of them. */}
                               <i className='icon-check-star' aria-hidden="true"></i>
                             </div>
-                            <span
+                            <RichHtml
+                              as="span"
                               className="text-dark fw-medium html-content tour-highlight__text"
-                              dangerouslySetInnerHTML={{ __html: item }}
+                              html={item}
                             />
                           </div>
                         </li>
@@ -731,7 +739,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {includedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-check" aria-hidden="true" />
-                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: item }} />
+                                    <RichHtml as="span" className="html-content" html={item} />
                                   </li>
                                 ))}
                               </ul>
@@ -748,7 +756,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                                 {excludedAmenityItems.map((item, index) => (
                                   <li key={index} className="amenities-card-item">
                                     <i className="fas fa-times text-danger" aria-hidden="true" />
-                                    <span className="html-content" dangerouslySetInnerHTML={{ __html: item }} />
+                                    <RichHtml as="span" className="html-content" html={item} />
                                   </li>
                                 ))}
                               </ul>
@@ -811,9 +819,9 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                           {note.title && (
                             <h3 className="tour-note__title">{note.title}</h3>
                           )}
-                          <div
+                          <RichHtml
                             className="tour-note__text tour-listing-details__text html-content"
-                            dangerouslySetInnerHTML={{ __html: note.text }}
+                            html={note.text}
                           />
                         </div>
                       ))}
@@ -861,10 +869,11 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                         whatToPackOrdered ? "ol" : "ul",
                         { className: whatToPackListClass },
                         whatToPackItems.map((item, index) => (
-                          <li
+                          <RichHtml
+                            as="li"
                             key={index}
                             className="tour-pack__item html-content"
-                            dangerouslySetInnerHTML={{ __html: item }}
+                            html={item}
                           />
                         ))
                       )}
@@ -927,17 +936,17 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
                       {whatYouWillLoveSections ? (
                         <div className='tour-listing-details__text tour-listing-details__what-you-love__columns'>
                           {whatYouWillLoveSections.map((section, index) => (
-                            <div
+                            <RichHtml
                               key={index}
                               className='html-content'
-                              dangerouslySetInnerHTML={{ __html: section }}
+                              html={section}
                             />
                           ))}
                         </div>
                       ) : (
-                        <div
+                        <RichHtml
                           className='tour-listing-details__text html-content'
-                          dangerouslySetInnerHTML={{ __html: whatYouWillLoveHtml }}
+                          html={whatYouWillLoveHtml}
                         />
                       )}
                     </div>

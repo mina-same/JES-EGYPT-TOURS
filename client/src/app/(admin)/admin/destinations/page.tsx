@@ -93,8 +93,13 @@ export default function DestinationsListPage() {
       setDeleteModalOpen(false);
       setDeleteIds([]);
       fetchDestinations();
-    } catch {
-      toast({ title: 'Error', description: 'Failed to delete destination(s)', variant: 'destructive' });
+    } catch (err: any) {
+      // The API's own reason first — e.g. articles are still filed under it.
+      toast({
+        title: 'Error',
+        description: err?.response?.data?.error || 'Failed to delete destination(s)',
+        variant: 'destructive',
+      });
     } finally {
       setDeleteBusy(false);
     }

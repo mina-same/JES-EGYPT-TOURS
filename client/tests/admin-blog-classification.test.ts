@@ -90,3 +90,15 @@ test('a draft destination is marked in the list and cannot be picked for a publi
     assert.ok(editor.includes('blogSubcategoryAPI.getByCategory(formData.category, { isActive: true })'), page);
   }
 });
+
+test('a refusal to switch off, unpublish or delete a parent reaches the editor in the API\'s own words', () => {
+  // The three lists delete; the reason comes back as `error` on a 400.
+  for (const page of ['blogs/category/page.tsx', 'blogs/subcategory/page.tsx', 'destinations/page.tsx']) {
+    assert.ok(source(`app/(admin)/admin/${page}`).includes('err?.response?.data?.error ||'), page);
+  }
+  // The three editors switch a parent off or unpublish it on save.
+  for (const page of ['blogs/category/new/page.tsx', 'blogs/subcategory/new/page.tsx']) {
+    assert.ok(source(`app/(admin)/admin/${page}`).includes('parseApiError(err?.response?.data || { message: err.message })'), page);
+  }
+  assert.ok(source('app/(admin)/admin/destinations/new/page.tsx').includes('err.response?.data?.error'));
+});

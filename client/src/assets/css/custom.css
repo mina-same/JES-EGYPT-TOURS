@@ -4204,15 +4204,15 @@ li[data-list="ordered"] {
 /* `:not(li)` matters: a list item carries the same ql-indent-N class, so
    without it an indented <li> collected this padding on top of its own margin
    below — double the indent, and a bullet left stranded 3em from its text. */
-.html-content .ql-indent-1:not(.ql-direction-rtl):not(li) { padding-inline-start: 3em; }
-.html-content .ql-indent-2:not(.ql-direction-rtl):not(li) { padding-inline-start: 6em; }
-.html-content .ql-indent-3:not(.ql-direction-rtl):not(li) { padding-inline-start: 9em; }
-.html-content .ql-indent-4:not(.ql-direction-rtl):not(li) { padding-inline-start: 12em; }
-.html-content .ql-indent-5:not(.ql-direction-rtl):not(li) { padding-inline-start: 15em; }
-.html-content .ql-indent-6:not(.ql-direction-rtl):not(li) { padding-inline-start: 18em; }
-.html-content .ql-indent-7:not(.ql-direction-rtl):not(li) { padding-inline-start: 21em; }
-.html-content .ql-indent-8:not(.ql-direction-rtl):not(li) { padding-inline-start: 24em; }
-.html-content .ql-indent-9:not(.ql-direction-rtl):not(li) { padding-inline-start: 27em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-1:not(.ql-direction-rtl):not(li) { padding-inline-start: 3em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-2:not(.ql-direction-rtl):not(li) { padding-inline-start: 6em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-3:not(.ql-direction-rtl):not(li) { padding-inline-start: 9em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-4:not(.ql-direction-rtl):not(li) { padding-inline-start: 12em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-5:not(.ql-direction-rtl):not(li) { padding-inline-start: 15em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-6:not(.ql-direction-rtl):not(li) { padding-inline-start: 18em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-7:not(.ql-direction-rtl):not(li) { padding-inline-start: 21em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-8:not(.ql-direction-rtl):not(li) { padding-inline-start: 24em; }
+:is(.html-content, .blog-details-card__text) .ql-indent-9:not(.ql-direction-rtl):not(li) { padding-inline-start: 27em; }
 
 /* Margin, not padding, and 3em per level rather than Quill's 4.5em+.
    `list-style-position` is `outside` here, so a marker hangs off the li's
@@ -4220,15 +4220,15 @@ li[data-list="ordered"] {
    the old column. Margin moves the box and the marker together. Quill's 4.5em
    also folds in the 1.5em its editor uses for the marker gutter, which
    `.html-content ul` already provides with its own padding. */
-.html-content li.ql-indent-1:not(.ql-direction-rtl) { margin-inline-start: 3em; }
-.html-content li.ql-indent-2:not(.ql-direction-rtl) { margin-inline-start: 6em; }
-.html-content li.ql-indent-3:not(.ql-direction-rtl) { margin-inline-start: 9em; }
-.html-content li.ql-indent-4:not(.ql-direction-rtl) { margin-inline-start: 12em; }
-.html-content li.ql-indent-5:not(.ql-direction-rtl) { margin-inline-start: 15em; }
-.html-content li.ql-indent-6:not(.ql-direction-rtl) { margin-inline-start: 18em; }
-.html-content li.ql-indent-7:not(.ql-direction-rtl) { margin-inline-start: 21em; }
-.html-content li.ql-indent-8:not(.ql-direction-rtl) { margin-inline-start: 24em; }
-.html-content li.ql-indent-9:not(.ql-direction-rtl) { margin-inline-start: 27em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-1:not(.ql-direction-rtl) { margin-inline-start: 3em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-2:not(.ql-direction-rtl) { margin-inline-start: 6em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-3:not(.ql-direction-rtl) { margin-inline-start: 9em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-4:not(.ql-direction-rtl) { margin-inline-start: 12em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-5:not(.ql-direction-rtl) { margin-inline-start: 15em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-6:not(.ql-direction-rtl) { margin-inline-start: 18em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-7:not(.ql-direction-rtl) { margin-inline-start: 21em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-8:not(.ql-direction-rtl) { margin-inline-start: 24em; }
+:is(.html-content, .blog-details-card__text) li.ql-indent-9:not(.ql-direction-rtl) { margin-inline-start: 27em; }
 
 /* Hide TinySlider autoplay buttons */
 button[data-action="start"],

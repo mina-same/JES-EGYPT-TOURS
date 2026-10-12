@@ -121,6 +121,7 @@ test('the selector the page shows takes the focus back without scrolling; a hidd
 test('the sticky copy shows itself for it only where the top bar is not shown', () => {
   const code = source('components/layout/SiteHeader/SiteHeader.tsx');
   assert.match(code, /if \(!isSticky \|\| !mounted \|\| topBarShown \|\| !hasPendingLanguageFocus\(\)\) return;\s*setHoldsFocus\(true\);/);
-  assert.match(code, /button\.focus\(\{ preventScroll: true \}\);/);
+  // The copy is not focusable in the frame that starts its slide: it waits for the button, then focuses it.
+  assert.match(code, /if \(canTakeFocus\(button\)\) \{\s*settled = true;\s*clearLanguageFocus\(\);\s*button\.focus\(\{ preventScroll: true \}\);/);
   assert.match(code, /if \(!settled\) setHoldsFocus\(false\);/);
 });

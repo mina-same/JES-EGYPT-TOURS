@@ -17,6 +17,7 @@ import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import LanguageSelector from "@/components/common/LanguageSelector/LanguageSelector";
 import CurrencySwitcher from "@/components/common/CurrencySwitcher/CurrencySwitcher";
 import {
+  canTakeFocus,
   clearLanguageFocus,
   hasPendingLanguageFocus,
 } from "@/components/common/LanguageSelector/languageFocus";
@@ -152,11 +153,13 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
     let frame = 0;
     let attempts = 0;
     let settled = false;
-    // The selector mounts a moment after the header: wait for its button.
+    // The selector mounts a moment after the header, and the copy is still
+    // `visibility: hidden` in the frame that starts its slide: wait until the
+    // button can really take the focus.
     const focusLanguageButton = () => {
-      const header = headerRef.current;
-      const button = header?.querySelector<HTMLElement>(".language-switcher__btn");
-      if (button && !header?.inert) {
+      const button =
+        headerRef.current?.querySelector<HTMLElement>(".language-switcher__btn") ?? null;
+      if (canTakeFocus(button)) {
         settled = true;
         clearLanguageFocus();
         button.focus({ preventScroll: true });

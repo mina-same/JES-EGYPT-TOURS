@@ -14,12 +14,15 @@ import dynamic from "next/dynamic";
  * bundler gave the not-found page its own chunks holding the same modules in
  * a different order. On the home page, the listings, a tour, an article, a
  * destination, the wishlist and special offers, 54 to 59 modules arrived
- * twice, about 20 KB of gzipped JavaScript each time. Only one copy ever ran.
+ * twice; with the 404's own sections that was 22.6 KB of gzipped JavaScript
+ * on each of those pages (1.4 KB on About, FAQ, Contact and Search). Only one
+ * copy ever ran.
  *
  * Behind this wrapper the page under it references one small component, and
  * the header and footer are requested once, by the page that shows them. A
- * real 404 is rendered on the server exactly as before; its code is then the
- * only copy that page loads.
+ * real 404 is answered as before: on this site the server's HTML of a 404
+ * raised by the page has never held the page (the browser renders it), and
+ * its code is now one more request, made on that page alone.
  *
  * SSR stays ON and there is no `loading` option, for the reasons given in
  * [slug]/_views/CategoryViewLazy.tsx.

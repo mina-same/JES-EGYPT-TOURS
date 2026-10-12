@@ -13,6 +13,7 @@ import { destinationPopulateFor } from '../utils/destinationAccess';
 import {
   assertNoPublicArticlesUnder,
   respondToPublishingValidation,
+  sameReference,
   switchesOff,
 } from '../utils/blogClassification';
 
@@ -407,7 +408,7 @@ export const updateSubcategory = async (
     delete req.body._editVersion;
 
     const currentSubcategory = await BlogSubCategory.findById(req.params.id).select(
-      'editVersion ogTitle ogDescription metaTitle metaDescription isActive'
+      'editVersion ogTitle ogDescription metaTitle metaDescription isActive category'
     );
 
     if (!currentSubcategory) {
@@ -440,6 +441,14 @@ export const updateSubcategory = async (
     // article is filed under it. Any other edit goes through untouched.
     if (switchesOff(req.body.isActive) && currentSubcategory.isActive !== false) {
       await assertNoPublicArticlesUnder('subCategory', req.params.id, 'deactivate');
+    }
+
+    // Moving the subcategory under another category: refused while a published
+    // or scheduled article is filed under it. Each of those names the category
+    // it was published in, and would no longer match its topic's. The editor
+    // sends the category with every save; the one it already has is no move.
+    if ('category' in req.body && !sameReference(req.body.category, currentSubcategory.category)) {
+      await assertNoPublicArticlesUnder('subCategory', req.params.id, 'move');
     }
 
     const body = {

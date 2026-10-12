@@ -53,6 +53,10 @@ const referenceId = (value: unknown): string | null => {
   return id && id !== 'none' ? id : null;
 };
 
+/** Whether two references — ids, ObjectIds or populated documents — name the same document. */
+export const sameReference = (a: unknown, b: unknown): boolean =>
+  (referenceId(a)?.toLowerCase() ?? null) === (referenceId(b)?.toLowerCase() ?? null);
+
 /**
  * Stores an unchosen reference as null. Left as the form sent it, '' fails the
  * ObjectId cast, and a draft that simply has no destination yet answered 500.
@@ -130,8 +134,7 @@ export const assertPublishableClassification = async (classification: BlogClassi
     );
   }
 
-  const topicCategory = referenceId((subCategory as Stored).category);
-  if (topicCategory?.toLowerCase() !== (ids.category as string).toLowerCase()) {
+  if (!sameReference((subCategory as Stored).category, ids.category)) {
     throw new PublishingValidationError('The selected subcategory does not belong to the selected category');
   }
 };
@@ -144,20 +147,25 @@ const PUBLIC_ARTICLE_STATUSES = ['published', 'scheduled'];
 /** `isActive` as an update may carry it: the boolean, or a form's "false". */
 export const switchesOff = (value: unknown): boolean => value === false || value === 'false';
 
-/** What an editor is trying to do to a category, a topic or a destination. */
-type ParentChange = 'deactivate' | 'unpublish' | 'delete';
+/**
+ * What an editor is trying to do to a category, a topic or a destination.
+ * `move` is a topic going under another category.
+ */
+type ParentChange = 'deactivate' | 'unpublish' | 'delete' | 'move';
 
 /**
  * Throws when a category, a topic or a destination is what a published or
- * scheduled article is filed under, and so may not stop being available.
+ * scheduled article is filed under, and so may not stop being available — nor,
+ * for a topic, change category.
  *
  * The publish guard above keeps an article from going public under a parent
- * that is off, a draft or gone; this keeps the parent from being switched off,
- * unpublished or deleted from under an article that already is. Nothing is
- * done to the articles — the editor refiles or unpublishes them, then retries.
+ * that is off, a draft or gone, or under a topic of another category; this
+ * keeps the parent from being switched off, unpublished, deleted or moved from
+ * under an article that already is. Nothing is done to the articles — the
+ * editor refiles or unpublishes them, then retries.
  *
  * Counted on the article's own reference alone. A draft does not count: it may
- * be filed under a parent still in preparation.
+ * be filed under a parent still in preparation, and is checked when published.
  */
 export const assertNoPublicArticlesUnder = async (
   key: ClassificationKey,
@@ -168,8 +176,11 @@ export const assertNoPublicArticlesUnder = async (
   if (count === 0) return;
 
   const { label } = FIELDS.find((field) => field.key === key) as (typeof FIELDS)[number];
+  const inUse = `${count} published or scheduled ${count === 1 ? 'article uses' : 'articles use'} it`;
   throw new PublishingValidationError(
-    `Cannot ${change} this ${label} because ${count} published or scheduled ${count === 1 ? 'article uses' : 'articles use'} it`
+    change === 'move'
+      ? `Cannot move this ${label} to another category because ${inUse}. Reclassify those articles first`
+      : `Cannot ${change} this ${label} because ${inUse}`
   );
 };
 

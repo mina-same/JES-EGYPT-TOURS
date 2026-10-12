@@ -4,11 +4,12 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Plus, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
  import { type AdminLanguage } from './AdminLanguageTabs';
 import LocalizedField from './LocalizedField';
 import ImageLanguagesPicker from './ImageLanguagesPicker';
+import ImagePreview from './ImagePreview';
 
 export interface ImageData {
   url: string;
@@ -197,37 +198,9 @@ export default function ImageUpload({
 
             {/* Image Preview */}
             {image.url ? (
-              <div className="relative aspect-video max-h-[160px] mx-auto mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                <img
-                  src={image.url}
-                  alt={(activeLanguage && typeof image.alt === 'object' ? image.alt[activeLanguage] : image.alt) || 'Preview'}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" fill="none"%3E%3Crect width="600" height="400" fill="%231F2937"/%3E%3Cpath d="M300 180V220M280 200H320" stroke="%234B5563" stroke-width="4" stroke-linecap="round"/%3E%3Ctext x="300" y="260" font-family="sans-serif" font-size="20" fill="%239CA3AF" text-anchor="middle"%3EImage Failed to Load%3C/text%3E%3C/svg%3E';
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={uploadingIndex === index}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) await handleFileUpload(file, index);
-                      }}
-                    />
-                    <div className="bg-white dark:bg-slate-900 rounded-full p-2.5 shadow-xl transform scale-90 group-hover:scale-100 transition-transform">
-                      {uploadingIndex === index ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-[#b79c5c]" />
-                      ) : (
-                        <Upload className="h-5 w-5 text-[#b79c5c]" />
-                      )}
-                    </div>
-                  </label>
-                </div>
-              </div>
+              <ImagePreview images={images} index={index}
+                uploading={uploadingIndex === index}
+                onUpload={(file) => handleFileUpload(file, index)} />
             ) : (
               <label className="flex flex-col items-center justify-center aspect-video max-h-[160px] mb-4 rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 cursor-pointer hover:border-[#b79c5c] dark:hover:border-[#b79c5c] hover:bg-white dark:hover:bg-slate-800 transition-all">
                 <input

@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Itinerary } from "../types";
 import { normalizeRichTextInternalLinks } from "@/lib/richTextLinks";
 import { useLineClamp } from "@/hooks/useLineClamp";
+import RichHtml from "@/components/common/RichHtml/RichHtml";
 import {
   DAY_ACCOMMODATION_FALLBACKS,
   DAY_FLIGHT_FALLBACKS,
@@ -132,9 +133,9 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
             ref={setIntroEl}
             className={`tour-description-wrapper tour-plan__intro-clamp ${isIntroExpanded ? '' : 'collapsed'}`}
           >
-            <div
+            <RichHtml
               className="html-content tour-plan__intro"
-              dangerouslySetInnerHTML={{ __html: generalDescriptionHtml }}
+              html={generalDescriptionHtml}
             />
           </div>
 
@@ -229,9 +230,9 @@ export const TourPlan: React.FC<TourPlanProps> = ({ itinerary }) => {
                                 gold + underline treatment. Without it anchors fall
                                 back to the theme's `a` rule (#d4af37, no underline)
                                 and read as plain body text. */}
-                            <div
+                            <RichHtml
                               className="html-content tour-plan__text"
-                              dangerouslySetInnerHTML={{ __html: activity.description }}
+                              html={activity.description}
                             />
                           </div>
                         </div>

@@ -25,6 +25,7 @@ import {
   blogCardPopulate,
 } from '../utils/blogCardPopulate';
 import { toPublicBlogComments } from '../utils/publicBlogComments';
+import { readPublicPagination } from '../utils/publicPagination';
 
 const buildBlogSearchFilters = async (search: unknown): Promise<any[] | null> => {
   const searchRegex = createSearchRegex(search);
@@ -1209,7 +1210,9 @@ export const getBlogsByCategory = async (
 ): Promise<void> => {
   try {
     const { slug } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const pagination = readPublicPagination(req.query, res, 10);
+    if (!pagination) return;
+    const { page, limit, skip } = pagination;
 
     // 1. Find category by slug — only its id is used below.
     const category = await BlogCategory.findOne({
@@ -1232,10 +1235,9 @@ export const getBlogsByCategory = async (
     }
 
     // 2. Find blogs in this category — as cards, not articles.
-    const skip = (Number(page) - 1) * Number(limit);
     const query = { category: category._id, status: 'published' };
 
-    const [blogs, total] = await findListingPage(query, skip, Number(limit));
+    const [blogs, total] = await findListingPage(query, skip, limit);
 
     res.status(200).json({
       success: true,
@@ -1243,10 +1245,10 @@ export const getBlogsByCategory = async (
       // Localized, with `slug` kept raw so the per-locale card links resolve.
       data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         total,
-        pages: Math.ceil(total / Number(limit)),
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error: any) {
@@ -1270,7 +1272,9 @@ export const getBlogsBySubCategory = async (
 ): Promise<void> => {
   try {
     const { slug } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const pagination = readPublicPagination(req.query, res, 10);
+    if (!pagination) return;
+    const { page, limit, skip } = pagination;
 
     // 1. Find subcategory by slug
     // Note: Since subcategory slugs might not be unique across categories, we typically search all
@@ -1295,10 +1299,9 @@ export const getBlogsBySubCategory = async (
     }
 
     // 2. Find blogs in this subcategory — as cards, not articles.
-    const skip = (Number(page) - 1) * Number(limit);
     const query = { subCategory: subCategory._id, status: 'published' };
 
-    const [blogs, total] = await findListingPage(query, skip, Number(limit));
+    const [blogs, total] = await findListingPage(query, skip, limit);
 
     res.status(200).json({
       success: true,
@@ -1306,10 +1309,10 @@ export const getBlogsBySubCategory = async (
       // Localized, with `slug` kept raw so the per-locale card links resolve.
       data: localizePreservingSlugs(blogs, req.locale),
       pagination: {
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         total,
-        pages: Math.ceil(total / Number(limit)),
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error: any) {

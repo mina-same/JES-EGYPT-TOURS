@@ -124,7 +124,8 @@ export default function BlogSubCategoriesPage() {
       setDeleteIds([]);
       await fetchSubcategories();
     } catch (err: any) {
-      const msg = err.message || 'Failed to delete subcategory(ies)';
+      // The API's own reason first — e.g. articles are still filed under it.
+      const msg = err?.response?.data?.error || err.message || 'Failed to delete subcategory(ies)';
       setError(msg);
       toast({
         title: 'Delete failed',

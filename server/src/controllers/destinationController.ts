@@ -11,6 +11,13 @@ import { canReadAllDestinations } from '../utils/destinationAccess';
 import Blog from '../models/Blog';
 import { FilterQuery } from 'mongoose';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
+import { readPublicPagination } from '../utils/publicPagination';
+import {
+  assertNoPublicArticlesUnder,
+  hasPublicPage,
+  respondToPublishingValidation,
+  switchesOff,
+} from '../utils/blogClassification';
 import {
   BLOG_LISTING_FIELDS,
   BLOG_LISTING_POPULATE,
@@ -172,9 +179,9 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
  */
 export const getBlogsByDestination = async (req: Request, res: Response): Promise<void> => {
   try {
-    const page = parseInt(req.query.page as string || '1', 10);
-    const limit = parseInt(req.query.limit as string || '9', 10);
-    const skip = (page - 1) * limit;
+    const pagination = readPublicPagination(req.query, res, 9);
+    if (!pagination) return;
+    const { page, limit, skip } = pagination;
 
     // An article belongs to a destination through its own `destination` and
     // nothing else. A category's or topic's featuredDestinations says which
@@ -216,7 +223,13 @@ export const getBlogsByDestination = async (req: Request, res: Response): Promis
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
-    res.status(500).json({ success: false, error: 'Failed to fetch destination blogs', message: error.message });
+    // An id that cannot be one names no destination. It is the caller's input,
+    // so it is answered as such, and no error here carries the driver's text.
+    if (error?.name === 'CastError') {
+      res.status(404).json({ success: false, error: 'Destination not found' });
+      return;
+    }
+    res.status(500).json({ success: false, error: 'Failed to fetch destination blogs' });
   }
 };
 
@@ -287,6 +300,15 @@ export const updateDestination = async (req: Request, res: Response): Promise<vo
       body.ogImage = body.metaImage.url;
     }
 
+    // Taking the page down — back to a draft, or switched off — is refused
+    // while a published or scheduled article is filed under the destination.
+    // An edit that leaves the page public goes through untouched.
+    const staysPublished = body.status === undefined ? destination.status === 'published' : body.status === 'published';
+    const staysActive = body.isActive === undefined ? destination.isActive !== false : !switchesOff(body.isActive);
+    if (hasPublicPage(destination) && !(staysPublished && staysActive)) {
+      await assertNoPublicArticlesUnder('destination', destination._id, staysPublished ? 'deactivate' : 'unpublish');
+    }
+
     Object.assign(destination, body);
 
     // Save triggers pre('save') hooks and full validation
@@ -295,6 +317,7 @@ export const updateDestination = async (req: Request, res: Response): Promise<vo
     res.status(200).json({ success: true, message: 'Destination updated successfully', data: destination });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     console.error('Update Destination Server Error:', error);
     if (error.name === 'CastError') {
       res.status(400).json({ success: false, error: 'Invalid destination ID format' });
@@ -326,10 +349,13 @@ export const deleteDestination = async (req: Request, res: Response): Promise<vo
       res.status(404).json({ success: false, error: 'Destination not found' });
       return;
     }
+    // A published or scheduled article filed under it would be left pointing at nothing.
+    await assertNoPublicArticlesUnder('destination', destination._id, 'delete');
     await destination.deleteOne();
     res.status(200).json({ success: true, message: 'Destination deleted successfully' });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     if (error.name === 'CastError') {
       res.status(400).json({ success: false, error: 'Invalid destination ID format' });
       return;
@@ -350,6 +376,12 @@ export const toggleDestinationStatus = async (req: Request, res: Response): Prom
       res.status(404).json({ success: false, error: 'Destination not found' });
       return;
     }
+    // Switching off a destination that has a public page takes the page down:
+    // refused while a published or scheduled article is filed under it. A
+    // draft has no page to lose, so its switch is free either way.
+    if (hasPublicPage(destination)) {
+      await assertNoPublicArticlesUnder('destination', destination._id, 'deactivate');
+    }
     destination.isActive = !destination.isActive;
     await destination.save();
     res.status(200).json({
@@ -359,6 +391,7 @@ export const toggleDestinationStatus = async (req: Request, res: Response): Prom
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
+    if (respondToPublishingValidation(error, res)) return;
     res.status(500).json({ success: false, error: 'Failed to toggle destination status', message: error.message });
   }
 };
