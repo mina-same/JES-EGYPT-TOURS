@@ -1,494 +1,56 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  Calendar,
-  ChevronRight,
-  Mail,
-  MessageSquare,
-  Sparkles,
-  Tag,
-  Users,
-} from "lucide-react";
-
-import { getAdminSocket } from "@/lib/realtime/adminSocket";
-import { API_ENDPOINTS } from "@/config/api";
-import { getAllBookings, type IBooking } from "@/lib/api/booking";
-import { tourAPI } from "@/lib/api/tour";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import DashboardKpiCard from "@/components/admin/DashboardKpiCard";
-import MiniBarChart from "@/components/admin/MiniBarChart";
-
-interface AdminDashboardStats {
-  usersTotal: number;
-  toursTotal: number;
-  toursActive: number;
-  bookingsTotal: number;
-  bookingsPending: number;
-  contactNew: number;
-  tailorMadePending: number;
-  updatedAt: string;
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { Calendar, Mail, MessageSquare, Tag, Users } from 'lucide-react';
+import { API_ENDPOINTS } from '@/config/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { adminFetch } from '@/lib/adminNotifications';
+import { useAdminRequestListRefresh } from '@/hooks/useAdminRequestListRefresh';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import DashboardKpiCard from '@/components/admin/DashboardKpiCard';
+import MiniBarChart from '@/components/admin/MiniBarChart';
+interface Overview {
+  counts: { bookingsPending: number; contactNew: number; tailorMadePending: number; usersTotal?: number; specialOffers?: number; updatedAt: string };
+  queues: { bookings: Array<{ _id: string; name: string; tourSnapshot?: { heading?: string | { en?: string } }; tour?: { heading?: string | { en?: string } } | null }>; contacts: Array<{ _id: string; name: string; email: string }>; tailorMade: Array<{ _id: string; fullName: string; email: string }> };
+  analytics: { dates: string[]; bookings: number[]; leads: number[] };
 }
-
-interface ContactSubmission {
-  _id: string;
-  name: string;
-  email: string;
-  message: string;
-  status: 'new' | 'replied' | 'archived';
-  createdAt: string;
-}
-
-interface TailorMadeRequest {
-  _id: string;
-  fullName: string;
-  email: string;
-  status: 'pending' | 'contacted' | 'in-progress' | 'completed' | 'cancelled';
-  createdAt: string;
-}
-
-const toISODateKey = (d: Date) => {
-  // YYYY-MM-DD (local time)
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-};
-
-const buildLastNDays = (n: number) => {
-  const days: Array<{ key: string; label: string; date: Date }> = [];
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - i);
-    days.push({
-      key: toISODateKey(d),
-      label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-      date: d,
-    });
-  }
-  return days;
-};
-
-const AdminDashboard: React.FC = () => {
-  const [dashboardStats, setDashboardStats] = useState<AdminDashboardStats | null>(null);
-  const [pendingBookings, setPendingBookings] = useState<IBooking[]>([]);
-  const [newContacts, setNewContacts] = useState<ContactSubmission[]>([]);
-  const [pendingTailorMade, setPendingTailorMade] = useState<TailorMadeRequest[]>([]);
-  const [loadingQueues, setLoadingQueues] = useState(true);
-  const [bookingsTrend, setBookingsTrend] = useState<number[]>([]);
-  const [leadsTrend, setLeadsTrend] = useState<number[]>([]);
-  const [trendLabels, setTrendLabels] = useState<string[]>([]);
-  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
-  const [specialOffersCount, setSpecialOffersCount] = useState<number | string>("—");
-
-  const router = useRouter();
-
-  const fetchQueues = async () => {
-    if (typeof window === "undefined") return;
-
-    const token = window.localStorage.getItem("authToken");
-    if (!token) return;
-
-    setLoadingQueues(true);
+export default function AdminDashboard() {
+  const { user } = useAuth(), { connected } = useNotifications();
+  const [data, setData] = useState<Overview | null>(null), [error, setError] = useState<string | null>(null);
+  const sequence = useRef(0);
+  const allowed = (permission: string) => user?.role === 'superadmin' || user?.permissions?.includes(permission);
+  const refresh = useCallback(async () => {
+    const current = ++sequence.current;
     try {
-      const [bookingsRes, contactsRes, tailorRes] = await Promise.all([
-        getAllBookings({ status: "pending", page: 1, limit: 5 }),
-        fetch(`${API_ENDPOINTS.CONTACT.BASE}?status=new&page=1&limit=5`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_ENDPOINTS.TAILOR_MADE.BASE}?status=pending&page=1&limit=5`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      setPendingBookings(Array.isArray(bookingsRes?.data) ? bookingsRes.data : []);
-
-      if (contactsRes.ok) {
-        const json = await contactsRes.json().catch(() => null);
-        setNewContacts(Array.isArray(json?.data) ? json.data : []);
-      } else {
-        setNewContacts([]);
-      }
-
-      if (tailorRes.ok) {
-        const json = await tailorRes.json().catch(() => null);
-        setPendingTailorMade(Array.isArray(json?.data) ? json.data : []);
-      } else {
-        setPendingTailorMade([]);
-      }
-    } catch {
-      setPendingBookings([]);
-      setNewContacts([]);
-      setPendingTailorMade([]);
-    } finally {
-      setLoadingQueues(false);
-    }
-  };
-
-  const fetchAnalytics = async () => {
-    if (typeof window === "undefined") return;
-    const token = window.localStorage.getItem("authToken");
-    if (!token) return;
-
-    setLoadingAnalytics(true);
-    try {
-      const windowDays = buildLastNDays(14);
-      setTrendLabels(windowDays.map((d) => d.label));
-
-      // Fetch latest records; we then compute last-14-day buckets client-side.
-      // (Avoids needing a backend aggregation endpoint.)
-      const [bookingsRes, contactsRes, tailorRes, specialOffersRes] = await Promise.all([
-        getAllBookings({ page: 1, limit: 250 }),
-        fetch(`${API_ENDPOINTS.CONTACT.BASE}?page=1&limit=250`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_ENDPOINTS.TAILOR_MADE.BASE}?page=1&limit=250`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        tourAPI.getAll({ page: 1, limit: 1, isSpecialOffer: true, fields: "heading", includeInactive: true }),
-      ]);
-
-      // Bookings trend
-      const bookingsByDay: Record<string, number> = Object.fromEntries(
-        windowDays.map((d) => [d.key, 0])
-      );
-      (Array.isArray(bookingsRes?.data) ? bookingsRes.data : []).forEach((b) => {
-        const raw = (b.createdAt as any) || (b.updatedAt as any);
-        if (!raw) return;
-        const dt = new Date(raw);
-        dt.setHours(0, 0, 0, 0);
-        const k = toISODateKey(dt);
-        if (k in bookingsByDay) bookingsByDay[k] += 1;
-      });
-      setBookingsTrend(windowDays.map((d) => bookingsByDay[d.key] || 0));
-
-      // Leads = contact submissions + tailor-made requests
-      const leadsByDay: Record<string, number> = Object.fromEntries(
-        windowDays.map((d) => [d.key, 0])
-      );
-
-      if (contactsRes.ok) {
-        const json = await contactsRes.json().catch(() => null);
-        (Array.isArray(json?.data) ? json.data : []).forEach((c: any) => {
-          if (!c?.createdAt) return;
-          const dt = new Date(c.createdAt);
-          dt.setHours(0, 0, 0, 0);
-          const k = toISODateKey(dt);
-          if (k in leadsByDay) leadsByDay[k] += 1;
-        });
-      }
-
-      if (tailorRes.ok) {
-        const json = await tailorRes.json().catch(() => null);
-        (Array.isArray(json?.data) ? json.data : []).forEach((t: any) => {
-          if (!t?.createdAt) return;
-          const dt = new Date(t.createdAt);
-          dt.setHours(0, 0, 0, 0);
-          const k = toISODateKey(dt);
-          if (k in leadsByDay) leadsByDay[k] += 1;
-        });
-      }
-
-      setLeadsTrend(windowDays.map((d) => leadsByDay[d.key] || 0));
-
-      // Special offers count
-      setSpecialOffersCount((specialOffersRes as any)?.total ?? 0);
-    } catch {
-      setBookingsTrend([]);
-      setLeadsTrend([]);
-      setTrendLabels([]);
-    } finally {
-      setLoadingAnalytics(false);
-    }
-  };
-
-  useEffect(() => {
-    const socket = getAdminSocket();
-    if (!socket) return;
-
-    const onStats = (stats: AdminDashboardStats) => {
-      setDashboardStats(stats);
-    };
-
-    const onNotificationNew = () => {
-      void fetchQueues();
-    };
-
-    socket.on('dashboard:stats', onStats);
-    socket.on('notification:new', onNotificationNew);
-
-    void fetchQueues();
-    void fetchAnalytics();
-
-    return () => {
-      socket.off('dashboard:stats', onStats);
-      socket.off('notification:new', onNotificationNew);
-    };
+      const body = await adminFetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}/overview`);
+      if (current === sequence.current) { setData(body); setError(null); }
+    } catch (error) { if (current === sequence.current) setError(error instanceof Error ? error.message : 'Unable to load dashboard'); }
   }, []);
-
-  const updatedAt = useMemo(() => {
-    if (!dashboardStats?.updatedAt) return "—";
-    try {
-      return new Date(dashboardStats.updatedAt).toLocaleTimeString();
-    } catch {
-      return "—";
-    }
-  }, [dashboardStats?.updatedAt]);
-
-  const bookingsTotal14 = useMemo(
-    () => bookingsTrend.reduce((sum, v) => sum + v, 0),
-    [bookingsTrend]
-  );
-  const leadsTotal14 = useMemo(
-    () => leadsTrend.reduce((sum, v) => sum + v, 0),
-    [leadsTrend]
-  );
-  const avgBookingsPerDay = useMemo(() => {
-    if (!bookingsTrend.length) return 0;
-    return Math.round((bookingsTotal14 / bookingsTrend.length) * 10) / 10;
-  }, [bookingsTrend, bookingsTotal14]);
-  const avgLeadsPerDay = useMemo(() => {
-    if (!leadsTrend.length) return 0;
-    return Math.round((leadsTotal14 / leadsTrend.length) * 10) / 10;
-  }, [leadsTrend, leadsTotal14]);
-
-  return (
-    <div className="space-y-6" suppressHydrationWarning>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Sparkles size={16} />
-            </div>
-            <h2 className="truncate text-xl font-semibold">Overview</h2>
-            <Badge variant="secondary" className="ml-1">
-              Live
-            </Badge>
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Monitor bookings and leads, and manage content in one place.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => void Promise.all([fetchQueues(), fetchAnalytics()])}>
-            Refresh
-          </Button>
-          <Button asChild>
-            <Link href="/admin/tour/tour/new">New Tour</Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <DashboardKpiCard
-          icon={Calendar}
-          label="Pending bookings"
-          value={dashboardStats?.bookingsPending ?? "—"}
-          tone="emerald"
-          onClick={() => router.push("/admin/tour/booking")}
-        />
-        <DashboardKpiCard
-          icon={Mail}
-          label="New contact forms"
-          value={dashboardStats?.contactNew ?? "—"}
-          tone="blue"
-          onClick={() => router.push("/admin/contact-forms/contact-form")}
-        />
-        <DashboardKpiCard
-          icon={MessageSquare}
-          label="Pending tailor-made"
-          value={dashboardStats?.tailorMadePending ?? "—"}
-          tone="amber"
-          onClick={() => router.push("/admin/contact-forms/tailor-made")}
-        />
-        <DashboardKpiCard
-          icon={Tag}
-          label="Special offers"
-          value={specialOffersCount}
-          tone="rose"
-        />
-        <DashboardKpiCard
-          icon={Users}
-          label="Total users"
-          value={dashboardStats?.usersTotal ?? "—"}
-          tone="violet"
-          onClick={() => router.push("/admin/users")}
-        />
-      </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Action required</CardTitle>
-          <div className="text-xs text-muted-foreground">Last update: {updatedAt}</div>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Bookings</div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2"
-                  onClick={() => router.push("/admin/tour/booking")}
-                >
-                  View
-                  <ChevronRight size={14} />
-                </Button>
-              </div>
-              {loadingQueues ? (
-                <div className="text-sm text-muted-foreground">Loading…</div>
-              ) : pendingBookings.length === 0 ? (
-                <div className="text-sm text-muted-foreground">No pending bookings.</div>
-              ) : (
-                <div className="space-y-2">
-                  {pendingBookings.map((b, idx) => (
-                    <div
-                      key={(b._id || b.id || idx) as string}
-                      className="rounded-md border bg-background p-3"
-                    >
-                      <div className="text-sm font-medium">{b.name}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {typeof b.tour === "object" ? (typeof b.tour.heading === 'object' ? b.tour.heading.en : b.tour.heading) : "Tour"}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Contact forms</div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2"
-                  onClick={() => router.push("/admin/contact-forms/contact-form")}
-                >
-                  View
-                  <ChevronRight size={14} />
-                </Button>
-              </div>
-              {loadingQueues ? (
-                <div className="text-sm text-muted-foreground">Loading…</div>
-              ) : newContacts.length === 0 ? (
-                <div className="text-sm text-muted-foreground">No new messages.</div>
-              ) : (
-                <div className="space-y-2">
-                  {newContacts.map((c) => (
-                    <div key={c._id} className="rounded-md border bg-background p-3">
-                      <div className="text-sm font-medium">{c.name}</div>
-                      <div className="mt-1 text-xs text-muted-foreground truncate">
-                        {c.email}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Tailor-made</div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2"
-                  onClick={() => router.push("/admin/contact-forms/tailor-made")}
-                >
-                  View
-                  <ChevronRight size={14} />
-                </Button>
-              </div>
-              {loadingQueues ? (
-                <div className="text-sm text-muted-foreground">Loading…</div>
-              ) : pendingTailorMade.length === 0 ? (
-                <div className="text-sm text-muted-foreground">No pending requests.</div>
-              ) : (
-                <div className="space-y-2">
-                  {pendingTailorMade.map((t) => (
-                    <div key={t._id} className="rounded-md border bg-background p-3">
-                      <div className="text-sm font-medium">{t.fullName}</div>
-                      <div className="mt-1 text-xs text-muted-foreground truncate">
-                        {t.email}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Analytics (last 14 days)</CardTitle>
-            <Badge variant="secondary">Trends</Badge>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium">Bookings</div>
-                  <div className="text-xs text-muted-foreground">Total: {bookingsTotal14} • Avg/day: {avgBookingsPerDay}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2"
-                  onClick={() => router.push("/admin/tour/booking")}
-                >
-                  Details
-                  <ChevronRight size={14} />
-                </Button>
-              </div>
-
-              {loadingAnalytics ? (
-                <div className="text-sm text-muted-foreground">Loading…</div>
-              ) : bookingsTrend.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Not enough data yet.</div>
-              ) : (
-                <MiniBarChart values={bookingsTrend} labels={trendLabels} barClassName="bg-emerald-500/70" />
-              )}
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium">Leads</div>
-                  <div className="text-xs text-muted-foreground">Contact + tailor-made • Total: {leadsTotal14} • Avg/day: {avgLeadsPerDay}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2"
-                  onClick={() => router.push("/admin/contact-forms/contact-form")}
-                >
-                  Details
-                  <ChevronRight size={14} />
-                </Button>
-              </div>
-
-              {loadingAnalytics ? (
-                <div className="text-sm text-muted-foreground">Loading…</div>
-              ) : leadsTrend.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Not enough data yet.</div>
-              ) : (
-                <MiniBarChart values={leadsTrend} labels={trendLabels} barClassName="bg-blue-500/70" />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-      </div>
-    </div>
-  );
-};
-
-export default AdminDashboard;
+  useEffect(() => { void refresh(); }, [refresh, user?.id]);
+  useAdminRequestListRefresh(refresh);
+  const cards = [
+    { permission: 'booking:read', label: 'Pending bookings', value: data?.counts.bookingsPending, icon: Calendar, href: '/admin/tour/booking' },
+    { permission: 'contact:read', label: 'New contact forms', value: data?.counts.contactNew, icon: Mail, href: '/admin/contact-forms/contact-form' },
+    { permission: 'tailor_made:read', label: 'Pending tailor-made', value: data?.counts.tailorMadePending, icon: MessageSquare, href: '/admin/contact-forms/tailor-made' },
+    { permission: 'tour:read', label: 'Special offers', value: data?.counts.specialOffers, icon: Tag, href: '/admin/special-offers' },
+    { permission: 'user:read', label: 'Total users', value: data?.counts.usersTotal, icon: Users, href: '/admin/users' },
+  ];
+  const queues = [
+    { permission: 'booking:read', title: 'Bookings', href: '/admin/tour/booking', rows: (data?.queues.bookings || []).map(row => { const heading = row.tour?.heading || row.tourSnapshot?.heading; return { id: row._id, name: row.name, detail: typeof heading === 'object' ? heading.en || 'Tour' : heading || 'Tour' }; }) },
+    { permission: 'contact:read', title: 'Contact forms', href: '/admin/contact-forms/contact-form', rows: (data?.queues.contacts || []).map(row => ({ id: row._id, name: row.name, detail: row.email })) },
+    { permission: 'tailor_made:read', title: 'Tailor-made', href: '/admin/contact-forms/tailor-made', rows: (data?.queues.tailorMade || []).map(row => ({ id: row._id, name: row.fullName, detail: row.email })) },
+  ];
+  const labels = data?.analytics.dates.map(date => new Date(date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Africa/Cairo' })) || [];
+  return <div className="space-y-6">
+    <div className="flex items-center justify-between"><div><h2 className="text-xl font-semibold">Overview</h2><p className="text-sm text-muted-foreground">{connected ? 'Live updates' : 'Automatic refresh'} ? {data ? `Updated ${new Date(data.counts.updatedAt).toLocaleTimeString()}` : 'Loading...'}</p></div><Button variant="outline" onClick={() => void refresh()}>Refresh</Button></div>
+    {error && <p role="alert" className="text-red-600">{error}</p>}
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">{cards.filter(card => allowed(card.permission)).map(card => <Link key={card.label} href={card.href}><DashboardKpiCard label={card.label} value={card.value ?? '?'} icon={card.icon} /></Link>)}</div>
+    <Card><CardHeader><CardTitle>Action required</CardTitle></CardHeader><CardContent className="grid gap-4 md:grid-cols-3">{queues.filter(queue => allowed(queue.permission)).map(queue => <div key={queue.title} className="space-y-2"><div className="flex items-center justify-between"><h3 className="font-medium">{queue.title}</h3><Link href={queue.href}>View all</Link></div>{queue.rows.length ? queue.rows.map(row => <Link className="block rounded-md border p-3 hover:bg-muted" key={row.id} href={`${queue.href}?id=${encodeURIComponent(row.id)}`}><div className="text-sm font-medium">{row.name}</div><div className="truncate text-xs text-muted-foreground">{row.detail}</div></Link>) : <p className="text-sm text-muted-foreground">{data ? 'No pending requests.' : 'Loading...'}</p>}</div>)}</CardContent></Card>
+    {data && <Card><CardHeader><CardTitle>Analytics ? last 14 days (Egypt time)</CardTitle></CardHeader><CardContent className="grid gap-6 md:grid-cols-2">
+      {allowed('booking:read') && <div><h3>Bookings ? Total: {data.analytics.bookings.reduce((a, b) => a + b, 0)}</h3><MiniBarChart values={data.analytics.bookings} labels={labels} barClassName="bg-emerald-500/70" /></div>}
+      {(allowed('contact:read') || allowed('tailor_made:read')) && <div><h3>Contact + tailor-made ? Total: {data.analytics.leads.reduce((a, b) => a + b, 0)}</h3><MiniBarChart values={data.analytics.leads} labels={labels} barClassName="bg-blue-500/70" /></div>}
+    </CardContent></Card>}
+  </div>;
+}

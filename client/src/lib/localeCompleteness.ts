@@ -38,6 +38,18 @@ export interface LocaleCompletenessOptions {
    * SEO fields: listed in the tooltip, never affecting the state color.
    */
   imageTextAsSeo?: boolean;
+  /**
+   * Per-language requirements that are not one localized field — a Blog
+   * article's body, for one. Each counts like a required field: a language
+   * that lacks it is not complete, and the tooltip names it.
+   */
+  localizedChecks?: readonly LocalizedCheck[];
+}
+
+export interface LocalizedCheck {
+  /** Admin-facing label shown in the Missing tooltip. */
+  label: string;
+  isPresent: (entity: unknown, lang: ContentLang) => boolean;
 }
 
 // Relations / metadata that must not count toward THIS entity's content.
@@ -167,6 +179,16 @@ export function getLocaleCompleteness(
     if (!ctx.visitedRequiredFields.has(path)) {
       visitLeaf({}, path.split('.'), false, ctx);
     }
+  }
+
+  // Requirements no single field expresses (an article's body is a list of
+  // blocks), counted like a required field: present or missing, per language.
+  for (const check of options.localizedChecks || []) {
+    for (const lang of CONTENT_LANGS) {
+      if (check.isPresent(entity, lang)) ctx.filled[lang] += 1;
+      else report[lang].missing.push(check.label);
+    }
+    ctx.totals.content += 1;
   }
 
   for (const lang of CONTENT_LANGS) {

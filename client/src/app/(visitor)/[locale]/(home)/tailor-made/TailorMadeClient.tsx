@@ -1,4 +1,5 @@
 'use client';
+import { submissionFetch } from '@/lib/submissionFetch';
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout/Layout';
 import HeaderOne from '@/components/layout/HeaderOne/HeaderOne';
@@ -84,7 +85,7 @@ const MONTHS = [
   'December',
 ];
 
-const YEARS = ['2025', '2026', '2027'];
+const YEARS = Array.from({ length: 6 }, (_, index) => String(new Date().getFullYear() + index));
 
 const COUNTRIES = [
   'United States',
@@ -196,7 +197,7 @@ const TailorMadePage: React.FC = () => {
   const handleNumberChange = (field: 'adults' | 'children' | 'infants', increment: boolean) => {
     setFormData(prev => ({
       ...prev,
-      [field]: Math.max(0, prev[field] + (increment ? 1 : -1))
+      [field]: Math.min(50, Math.max(field === 'adults' ? 1 : 0, prev[field] + (increment ? 1 : -1)))
     }));
   };
 
@@ -212,7 +213,7 @@ const TailorMadePage: React.FC = () => {
 
     if (!formData.email.trim()) {
       newErrors.email = t('form.errors.emailRequired');
-    } else if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = t('form.errors.invalidEmail');
     }
 
@@ -245,12 +246,21 @@ const TailorMadePage: React.FC = () => {
       newErrors.comments = t('form.errors.commentsMaxLength');
     }
 
+    const monthValue = (month: string, year: string) => Number(year) * 12 + MONTHS.indexOf(month);
+    const now = new Date();
+    const start = monthValue(formData.startMonth, formData.startYear);
+    const end = monthValue(formData.endMonth, formData.endYear);
+    if (formData.startMonth && formData.startYear && start < now.getFullYear() * 12 + now.getMonth()) newErrors.startYear = t('form.errors.travelRange');
+    if (formData.endMonth && formData.endYear && end < start) newErrors.endYear = t('form.errors.travelRange');
+    const amount = (value: string) => Number(value.replace(/[$,+]/g, ''));
+    if (formData.minBudget && formData.maxBudget && formData.maxBudget !== 'No Limit' && amount(formData.minBudget) > amount(formData.maxBudget)) newErrors.maxBudget = t('form.errors.budgetRange');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     
     // Validate form
     if (!validateForm()) {
@@ -265,19 +275,19 @@ const TailorMadePage: React.FC = () => {
     setErrors({});
 
     try {
-      const response = await fetch(API_ENDPOINTS.TAILOR_MADE.BASE, {
+      const response = await submissionFetch(API_ENDPOINTS.TAILOR_MADE.BASE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, locale: params.locale }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         setToast({
-          message: data.message || t('form.success.requestSubmitted'),
+          message: t('form.success.requestSubmitted'),
           type: 'success'
         });
         
@@ -478,6 +488,8 @@ const TailorMadePage: React.FC = () => {
                         </select>
                       </div>
                     </div>
+                    {errors.startYear && <p role="alert" className="text-red-600">{errors.startYear}</p>}
+                    {errors.endYear && <p role="alert" className="text-red-600">{errors.endYear}</p>}
                   </div>
 
                   <div className="form-group">
@@ -558,7 +570,7 @@ const TailorMadePage: React.FC = () => {
                           </option>
                         ))}
                       </select>
-                      <select name="maxBudget" value={formData.maxBudget} onChange={handleInputChange} className="form-select">
+                      <select aria-invalid={!!errors.maxBudget} name="maxBudget" value={formData.maxBudget} onChange={handleInputChange} className="form-select">
                         <option value="">{t('form.placeholders.maxBudget')}</option>
                         {MAX_BUDGET_OPTIONS.map((b) => (
                           <option key={b} value={b}>
@@ -660,6 +672,7 @@ const TailorMadePage: React.FC = () => {
 
               {/* Submit Button */}
               <div className="form-submit-wrapper">
+                {errors.maxBudget && <p role="alert" className="text-red-600">{errors.maxBudget}</p>}
                 <button type="submit" className="form-submit-btn" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>

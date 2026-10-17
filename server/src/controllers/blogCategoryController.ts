@@ -209,7 +209,7 @@ export const getCategoryBySlug = async (
       // populates. Spelling it out here is how this one drifted: it asked for
       // neither `tags` nor `subCategory` nor `editorialAuthor`, so its cards
       // could not draw a section label or a real byline at all.
-      .populate(blogCardPopulate('featuredBlogs'))
+      .populate(blogCardPopulate('featuredBlogs', req.locale))
       // Each card links to the destination's page, so drafts are left out.
       .populate(publicDestinationPopulate('featuredDestinations', 'name slug coverImage'))
       .lean();

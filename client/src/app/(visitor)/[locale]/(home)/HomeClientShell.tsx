@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import useStore from "@/store/useStore";
+import { useDrawerComponent } from "@/components/layout/Drawer/drawerSlot";
+import { usePreferencesSheet } from "@/components/common/SitePreferences/sheetSlot";
 
 const LayoutObserver = dynamic(
   () => import("@/components/layout/LayoutObserver/LayoutObserver"),
   { ssr: false }
 );
-const Drawer = dynamic(() => import("@/components/layout/Drawer/Drawer"), {
-  ssr: false,
-});
 const Search = dynamic(() => import("@/components/common/Search/Search"), {
   ssr: false,
 });
@@ -40,10 +39,17 @@ export default function HomeClientShell({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { mobileDrawerStatus, searchPopupStatus } = useStore();
+  const { searchPopupStatus, preferencesSheetStatus } = useStore();
+  // The drawer's code is fetched by the header (drawerSlot.ts): ahead of time
+  // below 1200px once the page has loaded, else on the menu button's first
+  // touch. It is rendered as soon as it is there, closed until opened.
+  const Drawer = useDrawerComponent();
+  // The language & currency sheet's code is fetched by its button, from the
+  // press on (sheetSlot.ts); it is mounted the first time it is opened.
+  const PreferencesSheet = usePreferencesSheet();
   const [enableNonCriticalUi, setEnableNonCriticalUi] = useState(false);
-  const [shouldMountDrawer, setShouldMountDrawer] = useState(false);
   const [shouldMountSearch, setShouldMountSearch] = useState(false);
+  const [shouldMountPreferences, setShouldMountPreferences] = useState(false);
 
   useEffect(() => {
     let didEnable = false;
@@ -80,20 +86,21 @@ export default function HomeClientShell({
   }, []);
 
   useEffect(() => {
-    if (mobileDrawerStatus) {
-      setShouldMountDrawer(true);
-    }
     if (searchPopupStatus) {
       setShouldMountSearch(true);
     }
-  }, [mobileDrawerStatus, searchPopupStatus]);
+    if (preferencesSheetStatus) {
+      setShouldMountPreferences(true);
+    }
+  }, [searchPopupStatus, preferencesSheetStatus]);
 
   return (
     <>
       {children}
       {enableNonCriticalUi && <LayoutObserver />}
-      {enableNonCriticalUi && shouldMountDrawer ? <Drawer /> : null}
+      {enableNonCriticalUi && Drawer ? <Drawer /> : null}
       {enableNonCriticalUi && shouldMountSearch ? <Search /> : null}
+      {enableNonCriticalUi && shouldMountPreferences && PreferencesSheet ? <PreferencesSheet /> : null}
     </>
   );
 }

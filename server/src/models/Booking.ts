@@ -1,3 +1,5 @@
+import { addRequestWorkflow } from '../utils/requestWorkflow';
+import { isSubmissionEmail } from '../utils/submission';
 import mongoose, { Document, Schema, Types } from 'mongoose';
 import { ALL_PLAN_NAMES } from './Tour';
 
@@ -6,6 +8,8 @@ import { ALL_PLAN_NAMES } from './Tour';
 export const BOOKING_PACKAGE_NOT_SURE = 'NOT_SURE';
 
 export interface IBooking extends Document {
+  locale?: 'en' | 'de' | 'it' | 'es';
+  tourSnapshot?: { heading: unknown; slug: unknown };
   // Tour reference
   tour: Types.ObjectId;
 
@@ -53,12 +57,18 @@ export interface IBooking extends Document {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   adminNotes?: string;
 
+  notificationPending?: boolean;
+  editVersion?: number;
+  assignedTo?: mongoose.Types.ObjectId | null;
+  assignedName?: string;
+  history?: { actorName?: string; at: Date; status: string; changes: string[] }[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 const bookingSchema = new Schema<IBooking>(
   {
+    tourSnapshot: { type: Schema.Types.Mixed },
     // Tour reference
     tour: {
       type: Schema.Types.ObjectId,
@@ -67,7 +77,9 @@ const bookingSchema = new Schema<IBooking>(
       index: true,
     },
 
+    locale: { type: String, enum: ['en', 'de', 'it', 'es'] },
     // Personal Information
+    notificationPending: { type: Boolean, default: false, select: false },
     name: {
       type: String,
       required: [true, 'Name is required'],
@@ -80,10 +92,7 @@ const bookingSchema = new Schema<IBooking>(
       required: [true, 'Email is required'],
       lowercase: true,
       trim: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email',
-      ],
+      validate: { validator: isSubmissionEmail, message: 'Please provide a valid email' },
       index: true,
     },
     phone: {
@@ -176,6 +185,8 @@ const bookingSchema = new Schema<IBooking>(
 );
 
 // Add indexes for better query performance
+addRequestWorkflow(bookingSchema);
+bookingSchema.index({ notificationPending: 1, createdAt: 1 });
 bookingSchema.index({ tour: 1, createdAt: -1 });
 bookingSchema.index({ dateFrom: 1 });
 bookingSchema.index({ dateTo: 1 });
@@ -196,6 +207,7 @@ bookingSchema.set('toJSON', {
     Reflect.deleteProperty(ret, '__v');
     Reflect.deleteProperty(ret, 'idempotencyKey');
     Reflect.deleteProperty(ret, 'requestFingerprint');
+    Reflect.deleteProperty(ret, 'notificationPending');
     return ret;
   }
 });

@@ -1,6 +1,9 @@
+import { addRequestWorkflow } from '../utils/requestWorkflow';
+import { isSubmissionEmail } from '../utils/submission';
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ITailorMadeRequest extends Document {
+  locale?: 'en' | 'de' | 'it' | 'es';
   // Personal Information
   fullName: string;
   email: string;
@@ -19,6 +22,9 @@ export interface ITailorMadeRequest extends Document {
   infants: number;
 
   // Preferences
+  budgetMinAmount?: number;
+  budgetMaxAmount?: number;
+  budgetCurrency?: 'USD';
   minBudget?: string;
   maxBudget?: string;
   specialOccasion?: string;
@@ -33,13 +39,24 @@ export interface ITailorMadeRequest extends Document {
   status: 'pending' | 'contacted' | 'in-progress' | 'completed' | 'cancelled';
   adminNotes?: string;
 
+  idempotencyKey?: string;
+  requestFingerprint?: string;
+  notificationPending?: boolean;
+  editVersion?: number;
+  assignedTo?: mongoose.Types.ObjectId | null;
+  assignedName?: string;
+  history?: { actorName?: string; at: Date; status: string; changes: string[] }[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 const tailorMadeRequestSchema = new Schema<ITailorMadeRequest>(
   {
+    locale: { type: String, enum: ['en', 'de', 'it', 'es'] },
     // Personal Information
+    idempotencyKey: { type: String, select: false },
+    requestFingerprint: { type: String, select: false },
+    notificationPending: { type: Boolean, default: false, select: false },
     fullName: {
       type: String,
       required: [true, 'Full name is required'],
@@ -52,10 +69,7 @@ const tailorMadeRequestSchema = new Schema<ITailorMadeRequest>(
       required: [true, 'Email is required'],
       lowercase: true,
       trim: true,
-      match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email',
-      ],
+      validate: { validator: isSubmissionEmail, message: 'Please provide a valid email' },
     },
     phone: {
       type: String,
@@ -126,6 +140,9 @@ const tailorMadeRequestSchema = new Schema<ITailorMadeRequest>(
     },
 
     // Preferences
+    budgetMinAmount: { type: Number, min: 0 },
+    budgetMaxAmount: { type: Number, min: 0 },
+    budgetCurrency: { type: String, enum: ['USD'] },
     minBudget: {
       type: String,
       trim: true,
@@ -184,6 +201,9 @@ const tailorMadeRequestSchema = new Schema<ITailorMadeRequest>(
 );
 
 // Add indexes for better query performance
+addRequestWorkflow(tailorMadeRequestSchema);
+tailorMadeRequestSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
+tailorMadeRequestSchema.index({ notificationPending: 1, createdAt: 1 });
 tailorMadeRequestSchema.index({ email: 1 });
 tailorMadeRequestSchema.index({ status: 1 });
 tailorMadeRequestSchema.index({ createdAt: -1 });
@@ -197,8 +217,8 @@ tailorMadeRequestSchema.virtual('id').get(function () {
 tailorMadeRequestSchema.set('toJSON', {
   virtuals: true,
   transform: function (_doc, ret) {
-    const { __v, ...rest } = ret;
-    return rest;
+    for (const key of ['__v', 'idempotencyKey', 'requestFingerprint', 'notificationPending']) Reflect.deleteProperty(ret, key);
+    return ret;
   }
 });
 

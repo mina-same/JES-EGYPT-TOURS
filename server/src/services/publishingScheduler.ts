@@ -1,6 +1,7 @@
 import Blog from '../models/Blog';
 import Tour from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
+import { assertEnglishPublicReady } from '../utils/blogAvailability';
 import { assertPublishableClassification } from '../utils/blogClassification';
 import { PublishingValidationError } from '../utils/publishing';
 
@@ -21,17 +22,20 @@ const heldBack = new Map<string, string>();
  *
  * An article is checked when it is scheduled, but it publishes later and
  * unattended: by then its category or topic may be switched off, its
- * destination unpublished, or any of them gone. So the same rule that guards
- * a manual publish (assertPublishableClassification) is asked again here, at
- * the moment of publication.
+ * destination unpublished, or any of them gone. So the same rules that guard
+ * a manual publish are asked again here, at the moment of publication: its
+ * classification (assertPublishableClassification) and its English page
+ * (assertEnglishPublicReady). The Admin and the API already refuse to schedule
+ * an article without either; asking again covers what reaches the collection
+ * another way — older data, a script, an import, a direct edit.
  *
- * An article that fails stays exactly as it is — still scheduled, same date —
- * and goes out on a later run once its classification is put right. Only the
- * rule's own refusal holds an article back; a failed lookup fails the run, so
+ * An article that fails stays exactly as it is — still scheduled, same date,
+ * not a field touched — and goes out on a later run once it is put right. Only
+ * a rule's own refusal holds an article back; a failed lookup fails the run, so
  * nothing is published on a check that could not be made.
  */
 const findUnpublishable = async (dueFilter: Record<string, unknown>): Promise<unknown[]> => {
-  const due = await Blog.find(dueFilter).select('title category subCategory destination').lean();
+  const due = await Blog.find(dueFilter).select('title slug contentBlocks category subCategory destination').lean();
   const blocked: unknown[] = [];
 
   // An article no longer due — published, rescheduled or drafted — has nothing left to report.
@@ -44,6 +48,7 @@ const findUnpublishable = async (dueFilter: Record<string, unknown>): Promise<un
     const id = String(article._id);
     try {
       await assertPublishableClassification(article);
+      assertEnglishPublicReady(article);
       heldBack.delete(id);
     } catch (error) {
       if (!(error instanceof PublishingValidationError)) throw error;

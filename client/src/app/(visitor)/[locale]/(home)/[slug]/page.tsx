@@ -80,7 +80,6 @@ import BlogSubcategoryView from "./_views/BlogSubcategoryViewLazy";
 import BlogDetailView from "./_views/BlogDetailViewLazy";
 import DestinationView from "./_views/DestinationViewLazy";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
-import { hasNoContentForLocale } from "@/lib/blogBlocks";
 import {
   EDITORIAL_AUTHOR_SLUG,
   getPublicAuthorName,
@@ -210,6 +209,16 @@ function getBlogSeoImage(
   };
 }
 
+/** An article's slugs, kept only for the languages it is public in. */
+function slugsInLocales(slugs: unknown, locales: readonly string[] | undefined): Record<string, string> {
+  if (!slugs || typeof slugs !== "object" || !Array.isArray(locales)) return {};
+  return Object.fromEntries(
+    Object.entries(slugs as Record<string, unknown>).filter(
+      (entry): entry is [string, string] => locales.includes(entry[0]) && typeof entry[1] === "string"
+    )
+  );
+}
+
 function withImageSource(image?: { url: string }) {
   return image?.url ? { image_src: image.url } : undefined;
 }
@@ -294,14 +303,13 @@ const resolveSlugContent = cache(async (slug: string, locale: string): Promise<R
       const blog = await getBlogBySlug(correctSlug, locale);
       if (!blog) return null;
       /*
-       * A slug alone is not enough. If none of the article's blocks belong to
-       * this language there is nothing to render, and falling back to another
-       * language would republish content the editor scoped elsewhere. This
-       * check stays here rather than moving into the resolver because the
-       * block rules live in blogBlocks.ts, and a second copy behind the API
-       * would be one more thing to keep in sync.
+       * A slug alone is not enough: the article exists in this language only
+       * when it is public in it — a strict slug, a title and a body of its own
+       * (server/src/utils/blogAvailability.ts). The API answers 404 otherwise
+       * and says where the article IS public; that answer is the one checked
+       * here, rather than a second copy of the rule.
        */
-      if (hasNoContentForLocale(blog.contentBlocks, locale)) return null;
+      if (!blog.availableLocales?.includes(locale)) return null;
       return { type: "blog", data: blog, correctSlug };
     }
     case "destination": {
@@ -505,6 +513,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
     const alternates = getBlogListingAlternates({
       role: "archive", page, locale, slug, slugs: category.slug, baseUrl, articles: listing.data,
+      pagesByLocale: listing.pagination?.pagesByLocale,
     });
     return {
       title: await withListingPage(seoTitle ? seoTitle : "JES Egypt Tours", page, locale),
@@ -547,6 +556,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
     const alternates = getBlogListingAlternates({
       role: "archive", page, locale, slug, slugs: subcategory.slug, baseUrl, articles: listing.data,
+      pagesByLocale: listing.pagination?.pagesByLocale,
     });
     return {
       title: await withListingPage(seoTitle ? seoTitle : "JES Egypt Tours", page, locale),
@@ -587,7 +597,10 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     const publicAuthorSlug = bAny.editorialAuthor?.slug || (isEditorialAuthor(publicAuthorName) ? EDITORIAL_AUTHOR_SLUG : undefined);
     const publicAuthorUrl = publicAuthorSlug ? `${baseUrl}/${locale}/authors/${publicAuthorSlug}` : undefined;
 
-    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: blog.slug, baseUrl });
+    // Alternates only for the languages the article is public in — never a
+    // language whose slug exists but whose page answers 404.
+    const availableSlugs = slugsInLocales(blog.slug, blog.availableLocales);
+    const alternates = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs: availableSlugs, baseUrl });
     return {
       title: pageTitle,
       description,

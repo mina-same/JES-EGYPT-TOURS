@@ -1,0 +1,380 @@
+/* Language & currency below the top bar's breakpoint (992px): the header's
+   compact button, the bottom sheet it opens, and the panel that the sheet and
+   the mobile menu (Drawer) share. One file, imported by the (home) layout so
+   the lazily loaded sheet and drawer never paint unstyled. Not by one of these
+   client components: the bundler then merged it with other pages' CSS modules
+   into a stylesheet every page had to load before painting. */
+
+/* ── The header button ─────────────────────────────────────────────────── */
+
+.site-prefs-btn {
+  display: none;
+}
+
+@media (max-width: 991px) {
+  .site-prefs-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    margin: 0 16px 0 0;
+    padding: 0 11px;
+    vertical-align: middle;
+    background: transparent;
+    border: 1px solid rgba(183, 156, 92, 0.7);
+    border-radius: 999px;
+    color: inherit;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+  }
+
+  /* A 44px-tall target around the 34px pill. */
+  .site-prefs-btn::before {
+    content: "";
+    position: absolute;
+    inset: -5px -4px;
+  }
+
+  .site-prefs-btn:hover,
+  .site-prefs-btn:active {
+    border-color: #b79c5c;
+    background-color: rgba(183, 156, 92, 0.18);
+  }
+
+  .site-prefs-btn:focus-visible {
+    outline: 3px solid var(--gotur-primary, #b79c5c);
+    outline-offset: 3px;
+  }
+
+  /* The sticky copy spaces its items with a flex gap of its own. */
+  .sticky-header--cloned .site-prefs-btn {
+    margin-right: 0;
+  }
+}
+
+/* The header colours its items through `.main-header__info a` selectors;
+   a button needs its own (as the search toggle does in custom.css). */
+.main-header--one .main-header__info .site-prefs-btn {
+  color: var(--gotur-black, #1d231f);
+}
+
+.main-header--one.main-header--links-light .main-header__info .site-prefs-btn {
+  color: var(--gotur-white, #fff);
+}
+
+.site-prefs-btn__flag {
+  display: block;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.site-prefs-btn__sep {
+  display: block;
+  width: 1px;
+  height: 12px;
+  background-color: currentColor;
+  opacity: 0.45;
+}
+
+.site-prefs-btn__currency {
+  color: #d4b46a;
+}
+
+.main-header--one:not(.main-header--links-light) .site-prefs-btn__currency {
+  color: var(--gotur-gold-text, #7a5f12);
+}
+
+/* The narrowest phones: the logo leaves ~60px, so the flag goes. */
+@media (max-width: 359px) {
+  .site-prefs-btn {
+    gap: 5px;
+    margin-right: 10px;
+    padding: 0 9px;
+  }
+
+  .site-prefs-btn__flag {
+    display: none;
+  }
+}
+
+/* The sticky header's copy of the top bar's two switchers: the button above
+   stands in for them below 992px. They overflowed a phone's header there and
+   pushed the currency and the menu button off the screen. */
+.main-header__switchers {
+  display: flex;
+}
+
+@media (max-width: 991px) {
+  .main-header__switchers {
+    display: none;
+  }
+}
+
+/* ── The panel (sheet and drawer) ──────────────────────────────────────── */
+
+.site-prefs {
+  color: #fff;
+}
+
+.site-prefs__group + .site-prefs__group {
+  margin-top: 20px;
+}
+
+.site-prefs__label {
+  margin: 0 0 10px;
+  color: #b79c5c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.site-prefs__languages {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-prefs__currencies {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* Language links and currency buttons. Written out against the drawer's and
+   the theme's own link rules (colour, hover, transition). */
+.site-prefs .site-prefs__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 0 12px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.site-prefs .site-prefs__currency {
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.site-prefs a.site-prefs__option[href]:hover,
+.site-prefs button.site-prefs__option:hover {
+  color: #fff;
+  border-color: rgba(183, 156, 92, 0.7);
+}
+
+.site-prefs .site-prefs__option.is-current,
+.site-prefs .site-prefs__option[aria-pressed="true"] {
+  background-color: rgba(183, 156, 92, 0.16);
+  border-color: #b79c5c;
+}
+
+.site-prefs .site-prefs__option:focus-visible {
+  outline: 2px solid #f4d03f;
+  outline-offset: 2px;
+}
+
+.site-prefs .site-prefs__option.is-disabled,
+.site-prefs .site-prefs__option.is-disabled:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.site-prefs__flag {
+  display: block;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 15px;
+  border-radius: 2px;
+}
+
+.site-prefs__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-prefs__check {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: #d4b46a;
+}
+
+.site-prefs__symbol {
+  color: #d4b46a;
+  font-weight: 700;
+}
+
+/* ── In the drawer ─────────────────────────────────────────────────────── */
+
+.mobile-nav__prefs {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 270px of panel: a little less room inside each tile. */
+.mobile-nav__prefs .site-prefs .site-prefs__language {
+  gap: 8px;
+  padding: 0 10px;
+}
+
+/* ── The bottom sheet ──────────────────────────────────────────────────── */
+
+.site-prefs-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.site-prefs-sheet__overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  animation: site-prefs-fade 200ms ease-out;
+}
+
+.site-prefs-sheet__panel {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100% - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  background-color: var(--gotur-black, #1d231f);
+  border-top: 1px solid rgba(183, 156, 92, 0.35);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  animation: site-prefs-rise 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.site-prefs-sheet__handle {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 10px;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
+}
+
+.site-prefs-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.site-prefs-sheet__title {
+  margin: 0;
+  color: #fff;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.site-prefs-sheet__close {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 -6px 0 0;
+  padding: 0;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.site-prefs-sheet__close:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.site-prefs-sheet__close:focus-visible {
+  outline: 2px solid #f4d03f;
+  outline-offset: 2px;
+}
+
+@media (min-width: 481px) {
+  .site-prefs-sheet__panel {
+    margin-bottom: 16px;
+    border: 1px solid rgba(183, 156, 92, 0.35);
+    border-radius: 20px;
+  }
+}
+
+@keyframes site-prefs-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes site-prefs-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-prefs-sheet__overlay,
+  .site-prefs-sheet__panel {
+    animation: none;
+  }
+
+  .site-prefs-btn,
+  .site-prefs .site-prefs__option,
+  .site-prefs-sheet__close {
+    transition: none;
+  }
+}

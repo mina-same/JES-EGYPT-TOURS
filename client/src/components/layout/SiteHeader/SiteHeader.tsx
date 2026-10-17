@@ -16,12 +16,30 @@ import { getLocalizedValue, formatUrl } from "@/lib/localize";
 import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import LanguageSelector from "@/components/common/LanguageSelector/LanguageSelector";
 import CurrencySwitcher from "@/components/common/CurrencySwitcher/CurrencySwitcher";
-import {
-  canTakeFocus,
-  clearLanguageFocus,
-  hasPendingLanguageFocus,
-} from "@/components/common/LanguageSelector/languageFocus";
-import { TOP_BAR_QUERY, getStickyHeaderState } from "./stickyHeaderState";
+import PreferencesButton from "@/components/common/SitePreferences/PreferencesButton";
+import { provideDrawer } from "@/components/layout/Drawer/drawerSlot";
+import { getStickyHeaderState } from "./stickyHeaderState";
+
+/**
+ * The mobile drawer's code, fetched once per visit: ahead of the first tap
+ * below 1200px, once the page has loaded (see the effect in SiteHeader), or
+ * else by the menu button's first touch. The import lives here and not in
+ * HomeClientShell, which renders the drawer, so that its chunk reuses what
+ * this header has already loaded (drawerSlot.ts).
+ */
+let drawerRequest: Promise<void> | null = null;
+const loadDrawer = () => {
+  if (!drawerRequest) {
+    drawerRequest = import("@/components/layout/Drawer/Drawer").then(
+      (module) => provideDrawer(module.default),
+      () => {
+        // A chunk that failed to arrive is asked for again on the next tap.
+        drawerRequest = null;
+      }
+    );
+  }
+  return drawerRequest;
+};
 
 /**
  * The one site header.
@@ -41,11 +59,13 @@ import { TOP_BAR_QUERY, getStickyHeaderState } from "./stickyHeaderState";
  *               a keyboard or screen-reader user works the primary header at
  *               the top of the document and never meets the same twenty links
  *               a second time. It stays fully clickable for pointer users.
- *               It also carries the currency/language switchers. The top bar
- *               provides those too, but only from 992px up: below that the
- *               sticky copy's are the only ones, and they are real controls.
- *               stickyHeaderState.ts has the rule for each state; off screen
- *               the whole copy is inert.
+ *               It also carries the currency/language switchers, a copy of
+ *               the top bar's, from 992px up. Below that both headers show
+ *               the language & currency button instead (PreferencesButton):
+ *               the switchers did not fit a phone's header and pushed the
+ *               currency and the menu button off the screen.
+ *               stickyHeaderState.ts has the rule; off screen the whole copy
+ *               is inert.
  */
 export type SiteHeaderVariant = "primary" | "sticky";
 
@@ -80,30 +100,13 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
   const [mounted, setMounted] = React.useState(false);
   const [activeDropdown, setActiveDropdown] =
     React.useState<ActiveHeaderDropdown>(null);
-  const headerRef = React.useRef<HTMLElement>(null);
-  // True until measured: the server render and the first paint treat the
-  // sticky copy as the visual duplicate it is on a desktop.
-  const [topBarShown, setTopBarShown] = React.useState(true);
-  // Keyboard focus is inside the sticky copy. It stays on screen until that
-  // focus leaves, instead of sliding away from under it on a scroll down.
-  const [holdsFocus, setHoldsFocus] = React.useState(false);
 
-  const stickyShown = isSticky && (scrolledUp || holdsFocus);
-  const sticky = isSticky ? getStickyHeaderState(stickyShown, topBarShown) : null;
+  const stickyShown = isSticky && scrolledUp;
+  const sticky = isSticky ? getStickyHeaderState(stickyShown) : null;
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
-
-  React.useEffect(() => {
-    if (!isSticky) return;
-    const query = window.matchMedia(TOP_BAR_QUERY);
-    const update = () => setTopBarShown(query.matches);
-
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, [isSticky]);
 
   // Off screen, an open currency or language list would keep its listeners
   // and come back open the next time the header slides in.
@@ -111,91 +114,37 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
     if (isSticky && !stickyShown) setActiveDropdown(null);
   }, [isSticky, stickyShown]);
 
-  // A wheel or a finger scrolling the page has taken over from the keyboard:
-  // the copy goes back to following the scroll.
+  // Below 1200px the drawer is the site's whole navigation (the menu button
+  // is hidden from 1200px up, gotur.css), so its code is fetched before the
+  // first tap, which then only slides it in. Not before the page has finished
+  // loading and the browser is idle: any earlier, it competed with the page's
+  // own requests and work. Wider screens fetch it only if the menu is opened.
   React.useEffect(() => {
-    if (!holdsFocus) return;
-    const release = () => setHoldsFocus(false);
+    if (isSticky || !window.matchMedia("(max-width: 1199px)").matches) return;
 
-    window.addEventListener("wheel", release, { passive: true });
-    window.addEventListener("touchmove", release, { passive: true });
-    return () => {
-      window.removeEventListener("wheel", release);
-      window.removeEventListener("touchmove", release);
-    };
-  }, [holdsFocus]);
-
-  // The window grew past the top bar's breakpoint with focus in the sticky
-  // copy: its controls are now the top bar's, and focus goes to that one,
-  // scrolled into view if the page is further down.
-  React.useEffect(() => {
-    if (!isSticky || !topBarShown) return;
-    const focused = document.activeElement;
-    if (!(focused instanceof HTMLElement) || !headerRef.current?.contains(focused)) return;
-
-    const twin = document.querySelector<HTMLElement>(
-      focused.closest(".currency-switcher")
-        ? ".top-one .currency-switcher__btn"
-        : ".top-one .language-switcher__btn"
-    );
-    if (twin) twin.focus();
-    else focused.blur();
-  }, [isSticky, topBarShown]);
-
-  // A language switch made from the keyboard, where this copy holds the only
-  // language control: the new page opens at its top with the copy off screen,
-  // so no selector could take the focus back. The copy comes on screen with
-  // its language button focused, and leaves again when that focus does.
-  React.useEffect(() => {
-    if (!isSticky || !mounted || topBarShown || !hasPendingLanguageFocus()) return;
-
-    setHoldsFocus(true);
-    let frame = 0;
-    let attempts = 0;
-    let settled = false;
-    // The selector mounts a moment after the header, and the copy is still
-    // `visibility: hidden` in the frame that starts its slide: wait until the
-    // button can really take the focus.
-    const focusLanguageButton = () => {
-      const button =
-        headerRef.current?.querySelector<HTMLElement>(".language-switcher__btn") ?? null;
-      if (canTakeFocus(button)) {
-        settled = true;
-        clearLanguageFocus();
-        button.focus({ preventScroll: true });
-        if (document.activeElement !== button) setHoldsFocus(false);
-      } else if (++attempts > 90) {
-        settled = true;
-        clearLanguageFocus();
-        setHoldsFocus(false);
+    let idleId: number | null = null;
+    let timer: number | null = null;
+    const whenIdle = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleId = window.requestIdleCallback(() => void loadDrawer(), { timeout: 3000 });
       } else {
-        frame = window.requestAnimationFrame(focusLanguageButton);
+        timer = window.setTimeout(() => void loadDrawer(), 1000);
       }
     };
-    frame = window.requestAnimationFrame(focusLanguageButton);
+
+    if (document.readyState === "complete") whenIdle();
+    else window.addEventListener("load", whenIdle, { once: true });
     return () => {
-      window.cancelAnimationFrame(frame);
-      // Interrupted before the button took the focus: nothing holds the copy.
-      if (!settled) setHoldsFocus(false);
+      window.removeEventListener("load", whenIdle);
+      if (idleId !== null) window.cancelIdleCallback(idleId);
+      if (timer !== null) window.clearTimeout(timer);
     };
-  }, [isSticky, mounted, topBarShown]);
+  }, [isSticky]);
 
-  const handleStickyFocus = (event: React.FocusEvent<HTMLElement>) => {
-    if (event.target.matches(":focus-visible")) setHoldsFocus(true);
-  };
-
-  const handleStickyBlur = (event: React.FocusEvent<HTMLElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-      setHoldsFocus(false);
-    }
-  };
-
-  // The sticky copy repeats links the primary header already exposes, so it is
-  // skipped by the keyboard rather than doubling every tab stop on the page.
+  // The sticky copy repeats controls the primary header and the top bar
+  // already expose, so it is skipped by the keyboard rather than doubling
+  // every tab stop on the page.
   const tabIndex = isSticky ? -1 : undefined;
-  // Each of those repeats is hidden on its own as well: below the top bar's
-  // breakpoint the copy as a whole is exposed, for its currency and language.
-  const repeated = isSticky || undefined;
 
   // Menu URLs are localized per language (legacy items may be plain strings)
   // — resolve the active language's path before locale-prefixing it.
@@ -234,18 +183,14 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
 
   return (
     <header
-      ref={headerRef}
       className={headerClassName}
       // One banner landmark for the page: the sticky copy never is one.
       aria-hidden={sticky?.ariaHidden}
-      role={sticky?.role}
       inert={sticky?.inert}
-      onFocus={isSticky ? handleStickyFocus : undefined}
-      onBlur={isSticky ? handleStickyBlur : undefined}
     >
       <div className='container-fluid'>
         <div className='main-header__inner'>
-          <div className='main-header__logo logo-retina' aria-hidden={repeated}>
+          <div className='main-header__logo logo-retina'>
             <Link href={`/${locale}`} tabIndex={tabIndex}>
               {/* logo-dark.png is square (313x313) and CSS renders it at
                   108x108. Declaring 100x30 reserved a box 78px too short, so
@@ -271,7 +216,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
               position: "relative",
             }}
           >
-            <nav className='main-header__nav main-menu' aria-label={t("nav.label")} aria-hidden={repeated}>
+            <nav className='main-header__nav main-menu' aria-label={t("nav.label")}>
               <ul className='main-menu__list'>
                 <li className='dropdown megamenu'>
                   <Link href={`/${locale}`} tabIndex={tabIndex}>
@@ -323,6 +268,9 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                   : undefined
               }
             >
+              {/* Below 992px only: the top bar is not displayed there. */}
+              <PreferencesButton tabIndex={tabIndex} />
+
               {/* A real button: this opens a dialog, it does not navigate.
                   As <Link href="#"> it announced itself as a link to nowhere
                   and put a dead "#" entry in front of crawlers. */}
@@ -332,7 +280,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                 tabIndex={tabIndex}
                 className='search-toggler main-header__info__item'
                 aria-label={t("search.open")}
-                aria-hidden={repeated}
               >
                 <i className='icon-search-interface-symbol' aria-hidden='true'></i>
               </button>
@@ -342,7 +289,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                 tabIndex={tabIndex}
                 className='main-header__info__item'
                 style={{ position: "relative" }}
-                aria-hidden={repeated}
               >
                 <i
                   className={wishlist.length > 0 ? "fas fa-heart" : "far fa-heart"}
@@ -356,17 +302,19 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                 )}
               </Link>
 
+              {/* From 992px up only (sitePreferences.css): below that the
+                  language & currency button above stands in for them. */}
               {isSticky && mounted && (
                 <div
+                  className='main-header__switchers'
                   style={{
-                    display: "flex",
                     alignItems: "center",
                     gap: "12px",
                     marginLeft: "5px",
                   }}
                 >
                   <CurrencySwitcher
-                    tabIndex={sticky?.switcherTabIndex}
+                    tabIndex={tabIndex}
                     isOpen={activeDropdown === "currency"}
                     onOpen={() => setActiveDropdown("currency")}
                     onClose={() =>
@@ -377,7 +325,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
                   />
                   <LanguageSelector
                     theme='dark'
-                    tabIndex={sticky?.switcherTabIndex}
+                    tabIndex={tabIndex}
                     isOpen={activeDropdown === "language"}
                     onOpen={() => setActiveDropdown("language")}
                     onClose={() =>
@@ -394,7 +342,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
               href={localizeInternalUrl("/tailor-made", locale)}
               tabIndex={tabIndex}
               className='gotur-btn main-header__btn'
-              aria-hidden={repeated}
             >
               {t("nav.tailorMade")} <i className='icon-paper-plane' aria-hidden='true'></i>
             </Link>
@@ -409,7 +356,13 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
             <button
               type='button'
               className='mobile-nav__btn mobile-nav__toggler'
-              onClick={() => setMobileDrawerStatus(true)}
+              onClick={() => {
+                void loadDrawer();
+                setMobileDrawerStatus(true);
+              }}
+              // The press itself starts fetching the drawer's code when it is
+              // not there yet, a moment before the click asks to open it.
+              onPointerDown={() => void loadDrawer()}
               // A repeat tap while the drawer is already opening must not pull
               // focus back out of it: the drawer slides in over this button, so
               // for a moment it is still under the finger. Read without
@@ -420,7 +373,6 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({
               tabIndex={tabIndex}
               aria-label={t("menu.open")}
               aria-haspopup='dialog'
-              aria-hidden={repeated}
             >
               <span aria-hidden='true'></span>
               <span aria-hidden='true'></span>

@@ -150,7 +150,7 @@ export const BookingForm: React.FC<BookingFormProps & BookingFormLocaleProps> = 
   dateLocale,
   phoneLabels,
 }) => {
-  const { t } = useTranslation('tours');
+  const { t, i18n } = useTranslation('tours');
   const { currency } = useCurrency();
   // The wishlist labels live in `common`, alongside the ones the tour cards use,
   // so the same wording appears wherever a tour can be saved.
@@ -400,6 +400,7 @@ export const BookingForm: React.FC<BookingFormProps & BookingFormLocaleProps> = 
       const formData = new FormData(formRef.current);
       const data = {
         tour: tourId,
+        locale: (['en', 'de', 'it', 'es'].includes(i18n.language) ? i18n.language : 'en') as 'en' | 'de' | 'it' | 'es',
         name: formData.get('name')?.toString().trim() || "",
         email: formData.get('email')?.toString().trim() || "",
         // The phone lives in controlled state; the PhoneInput's inner input has

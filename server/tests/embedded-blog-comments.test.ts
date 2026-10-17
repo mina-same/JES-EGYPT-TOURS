@@ -126,8 +126,8 @@ const BY_ID_ROUTES: [string, { findById: unknown; findOne: unknown }, Handler, '
   ['/blog/categories/:id', BlogCategory, getBlogCategoryById, 'findById'],
   ['/blog/subcategories/:id', BlogSubCategory, getBlogSubcategoryById, 'findById'],
   ['/destinations/:id', Destination, getDestinationById, 'findOne'],
-  ['/tours/categories/:id', TourCategory, getTourCategoryById, 'findById'],
-  ['/tours/subcategories/:id', TourSubcategory, getTourSubcategoryById, 'findById'],
+  ['/tours/categories/:id', TourCategory, getTourCategoryById, 'findOne'],
+  ['/tours/subcategories/:id', TourSubcategory, getTourSubcategoryById, 'findOne'],
 ];
 
 for (const [route, model, handler, read] of BY_ID_ROUTES) {

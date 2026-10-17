@@ -10,7 +10,7 @@ import { SliderItem as ApiSliderItem, SliderUnderPromo } from "@/types/slider";
 import { sliderService } from "@/services/sliderService";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
-import { getLocalizedStaticSlug } from "@/lib/url";
+import { getLocalizedStaticSlug, resolveSiteLink } from "@/lib/url";
 import {
   TinySliderWrapper as TinySlider,
   type TinySliderHandle,
@@ -568,15 +568,29 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
         const promoHref = getLocalizedValue(promo?.link, lang);
         const promoLinkText = getLocalizedValue(promo?.linkText, lang);
         if (!promoText || !promoHref || !promoLinkText) return null;
+        // An absolute link to this site, or one in another language, is made
+        // a link in the visitor's language on this deployment; only another
+        // site keeps the admin's "new tab" (resolveSiteLink).
+        const promoLink = resolveSiteLink(promoHref, lang);
+        const opensNewTab = promoLink.external && promo?.linkDirection === "_blank";
+        // When the text already opens with an emoji (🎄), the sparkle would
+        // be a second decoration in front of it.
+        const firstCodePoint = promoText.trim().codePointAt(0) ?? 0;
+        const leadsWithEmoji =
+          firstCodePoint >= 0x1f000 || (firstCodePoint >= 0x2600 && firstCodePoint <= 0x27bf);
         return (
           <div className="main-slider-four__promo-wrapper">
             <span className="main-slider-four__promo-text">
-              <Sparkles size={16} aria-hidden="true" className="main-slider-four__promo-icon" />
-              {promoText}{" "}
+              <span className="main-slider-four__promo-message">
+                {leadsWithEmoji ? null : (
+                  <Sparkles size={16} aria-hidden="true" className="main-slider-four__promo-icon" />
+                )}
+                {promoText}
+              </span>{" "}
               <Link
-                href={promoHref}
-                target={promo?.linkDirection === "_blank" ? "_blank" : undefined}
-                rel={promo?.linkDirection === "_blank" ? "noopener noreferrer" : undefined}
+                href={promoLink.href}
+                target={opensNewTab ? "_blank" : undefined}
+                rel={opensNewTab ? "noopener noreferrer" : undefined}
                 className="main-slider-four__promo-btn"
               >
                 {promoLinkText} →

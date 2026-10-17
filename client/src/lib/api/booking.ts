@@ -1,3 +1,4 @@
+import type { RequestWorkflowData } from '@/lib/requestWorkflowTypes';
 import axiosInstance from './axios';
 import { API_URL } from '@/config/api';
 import {
@@ -11,7 +12,8 @@ const BASE_URL = `${API_URL}/bookings`;
 
 import { ILocalizedString } from '@/types/tour';
 
-export interface IBooking {
+export interface IBooking extends RequestWorkflowData {
+  tourSnapshot?: { heading?: string | ILocalizedString; slug?: unknown };
   _id?: string;
   id?: string;
   tour: string | {
@@ -20,6 +22,7 @@ export interface IBooking {
     slug: string;
     images?: Array<{ url: string; fileName: string }>;
   };
+  locale?: 'en' | 'de' | 'it' | 'es';
   name: string;
   email: string;
   phone?: string;
@@ -84,6 +87,7 @@ export const createBooking = async (data: BookingFormData): Promise<BookingRespo
   const attempt = getOrCreateBookingAttempt(data);
   try {
     const response = await axiosInstance.post<BookingResponse>(BASE_URL, data, {
+      timeout: 20000,
       headers: {
         [BOOKING_IDEMPOTENCY_HEADER]: attempt.idempotencyKey,
       },
@@ -132,7 +136,7 @@ export const getBookingById = async (id: string): Promise<BookingResponse> => {
 // Update booking (Admin only)
 export const updateBooking = async (
   id: string,
-  data: { status?: string; adminNotes?: string }
+  data: { status?: string; adminNotes?: string; editVersion: number }
 ): Promise<BookingResponse> => {
   const response = await axiosInstance.patch<BookingResponse>(
     `${BASE_URL}/${id}`,

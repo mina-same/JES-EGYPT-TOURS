@@ -359,11 +359,14 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
         setBlogsLoading(true);
         setBlogsError(null);
 
-        const opts: any = { 
-          page: blogPage, 
-          limit: 6, 
+        // `locale` makes the API answer in this language and list only the
+        // articles public in it — counted and paged that way.
+        const opts: any = {
+          page: blogPage,
+          limit: 6,
           search: q || undefined,
-          subCategory: appliedFilters.blogSubCategory || undefined 
+          subCategory: appliedFilters.blogSubCategory || undefined,
+          locale,
         };
         const res = await getAllBlogs(opts);
         setBlogs(res.data);
@@ -379,7 +382,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
     };
 
     void fetchBlogs();
-  }, [q, blogPage, appliedFilters.blogSubCategory]);
+  }, [q, blogPage, appliedFilters.blogSubCategory, locale]);
 
   return (
     <section className="section-space">

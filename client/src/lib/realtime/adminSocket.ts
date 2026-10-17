@@ -4,6 +4,7 @@ import { io, type Socket } from "socket.io-client";
 import { API_BASE_URL } from "@/config/api";
 
 let socket: Socket | null = null;
+let socketToken: string | null = null;
 
 const getAuthToken = () => {
   if (typeof window === "undefined") return null;
@@ -16,9 +17,10 @@ const getAuthToken = () => {
 
 export const getAdminSocket = (): Socket | null => {
   const token = getAuthToken();
-  if (!token) return null;
-
+  if (!token) { disconnectAdminSocket(); return null; }
+  if (socket && socketToken !== token) disconnectAdminSocket();
   if (socket) return socket;
+  socketToken = token;
 
   socket = io(API_BASE_URL, {
     auth: { token },
@@ -34,4 +36,5 @@ export const disconnectAdminSocket = () => {
   if (!socket) return;
   socket.disconnect();
   socket = null;
+  socketToken = null;
 };

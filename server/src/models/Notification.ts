@@ -5,6 +5,9 @@ export interface INotification extends Document {
   title: string;
   message: string;
   entityId?: mongoose.Types.ObjectId;
+  eventKey?: string;
+  announcedBy: mongoose.Types.ObjectId[];
+  hiddenBy: mongoose.Types.ObjectId[];
   readBy: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
@@ -27,8 +30,11 @@ const NotificationSchema: Schema = new Schema(
     },
     entityId: {
       type: Schema.Types.ObjectId,
-      refPath: 'type', // This won't work perfectly with different models, but it's a hint
+
     },
+    eventKey: { type: String, select: false },
+    announcedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    hiddenBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     readBy: [{
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -39,7 +45,9 @@ const NotificationSchema: Schema = new Schema(
   }
 );
 
+NotificationSchema.index({ eventKey: 1 }, { unique: true, sparse: true });
 // Index for performance
 NotificationSchema.index({ type: 1, createdAt: -1 });
+NotificationSchema.index({ createdAt: 1 });
 
 export default mongoose.model<INotification>('Notification', NotificationSchema);

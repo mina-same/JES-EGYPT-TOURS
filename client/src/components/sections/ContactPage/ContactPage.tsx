@@ -1,4 +1,5 @@
 "use client";
+import { submissionFetch } from '@/lib/submissionFetch';
 import React, { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Link from "next/link";
@@ -164,7 +165,7 @@ const ContactPage: React.FC<{ locale: string }> = ({ locale }) => {
     }
 
     try {
-      const res = await fetch(API_ENDPOINTS.CONTACT.BASE, {
+      const res = await submissionFetch(API_ENDPOINTS.CONTACT.BASE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

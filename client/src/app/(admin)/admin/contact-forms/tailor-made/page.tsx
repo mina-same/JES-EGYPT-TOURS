@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import RequestWorkflow from '@/components/admin/RequestWorkflow';
+import type { RequestWorkflowData } from '@/lib/requestWorkflowTypes';
+import { useAdminRequestListRefresh } from '@/hooks/useAdminRequestListRefresh';
+import { adminFetch } from '@/lib/adminNotifications';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   Search, Filter, Eye, Trash2, 
@@ -16,10 +22,11 @@ import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 
-interface TailorMadeRequest {
+interface TailorMadeRequest extends RequestWorkflowData {
   _id: string;
   fullName: string;
   email: string;
+  locale?: string;
   phone?: string;
   country: string;
   startMonth: string;
@@ -44,9 +51,15 @@ interface TailorMadeRequest {
   updatedAt: string;
 }
 
+const formatBudget = (value: string) => value === 'No Limit' ? value : `$${value.replace(/^\$+/, '')}`;
+
 const TailorMadePage: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { refreshUnreadCount: refreshNotifications } = useNotifications();
+  const [stats, setStats] = useState({ total: 0, pending: 0, contacted: 0, inProgress: 0, completed: 0 });
   const [requests, setRequests] = useState<TailorMadeRequest[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,28 +78,25 @@ const TailorMadePage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  useEffect(() => {
-    fetchRequests();
-  }, [statusFilter, searchTerm, page, limit]);
 
-  // Open a specific record when arriving from a notification deep-link
-  // (/admin/contact-forms/tailor-made?id=<id>). Fires once, after load.
   const searchParams = useSearchParams();
-  const deepLinkHandled = React.useRef(false);
+  const requestId = searchParams.get('id');
   useEffect(() => {
-    if (deepLinkHandled.current) return;
-    const id = searchParams.get('id');
-    if (!id || requests.length === 0) return;
-    const match = requests.find((r) => r._id === id);
-    if (match) {
-      handleViewDetails(match);
-      deepLinkHandled.current = true;
-    }
+    if (!requestId) return;
+    let cancelled = false;
+    void adminFetch(API_ENDPOINTS.TAILOR_MADE.BY_ID(requestId)).then(body => { if (!cancelled) handleViewDetails(body.data); }).catch(error => {
+      if (!cancelled) toast({ title: 'Unable to open request', description: error.message, variant: 'destructive' });
+    });
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requests, searchParams]);
+  }, [requestId]);
+  useAdminRequestListRefresh(() => fetchRequests());
 
-  const fetchRequests = async () => {
+  const listSequence = React.useRef(0);
+  const fetchRequests = useCallback(async () => {
+    const sequence = ++listSequence.current;
     setLoading(true);
+    setListError(null);
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
@@ -109,9 +119,13 @@ const TailorMadePage: React.FC = () => {
         },
       });
 
+      const statsResponse = await fetch(API_ENDPOINTS.TAILOR_MADE.STATS, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+      if (statsResponse?.ok) { const result = await statsResponse.json(); if (result.success) setStats(result.data); }
+
+      if (sequence !== listSequence.current) return;
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched requests:', data);
+
         setRequests(data.data || []);
         const responseTotal = data.pagination?.total ?? 0;
         const normalizedTotalPages = Math.max(1, data.pagination?.pages ?? 1);
@@ -119,21 +133,26 @@ const TailorMadePage: React.FC = () => {
         setTotalItems(responseTotal);
         if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       } else {
-        console.error('Failed to fetch requests:', response.status, await response.text());
+        const body = await response.json(); throw new Error(body.error || 'Unable to load requests');
       }
     } catch (error) {
+      if (sequence === listSequence.current) setListError(error instanceof Error ? error.message : 'Unable to load requests');
       console.error('Error fetching requests:', error);
     } finally {
-      setLoading(false);
-      setInitialLoad(false);
+      if (sequence === listSequence.current) { setLoading(false); setInitialLoad(false); }
     }
-  };
+  }, [page, limit, statusFilter, searchTerm]);
+
+  useEffect(() => { void fetchRequests(); }, [fetchRequests]);
 
   const handleViewDetails = (request: TailorMadeRequest) => {
     setSelectedRequest(request);
     setAdminNotes(request.adminNotes || '');
     setNewStatus(request.status);
     setShowModal(true);
+    void adminFetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}/read-entity`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'tailorMade', entityId: request._id }) }).then(() => refreshNotifications()).catch(() => {
+      toast({ title: 'Request opened', description: 'Unable to mark its notification as read. Retry from Notifications.', variant: 'destructive' });
+    });
   };
 
   const handleUpdateRequest = async () => {
@@ -149,6 +168,7 @@ const TailorMadePage: React.FC = () => {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
+          editVersion: selectedRequest.editVersion || 0,
           status: newStatus,
           adminNotes: adminNotes,
         }),
@@ -156,9 +176,11 @@ const TailorMadePage: React.FC = () => {
 
       if (response.ok) {
         setShowModal(false);
+        void refreshNotifications();
         fetchRequests();
-      }
+      } else { const body = await response.json(); throw new Error(body.error || 'Unable to save request'); }
     } catch (error) {
+      toast({ title: 'Unable to save request', description: error instanceof Error ? error.message : 'Please retry', variant: 'destructive' });
       console.error('Error updating request:', error);
     } finally {
       setUpdating(false);
@@ -212,6 +234,7 @@ const TailorMadePage: React.FC = () => {
       setSelectedRowKeys([]);
       setDeleteModalOpen(false);
       setDeleteIds([]);
+      void refreshNotifications();
       fetchRequests();
     } catch (err: any) {
       const msg = err.message || 'Failed to delete request(s)';
@@ -247,13 +270,6 @@ const TailorMadePage: React.FC = () => {
     }
   };
 
-  const stats = {
-    total: requests.length,
-    pending: requests.filter(r => r.status === 'pending').length,
-    contacted: requests.filter(r => r.status === 'contacted').length,
-    inProgress: requests.filter(r => r.status === 'in-progress').length,
-    completed: requests.filter(r => r.status === 'completed').length,
-  };
 
   const columns: Array<AdminTableColumn<TailorMadeRequest>> = [
     {
@@ -333,12 +349,13 @@ const TailorMadePage: React.FC = () => {
     },
   ];
 
-  if (initialLoad) {
+  if (initialLoad && !listError) {
     return <AdminPageSkeleton showStats showFilters tableRows={10} />;
   }
 
   return (
     <div className="tailor-made-admin admin-scope">
+      {listError && <p role="alert" className="text-red-600">{listError} <button type="button" onClick={() => void fetchRequests()}>Retry</button></p>}
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -480,6 +497,7 @@ const TailorMadePage: React.FC = () => {
                       <div className="detail-item">
                         <label>Full Name</label>
                         <p>{selectedRequest.fullName}</p>
+                        <p>Language: {selectedRequest.locale?.toUpperCase() || 'Not recorded'}</p>
                       </div>
                       <div className="detail-item">
                         <label>Country</label>
@@ -527,11 +545,11 @@ const TailorMadePage: React.FC = () => {
                         <label>Budget Range</label>
                         <p className="font-bold text-[#b79c5c]">
                           {selectedRequest.minBudget && selectedRequest.maxBudget 
-                            ? `$${selectedRequest.minBudget} - $${selectedRequest.maxBudget}`
+                            ? `${formatBudget(selectedRequest.minBudget)} - ${formatBudget(selectedRequest.maxBudget)}`
                             : selectedRequest.minBudget 
-                            ? `From $${selectedRequest.minBudget}`
+                            ? `From ${formatBudget(selectedRequest.minBudget)}`
                             : selectedRequest.maxBudget
-                            ? `Up to $${selectedRequest.maxBudget}`
+                            ? `Up to ${formatBudget(selectedRequest.maxBudget)}`
                             : 'Not specified'}
                         </p>
                       </div>
@@ -605,7 +623,8 @@ const TailorMadePage: React.FC = () => {
                         </select>
                       </div>
                       <div className="admin-field">
-                        <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Internal Notes</label>
+                        <RequestWorkflow record={selectedRequest} url={API_ENDPOINTS.TAILOR_MADE.BY_ID(selectedRequest._id)} onUpdated={setSelectedRequest} onReload={handleViewDetails} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('tailor_made:update')} />
+                    <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Internal Notes</label>
                         <textarea
                           value={adminNotes}
                           onChange={(e) => setAdminNotes(e.target.value)}
@@ -627,7 +646,7 @@ const TailorMadePage: React.FC = () => {
               <button 
                 className="btn-primary" 
                 onClick={handleUpdateRequest}
-                disabled={updating}
+                disabled={updating || !(user?.role === 'superadmin' || user?.permissions?.includes('tailor_made:update'))}
               >
                 {updating ? (
                   <>

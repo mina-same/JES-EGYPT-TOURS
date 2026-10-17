@@ -1,9 +1,11 @@
 /**
- * Which article content blocks belong to a given language.
+ * Which article content blocks belong to a given language — which blocks an
+ * article page that exists renders.
  *
- * The single source of truth for this rule. The article page renders from it and
- * the route resolver 404s from it, so a locale can never resolve to a page that
- * then turns out to have nothing to show.
+ * Whether the page exists at all is a separate question with its own rule (a
+ * strict slug, a title and a body of its own in the language), decided on the
+ * server for every surface at once: server/src/utils/blogAvailability.ts. An
+ * article tells the page where it is public in `availableLocales`.
  *
  * A block belongs to a locale when BOTH hold:
  *   1. its `languages` list allows that locale — absent or empty means every
@@ -35,16 +37,3 @@ export const blockBelongsToLocale = (block: any, locale: string): boolean => {
 
 export const visibleBlocksFor = (blocks: any, locale: string): any[] =>
   Array.isArray(blocks) ? blocks.filter((block) => blockBelongsToLocale(block, locale)) : [];
-
-/**
- * True when the article has no TEXT of its own in this language.
- *
- * Deliberately counts text blocks only. Images and videos carry no language, so
- * they are allowed in every locale by default — and an article whose Italian
- * version is seven photos and an English-fallback title is exactly the thin,
- * duplicated page this rule exists to prevent. Such a locale gets no page at
- * all: an honest 404 beats a page that only looks translated.
- */
-export const hasNoContentForLocale = (blocks: any, locale: string): boolean =>
-  visibleBlocksFor(blocks, locale).filter((block) => TEXT_BLOCK_TYPES.includes(block?.type))
-    .length === 0;

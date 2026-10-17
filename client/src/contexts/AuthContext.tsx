@@ -1,4 +1,5 @@
 "use client";
+import { disconnectAdminSocket } from '@/lib/realtime/adminSocket';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authAPI, User } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
@@ -39,6 +40,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const isAuthenticated = !!user;
 
+  useEffect(() => {
+    const changed = (event: StorageEvent) => {
+      if (event.key === 'authToken') { disconnectAdminSocket(); void checkAuth(); }
+    };
+    window.addEventListener('storage', changed);
+    return () => window.removeEventListener('storage', changed);
+  }, []);
+
   // Check authentication status on mount
   useEffect(() => {
     checkAuth();
@@ -49,6 +58,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const token = localStorage.getItem('authToken');
       
       if (!token) {
+        setUser(null);
         setIsLoading(false);
         return;
       }
@@ -131,6 +141,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      disconnectAdminSocket();
       // Clear local storage
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');

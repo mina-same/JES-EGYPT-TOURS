@@ -6,6 +6,16 @@ import "photoswipe/dist/photoswipe.css";
 import "@/assets/css/gotur.css";
 import "@/assets/css/custom.css";
 import "./globals.css";
+// After globals.css, as when the header imported it: the language & currency
+// button, sheet and drawer panel. Imported from a client component, the
+// bundler merged it with other pages' CSS modules into a stylesheet every
+// page then had to load before painting.
+import "@/components/common/SitePreferences/sitePreferences.css";
+// The language and currency switchers' own stylesheets, here for the same
+// reason: imported by the switchers, they were merged with the CSS modules of
+// the blog banner and blog grid into a stylesheet every page loaded.
+import "@/components/common/LanguageSelector/langusgeSelect.css";
+import "@/components/common/CurrencySwitcher/currencySwitcher.css";
 
 import HomeClientShell from "./HomeClientShell";
 import { HeaderMenuProvider } from "@/contexts/HeaderMenuContext";

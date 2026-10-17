@@ -1,5 +1,10 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import RequestWorkflow from '@/components/admin/RequestWorkflow';
+import { useAdminRequestListRefresh } from '@/hooks/useAdminRequestListRefresh';
+import { adminFetch } from '@/lib/adminNotifications';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
+import { API_ENDPOINTS } from '@/config/api';
 import { useSearchParams } from 'next/navigation';
 import { 
   Search, Filter, Eye, Trash2, 
@@ -22,7 +27,9 @@ import { PaginationControls } from '@/components/admin/PaginationControls';
 const BookingPage: React.FC = () => {
   const { refreshCount } = useBooking();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<IBooking[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,29 +56,25 @@ const BookingPage: React.FC = () => {
     completed: 0,
   });
 
-  useEffect(() => {
-    fetchBookings();
-    fetchStats();
-  }, [statusFilter, page, limit, searchTerm]);
 
-  // Open a specific record when arriving from a notification deep-link
-  // (/admin/tour/booking?id=<id>). Fires once, after the list has loaded.
   const searchParams = useSearchParams();
-  const deepLinkHandled = React.useRef(false);
+  const requestId = searchParams.get('id');
   useEffect(() => {
-    if (deepLinkHandled.current) return;
-    const id = searchParams.get('id');
-    if (!id || bookings.length === 0) return;
-    const match = bookings.find((b) => b._id === id);
-    if (match) {
-      handleViewDetails(match);
-      deepLinkHandled.current = true;
-    }
+    if (!requestId) return;
+    let cancelled = false;
+    void adminFetch(`${API_ENDPOINTS.BOOKINGS.BASE}/${requestId}`).then(body => { if (!cancelled) handleViewDetails(body.data); }).catch(error => {
+      if (!cancelled) toast({ title: 'Unable to open request', description: error.message, variant: 'destructive' });
+    });
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bookings, searchParams]);
+  }, [requestId]);
+  useAdminRequestListRefresh(() => { void fetchBookings(); void fetchStats(); });
 
-  const fetchBookings = async () => {
+  const listSequence = React.useRef(0);
+  const fetchBookings = useCallback(async () => {
+    const sequence = ++listSequence.current;
     setLoading(true);
+    setListError(null);
     try {
       const params: any = {
         page,
@@ -87,6 +90,7 @@ const BookingPage: React.FC = () => {
       }
 
       const response = await getAllBookings(params);
+      if (sequence !== listSequence.current) return;
       if (response.success) {
         setBookings(response.data);
         const normalizedTotalPages = Math.max(1, response.pagination.pages);
@@ -95,14 +99,14 @@ const BookingPage: React.FC = () => {
         if (page > normalizedTotalPages) setPage(normalizedTotalPages);
       }
     } catch (error) {
+      if (sequence === listSequence.current) setListError((error as any)?.response?.data?.error || 'Unable to load bookings. Please retry.');
       console.error('Error fetching bookings:', error);
     } finally {
-      setLoading(false);
-      setInitialLoad(false);
+      if (sequence === listSequence.current) { setLoading(false); setInitialLoad(false); }
     }
-  };
+  }, [page, limit, statusFilter, searchTerm]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await getBookingStats();
       if (response.success) {
@@ -111,13 +115,18 @@ const BookingPage: React.FC = () => {
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => { void fetchBookings(); void fetchStats(); }, [fetchBookings, fetchStats]);
 
   const handleViewDetails = (booking: IBooking) => {
     setSelectedBooking(booking);
     setAdminNotes(booking.adminNotes || '');
     setNewStatus(booking.status || 'pending');
     setShowModal(true);
+    void adminFetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}/read-entity`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'booking', entityId: booking._id }) }).then(() => refreshCount()).catch(() => {
+      toast({ title: 'Request opened', description: 'Unable to mark its notification as read. Retry from Notifications.', variant: 'destructive' });
+    });
   };
 
   const handleUpdateBooking = async () => {
@@ -126,6 +135,7 @@ const BookingPage: React.FC = () => {
     setUpdating(true);
     try {
       await updateBooking(selectedBooking._id || selectedBooking.id || '', {
+        editVersion: selectedBooking.editVersion || 0,
         status: newStatus,
         adminNotes: adminNotes,
       });
@@ -137,7 +147,7 @@ const BookingPage: React.FC = () => {
       setSelectedBooking(null);
     } catch (error) {
       console.error('Error updating booking:', error);
-      alert('Failed to update booking');
+      toast({ title: 'Unable to save request', description: (error as any)?.response?.data?.error || (error instanceof Error ? error.message : 'Please retry'), variant: 'destructive' });
     } finally {
       setUpdating(false);
     }
@@ -221,7 +231,7 @@ const BookingPage: React.FC = () => {
     {
       header: 'Tour Information',
       render: (booking) => {
-        const tour = typeof booking.tour === 'object' ? booking.tour : null;
+        const tour = typeof booking.tour === 'object' && booking.tour ? { ...booking.tour, heading: booking.tourSnapshot?.heading || booking.tour.heading } : { heading: booking.tourSnapshot?.heading, images: [] };
         return (
           <div className="flex items-center gap-3 py-1">
             <div className="relative h-12 w-16 overflow-hidden rounded-lg bg-gray-100 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-sm">
@@ -369,12 +379,15 @@ const BookingPage: React.FC = () => {
     },
   ];
 
-  if (initialLoad) {
+  const selectedTour = selectedBooking && (typeof selectedBooking.tour === 'object' && selectedBooking.tour ? { ...selectedBooking.tour, heading: selectedBooking.tourSnapshot?.heading || selectedBooking.tour.heading } : { heading: selectedBooking.tourSnapshot?.heading || 'Tour not found', images: [] });
+
+  if (initialLoad && !listError) {
     return <AdminPageSkeleton showStats showFilters tableRows={10} />;
   }
 
   return (
     <div className="booking-admin admin-scope">
+      {listError && <p role="alert" className="text-red-600">{listError} <button type="button" onClick={() => void fetchBookings()}>Retry</button></p>}
       {/* Header */}
       <div className="admin-page-header">
         <div>
@@ -382,7 +395,7 @@ const BookingPage: React.FC = () => {
           <p className="admin-page-subtitle">Manage all tour booking requests</p>
         </div>
         <div className="header-actions">
-          <button className="btn-refresh" onClick={fetchBookings} disabled={loading}>
+          <button className="btn-refresh" onClick={() => { void fetchBookings(); void fetchStats(); }} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'spinning' : ''} />
             Refresh
           </button>
@@ -509,13 +522,13 @@ const BookingPage: React.FC = () => {
             <div className="modal-body">
               <div className="detail-section">
                 <h3><MapPin size={14} /> Tour Information</h3>
-                {typeof selectedBooking.tour === 'object' && selectedBooking.tour && (
+                {selectedTour && (
                   <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                    {selectedBooking.tour.images?.[0]?.url && (
+                    {selectedTour.images?.[0]?.url && (
                         <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
                             <Image
-                                src={selectedBooking.tour.images[0].url}
-                                alt={(typeof selectedBooking.tour.heading === 'object' ? selectedBooking.tour.heading.en : selectedBooking.tour.heading) || 'Tour'}
+                                src={selectedTour.images[0].url}
+                                alt={(typeof selectedTour.heading === 'object' ? selectedTour.heading.en : selectedTour.heading) || 'Tour'}
                                 fill
                                 className="object-cover"
                             />
@@ -523,7 +536,7 @@ const BookingPage: React.FC = () => {
                     )}
                     <div>
                         <p className="font-bold text-gray-900 dark:text-gray-100">
-                          {(typeof selectedBooking.tour.heading === 'object' ? selectedBooking.tour.heading.en : selectedBooking.tour.heading) || 'N/A'}
+                          {(typeof selectedTour.heading === 'object' ? selectedTour.heading.en : selectedTour.heading) || 'N/A'}
                         </p>
                         <p className="text-sm text-[#b79c5c] font-medium flex flex-wrap items-center gap-1.5 mt-1">
                             <Calendar size={12} /> {formatDate(selectedBooking.dateFrom)} <span className="opacity-50 mx-1">to</span> {formatDate(selectedBooking.dateTo)}
@@ -570,6 +583,7 @@ const BookingPage: React.FC = () => {
                   <div className="detail-item">
                     <label>Nationality</label>
                     <p>{selectedBooking.nationality || 'Not specified'}</p>
+                    <p>Language: {selectedBooking.locale?.toUpperCase() || 'Not recorded'}</p>
                   </div>
                   <div className="detail-item">
                     <label>Email Address</label>
@@ -628,6 +642,7 @@ const BookingPage: React.FC = () => {
                     </select>
                   </div>
                   <div className="admin-field">
+                    <RequestWorkflow record={selectedBooking} url={`${API_ENDPOINTS.BOOKINGS.BASE}/${selectedBooking._id || selectedBooking.id}`} onUpdated={setSelectedBooking} onReload={handleViewDetails} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('booking:update')} />
                     <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Internal Admin Notes</label>
                     <textarea
                       value={adminNotes}
@@ -647,7 +662,7 @@ const BookingPage: React.FC = () => {
               <button
                 className="btn-primary"
                 onClick={handleUpdateBooking}
-                disabled={updating}
+                disabled={updating || !(user?.role === 'superadmin' || user?.permissions?.includes('booking:update'))}
               >
                 {updating ? (
                   <>

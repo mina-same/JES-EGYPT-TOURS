@@ -1,5 +1,6 @@
 import { respondToDuplicateInternalLinks } from '../utils/duplicateInternalLinks';
-import { localizePreservingSlugs } from '../utils/localize';
+import { localizeBlogArticles, localizePreservingSlugs } from '../utils/localize';
+import { publicBlogArticleFilter } from '../utils/blogAvailability';
 import { Request, Response } from 'express';
 import Destination, {
   IDestination,
@@ -155,7 +156,7 @@ export const getDestinationBySlug = async (req: Request, res: Response): Promise
       // The card's byline is the editorial author, not the admin account that
       // typed the article in — populating `author` here is what produced the
       // "By Admin" bylines on this page.
-      .populate(blogCardPopulate('featuredBlogs'))
+      .populate(blogCardPopulate('featuredBlogs', req.locale))
       .populate(publicDestinationPopulate('relatedDestinations', RELATED_DESTINATION_FIELDS))
       .lean();
 
@@ -188,8 +189,10 @@ export const getBlogsByDestination = async (req: Request, res: Response): Promis
     // destinations that page promotes; it is not a statement about the
     // articles filed under it, and reading it as one put every article of a
     // category on the page of every destination the category featured.
+    // Of those, only the ones public in the request's language — part of the
+    // query, so the count and the page agree with the cards.
     const filter: FilterQuery<any> = {
-      status: 'published',
+      ...publicBlogArticleFilter(req.locale),
       destination: req.params.id,
     };
 
@@ -211,9 +214,9 @@ export const getBlogsByDestination = async (req: Request, res: Response): Promis
 
     res.status(200).json({
       success: true,
-      // Localized like those listings, with every `slug` kept whole so a card
-      // still links to its article in each language.
-      data: localizePreservingSlugs(blogs, req.locale),
+      // Localized like those listings — in this language only — with every
+      // `slug` kept whole so a card still links to its article in each language.
+      data: localizeBlogArticles(blogs, req.locale),
       pagination: {
         page,
         pages: Math.ceil(total / limit),

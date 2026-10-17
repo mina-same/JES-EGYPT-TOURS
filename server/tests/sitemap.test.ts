@@ -15,18 +15,20 @@ import EditorialAuthor from '../src/models/EditorialAuthor';
 import Faq from '../src/models/Faq';
 import { resolveSlug } from '../src/controllers/resolveController';
 import {
-  articleLocales,
+  BLOG_LOCALES_PIPELINE,
   getSitemapData,
   SITEMAP_VISIBILITY,
   type SitemapData,
 } from '../src/controllers/sitemapController';
+import { getBlogLocaleReadinessFilter, isBlogArticleAvailableInLocale } from '../src/utils/blogAvailability';
+import sift from 'sift';
 
 /*
  * GET /api/sitemap — the data behind client/src/app/sitemap.ts.
  *
  * Model statics are replaced for the duration of each test, so nothing reaches
- * a database; the real controller code, the real article block rule
- * (utils/blogBlocks.ts) and the real FAQ narrowing (utils/localize.ts) run.
+ * a database; the real controller code, the real article availability rule
+ * (utils/blogAvailability.ts) and the real FAQ narrowing (utils/localize.ts) run.
  */
 
 type AnyModel = Record<string, unknown>;
@@ -89,28 +91,36 @@ test('each family is read with the resolver\'s own visibility filter', async (t)
   }
 });
 
-test('article languages follow the article page rule, from text flags alone', () => {
-  const flags = (on: string[]) => Object.fromEntries(['en', 'de', 'it', 'es'].map((l) => [l, on.includes(l)]));
-  // Text in en/de; an image block (no language) must not make it/es count.
-  assert.deepEqual(
-    articleLocales([
-      { type: 'html', content: flags(['en', 'de']), title: flags([]) },
-      { type: 'image', content: flags([]), title: flags([]) },
-    ]),
-    ['en', 'de']
-  );
-  // A title alone is text; a block limited to Italian only counts for Italian.
-  assert.deepEqual(
-    articleLocales([
-      { type: 'blockquote', content: flags([]), title: flags(['es']) },
-      { type: 'html', languages: ['it'], content: flags(['en', 'it']), title: flags([]) },
-    ]),
-    ['it', 'es']
-  );
-  // An empty `languages` list means every language.
-  assert.deepEqual(articleLocales([{ type: 'html', languages: [], content: flags(['en', 'es']), title: flags([]) }]), ['en', 'es']);
-  assert.deepEqual(articleLocales(undefined), []);
-  assert.deepEqual(articleLocales([{ type: 'image', content: flags(['en']), title: flags(['en']) }]), []);
+test('the languages of an article are the shared availability rule, evaluated inside MongoDB', () => {
+  // Published articles only, oldest first; no article text is projected.
+  assert.deepEqual(BLOG_LOCALES_PIPELINE[0], { $match: SITEMAP_VISIBILITY.blogs });
+  assert.deepEqual(BLOG_LOCALES_PIPELINE[1], { $sort: { _id: 1 } });
+  const facets = (BLOG_LOCALES_PIPELINE[2] as unknown as { $facet: Record<string, Record<string, unknown>[]> }).$facet;
+  assert.deepEqual(facets.articles, [{ $project: { slug: 1, updatedAt: 1 } }]);
+  for (const locale of ['en', 'de', 'it', 'es'] as const) {
+    // Each language is decided by the very filter the listings use.
+    assert.deepEqual(facets[locale], [{ $match: getBlogLocaleReadinessFilter(locale) }, { $project: { _id: 1 } }], locale);
+  }
+  assert.ok(!JSON.stringify(BLOG_LOCALES_PIPELINE).includes('"contentBlocks":1'), 'article bodies must not be projected');
+
+  // What those branches select, on stored-shape documents (sift: MongoDB's query
+  // semantics), is what the article page itself answers 200 for.
+  const body = (en: string) => [{ type: 'html', content: { en } }];
+  const docs = [
+    { _id: 'complete', status: 'published', slug: { en: 'pyramids', de: 'pyramiden' }, title: { en: 'Pyramids', de: 'Pyramiden' }, contentBlocks: [{ type: 'html', content: { en: '<p>Hi</p>', de: '<p>Hallo</p>' } }] },
+    { _id: 'image-only', status: 'published', slug: { en: 'images' }, title: { en: 'Images' }, contentBlocks: [{ type: 'image', url: 'a.jpg' }] },
+    { _id: 'empty-paragraph', status: 'published', slug: { en: 'empty' }, title: { en: 'Empty' }, contentBlocks: body('<p><br /></p>') },
+    { _id: 'malformed-slug', status: 'published', slug: { en: 'Pyramids-Of-Giza' }, title: { en: 'Giza' }, contentBlocks: body('<p>Text</p>') },
+    { _id: 'no-title', status: 'published', slug: { en: 'untitled' }, title: { en: ' ' }, contentBlocks: body('<p>Text</p>') },
+    { _id: 'italian-block', status: 'published', slug: { en: 'scoped', it: 'limitato' }, title: { en: 'Scoped', it: 'Limitato' }, contentBlocks: [{ type: 'blockquote', languages: ['it'], content: { en: 'Only for Italian', it: 'Solo italiano' } }] },
+  ];
+  for (const locale of ['en', 'de', 'it', 'es'] as const) {
+    const selected = docs.filter(sift(getBlogLocaleReadinessFilter(locale))).map((doc) => doc._id);
+    const expected = docs.filter((doc) => isBlogArticleAvailableInLocale(doc, locale)).map((doc) => doc._id);
+    assert.deepEqual(selected, expected, locale);
+  }
+  assert.deepEqual(docs.filter(sift(getBlogLocaleReadinessFilter('en'))).map((doc) => doc._id), ['complete']);
+  assert.deepEqual(docs.filter(sift(getBlogLocaleReadinessFilter('it'))).map((doc) => doc._id), ['italian-block']);
 });
 
 test('the endpoint returns slugs, dates and flags only, for every family', async (t) => {
@@ -137,15 +147,16 @@ test('the endpoint returns slugs, dates and flags only, for every family', async
   });
 
   let pipeline: unknown;
-  const flags = (on: string[]) => Object.fromEntries(['en', 'de', 'it', 'es'].map((l) => [l, on.includes(l)]));
+  // The $facet answer: the published articles, and per language the ids public in it.
   stub(t, [MODELS.blogs], 'aggregate', () => async (stages: unknown) => {
     pipeline = stages;
     return [
       {
-        _id: 6,
-        slug: { en: 'pyramids', de: 'pyramiden', it: 'piramidi', es: 'piramides' },
-        updatedAt: updated,
-        blocks: [{ type: 'html', content: flags(['en', 'de', 'it']), title: flags([]) }],
+        articles: [{ _id: 6, slug: { en: 'pyramids', de: 'pyramiden', it: 'piramidi', es: 'piramides' }, updatedAt: updated }],
+        en: [{ _id: 6 }],
+        de: [{ _id: 6 }],
+        it: [{ _id: 6 }],
+        es: [],
       },
     ];
   });
@@ -192,8 +203,7 @@ test('the endpoint returns slugs, dates and flags only, for every family', async
   for (const q of queries) {
     assert.deepEqual(q.projection, { slug: 1, updatedAt: 1, category: 1 });
   }
-  assert.deepEqual((pipeline as unknown[])[0], { $match: SITEMAP_VISIBILITY.blogs });
-  assert.ok(!JSON.stringify(pipeline).includes('"contentBlocks":1'), 'article bodies must not be projected');
+  assert.deepEqual(pipeline, BLOG_LOCALES_PIPELINE);
 
   // Only string slugs of the four languages; a bare-string slug yields none.
   assert.deepEqual(data.tours, [

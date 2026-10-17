@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { waHref, PHONE_DISPLAY, getSocialProfiles } from "@/config/contact";
 import useStore from "@/store/useStore";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import { getLocaleFromPath, localizeInternalUrl } from "@/lib/url";
 import { Flame } from "lucide-react";
 
 import { useHeaderMenu } from "@/hooks/useHeaderMenu";
+import PreferencesPanel from "@/components/common/SitePreferences/PreferencesPanel";
 
 /** Everything inside the panel that a keyboard can land on. */
 const FOCUSABLE_SELECTOR =
@@ -20,21 +21,24 @@ const FOCUSABLE_SELECTOR =
 /**
  * How many animation frames the close button gets to become focusable on open.
  *
- * It lands on the first or second frame in practice (the button's own
- * transition keeps it hidden for the frame the drawer opens on). The ceiling
- * only exists so a panel that never becomes focusable cannot retry forever.
+ * It lands on the first frame in practice: the panel turns visible in the
+ * frame the drawer opens (gotur.css). The ceiling only exists so a panel that
+ * never becomes focusable cannot retry forever.
  */
 const MAX_FOCUS_FRAMES = 60;
 
 /**
  * How long after opening a repeat tap on the menu button is absorbed: the
- * drawer's opening sequence in gotur.css — the overlay slides in over 500 ms,
- * then the panel fades in over the next 500 ms. The drawer arrives over the
- * button, so a second tap in that time lands on the overlay (or, on screens
- * narrow enough for the 300 px panel to cover the button, on the panel). It
- * used to close the menu the user had just asked for, or drop focus from it.
+ * drawer's 300 ms slide-in (gotur.css) and a margin. The drawer arrives over
+ * the button, so a second tap in that time lands on the backdrop (or, on
+ * screens narrow enough for the 300 px panel to cover the button, on the
+ * panel). It used to close the menu the user had just asked for, or drop
+ * focus from it.
  */
-const OPEN_SETTLE_MS = 1000;
+const OPEN_SETTLE_MS = 400;
+
+/** The drawer's slide-out (gotur.css): it is off screen once this has passed. */
+const CLOSE_MS = 250;
 
 const Drawer: React.FC = () => {
   const { t, i18n } = useTranslation("common");
@@ -52,12 +56,18 @@ const Drawer: React.FC = () => {
   const itemHref = (item: any) =>
     localizeInternalUrl(formatUrl(getLocalizedValue(item.url || item.link, i18n.language)), locale);
   const [isItems, setIsItems] = useState<number | null>(null);
-  const [isSubItems, setIsSubItems] = useState<number | null>(null);
+  // The open third-level list, by parent AND child position ("1-0"). By the
+  // child's position alone, opening the first child of one parent opened the
+  // first child of every parent.
+  const [isSubItems, setIsSubItems] = useState<string | null>(null);
   const toggleDropdown = (itemId: number) => {
     setIsItems((prevItem) => (prevItem === itemId ? null : itemId));
+    // A parent opening or closing takes its children's state with it, so a
+    // parent always opens with its children collapsed.
+    setIsSubItems(null);
   };
 
-  const toggleSubItemDropdown = (subItemId: number) => {
+  const toggleSubItemDropdown = (subItemId: string) => {
     setIsSubItems((prevSubItem) =>
       prevSubItem === subItemId ? null : subItemId
     );
@@ -104,6 +114,29 @@ const Drawer: React.FC = () => {
     setMobileDrawerStatus(false);
   }, [setMobileDrawerStatus]);
 
+  // The drawer is mounted on first use, already asked to be open: drawn
+  // straight with `expanded`, it appeared fully formed, while every later open
+  // slid in. Its closed state is laid out once first, so the class that follows
+  // is a change the transition can run from.
+  const [hasLaidOutClosed, setHasLaidOutClosed] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    wrapperRef.current?.getBoundingClientRect();
+    setHasLaidOutClosed(true);
+  }, []);
+  const isExpanded = mobileDrawerStatus && hasLaidOutClosed;
+
+  // Every open starts as the first did, all submenus collapsed. The reset
+  // waits for the slide-out, so nothing folds up while the panel is leaving.
+  useEffect(() => {
+    if (mobileDrawerStatus) return;
+    const timer = window.setTimeout(() => {
+      setIsItems(null);
+      setIsSubItems(null);
+    }, CLOSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [mobileDrawerStatus]);
+
   // Internal links close the drawer themselves. LayoutObserver only closes it
   // on a pathname change, which never comes for a link to the page already on
   // screen (Home on /en): the tap did nothing and the menu stayed open. A real
@@ -114,6 +147,13 @@ const Drawer: React.FC = () => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     restoreFocusRef.current =
       new URL(event.currentTarget.href).pathname === window.location.pathname;
+    close();
+  };
+
+  // A language switch rebuilds the page in the new language, drawer included:
+  // it closes first, and leaves focus to the new page (languageFocus.ts).
+  const onLanguageSwitch = () => {
+    restoreFocusRef.current = false;
     close();
   };
 
@@ -143,12 +183,11 @@ const Drawer: React.FC = () => {
 
     // Move focus into the panel — otherwise the tab order stays behind the
     // drawer and the next Tab press walks the page underneath it — and confirm
-    // it landed. Only the first open mounts the drawer already visible; every
-    // later open starts it mid-transition, and an element that is not yet
-    // visible silently refuses focus(), so focus stayed on the hamburger while
-    // the dialog declared itself modal. Retry on the following frames until it
-    // sticks (same pattern as the Search dialog). custom.css makes the panel
-    // visible at once on open, so it can stay once it lands.
+    // it landed. An element that is not yet visible silently refuses focus(),
+    // and focus once stayed on the hamburger while the dialog declared itself
+    // modal. Retry on the following frames until it sticks (same pattern as
+    // the Search dialog). gotur.css makes the panel visible in the frame the
+    // drawer opens, so it can stay once it lands.
     let framesLeft = MAX_FOCUS_FRAMES;
     const focusCloseButton = () => {
       focusFrameRef.current = null;
@@ -214,7 +253,8 @@ const Drawer: React.FC = () => {
 
   return (
     <div
-      className={`mobile-nav__wrapper ${mobileDrawerStatus ? "expanded" : ""}`}
+      ref={wrapperRef}
+      className={`mobile-nav__wrapper ${isExpanded ? "expanded" : ""}`}
       role='dialog'
       aria-modal='true'
       aria-label={t("nav.label")}
@@ -303,21 +343,24 @@ const Drawer: React.FC = () => {
                   itemLink
                 )}
 
-                {/* `inert` while collapsed: max-height only hid the links,
-                    which stayed tabbable and exposed to assistive tech. The
-                    classes still drive the expand/collapse animation. */}
+                {/* `inert` while collapsed: the closed height only hides the
+                    links, which would stay tabbable and exposed to assistive
+                    tech. The wrapper animates to the list's real height
+                    (gotur.css, `.mobile-nav__submenu`). */}
                 {hasChildren ? (
-                  <ul
+                  <div
                     id={controlsId}
-                    className={`close ${isOpen ? "open" : ""}`}
+                    className={`mobile-nav__submenu${isOpen ? " is-open" : ""}`}
                     inert={!isOpen}
                   >
+                  <ul>
                     {children.map((subMenu: any, sidx: number) => {
                       const subChildren = subMenu.children || subMenu.subMenu;
                       const hasSubChildren = Array.isArray(subChildren) && subChildren.length > 0;
-                      const isSubOpen = isSubItems === sidx;
+                      const subKey = `${idx}-${sidx}`;
+                      const isSubOpen = isSubItems === subKey;
                       const subLabel = getLocalizedValue(subMenu.label || subMenu.title, i18n.language);
-                      const subControlsId = submenuId(subMenu, `${idx}-${sidx}`);
+                      const subControlsId = submenuId(subMenu, subKey);
                       return (
                     <li
                       key={subMenu._id || subMenu.id || `${subMenu.label || subMenu.title}-${sidx}`}
@@ -337,7 +380,7 @@ const Drawer: React.FC = () => {
                         {hasSubChildren && (
                           <button
                             type='button'
-                            onClick={(e) => onSubmenuToggle(e, subControlsId, isSubOpen, () => toggleSubItemDropdown(sidx))}
+                            onClick={(e) => onSubmenuToggle(e, subControlsId, isSubOpen, () => toggleSubItemDropdown(subKey))}
                             className={`${isSubOpen ? "expanded" : ""}`}
                             aria-expanded={isSubOpen}
                             aria-controls={subControlsId}
@@ -349,11 +392,12 @@ const Drawer: React.FC = () => {
                       </div>
 
                       {hasSubChildren && (
-                        <ul
+                        <div
                           id={subControlsId}
-                          className={`close ${isSubOpen ? "open" : ""}`}
+                          className={`mobile-nav__submenu${isSubOpen ? " is-open" : ""}`}
                           inert={!isSubOpen}
                         >
+                        <ul>
                           {subChildren.map((subSubItem: any, ssidx: number) => (
                             <li key={subSubItem._id || subSubItem.id || `${subSubItem.label || subSubItem.title}-${ssidx}`}>
                               <Link href={itemHref(subSubItem)} onClick={onLinkClick}>
@@ -362,11 +406,13 @@ const Drawer: React.FC = () => {
                             </li>
                           ))}
                         </ul>
+                        </div>
                       )}
                     </li>
                       );
                     })}
                   </ul>
+                  </div>
                 ) : null}
               </li>
                 );
@@ -374,6 +420,13 @@ const Drawer: React.FC = () => {
             ))}
           </ul>
         </div>
+
+        {/* The menu is where a phone's visitor looks for settings, so the
+            language & currency choices are here too, not only behind the
+            header's button. A currency applies with the menu left open. */}
+        <section className='mobile-nav__prefs' aria-label={t("preferences.title")}>
+          <PreferencesPanel onLanguageSwitch={onLanguageSwitch} />
+        </section>
 
         <ul className='mobile-nav__contact list-unstyled'>
           <li>

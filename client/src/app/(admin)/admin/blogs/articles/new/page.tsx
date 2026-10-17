@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   ArrowLeft, Save, Loader2, Plus, X,
   LayoutDashboard, Image as ImageIcon, FileText,
-  Settings, Eye, Calendar, Tag
+  Settings, Eye, Calendar, Tag, ListPlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -58,6 +58,7 @@ import {
 // Tab definitions
 const TABS = [
   { id: 'content', label: 'Content', icon: FileText },
+  { id: 'resources', label: 'FAQs & Related', icon: ListPlus },
   { id: 'media', label: 'Media & SEO', icon: ImageIcon },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
@@ -961,6 +962,12 @@ export default function NewBlogPage() {
                   activeLanguage={activeLanguage}
                 />
 
+              </div>
+            )}
+
+            {/* FAQs & RELATED TAB */}
+            {activeTab === 'resources' && (
+              <div className="space-y-6">
                 <FaqManager
                   faqs={formData.faqs || []}
                   onChange={(faqs) => handleChange('faqs', faqs)}

@@ -106,11 +106,22 @@ test('without session storage nothing throws and nothing is restored', () => {
 const source = (path: string) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-test('the selector asks for it only for a keyboard-made switch to another language', () => {
-  const code = source('components/common/LanguageSelector/LanguageSelector.tsx');
-  assert.match(code, /selectLanguage\(option, isKeyboardClick\(event\)\);/);
-  assert.match(code, /if \(fromKeyboard && option\.value !== currentLocale\) markLanguageFocus\(target\);\s*router\.push\(target\);/);
-  assert.equal(code.split('markLanguageFocus(').length - 1, 1, 'nowhere else');
+test('the switch asks for it only when keyboard-made and to another language', () => {
+  const hook = source('components/common/LanguageSelector/useLanguageSwitch.ts');
+  assert.match(hook, /if \(fromKeyboard && locale !== currentLocale\) markLanguageFocus\(target\);\s*router\.push\(target\);/);
+  assert.equal(hook.split('markLanguageFocus(').length - 1, 1);
+  // Both language controls go through that switch and tell it how they were used.
+  assert.match(source('components/common/LanguageSelector/LanguageSelector.tsx'), /selectLanguage\(option, isKeyboardClick\(event\)\);/);
+  assert.match(source('components/common/LanguageSelector/LanguageSelector.tsx'), /switchLanguage\(option\.value, target, fromKeyboard\);/);
+  assert.match(source('components/common/SitePreferences/PreferencesPanel.tsx'), /switchLanguage\(locale, target, isKeyboardClick\(event\)\);/);
+  for (const path of [
+    'components/common/LanguageSelector/LanguageSelector.tsx',
+    'components/common/SitePreferences/PreferencesPanel.tsx',
+    'components/common/SitePreferences/PreferencesSheet.tsx',
+    'components/layout/Drawer/Drawer.tsx',
+  ]) {
+    assert.equal(source(path).includes('markLanguageFocus('), false, `${path}: nowhere else`);
+  }
 });
 
 test('the selector the page shows takes the focus back without scrolling; a hidden copy does not', () => {
@@ -118,10 +129,18 @@ test('the selector the page shows takes the focus back without scrolling; a hidd
   assert.match(code, /if \(!mounted \|\| !hasPendingLanguageFocus\(\)\) return;\s*const button = buttonRef\.current;\s*if \(!canTakeFocus\(button\)\) return;\s*clearLanguageFocus\(\);\s*button\.focus\(\{ preventScroll: true \}\);/);
 });
 
-test('the sticky copy shows itself for it only where the top bar is not shown', () => {
-  const code = source('components/layout/SiteHeader/SiteHeader.tsx');
-  assert.match(code, /if \(!isSticky \|\| !mounted \|\| topBarShown \|\| !hasPendingLanguageFocus\(\)\) return;\s*setHoldsFocus\(true\);/);
-  // The copy is not focusable in the frame that starts its slide: it waits for the button, then focuses it.
-  assert.match(code, /if \(canTakeFocus\(button\)\) \{\s*settled = true;\s*clearLanguageFocus\(\);\s*button\.focus\(\{ preventScroll: true \}\);/);
-  assert.match(code, /if \(!settled\) setHoldsFocus\(false\);/);
+test('below the top bar\'s breakpoint the header\'s language & currency button takes it, the same way', () => {
+  const code = source('components/common/SitePreferences/PreferencesButton.tsx');
+  assert.match(code, /if \(!hasPendingLanguageFocus\(\)\) return;\s*const button = buttonRef\.current;\s*if \(!canTakeFocus\(button\)\) return;\s*clearLanguageFocus\(\);\s*button\.focus\(\{ preventScroll: true \}\);/);
+  // The sticky copy no longer brings itself on screen for it.
+  assert.equal(source('components/layout/SiteHeader/SiteHeader.tsx').includes('hasPendingLanguageFocus'), false);
+});
+
+test('a dialog closed by a language switch does not pull the focus back to its opener', () => {
+  const sheet = source('components/common/SitePreferences/PreferencesSheet.tsx');
+  assert.match(sheet, /const closeForLanguageSwitch = useCallback\(\(\) => \{\s*restoreFocusRef\.current = false;\s*close\(\);/);
+  assert.match(sheet, /<PreferencesPanel onLanguageSwitch=\{closeForLanguageSwitch\} onDone=\{close\} \/>/);
+  const drawer = source('components/layout/Drawer/Drawer.tsx');
+  assert.match(drawer, /const onLanguageSwitch = \(\) => \{\s*restoreFocusRef\.current = false;\s*close\(\);/);
+  assert.match(drawer, /<PreferencesPanel onLanguageSwitch=\{onLanguageSwitch\} \/>/);
 });

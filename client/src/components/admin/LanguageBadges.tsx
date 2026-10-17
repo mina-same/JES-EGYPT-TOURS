@@ -11,12 +11,14 @@ import {
   CONTENT_LANGS,
   getLocaleCompleteness,
   type LangCompleteness,
+  type LocalizedCheck,
   type RequiredLocalizedField,
 } from '@/lib/localeCompleteness';
 import { cn } from '@/lib/utils';
 
 const MAX_LISTED_FIELDS = 6;
 const NO_REQUIRED_FIELDS: readonly RequiredLocalizedField[] = [];
+const NO_LOCALIZED_CHECKS: readonly LocalizedCheck[] = [];
 
 // Shared with the tour PriceBadge so both chip kinds look alike.
 export const CHIP_CLASSES = 'text-[10px] px-1.5 py-0.5 rounded uppercase font-bold whitespace-nowrap cursor-default';
@@ -61,15 +63,18 @@ export default function LanguageBadges({
   className,
   requiredLocalizedFields = NO_REQUIRED_FIELDS,
   imageTextAsSeo = false,
+  localizedChecks = NO_LOCALIZED_CHECKS,
 }: {
   entity: unknown;
   className?: string;
   requiredLocalizedFields?: readonly RequiredLocalizedField[];
   imageTextAsSeo?: boolean;
+  /** Per-language requirements that are not a single field (see localeCompleteness). */
+  localizedChecks?: readonly LocalizedCheck[];
 }) {
   const report = useMemo(
-    () => getLocaleCompleteness(entity, { requiredLocalizedFields, imageTextAsSeo }),
-    [entity, requiredLocalizedFields, imageTextAsSeo]
+    () => getLocaleCompleteness(entity, { requiredLocalizedFields, imageTextAsSeo, localizedChecks }),
+    [entity, requiredLocalizedFields, imageTextAsSeo, localizedChecks]
   );
 
   return (

@@ -14,7 +14,7 @@ export function useRevealLinkLocation(setLanguage: (locale: AdminLanguage) => vo
       const page = window.location.pathname;
       const root = path.split('.')[0];
       let tab = 'overview';
-      if (page.includes('/articles/')) tab = 'content';
+      if (page.includes('/articles/')) tab = root === 'faqs' ? 'resources' : 'content';
       else if (page.includes('/tour/tour/')) {
         if (['tourHighlights', 'inclusion', 'exclusion', 'whatToPack', 'notes', 'whatYouWillLoveHtml'].includes(root)) tab = 'details';
         else if (root === 'itinerary') tab = 'itinerary';

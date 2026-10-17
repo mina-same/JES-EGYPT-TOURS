@@ -177,8 +177,85 @@ export const localizePreservingSlugs = (data: any, locale: string): any => {
     } else if (key === 'faqs') {
       // Keeps the object shape the renderers need, minus the other languages.
       out[key] = narrowFaqsToLocale(value, locale);
+    } else if (BLOG_ARTICLE_LIST_KEYS.has(key)) {
+      // Articles embedded in another document (a category's featured articles,
+      // an article's related posts): their own text in this language only.
+      out[key] = localizeBlogArticles(value, locale);
     } else {
       out[key] = localizePreservingSlugs(value, locale);
+    }
+  }
+  return out;
+};
+
+// ── Blog articles: this language's text, or none ─────────────────────────────
+
+/** Fields holding Blog articles wherever they are embedded. */
+const BLOG_ARTICLE_LIST_KEYS = new Set(['featuredBlogs', 'relatedPosts']);
+
+/**
+ * References an article carries to OTHER kinds of document. They are labels
+ * here — a topic's name on a card, the byline, the destination link — and are
+ * localized as those documents always are.
+ */
+const BLOG_REFERENCE_KEYS = new Set(['author', 'editorialAuthor', 'category', 'subCategory', 'destination', 'relatedTours']);
+
+const isValueObject = (value: any): boolean =>
+  value instanceof Date || typeof value?.toHexString === 'function';
+
+/** { en, de, … } with only language keys — any subset of them. */
+const isLanguageMap = (value: any): boolean => {
+  const keys = Object.keys(value);
+  return keys.length > 0 && keys.every((k) => ['en', 'de', 'it', 'es'].includes(k));
+};
+
+/** Every language map inside `value` reduced to this language's value, with no fallback. */
+const ownLanguage = (value: any, locale: string): any => {
+  if (!value || typeof value !== 'object' || isValueObject(value)) return value;
+  if (Array.isArray(value)) return value.map((item) => ownLanguage(item, locale));
+  const plain = value.toObject ? value.toObject() : value;
+  if (isLanguageMap(plain)) return plain[locale] ?? undefined;
+  const out: any = {};
+  for (const [key, item] of Object.entries(plain)) {
+    out[key] = key.startsWith('_') ? item : ownLanguage(item, locale);
+  }
+  return out;
+};
+
+/**
+ * Localizes Blog articles for a public response WITHOUT falling back to
+ * English.
+ *
+ * localize() answers a missing language with English, which is right for a
+ * tour's label and wrong for an article: a public article in a language always
+ * has its own title and body (utils/blogAvailability.ts), and anything it lacks
+ * in that language — an excerpt, a meta description, an image's alt text, a
+ * summary — is absent there, so the page falls back within the SAME language
+ * (meta description → excerpt, alt → title) instead of printing English under
+ * an Italian URL.
+ *
+ * What stays as localizePreservingSlugs leaves it: `slug` and the other
+ * PRESERVE_RAW fields raw, `faqs` narrowed, `_`-prefixed keys untouched, and
+ * the references to other kinds of document localized as those always are.
+ */
+export const localizeBlogArticles = (data: any, locale: string): any => {
+  if (!locale || locale === 'bypass') return data;
+  if (!data || typeof data !== 'object' || isValueObject(data)) return data;
+  if (Array.isArray(data)) return data.map((item) => localizeBlogArticles(item, locale));
+
+  const plain = data.toObject ? data.toObject() : data;
+  const out: any = {};
+  for (const [key, value] of Object.entries(plain)) {
+    if (PRESERVE_RAW.has(key) || key.startsWith('_')) {
+      out[key] = value;
+    } else if (key === 'faqs') {
+      out[key] = narrowFaqsToLocale(value, locale);
+    } else if (key === 'relatedPosts') {
+      out[key] = localizeBlogArticles(value, locale);
+    } else if (BLOG_REFERENCE_KEYS.has(key)) {
+      out[key] = localizePreservingSlugs(value, locale);
+    } else {
+      out[key] = ownLanguage(value, locale);
     }
   }
   return out;

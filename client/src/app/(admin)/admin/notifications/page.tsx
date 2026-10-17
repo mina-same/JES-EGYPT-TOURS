@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { API_ENDPOINTS } from '@/config/api';
-import { Bell, Trash2, CheckCircle, Check, Filter } from 'lucide-react';
-import { getAdminSocket } from '@/lib/realtime/adminSocket';
+import { Bell, Trash2, CheckCircle, Check } from 'lucide-react';
+import { adminFetch, notificationDestination, ADMIN_NOTIFICATIONS_CHANGED } from '@/lib/adminNotifications';
+import { stopAcrossTabs } from '@/lib/adminNotificationAudio';
+import { useAuth } from '@/contexts/AuthContext';
+import { PaginationControls } from '@/components/admin/PaginationControls';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useRouter } from 'next/navigation';
@@ -22,138 +25,63 @@ interface Notification {
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true), [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1), [total, setTotal] = useState(0), [pages, setPages] = useState(1);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
-  const { toast } = useToast();
-  const { refreshUnreadCount } = useNotifications();
+  const { toast } = useToast(), { refreshUnreadCount } = useNotifications(), { user } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    fetchNotifications();
-
-    // Listen for real-time notifications
-    const socket = getAdminSocket();
-    if (socket) {
-      const handleNewNotification = () => {
-        console.log('New notification received, refreshing list...');
-        fetchNotifications();
-        refreshUnreadCount();
-        toast({
-          title: "New notification",
-          description: "A new notification has arrived",
-        });
-      };
-
-      socket.on('admin-notification', handleNewNotification);
-
-      return () => {
-        socket.off('admin-notification', handleNewNotification);
-      };
-    }
-  }, [toast, filter]);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
-      const query = filter !== 'all' ? `?status=${filter}` : '';
-      
-      const res = await fetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}${query}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setNotifications(data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    } finally {
-      setLoading(false);
-    }
+      const data = await adminFetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}?page=${page}&limit=20&status=${filter}`);
+      setNotifications(data.data); setTotal(data.pagination.total); setPages(Math.max(1, data.pagination.pages));
+      if (page > Math.max(1, data.pagination.pages)) setPage(Math.max(1, data.pagination.pages));
+      setError(null);
+    } catch (error) { setError(error instanceof Error ? error.message : 'Failed to load notifications'); }
+    finally { setLoading(false); }
+  }, [page, filter]);
+  useEffect(() => {
+    void fetchNotifications();
+    const refresh = () => void fetchNotifications();
+    window.addEventListener(ADMIN_NOTIFICATIONS_CHANGED, refresh); window.addEventListener('focus', refresh);
+    const timer = setInterval(refresh, 30000);
+    return () => { clearInterval(timer); window.removeEventListener(ADMIN_NOTIFICATIONS_CHANGED, refresh); window.removeEventListener('focus', refresh); };
+  }, [fetchNotifications]);
+  const failed = (error: unknown) => {
+    const message = error instanceof Error ? error.message : 'Operation failed. Please try again.';
+    setError(message); toast({ title: 'Operation failed', description: message, variant: 'destructive' });
   };
-
   const markAsRead = async (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     try {
-      const token = localStorage.getItem('authToken');
-      await fetch(API_ENDPOINTS.NOTIFICATIONS.MARK_READ(id), {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      // Optimistic update
-      setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
-      refreshUnreadCount();
-    } catch (error) {
-      console.error('Failed to mark as read:', error);
-    }
+      await adminFetch(API_ENDPOINTS.NOTIFICATIONS.MARK_READ(id), { method: 'PATCH' });
+      if (user) stopAcrossTabs(user.id, id);
+      await refreshUnreadCount(); await fetchNotifications();
+      return true;
+    } catch (error) { failed(error); return false; }
   };
-
   const markAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      await fetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}/read-all`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      refreshUnreadCount();
-      toast({
-        title: "Success",
-        description: "All notifications marked as read",
-        variant: "success",
-      });
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
-    }
+      await adminFetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}/read-all`, { method: 'PATCH' });
+      if (user) stopAcrossTabs(user.id);
+      await refreshUnreadCount(); await fetchNotifications();
+      toast({ title: 'Success', description: 'All notifications marked as read', variant: 'success' });
+    } catch (error) { failed(error); }
   };
-
   const deleteNotification = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const token = localStorage.getItem('authToken');
-      await fetch(API_ENDPOINTS.NOTIFICATIONS.BY_ID(id), {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      setNotifications(prev => prev.filter(n => n._id !== id));
-      toast({
-        title: "Deleted",
-        description: "Notification deleted",
-        variant: "success",
-      });
-    } catch (error) {
-      console.error('Failed to delete notification:', error);
-    }
+      await adminFetch(API_ENDPOINTS.NOTIFICATIONS.BY_ID(id), { method: 'DELETE' });
+      if (user) stopAcrossTabs(user.id, id);
+      await refreshUnreadCount(); await fetchNotifications();
+      toast({ title: 'Dismissed', description: 'Hidden from your inbox. Other employees can still see it.', variant: 'success' });
+    } catch (error) { failed(error); }
   };
-
-  const handleNotificationClick = (notification: Notification) => {
-    if (!notification.isRead) {
-      markAsRead(notification._id);
-    }
-
-    if (notification.entityId) {
-      switch (notification.type) {
-        case 'booking':
-          router.push(`/admin/tour/booking?id=${notification.entityId}`);
-          break;
-        case 'contact':
-          router.push(`/admin/contact-forms/contact-form?id=${notification.entityId}`);
-          break;
-        case 'tailorMade':
-          router.push(`/admin/contact-forms/tailor-made?id=${notification.entityId}`);
-          break;
-        default:
-          break;
-      }
-    }
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.isRead && !await markAsRead(notification._id)) return;
+    if (user) stopAcrossTabs(user.id, notification._id);
+    const destination = notificationDestination(notification);
+    if (destination) router.push(destination);
   };
 
   const getIconColor = (type: string) => {
@@ -165,7 +93,7 @@ export default function NotificationsPage() {
     }
   };
 
-  if (loading && notifications.length === 0) {
+  if (loading && notifications.length === 0 && !error) {
     return <AdminPageSkeleton showStats={false} showFilters={false} tableRows={5} />;
   }
 
@@ -191,7 +119,7 @@ export default function NotificationsPage() {
         {/* Filters */}
         <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center gap-4 overflow-x-auto">
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => { setPage(1); setFilter('all'); }}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
               filter === 'all' 
                 ? 'bg-primary text-primary-foreground' 
@@ -201,7 +129,7 @@ export default function NotificationsPage() {
             All Notifications
           </button>
           <button
-            onClick={() => setFilter('unread')}
+            onClick={() => { setPage(1); setFilter('unread'); }}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
               filter === 'unread' 
                 ? 'bg-primary text-primary-foreground' 
@@ -211,7 +139,7 @@ export default function NotificationsPage() {
             Unread
           </button>
           <button
-            onClick={() => setFilter('read')}
+            onClick={() => { setPage(1); setFilter('read'); }}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
               filter === 'read' 
                 ? 'bg-primary text-primary-foreground' 
@@ -222,11 +150,12 @@ export default function NotificationsPage() {
           </button>
         </div>
 
+        {error && <div role="alert" className="p-4 text-red-600">{error} <button type="button" onClick={() => void fetchNotifications()}>Retry</button></div>}
         {notifications.length === 0 ? (
           <div className="p-12 text-center text-gray-500 dark:text-gray-400">
             <Bell className="mx-auto mb-4 h-12 w-12 opacity-20" />
             <p className="text-lg font-medium">No notifications found</p>
-            <p className="text-sm opacity-70">You're all caught up!</p>
+            <p className="text-sm opacity-70">You are all caught up!</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -281,7 +210,7 @@ export default function NotificationsPage() {
                         <button
                           onClick={(e) => deleteNotification(notification._id, e)}
                           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                          title="Delete"
+                          title="Dismiss from my inbox"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -294,6 +223,7 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+      <PaginationControls currentPage={page} totalPages={pages} totalItems={total} itemsPerPage={20} onPageChange={setPage} onItemsPerPageChange={() => {}} disableLimitChange />
     </div>
   );
 }

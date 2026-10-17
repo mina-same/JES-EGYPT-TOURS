@@ -16,6 +16,7 @@ export interface BookingCurrencyRates {
 }
 
 export interface BookingFingerprintInput {
+  locale?: string;
   tour: string;
   name: string;
   email: string;
@@ -92,6 +93,7 @@ export const createBookingRequestFingerprint = (
     // DIFFERENT enquiry, and without this it would collide with the previous
     // attempt's key and be rejected as a reused idempotency key.
     input.selectedPackage?.trim() || '',
+    input.locale || '',
   ]);
 
   return createHash('sha256').update(canonical).digest('hex');
