@@ -3,7 +3,7 @@ import { API_URL } from '@/config/api';
 import type { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import type { IFAQ } from '@/types/tour';
 import type { BlogListItem, BlogPost, PaginationData } from './blog';
-import { blogListingCacheOptions, normalizeBlogPage } from './blogCachePolicy';
+import { BLOG_TAG, blogListingCacheOptions, normalizeBlogPage } from './blogCachePolicy';
 
 export interface DestinationCoverImage {
   url: string;
@@ -122,7 +122,9 @@ export async function getDestinationBySlug(slug: string, locale?: string): Promi
     res = await fetch(
       `${API_URL}/destinations/slug/${slug}${locale ? `?locale=${locale}` : ''}`,
       {
-        next: { revalidate: 3600, tags: ['destinations'] },
+        // `blog` as well: the destination carries its handpicked articles, and
+        // which of those a language shows changes with every article write.
+        next: { revalidate: 3600, tags: ['destinations', BLOG_TAG] },
         ...(locale ? { headers: { 'X-Locale': locale } } : {}),
       }
     );

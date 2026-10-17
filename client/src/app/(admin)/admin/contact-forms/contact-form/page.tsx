@@ -1,5 +1,10 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import RequestWorkflow from '@/components/admin/RequestWorkflow';
+import type { RequestWorkflowData } from '@/lib/requestWorkflowTypes';
+import { useAdminRequestListRefresh } from '@/hooks/useAdminRequestListRefresh';
+import { adminFetch } from '@/lib/adminNotifications';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Building2, Eye, Globe2, Loader2, Mail, MapPin, MessageSquare, Phone, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
@@ -12,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 
-interface ContactSubmission {
+interface ContactSubmission extends RequestWorkflowData {
   _id: string;
   name: string;
   email: string;
@@ -54,7 +59,10 @@ const STATUS_LABELS: Record<ContactSubmission['status'], string> = {
 const ContactFormPage: React.FC = () => {
   const { refreshCount } = useContactForm();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [stats, setStats] = useState({ total: 0, new: 0, replied: 0, archived: 0 });
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,8 +110,12 @@ const ContactFormPage: React.FC = () => {
     return `${datePart} • ${timePart}`;
   };
 
-  const fetchSubmissions = async () => {
+  const listSequence = React.useRef(0);
+  const fetchSubmissions = useCallback(async () => {
+    const sequence = ++listSequence.current;
+    void adminFetch(`${API_ENDPOINTS.CONTACT.BASE}/stats`).then(body => { if (sequence === listSequence.current) setStats(body.data); }).catch(() => {});
     setLoading(true);
+    setListError(null);
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
@@ -125,9 +137,9 @@ const ContactFormPage: React.FC = () => {
         },
       });
 
+      if (sequence !== listSequence.current) return;
       if (!response.ok) {
-        setSubmissions([]);
-        return;
+        const body = await response.json(); throw new Error(body.error || 'Unable to load contact forms');
       }
 
       const json = await response.json().catch(() => null);
@@ -137,54 +149,37 @@ const ContactFormPage: React.FC = () => {
       setTotalPages(normalizedTotalPages);
       setTotalItems(responseTotal);
       if (page > normalizedTotalPages) setPage(normalizedTotalPages);
-    } catch {
-      setSubmissions([]);
+    } catch (error) {
+      if (sequence === listSequence.current) setListError(error instanceof Error ? error.message : 'Unable to load contact forms');
     } finally {
-      setLoading(false);
-      setInitialLoad(false);
+      if (sequence === listSequence.current) { setLoading(false); setInitialLoad(false); }
     }
-  };
+  }, [page, limit, statusFilter, searchTerm]);
 
-  useEffect(() => {
-    fetchSubmissions();
-  }, [statusFilter, searchTerm, page, limit]);
 
-  // Open a specific record when arriving from a notification deep-link
-  // (/admin/contact-forms/contact-form?id=<id>). Fires once, after load.
+  useEffect(() => { void fetchSubmissions(); }, [fetchSubmissions]);
+
   const searchParams = useSearchParams();
-  const deepLinkHandled = React.useRef(false);
+  const requestId = searchParams.get('id');
   useEffect(() => {
-    if (deepLinkHandled.current) return;
-    const id = searchParams.get('id');
-    if (!id || submissions.length === 0) return;
-    const match = submissions.find((s) => s._id === id);
-    if (match) {
-      handleViewDetails(match);
-      deepLinkHandled.current = true;
-    }
+    if (!requestId) return;
+    let cancelled = false;
+    void adminFetch(API_ENDPOINTS.CONTACT.BY_ID(requestId)).then(body => { if (!cancelled) handleViewDetails(body.data); }).catch(error => {
+      if (!cancelled) toast({ title: 'Unable to open request', description: error.message, variant: 'destructive' });
+    });
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submissions, searchParams]);
-
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchSubmissions();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [statusFilter, searchTerm, page, limit]);
-
-  // Refresh when window regains focus
-  useEffect(() => {
-    const handleFocus = () => fetchSubmissions();
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [statusFilter, searchTerm, page, limit]);
+  }, [requestId]);
+  useAdminRequestListRefresh(() => fetchSubmissions());
 
   const handleViewDetails = (submission: ContactSubmission) => {
     setSelected(submission);
     setAdminNotes(submission.adminNotes || '');
     setNewStatus(submission.status);
     setShowModal(true);
+    void adminFetch(`${API_ENDPOINTS.NOTIFICATIONS.BASE}/read-entity`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'contact', entityId: submission._id }) }).then(() => refreshCount()).catch(() => {
+      toast({ title: 'Request opened', description: 'Unable to mark its notification as read. Retry from Notifications.', variant: 'destructive' });
+    });
   };
 
   const handleUpdateSubmission = async () => {
@@ -201,6 +196,7 @@ const ContactFormPage: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          editVersion: selected.editVersion || 0,
           status: newStatus,
           adminNotes,
         }),
@@ -210,7 +206,9 @@ const ContactFormPage: React.FC = () => {
         setShowModal(false);
         await fetchSubmissions();
         refreshCount();
-      }
+      } else { const body = await response.json(); throw new Error(body.error || 'Unable to save request'); }
+    } catch (error) {
+      toast({ title: 'Unable to save request', description: error instanceof Error ? error.message : 'Please retry', variant: 'destructive' });
     } finally {
       setUpdating(false);
     }
@@ -290,12 +288,7 @@ const ContactFormPage: React.FC = () => {
     }
   };
 
-  const stats = {
-    total: submissions.length,
-    new: submissions.filter(s => s.status === 'new').length,
-    replied: submissions.filter(s => s.status === 'replied').length,
-    archived: submissions.filter(s => s.status === 'archived').length,
-  };
+
 
   const hasUnsavedChanges = Boolean(
     selected &&
@@ -380,12 +373,13 @@ const ContactFormPage: React.FC = () => {
     },
   ];
 
-  if (initialLoad) {
+  if (initialLoad && !listError) {
     return <AdminPageSkeleton showStats showFilters tableRows={8} />;
   }
 
   return (
     <div className='tailor-made-admin admin-scope'>
+      {listError && <p role="alert" className="text-red-600">{listError} <button type="button" onClick={() => void fetchSubmissions()}>Retry</button></p>}
       <div className='admin-page-header'>
         <div>
           <h1 className='admin-page-title'>Contact Forms</h1>
@@ -717,6 +711,7 @@ const ContactFormPage: React.FC = () => {
                     </select>
                   </div>
                   <div className='admin-field'>
+                    <RequestWorkflow record={selected} url={API_ENDPOINTS.CONTACT.BY_ID(selected._id)} onUpdated={setSelected} onReload={handleViewDetails} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('contact:update')} />
                     <label htmlFor='submission-admin-notes'>Admin Internal Notes</label>
                     <textarea
                       id='submission-admin-notes'

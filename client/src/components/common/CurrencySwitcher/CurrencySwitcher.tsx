@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useCurrency, CurrencyCode } from "@/contexts/CurrencyContext";
-import "./currencySwitcher.css";
+// Styles: currencySwitcher.css, imported by the (home) layout.
 
 const currencies: { code: CurrencyCode; label: string; flag: string }[] = [
   { code: "USD", label: "USD", flag: "🇺🇸" },

@@ -280,7 +280,7 @@ export const getSubcategoryBySlug = async (
       .populate('category', 'name slug description')
       .populate('toursCount')
       // Cards, not articles — see blogCardPopulate.
-      .populate(blogCardPopulate('featuredBlogs'))
+      .populate(blogCardPopulate('featuredBlogs', req.locale))
       // Featured landing pages, so published destinations only. This is not
       // the tours' own Places Visited, which never depends on publication.
       .populate(publicDestinationPopulate('featuredDestinations'))

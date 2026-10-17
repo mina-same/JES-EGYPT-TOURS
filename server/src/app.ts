@@ -10,6 +10,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import { createAdminInboxLimiter, isAdminInboxOperation } from './middleware/adminRateLimit';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import tailorMadeRoutes from './routes/tailorMadeRoutes';
@@ -69,7 +70,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Locale', 'Idempotency-Key'],
-    exposedHeaders: ['Content-Type', 'Authorization', 'X-Locale'],
+    exposedHeaders: ['Content-Type', 'Authorization', 'X-Locale', 'Retry-After'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
   })
@@ -92,7 +93,10 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use('/api/', limiter);
+const adminReadLimiter = createAdminInboxLimiter();
+app.use('/api/', (req, res, next) => {
+  return isAdminInboxOperation(req) ? adminReadLimiter(req, res, next) : limiter(req, res, next);
+});
 
 /**
  * Gzip every response.

@@ -10,7 +10,7 @@ import BlogSubCategory from '../models/BlogSubCategory';
 import Destination, { PUBLIC_DESTINATION_FILTER } from '../models/Destination';
 import EditorialAuthor from '../models/EditorialAuthor';
 import Faq from '../models/Faq';
-import { hasTextForLocale } from '../utils/blogBlocks';
+import { getBlogLocaleReadinessFilter } from '../utils/blogAvailability';
 import { narrowFaqsToLocale } from '../utils/localize';
 
 /**
@@ -130,69 +130,37 @@ const readFamily = async (model: ProjectableModel, filter: Record<string, unknow
 };
 
 /**
- * `true` when the value at `path` is a string with more than whitespace in it.
- * The one piece of the article rule MongoDB evaluates, so that no article text
- * has to leave the database; $cond keeps $trim away from non-strings.
+ * Published articles, and in which languages each one is public.
+ *
+ * The languages are decided inside MongoDB by the article rule's own filter
+ * (utils/blogAvailability.ts, the one the article page and every listing use),
+ * one $facet branch per language. No article text leaves the database, and the
+ * sitemap cannot list a language whose article page answers 404.
  */
-const hasOwnTextExpr = (path: string) => ({
-  $cond: [
-    { $eq: [{ $type: path }, 'string'] },
-    { $gt: [{ $strLenCP: { $trim: { input: path } } }, 0] },
-    false,
-  ],
-});
-
-const textFlags = (base: string) =>
-  Object.fromEntries(LOCALES.map((locale) => [locale, hasOwnTextExpr(`${base}.${locale}`)]));
-
-/**
- * Each content block reduced to its type, its language list and, per language,
- * whether its content / title has text. utils/blogBlocks.ts then applies the
- * page's own rule to that skeleton — the rule itself stays in one place.
- */
-export const BLOG_TEXT_PIPELINE: PipelineStage[] = [
+export const BLOG_LOCALES_PIPELINE: PipelineStage[] = [
   { $match: SITEMAP_VISIBILITY.blogs },
   { $sort: { _id: 1 } },
   {
-    $project: {
-      slug: 1,
-      updatedAt: 1,
-      blocks: {
-        $map: {
-          input: { $cond: [{ $isArray: '$contentBlocks' }, '$contentBlocks', []] },
-          as: 'b',
-          in: {
-            type: '$$b.type',
-            languages: '$$b.languages',
-            content: textFlags('$$b.content'),
-            title: textFlags('$$b.title'),
-          },
-        },
-      },
+    $facet: {
+      articles: [{ $project: { slug: 1, updatedAt: 1 } }],
+      ...Object.fromEntries(
+        LOCALES.map((locale) => [locale, [{ $match: getBlogLocaleReadinessFilter(locale) }, { $project: { _id: 1 } }]])
+      ),
     },
   },
 ];
 
-type BlockFlags = { type?: unknown; languages?: unknown; content?: Record<string, boolean>; title?: Record<string, boolean> };
-
-/** A text-less stand-in for each block: "x" where the language has text, "" where not. */
-const skeletonOf = (blocks: unknown): unknown[] =>
-  (Array.isArray(blocks) ? (blocks as BlockFlags[]) : []).map((block) => ({
-    type: block?.type,
-    languages: block?.languages,
-    content: Object.fromEntries(LOCALES.map((locale) => [locale, block?.content?.[locale] ? 'x' : ''])),
-    title: Object.fromEntries(LOCALES.map((locale) => [locale, block?.title?.[locale] ? 'x' : ''])),
-  }));
-
-/** The languages an article page is served in: the page 404s on the others. */
-export const articleLocales = (blocks: unknown): Locale[] => {
-  const skeleton = skeletonOf(blocks);
-  return LOCALES.filter((locale) => hasTextForLocale(skeleton, locale));
-};
+type LocaleFacets = { articles?: Parameters<typeof toEntity>[0][] } & Partial<Record<Locale, { _id?: unknown }[]>>;
 
 const readBlogs = async (): Promise<SitemapEntity[]> => {
-  const docs = (await Blog.aggregate(BLOG_TEXT_PIPELINE)) as (Parameters<typeof toEntity>[0] & { blocks?: unknown })[];
-  return docs.map((doc) => ({ ...toEntity(doc), locales: articleLocales(doc.blocks) }));
+  const [facets] = (await Blog.aggregate(BLOG_LOCALES_PIPELINE)) as LocaleFacets[];
+  const publicIn = Object.fromEntries(
+    LOCALES.map((locale) => [locale, new Set((facets?.[locale] ?? []).map((doc) => String(doc._id)))])
+  ) as Record<Locale, Set<string>>;
+  return (facets?.articles ?? []).map((doc) => ({
+    ...toEntity(doc),
+    locales: LOCALES.filter((locale) => publicIn[locale].has(String(doc._id))),
+  }));
 };
 
 /**

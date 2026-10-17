@@ -82,6 +82,8 @@
       "selectCountry": "Select your country"
     },
     "errors": {
+      "travelRange": "Choose current or future dates, with the end on or after the start.",
+      "budgetRange": "Maximum budget must be at least the minimum budget.",
       "fillAllFields": "Please fill in all required fields correctly",
       "fullNameRequired": "Full name is required",
       "nameMinLength": "Name must be at least 2 characters",

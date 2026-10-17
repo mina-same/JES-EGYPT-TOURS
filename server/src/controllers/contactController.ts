@@ -1,8 +1,10 @@
+import { updateRequestRecord } from '../utils/requestWorkflow';
+import { notifySubmission } from '../utils/submissionNotification';
+import { paginationInput, respondSubmissionError, savePublicSubmission } from '../utils/submission';
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import ContactSubmission from '../models/ContactSubmission';
-import Notification from '../models/Notification';
-import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
+import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { createSearchRegex } from '../utils/search';
 
 export const createContactSubmission = async (
@@ -55,7 +57,7 @@ export const createContactSubmission = async (
       return;
     }
 
-    const submission = await ContactSubmission.create({
+    const { document: submission, replay } = await savePublicSubmission(ContactSubmission, req, {
       name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,
@@ -67,25 +69,7 @@ export const createContactSubmission = async (
     // Everything past this point is internal bookkeeping. It is deliberately
     // NOT allowed to fail the request: the visitor's message is already saved,
     // and answering 500 here made them send it again — one enquiry, two rows.
-    try {
-      emitAdminNotification({
-        type: 'contact',
-        title: `Contact form from ${submission.name}`,
-        entityId: submission._id.toString(),
-        createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
-      });
-
-      await Notification.create({
-        type: 'contact',
-        title: `New Contact Form`,
-        message: `Contact form from ${submission.name} (${submission.email})`,
-        entityId: submission._id,
-      });
-
-      void emitDashboardStatsUpdate();
-    } catch (notifyError) {
-      console.error('Contact submission saved but notification failed:', notifyError);
-    }
+    if (!replay) await notifySubmission('contact', submission, 'New Contact Form', `Contact form from ${submission.name} (${submission.email})`);
 
     // No `data` echo: the public caller only needs success + message, and
     // reflecting the stored document (ids, timestamps) serves nobody.
@@ -95,22 +79,7 @@ export const createContactSubmission = async (
     });
   } catch (error) {
     console.error('Error creating contact submission:', error);
-    if ((error as any)?.name === 'ValidationError') {
-      const errors = (error as any)?.errors;
-      const firstError = errors ? Object.values(errors)[0] : null;
-      const message = (firstError as any)?.message || 'Validation failed';
-
-      res.status(400).json({
-        success: false,
-        error: message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to send your message. Please try again later.',
-    });
+    respondSubmissionError(res, error, 'Failed to send your message. Please try again later.');
   }
 };
 
@@ -164,7 +133,7 @@ export const createTourQuestionSubmission = async (
       return;
     }
 
-    const submission = await ContactSubmission.create({
+    const { document: submission, replay } = await savePublicSubmission(ContactSubmission, req, {
       source: 'tour-question',
       name: req.body.name,
       email: req.body.email,
@@ -178,23 +147,7 @@ export const createTourQuestionSubmission = async (
 
     // Bookkeeping only. The visitor's question is already saved, so none of
     // this is allowed to fail the request.
-    emitAdminNotification({
-      type: 'contact',
-      title: `Tour question from ${submission.name}`,
-      entityId: submission._id.toString(),
-      createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
-    });
-
-    await Notification.create({
-      type: 'contact',
-      title: 'New Tour Question',
-      message: submission.tourName
-        ? `${submission.name} asked about ${submission.tourName}`
-        : `Tour question from ${submission.name}`,
-      entityId: submission._id,
-    });
-
-    void emitDashboardStatsUpdate();
+    if (!replay) await notifySubmission('contact', submission, 'New Tour Question', submission.tourName ? `${submission.name} asked about ${submission.tourName}` : `Tour question from ${submission.name}`);
 
     res.status(201).json({
       success: true,
@@ -202,10 +155,7 @@ export const createTourQuestionSubmission = async (
     });
   } catch (error) {
     console.error('Error creating tour question submission:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Something went wrong. Please try again.',
-    });
+    respondSubmissionError(res, error, 'Something went wrong. Please try again.');
   }
 };
 
@@ -233,7 +183,7 @@ export const createTravelTradeSubmission = async (
       return;
     }
 
-    const submission = await ContactSubmission.create({
+    const { document: submission, replay } = await savePublicSubmission(ContactSubmission, req, {
       source: 'travel-trade',
       inquiryType: req.body.inquiryType,
       name: req.body.name,
@@ -255,21 +205,7 @@ export const createTravelTradeSubmission = async (
       locale: req.body.locale,
     });
 
-    emitAdminNotification({
-      type: 'contact',
-      title: `Travel trade inquiry from ${submission.name}`,
-      entityId: submission._id.toString(),
-      createdAt: submission.createdAt?.toISOString?.() || new Date().toISOString(),
-    });
-
-    await Notification.create({
-      type: 'contact',
-      title: 'New Travel Trade Inquiry',
-      message: `Travel trade inquiry from ${submission.name} (${submission.companyName})`,
-      entityId: submission._id,
-    });
-
-    void emitDashboardStatsUpdate();
+    if (!replay) await notifySubmission('contact', submission, 'New Travel Trade Inquiry', `Travel trade inquiry from ${submission.name} (${submission.companyName})`);
 
     res.status(201).json({
       success: true,
@@ -277,10 +213,7 @@ export const createTravelTradeSubmission = async (
     });
   } catch (error) {
     console.error('Error creating travel trade submission:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to submit the partnership request. Please try again later.',
-    });
+    respondSubmissionError(res, error, 'Failed to submit the partnership request. Please try again later.');
   }
 };
 
@@ -289,7 +222,8 @@ export const getAllContactSubmissions = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, page = 1, limit = 20, search } = req.query;
+    const { status, search } = req.query;
+    const { page, limit, skip } = paginationInput(req.query, 20);
 
     const query: any = {};
     if (status && status !== 'all') {
@@ -308,7 +242,6 @@ export const getAllContactSubmissions = async (
       ];
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
 
     const submissions = await ContactSubmission.find(query)
       .sort({ createdAt: -1 })
@@ -329,10 +262,7 @@ export const getAllContactSubmissions = async (
     });
   } catch (error) {
     console.error('Error fetching contact submissions:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch contact submissions',
-    });
+    respondSubmissionError(res, error, 'Failed to fetch contact submissions');
   }
 };
 
@@ -341,27 +271,7 @@ export const updateContactSubmission = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, adminNotes } = req.body;
-
-    const submission = await ContactSubmission.findById(req.params.id);
-
-    if (!submission) {
-      res.status(404).json({
-        success: false,
-        error: 'Contact submission not found',
-      });
-      return;
-    }
-
-    if (status) {
-      submission.status = status;
-    }
-
-    if (adminNotes !== undefined) {
-      submission.adminNotes = adminNotes;
-    }
-
-    await submission.save();
+    const submission = await updateRequestRecord(ContactSubmission, req, ['new', 'replied', 'archived']);
 
     void emitDashboardStatsUpdate();
 
@@ -372,10 +282,7 @@ export const updateContactSubmission = async (
     });
   } catch (error) {
     console.error('Error updating contact submission:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update contact submission',
-    });
+    respondSubmissionError(res, error, 'Failed to update contact submission');
   }
 };
 
@@ -404,9 +311,21 @@ export const deleteContactSubmission = async (
     });
   } catch (error) {
     console.error('Error deleting contact submission:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete contact submission',
-    });
+    respondSubmissionError(res, error, 'Failed to delete contact submission');
   }
+};
+
+export const getContactSubmissionById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const document = await ContactSubmission.findById(req.params.id);
+    if (!document) { res.status(404).json({ success: false, error: 'Request not found' }); return; }
+    res.json({ success: true, data: document });
+  } catch (error) { respondSubmissionError(res, error, 'Failed to load request'); }
+};
+export const getContactStats = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const rows = await ContactSubmission.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]);
+    const count = (status: string) => rows.find(row => row._id === status)?.count || 0;
+    res.json({ success: true, data: { total: rows.reduce((n, row) => n + row.count, 0), new: count('new'), replied: count('replied'), archived: count('archived') } });
+  } catch (error) { respondSubmissionError(res, error, 'Failed to load statistics'); }
 };

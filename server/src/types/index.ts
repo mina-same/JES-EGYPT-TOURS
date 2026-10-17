@@ -6,6 +6,7 @@ export interface ApiResponse<T = any> {
 }
 
 export interface JwtPayload {
+  exp?: number;
   id: string;
   email: string;
   role: string;

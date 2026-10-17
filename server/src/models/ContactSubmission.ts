@@ -1,3 +1,5 @@
+import { addRequestWorkflow } from '../utils/requestWorkflow';
+import { isSubmissionEmail } from '../utils/submission';
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IContactSubmission extends Document {
@@ -49,12 +51,22 @@ export interface IContactSubmission extends Document {
   isSpam?: boolean;
   status: 'new' | 'replied' | 'archived';
   adminNotes?: string;
+  idempotencyKey?: string;
+  requestFingerprint?: string;
+  notificationPending?: boolean;
+  editVersion?: number;
+  assignedTo?: mongoose.Types.ObjectId | null;
+  assignedName?: string;
+  history?: { actorName?: string; at: Date; status: string; changes: string[] }[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 const contactSubmissionSchema = new Schema<IContactSubmission>(
   {
+    idempotencyKey: { type: String, select: false },
+    requestFingerprint: { type: String, select: false },
+    notificationPending: { type: Boolean, default: false, select: false },
     name: {
       type: String,
       required: [true, 'Name is required'],
@@ -67,10 +79,7 @@ const contactSubmissionSchema = new Schema<IContactSubmission>(
       required: [true, 'Email is required'],
       lowercase: true,
       trim: true,
-      match: [
-        /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
-        'Please provide a valid email',
-      ],
+      validate: { validator: isSubmissionEmail, message: 'Please provide a valid email' },
     },
     message: {
       type: String,
@@ -196,10 +205,15 @@ const contactSubmissionSchema = new Schema<IContactSubmission>(
   }
 );
 
+addRequestWorkflow(contactSubmissionSchema);
+contactSubmissionSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
+contactSubmissionSchema.index({ notificationPending: 1, createdAt: 1 });
 contactSubmissionSchema.index({ email: 1 });
 contactSubmissionSchema.index({ status: 1 });
 contactSubmissionSchema.index({ source: 1, status: 1 });
 contactSubmissionSchema.index({ createdAt: -1 });
+
+contactSubmissionSchema.set('toJSON', { transform: (_doc, ret) => { delete ret.idempotencyKey; delete ret.requestFingerprint; delete ret.notificationPending; return ret; } });
 
 const ContactSubmission = mongoose.model<IContactSubmission>(
   'ContactSubmission',

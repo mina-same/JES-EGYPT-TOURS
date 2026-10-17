@@ -15,3 +15,5 @@
     width: 336px;
   }
 }
+/* Below 768px gotur.css sizes the photo to its container instead (the phone
+   layout of `.about-one__thumb`), so neither width applies there. */

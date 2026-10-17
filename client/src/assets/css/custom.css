@@ -1001,28 +1001,22 @@ html:has(> body.megamenu-popup-active) {
  * direct child: the theme's hover colour (`> li:hover > a`, gotur.css) and
  * the row-wide tap area the old <a> had. Both carry over to the wrapped
  * label, so the row looks and taps as before — minus the chevron, which is
- * now its own target. */
-.mobile-nav__content .main-menu__list > li:hover > .main-menu__list__wrapper > a {
-  color: var(--gotur-base, #63ab45);
-  text-shadow: 0 0 0.5px currentColor;
+ * now its own target. The hover colour only for pointers that hover, as in
+ * gotur.css: a touch screen keeps `:hover` on the last row tapped. */
+@media (hover: hover) {
+  .mobile-nav__content .main-menu__list > li:hover > .main-menu__list__wrapper > a {
+    color: var(--gotur-base, #63ab45);
+    text-shadow: 0 0 0.5px currentColor;
+  }
 }
 .mobile-nav__content .main-menu__list > li > .main-menu__list__wrapper > a {
   flex: 1 1 auto;
 }
 
-/* On every open after the first, gotur.css kept the panel `visibility: hidden`
- * for 500 ms while the dialog was already open and modal. Nothing in it could
- * take focus: the close button, which has its own `transition: all`, turned
- * visible for a single frame, took focus, and was hidden again on the next —
- * dropping focus onto <body> with the page behind the overlay in the tab
- * order. Opacity and the slide keep the same 500 ms delay, so the panel looks
- * exactly as before; only visibility no longer waits. The panel is still off
- * screen (translateX(-100%)) during that time, so nothing in it can be hit by
- * a pointer before it has slid in. */
-.mobile-nav__wrapper.expanded .mobile-nav__content {
-  transition: opacity 500ms ease 500ms, visibility 0s linear 0s,
-    transform 500ms ease 500ms;
-}
+/* (The panel's own `visibility: hidden`, which kept it unfocusable for the
+ * first 500 ms of every open after the first, is gone from gotur.css with the
+ * two-stage animation it belonged to: the panel inherits the wrapper's
+ * visibility, which turns on in the frame the drawer opens.) */
 
 /* Submenu chevron. gotur.css draws it white on the gold fill, 2.10:1 — under
  * the 3:1 an icon needs; dark on gold is 7.61:1. The expanded state (dark on
@@ -1030,7 +1024,17 @@ html:has(> body.megamenu-popup-active) {
  * gotur.css also sets `outline: none` with nothing in its place: the ring is
  * white, 2px clear of the button, on the dark panel. */
 .mobile-nav__content .main-menu__list li .main-menu__list__wrapper button {
+  position: relative;
   color: var(--gotur-black, #1d231f);
+}
+/* The chevron is the only way to open a submenu (the label is a link to the
+ * parent's page), and at 30x30 it was under the 44px a fingertip needs. The
+ * square keeps its size; an invisible 44x44 area around it takes the tap.
+ * The row is 46px tall, so the area stays inside it. */
+.mobile-nav__content .main-menu__list li .main-menu__list__wrapper button::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
 }
 .mobile-nav__content .main-menu__list li .main-menu__list__wrapper button:focus-visible {
   outline: 2px solid var(--gotur-white, #fff);
@@ -3364,7 +3368,12 @@ div[suppressHydrationWarning] {
    admin (no reserved empty space otherwise). Navy gradient + thin gold seam
    tie it to the hero's cinematic scrim; the CTA matches the hero's
    navy-on-gold buttons (readable, WCAG-friendly contrast). */
+/* Positioned and lifted: the next section's decorations are absolutely
+   positioned, and when one rose above its section (the About photo on phones)
+   it painted over this bar and hid its button. The bar now stays on top. */
 .main-slider-four__promo-wrapper {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3387,8 +3396,17 @@ div[suppressHydrationWarning] {
   font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
 }
 
+/* The message (icon + text) is one flex item and the button the other, so
+   the icon starts the text's first line. As separate items the icon wrapped
+   onto a line of its own above the text on phones. */
+.main-slider-four__promo-message {
+  min-width: 0;
+}
+
 .main-slider-four__promo-icon {
-  flex-shrink: 0;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -3px;
   color: var(--gotur-base, #d4af37);
 }
 
@@ -4857,17 +4875,6 @@ button[data-action="stop"] {
   object-fit: contain;
 }
 
-/* Phones: the compact bar keeps search + wishlist + language + hamburger
-   (as before). The newly added currency control would crowd/overflow the
-   narrow row, and currency was never shown in the mobile header, so hide
-   just the currency selector here. The language selector is preserved at
-   every width; tablet/desktop keep both controls. */
-@media (max-width: 767px) {
-  .sticky-header--cloned .currency-switcher {
-    display: none;
-  }
-}
-
 /* Tailor-Made CTA: smaller footprint so it no longer dominates the bar
    or compete head-to-head with the Special Offers pill — clear hierarchy
    (solid gold primary vs. gold-outline secondary), just rightsized.
@@ -4885,6 +4892,19 @@ button[data-action="stop"] {
   font-size: 14px;
   line-height: 1;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+}
+
+/* Phones: the compact bar keeps the language & currency button, search,
+   wishlist and the hamburger. The CTA above is shown in this bar at every
+   width (the main header hides it under 1317px), and on a phone it was cut
+   off at the right edge and pushed the hamburger off the screen: the bar
+   had no way to open the menu. After the rule above, which it overrides.
+   (Below 992px the bar's currency and language switchers give way to the
+   language & currency button: SitePreferences/sitePreferences.css.) */
+@media (max-width: 767px) {
+  .sticky-header--cloned .main-header__btn {
+    display: none;
+  }
 }
 
 /* Special Offers pill: trim padding to match the compact bar height. */

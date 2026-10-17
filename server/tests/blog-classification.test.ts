@@ -139,9 +139,14 @@ const respond = async (handler: Handler, req: unknown) => {
 
 const CLASSIFIED = { category: EGYPT_BLOG, subCategory: TRAVEL_TIPS, destination: CAIRO };
 
+// A public article needs a complete English version (utils/blogAvailability.ts);
+// these fixtures have one, so each test here is decided by its classification.
+const ENGLISH_BODY = [{ type: 'html', content: { en: '<p>The citadel above Cairo.</p>' } }];
+
 const newArticle = (overrides: Doc): Doc => ({
   title: { en: 'Saladin Citadel' },
   slug: { en: 'saladin-citadel' },
+  contentBlocks: ENGLISH_BODY,
   featuredImage: { url: 'https://example.test/citadel.jpg', alt: { en: 'The citadel' } },
   status: 'published',
   ...CLASSIFIED,
@@ -155,6 +160,9 @@ const storedArticle = (overrides: Doc): Doc => ({
   _id: ARTICLE,
   editVersion: 3,
   status: 'draft',
+  title: { en: 'Saladin Citadel' },
+  slug: { en: 'saladin-citadel' },
+  contentBlocks: ENGLISH_BODY,
   featuredImage: { url: 'https://example.test/citadel.jpg' },
   ...CLASSIFIED,
   ...overrides,

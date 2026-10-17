@@ -16,7 +16,16 @@ import {
   normalizeBlogClassification,
 } from '../utils/blogClassification';
 import { createSearchRegex, localizedSearchFilters } from '../utils/search';
-import { localizePreservingSlugs } from '../utils/localize';
+import { localizeBlogArticles } from '../utils/localize';
+import {
+  BLOG_LOCALES,
+  assertEnglishPublicReady,
+  availableBlogLocales,
+  getBlogLocaleAvailabilityFilter,
+  isBlogArticleAvailableInLocale,
+  isBlogLocale,
+  publicBlogArticleFilter,
+} from '../utils/blogAvailability';
 import { narrowBlocksToLocale } from '../utils/blogBlocks';
 import {
   BLOG_CARD_FIELDS,
@@ -68,7 +77,9 @@ export const getAllBlogs = async (
       ids,
     } = req.query;
 
-    const query: any = { status: 'published' };
+    // Published AND public in the request's language — before the count and
+    // the page are taken, so the total, the pages and the cards agree.
+    const query: any = { ...publicBlogArticleFilter(req.locale) };
 
     // Resolve a tour's complete curated article set in one public card-list
     // request. Invalid ids are ignored; an all-invalid filter must match
@@ -134,8 +145,9 @@ export const getAllBlogs = async (
     res.status(200).json({
       success: true,
       count: blogs.length,
-      // Localized, with `slug` kept raw so per-locale card links still resolve.
-      data: localizePreservingSlugs(blogs, req.locale),
+      // In this language only (no English fallback), with `slug` kept raw so
+      // per-locale card links still resolve.
+      data: localizeBlogArticles(blogs, req.locale),
       pagination: {
         page: Number(page),
         limit: Number(limit),
@@ -278,9 +290,10 @@ export const getFeaturedBlogs = async (
   try {
     const { limit = 6 } = req.query;
 
-    const blogs = await Blog.find({ 
-      status: 'published',
-      isFeatured: true 
+    // Only the featured articles public in this language, before the limit.
+    const blogs = await Blog.find({
+      ...publicBlogArticleFilter(req.locale),
+      isFeatured: true,
     })
       // Display name only — a public response; see getAllBlogs.
       .populate('author', 'name')
@@ -296,7 +309,7 @@ export const getFeaturedBlogs = async (
 
     // Localized, EXCEPT `slug` — the homepage builds per-locale article URLs
     // from the raw { en, de, it, es } object.
-    const payload = localizePreservingSlugs(blogs, req.locale);
+    const payload = localizeBlogArticles(blogs, req.locale);
 
     res.status(200).json({
       success: true,
@@ -352,7 +365,7 @@ export const getBlogBySlug = async (
       .populate(publicDestinationPopulate('destination', ARTICLE_DESTINATION_FIELDS))
       // Related posts are drawn with the same card as everywhere else, so they
       // are populated with the same field set — see blogCardPopulate.
-      .populate(blogCardPopulate('relatedPosts'))
+      .populate(blogCardPopulate('relatedPosts', req.locale))
       .populate({ path: 'relatedTours', select: 'heading slug images gallery duration destinations priceStartingFrom reviews videoLink', populate: { path: 'destinations', select: 'name shortName' } });
 
     if (!blog) {
@@ -363,11 +376,27 @@ export const getBlogBySlug = async (
       return;
     }
 
-    // Localize the article, then narrow its blocks to the requested language.
+    // A slug of another language finds the article (the visitor page redirects
+    // to this language's slug), but the article exists here only when it is
+    // public in this language. Otherwise the page is a 404 — never another
+    // language's article under this URL.
+    const raw = typeof blog.toObject === 'function' ? blog.toObject() : blog;
+    if (isBlogLocale(req.locale) && !isBlogArticleAvailableInLocale(raw, req.locale)) {
+      res.status(404).json({
+        success: false,
+        error: 'Blog post not found',
+      });
+      return;
+    }
+
+    // Localize the article in this language only, then narrow its blocks to it.
     // `slug` and `faqs` stay raw (PRESERVE_RAW) because the client resolves those
     // per locale itself. `contentBlocks` is preserved by that same rule and then
     // handled here, where the block-visibility rule lives.
-    const localized = localizePreservingSlugs(blog, req.locale);
+    const localized = localizeBlogArticles(blog, req.locale);
+    // The languages this article can be read in: its alternates and the language
+    // switcher offer these and nothing else.
+    localized.availableLocales = availableBlogLocales(raw);
     localized.contentBlocks = narrowBlocksToLocale(localized.contentBlocks, req.locale);
     // Approved comments only, and only what the comment card draws: pending
     // submissions and every commenter's email stay on the server. This holds
@@ -467,9 +496,9 @@ export const getBlogByIdPublic = async (
   res: Response
 ): Promise<void> => {
   try {
-    const blog = await Blog.findOne({ 
+    const blog = await Blog.findOne({
       _id: req.params.id,
-      status: 'published' 
+      ...publicBlogArticleFilter(req.locale),
     })
       .select(BLOG_CARD_FIELDS)
       // The public byline (with its own author page) and the card's section
@@ -487,9 +516,9 @@ export const getBlogByIdPublic = async (
 
     res.status(200).json({
       success: true,
-      // Localized, with `slug` kept raw so the card's per-locale article link
-      // still resolves.
-      data: localizePreservingSlugs(blog, req.locale),
+      // In this language only, with `slug` kept raw so the card's per-locale
+      // article link still resolves.
+      data: localizeBlogArticles(blog, req.locale),
     });
   } catch (error: any) {
     if (respondToDuplicateInternalLinks(error, res)) return;
@@ -615,6 +644,8 @@ export const createBlog = async (
     // Publish guard: a draft may still be unclassified, a public article not.
     if (body.status === 'published' || body.status === 'scheduled') {
       await assertPublishableClassification(body);
+      // English is the language every public article has; the others are optional.
+      assertEnglishPublicReady(body);
     }
 
     const blog = await Blog.create(body);
@@ -692,7 +723,7 @@ export const updateBlog = async (
 
     const existingBlog = await Blog.findById(
       req.params.id,
-      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status scheduledAt publishedAt category subCategory destination'
+      'editVersion ogTitle ogDescription metaTitle metaDescription featuredImage status scheduledAt publishedAt category subCategory destination title slug contentBlocks'
     ).lean();
     if (!existingBlog) {
       res.status(404).json({ success: false, error: 'Blog post not found' });
@@ -770,6 +801,14 @@ export const updateBlog = async (
         category: 'category' in body ? body.category : ex.category,
         subCategory: 'subCategory' in body ? body.subCategory : ex.subCategory,
         destination: 'destination' in body ? body.destination : ex.destination,
+      });
+      // The English version the article will have after this save must be
+      // public-ready. An edit that would take it away is refused unless the
+      // same save moves the article back to draft.
+      assertEnglishPublicReady({
+        title: 'title' in body ? body.title : ex.title,
+        slug: 'slug' in body ? body.slug : ex.slug,
+        contentBlocks: 'contentBlocks' in body ? body.contentBlocks : ex.contentBlocks,
       });
     }
 
@@ -1066,6 +1105,7 @@ export const publishBlog = async (
     }
 
     await assertPublishableClassification(blog);
+    assertEnglishPublicReady(typeof blog.toObject === 'function' ? blog.toObject() : blog);
 
     blog.status = 'published';
     blog.publishedAt = new Date();
@@ -1200,6 +1240,24 @@ const findListingPage = (filter: Record<string, unknown>, skip: number, limit: n
   ]);
 
 /**
+ * How many pages the listing has in EACH language, at this page size — what a
+ * category's or topic's page N needs to name only the languages that have a
+ * page N. Counted with the same availability filter as the listing itself.
+ * Not computed for `bypass` (the Admin reads every language at once).
+ */
+const listingPagesByLocale = async (
+  parentFilter: Record<string, unknown>,
+  limit: number,
+  requestLocale: string
+): Promise<Record<string, number> | null> => {
+  if (!isBlogLocale(requestLocale)) return null;
+  const counts = await Promise.all(
+    BLOG_LOCALES.map((locale) => Blog.countDocuments({ ...parentFilter, ...getBlogLocaleAvailabilityFilter(locale) }))
+  );
+  return Object.fromEntries(BLOG_LOCALES.map((locale, index) => [locale, Math.ceil(counts[index] / limit)]));
+};
+
+/**
  * @desc    Get blogs by category slug
  * @route   GET /api/blog/categories/:slug/posts
  * @access  Public
@@ -1235,20 +1293,25 @@ export const getBlogsByCategory = async (
     }
 
     // 2. Find blogs in this category — as cards, not articles.
-    const query = { category: category._id, status: 'published' };
+    const parentFilter = { category: category._id };
+    const query = { ...parentFilter, ...publicBlogArticleFilter(req.locale) };
 
-    const [blogs, total] = await findListingPage(query, skip, limit);
+    const [[blogs, total], pagesByLocale] = await Promise.all([
+      findListingPage(query, skip, limit),
+      listingPagesByLocale(parentFilter, limit, req.locale),
+    ]);
 
     res.status(200).json({
       success: true,
       count: blogs.length,
-      // Localized, with `slug` kept raw so the per-locale card links resolve.
-      data: localizePreservingSlugs(blogs, req.locale),
+      // In this language only, with `slug` kept raw so the per-locale card links resolve.
+      data: localizeBlogArticles(blogs, req.locale),
       pagination: {
         page,
         limit,
         total,
         pages: Math.ceil(total / limit),
+        ...(pagesByLocale ? { pagesByLocale } : {}),
       },
     });
   } catch (error: any) {
@@ -1299,20 +1362,25 @@ export const getBlogsBySubCategory = async (
     }
 
     // 2. Find blogs in this subcategory — as cards, not articles.
-    const query = { subCategory: subCategory._id, status: 'published' };
+    const parentFilter = { subCategory: subCategory._id };
+    const query = { ...parentFilter, ...publicBlogArticleFilter(req.locale) };
 
-    const [blogs, total] = await findListingPage(query, skip, limit);
+    const [[blogs, total], pagesByLocale] = await Promise.all([
+      findListingPage(query, skip, limit),
+      listingPagesByLocale(parentFilter, limit, req.locale),
+    ]);
 
     res.status(200).json({
       success: true,
       count: blogs.length,
-      // Localized, with `slug` kept raw so the per-locale card links resolve.
-      data: localizePreservingSlugs(blogs, req.locale),
+      // In this language only, with `slug` kept raw so the per-locale card links resolve.
+      data: localizeBlogArticles(blogs, req.locale),
       pagination: {
         page,
         limit,
         total,
         pages: Math.ceil(total / limit),
+        ...(pagesByLocale ? { pagesByLocale } : {}),
       },
     });
   } catch (error: any) {

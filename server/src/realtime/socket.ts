@@ -1,3 +1,5 @@
+import { allowedNotificationTypes, canRead } from '../utils/notificationAccess';
+import { PERMISSIONS } from '../permissions';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import { Server as SocketIOServer, type Socket } from 'socket.io';
@@ -11,6 +13,7 @@ import { JwtPayload } from '../types';
 export type AdminNotificationType = 'booking' | 'tailorMade' | 'contact';
 
 export interface AdminNotificationPayload {
+  id: string;
   type: AdminNotificationType;
   title: string;
   entityId: string;
@@ -30,7 +33,7 @@ export interface AdminDashboardStats {
 
 let io: SocketIOServer | null = null;
 
-const buildDashboardStats = async (): Promise<AdminDashboardStats> => {
+export const buildDashboardStats = async (): Promise<AdminDashboardStats> => {
   const [
     usersTotal,
     toursTotal,
@@ -68,6 +71,8 @@ export const initRealtime = (server: http.Server): SocketIOServer => {
     process.env.CLIENT_URL,
     'http://localhost:3000',
     'http://192.168.1.33:3000',
+    'https://jes-egypt-tours.vercel.app',
+    'https://www.jesegypttours.com',
   ].filter(Boolean) as string[];
 
   io = new SocketIOServer(server, {
@@ -112,6 +117,8 @@ export const initRealtime = (server: http.Server): SocketIOServer => {
       }
 
       (socket.data as any).user = user;
+      (socket.data as any).token = token;
+      (socket.data as any).expiresAt = decoded.exp ? decoded.exp * 1000 : 0;
       return next();
     } catch {
       return next(new Error('Not authorized'));
@@ -119,32 +126,56 @@ export const initRealtime = (server: http.Server): SocketIOServer => {
   });
 
   io.on('connection', (socket: Socket) => {
-    socket.join('admins');
-
-    void buildDashboardStats()
-      .then((stats) => {
-        socket.emit('dashboard:stats', stats);
-      })
-      .catch(() => {
-        // ignore
-      });
+    const expiresAt = socket.data.expiresAt;
+    let expiryTimer: ReturnType<typeof setTimeout> | null = null;
+    const checkExpiry = () => {
+      if (expiresAt <= Date.now()) { socket.disconnect(true); return; }
+      expiryTimer = setTimeout(checkExpiry, Math.min(expiresAt - Date.now(), 2147483647));
+      expiryTimer.unref();
+    };
+    if (expiresAt) checkExpiry();
+    const validationTimer = setInterval(() => { void refreshSocketUser(socket); }, 30000);
+    validationTimer.unref();
+    socket.on('disconnect', () => { if (expiryTimer) clearTimeout(expiryTimer); clearInterval(validationTimer); });
+    void buildDashboardStats().then(stats => socket.emit('dashboard:stats', scopeStats(stats, socket.data.user))).catch(() => {});
   });
 
   return io;
 };
 
-export const emitAdminNotification = (payload: AdminNotificationPayload) => {
+function scopeStats(stats: AdminDashboardStats, user: any) {
+  return {
+    updatedAt: stats.updatedAt,
+    ...(canRead(user, PERMISSIONS.USER_READ) ? { usersTotal: stats.usersTotal } : {}),
+    ...(canRead(user, PERMISSIONS.TOUR_READ) ? { toursTotal: stats.toursTotal, toursActive: stats.toursActive } : {}),
+    ...(canRead(user, PERMISSIONS.BOOKING_READ) ? { bookingsTotal: stats.bookingsTotal, bookingsPending: stats.bookingsPending } : {}),
+    ...(canRead(user, PERMISSIONS.CONTACT_READ) ? { contactNew: stats.contactNew } : {}),
+    ...(canRead(user, PERMISSIONS.TAILOR_MADE_READ) ? { tailorMadePending: stats.tailorMadePending } : {}),
+  };
+}
+async function refreshSocketUser(socket: Socket) {
+  try {
+    jwt.verify(socket.data.token, process.env.JWT_SECRET as string);
+    const user = await User.findById(socket.data.user._id).select('-password');
+    if (!user?.isActive || !['admin', 'superadmin'].includes(user.role)) throw new Error('Session ended');
+    socket.data.user = user;
+    return user;
+  } catch { socket.disconnect(true); return null; }
+}
+export const emitAdminNotification = async (payload: AdminNotificationPayload) => {
   if (!io) return;
-
-  io.to('admins').emit('notification:new', payload);
+  await Promise.all([...io.sockets.sockets.values()].map(async socket => {
+    const user = await refreshSocketUser(socket);
+    if (user && allowedNotificationTypes(user).includes(payload.type)) socket.emit('notification:new', payload);
+  }));
 };
-
 export const emitDashboardStatsUpdate = async () => {
-  if (!io) return;
+  if (!io || io.sockets.sockets.size === 0) return;
   try {
     const stats = await buildDashboardStats();
-    io.to('admins').emit('dashboard:stats', stats);
-  } catch {
-    // ignore
-  }
+    await Promise.all([...io.sockets.sockets.values()].map(async socket => {
+      const user = await refreshSocketUser(socket);
+      if (user) socket.emit('dashboard:stats', scopeStats(stats, user));
+    }));
+  } catch { /* HTTP synchronization remains available. */ }
 };

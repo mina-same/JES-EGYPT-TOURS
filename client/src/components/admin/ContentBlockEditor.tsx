@@ -200,6 +200,7 @@ function SortableBlockItem({
   onUpdate,
   onRemove,
   onDuplicate,
+  onAddAfter,
   onImageUpload,
   isCollapsed,
   onToggleCollapse,
@@ -215,6 +216,7 @@ function SortableBlockItem({
   onUpdate: (index: number, fieldOrPatch: string | Record<string, any>, value?: any) => void;
   onRemove: (index: number) => void;
   onDuplicate: (index: number) => void;
+  onAddAfter: (index: number) => void;
   onImageUpload: (file: File, index?: number) => Promise<{ url: string, fileName: string } | null>;
   isCollapsed: boolean;
   onToggleCollapse: (index: number) => void;
@@ -325,6 +327,17 @@ function SortableBlockItem({
             className="h-8 w-8 p-0 transition-opacity"
           >
             <Copy className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onAddAfter(index)}
+            className="h-8 w-8 p-0 transition-opacity"
+            title="Add new block below"
+            aria-label="Add new block below"
+          >
+            <Plus className="w-4 h-4" />
           </Button>
           <Button
             type="button"
@@ -614,7 +627,7 @@ function AddBlockModal({
       <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto border dark:border-slate-800">
         <div className="flex items-center justify-between p-4 border-b dark:border-slate-800">
           <h2 className="text-lg font-semibold dark:text-white">Add Content Block</h2>
-          <Button variant="ghost" size="sm" onClick={onClose} className="dark:hover:bg-slate-800">
+          <Button type="button" variant="ghost" size="sm" onClick={onClose} className="dark:hover:bg-slate-800">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -625,6 +638,7 @@ function AddBlockModal({
               const Icon = blockType.icon;
               return (
                 <button
+                  type="button"
                   key={blockType.type}
                   onClick={() => {
                     onAddBlock(blockType.type);
@@ -652,6 +666,7 @@ function AddBlockModal({
 export default function ContentBlockEditor({ blocks, onChange, onImageUpload, activeLanguage }: ContentBlockEditorProps) {
   const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
+  const [insertAfterId, setInsertAfterId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [langFilter, setLangFilter] = useState<'all' | AdminLanguage>('all');
   React.useEffect(() => {
@@ -745,8 +760,17 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
       focus:       type === 'image' ? 'center'  : undefined,
     };
 
-    onChange([...blocks, newBlock]);
-  }, [blocks, onChange]);
+    const anchorIndex = insertAfterId === null ? -1 : blocks.findIndex(block => block.id === insertAfterId);
+    const insertionIndex = anchorIndex === -1 ? blocks.length : anchorIndex + 1;
+    const newBlocks = [...blocks];
+    newBlocks.splice(insertionIndex, 0, newBlock);
+    onChange(newBlocks);
+  }, [blocks, onChange, insertAfterId]);
+
+  const openAddModal = (index?: number) => {
+    setInsertAfterId(index === undefined ? null : blocks[index].id);
+    setShowAddModal(true);
+  };
 
   const updateBlock = useCallback((index: number, fieldOrPatch: string | Record<string, any>, value?: any) => {
     const newBlocks = [...blocks];
@@ -812,6 +836,7 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
+        setInsertAfterId(null);
         setShowAddModal(true);
       }
     };
@@ -829,7 +854,7 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
             Drag to reorder • Click to edit • Ctrl+Enter to add block
           </p>
         </div>
-        <Button type="button" onClick={() => setShowAddModal(true)} className="gap-2">
+        <Button type="button" onClick={() => openAddModal()} className="gap-2">
           <Plus className="w-4 h-4" />
           Add Block
         </Button>
@@ -897,6 +922,7 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
                     onUpdate={updateBlock}
                     onRemove={removeBlock}
                     onDuplicate={duplicateBlock}
+                    onAddAfter={openAddModal}
                     onMove={moveBlock}
                     onImageUpload={onImageUpload}
                     isCollapsed={collapsedBlocks.has(block.id)}
@@ -938,7 +964,7 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
                 Get started by adding your first content block
               </p>
             </div>
-            <Button type="button" onClick={() => setShowAddModal(true)} variant="outline">
+            <Button type="button" onClick={() => openAddModal()} variant="outline">
               Add First Block
             </Button>
           </div>
@@ -947,7 +973,10 @@ export default function ContentBlockEditor({ blocks, onChange, onImageUpload, ac
 
       <AddBlockModal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          setInsertAfterId(null);
+        }}
         onAddBlock={addBlock}
       />
     </div>

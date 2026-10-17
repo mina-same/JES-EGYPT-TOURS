@@ -1,3 +1,5 @@
+import { publicSubmissionKeyValidation } from '../middleware/validation';
+import { createBookingSubmissionLimiter } from '../middleware/bookingRateLimit';
 import express from 'express';
 import {
   createTailorMadeRequest,
@@ -12,9 +14,10 @@ import { PERMISSIONS } from '../permissions';
 import { tailorMadeRequestValidation } from '../middleware/validation';
 
 const router = express.Router();
+const submissionLimiter = createBookingSubmissionLimiter();
 
 // Public route - anyone can submit a tailor-made request
-router.post('/', tailorMadeRequestValidation, createTailorMadeRequest);
+router.post('/', submissionLimiter, publicSubmissionKeyValidation, tailorMadeRequestValidation, createTailorMadeRequest);
 
 // Admin only routes
 router.get('/stats', protect, permit(PERMISSIONS.TAILOR_MADE_READ), getTailorMadeStats);

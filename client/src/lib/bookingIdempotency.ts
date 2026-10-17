@@ -6,6 +6,7 @@ const UUID_V4_PATTERN =
 
 export interface BookingIdempotencyPayload {
   tour: string;
+  locale?: 'en' | 'de' | 'it' | 'es';
   name: string;
   email: string;
   phone: string;
@@ -65,6 +66,7 @@ const canonicalPayload = (payload: BookingIdempotencyPayload): string =>
     // package and resubmitted would reuse the previous attempt's key and get
     // the earlier booking replayed back — with the old package on it.
     payload.selectedPackage || '',
+    payload.locale || '',
   ]);
 
 /** A synchronous, non-reversible client fingerprint used only to find the same
@@ -104,7 +106,7 @@ const defaultStorage = (): BookingAttemptStorage | null => {
   }
 };
 
-const createUuidV4 = (): string => {
+export const createUuidV4 = (): string => {
   const bytes = new Uint8Array(16);
   const cryptoApi = (globalThis as typeof globalThis & {
     crypto?: {

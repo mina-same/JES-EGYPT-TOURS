@@ -26,6 +26,7 @@
  * fetch in (home)/layout.tsx.
  */
 import { API_URL } from '@/config/api';
+import { BLOG_TAG } from './blogCachePolicy';
 import { sanitizeTourFilters } from '../tours/filterValues';
 import type { ApiResponse, QueryParams } from './tour';
 
@@ -215,11 +216,13 @@ export async function getPublicDestinationKeys(): Promise<string[]> {
   return result.data;
 }
 
+// Both carry their featured Blog articles, and which of those a language shows
+// changes with every article write — hence `blog` among their tags.
 export const tourCategoryServerAPI = {
   getBySlug: (slug: string, locale: string) =>
     getEntity<any>(`tours/categories/slug/${encodeURIComponent(slug)}`, {
       locale,
-      tags: [TOUR_CATEGORY_TAG, DESTINATION_TAG],
+      tags: [TOUR_CATEGORY_TAG, DESTINATION_TAG, BLOG_TAG],
       revalidate: CMS_TTL,
     }),
 };
@@ -228,7 +231,7 @@ export const tourSubcategoryServerAPI = {
   getBySlug: (slug: string, locale: string, categoryId?: string) =>
     getEntity<any>(`tours/subcategories/slug/${encodeURIComponent(slug)}`, {
       locale,
-      tags: [TOUR_SUBCATEGORY_TAG, DESTINATION_TAG],
+      tags: [TOUR_SUBCATEGORY_TAG, DESTINATION_TAG, BLOG_TAG],
       revalidate: CMS_TTL,
       params: categoryId ? { category: categoryId } : undefined,
     }),

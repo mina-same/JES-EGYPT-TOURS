@@ -276,7 +276,7 @@ export const getSubcategoryBySlug = async (
     const subcategory = await BlogSubCategory.findOne(filter)
       .populate('category', 'name slug description')
       // Cards, not articles — see blogCardPopulate.
-      .populate(blogCardPopulate('featuredBlogs'))
+      .populate(blogCardPopulate('featuredBlogs', req.locale))
       // Public page: destinations with a landing page only, never a draft.
       .populate(publicDestinationPopulate('featuredDestinations'))
       .lean();

@@ -9,6 +9,8 @@ export interface IUser extends Document {
   role: 'superadmin' | 'admin';
   permissions?: string[];
   isActive: boolean;
+  notificationBaselineAt?: Date;
+  notificationBaselineReady?: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -31,7 +33,7 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
       match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
         'Please provide a valid email',
       ],
     },
@@ -50,6 +52,8 @@ const userSchema = new Schema<IUser>(
       type: [String],
       default: [],
     },
+    notificationBaselineAt: { type: Date },
+    notificationBaselineReady: { type: Boolean, default: false },
     isActive: {
       type: Boolean,
       default: true,
@@ -105,8 +109,9 @@ userSchema.virtual('id').get(function () {
 userSchema.set('toJSON', {
   virtuals: true,
   transform: function (_doc, ret) {
-    const { password, __v, ...rest } = ret;
-    return rest;
+    Reflect.deleteProperty(ret, 'password');
+    Reflect.deleteProperty(ret, '__v');
+    return ret;
   }
 });
 

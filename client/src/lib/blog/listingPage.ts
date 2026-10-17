@@ -86,10 +86,10 @@ const hasCardIn = (articles: readonly unknown[] | null | undefined, locale: stri
  * Whether a listing serves `page` in `locale`.
  *
  * Page 1 is the entity's own landing page, and exists with nothing to list.
- * A later page exists when the listing has that many pages AND this language
- * can draw at least one of its cards: the API counts articles in every
- * language alike, so a page it calls valid may hold only articles this
- * language has no URL for.
+ * A later page exists when the listing has that many pages. The API counts and
+ * pages only the articles public in the requested language, so its page count
+ * is this language's own; the requirement that the page also holds a card
+ * this language can draw is a defensive check behind it, never the filter.
  */
 export function servesBlogListingPage(listing: BlogListingPage, page: number, locale: string): boolean {
   if (page === 1) return true;
@@ -142,10 +142,11 @@ export async function resolveBlogListingRequest<T extends BlogListingPage>({
  * Canonical and hreflang for a listing page that exists.
  *
  * An archive's page N is its own page, so it canonicalizes to itself and its
- * alternates are the same page N — in the languages that serve it, by the
- * rule servesBlogListingPage applies. Every language gets the same articles
- * on a page (the API does not filter by language), so `articles`, this page's
- * own, answers that for all of them.
+ * alternates are the same page N — in the languages that HAVE a page N. Each
+ * language lists only the articles public in it, so each has its own page
+ * count: `pagesByLocale`, which the category and topic listings send. Without
+ * it (an older response), a language counts when this page's own articles
+ * hold a card for it.
  */
 export function getBlogListingAlternates({
   role,
@@ -155,6 +156,7 @@ export function getBlogListingAlternates({
   slugs,
   baseUrl,
   articles,
+  pagesByLocale,
 }: {
   role: BlogListingRole;
   page: number;
@@ -163,16 +165,19 @@ export function getBlogListingAlternates({
   slugs: LocalizedSlugInput;
   baseUrl: string;
   articles?: readonly unknown[] | null;
+  pagesByLocale?: Partial<Record<string, number>> | null;
 }): NonNullable<Metadata['alternates']> {
   const base = getStrictSlugLocaleAlternates({ locale, currentSlug: slug, slugs, baseUrl });
   if (page === 1) return base;
   if (role === 'landing') return { canonical: base.canonical };
 
+  const hasPage = (language: string): boolean =>
+    pagesByLocale ? (Number(pagesByLocale[language]) || 0) >= page : hasCardIn(articles, language);
   const baseLanguages = (base.languages || {}) as Record<string, string | undefined>;
   const languages: Record<string, string> = {};
   for (const language of SUPPORTED_LOCALES) {
     const url = baseLanguages[language];
-    if (url && hasCardIn(articles, language)) languages[language] = `${url}?page=${page}`;
+    if (url && hasPage(language)) languages[language] = `${url}?page=${page}`;
   }
   if (languages[DEFAULT_LOCALE]) languages['x-default'] = languages[DEFAULT_LOCALE];
   return { canonical: `${base.canonical}?page=${page}`, languages };

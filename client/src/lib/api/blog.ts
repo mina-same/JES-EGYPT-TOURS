@@ -101,6 +101,12 @@ export interface BlogPost {
   _id: string;
   title: ILocalizedString;
   slug: ILocalizedString;
+  /**
+   * The languages the article is public in (server/src/utils/blogAvailability.ts),
+   * sent by the article endpoint. Its alternates and the language switcher
+   * offer these and nothing else.
+   */
+  availableLocales?: string[];
   subCategory: BlogSubCategory;
   /**
    * Where the article is about. Populated by the article endpoint, and only
@@ -199,8 +205,15 @@ export interface Comment {
 export interface PaginationData {
   page: number;
   limit: number;
+  /** Articles public in the requested language — the count the pages are cut from. */
   total: number;
   pages: number;
+  /**
+   * A category's or topic's page count in EVERY language, at this page size,
+   * so its page N can name only the languages that have a page N. Absent on
+   * other listings.
+   */
+  pagesByLocale?: Partial<Record<string, number>>;
 }
 
 export interface BlogResponse {

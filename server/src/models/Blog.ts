@@ -5,6 +5,7 @@ import { IImage, ImageSchema } from './shared/ImageSchema';
 import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema, ILocalizedMixed, LocalizedMixedSchema, completeOgFromMeta } from './shared/LocalizedSchema';
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
+import { BLOG_LOCALES, BLOG_SLUG_MIN_LENGTH, isStrictBlogSlug } from '../utils/blogAvailability';
 
 // Content Block Types
 interface IImageBlock {
@@ -147,15 +148,10 @@ const BlockLocalizedStringSchema = new Schema(
  * localized slugs across blogs, tours, categories and destinations satisfy it,
  * so it rejects new mistakes without invalidating a single current URL.
  *
- * The frontend applies the same rule defensively in
- * client/src/lib/url/slug.ts — keep the two in sync.
+ * The rule itself lives in utils/blogAvailability.ts (isStrictBlogSlug), which
+ * also decides which languages an article is public in. The frontend applies
+ * the same rule defensively in client/src/lib/url/slug.ts — keep them in sync.
  */
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-/** Shorter than this is a placeholder, not a slug. */
-const MIN_SLUG_LENGTH = 3;
-
-const SLUG_LANGS = ['en', 'de', 'it', 'es'] as const;
 
 /**
  * Which languages carry a malformed slug, if any.
@@ -168,15 +164,16 @@ const SLUG_LANGS = ['en', 'de', 'it', 'es'] as const;
 const invalidSlugLangs = (value: unknown): string[] => {
   if (!value || typeof value !== 'object') return [];
 
-  return SLUG_LANGS.filter((lang) => {
+  return BLOG_LOCALES.filter((lang) => {
     const raw = (value as Record<string, unknown>)[lang];
     if (raw === undefined || raw === null) return false;
     if (typeof raw !== 'string') return true;
 
+    // The schema trims before it stores, so the trimmed value is the one judged.
     const slug = raw.trim();
     if (!slug) return false;
 
-    return slug.length < MIN_SLUG_LENGTH || !SLUG_PATTERN.test(slug);
+    return !isStrictBlogSlug(slug);
   });
 };
 
@@ -196,7 +193,7 @@ const BlogSchema: Schema = new Schema(
       validate: {
         validator: (value: unknown) => invalidSlugLangs(value).length === 0,
         message: (props: { value: unknown }) =>
-          `Invalid slug for ${invalidSlugLangs(props.value).join(', ')}: use lowercase letters, numbers and single hyphens only (at least ${MIN_SLUG_LENGTH} characters), for example "pyramids-of-giza".`,
+          `Invalid slug for ${invalidSlugLangs(props.value).join(', ')}: use lowercase letters, numbers and single hyphens only (at least ${BLOG_SLUG_MIN_LENGTH} characters), for example "pyramids-of-giza".`,
       },
     },
     author: {

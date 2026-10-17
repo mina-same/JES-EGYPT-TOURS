@@ -136,7 +136,7 @@ const PageSkeleton: React.FC<PageSkeletonProps> = ({ variant = 'list' }) => {
           
           {/* Tabs */}
           <div className="flex gap-2 border-b border-gray-200">
-            {['Content', 'Media & SEO', 'Settings'].map((_, i) => (
+            {['Content', 'FAQs & Related', 'Media & SEO', 'Settings'].map((_, i) => (
               <Skeleton key={i} className="h-11 w-32 rounded-t-lg" />
             ))}
           </div>

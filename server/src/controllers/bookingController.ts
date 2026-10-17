@@ -1,10 +1,12 @@
+import { updateRequestRecord } from '../utils/requestWorkflow';
+import { notifySubmission } from '../utils/submissionNotification';
+import { paginationInput, publicSubmissionReceipt, respondSubmissionError } from '../utils/submission';
 import { Request, Response } from 'express';
 import { matchedData, validationResult } from 'express-validator';
 import Booking, { type IBooking, BOOKING_PACKAGE_NOT_SURE } from '../models/Booking';
 import Tour from '../models/Tour';
-import Notification from '../models/Notification';
 import CurrencyConfig from '../models/CurrencyConfig';
-import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
+import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { createSearchRegex } from '../utils/search';
 import {
   type BookingCurrency,
@@ -15,6 +17,7 @@ import {
 
 interface PublicBookingInput {
   tour: string;
+  locale?: 'en' | 'de' | 'it' | 'es';
   name: string;
   email: string;
   phone: string;
@@ -77,7 +80,7 @@ const respondWithIdempotentReplay = async (
   res.status(200).json({
     success: true,
     message: BOOKING_SUCCESS_MESSAGE,
-    data: booking,
+    data: publicSubmissionReceipt(booking),
     idempotentReplay: true,
   });
 };
@@ -209,6 +212,8 @@ export const createBooking = async (
         ...publicFields,
         tour: tour._id,
         status: 'pending',
+        notificationPending: true,
+        tourSnapshot: { heading: tour.heading, slug: tour.slug },
         idempotencyKey,
         requestFingerprint,
         ...(quotedPrice !== undefined ? { currency, quotedPrice } : {}),
@@ -240,43 +245,17 @@ export const createBooking = async (
       console.error('Booking created but tour population failed:', populateError);
     }
 
-    try {
-      emitAdminNotification({
-        type: 'booking',
-        title: `Booking from ${booking.name}`,
-        entityId: booking._id.toString(),
-        createdAt: booking.createdAt?.toISOString?.() || new Date().toISOString(),
-      });
-    } catch (realtimeError) {
-      console.error('Booking created but realtime notification failed:', realtimeError);
-    }
-
-    // Save notification to database (supports polling fallback on Vercel)
-    try {
-      await Notification.create({
-        type: 'booking',
-        title: 'New Booking',
-        message: `Booking from ${booking.name} (${booking.email})`,
-        entityId: booking._id,
-      });
-    } catch (notificationError) {
-      console.error('Booking created but persisted notification failed:', notificationError);
-    }
-
-    void emitDashboardStatsUpdate();
+    await notifySubmission('booking', booking, 'New Booking', `Booking from ${booking.name} (${booking.email})`);
 
     res.status(201).json({
       success: true,
       message: BOOKING_SUCCESS_MESSAGE,
-      data: booking,
+      data: publicSubmissionReceipt(booking),
       idempotentReplay: false,
     });
   } catch (error: unknown) {
     console.error('Error creating booking:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to submit your booking. Please try again later.',
-    });
+    respondSubmissionError(res, error, 'Failed to submit your booking. Please try again later.');
   }
 };
 
@@ -290,7 +269,8 @@ export const getAllBookings = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, tour, page = 1, limit = 10, search } = req.query;
+    const { status, tour, search } = req.query;
+    const { page, limit, skip } = paginationInput(req.query);
 
     // Build query
     const query: any = {};
@@ -309,8 +289,6 @@ export const getAllBookings = async (
       ];
     }
 
-    // Calculate pagination
-    const skip = (Number(page) - 1) * Number(limit);
 
     // Get bookings with pagination
     const bookings = await Booking.find(query)
@@ -334,10 +312,7 @@ export const getAllBookings = async (
     });
   } catch (error: any) {
     console.error('Error fetching bookings:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch bookings',
-    });
+    respondSubmissionError(res, error, 'Failed to fetch bookings');
   }
 };
 
@@ -370,10 +345,7 @@ export const getBookingById = async (
     });
   } catch (error: any) {
     console.error('Error fetching booking:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch booking',
-    });
+    respondSubmissionError(res, error, 'Failed to fetch booking');
   }
 };
 
@@ -387,26 +359,7 @@ export const updateBooking = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, adminNotes } = req.body;
-
-    const booking = await Booking.findById(req.params.id);
-
-    if (!booking) {
-      res.status(404).json({
-        success: false,
-        error: 'Booking not found',
-      });
-      return;
-    }
-
-    // Update fields
-    if (status) booking.status = status;
-    if (adminNotes !== undefined) booking.adminNotes = adminNotes;
-
-    await booking.save();
-
-    // Populate tour details
-    await booking.populate('tour', 'heading slug images');
+    const booking = await updateRequestRecord(Booking, req, ['pending', 'confirmed', 'cancelled', 'completed']);
 
     void emitDashboardStatsUpdate();
 
@@ -417,10 +370,7 @@ export const updateBooking = async (
     });
   } catch (error: any) {
     console.error('Error updating booking:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update booking',
-    });
+    respondSubmissionError(res, error, 'Failed to update booking');
   }
 };
 
@@ -454,10 +404,7 @@ export const deleteBooking = async (
     });
   } catch (error: any) {
     console.error('Error deleting booking:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete booking',
-    });
+    respondSubmissionError(res, error, 'Failed to delete booking');
   }
 };
 
@@ -489,10 +436,7 @@ export const getBookingStats = async (
     });
   } catch (error: any) {
     console.error('Error fetching booking stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch statistics',
-    });
+    respondSubmissionError(res, error, 'Failed to fetch statistics');
   }
 };
 

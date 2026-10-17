@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import http from 'http';
 import app from './app';
+import { startNotificationDelivery } from './utils/submissionNotification';
 import connectDB from './config/database';
 import { initRealtime } from './realtime/socket';
 import { startPublishingScheduler } from './services/publishingScheduler';
@@ -16,11 +17,13 @@ const server = http.createServer(app);
 
 initRealtime(server);
 
+let stopNotificationDelivery: (() => void) | undefined;
 let stopPublishingScheduler: (() => void) | undefined;
 
 const startServer = async () => {
   await connectDB();
   stopPublishingScheduler = startPublishingScheduler();
+  stopNotificationDelivery = startNotificationDelivery();
 
   server.listen(PORT, () => {
     console.log(`
@@ -54,6 +57,7 @@ process.on('unhandledRejection', (err: Error) => {
 // Handle SIGTERM
 process.on('SIGTERM', () => {
   stopPublishingScheduler?.();
+  stopNotificationDelivery?.();
   console.log('👋 SIGTERM received, shutting down gracefully');
   server.close(() => {
     console.log('✅ Process terminated');

@@ -52,7 +52,8 @@ const article = () =>
     title: { en: 'Fixture article', de: 'Fixture-Artikel' },
     slug: { en: 'fixture-article', de: 'fixture-artikel' },
     status: 'published',
-    contentBlocks: [],
+    // A body in both languages: the article is public in each (utils/blogAvailability.ts).
+    contentBlocks: [{ type: 'html', content: { en: '<p>Fixture body.</p>', de: '<p>Fixture-Text.</p>' } }],
     comments: submissions(),
   });
 

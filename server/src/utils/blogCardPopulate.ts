@@ -1,4 +1,5 @@
 import type { PopulateOptions } from 'mongoose';
+import { publicBlogArticleFilter } from './blogAvailability';
 
 /**
  * What a blog CARD needs — the server half of the client's card view model.
@@ -23,9 +24,18 @@ import type { PopulateOptions } from 'mongoose';
 export const BLOG_CARD_FIELDS =
   'title slug featuredImage cardDescription publishedAt createdAt tags readingTime editorialAuthor subCategory';
 
-export const blogCardPopulate = (path: string): PopulateOptions => ({
+/**
+ * `locale` is the request's: the populated list then holds only the articles
+ * public in that language (utils/blogAvailability.ts), so a featured or related
+ * article with no version in it is left out rather than drawn as a card that
+ * leads to a 404. The list stays as the editor curated it otherwise — nothing
+ * is put in a removed article's place. `bypass` (the Admin) keeps every
+ * published article.
+ */
+export const blogCardPopulate = (path: string, locale?: string): PopulateOptions => ({
   path,
   select: BLOG_CARD_FIELDS,
+  match: publicBlogArticleFilter(locale),
   populate: [
     // The public byline, with its own author page.
     { path: 'editorialAuthor' },

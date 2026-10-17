@@ -148,6 +148,10 @@ for (const handler of [getFeaturedTours, getToursBySubcategory, getTourById, get
     context.mock.method(Tour, 'findById', () => chain(doc));
     context.mock.method(Tour, 'findOne', () => chain(doc));
     context.mock.method(Tour, 'countDocuments', async () => 1);
+    if (handler === getToursBySubcategory) context.mock.method(TourSubcategory, 'findOne', (filter: any) => {
+      assert.equal(filter._id, second);
+      return { select() { return this; }, lean: async () => ({ _id: second }) } as any;
+    });
     const res = response();
     await handler({ locale: 'en', params: { id: first, subcategoryId: second, slug: 'tour', idExternal: 'external' }, query: {} } as any, res as any);
     assert.equal(res.code, 200);

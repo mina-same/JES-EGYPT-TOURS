@@ -1,3 +1,4 @@
+import { validTravelRange, validBudgetRange } from '../utils/tailorMade';
 import { body, header, ValidationChain } from 'express-validator';
 import {
   isBookingDateTodayOrFuture,
@@ -5,7 +6,14 @@ import {
   isValidInternationalPhone,
 } from '../utils/booking';
 
+const submissionEmailNormalization = { gmail_remove_dots: false, gmail_remove_subaddress: false, outlookdotcom_remove_subaddress: false, yahoo_remove_subaddress: false, icloud_remove_subaddress: false };
+
+export const publicSubmissionKeyValidation = [header('Idempotency-Key').optional().isUUID(4).withMessage('Invalid Idempotency-Key')];
+
 export const tailorMadeRequestValidation: ValidationChain[] = [
+  body('locale').optional().isIn(['en', 'de', 'it', 'es']).withMessage('Invalid locale'),
+  body('endYear').custom((_value, { req }) => validTravelRange(req.body)).withMessage('Travel dates must be current or future, with the end on or after the start'),
+  body('maxBudget').custom((_value, { req }) => validBudgetRange(req.body)).withMessage('Please provide a valid budget range with the maximum at least the minimum'),
   // Personal Information
   body('fullName')
     .trim()
@@ -19,7 +27,7 @@ export const tailorMadeRequestValidation: ValidationChain[] = [
     .withMessage('Email is required')
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail(submissionEmailNormalization),
   body('phone')
     .optional()
     .trim(),
@@ -130,7 +138,7 @@ export const contactSubmissionValidation: ValidationChain[] = [
     .withMessage('Email is required')
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail(submissionEmailNormalization),
   // Required, like the name and the email: the team calls people back, and an
   // enquiry with no number costs a round trip to ask for one.
   body('phone')
@@ -182,7 +190,7 @@ export const tourQuestionValidation: ValidationChain[] = [
     .withMessage('Email cannot exceed 150 characters')
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail(submissionEmailNormalization),
   body('phone')
     .optional({ values: 'falsy' })
     .trim()
@@ -236,7 +244,7 @@ export const travelTradeInquiryValidation: ValidationChain[] = [
     .withMessage('Business email cannot exceed 150 characters')
     .isEmail()
     .withMessage('Please provide a valid business email')
-    .normalizeEmail(),
+    .normalizeEmail(submissionEmailNormalization),
   body('phone')
     .trim()
     .notEmpty()
@@ -395,6 +403,7 @@ export const updateUserValidation: ValidationChain[] = [
 ];
 
 export const bookingValidation: ValidationChain[] = [
+  body('locale').optional().isIn(['en', 'de', 'it', 'es']).withMessage('Invalid locale'),
   // Tour reference
   body('tour')
     .notEmpty()
@@ -415,7 +424,7 @@ export const bookingValidation: ValidationChain[] = [
     .withMessage('Email is required')
     .isEmail()
     .withMessage('Please provide a valid email')
-    .normalizeEmail(),
+    .normalizeEmail(submissionEmailNormalization),
   body('phone')
     .trim()
     .notEmpty()

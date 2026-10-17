@@ -1,9 +1,9 @@
-import { localizePreservingSlugs } from '../utils/localize';
+import { localizeBlogArticles, localizePreservingSlugs } from '../utils/localize';
 import { Request, Response } from 'express';
 import EditorialAuthor from '../models/EditorialAuthor';
 import Blog from '../models/Blog';
 import { BLOG_CARD_FIELDS } from '../utils/blogCardPopulate';
-import { hasTextForLocale } from '../utils/blogBlocks';
+import { publicBlogArticleFilter } from '../utils/blogAvailability';
 import {
   BACKFILLABLE_AUTHOR_FIELDS,
   DEFAULT_AUTHOR_SEED,
@@ -139,9 +139,15 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
         }
       : { editorialAuthor: author._id };
 
-    const articles = await Blog.find({
+    /*
+     * An article counts for this language only when it is public in it — the
+     * rule the article page itself answers by (utils/blogAvailability.ts), so
+     * the author grid never links to an article that 404s there. It is part of
+     * the query, so no article body has to leave the database to decide it.
+     */
+    const localizedArticles = await Blog.find({
       ...authorFilter,
-      status: 'published',
+      ...publicBlogArticleFilter(req.locale),
     })
       // The shared card field set, plus the admin `author` this page resolves
       // its byline through. `subCategory` was the omission: without it an
@@ -151,37 +157,12 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
       // `isFeatured` lets the author page promote the articles an editor
       // actually marked, rather than inventing a "featured" set out of
       // whichever three happen to be newest.
-      //
-      // `contentBlocks` is fetched but never returned — see the filter below.
-      .select(`${BLOG_CARD_FIELDS} author isFeatured contentBlocks`)
+      .select(`${BLOG_CARD_FIELDS} author isFeatured`)
       .populate('author', 'name')
       .populate('editorialAuthor', 'name slug')
       .populate('subCategory', 'name slug')
       .sort({ publishedAt: -1, createdAt: -1 })
       .lean();
-
-    /*
-     * An article only counts for this language when it has TEXT of its own in
-     * it — the same rule the article page 404s on.
-     *
-     * The client filtered these cards on the localized slug alone, which is a
-     * weaker promise: an article can carry an Italian slug while every one of
-     * its text blocks is scoped to other languages, and the route resolver
-     * then refuses to render it. The author grid was linking straight to those
-     * 404s. Deciding it here, where `contentBlocks` is already in hand, keeps
-     * the rule on the server that owns it.
-     *
-     * The blocks are dropped before the response goes out: a card needs a
-     * title and a thumbnail, and shipping every block of every article is the
-     * payload blow-up BLOG_CARD_FIELDS exists to prevent.
-     */
-    const localizedArticles = articles
-      .filter((article: any) => hasTextForLocale(article.contentBlocks, req.locale))
-      .map((article: any) => {
-        const card = { ...article };
-        delete card.contentBlocks;
-        return card;
-      });
 
     /*
      * The split and the paging happen HERE, not on the client.
@@ -230,15 +211,11 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
       // Localized, with every `slug` kept raw so the article links still resolve
       // per language. This response used to carry all four languages of the bio,
       // role and every article title — 86 KB on a single page.
+      // The articles in this language only (no English fallback).
       data: {
-        ...localizePreservingSlugs(
-          {
-            ...rawAuthor,
-            featured,
-            articles: pageItems,
-          },
-          req.locale
-        ),
+        ...localizePreservingSlugs(rawAuthor, req.locale),
+        featured: localizeBlogArticles(featured, req.locale),
+        articles: localizeBlogArticles(pageItems, req.locale),
         availableLocales,
         pagination: {
           page,

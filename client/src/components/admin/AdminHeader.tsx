@@ -1,5 +1,6 @@
 "use client";
 
+import AdminNotificationControls from './AdminNotificationControls';
 import React, { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { LogOut, User } from "lucide-react";
@@ -63,6 +64,7 @@ export default function AdminHeader() {
         <h1 className="truncate text-base font-semibold">{title}</h1>
       </div>
 
+      <AdminNotificationControls />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">

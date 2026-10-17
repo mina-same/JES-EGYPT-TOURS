@@ -1840,6 +1840,14 @@ body.megamenu-popup-active .mobile-nav__content {
 /*--------------------------------------------------------------
 # Mobile Nav
 --------------------------------------------------------------*/
+/* Opening and closing are one movement: the panel slides in from the left
+   while the backdrop fades in behind it (300 ms), and both leave together
+   (250 ms). It used to take two stages of 500 ms each, and the backdrop slid
+   across the page as a dark sheet before the panel even started; closing
+   kept the page covered for another half second after the panel had gone.
+   The wrapper itself no longer moves: it only stays visible until the panel
+   has left. The panel carries no visibility of its own, so everything in it
+   can take focus from the frame the drawer opens (Drawer.tsx). */
 .mobile-nav__wrapper {
   position: fixed;
   top: 0;
@@ -1847,11 +1855,8 @@ body.megamenu-popup-active .mobile-nav__content {
   width: 100vw;
   height: 100vh;
   z-index: 999;
-  transform: translateX(-100%);
-  transform-origin: left center;
-  transition: transform 500ms ease 500ms, visibility 500ms ease 500ms;
   visibility: hidden;
-  position: fixed;
+  transition: visibility 0s linear 250ms;
 }
 .mobile-nav__wrapper .container {
   padding-left: 0;
@@ -1870,17 +1875,8 @@ body.megamenu-popup-active .mobile-nav__content {
 }
 
 .mobile-nav__wrapper.expanded {
-  opacity: 1;
-  transform: translateX(0%);
   visibility: visible;
-  transition: transform 500ms ease 0ms, visibility 500ms ease 0ms;
-}
-.mobile-nav__wrapper.expanded .mobile-nav__content {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-  transition: opacity 500ms ease 500ms, visibility 500ms ease 500ms,
-    transform 500ms ease 500ms;
+  transition: visibility 0s linear 0s;
 }
 
 .mobile-nav__overlay {
@@ -1890,8 +1886,13 @@ body.megamenu-popup-active .mobile-nav__content {
   right: 0;
   bottom: 0;
   background-color: var(--gotur-black3, #000000);
-  opacity: 0.6;
+  opacity: 0;
   cursor: url(../images/close.png), auto;
+  transition: opacity 250ms ease;
+}
+.mobile-nav__wrapper.expanded .mobile-nav__overlay {
+  opacity: 0.6;
+  transition-duration: 300ms;
 }
 
 .mobile-nav__content {
@@ -1905,22 +1906,34 @@ body.megamenu-popup-active .mobile-nav__content {
   padding-bottom: 30px;
   padding-left: 15px;
   padding-right: 15px;
-  opacity: 0;
-  visibility: hidden;
   transform: translateX(-100%);
-  transition: opacity 500ms ease 0ms, visibility 500ms ease 0ms,
-    transform 500ms ease 0ms;
+  /* Leaving: accelerates away. */
+  transition: transform 250ms cubic-bezier(0.4, 0, 1, 1);
+}
+.mobile-nav__wrapper.expanded .mobile-nav__content {
+  transform: translateX(0);
+  /* Arriving: decelerates into place. */
+  transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.mobile-nav__content .main-menu__list ul.close {
-  display: block !important;
-  transition: max-height 1s ease-out;
-    max-height: 0;
+/* Submenus open and close at the height of what they hold. They animated
+   max-height from 0 to 1600px over a second for 47px of links: opening
+   jumped to full height in one frame while the chevron was still turning,
+   and closing sat unchanged for ~0.9 s — links visible but already inert —
+   then snapped shut. A one-row grid going from 0fr to 1fr animates the real
+   height, in step with the chevron and the label's colour (250 ms). */
+.mobile-nav__content .main-menu__list .mobile-nav__submenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mobile-nav__content .main-menu__list .mobile-nav__submenu.is-open {
+  grid-template-rows: 1fr;
+}
+.mobile-nav__content .main-menu__list .mobile-nav__submenu > ul {
+  display: block;
+  min-height: 0;
   overflow: hidden;
-}
-.mobile-nav__content .main-menu__list ul.open {
-  max-height: 1600px;
-
 }
 
 .mobile-nav__content .logo-box {
@@ -1938,7 +1951,7 @@ body.megamenu-popup-active .mobile-nav__content {
   line-height: 1;
   color: var(--gotur-white, #fff);
   cursor: pointer;
-  transition: all 500ms ease;
+  transition: color 500ms ease;
 }
 .mobile-nav__close svg {
   width: 1em;
@@ -1956,8 +1969,10 @@ body.megamenu-popup-active .mobile-nav__content {
   list-style-type: none;
 }
 
-.mobile-nav__content .main-menu__list ul {
-  display: none;
+/* The line between a parent and its first child belongs to that child, so it
+   is clipped with the submenu. On the list itself it stayed visible as a 1px
+   strip under every closed parent, doubling the separator below it. */
+.mobile-nav__content .main-menu__list .mobile-nav__submenu > ul > li:first-child {
   border-top: 1px solid RGBA(var(--gotur-white-rgb, 255, 255, 255), 0.1);
 }
 
@@ -1970,10 +1985,17 @@ body.megamenu-popup-active .mobile-nav__content {
   border-bottom: 1px solid RGBA(var(--gotur-white-rgb, 255, 255, 255), 0.1);
 }
 
-.mobile-nav__content .main-menu__list > li.current > a,
-.mobile-nav__content .main-menu__list > li:hover > a {
+.mobile-nav__content .main-menu__list > li.current > a {
   color: var(--gotur-base, #63ab45);
   text-shadow: 0 0 0.5px currentColor;
+}
+/* Pointers that hover only: on a touch screen `:hover` stays on the row last
+   tapped, so a parent closed by its chevron stayed gold as if still open. */
+@media (hover: hover) {
+  .mobile-nav__content .main-menu__list > li:hover > a {
+    color: var(--gotur-base, #63ab45);
+    text-shadow: 0 0 0.5px currentColor;
+  }
 }
 .mobile-nav__content .main-menu__list li .main-menu__list__wrapper {
   display: flex;
@@ -1993,7 +2015,7 @@ body.megamenu-popup-active .mobile-nav__content {
   font-weight: 500;
   height: 46px;
   align-items: center;
-  transition: 500ms;
+  transition: color 250ms ease, background-color 250ms ease;
 }
 
 .mobile-nav__content .main-menu__list li ul li a,
@@ -2018,7 +2040,8 @@ body.megamenu-popup-active .mobile-nav__content {
   justify-content: center;
   text-align: center;
   transform: rotate(-90deg);
-  transition: transform 500ms ease;
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 250ms ease, color 250ms ease;
 }
 .mobile-nav__content .main-menu__list li a button svg {
   width: 1em;
@@ -2035,6 +2058,23 @@ body.megamenu-popup-active .mobile-nav__content {
   transform: rotate(0deg);
   background-color: var(--gotur-white, #fff);
   color: var(--gotur-black, #1d231f);
+}
+
+/* Reduced motion: the drawer and its submenus appear and disappear at once,
+   without sliding, fading, growing or turning. */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav__wrapper,
+  .mobile-nav__wrapper.expanded,
+  .mobile-nav__overlay,
+  .mobile-nav__wrapper.expanded .mobile-nav__overlay,
+  .mobile-nav__content,
+  .mobile-nav__wrapper.expanded .mobile-nav__content,
+  .mobile-nav__content .main-menu__list .mobile-nav__submenu,
+  .mobile-nav__content .main-menu__list li > a,
+  .mobile-nav__content .main-menu__list li .main-menu__list__wrapper a,
+  .mobile-nav__content .main-menu__list li .main-menu__list__wrapper button {
+    transition: none;
+  }
 }
 
 .mobile-nav__social {
@@ -2970,6 +3010,46 @@ body.megamenu-popup-active .mobile-nav__content {
   right: 10px;
   animation: scale 3s ease-in-out infinite;
   animation-delay: 500ms;
+}
+/* Phones: the same composition, scaled to the column (the homepage's About
+   section and the listing pages' promo, which share these classes).
+ *
+ * The desktop values above — 45px / 100px of side padding round the main
+ * photo, a small photo shown at its file's size (250–336px) and pinned 50px
+ * above the bottom — were kept on phones, where the column is ~300px wide.
+ * At 360px the main photo shrank to 151px wide while the "small" one filled
+ * the column: it covered 56–80% of the main photo, left only a 50px strip of
+ * it showing underneath, and rose 31–93px above its section. On the homepage
+ * that put it over the hero's promo bar and hid the bar's button completely;
+ * the badge sat over the people in the photo.
+ *
+ * Here the main photo takes the column less a 20px margin on the right, the
+ * small one is under half its width and anchored to the bottom-right corner —
+ * overlapping the main photo's corner and hanging 36px below it — and the
+ * badge sits on the top-right corner. Nothing reaches above the section.
+ * (`.about-one__thumb__item-small img` also outranks AboutOne.css's fixed
+ * widths for the photo.) */
+@media (max-width: 767px) {
+  .about-one__thumb {
+    padding: 0 20px 36px 0;
+  }
+  .about-one__thumb__item-small {
+    bottom: 0;
+    right: 0;
+    width: 46%;
+  }
+  .about-one__thumb__item-small img {
+    width: 100%;
+    height: auto;
+  }
+  .about-one__thumb__item-popup {
+    top: -16px;
+    right: 0;
+  }
+  .about-one__thumb__item-popup img {
+    width: 72px;
+    height: auto;
+  }
 }
 .about-one__right .sec-title {
   padding-bottom: 22px;

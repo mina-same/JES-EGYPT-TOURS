@@ -1,8 +1,11 @@
+import { updateRequestRecord } from '../utils/requestWorkflow';
+import { notifySubmission } from '../utils/submissionNotification';
+import { budgetAmount } from '../utils/tailorMade';
+import { paginationInput, publicSubmissionReceipt, respondSubmissionError, savePublicSubmission } from '../utils/submission';
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
+import { matchedData, validationResult } from 'express-validator';
 import TailorMadeRequest from '../models/TailorMadeRequest';
-import Notification from '../models/Notification';
-import { emitAdminNotification, emitDashboardStatsUpdate } from '../realtime/socket';
+import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { createSearchRegex } from '../utils/search';
 
 /**
@@ -27,36 +30,24 @@ export const createTailorMadeRequest = async (
     }
 
     // Create tailor-made request
-    const tailorMadeRequest = await TailorMadeRequest.create(req.body);
-
-    emitAdminNotification({
-      type: 'tailorMade',
-      title: `Tailor-made request from ${tailorMadeRequest.fullName}`,
-      entityId: tailorMadeRequest._id.toString(),
-      createdAt: tailorMadeRequest.createdAt?.toISOString?.() || new Date().toISOString(),
+    const { document: tailorMadeRequest, replay } = await savePublicSubmission(TailorMadeRequest, req, {
+      ...matchedData(req, { locations: ['body'] }),
+      status: 'pending',
+      budgetCurrency: 'USD',
+      budgetMinAmount: budgetAmount(req.body.minBudget),
+      budgetMaxAmount: budgetAmount(req.body.maxBudget),
     });
 
-    // Save notification to database (supports polling fallback on Vercel)
-    await Notification.create({
-      type: 'tailorMade',
-      title: 'New Tailor-Made',
-      message: `Tailor-made request from ${tailorMadeRequest.fullName} (${tailorMadeRequest.email})`,
-      entityId: tailorMadeRequest._id,
-    });
-
-    void emitDashboardStatsUpdate();
+    if (!replay) await notifySubmission('tailorMade', tailorMadeRequest, 'New Tailor-Made', `Tailor-made request from ${tailorMadeRequest.fullName} (${tailorMadeRequest.email})`);
 
     res.status(201).json({
       success: true,
       message: 'Your travel request has been submitted successfully! Our team will contact you within 24 hours.',
-      data: tailorMadeRequest,
+      data: publicSubmissionReceipt(tailorMadeRequest),
     });
   } catch (error: any) {
     console.error('Error creating tailor-made request:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to submit your travel request. Please try again later.',
-    });
+    respondSubmissionError(res, error, 'Failed to submit your travel request. Please try again later.');
   }
 };
 
@@ -70,7 +61,8 @@ export const getAllTailorMadeRequests = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, page = 1, limit = 10, search } = req.query;
+    const { status, search } = req.query;
+    const { page, limit, skip } = paginationInput(req.query);
 
     // Build query
     const query: any = {};
@@ -86,8 +78,6 @@ export const getAllTailorMadeRequests = async (
       ];
     }
 
-    // Calculate pagination
-    const skip = (Number(page) - 1) * Number(limit);
 
     // Get requests with pagination
     const requests = await TailorMadeRequest.find(query)
@@ -110,10 +100,7 @@ export const getAllTailorMadeRequests = async (
     });
   } catch (error: any) {
     console.error('Error fetching tailor-made requests:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch travel requests',
-    });
+    respondSubmissionError(res, error, 'Failed to fetch travel requests');
   }
 };
 
@@ -143,10 +130,7 @@ export const getTailorMadeRequestById = async (
     });
   } catch (error: any) {
     console.error('Error fetching tailor-made request:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch travel request',
-    });
+    respondSubmissionError(res, error, 'Failed to fetch travel request');
   }
 };
 
@@ -160,23 +144,7 @@ export const updateTailorMadeRequest = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { status, adminNotes } = req.body;
-
-    const request = await TailorMadeRequest.findById(req.params.id);
-
-    if (!request) {
-      res.status(404).json({
-        success: false,
-        error: 'Travel request not found',
-      });
-      return;
-    }
-
-    // Update fields
-    if (status) request.status = status;
-    if (adminNotes !== undefined) request.adminNotes = adminNotes;
-
-    await request.save();
+    const request = await updateRequestRecord(TailorMadeRequest, req, ['pending', 'contacted', 'in-progress', 'completed', 'cancelled']);
 
     void emitDashboardStatsUpdate();
 
@@ -187,10 +155,7 @@ export const updateTailorMadeRequest = async (
     });
   } catch (error: any) {
     console.error('Error updating tailor-made request:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update travel request',
-    });
+    respondSubmissionError(res, error, 'Failed to update travel request');
   }
 };
 
@@ -224,10 +189,7 @@ export const deleteTailorMadeRequest = async (
     });
   } catch (error: any) {
     console.error('Error deleting tailor-made request:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete travel request',
-    });
+    respondSubmissionError(res, error, 'Failed to delete travel request');
   }
 };
 
@@ -261,9 +223,6 @@ export const getTailorMadeStats = async (
     });
   } catch (error: any) {
     console.error('Error fetching tailor-made stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch statistics',
-    });
+    respondSubmissionError(res, error, 'Failed to fetch statistics');
   }
 };

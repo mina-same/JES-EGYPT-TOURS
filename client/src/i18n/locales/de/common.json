@@ -61,6 +61,12 @@
     "italian": "Italienisch",
     "spanish": "Spanisch"
   },
+  "preferences": {
+    "title": "Sprache & Währung",
+    "currency": "Währung",
+    "close": "Schließen",
+    "unavailable": "Für diese Seite nicht verfügbar"
+  },
   "gotQuestions": "Haben Sie Fragen?",
   "frequentlyAsked": "Häufig gestellte",
   "questions": "Fragen",

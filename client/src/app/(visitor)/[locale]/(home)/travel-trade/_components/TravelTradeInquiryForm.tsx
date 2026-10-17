@@ -1,4 +1,5 @@
 "use client";
+import { submissionFetch } from '@/lib/submissionFetch';
 
 import {
   type ChangeEvent,
@@ -279,7 +280,7 @@ export default function TravelTradeInquiryForm({
     setResult(null);
 
     try {
-      const response = await fetch(API_ENDPOINTS.CONTACT.TRAVEL_TRADE, {
+      const response = await submissionFetch(API_ENDPOINTS.CONTACT.TRAVEL_TRADE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -10,6 +10,7 @@ import { PUBLIC_DESTINATION_FILTER } from '../src/models/Destination';
 import { getBlogBySlug } from '../src/controllers/blogController';
 import { getBlogsByDestination } from '../src/controllers/destinationController';
 import { ARTICLE_DESTINATION_FIELDS } from '../src/utils/blogClassification';
+import sift from 'sift';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Doc = Record<string, any>;
@@ -36,6 +37,8 @@ const article = (id: string, destination: string, day: number, status = 'publish
   subCategory: TRAVEL_TIPS,
   destination,
   publishedAt: new Date(Date.UTC(2026, 0, day)),
+  // An English body, so each article is public in English (utils/blogAvailability.ts).
+  contentBlocks: [{ type: 'html', content: { en: `<p>Article ${id}</p>` } }],
 });
 
 const ARTICLES: Doc[] = [
@@ -45,20 +48,12 @@ const ARTICLES: Doc[] = [
   article('d-cairo-draft', CAIRO, 21, 'draft'),
 ];
 
-// MongoDB's answer to the filters used here: plain equality, $in, $ne, $or
-// and $and. $or is here on purpose — a query that went back to "its own
-// destination OR its category's featured ones" would be evaluated faithfully
-// and fail these tests.
-const matches = (doc: Doc, filter: Doc): boolean =>
-  Object.entries(filter).every(([key, expected]) => {
-    if (key === '$or') return (expected as Doc[]).some((branch) => matches(doc, branch));
-    if (key === '$and') return (expected as Doc[]).every((branch) => matches(doc, branch));
-    if (expected && typeof expected === 'object' && '$in' in expected) {
-      return (expected.$in as unknown[]).map(String).includes(String(doc[key]));
-    }
-    if (expected && typeof expected === 'object' && '$ne' in expected) return doc[key] !== expected.$ne;
-    return String(doc[key]) === String(expected);
-  });
+// MongoDB's answer to the filters used here, through sift (MongoDB query
+// semantics, the matcher mongoose itself depends on): equality, $in, $ne, $or,
+// $and, and the language-availability filter's $regex and $elemMatch. A query
+// that went back to "its own destination OR its category's featured ones"
+// would be evaluated faithfully and fail these tests.
+const matches = (doc: Doc, filter: Doc): boolean => sift(filter)(doc);
 
 type Reads = { category: number; topic: number; sort?: unknown };
 
@@ -242,11 +237,12 @@ const DESTINATIONS: Doc[] = [
 
 const publishedArticle = (destination: string): Doc => ({
   _id: 'article-1',
-  title: { en: 'Saladin Citadel', de: 'Zitadelle von Saladin' },
-  slug: { en: 'saladin-citadel', de: 'zitadelle-von-saladin' },
+  title: { en: 'Saladin Citadel', de: 'Zitadelle von Saladin', it: 'Cittadella di Saladino', es: 'Ciudadela de Saladino' },
+  slug: { en: 'saladin-citadel', de: 'zitadelle-von-saladin', it: 'cittadella-di-saladino', es: 'ciudadela-de-saladino' },
   status: 'published',
   destination,
-  contentBlocks: [],
+  // Written in all four languages, so the article is public in each of them.
+  contentBlocks: [{ type: 'html', content: { en: '<p>The citadel.</p>', de: '<p>Die Zitadelle.</p>', it: '<p>La cittadella.</p>', es: '<p>La ciudadela.</p>' } }],
   comments: [],
 });
 

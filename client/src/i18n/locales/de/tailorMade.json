@@ -82,6 +82,8 @@
       "selectCountry": "Wählen Sie Ihr Land"
     },
     "errors": {
+      "travelRange": "W?hlen Sie aktuelle oder zuk?nftige Daten. Das Ende darf nicht vor dem Beginn liegen.",
+      "budgetRange": "Das maximale Budget muss mindestens dem Mindestbudget entsprechen.",
       "fillAllFields": "Bitte füllen Sie alle erforderlichen Felder korrekt aus",
       "fullNameRequired": "Vollständiger Name ist erforderlich",
       "nameMinLength": "Name muss mindestens 2 Zeichen lang sein",

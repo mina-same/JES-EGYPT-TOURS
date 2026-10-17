@@ -59,20 +59,8 @@ export const narrowBlocksToLocale = (blocks: any, locale: string): any => {
     }));
 };
 
-/**
- * True when the article has TEXT of its own in this language.
- *
- * The same rule the article page 404s on (client/src/lib/blogBlocks.ts →
- * hasNoContentForLocale), expressed positively. Listings that link to articles
- * need it: a localized slug alone is not enough to promise a page, so a card
- * whose article has no text in the visitor's language must not be shown — it
- * would link straight to a 404.
+/*
+ * Whether an article EXISTS in a language — slug, title and a body of its own —
+ * is decided in utils/blogAvailability.ts, for every surface at once. This file
+ * only decides which blocks a page that exists renders.
  */
-export const hasTextForLocale = (blocks: any, locale: string): boolean => {
-  if (!Array.isArray(blocks)) return false;
-  if (!locale || locale === 'bypass') return true;
-
-  return blocks.some(
-    (block) => blockBelongsToLocale(block, locale) && TEXT_BLOCK_TYPES.includes(block?.type)
-  );
-};

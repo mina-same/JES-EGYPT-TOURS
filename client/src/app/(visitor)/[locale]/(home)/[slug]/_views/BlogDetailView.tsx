@@ -88,7 +88,14 @@ export default function BlogDetailView({ slug, locale, initialBlog }: BlogDetail
   const title = getLocalizedValue(blog.title, locale);
   const featuredImageUrl = typeof blog.featuredImage === "string" ? blog.featuredImage : blog.featuredImage?.url;
 
-  const localizedSlugs = typeof blog.slug === 'object' ? blog.slug : { en: slug };
+  // The language switcher offers the languages the article is public in, and
+  // only those: a language with a slug but no body of its own has no page, and
+  // a malformed slug is no URL at all.
+  const allSlugs: Record<string, string | undefined> =
+    typeof blog.slug === 'object' ? (blog.slug as Record<string, string | undefined>) : { en: slug };
+  const localizedSlugs = Object.fromEntries(
+    Object.entries(allSlugs).filter(([language]) => blog.availableLocales?.includes(language))
+  );
 
   // The visible trail and its BreadcrumbList both come from this one array.
   const breadcrumbs = buildBlogBreadcrumbs(blog, locale, title);

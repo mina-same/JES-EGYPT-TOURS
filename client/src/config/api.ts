@@ -40,6 +40,7 @@ if (
 export const API_URL = `${API_BASE_URL}/api`;
 
 export const API_ENDPOINTS = {
+  BOOKINGS: { BASE: `${API_URL}/bookings` },
   // Auth
   AUTH: {
     LOGIN: `${API_URL}/auth/login`,

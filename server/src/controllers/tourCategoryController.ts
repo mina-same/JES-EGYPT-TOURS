@@ -199,7 +199,7 @@ export const getCategoryBySlug = async (
       // Cards, not articles: the visitor page draws three blog cards from
       // this, and an unprojected populate shipped whole article bodies in
       // four languages to do it.
-      .populate(blogCardPopulate('featuredBlogs'))
+      .populate(blogCardPopulate('featuredBlogs', req.locale))
       // Featured landing pages, so published destinations only. This is not
       // the tours' own Places Visited, which never depends on publication.
       .populate(publicDestinationPopulate('featuredDestinations'))

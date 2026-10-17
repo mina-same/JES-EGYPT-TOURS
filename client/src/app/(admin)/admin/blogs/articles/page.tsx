@@ -18,12 +18,25 @@ import { PaginationControls } from '@/components/admin/PaginationControls';
 import { ILocalizedString, ILocalizedMixed } from '@/types/shared';
 import { getLocalizedValue } from '@/lib/localize';
 import LanguageBadges from '@/components/admin/LanguageBadges';
-import type { RequiredLocalizedField } from '@/lib/localeCompleteness';
+import type { LocalizedCheck, RequiredLocalizedField } from '@/lib/localeCompleteness';
+import { hasLocalizedBody } from '@/lib/blog/availability';
 
 const ARTICLE_REQUIRED_LOCALIZED_FIELDS: readonly RequiredLocalizedField[] = [
   {
     path: 'cardDescription',
     label: 'Card Description (article listings)',
+  },
+];
+
+/**
+ * A language's version of an article exists on the public site only with a
+ * body of its own (the rule in lib/blog/availability.ts). A title, a slug and
+ * the SEO text alone do not make it complete.
+ */
+const ARTICLE_LOCALIZED_CHECKS: readonly LocalizedCheck[] = [
+  {
+    label: 'Article text (the page needs it to exist in this language)',
+    isPresent: (entity, lang) => hasLocalizedBody((entity as { contentBlocks?: unknown })?.contentBlocks, lang),
   },
 ];
 
@@ -267,6 +280,7 @@ function BlogsPageContent() {
                 entity={blog}
                 className="mt-0.5 flex-shrink-0"
                 requiredLocalizedFields={ARTICLE_REQUIRED_LOCALIZED_FIELDS}
+                localizedChecks={ARTICLE_LOCALIZED_CHECKS}
               />
               {blog.isFeatured && (
                 <span

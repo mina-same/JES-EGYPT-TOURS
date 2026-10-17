@@ -1,5 +1,6 @@
 "use client";
 
+import { submissionFetch } from '@/lib/submissionFetch';
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { X, Send, MessageCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -146,7 +147,7 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
     setSubmitting(true);
     setFailure(null);
     try {
-      const response = await fetch(API_ENDPOINTS.CONTACT.TOUR_QUESTION, {
+      const response = await submissionFetch(API_ENDPOINTS.CONTACT.TOUR_QUESTION, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Locale": locale },
         body: JSON.stringify({

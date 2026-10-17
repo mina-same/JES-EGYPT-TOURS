@@ -60,7 +60,9 @@ test('no visitor layout, loading or error file names a shell component', () => {
       const url = new URL(entry.name + (entry.isDirectory() ? '/' : ''), directory);
       if (entry.isDirectory()) walk(url);
       else if (/^(layout|template|loading|error|global-error)\.tsx$/.test(entry.name)) {
-        const named = imports(readFileSync(url, 'utf8')).filter((specifier) => SHELL.test(specifier));
+        // Stylesheets are not components: the (home) layout carries the
+        // switchers' CSS on purpose (see layout.tsx), and that adds no script.
+        const named = imports(readFileSync(url, 'utf8')).filter((specifier) => SHELL.test(specifier) && !specifier.endsWith('.css'));
         if (named.length) found.push(`${url.pathname.split('/src/app/')[1]}: ${named.join(', ')}`);
       }
     }
