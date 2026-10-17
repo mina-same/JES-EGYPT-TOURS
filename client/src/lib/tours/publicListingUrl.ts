@@ -33,9 +33,12 @@ export const PUBLIC_SORT_TO_API: Record<PublicSort, string> = {
   'duration-desc': '-durationHours',
 };
 
+// Attribution on inbound links: carried through redirects, never a filter, never
+// in a canonical. Exactly these names (any case); any other key stays unknown.
+// srsltid: Google Search adds it to result links; ref: referral and partner links.
 const TRACKING_KEYS = new Set([
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-  'gclid', 'fbclid', 'msclkid',
+  'gclid', 'fbclid', 'msclkid', 'srsltid', 'ref',
 ]);
 const DESTINATION_KEY = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const OBJECT_ID = /^[a-f\d]{24}$/i;
@@ -169,11 +172,24 @@ export function parsePublicListingQuery(
   }
 }
 
+/**
+ * A query as what it says: its decoded key/value pairs, in order. How a value
+ * is spelled in a URL — `(` or `%28`, a space as `+` or `%20`, `,` or `%2C` —
+ * is not part of it. redirectSearch decodes back to exactly its pairs: the
+ * encoder above never writes a literal `+`.
+ */
+const queryPairs = (params: URLSearchParams): string => JSON.stringify([...params]);
+
+/**
+ * Whether the request is another spelling of its normalized form. Both sides
+ * are compared as decoded pairs, so only a difference in what the query says
+ * — order, a default, `page=02`, a trimmed value — redirects, and the target
+ * never redirects again.
+ */
 export function shouldRedirectPublicQuery(
   input: URLSearchParams | Record<string, string | string[] | undefined>,
   parsed: PublicListingParse,
 ): boolean {
   if (parsed.error) return false;
-  const current = toParams(input).toString().replace(/%2C/gi, ',').replace(/\+/g, '%20');
-  return current !== parsed.redirectSearch.replace(/^\?/, '').replace(/%2C/gi, ',');
+  return queryPairs(toParams(input)) !== queryPairs(new URLSearchParams(parsed.redirectSearch));
 }

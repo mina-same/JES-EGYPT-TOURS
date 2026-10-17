@@ -5,7 +5,7 @@ export function addRequestWorkflow(schema: any) {
     editVersion: { type: Number, default: 0 },
     assignedTo: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     assignedName: { type: String, default: '' },
-    history: [{ actor: { type: Schema.Types.ObjectId, ref: 'User' }, actorName: String, at: { type: Date, default: Date.now }, status: String, changes: [String] }],
+    history: [{ actor: { type: Schema.Types.ObjectId, ref: 'User' }, actorName: String, at: { type: Date, default: Date.now }, status: String, previousStatus: String, assignedName: String, changes: [String] }],
   });
 }
 export async function updateRequestRecord(model: any, req: Request, statuses: string[]) {
@@ -31,7 +31,7 @@ export async function updateRequestRecord(model: any, req: Request, statuses: st
   const versionQuery = editVersion === 0 ? { $or: [{ editVersion: 0 }, { editVersion: { $exists: false } }] } : { editVersion };
   const updated = await model.findOneAndUpdate({ _id: current._id, ...versionQuery }, {
     $set: patch, $inc: { editVersion: 1 },
-    $push: { history: { actor: user._id, actorName: user.name, at: new Date(), status: patch.status || current.status, changes } },
+    $push: { history: { actor: user._id, actorName: user.name, at: new Date(), status: patch.status || current.status, previousStatus: current.status, ...(assignment ? { assignedName: patch.assignedName } : {}), changes } },
   }, { new: true, runValidators: true });
   if (!updated) fail('Another employee updated this request. Reload it before saving.', 409);
   return updated;

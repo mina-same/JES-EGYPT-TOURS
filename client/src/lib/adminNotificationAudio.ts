@@ -1,5 +1,7 @@
 export interface SoundSettings { enabled: boolean; volume: number; duration: number }
-const DEFAULTS: SoundSettings = { enabled: true, volume: 0.2, duration: 15 };
+const DEFAULTS: SoundSettings = { enabled: true, volume: 0.6, duration: 15 };
+const normalizeVolume = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
+  ? Math.min(1, Math.max(0, value)) : DEFAULTS.volume;
 export const AUDIO_STATE_CHANGED = 'admin:audio-state';
 /** One audio owner. Toast expiry and counter renders never control playback. */
 export class NotificationAudio {
@@ -11,10 +13,11 @@ export class NotificationAudio {
   settings = { ...DEFAULTS };
   get ready() { return this.context?.state === 'running'; }
   load() {
-    try { const saved = JSON.parse(localStorage.getItem('jes:notification-sound') || '{}'); this.settings = { enabled: saved.enabled !== false, volume: Math.min(0.5, Math.max(0, Number(saved.volume) || DEFAULTS.volume)), duration: [5, 15, 60].includes(saved.duration) ? saved.duration : DEFAULTS.duration }; } catch { /* defaults */ }
+    try { const saved = JSON.parse(localStorage.getItem('jes:notification-sound') || '{}'); this.settings = { enabled: saved.enabled !== false, volume: normalizeVolume(saved.volume), duration: [5, 15, 60].includes(saved.duration) ? saved.duration : DEFAULTS.duration }; } catch { /* defaults */ }
   }
   configure(patch: Partial<SoundSettings>) {
     this.settings = { ...this.settings, ...patch };
+    this.settings.volume = normalizeVolume(this.settings.volume);
     try { localStorage.setItem('jes:notification-sound', JSON.stringify(this.settings)); } catch { /* optional */ }
     if (!this.settings.enabled) this.stop();
     this.changed();
@@ -40,13 +43,26 @@ export class NotificationAudio {
     this.stop();
     const ctx = this.context!, osc = ctx.createOscillator(), gain = ctx.createGain();
     this.oscillator = osc; this.gain = gain; this.activeId = id;
-    const duration = testing ? 1 : this.settings.duration, t = ctx.currentTime;
-    osc.type = 'sine'; osc.frequency.setValueAtTime(660, t);
+    const duration = testing ? 4 : this.settings.duration, t = ctx.currentTime;
+    // A harmonic piano-like tone with a quick hammer attack and decaying notes.
+    // Keep one source so stop/ownership remains atomic across the whole melody.
+    osc.setPeriodicWave(ctx.createPeriodicWave(
+      new Float32Array(9),
+      new Float32Array([0, 1, 0.45, 0.24, 0.12, 0.06, 0.03, 0.015, 0.008]),
+    ));
     gain.gain.setValueAtTime(0.0001, t);
-    for (let offset = 0; offset < duration; offset += 1.2) {
-      gain.gain.setValueAtTime(0.0001, t + offset);
-      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.settings.volume), t + offset + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + offset + 0.25);
+    const peak = Math.max(0.0001, this.settings.volume);
+    for (let offset = 0; offset < duration; offset += 4.2) {
+      [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+        const start = t + offset + index * 0.65;
+        if (start >= t + duration) return;
+        const end = Math.min(start + (index === 3 ? 1.4 : 0.6), t + duration);
+        osc.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(peak, start + 0.008);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak * 0.4), Math.min(start + 0.4, end));
+        gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      });
     }
     osc.connect(gain); gain.connect(ctx.destination);
     const ended = new Promise<void>(resolve => { this.finish = resolve; });

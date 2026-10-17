@@ -57,7 +57,7 @@
     "placeholders": {
       "fullName": "Geben Sie Ihren Namen ein",
       "email": "ihre.email@beispiel.com",
-      "phone": "+1 (555) 000-0000",
+      "phone": "Ländervorwahl + Nummer",
       "country": "Wählen Sie Ihr Land",
       "month": "Monat",
       "year": "Jahr",
@@ -79,7 +79,9 @@
       "childrenAge": "(6-12 Jahre)",
       "infantsAge": "(1-6 Jahre)",
       "to": "bis",
-      "selectCountry": "Wählen Sie Ihr Land"
+      "selectCountry": "Wählen Sie Ihr Land",
+      "countryCode": "Ländervorwahl",
+      "international": "International"
     },
     "errors": {
       "travelRange": "W?hlen Sie aktuelle oder zuk?nftige Daten. Das Ende darf nicht vor dem Beginn liegen.",
@@ -97,11 +99,33 @@
       "adultRequired": "Mindestens ein Erwachsener ist erforderlich",
       "commentsRequired": "Zusätzliche Kommentare sind erforderlich",
       "commentsMaxLength": "Kommentare dürfen 2000 Zeichen nicht überschreiten",
-      "networkError": "Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung."
+      "networkError": "Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung.",
+      "invalidPhone": "Bitte geben Sie eine gültige Telefonnummer mit Ländervorwahl ein."
     },
     "success": {
       "requestSubmitted": "Ihre Reiseanfrage wurde erfolgreich übermittelt!",
       "failFallback": "Fehler beim Senden Ihrer Anfrage."
+    },
+    "options": {
+      "noLimit": "Kein Limit",
+      "specialOccasions": {
+        "honeymoon": "Flitterwochen",
+        "anniversary": "Jahrestag",
+        "birthday": "Geburtstagsfeier",
+        "familyReunion": "Familientreffen",
+        "retirement": "Ruhestandsreise",
+        "otherCelebration": "Andere Feier"
+      },
+      "interests": {
+        "ancientSites": "Antike Stätten & Tempel",
+        "nileCruise": "Nilkreuzfahrt",
+        "museumsCulture": "Museen & Kultur",
+        "desertSafari": "Wüstensafari",
+        "redSea": "Rotes Meer & Strände",
+        "localCuisine": "Lokale Küche",
+        "photography": "Fototouren",
+        "adventure": "Abenteueraktivitäten"
+      }
     }
   },
   "submitInfo": {

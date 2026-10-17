@@ -267,6 +267,223 @@
   gap: 15px;
 }
 
+/* Phone: calling code + number (react-phone-number-input), drawn like the
+   form's other inputs. The flag and code list sit inside the field on the
+   left; the library's own select covers them, invisible, so a tap anywhere on
+   the flag opens the native list. */
+.tm-phone-field {
+  position: relative;
+  width: 100%;
+}
+
+.tm-phone-input {
+  position: relative;
+  width: 100%;
+}
+
+.tm-phone-input .PhoneInputInput {
+  width: 100%;
+  padding: 12px 14px 12px 76px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #0E3A57;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.tm-phone-input .PhoneInputInput:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+}
+
+.tm-phone-input--error .PhoneInputInput {
+  border-color: #ef4444;
+}
+
+.tm-phone-input--error .PhoneInputInput:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.tm-phone-input .PhoneInputCountry {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  margin: 0;
+  padding-right: 10px;
+  border-right: 1px solid #e5e7eb;
+  transform: translateY(-50%);
+}
+
+.tm-phone-input .PhoneInputCountryIcon {
+  width: 22px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.tm-phone-input .PhoneInputCountryIcon--border {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.tm-phone-input .PhoneInputCountrySelect {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.tm-phone-input .PhoneInputCountrySelectArrow {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0;
+  border-color: #0E3A57;
+  border-width: 0 1.5px 1.5px 0;
+  opacity: 0.8;
+}
+
+.tm-phone-input .PhoneInputCountry:focus-within {
+  border-radius: 6px;
+  outline: 2px solid rgba(212, 175, 55, 0.55);
+  outline-offset: 2px;
+}
+
+/* Branded dropdown lists: the select's own picker, styled (customizable
+   <select>, Chrome and Edge 135+). It is still the native <select> —
+   keyboard, type-to-search, screen readers and the submitted value are
+   unchanged. Only with a mouse or trackpad: phones and tablets keep their own
+   picker (a full-screen wheel or sheet suits a 245-country list better than a
+   dropdown), and browsers without the feature keep their plain list. */
+@supports (appearance: base-select) {
+  @media (hover: hover) and (pointer: fine) {
+    .tailor-made-form .form-select,
+    .tailor-made-form .form-select::picker(select),
+    .tm-phone-input .PhoneInputCountrySelect,
+    .tm-phone-input .PhoneInputCountrySelect::picker(select) {
+      appearance: base-select;
+    }
+
+    /* The closed field keeps its look; the arrow takes the brand's gold and
+       turns while the list is open. */
+    .tailor-made-form .form-select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .tailor-made-form .form-select::picker-icon {
+      color: #b79c5c;
+      transition: rotate 0.2s ease;
+    }
+
+    .tailor-made-form .form-select:open::picker-icon {
+      rotate: 180deg;
+    }
+
+    .tailor-made-form .form-select:open {
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+    }
+
+    /* The list */
+    .tailor-made-form .form-select::picker(select),
+    .tm-phone-input .PhoneInputCountrySelect::picker(select) {
+      max-height: min(340px, 50vh);
+      margin-block: 6px;
+      padding: 6px;
+      border: 1px solid rgba(183, 156, 92, 0.35);
+      border-radius: 12px;
+      background: #ffffff;
+      color: #0E3A57;
+      box-shadow: 0 16px 40px rgba(14, 58, 87, 0.16);
+      font-family: inherit;
+      font-size: 14px;
+      scrollbar-color: rgba(183, 156, 92, 0.55) transparent;
+      scrollbar-width: thin;
+    }
+
+    .tailor-made-form .form-select option,
+    .tm-phone-input .PhoneInputCountrySelect option {
+      padding: 9px 12px;
+      border-radius: 8px;
+      color: #0E3A57;
+      cursor: pointer;
+    }
+
+    .tailor-made-form .form-select option:hover,
+    .tailor-made-form .form-select option:focus-visible,
+    .tm-phone-input .PhoneInputCountrySelect option:hover,
+    .tm-phone-input .PhoneInputCountrySelect option:focus-visible {
+      background: rgba(212, 175, 55, 0.12);
+      outline: none;
+    }
+
+    /* The chosen entry: gold tint, darker gold text (6:1 on the tint). */
+    .tailor-made-form .form-select option:checked,
+    .tm-phone-input .PhoneInputCountrySelect option:checked {
+      background: rgba(212, 175, 55, 0.2);
+      color: #7a5f12;
+      font-weight: 600;
+    }
+
+    .tailor-made-form .form-select option::checkmark,
+    .tm-phone-input .PhoneInputCountrySelect option::checkmark {
+      color: #b79c5c;
+    }
+
+    /* "Select your country" and the like: an instruction, not a choice. */
+    .tailor-made-form .form-select option[value=""] {
+      color: #6b7280;
+    }
+
+    /* The phone field's list opens from the flag. Its select is the invisible
+       layer over the flag; here its text is hidden instead of the whole
+       element (opacity would hide its list with it), and it draws no box or
+       arrow of its own. */
+    .tm-phone-input .PhoneInputCountrySelect {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: transparent;
+      opacity: 1;
+    }
+
+    .tm-phone-input .PhoneInputCountrySelect::picker-icon {
+      display: none;
+    }
+
+    .tm-phone-input .PhoneInputCountrySelect::picker(select) {
+      min-width: 280px;
+    }
+  }
+}
+
+/* The field shows a bare "+" until a code is chosen, so the input's own
+   placeholder can never appear: this hint stands in for it. */
+.tm-phone-empty-label {
+  position: absolute;
+  top: 50%;
+  left: 92px;
+  z-index: 1;
+  color: #9ca3af;
+  font-size: 14px;
+  line-height: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
 .travelers-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

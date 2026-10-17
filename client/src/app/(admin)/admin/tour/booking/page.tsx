@@ -37,6 +37,7 @@ const BookingPage: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<IBooking | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [workflowBusy, setWorkflowBusy] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -631,6 +632,7 @@ const BookingPage: React.FC = () => {
                   <div className="admin-field">
                     <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Booking Status</label>
                     <select
+                      disabled={updating || workflowBusy}
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value)}
                       className="status-select w-full"
@@ -642,9 +644,10 @@ const BookingPage: React.FC = () => {
                     </select>
                   </div>
                   <div className="admin-field">
-                    <RequestWorkflow record={selectedBooking} url={`${API_ENDPOINTS.BOOKINGS.BASE}/${selectedBooking._id || selectedBooking.id}`} onUpdated={setSelectedBooking} onReload={handleViewDetails} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('booking:update')} />
+                    <RequestWorkflow record={selectedBooking} url={`${API_ENDPOINTS.BOOKINGS.BASE}/${selectedBooking._id || selectedBooking.id}`} onUpdated={setSelectedBooking} onReload={handleViewDetails} saving={updating} onBusyChange={setWorkflowBusy} hasUnsavedChanges={newStatus !== selectedBooking.status || adminNotes !== (selectedBooking.adminNotes || '')} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('booking:update')} />
                     <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Internal Admin Notes</label>
                     <textarea
+                      disabled={updating || workflowBusy}
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
                       rows={4}
@@ -662,7 +665,7 @@ const BookingPage: React.FC = () => {
               <button
                 className="btn-primary"
                 onClick={handleUpdateBooking}
-                disabled={updating || !(user?.role === 'superadmin' || user?.permissions?.includes('booking:update'))}
+                disabled={updating || workflowBusy || !(user?.role === 'superadmin' || user?.permissions?.includes('booking:update'))}
               >
                 {updating ? (
                   <>

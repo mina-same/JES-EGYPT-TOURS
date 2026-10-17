@@ -57,7 +57,7 @@
     "placeholders": {
       "fullName": "Ingrese su nombre completo",
       "email": "su.email@ejemplo.com",
-      "phone": "+1 (555) 000-0000",
+      "phone": "Prefijo + número",
       "country": "Seleccione su país",
       "month": "Mes",
       "year": "Año",
@@ -79,7 +79,9 @@
       "childrenAge": "(6-12 años)",
       "infantsAge": "(1-6 años)",
       "to": "a",
-      "selectCountry": "Seleccione su país"
+      "selectCountry": "Seleccione su país",
+      "countryCode": "Prefijo internacional",
+      "international": "Internacional"
     },
     "errors": {
       "travelRange": "Elige fechas actuales o futuras, con el final igual o posterior al inicio.",
@@ -97,11 +99,33 @@
       "adultRequired": "Se requiere al menos un adulto",
       "commentsRequired": "Los comentarios adicionales son requeridos",
       "commentsMaxLength": "Los comentarios no pueden exceder 2000 caracteres",
-      "networkError": "Error de red. Verifique su conexión."
+      "networkError": "Error de red. Verifique su conexión.",
+      "invalidPhone": "Introduzca un número de teléfono válido, con el prefijo internacional."
     },
     "success": {
       "requestSubmitted": "Su solicitud de viaje ha sido enviada con éxito.",
       "failFallback": "Error al enviar su solicitud. Inténtelo de nuevo."
+    },
+    "options": {
+      "noLimit": "Sin límite",
+      "specialOccasions": {
+        "honeymoon": "Luna de miel",
+        "anniversary": "Aniversario",
+        "birthday": "Celebración de cumpleaños",
+        "familyReunion": "Reunión familiar",
+        "retirement": "Viaje de jubilación",
+        "otherCelebration": "Otra celebración"
+      },
+      "interests": {
+        "ancientSites": "Sitios antiguos y templos",
+        "nileCruise": "Crucero por el Nilo",
+        "museumsCulture": "Museos y cultura",
+        "desertSafari": "Safari por el desierto",
+        "redSea": "Mar Rojo y playas",
+        "localCuisine": "Cocina local",
+        "photography": "Tours fotográficos",
+        "adventure": "Actividades de aventura"
+      }
     }
   },
   "submitInfo": {

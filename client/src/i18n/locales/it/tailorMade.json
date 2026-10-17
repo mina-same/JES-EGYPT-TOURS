@@ -57,7 +57,7 @@
     "placeholders": {
       "fullName": "Inserisci il tuo nome completo",
       "email": "tua.email@esempio.com",
-      "phone": "+1 (555) 000-0000",
+      "phone": "Prefisso + numero",
       "country": "Seleziona il tuo paese",
       "month": "Mese",
       "year": "Anno",
@@ -79,7 +79,9 @@
       "childrenAge": "(6-12 anni)",
       "infantsAge": "(1-6 anni)",
       "to": "a",
-      "selectCountry": "Seleziona il tuo paese"
+      "selectCountry": "Seleziona il tuo paese",
+      "countryCode": "Prefisso internazionale",
+      "international": "Internazionale"
     },
     "errors": {
       "travelRange": "Scegli date attuali o future, con la fine non precedente all?inizio.",
@@ -97,11 +99,33 @@
       "adultRequired": "È richiesto almeno un adulto",
       "commentsRequired": "Sono richiesti commenti aggiuntivi",
       "commentsMaxLength": "I commenti non possono superare i 2000 caratteri",
-      "networkError": "Errore di rete. Controlla la tua connessione."
+      "networkError": "Errore di rete. Controlla la tua connessione.",
+      "invalidPhone": "Inserisci un numero di telefono valido, con il prefisso internazionale."
     },
     "success": {
       "requestSubmitted": "La tua richiesta di viaggio è stata inviata con successo!",
       "failFallback": "Impossibile inviare la richiesta. Riprova."
+    },
+    "options": {
+      "noLimit": "Nessun limite",
+      "specialOccasions": {
+        "honeymoon": "Luna di miele",
+        "anniversary": "Anniversario",
+        "birthday": "Festa di compleanno",
+        "familyReunion": "Riunione di famiglia",
+        "retirement": "Viaggio per la pensione",
+        "otherCelebration": "Altra celebrazione"
+      },
+      "interests": {
+        "ancientSites": "Siti antichi e templi",
+        "nileCruise": "Crociera sul Nilo",
+        "museumsCulture": "Musei e cultura",
+        "desertSafari": "Safari nel deserto",
+        "redSea": "Mar Rosso e spiagge",
+        "localCuisine": "Cucina locale",
+        "photography": "Tour fotografici",
+        "adventure": "Attività d'avventura"
+      }
     }
   },
   "submitInfo": {

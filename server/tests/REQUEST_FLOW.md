@@ -11,7 +11,7 @@ For the real admin UI and audio checks, install client dependencies and set
 `RUN_REQUEST_BROWSER=1` before running the same command. Microsoft Edge must be
 installed (or change the test's Playwright channel to an installed Chromium).
 The harness uses port 3108 and a temporary source copy; it does not interrupt an
-existing development server. The temporary copy is removed after the test closes the frontend. The Node test-runner exit flag prevents Next dev's global
+existing development server. The temporary copy is removed at process exit, after the frontend closes and queued directory scans finish. The Node test-runner exit flag prevents Next dev's global
 watcher handles from retaining the test process after explicit cleanup.
 
 Coverage includes:
@@ -20,7 +20,8 @@ Coverage includes:
   batches over 100 and late/out-of-order inserts;
 - permission-scoped HTTP/socket delivery, long and expired sessions, deactivated accounts;
 - personal read/dismiss status, complete statistics beyond a single list page;
-- version conflicts, employee assignment, audit history and historical tour identity;
+- version conflicts, employee assignment/release, previous and new statuses in audit history and historical tour identity;
+- readable and empty activity history, unsaved-note reload confirmation and disabled controls during reload;
 - browser sound activation, duration, matching stop, one audible owner across tabs;
 - direct details outside pagination, notification pagination, failed operation feedback;
 - HTTP synchronization while Socket.IO is unavailable.

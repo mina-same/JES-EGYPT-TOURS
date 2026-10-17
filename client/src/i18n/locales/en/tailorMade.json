@@ -57,7 +57,7 @@
     "placeholders": {
       "fullName": "Enter your full name",
       "email": "your.email@example.com",
-      "phone": "+1 (555) 000-0000",
+      "phone": "Country code + number",
       "country": "Select your country",
       "month": "Month",
       "year": "Year",
@@ -79,7 +79,9 @@
       "childrenAge": "(6-12 years)",
       "infantsAge": "(1-6 years)",
       "to": "to",
-      "selectCountry": "Select your country"
+      "selectCountry": "Select your country",
+      "countryCode": "Country calling code",
+      "international": "International"
     },
     "errors": {
       "travelRange": "Choose current or future dates, with the end on or after the start.",
@@ -97,11 +99,33 @@
       "adultRequired": "At least one adult is required",
       "commentsRequired": "Additional comments are required",
       "commentsMaxLength": "Comments cannot exceed 2000 characters",
-      "networkError": "Network error. Please check your connection and try again."
+      "networkError": "Network error. Please check your connection and try again.",
+      "invalidPhone": "Please enter a valid phone number, including the country code."
     },
     "success": {
       "requestSubmitted": "Your travel request has been submitted successfully!",
       "failFallback": "Failed to submit your request. Please try again."
+    },
+    "options": {
+      "noLimit": "No Limit",
+      "specialOccasions": {
+        "honeymoon": "Honeymoon",
+        "anniversary": "Anniversary",
+        "birthday": "Birthday Celebration",
+        "familyReunion": "Family Reunion",
+        "retirement": "Retirement Trip",
+        "otherCelebration": "Other Celebration"
+      },
+      "interests": {
+        "ancientSites": "Ancient Sites & Temples",
+        "nileCruise": "Nile River Cruise",
+        "museumsCulture": "Museums & Culture",
+        "desertSafari": "Desert Safari",
+        "redSea": "Red Sea & Beaches",
+        "localCuisine": "Local Cuisine",
+        "photography": "Photography Tours",
+        "adventure": "Adventure Activities"
+      }
     }
   },
   "submitInfo": {

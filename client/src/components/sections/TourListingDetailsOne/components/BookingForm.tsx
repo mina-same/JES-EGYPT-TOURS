@@ -17,6 +17,7 @@ import { getCountries } from "react-phone-number-input";
 // English country names stay here for every language: they are the
 // nationality list's names and the fallback for a code a locale table lacks.
 import en from "react-phone-number-input/locale/en";
+import InternationalPhoneTextInput from "@/components/common/PhoneField/InternationalPhoneTextInput";
 import { createBooking } from "@/lib/api/booking";
 import { Loader2, CheckCircle, XCircle, Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -42,22 +43,6 @@ const NATIONALITY_OPTIONS = BOOKING_COUNTRIES
     name: (en as Record<string, string>)[code] || code,
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
-
-/** `react-phone-number-input` intentionally maps a lone `+` to `undefined`
- * because it is not an E.164 number yet. Keep that safe model value while
- * rendering the international prefix in the real input so visitors can type
- * their digits directly after it. */
-const InternationalPhoneTextInput = React.forwardRef<
-  HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement>
->(({ value, ...props }, ref) => (
-  <input
-    {...props}
-    ref={ref}
-    value={value === undefined || value === null || value === "" ? "+" : value}
-  />
-));
-InternationalPhoneTextInput.displayName = "InternationalPhoneTextInput";
 
 /** A travel date is a calendar day, not an instant in time. Building the value
  *  from local date parts preserves exactly what the visitor selected instead

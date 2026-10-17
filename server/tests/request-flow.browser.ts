@@ -105,6 +105,31 @@ export async function runRequestBrowser({ base, token, admin, call, questionId }
     await expect(page).toHaveURL(/contact-form\?id=/);
     await expect(page.getByText('browser@example.travel', { exact: true }).last()).toBeVisible({ timeout: 60000 });
     assert.equal(await page.evaluate(() => (window as any).__audioActive), false);
+    await page.getByText('Activity history (0)', { exact: true }).click();
+    await expect(page.getByText('No changes recorded yet.', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Assign to me', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Assigned to you', exact: true })).toBeDisabled();
+    await expect(page.getByText('Assigned to Manager', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Release assignment', exact: true }).click();
+    await expect(page.getByText('Assignment released', { exact: true })).toBeVisible();
+    const notes = page.locator('#submission-admin-notes');
+    await notes.fill('Unsaved browser notes');
+    page.once('dialog', (dialog: any) => dialog.dismiss());
+    await page.getByRole('button', { name: 'Reload latest request', exact: true }).click();
+    await expect(notes).toHaveValue('Unsaved browser notes');
+    let releaseReload: () => void = () => {};
+    const reloadGate = new Promise<void>(resolve => { releaseReload = resolve; });
+    const detailPattern = `**/api/contact/${new URL(page.url()).searchParams.get('id')}`;
+    await page.route(detailPattern, async (route: any) => { if (route.request().method() === 'GET') await reloadGate; await route.continue(); });
+    page.once('dialog', (dialog: any) => dialog.accept());
+    await page.getByRole('button', { name: 'Reload latest request', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Reload latest request', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Assign to me', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Save Changes', exact: true })).toBeDisabled();
+    releaseReload();
+    await expect(notes).toHaveValue('');
+    await expect(page.getByRole('button', { name: 'Reload latest request', exact: true })).toBeEnabled();
+    await page.unroute(detailPattern);
     await page.goto(`http://127.0.0.1:3108/admin/contact-forms/contact-form?id=${questionId}`);
     await expect(page.getByText('Question visitor', { exact: true }).last()).toBeVisible({ timeout: 60000 });
     await page.goto('http://127.0.0.1:3108/admin/notifications');
@@ -150,7 +175,11 @@ export async function runRequestBrowser({ base, token, admin, call, questionId }
     const modules = path.join(dir, 'node_modules');
     if (path.dirname(disposable) !== temp || !path.basename(disposable).startsWith('jes-request-browser-')) throw new Error('Unexpected test cleanup path');
     if (!fs.lstatSync(modules).isSymbolicLink() || fs.realpathSync(modules) !== fs.realpathSync(path.join(source, 'node_modules'))) throw new Error('Unexpected test dependency link');
-    fs.unlinkSync(modules); // Remove the junction before recursively removing our temporary copy.
-    fs.rmSync(disposable, { recursive: true, force: true });
+    // Next dev can finish queued directory scans after close(). Keep the source
+    // available until process exit, when no asynchronous readers can run again.
+    process.once('exit', () => {
+      fs.unlinkSync(modules); // Remove the junction before removing the copy.
+      fs.rmSync(disposable, { recursive: true, force: true });
+    });
   }
 }
