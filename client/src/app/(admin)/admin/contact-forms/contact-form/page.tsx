@@ -70,6 +70,7 @@ const ContactFormPage: React.FC = () => {
   const [selected, setSelected] = useState<ContactSubmission | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [workflowBusy, setWorkflowBusy] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [newStatus, setNewStatus] = useState<'new' | 'replied' | 'archived'>('new');
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
@@ -699,6 +700,7 @@ const ContactFormPage: React.FC = () => {
                     <label htmlFor='submission-status'>Update Status</label>
                     <select
                       id='submission-status'
+                      disabled={updating || workflowBusy}
                       value={newStatus}
                       onChange={(e) =>
                         setNewStatus(e.target.value as ContactSubmission['status'])
@@ -711,10 +713,11 @@ const ContactFormPage: React.FC = () => {
                     </select>
                   </div>
                   <div className='admin-field'>
-                    <RequestWorkflow record={selected} url={API_ENDPOINTS.CONTACT.BY_ID(selected._id)} onUpdated={setSelected} onReload={handleViewDetails} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('contact:update')} />
+                    <RequestWorkflow record={selected} url={API_ENDPOINTS.CONTACT.BY_ID(selected._id)} onUpdated={setSelected} onReload={handleViewDetails} saving={updating} onBusyChange={setWorkflowBusy} hasUnsavedChanges={newStatus !== selected.status || adminNotes !== (selected.adminNotes || '')} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('contact:update')} />
                     <label htmlFor='submission-admin-notes'>Admin Internal Notes</label>
                     <textarea
                       id='submission-admin-notes'
+                      disabled={updating || workflowBusy}
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
                       placeholder='Add internal notes regarding this submission...'
@@ -733,7 +736,7 @@ const ContactFormPage: React.FC = () => {
               <button
                 className='btn-primary'
                 onClick={handleUpdateSubmission}
-                disabled={updating || !hasUnsavedChanges}
+                disabled={updating || workflowBusy || !hasUnsavedChanges}
                 title={!hasUnsavedChanges ? 'No changes to save' : undefined}
               >
                 {updating ? (

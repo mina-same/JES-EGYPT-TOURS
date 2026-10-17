@@ -358,6 +358,85 @@ test('destination: the clean page keeps its own canonical, language cluster and 
   assert.deepEqual(withFlag(undefined, () => getBlogListingRobots('landing', 1)), { index: false, follow: false });
 });
 
+// ── Tracking parameters on the three listings ───────────────────────────────
+
+test('srsltid and ref ride along exactly as utm_source does, and never decide the page', () => {
+  for (const key of ['utm_source', 'srsltid', 'ref']) {
+    assert.deepEqual(parseBlogListingQuery({ [key]: 'x' }), { page: 1, search: `?${key}=x`, isCanonical: true }, key);
+    assert.deepEqual(parseBlogListingQuery({ page: '2', [key]: 'x' }), { page: 2, search: `?page=2&${key}=x`, isCanonical: true }, key);
+    assert.deepEqual(parseBlogListingQuery({ page: '1', [key]: 'x' }), { page: 1, search: `?${key}=x`, isCanonical: false }, key);
+    // Beside tracking, a repeated page, an unknown key or a Tour filter is still no page.
+    for (const query of [{ page: ['2', '3'], [key]: 'x' }, { foo: 'bar', [key]: 'x' }, { PAGE: '2', [key]: 'x' }, { q: 'nile', [key]: 'x' }]) {
+      assert.equal(parseBlogListingQuery(query), null, `${key}: ${JSON.stringify(query)}`);
+    }
+  }
+  assert.deepEqual(parseBlogListingQuery({ utm_source: 'test', srsltid: 'abc' }), { page: 1, search: '?utm_source=test&srsltid=abc', isCanonical: true });
+});
+
+for (const entity of [CATEGORY, TOPIC, CAIRO]) {
+  test(`${entity.name}: with tracking, every page answers as the clean URL does, with the same cards`, async () => {
+    const pages = Math.ceil(entity.count / BLOG_LISTING_PAGE_SIZE);
+    const trackings: Record<string, string>[] = [{ srsltid: 'test' }, { ref: 'test' }, { utm_source: 'test', srsltid: 'abc' }, { gclid: 'g', fbclid: 'f', msclkid: 'm' }];
+    for (const tracking of trackings) {
+      const label = JSON.stringify(tracking);
+      const search = new URLSearchParams(tracking).toString();
+      const tracked = await request(entity, tracking);
+      assert.equal(tracked.outcome.status, 200, label);
+      assert.deepEqual(ids(tracked.outcome), ids((await request(entity, {})).outcome), label);
+
+      const second = await request(entity, { page: '2', ...tracking });
+      if (pages >= 2) {
+        assert.equal(second.outcome.status, 200, label);
+        assert.deepEqual(ids(second.outcome), ids((await request(entity, { page: '2' })).outcome), label);
+      } else {
+        assert.deepEqual(second.outcome, { status: 404 }, `${label}: tracking does not make a page`);
+      }
+
+      // ?page=1 and a slug alias redirect as they do for utm_source: tracking kept.
+      assert.deepEqual((await request(entity, { page: '1', ...tracking })).outcome, { status: 308, location: `/en/${entity.slugs.en}?${search}` }, label);
+      assert.deepEqual(
+        (await request(entity, { page: '01', ...tracking }, { locale: 'de', slug: entity.slugs.en })).outcome,
+        { status: 308, location: `/de/${entity.slugs.de}?${search}` },
+        label,
+      );
+    }
+  });
+
+  test(`${entity.name}: a tracking value with ( ) ~ ! ' never redirects to itself; a needed redirect lands once`, async () => {
+    const pages = Math.ceil(entity.count / BLOG_LISTING_PAGE_SIZE);
+    /** Requests `location` as a browser would — decoded — and returns that outcome. */
+    const land = async (location: string) => {
+      const url = new URL(location, BASE);
+      const [, locale, slug] = url.pathname.split('/');
+      const query: ListingQuery = {};
+      for (const [key, value] of url.searchParams) {
+        const seen = query[key];
+        query[key] = seen === undefined ? value : ([] as string[]).concat(seen, value);
+      }
+      return (await request(entity, query, { locale, slug })).outcome;
+    };
+    for (const value of ['a(b)', 'a)b', 'a~b', 'wow!', "it's", "a(b)~wow!'x", 'مصر', 'hello world']) {
+      for (const key of ['utm_source', 'ref']) {
+        const label = `${key}=${value}`;
+        assert.equal((await request(entity, { [key]: value })).outcome.status, 200, `${label}: served`);
+        if (pages >= 2) assert.equal((await request(entity, { page: '2', [key]: value })).outcome.status, 200, `${label} on page 2`);
+
+        // Alias + page=02 (or page=01) + the value: one redirect, then 200.
+        const page = pages >= 2 ? '02' : '01';
+        const first = (await request(entity, { page, [key]: value }, { locale: 'de', slug: entity.slugs.en })).outcome;
+        assert.equal(first.status, 308, label);
+        const location = (first as { location: string }).location;
+        assert.equal(new URL(location, BASE).searchParams.get(key), value, `${label}: the value is carried over unchanged`);
+        assert.deepEqual(await land(location).then((outcome) => outcome.status), 200, `${label}: ${location} is final`);
+        // And from page 1 with tracking only: one redirect to the clean URL, then 200.
+        const pageOne = (await request(entity, { page: '1', [key]: value })).outcome;
+        assert.equal(pageOne.status, 308, label);
+        assert.equal((await land((pageOne as { location: string }).location)).status, 200, label);
+      }
+    }
+  });
+}
+
 // ── Pieces ──────────────────────────────────────────────────────────────────
 
 test('page 1 exists with nothing to list; a later page needs the count and a card', () => {

@@ -35,3 +35,31 @@ test('filtered page 2 has parent canonical and no facet hreflang cluster', async
   const result = await alternates('en', 'egypt-tour-packages', data, 'category', parsePublicListingQuery({ destinations: 'aswan', page: '2' }, { destinationKeys: ['aswan'] }));
   assert.deepEqual(result, { canonical: `${baseUrl}/en/egypt-tour-packages` });
 });
+
+test('tracking parameters never reach a canonical or an alternate: metadata is the untracked URL\'s', async () => {
+  const parse = (query: Record<string, string>) => parsePublicListingQuery(query, { destinationKeys: ['aswan', 'cairo'] });
+  const trackings: Record<string, string>[] = [
+    { srsltid: 'abc' }, { ref: 'partner' }, { utm_source: 'google', srsltid: 'abc' }, { gclid: 'g', fbclid: 'f', msclkid: 'm' },
+    { ref: 'a~b' }, { utm_source: 'a(b)' }, { ref: "it's", utm_campaign: "a(b)~wow!'x" }, { ref: 'مصر' },
+  ];
+  const states: Record<string, string>[] = [{}, { page: '2' }, { page: '3' }, { destinations: 'cairo' }, { destinations: 'cairo', page: '2', sort: 'price-asc' }];
+  for (const type of ['category', 'subcategory'] as const) {
+    for (const state of states) {
+      const untracked = await alternates('en', 'egypt-tour-packages', data, type, parse(state));
+      for (const tracking of trackings) {
+        const tracked = await alternates('en', 'egypt-tour-packages', data, type, parse({ ...state, ...tracking }));
+        const label = `${type} ${JSON.stringify({ ...state, ...tracking })}`;
+        assert.deepEqual(tracked, untracked, label);
+        for (const url of [tracked.canonical, ...Object.values(tracked.languages ?? {})]) {
+          assert.doesNotMatch(String(url), /utm_|srsltid|ref=|gclid|fbclid|msclkid/, label);
+        }
+      }
+    }
+  }
+  // The shapes asserted above, spelled out once.
+  assert.equal((await alternates('en', 'egypt-tour-packages', data, 'category', parse({ page: '2', srsltid: 'abc' }))).canonical, `${baseUrl}/en/egypt-tour-packages?page=2`);
+  assert.deepEqual(
+    await alternates('en', 'egypt-tour-packages', data, 'category', parse({ destinations: 'cairo', utm_source: 'google', srsltid: 'abc' })),
+    { canonical: `${baseUrl}/en/egypt-tour-packages` },
+  );
+});

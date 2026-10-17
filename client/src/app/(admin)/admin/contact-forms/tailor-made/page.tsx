@@ -67,6 +67,7 @@ const TailorMadePage: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<TailorMadeRequest | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [workflowBusy, setWorkflowBusy] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
@@ -611,7 +612,8 @@ const TailorMadePage: React.FC = () => {
                       <div className="admin-field">
                         <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Status</label>
                         <select 
-                          value={newStatus} 
+                          disabled={updating || workflowBusy}
+                      value={newStatus}
                           onChange={(e) => setNewStatus(e.target.value)}
                           className="status-select w-full"
                         >
@@ -623,10 +625,11 @@ const TailorMadePage: React.FC = () => {
                         </select>
                       </div>
                       <div className="admin-field">
-                        <RequestWorkflow record={selectedRequest} url={API_ENDPOINTS.TAILOR_MADE.BY_ID(selectedRequest._id)} onUpdated={setSelectedRequest} onReload={handleViewDetails} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('tailor_made:update')} />
+                        <RequestWorkflow record={selectedRequest} url={API_ENDPOINTS.TAILOR_MADE.BY_ID(selectedRequest._id)} onUpdated={setSelectedRequest} onReload={handleViewDetails} saving={updating} onBusyChange={setWorkflowBusy} hasUnsavedChanges={newStatus !== selectedRequest.status || adminNotes !== (selectedRequest.adminNotes || '')} editable={user?.role === 'superadmin' || !!user?.permissions?.includes('tailor_made:update')} />
                     <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Internal Notes</label>
                         <textarea
-                          value={adminNotes}
+                          disabled={updating || workflowBusy}
+                      value={adminNotes}
                           onChange={(e) => setAdminNotes(e.target.value)}
                           placeholder="Add internal notes about this request..."
                           rows={3}
@@ -646,7 +649,7 @@ const TailorMadePage: React.FC = () => {
               <button 
                 className="btn-primary" 
                 onClick={handleUpdateRequest}
-                disabled={updating || !(user?.role === 'superadmin' || user?.permissions?.includes('tailor_made:update'))}
+                disabled={updating || workflowBusy || !(user?.role === 'superadmin' || user?.permissions?.includes('tailor_made:update'))}
               >
                 {updating ? (
                   <>
