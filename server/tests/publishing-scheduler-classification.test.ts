@@ -65,9 +65,11 @@ const matches = (doc: Doc, filter: Doc): boolean =>
       if ('$lte' in expected && !(value instanceof Date && value.getTime() <= (expected.$lte as Date).getTime())) return false;
       if ('$type' in expected && typeof value !== expected.$type) return false;
       if ('$ne' in expected && value === expected.$ne) return false;
+      if ('$in' in expected && !(expected.$in as unknown[]).map(String).includes(String(value))) return false;
       if ('$nin' in expected && (expected.$nin as unknown[]).map(String).includes(String(value))) return false;
       return true;
     }
+    if (expected instanceof Date) return value instanceof Date && value.getTime() === expected.getTime();
     return value === expected;
   });
 
@@ -159,9 +161,10 @@ const assertStillScheduled = (doc: Doc) => {
   assert.equal('publishedAt' in doc, false);
 };
 
+/** Published, and dated with the time it was scheduled for — not the run's. */
 const assertPublished = (doc: Doc) => {
   assert.equal(doc.status, 'published');
-  assert.equal(doc.publishedAt, NOW);
+  assert.deepEqual(doc.publishedAt, DUE);
   assert.equal('scheduledAt' in doc, false);
   assert.equal(doc.editVersion, 3);
 };
@@ -176,8 +179,8 @@ test('a due article that is still properly filed is published', async () => {
     assert.equal(byId(store, 'not-due').status, 'scheduled');
     assert.equal(byId(store, 'not-due').scheduledAt, LATER);
     assert.deepEqual(seen.errors, []);
-    // With nothing held back the write is the one it always was.
-    assert.equal('_id' in seen.writes[0], false);
+    // The write matches the articles just checked, and nothing else.
+    assert.deepEqual(seen.writes[0]._id, { $in: ['valid-1'] });
   });
 });
 
@@ -230,8 +233,9 @@ test('one article held back does not hold back the others due in the same run', 
     assertPublished(byId(store, 'mixed-valid-a'));
     assertPublished(byId(store, 'mixed-valid-b'));
     assertStillScheduled(byId(store, 'mixed-held'));
-    // The write is the usual one, minus the article that failed the rule.
-    assert.deepEqual(seen.writes[0]._id, { $nin: ['mixed-held'] });
+    // One write (both are dated DUE), for the two articles that passed the rule.
+    assert.equal(seen.writes.length, 1);
+    assert.deepEqual(seen.writes[0]._id, { $in: ['mixed-valid-a', 'mixed-valid-b'] });
     assert.equal(seen.errors.length, 1);
   });
 });
@@ -302,9 +306,8 @@ const assertHeldForEnglish = async (store: Store, id: string, reason: RegExp) =>
     assert.equal(seen.errors.length, 1);
     assert.match(seen.errors[0], new RegExp(`\\[publishing\\] Scheduled article ${id} ".*" was not published: `));
     assert.match(seen.errors[0], reason);
-    // Left out of the run's one publishing write.
-    assert.equal(seen.writes.length, 1);
-    assert.deepEqual(seen.writes[0]._id, { $nin: [id] });
+    // Nothing to publish, so no publishing write at all.
+    assert.equal(seen.writes.length, 0);
   });
 };
 
@@ -317,6 +320,8 @@ test('a due article with a complete English page is published, and the scheduler
     assertPublished(byId(store, 'english-ready'));
     assert.deepEqual(seen.errors, []);
     for (const field of ['title', 'slug', 'contentBlocks']) assert.ok(seen.selected.includes(field), `reads ${field}`);
+    // And what the first-publication date is made from.
+    for (const field of ['publishedAt', 'scheduledAt']) assert.ok(seen.selected.includes(field), `reads ${field}`);
   });
 });
 
@@ -461,7 +466,7 @@ test('both rule families apply: a complete English page does not excuse a broken
       assertStillScheduled(byId(store, id));
       assert.deepEqual(byId(store, id), before[i]);
     });
-    assert.deepEqual(seen.writes[0]._id, { $nin: held });
+    assert.deepEqual(seen.writes[0]._id, { $in: ['both-valid'] });
     assert.equal(seen.errors.length, 2);
     const reasonFor = (id: string) => String(seen.errors.find((line) => line.includes(`Scheduled article ${id} `)));
     assert.match(reasonFor('english-ok-classification-broken'), /The selected subcategory no longer exists/);

@@ -20,6 +20,7 @@ import {
   switchesOff,
 } from '../utils/blogClassification';
 import {
+  BLOG_CHRONOLOGICAL_SORT,
   BLOG_LISTING_FIELDS,
   BLOG_LISTING_POPULATE,
   BLOG_WITHOUT_COMMENTS,
@@ -205,7 +206,7 @@ export const getBlogsByDestination = async (req: Request, res: Response): Promis
       Blog.find(filter)
         .select(BLOG_LISTING_FIELDS)
         .populate(BLOG_LISTING_POPULATE)
-        .sort('-publishedAt')
+        .sort(BLOG_CHRONOLOGICAL_SORT)
         .skip(skip)
         .limit(limit)
         .lean(),

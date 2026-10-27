@@ -59,11 +59,29 @@ test('request lifecycle with a real isolated MongoDB and Socket.IO server', { ti
   assert.equal(booking.status, 201); assert.equal(booking.body.data.locale, 'de');
   const replay = await call('/bookings', { method: 'POST', headers: { 'Idempotency-Key': key }, body: bookingInput });
   assert.equal(replay.status, 200); assert.equal(await Booking.countDocuments(), 1);
-  const tailorInput = { fullName: 'Tailor visitor', email: 'tailor+trip@example.travel', country: 'Germany', startMonth: 'January', startYear: '2099', endMonth: 'February', endYear: '2099', adults: 2, comments: 'Custom holiday', minBudget: '$1,000', maxBudget: '$2,000', locale: 'de', status: 'completed', adminNotes: 'Injected' };
+  // Next year: within the years the form offers (the API refuses 2099).
+  const nextYear = String(new Date().getFullYear() + 1);
+  const tailorInput = { fullName: 'Tailor visitor', email: 'tailor+trip@example.travel', country: 'Germany', startMonth: 'January', startYear: nextYear, endMonth: 'February', endYear: nextYear, adults: 2, comments: 'Custom holiday', minBudget: '$1,000', maxBudget: '$2,000', locale: 'de', status: 'completed', adminNotes: 'Injected' };
   const tailorKey = randomUUID();
   const tailor = await call('/tailor-made', { method: 'POST', headers: { 'Idempotency-Key': tailorKey }, body: tailorInput });
   assert.equal(tailor.status, 201); assert.equal(tailor.body.data.status, 'pending'); assert.equal(tailor.body.data.adminNotes, undefined);
   await call('/tailor-made', { method: 'POST', headers: { 'Idempotency-Key': tailorKey }, body: tailorInput }); assert.equal(await Tailor.countDocuments(), 1);
+  // Bypassing the form: refused with a 400 before anything is stored, and the
+  // answer names the fields without echoing what was sent. (Six, so the
+  // endpoint's 10-per-15-minutes limit leaves room for the requests below.)
+  for (const invalid of [
+    { ...tailorInput, phone: 'call me maybe' },
+    { ...tailorInput, country: 'x'.repeat(20000) },
+    { ...tailorInput, interests: Array.from({ length: 5000 }, (_, i) => `spam ${i}`) },
+    { ...tailorInput, minBudget: '$999999999' },
+    { ...tailorInput, endYear: '9999' },
+    { ...tailorInput, fullName: { $gt: '' } },
+  ]) {
+    const rejected = await call('/tailor-made', { method: 'POST', headers: { 'Idempotency-Key': randomUUID() }, body: invalid });
+    assert.equal(rejected.status, 400); assert.equal(rejected.body.success, false);
+    assert.ok(rejected.body.errors.length > 0 && rejected.body.errors.every((error: Record<string, unknown>) => typeof error.path === 'string' && !('value' in error)));
+  }
+  assert.equal(await Tailor.countDocuments(), 1, 'Invalid tailor-made requests must not be stored');
   const contact = await call('/contact', { method: 'POST', headers: { 'Idempotency-Key': randomUUID() }, body: { name: 'Contact visitor', email: 'contact@example.travel', phone: '+201001234567', message: 'Please help plan our holiday', locale: 'en' } }); assert.equal(contact.status, 201);
   const question = await call('/contact/tour-question', { method: 'POST', headers: { 'Idempotency-Key': randomUUID() }, body: { source: 'tour-question', name: 'Question visitor', email: 'question@example.travel', message: 'What time does the tour begin?', tourName: 'Original tour name', tourSlug: 'integration-tour', locale: 'en' } }); assert.equal(question.status, 201);
   const trade = await call('/contact/travel-trade', { method: 'POST', headers: { 'Idempotency-Key': randomUUID() }, body: { source: 'travel-trade', inquiryType: 'b2b-rates', name: 'Trade visitor', email: 'trade@example.travel', phone: '+201001234567', companyName: 'Test agency', companyWebsite: 'https://example.com', country: 'Germany', businessType: 'travel-agency', primaryMarket: 'Europe', annualTravelers: '10-25', travelDates: 'January 2099', travelers: 10, destinations: 'Cairo', serviceLanguage: 'English', serviceLevel: 'premium', message: 'Please share your partnership rates for our agency.', consentGiven: true, locale: 'en' } }); assert.equal(trade.status, 201);

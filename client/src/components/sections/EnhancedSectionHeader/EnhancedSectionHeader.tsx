@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Container, Row, Col } from 'react-bootstrap';
+import { normalizeLocale, resolveSiteLink } from '@/lib/url';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
@@ -107,6 +109,13 @@ export default function EnhancedSectionHeader({
   };
 
   const hasButton = !!button?.label && !!button?.href;
+  // The button's link is typed into the CMS. An address of this site — the
+  // www domain or its old Vercel one, any language, an old page name — becomes
+  // this page's language on this domain; only another site keeps the editor's
+  // "new tab" (as the homepage promo does).
+  const locale = normalizeLocale(useParams()?.locale);
+  const buttonLink = hasButton ? resolveSiteLink(button!.href, locale) : null;
+  const opensNewTab = !!buttonLink?.external && !!button?.newTab;
 
   return (
     <section className="enhanced-section-header section-space-top">
@@ -225,13 +234,13 @@ export default function EnhancedSectionHeader({
               </div>
             ) : null}
 
-            {hasButton ? (
+            {buttonLink ? (
               <div style={{ marginTop: 18 }}>
                 <Link
-                  href={button!.href!}
+                  href={buttonLink.href}
                   className="gotur-btn transition-all group flex items-center justify-center gap-3"
-                  target={button!.newTab ? '_blank' : undefined}
-                  rel={button!.newTab ? 'noreferrer noopener' : undefined}
+                  target={opensNewTab ? '_blank' : undefined}
+                  rel={opensNewTab ? 'noreferrer noopener' : undefined}
                   style={{ width: 'fit-content' }}
                 >
                   <span className="font-bold">{button!.label}</span>

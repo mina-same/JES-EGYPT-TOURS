@@ -2,7 +2,7 @@ import { localizeBlogArticles, localizePreservingSlugs } from '../utils/localize
 import { Request, Response } from 'express';
 import EditorialAuthor from '../models/EditorialAuthor';
 import Blog from '../models/Blog';
-import { BLOG_CARD_FIELDS } from '../utils/blogCardPopulate';
+import { BLOG_CARD_FIELDS, BLOG_CHRONOLOGICAL_SORT } from '../utils/blogCardPopulate';
 import { publicBlogArticleFilter } from '../utils/blogAvailability';
 import {
   BACKFILLABLE_AUTHOR_FIELDS,
@@ -161,7 +161,9 @@ export const getEditorialAuthorBySlug = async (req: Request, res: Response): Pro
       .populate('author', 'name')
       .populate('editorialAuthor', 'name slug')
       .populate('subCategory', 'name slug')
-      .sort({ publishedAt: -1, createdAt: -1 })
+      // The shared chronological order: the featured split and the pages below
+      // are slices of one fixed sequence.
+      .sort(BLOG_CHRONOLOGICAL_SORT)
       .lean();
 
     /*

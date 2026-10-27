@@ -6,6 +6,7 @@ import { ILocalizedString, LocalizedStringSchema, OptionalLocalizedStringSchema,
 import { IFAQ, FAQSchema } from './shared/FaqSchema';
 import { sanitizeDocumentPaths, sanitizeUpdatePaths } from '../utils/sanitizeRichText';
 import { BLOG_LOCALES, BLOG_SLUG_MIN_LENGTH, isStrictBlogSlug } from '../utils/blogAvailability';
+import { resolveBlogPublishedAt } from '../utils/publishing';
 
 // Content Block Types
 interface IImageBlock {
@@ -539,14 +540,16 @@ BlogSchema.pre<IBlog>('save', function (next) {
     }
   }
   
-  // Set publishedAt when status changes to published
-  if (this.status === 'published' && !this.publishedAt) {
-    this.publishedAt = new Date();
+  // The backstop for a save that PUBLISHES without a publishedAt: a new article
+  // saved as published, or one switched to published. Not a save of an article
+  // that was published already — a comment, a comments toggle — which is no
+  // publication and must not date an article published before it had one.
+  // A scheduled or draft article keeps the date it was first public on.
+  if (this.status === 'published' && (this.isNew || this.isModified('status'))) {
+    this.publishedAt = resolveBlogPublishedAt({ existingPublishedAt: this.publishedAt });
   }
 
-  if (this.status === 'scheduled') {
-    this.publishedAt = undefined;
-  } else {
+  if (this.status !== 'scheduled') {
     this.scheduledAt = undefined;
   }
   

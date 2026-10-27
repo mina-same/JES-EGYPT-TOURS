@@ -1,4 +1,4 @@
-import type { PopulateOptions } from 'mongoose';
+import type { PopulateOptions, SortOrder } from 'mongoose';
 import { publicBlogArticleFilter } from './blogAvailability';
 
 /**
@@ -72,6 +72,27 @@ export const BLOG_LISTING_POPULATE: PopulateOptions[] = [
   { path: 'author', select: 'name' },
   { path: 'subCategory', select: 'name slug' },
 ];
+
+/**
+ * The order of every CHRONOLOGICAL article list: the category, topic and
+ * destination listings, Search, the featured feed and the author page. Newest
+ * first, and `_id` among articles published at the same instant.
+ *
+ * `publishedAt` alone is not an order. MongoDB returns articles that share a
+ * value in whatever order the query plan meets them, and each listing page is
+ * a query of its own, so two articles with one date — the scheduler gives every
+ * article it publishes in one run the same `publishedAt` — could fall on both
+ * sides of a page edge, or on neither. `_id` is unique, so the order is total:
+ * one sequence, and the pages are slices of it.
+ *
+ * An article with no `publishedAt` sorts after every dated one, as MongoDB
+ * orders a missing value below any date; `_id` orders those among themselves.
+ *
+ * Lists an editor ordered by hand — a related-posts list, a page's curated
+ * featured articles, a tour's article references — keep their stored order and
+ * never use this.
+ */
+export const BLOG_CHRONOLOGICAL_SORT = Object.freeze({ publishedAt: -1, _id: -1 } as const satisfies Record<string, SortOrder>);
 
 /**
  * A whole article minus its stored comments, for the public responses that

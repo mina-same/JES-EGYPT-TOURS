@@ -10,8 +10,13 @@ import { createTailorMadeRequest } from '../src/controllers/tailorMadeController
 import { createContactSubmission, createTourQuestionSubmission, createTravelTradeSubmission } from '../src/controllers/contactController';
 import { paginationInput, savePublicSubmission, respondSubmissionError, publicSubmissionReceipt } from '../src/utils/submission';
 import { budgetAmount, validBudgetRange, validTravelRange } from '../src/utils/tailorMade';
+import { getBookingToday } from '../src/utils/booking';
 
-const payload = () => ({ fullName: 'Test Visitor', email: 'alice+trip@example.travel', country: 'Germany', startMonth: 'January', startYear: '2099', endMonth: 'February', endYear: '2099', adults: 2, comments: 'Travel request', minBudget: '$1,000', maxBudget: '$2,000', locale: 'de' });
+// Next year on Cairo's calendar: within the years the form offers (the API no
+// longer accepts the 2099 these fixtures used to name).
+const thisYear = Number(getBookingToday().slice(0, 4));
+const nextYear = String(thisYear + 1);
+const payload = () => ({ fullName: 'Test Visitor', email: 'alice+trip@example.travel', country: 'Germany', startMonth: 'January', startYear: nextYear, endMonth: 'February', endYear: nextYear, adults: 2, comments: 'Travel request', minBudget: '$1,000', maxBudget: '$2,000', locale: 'de' });
 const response = () => ({ code: 0, body: null as any, status(code: number) { this.code = code; return this; }, json(body: any) { this.body = body; return this; } });
 
 test('email validation accepts aliases and long domains in all submission models', () => {
@@ -26,14 +31,14 @@ test('email validation accepts aliases and long domains in all submission models
 
 test('tailor validation rejects past/inverted months and inverted/malformed budgets', async () => {
   assert.equal(validTravelRange(payload()), true);
-  assert.equal(validTravelRange({ ...payload(), endYear: '2098' }), false);
+  assert.equal(validTravelRange({ ...payload(), endYear: String(thisYear) }), false);
   assert.equal(validTravelRange({ ...payload(), startYear: '2000' }), false);
   assert.equal(validTravelRange({ ...payload(), startYear: 'invalid' }), false);
   assert.equal(validBudgetRange({ minBudget: '$5,000+', maxBudget: '$1,000' }), false);
   assert.equal(validBudgetRange({ minBudget: 'invalid' }), false);
   assert.equal(validBudgetRange({ minBudget: '$5,000+', maxBudget: 'No Limit' }), true);
   assert.equal(budgetAmount('$1,000'), 1000);
-  const req: any = { body: { ...payload(), endYear: '2098', maxBudget: '$500' } };
+  const req: any = { body: { ...payload(), endYear: String(thisYear), maxBudget: '$500' } };
   for (const rule of tailorMadeRequestValidation) await rule.run(req);
   assert.ok(validationResult(req).array().length >= 2);
 });
