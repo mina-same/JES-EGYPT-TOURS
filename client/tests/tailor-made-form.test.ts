@@ -183,3 +183,61 @@ test('the date and budget messages read correctly, and Spanish addresses the vis
   assert.equal(errors('es').travelRange, 'Elija fechas actuales o futuras, con el final igual o posterior al inicio.');
   assert.equal(/\bElige\b/.test(JSON.stringify(messages.es)), false);
 });
+
+test('the tour booking form\'s spam trap is on the form, hidden from people, and sent with every request', () => {
+  // The same markup and class as the booking form's trap (the class lives in custom.css).
+  const trap = code.match(/<div className="booking-honeypot" aria-hidden="true">([\s\S]*?)<\/div>/);
+  assert.ok(trap, 'hidden wrapper');
+  for (const attribute of ['name="website"', 'value={formData.website}', 'onChange={handleInputChange}', 'tabIndex={-1}', 'autoComplete="off"', 'data-lpignore="true"', 'data-1p-ignore="true"']) {
+    assert.ok(trap[1].includes(attribute), attribute);
+  }
+  assert.equal(/\brequired\b/.test(trap[1]), false, 'never required');
+  // Controlled, empty for a person, and part of the body (`...formData`).
+  assert.match(code, /website: string;/);
+  assert.match(code, /comments: '',\s*website: '',/);
+  assert.match(code, /body: JSON\.stringify\(\{\s*\.\.\.formData,/);
+  // Inside the last step, not between it and the submit box: the step's
+  // `:has(+ .form-submit-wrapper)` rule must keep matching.
+  assert.match(code, /<div className="booking-honeypot"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<div className="form-submit-wrapper">/);
+  const customCss = read('../src/assets/css/custom.css');
+  assert.match(customCss, /\.booking-honeypot \{[^}]*position: absolute !important;[^}]*clip: rect\(0, 0, 0, 0\) !important;/);
+  assert.match(read('../src/app/(visitor)/[locale]/(home)/layout.tsx'), /import "@\/assets\/css\/custom\.css";/);
+});
+
+test('the phone hint stays on one line inside the field, and the budget lists\' placeholders fit them, in every language', () => {
+  // The hint wrapped to two lines past the field's padding on narrow phones
+  // (German at 360px): it now has a right edge and ends in an ellipsis instead.
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  const hint = css.match(/\.tm-phone-empty-label \{([^}]*)\}/);
+  assert.ok(hint, '.tm-phone-empty-label');
+  for (const declaration of ['right: 8px;', 'overflow: hidden;', 'white-space: nowrap;', 'text-overflow: ellipsis;', 'line-height: 1.4;']) assert.ok(hint[1].includes(declaration), declaration);
+  assert.equal(lookup(messages.de, 'form.placeholders.phone'), 'Vorwahl + Nummer');
+  // "Presupuesto mínimo / máximo" wrapped (desktop) or was cut to "Presupuesto r"
+  // (tablet) where the two lists share a row; the group's label already says
+  // "Presupuesto". Short, like the other three languages' placeholders.
+  assert.equal(lookup(messages.es, 'form.fields.minBudget'), 'Mínimo');
+  assert.equal(lookup(messages.es, 'form.fields.maxBudget'), 'Máximo');
+  for (const locale of LOCALES) {
+    for (const key of ['form.fields.minBudget', 'form.fields.maxBudget']) assert.ok(String(lookup(messages[locale], key)).length <= 11, `${locale} ${key}`);
+  }
+});
+
+test('a long choice or placeholder never breaks a field: one line with "…" (native lists, inputs); the desktop list wraps its few longest countries', () => {
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  assert.match(css, /\.tailor-made-section \.form-input,\s*\.tailor-made-section \.form-select \{\s*text-overflow: ellipsis;\s*\}/);
+  assert.match(css, /\.tailor-made-section \.form-select \{\s*overflow: hidden;\s*white-space: nowrap;/);
+  // The customizable list cannot shorten its closed text: it wraps instead of
+  // running under its arrow.
+  const desktop = css.match(/@supports \(appearance: base-select\) \{[\s\S]*?\.tailor-made-form \.form-select \{([^}]*)\}/);
+  assert.ok(desktop && /white-space: normal;/.test(desktop[1]), 'base-select field wraps');
+  // N-1: "Nessun limite" took two lines where the two budget lists share a row (769–991px).
+  assert.equal(lookup(messages.it, 'form.options.noLimit'), 'Senza limite');
+  for (const locale of LOCALES) assert.ok(String(lookup(messages[locale], 'form.options.noLimit')).length <= 12, locale);
+  // N-3: the four placeholders that were cut at 320px, shortened with their meaning kept.
+  assert.equal(lookup(messages.en, 'form.placeholders.dietary'), 'e.g., Vegetarian, Halal');
+  assert.equal(lookup(messages.it, 'form.placeholders.fullName'), 'Inserisci nome e cognome');
+  assert.equal(lookup(messages.it, 'form.placeholders.mobility'), 'Esigenze di accessibilità');
+  assert.equal(lookup(messages.es, 'form.placeholders.mobility'), 'Accesibilidad que necesita');
+  // Spanish keeps "usted" (necesita), as on the rest of the page.
+  assert.equal(/\bnecesitas\b/.test(String(lookup(messages.es, 'form.placeholders.mobility'))), false);
+});

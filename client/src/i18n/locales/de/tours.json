@@ -343,7 +343,9 @@
       "errorName": "Bitte geben Sie Ihren Namen ein",
       "errorEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
       "errorMessage": "Bitte sagen Sie uns, was Sie wissen möchten",
-      "failed": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      "failed": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "invalid": "Bitte prüfen Sie Ihre Angaben und versuchen Sie es erneut.",
+      "rateLimited": "Ihre Frage konnte gerade nicht gesendet werden. Bitte warten Sie einige Minuten und versuchen Sie es dann erneut."
     }
   }
 }

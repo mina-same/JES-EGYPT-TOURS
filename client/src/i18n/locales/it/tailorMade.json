@@ -54,7 +54,7 @@
       "additionalComments": "Commenti aggiuntivi"
     },
     "placeholders": {
-      "fullName": "Inserisci il tuo nome completo",
+      "fullName": "Inserisci nome e cognome",
       "email": "tua.email@esempio.com",
       "phone": "Prefisso + numero",
       "country": "Seleziona il tuo paese",
@@ -64,7 +64,7 @@
       "accommodation": "Seleziona preferenza",
       "specialOccasion": "Seleziona se applicabile",
       "dietary": "es. Vegetariano, Halal",
-      "mobility": "Eventuali esigenze di accessibilità",
+      "mobility": "Esigenze di accessibilità",
       "comments": "Raccontaci di più sul viaggio dei tuoi sogni..."
     },
     "buttons": {
@@ -120,7 +120,7 @@
       "failFallback": "Impossibile inviare la richiesta. Riprova."
     },
     "options": {
-      "noLimit": "Nessun limite",
+      "noLimit": "Senza limite",
       "months": {
         "january": "Gennaio",
         "february": "Febbraio",

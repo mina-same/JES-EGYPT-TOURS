@@ -343,7 +343,9 @@
       "errorName": "Please enter your name",
       "errorEmail": "Please enter a valid email",
       "errorMessage": "Please tell us what you'd like to know",
-      "failed": "Something went wrong. Please try again."
+      "failed": "Something went wrong. Please try again.",
+      "invalid": "Please check your details and try again.",
+      "rateLimited": "We could not send your question right now. Please wait a few minutes and try again."
     }
   }
 }

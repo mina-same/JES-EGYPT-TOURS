@@ -56,6 +56,9 @@ type TailorMadeFormData = {
   dietary: string;
   mobility: string;
   comments: string;
+  /** The spam trap: hidden, so only a bot fills it, and the API then refuses
+   *  the request. Sent empty with every request, as on the tour booking form. */
+  website: string;
 };
 
 const createInitialFormData = (): TailorMadeFormData => ({
@@ -82,6 +85,7 @@ const createInitialFormData = (): TailorMadeFormData => ({
   dietary: '',
   mobility: '',
   comments: '',
+  website: '',
 });
 
 /** The English names are what the API accepts (an enum on the server); each
@@ -917,6 +921,25 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                       required
                     />
                     {errors.comments && <span className="form-error" id={errorId('comments')}>{errors.comments}</span>}
+                  </div>
+
+                  {/* Spam trap, as on the tour booking form: out of sight, the
+                      keyboard and screen readers. Kept inside this step, not
+                      before the submit box, whose spacing rule needs this step
+                      right in front of it. Never required. */}
+                  <div className="booking-honeypot" aria-hidden="true">
+                    <label htmlFor={fieldId('website')}>Website</label>
+                    <input
+                      type="text"
+                      id={fieldId('website')}
+                      name="website"
+                      value={formData.website}
+                      onChange={handleInputChange}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      data-lpignore="true"
+                      data-1p-ignore="true"
+                    />
                   </div>
                 </div>
               </div>

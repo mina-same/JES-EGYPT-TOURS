@@ -8,7 +8,7 @@
  */
 
 /** What the API answers to a submission, as far as the form reads it. */
-export type SubmitResponse = { success?: boolean; errors?: Array<{ path?: string }> };
+export type SubmitResponse = { success?: boolean; code?: string; errors?: Array<{ path?: string }> };
 
 /** The four date lists share one message: a range is about both of its ends. */
 export const DATE_FIELDS = ['startMonth', 'startYear', 'endMonth', 'endYear'];
@@ -33,6 +33,12 @@ export type SubmissionOutcome =
 export function submissionOutcome(status: number, body: SubmitResponse | null): SubmissionOutcome {
   if (status >= 200 && status < 300 && body?.success) return { type: 'success' };
   if (status === 429) return { type: 'error', message: 'form.errors.tooManyRequests', fields: {} };
+  // The spam trap's answer. A person only gets it if something filled the
+  // hidden field for them, so the details are not the problem: the same "could
+  // not accept your request … or message us on WhatsApp" as a rate limit.
+  if (status === 400 && body?.code === 'INVALID_TAILOR_MADE_REQUEST') {
+    return { type: 'error', message: 'form.errors.tooManyRequests', fields: {} };
+  }
   if (status === 400) {
     // The server checks what this form checks, so this is rare (a month that
     // has just ended in Cairo, say); a field it names gets the form's message.

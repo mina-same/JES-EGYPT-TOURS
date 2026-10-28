@@ -66,6 +66,17 @@ test('a rejected field gets the form\'s own message; the dates are marked togeth
   for (const key of ['form.errors.invalidSubmission', 'form.errors.invalidPhone', 'form.errors.travelRange', 'form.errors.invalidEmail', 'form.errors.budgetRange', 'form.errors.nameMinLength', 'form.errors.countryRequired', 'form.errors.commentsRequired']) translated(key);
 });
 
+test("a request the API refuses without a reason (its spam trap) is not blamed on the visitor's details", () => {
+  // Only reachable by a person if something filled the hidden field for them:
+  // the way out is the WhatsApp line, not "check your details".
+  const refused = { success: false, code: 'INVALID_TAILOR_MADE_REQUEST', error: 'Unable to process tailor-made request.' };
+  assert.deepEqual(submissionOutcome(400, refused), { type: 'error', message: 'form.errors.tooManyRequests', fields: {} });
+  for (const locale of LOCALES) assert.match(String(lookup(messages[locale], 'form.errors.tooManyRequests')), /WhatsApp/, locale);
+  // Another route's code, or field errors, keep the usual 400 handling.
+  assert.deepEqual(submissionOutcome(400, { code: 'INVALID_BOOKING_REQUEST' }), { type: 'error', message: 'form.errors.invalidSubmission', fields: {} });
+  assert.deepEqual(submissionOutcome(400, { errors: [{ path: 'email' }] }), { type: 'error', message: 'form.errors.invalidSubmission', fields: { email: 'form.errors.invalidEmail' } });
+});
+
 test('any other answer is a failed attempt, not a network error', () => {
   // Real answers carry more than the form reads (`error`, `code`).
   const answer = (status: number, body: unknown) => submissionOutcome(status, body as Parameters<typeof submissionOutcome>[1]);

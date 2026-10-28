@@ -343,7 +343,9 @@
       "errorName": "Introduce tu nombre",
       "errorEmail": "Introduce un correo electrónico válido",
       "errorMessage": "Cuéntanos qué te gustaría saber",
-      "failed": "Algo salió mal. Inténtalo de nuevo."
+      "failed": "Algo salió mal. Inténtalo de nuevo.",
+      "invalid": "Revisa tus datos e inténtalo de nuevo.",
+      "rateLimited": "No hemos podido enviar tu pregunta en este momento. Espera unos minutos e inténtalo de nuevo."
     }
   }
 }

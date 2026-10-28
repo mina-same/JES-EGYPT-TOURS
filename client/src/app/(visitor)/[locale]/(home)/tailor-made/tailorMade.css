@@ -217,7 +217,17 @@
    so on phones, tablets and browsers without customizable selects every list
    looked like a text field. The same gold chevron as the desktop lists' picker
    icon, which replaces it inside the @supports block below. */
+/* Text longer than its field (a placeholder on a 320px phone, a long country
+   or month name in a native list) ends in "…" on one line instead of being
+   cut off mid-word. Text areas wrap. */
+.tailor-made-section .form-input,
 .tailor-made-section .form-select {
+  text-overflow: ellipsis;
+}
+
+.tailor-made-section .form-select {
+  overflow: hidden;
+  white-space: nowrap;
   padding-right: 30px;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3e%3cpath fill='none' stroke='%23b79c5c' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='M1 1.5l5 5 5-5'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
@@ -406,6 +416,11 @@
       /* ::picker-icon is the arrow here, not the background chevron. */
       padding-right: 14px;
       background-image: none;
+      /* The closed field cannot shorten its text (the browser draws that box,
+         and nowrap would push the arrow out of it): a long choice, the
+         longest country names, takes a second line instead, readable in
+         full. The other lists' choices fit on one line. */
+      white-space: normal;
     }
 
     .tailor-made-form .form-select::picker-icon {
@@ -496,15 +511,23 @@
 }
 
 /* The field shows a bare "+" until a code is chosen, so the input's own
-   placeholder can never appear: this hint stands in for it. */
+   placeholder can never appear: this hint stands in for it. One line inside
+   the field like a placeholder: with no right edge it wrapped to two lines,
+   past the field's padding, on narrow phones (German at 360px). The line
+   height leaves room for descenders now that the box clips; the hint stays
+   centred, so its text does not move. */
 .tm-phone-empty-label {
   position: absolute;
   top: 50%;
   left: 92px;
+  right: 8px;
   z-index: 1;
+  overflow: hidden;
   color: #9ca3af;
   font-size: 14px;
-  line-height: 1;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   pointer-events: none;
   transform: translateY(-50%);
 }

@@ -1,0 +1,16 @@
+{
+  // `npm run typecheck` only. tsconfig.json also includes .next/dev/types,
+  // which only `next dev` rewrites: after a route is removed while the dev
+  // server is stopped, that copy still validates the deleted pages and fails.
+  // `next build` drops it for the same reason (its filter does not match
+  // Windows paths). Here the route types come from .next/types alone, which
+  // the script regenerates with `next typegen` right before the check.
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "types/**/*"
+  ]
+}

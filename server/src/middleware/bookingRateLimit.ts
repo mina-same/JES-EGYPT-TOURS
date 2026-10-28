@@ -8,7 +8,14 @@ export const BOOKING_RATE_LIMIT_DEFAULTS = {
 interface BookingRateLimitOptions {
   windowMs?: number;
   limit?: number;
+  /** The 429's code and text, for a route that is not the booking form. */
+  rejection?: { code: string; error: string };
 }
+
+const BOOKING_RATE_LIMIT_REJECTION = {
+  code: 'BOOKING_RATE_LIMITED',
+  error: 'Too many booking attempts. Please wait before trying again.',
+};
 
 const positiveInteger = (value: string | undefined, fallback: number): number => {
   const parsed = Number(value);
@@ -19,8 +26,9 @@ const positiveInteger = (value: string | undefined, fallback: number): number =>
  * its own MemoryStore, separate from the site's broader /api limiter. */
 export const createBookingSubmissionLimiter = (
   options: BookingRateLimitOptions = {}
-) =>
-  rateLimit({
+) => {
+  const rejection = options.rejection || BOOKING_RATE_LIMIT_REJECTION;
+  return rateLimit({
     windowMs: options.windowMs || BOOKING_RATE_LIMIT_DEFAULTS.windowMs,
     limit: options.limit || BOOKING_RATE_LIMIT_DEFAULTS.limit,
     standardHeaders: true,
@@ -28,11 +36,12 @@ export const createBookingSubmissionLimiter = (
     handler: (_req, res, _next, rateLimitOptions) => {
       res.status(rateLimitOptions.statusCode).json({
         success: false,
-        code: 'BOOKING_RATE_LIMITED',
-        error: 'Too many booking attempts. Please wait before trying again.',
+        code: rejection.code,
+        error: rejection.error,
       });
     },
   });
+};
 
 export const bookingSubmissionLimiter = createBookingSubmissionLimiter({
   windowMs: positiveInteger(

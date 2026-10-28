@@ -343,7 +343,9 @@
       "errorName": "Inserisci il tuo nome",
       "errorEmail": "Inserisci un indirizzo email valido",
       "errorMessage": "Dicci cosa vorresti sapere",
-      "failed": "Qualcosa è andato storto. Riprova."
+      "failed": "Qualcosa è andato storto. Riprova.",
+      "invalid": "Controlla i tuoi dati e riprova.",
+      "rateLimited": "Non è stato possibile inviare la tua domanda in questo momento. Attendi qualche minuto e riprova."
     }
   }
 }

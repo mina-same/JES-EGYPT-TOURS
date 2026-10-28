@@ -45,8 +45,8 @@
       "accommodation": "Preferencia de alojamiento",
       "travelers": "Número de viajeros",
       "budgetRange": "Presupuesto (por persona)",
-      "minBudget": "Presupuesto mínimo",
-      "maxBudget": "Presupuesto máximo",
+      "minBudget": "Mínimo",
+      "maxBudget": "Máximo",
       "specialOccasions": "Ocasiones especiales",
       "interestsActivities": "Intereses y actividades",
       "dietaryRequirements": "Requisitos dietéticos",
@@ -64,7 +64,7 @@
       "accommodation": "Seleccionar preferencia",
       "specialOccasion": "Seleccionar si aplica",
       "dietary": "ej., Vegetariano, Halal",
-      "mobility": "Necesidades de accesibilidad",
+      "mobility": "Accesibilidad que necesita",
       "comments": "Cuéntenos más sobre el viaje de sus sueños..."
     },
     "buttons": {

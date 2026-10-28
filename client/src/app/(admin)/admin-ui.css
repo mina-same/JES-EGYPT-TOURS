@@ -1577,6 +1577,57 @@
   color: #aeb7c5;
 }
 
+/* A submission the spam trap filed (isSpam). Outlined rather than filled, so
+   it reads as a flag on the record, not as one more workflow status or source;
+   the icon and the word carry it without the colour. */
+.admin-scope .spam-badge {
+  background: #ffffff;
+  color: #9f1239;
+  border: 1px solid #fda4af;
+}
+
+.dark .admin-scope .spam-badge {
+  background: transparent;
+  color: #fda4af;
+  border-color: #9f1239;
+}
+
+/* Under the Contact Forms cards: the spam they leave out, and where it is. */
+.admin-scope .stats-spam-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -12px 0 20px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.admin-scope .stats-spam-note svg {
+  flex-shrink: 0;
+  color: #9f1239;
+}
+
+.dark .admin-scope .stats-spam-note {
+  color: #aeb7c5;
+}
+
+.dark .admin-scope .stats-spam-note svg {
+  color: #fda4af;
+}
+
+.admin-scope .contact-submission-modal .submission-spam-note {
+  margin: 4px 0 0;
+  color: #9f1239;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.dark .admin-scope .contact-submission-modal .submission-spam-note {
+  color: #fda4af;
+}
+
 .admin-scope .modal-close {
   background: none;
   border: none;

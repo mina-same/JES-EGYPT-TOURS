@@ -56,7 +56,7 @@
     "placeholders": {
       "fullName": "Geben Sie Ihren Namen ein",
       "email": "ihre.email@beispiel.com",
-      "phone": "Ländervorwahl + Nummer",
+      "phone": "Vorwahl + Nummer",
       "country": "Wählen Sie Ihr Land",
       "month": "Monat",
       "year": "Jahr",
