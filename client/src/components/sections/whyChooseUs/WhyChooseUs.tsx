@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { Container, Row, Col } from "react-bootstrap";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
-import { useRef } from "react";
+import InlineLinks from "@/components/common/InlineLinks/InlineLinks";
+import { useCallback, useRef } from "react";
 import {
   TinySliderWrapper as TinySlider,
   type TinySliderHandle,
@@ -82,6 +83,23 @@ const CARD_SIZES =
 
 const WhyChooseUs = () => {
   const sliderRef = useRef<TinySliderHandle>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Some card texts carry links. tiny-slider marks the cards out of view (and
+  // its loop clones) aria-hidden, but a link in them still took Tab focus, so
+  // only the links of the visible cards stay in the tab order. Same as
+  // DestinationCarouselTwo.
+  const syncAccessibility = useCallback(() => {
+    sectionRef.current
+      ?.querySelectorAll<HTMLElement>(".tns-item a")
+      .forEach((link) => {
+        link.tabIndex = link.closest(".tns-slide-active") ? 0 : -1;
+      });
+  }, []);
+
+  const scheduleAccessibilitySync = useCallback(() => {
+    window.requestAnimationFrame(syncAccessibility);
+  }, [syncAccessibility]);
   const { t, i18n } = useTranslation("common");
 
   const carouselOptions = {
@@ -101,7 +119,7 @@ const WhyChooseUs = () => {
   };
 
   return (
-    <section className='destinations-two section-space' id='why-choose-us'>
+    <section ref={sectionRef} className='destinations-two section-space' id='why-choose-us'>
       <Container>
         <div className='destinations-two__top'>
           <Row className='align-items-end'>
@@ -145,6 +163,9 @@ const WhyChooseUs = () => {
           className='destinations-two__carousel gotur-owl__carousel gotur-owl__carousel--custom-nav gotur-owl__carousel--with-shadow owl-carousel owl-theme owl-loaded owl-drag'
           settings={carouselOptions}
           rebuildKey={i18n.language}
+          onInit={scheduleAccessibilitySync}
+          onIndexChanged={scheduleAccessibilitySync}
+          onTransitionEnd={scheduleAccessibilitySync}
           // Pre-hydration the six cards stacked vertically; see custom.css.
           placeholderClassName="destinations-two__carousel tns-placeholder-single"
         >
@@ -170,7 +191,9 @@ const WhyChooseUs = () => {
                     <div className='reason-card__overlay'></div>
                     <div className='reason-card__content'>
                       <h3 className='reason-card__title'>{t(card.titleKey)}</h3>
-                      <p className='reason-card__description'>{t(card.descKey)}</p>
+                      <p className='reason-card__description'>
+                        <InlineLinks text={t(card.descKey)} />
+                      </p>
                     </div>
                   </div>
                 </div>

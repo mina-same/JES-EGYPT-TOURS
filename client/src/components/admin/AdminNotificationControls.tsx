@@ -15,7 +15,7 @@ export default function AdminNotificationControls() {
   }, []);
   return <details className="relative text-xs">
     <summary className="cursor-pointer rounded-md border px-3 py-2" title={syncError || (connected ? 'Realtime connected' : 'Automatic refresh is active')}>
-      {syncError ? 'Notifications: retrying' : connected ? 'Notifications: live' : 'Notifications: auto refresh'} ? {sound.enabled && sound.ready ? 'Sound on' : 'Sound off'}
+      {syncError ? 'Notifications: retrying' : connected ? 'Notifications: live' : 'Notifications: auto refresh'} · {sound.enabled && sound.ready ? 'Sound on' : 'Sound off'}
     </summary>
     <div className="absolute right-0 z-50 mt-2 w-64 space-y-3 rounded-lg border bg-background p-4 shadow-lg">
       {syncError && <p role="status">{syncError}</p>}

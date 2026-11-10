@@ -117,7 +117,9 @@
     },
     "success": {
       "requestSubmitted": "La tua richiesta di viaggio è stata inviata con successo!",
-      "failFallback": "Impossibile inviare la richiesta. Riprova."
+      "failFallback": "Impossibile inviare la richiesta. Riprova.",
+      "nextTitle": "Cosa succede ora",
+      "newRequest": "Invia un'altra richiesta"
     },
     "options": {
       "noLimit": "Senza limite",

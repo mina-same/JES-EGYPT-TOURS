@@ -7,6 +7,7 @@ import { Plus, Minus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getLocalizedValue } from "@/lib/localize";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
+import InlineLinks from "@/components/common/InlineLinks/InlineLinks";
 
 /**
  * One question.
@@ -142,19 +143,13 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
           </p>
           <h2 className="sec-title__title">
             <TextAnimation
-              text={`${t("frequentlyAsked", "Frequently Asked")} ${t(
-                "questions",
-                "Questions"
-              )}`}
+              text={t("faqTitle")}
               animationType="left"
               semantic
             />
           </h2>
           <p className="hfaq-subtitle">
-            {t(
-              "faqSubtitle",
-              "Everything you need to know about our tours and services."
-            )}
+            <InlineLinks text={t("faqSubtitle")} />
           </p>
         </div>
 

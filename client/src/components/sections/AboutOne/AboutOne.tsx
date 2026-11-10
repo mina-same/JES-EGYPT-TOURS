@@ -7,6 +7,7 @@ import { aboutOneData } from "@/data/aboutOne";
 import { Col, Container, Row } from "react-bootstrap";
 import Link from "next/link";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
+import InlineLinks from "@/components/common/InlineLinks/InlineLinks";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import "./AboutOne.css";
@@ -58,18 +59,33 @@ export interface AboutData {
 interface AboutOneProps {
   extraclass?: string;
   headingLevel?: "h1" | "h2";
+  /**
+   * Which block of common.json the texts come from. The homepage passes
+   * "homeAbout" so its copy (it holds the page H1) can be written for search
+   * without changing the /about page, which keeps "about".
+   */
+  copyKey?: "about" | "homeAbout";
 }
 
-const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) => {
+const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2", copyKey = "about" }) => {
   const { button, secondaryButton, images }: AboutData = aboutOneData;
   const { t } = useTranslation("common");
+  const copy = (key: string) => t(`${copyKey}.${key}`);
 
   const params = useParams();
   const locale = (params?.locale as string) || "en";
   const HeadingTag = headingLevel;
   const MissionHeadingTag = headingLevel === "h1" ? "h2" : "h3";
 
-  const features = [t("about.feature1"), t("about.feature2")];
+  const features = [copy("feature1"), copy("feature2")];
+
+  // A block may name its own button targets, per language (the homepage's
+  // does); without them the buttons keep the shared links below.
+  const exploreHref =
+    t(`${copyKey}.exploreHref`, { defaultValue: "" }) || localizeInternalUrl(button.link, locale);
+  const customTripHref =
+    t(`${copyKey}.customTripHref`, { defaultValue: "" }) ||
+    (secondaryButton ? localizeInternalUrl(secondaryButton.link, locale) : "");
 
   return (
     <section className={`about-one section-space ${extraclass ?? ""}`} id='about'>
@@ -83,7 +99,7 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
               <div className='about-one__thumb__item'>
                 <Image
                   src={images.mainImage}
-                  alt={t("about.mainImageAlt")}
+                  alt={copy("mainImageAlt")}
                   width={1149}
                   height={1369}
                   sizes='(max-width: 991px) 100vw, 50vw'
@@ -99,7 +115,7 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
               <div className='about-one__thumb__item-small'>
                 <Image
                   src={images.smallImage}
-                  alt={t("about.smallImageAlt")}
+                  alt={copy("smallImageAlt")}
                   width={256}
                   height={216}
                   className='about-one__small-photo'
@@ -116,16 +132,16 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
             <div className='about-one__right'>
               <div className='sec-title'>
                 <p className='sec-title__tagline'>
-                  <TextAnimation text={t("about.tagline")} animationType='right' semantic />
+                  <TextAnimation text={copy("tagline")} animationType='right' semantic />
                 </p>
                 <HeadingTag className='sec-title__title'>
-                  {t("about.title")}{" "}
-                  <span>{t("about.titleHighlight")}</span>
+                  {copy("title")}{" "}
+                  <span>{copy("titleHighlight")}</span>
                 </HeadingTag>
               </div>
 
               <p className='about-one__top__text'>
-                {t("about.description")}
+                <InlineLinks text={copy("description")} />
               </p>
 
               <div className='about-one__feature'>
@@ -147,10 +163,10 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
                       </div>
                       <div className='about-one__feature-content'>
                         <MissionHeadingTag className='about-one__feature-title'>
-                          {t("about.approachTitle")}
+                          {copy("approachTitle")}
                         </MissionHeadingTag>
                         <p className='about-one__feature-text'>
-                          {t("about.approachText")}
+                          {copy("approachText")}
                         </p>
                       </div>
                     </div>
@@ -161,21 +177,21 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
               <div className='about-one__button'>
                 <div className='about-one__button-links'>
                   <Link
-                    href={localizeInternalUrl(button.link, locale)}
+                    href={exploreHref}
                     className='gotur-btn gotur-btn--primary'
                   >
-                    {t("about.exploreCta")}{" "}
+                    {copy("exploreCta")}{" "}
                     <span className='icon'>
                       <i className='icon-right' aria-hidden='true'></i>
                     </span>
                   </Link>
 
-                  {secondaryButton && (
+                  {customTripHref && (
                     <Link
-                      href={localizeInternalUrl(secondaryButton.link, locale)}
+                      href={customTripHref}
                       className='gotur-btn'
                     >
-                      {t("about.customTripCta")}{" "}
+                      {copy("customTripCta")}{" "}
                       <span className='icon'>
                         <i className='icon-right' aria-hidden='true'></i>
                       </span>
@@ -195,11 +211,11 @@ const AboutOne: React.FC<AboutOneProps> = ({ extraclass, headingLevel = "h2" }) 
                     <i className={button.callIcon} aria-hidden='true'></i>
                   </a>
                   <div className='about-one__button__call__content'>
-                    <span>{t("about.callText")}</span>
+                    <span>{copy("callText")}</span>
                     <a href={`tel:${button.phone.replace(/[^+\d]/g, "")}`} style={{ whiteSpace: 'nowrap' }}>
                       {button.phone}
                     </a>
-                    <small className='about-one__button__call__note'>{t("about.replyTime")}</small>
+                    <small className='about-one__button__call__note'>{copy("replyTime")}</small>
                   </div>
                 </div>
               </div>

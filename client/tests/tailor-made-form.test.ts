@@ -241,3 +241,29 @@ test('a long choice or placeholder never breaks a field: one line with "…" (na
   // Spanish keeps "usted" (necesita), as on the rest of the page.
   assert.equal(/\bnecesitas\b/.test(String(lookup(messages.es, 'form.placeholders.mobility'))), false);
 });
+
+test('on phones the form is closer: compact feature rows and a link to it under the introduction', () => {
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  // Hidden by default; shown only in the 768px block.
+  assert.match(css, /\.tailor-made-jump \{\s*display: none;\s*\}/);
+  const phone = css.match(/@media \(max-width: 768px\) \{([\s\S]*?)\n\}/);
+  assert.ok(phone, '768px block');
+  assert.match(phone[1], /\.tailor-made-jump \{\s*display: inline-flex;/);
+  assert.match(phone[1], /\.tailor-made-section \.feature-card \{\s*display: grid;\s*grid-template-columns: 48px minmax\(0, 1fr\);/);
+  assert.match(css, /\.tailor-made-form-wrapper \{[^}]*scroll-margin-top: 100px;/);
+  // A link to the form section, its heading taking the focus.
+  assert.match(code, /<a href=\{`#\$\{FORM_ANCHOR\}`\} className="tailor-made-jump" onClick=\{jumpToForm\}>\s*\{t\('form\.header\.title'\)\}/);
+  assert.match(code, /<div className="tailor-made-form-wrapper" id=\{FORM_ANCHOR\}>/);
+  assert.match(code, /<h2 className="form-header-title" tabIndex=\{-1\} ref=\{formHeadingRef\}>/);
+  assert.match(code, /prefers-reduced-motion: reduce/);
+});
+
+test('on the narrowest phones the month gets the room the year does not need', () => {
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  const narrow = css.match(/@media \(max-width: 374\.98px\) \{([\s\S]*?)\n\}/);
+  assert.ok(narrow, '374.98px block');
+  assert.match(narrow[1], /\.date-select-group \.form-select:first-child \{\s*flex: 1 1 0;\s*min-width: 0;/);
+  assert.match(narrow[1], /\.date-select-group \.form-select:last-child \{\s*flex: 0 0 auto;\s*width: auto;/);
+  // The lists still send the English month and the year.
+  assert.match(code, /MONTHS\.map\(month => <option key=\{month\} value=\{month\}>/);
+});

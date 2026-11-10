@@ -44,13 +44,13 @@ export default function AdminDashboard() {
   ];
   const labels = data?.analytics.dates.map(date => new Date(date + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Africa/Cairo' })) || [];
   return <div className="space-y-6">
-    <div className="flex items-center justify-between"><div><h2 className="text-xl font-semibold">Overview</h2><p className="text-sm text-muted-foreground">{connected ? 'Live updates' : 'Automatic refresh'} ? {data ? `Updated ${new Date(data.counts.updatedAt).toLocaleTimeString()}` : 'Loading...'}</p></div><Button variant="outline" onClick={() => void refresh()}>Refresh</Button></div>
+    <div className="flex items-center justify-between"><div><h2 className="text-xl font-semibold">Overview</h2><p className="text-sm text-muted-foreground">{connected ? 'Live updates' : 'Automatic refresh'} · {data ? `Updated ${new Date(data.counts.updatedAt).toLocaleTimeString()}` : 'Loading...'}</p></div><Button variant="outline" onClick={() => void refresh()}>Refresh</Button></div>
     {error && <p role="alert" className="text-red-600">{error}</p>}
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">{cards.filter(card => allowed(card.permission)).map(card => <Link key={card.label} href={card.href}><DashboardKpiCard label={card.label} value={card.value ?? '?'} icon={card.icon} /></Link>)}</div>
     <Card><CardHeader><CardTitle>Action required</CardTitle></CardHeader><CardContent className="grid gap-4 md:grid-cols-3">{queues.filter(queue => allowed(queue.permission)).map(queue => <div key={queue.title} className="space-y-2"><div className="flex items-center justify-between"><h3 className="font-medium">{queue.title}</h3><Link href={queue.href}>View all</Link></div>{queue.rows.length ? queue.rows.map(row => <Link className="block rounded-md border p-3 hover:bg-muted" key={row.id} href={`${queue.href}?id=${encodeURIComponent(row.id)}`}><div className="text-sm font-medium">{row.name}</div><div className="truncate text-xs text-muted-foreground">{row.detail}</div></Link>) : <p className="text-sm text-muted-foreground">{data ? 'No pending requests.' : 'Loading...'}</p>}</div>)}</CardContent></Card>
-    {data && <Card><CardHeader><CardTitle>Analytics ? last 14 days (Egypt time)</CardTitle></CardHeader><CardContent className="grid gap-6 md:grid-cols-2">
-      {allowed('booking:read') && <div><h3>Bookings ? Total: {data.analytics.bookings.reduce((a, b) => a + b, 0)}</h3><MiniBarChart values={data.analytics.bookings} labels={labels} barClassName="bg-emerald-500/70" /></div>}
-      {(allowed('contact:read') || allowed('tailor_made:read')) && <div><h3>Contact + tailor-made ? Total: {data.analytics.leads.reduce((a, b) => a + b, 0)}</h3><MiniBarChart values={data.analytics.leads} labels={labels} barClassName="bg-blue-500/70" /></div>}
+    {data && <Card><CardHeader><CardTitle>Analytics · last 14 days (Egypt time)</CardTitle></CardHeader><CardContent className="grid gap-6 md:grid-cols-2">
+      {allowed('booking:read') && <div><h3>Bookings · Total: {data.analytics.bookings.reduce((a, b) => a + b, 0)}</h3><MiniBarChart values={data.analytics.bookings} labels={labels} barClassName="bg-emerald-500/70" /></div>}
+      {(allowed('contact:read') || allowed('tailor_made:read')) && <div><h3>Contact + tailor-made · Total: {data.analytics.leads.reduce((a, b) => a + b, 0)}</h3><MiniBarChart values={data.analytics.leads} labels={labels} barClassName="bg-blue-500/70" /></div>}
     </CardContent></Card>}
   </div>;
 }

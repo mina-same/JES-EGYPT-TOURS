@@ -36,6 +36,11 @@
   line-height: 1.6;
 }
 
+/* "Plan your dream journey ↓": phones only (see the 768px block). */
+.tailor-made-jump {
+  display: none;
+}
+
 .tailor-made-features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -96,6 +101,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
   overflow: hidden;
+  /* The hero's link lands here: clear of the sticky header. */
+  scroll-margin-top: 100px;
 }
 
 .tailor-made-form-header {
@@ -121,6 +128,97 @@
 
 .tailor-made-form {
   padding: 40px 35px;
+}
+
+/* The confirmation that takes the form's place once a request went through. */
+.tailor-made-success {
+  padding: 48px 35px;
+  text-align: center;
+}
+
+.tailor-made-success__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+  color: #ffffff;
+}
+
+.tailor-made-section .tailor-made-success__title {
+  margin: 0 0 24px;
+  color: #0E3A57;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.tailor-made-section .tailor-made-success__next {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tailor-made-success__steps {
+  display: grid;
+  gap: 12px;
+  max-width: 440px;
+  margin: 0 auto 28px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.tailor-made-success__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tailor-made-success__steps svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #d4af37;
+}
+
+.tailor-made-success__steps strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #0E3A57;
+  font-weight: 600;
+}
+
+.tailor-made-success__again {
+  padding: 12px 24px;
+  border: 1px solid #d4af37;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0E3A57;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tailor-made-success__again:hover {
+  background: rgba(212, 175, 55, 0.1);
+}
+
+.tailor-made-success__again:focus-visible {
+  outline: 2px solid #0E3A57;
+  outline-offset: 2px;
 }
 
 .tailor-made-section .form-section {
@@ -763,12 +861,80 @@
     padding: 50px 0;
   }
 
+  .tailor-made-hero {
+    margin-bottom: 40px;
+  }
+
   .tailor-made-hero__title {
     font-size: 32px;
   }
 
+  /* The form started about two screens down, below four tall feature cards
+     (about 1,000px). The same cards as rows, icon beside the text, and a link
+     to the form under the introduction. */
+  .tailor-made-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 11px 20px;
+    border: 1px solid #d4af37;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0E3A57;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .tailor-made-jump svg {
+    color: #b79c5c;
+  }
+
+  .tailor-made-jump:focus-visible {
+    outline: 2px solid #0E3A57;
+    outline-offset: 2px;
+  }
+
   .tailor-made-features {
     grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .tailor-made-section .feature-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: center;
+    padding: 16px;
+    text-align: left;
+  }
+
+  .tailor-made-section .feature-card__icon {
+    grid-row: span 2;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  .tailor-made-section .feature-card__icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tailor-made-section .feature-card__title {
+    margin-bottom: 2px;
+    font-size: 16px;
+  }
+
+  .tailor-made-section .feature-card__text {
+    font-size: 13px;
+  }
+
+  .tailor-made-success {
+    padding: 36px 20px;
   }
 
   .tailor-made-form {
@@ -924,6 +1090,21 @@
    follows it — no longer sticky, and no longer a scroll box, which only made
    sense while it stayed in view (stacked, it cut its last card off on short
    screens). */
+/* The narrowest phones: month and year split the row evenly, which left a
+   month 56px of text — "Septem…" at 320px — while the year needs room for
+   four digits only. The month now takes what the year leaves. */
+@media (max-width: 374.98px) {
+  .tailor-made-section .date-select-group .form-select:first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .tailor-made-section .date-select-group .form-select:last-child {
+    flex: 0 0 auto;
+    width: auto;
+  }
+}
+
 @media (max-width: 1199.98px) {
   /* minmax(0, …): the column never grows past the container to fit the
      sidebar's longest word (the e-mail address at 360px). */

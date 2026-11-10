@@ -93,7 +93,8 @@ test('the form reads its messages from the outcome, never the API\'s text', () =
   assert.match(client, /const outcome = submissionOutcome\(response\.status, data\);/);
   assert.equal(/data\.error|data\?\.error/.test(client), false, 'the API\'s error text is not shown');
   // The browser's own validation bubble no longer stands in for the form's messages.
-  assert.match(client, /<form onSubmit=\{handleSubmit\} className="tailor-made-form" noValidate>/);
+  // (Hidden, not removed, behind the confirmation once a request went through.)
+  assert.match(client, /<form onSubmit=\{handleSubmit\} className="tailor-made-form" noValidate hidden=\{submitted \|\| undefined\}>/);
   // The submit button keeps the focus while sending.
   assert.match(client, /aria-disabled=\{isSubmitting \|\| undefined\}/);
   assert.equal(/disabled=\{isSubmitting\}/.test(client), false);

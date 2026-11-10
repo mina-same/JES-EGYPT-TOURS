@@ -1,6 +1,6 @@
 'use client';
 import { submissionFetch } from '@/lib/submissionFetch';
-import React, { useState, useEffect, useId, useMemo } from 'react';
+import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import PhoneInput, {
   getCountries,
@@ -24,7 +24,7 @@ import { waHref, PHONE_DISPLAY } from '@/config/contact';
 import { localizeInternalUrl } from '@/lib/url';
 import {
   MapPin, Calendar, Users, Heart, Star, Clock, Wallet, Compass,
-  CheckCircle, Sparkles, Award, Phone, Mail, User, Loader2, type LucideIcon
+  CheckCircle, Sparkles, Award, Phone, Mail, User, Loader2, ArrowDown, type LucideIcon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'next/navigation';
@@ -183,18 +183,25 @@ const SIDEBAR_FEATURES = [
   'Handpicked Experiences',
 ];
 
-const SUBMIT_INFO_CARDS: Array<{ icon: LucideIcon; title: string; text: string }> = [
+/** What happens after a request is sent: shown by the submit button, and
+ *  again in the confirmation that replaces the form. */
+const SUBMIT_INFO_CARDS: Array<{ icon: LucideIcon; key: string; title: string; text: string }> = [
   {
     icon: Clock,
+    key: 'quickResponse',
     title: 'Quick Response',
     text: 'Our travel specialists will contact you within 24 hours',
   },
   {
     icon: CheckCircle,
+    key: 'personalizedItinerary',
     title: 'Personalized Itinerary',
     text: 'Receive a custom proposal tailored to your preferences',
   },
 ];
+
+/** The form's section, the target of the hero's link on phones. */
+const FORM_ANCHOR = 'tailor-made-form';
 
 /** What the API accepts as a phone number: "+", then 7 to 15 digits. */
 const E164_PHONE = /^\+[1-9]\d{6,14}$/;
@@ -264,6 +271,10 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
   // The same message, for screen readers: a live region that is always on the
   // page (one that mounts with its text, like the toast, is not reliably read).
   const [announcement, setAnnouncement] = useState('');
+  // A request went through: the form gives way to a confirmation that stays.
+  const [submitted, setSubmitted] = useState(false);
+  const formHeadingRef = useRef<HTMLHeadingElement>(null);
+  const successHeadingRef = useRef<HTMLHeadingElement>(null);
 
   /** A field's message and invalid state, for its aria attributes. */
   const errorId = (name: string) => fieldId(`${name}-error`);
@@ -436,8 +447,15 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
       const outcome = submissionOutcome(response.status, data);
 
       if (outcome.type === 'success') {
-        showFeedback(t('form.success.requestSubmitted'), 'success');
+        // Not a toast: it closed after five seconds, at the top of the screen,
+        // while the visitor was at the submit button at the end of a long
+        // form. The confirmation replaces the form and takes the focus, so a
+        // keyboard or screen reader user lands on it too.
+        setToast(null);
         setFormData(createInitialFormData());
+        flushSync(() => setSubmitted(true));
+        successHeadingRef.current?.scrollIntoView({ block: 'center' });
+        successHeadingRef.current?.focus({ preventScroll: true });
       } else if (Object.keys(outcome.fields).length > 0) {
         const rejected: Record<string, string> = {};
         for (const [field, key] of Object.entries(outcome.fields)) rejected[field] = t(key);
@@ -452,6 +470,20 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  /** Back to an empty form, from the confirmation. */
+  const startAgain = () => {
+    flushSync(() => setSubmitted(false));
+    document.getElementById(fieldId('fullName'))?.focus();
+  };
+
+  /** The hero's link on phones: down to the form, and the focus with it. */
+  const jumpToForm = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(FORM_ANCHOR)?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    formHeadingRef.current?.focus({ preventScroll: true });
   };
 
   return (
@@ -485,6 +517,12 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
               <p className="tailor-made-hero__subtitle">
                 {t('hero.subtitle')}
               </p>
+              {/* Phones only (the CSS hides it from 769px): there the form
+                  starts below four feature cards, about two screens down. */}
+              <a href={`#${FORM_ANCHOR}`} className="tailor-made-jump" onClick={jumpToForm}>
+                {t('form.header.title')}
+                <ArrowDown size={18} aria-hidden="true" />
+              </a>
             </div>
 
             {/* Features Grid */}
@@ -508,20 +546,52 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
 
           {/* Form Section */}
           <div className="tailor-made-content-wrapper">
-          <div className="tailor-made-form-wrapper">
+          <div className="tailor-made-form-wrapper" id={FORM_ANCHOR}>
             <div className="tailor-made-form-header">
-              <h2 className="form-header-title">{t('form.header.title')}</h2>
+              <h2 className="form-header-title" tabIndex={-1} ref={formHeadingRef}>{t('form.header.title')}</h2>
               <p className="form-header-subtitle">
                 {t('form.header.subtitle')}
               </p>
             </div>
+
+            {/* After a request went through: what was received and what comes
+                next, in place of the form, until the visitor starts again. Only
+                the page's existing commitments (the cards by the submit button). */}
+            {submitted && (
+              <div className="tailor-made-success">
+                <span className="tailor-made-success__icon" aria-hidden="true">
+                  <CheckCircle size={32} />
+                </span>
+                <h3 className="tailor-made-success__title" tabIndex={-1} ref={successHeadingRef}>
+                  {t('form.success.requestSubmitted')}
+                </h3>
+                <p className="tailor-made-success__next">{t('form.success.nextTitle')}</p>
+                <ul className="tailor-made-success__steps">
+                  {SUBMIT_INFO_CARDS.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                      <li key={card.key}>
+                        <Icon size={18} aria-hidden="true" />
+                        <span>
+                          <strong>{t(`submitInfo.${card.key}.title`)}</strong>{' '}
+                          {t(`submitInfo.${card.key}.text`)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <button type="button" className="tailor-made-success__again" onClick={startAgain}>
+                  {t('form.success.newRequest')}
+                </button>
+              </div>
+            )}
 
             {/* noValidate: the form's own messages, in the page's language and
                 for every field at once, instead of the browser's bubble. Text
                 fields keep `required`, which screen readers announce; the
                 lists take aria-required — Chrome does not expose `required` on
                 a select, and an empty required one read as invalid on load. */}
-            <form onSubmit={handleSubmit} className="tailor-made-form" noValidate>
+            <form onSubmit={handleSubmit} className="tailor-made-form" noValidate hidden={submitted || undefined}>
               {/* Step 1: Personal Information */}
               <div className="form-section">
                 <div className="form-section-header">
@@ -975,16 +1045,14 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                   .
                 </p>
                 <div className="form-submit-info">
-                  {SUBMIT_INFO_CARDS.map((card, idx) => {
+                  {SUBMIT_INFO_CARDS.map((card) => {
                     const Icon = card.icon;
-                    const infoKeys = ['quickResponse', 'personalizedItinerary'];
-                    const iKey = infoKeys[idx];
                     return (
-                      <div className="submit-info-card" key={idx}>
+                      <div className="submit-info-card" key={card.key}>
                         <Icon size={18} />
                         <div className="submit-info-text">
-                          <strong>{t(`submitInfo.${iKey}.title`)}</strong>
-                          <span>{t(`submitInfo.${iKey}.text`)}</span>
+                          <strong>{t(`submitInfo.${card.key}.title`)}</strong>
+                          <span>{t(`submitInfo.${card.key}.text`)}</span>
                         </div>
                       </div>
                     );

@@ -117,7 +117,9 @@
     },
     "success": {
       "requestSubmitted": "Ihre Reiseanfrage wurde erfolgreich übermittelt!",
-      "failFallback": "Fehler beim Senden Ihrer Anfrage."
+      "failFallback": "Fehler beim Senden Ihrer Anfrage.",
+      "nextTitle": "So geht es weiter",
+      "newRequest": "Weitere Anfrage senden"
     },
     "options": {
       "noLimit": "Kein Limit",

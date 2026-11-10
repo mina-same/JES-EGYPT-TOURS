@@ -117,7 +117,9 @@
     },
     "success": {
       "requestSubmitted": "Your travel request has been submitted successfully!",
-      "failFallback": "Failed to submit your request. Please try again."
+      "failFallback": "Failed to submit your request. Please try again.",
+      "nextTitle": "What happens next",
+      "newRequest": "Send another request"
     },
     "options": {
       "noLimit": "No Limit",

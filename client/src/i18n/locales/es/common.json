@@ -32,7 +32,7 @@
     "travelTrade": "Profesionales de Viajes",
     "about": {
       "title": "Sobre JES Egypt Tours",
-      "text": "JES Egypt Tours es una agencia de viajes egipcia autorizada con sede en Guiza. Diseñamos viajes privados y guiados por Egipto — desde las Pirámides y el valle del Nilo hasta Siwa y el mar Rojo — acompañados por egiptólogos titulados y planificados en torno a quienes viajan, no a un horario fijo."
+      "text": "JES Egypt Tours es un operador turístico y agencia de viajes con sede en El Cairo. Diseñamos viajes privados y guiados por Egipto, desde las Pirámides y el valle del Nilo hasta Siwa y el mar Rojo, acompañados por guías egiptólogos con licencia y planificados en torno a quienes viajan, no a un horario fijo."
     },
     "sendEmail": "Enviar correo",
     "callAgent": "Llamar a un asesor",
@@ -67,10 +67,9 @@
     "close": "Cerrar",
     "unavailable": "No disponible para esta página"
   },
-  "gotQuestions": "¿Tienes preguntas?",
-  "frequentlyAsked": "Preguntas",
-  "questions": "frecuentes",
-  "faqSubtitle": "Todo lo que necesitas saber sobre nuestros tours y servicios.",
+  "gotQuestions": "¿Tienen preguntas?",
+  "faqTitle": "Tours privados por Egipto: preguntas frecuentes",
+  "faqSubtitle": "Respuestas breves sobre seguridad, costes, qué incluye y cómo planificar. Encontrarán más preguntas en nuestra [página de FAQ](/es/faq).",
   "category": "Categoría",
   "travelersExperiences": "Experiencias honestas de viajeros",
   "reflectiveAnd": "Reflexiones &",
@@ -198,31 +197,48 @@
     "mainImageAlt": "Tours privados por Egipto – Pirámides de Guiza",
     "smallImageAlt": "Guía privado en Egipto – tour por el templo"
   },
+  "homeAbout": {
+    "tagline": "Sobre JES Egypt Tours",
+    "title": "Tours privados por Egipto,",
+    "titleHighlight": "a medida y con guía en español",
+    "description": "JES Egypt Tours es un operador turístico con sede en El Cairo. Un tour privado con nosotros significa un guía egiptólogo de habla hispana, un vehículo privado con aire acondicionado, recogida y regreso al hotel y un programa que ustedes pueden cambiar sobre la marcha. Organizamos [excursiones privadas de un día desde El Cairo](/es/tours-el-cairo) y [viajes a medida](/es/viajes-a-egipto) de varios días por Guiza, El Cairo, Luxor, Asuán, Abu Simbel y el Nilo. Sin autobuses compartidos ni paradas de compras obligatorias.",
+    "feature1": "Tours privados, sin autobuses de grupo",
+    "feature2": "Precios desglosados, sin costes ocultos",
+    "approachTitle": "Cómo funcionan nuestros tours privados",
+    "approachText": "El precio se fija por escrito antes de reservar, el día del tour no cambia nada y su guía trabaja para ustedes, no por una comisión.",
+    "exploreCta": "Descubran los tours privados",
+    "exploreHref": "/es/viajes-a-egipto",
+    "customTripCta": "Planifiquen un viaje a medida",
+    "customTripHref": "/es/viaje-a-medida",
+    "callText": "Llamen o escriban por WhatsApp",
+    "replyTime": "Solemos responder en pocos minutos",
+    "mainImageAlt": "Tour privado por Egipto en las Pirámides de Guiza con guía con licencia",
+    "smallImageAlt": "Guía privado explicando un relieve de un templo en un tour por Egipto"
+  },
   "whyChooseUs": {
     "tagline": "¿Por qué elegirnos?",
-    "title": "¿Por qué elegir JES Egypt Tours?",
-    "subtitle": "Especialistas en Egipto con sede en El Cairo, que organizan tours privados para viajeros que quieren conocer Egipto a su propio ritmo.",
+    "title": "¿Por qué reservar un tour privado por Egipto con JES?",
+    "subtitle": "Un operador turístico con sede en El Cairo que organiza tours privados para viajeros que quieren conocer Egipto a su propio ritmo.",
     "card1Title": "Guías locales con licencia",
-    "card1Desc": "Nuestros tours están dirigidos por guías con licencia del Ministerio de Turismo de Egipto. Explican la historia, el contexto y los relatos de Egipto con claridad, sin prisas para ajustarse al horario de un grupo.",
-    "card2Title": "Solo para ustedes",
-    "card2Desc": "Cada tour se reserva exclusivamente para ustedes. Su guía se dedica por completo a ustedes, no a gestionar a otros viajeros. Eso les da más flexibilidad y más espacio para hacer preguntas.",
+    "card1Desc": "Nuestros guías cuentan con licencia del Ministerio de Turismo de Egipto. Explican la historia y el contexto en cada lugar, y pueden elegir un guía en español, inglés, alemán o italiano.",
+    "card2Title": "Su propio guía y vehículo",
+    "card2Desc": "Cada reserva es para un solo grupo. Su guía y un coche privado con aire acondicionado son suyos durante todo el día, con espacio para preguntas, paradas más largas y un ritmo que se adapta a ustedes.",
     "card3Title": "Con sede en El Cairo, no solo una página de reservas",
-    "card3Desc": "Planificamos su viaje directamente desde El Cairo, no desde una oficina en el extranjero. Comunicación directa, conocimiento local real y alguien sobre el terreno si algo necesita ajustarse.",
+    "card3Desc": "Planificamos su viaje desde El Cairo, no desde una oficina en el extranjero. Hablan directamente con quien lo organiza y hay alguien sobre el terreno si los planes cambian.",
     "card4Title": "Un día flexible, adaptado a ustedes",
-    "card4Desc": "¿Quieren pasar más tiempo en el Valle de los Reyes? ¿Saltarse una parada que no les interesa? Organizamos el día en torno a lo que realmente quieren ver y lo ajustamos cuando los planes cambian.",
+    "card4Desc": "¿Quieren pasar más tiempo en el [Valle de los Reyes](/es/tour-orilla-oeste-luxor)? ¿Saltarse una parada que no les interesa? Díganselo a su guía en el desayuno y ajustamos el día. Las paradas de compras solo se hacen si ustedes las piden.",
     "card5Title": "Pago con tarjeta o transferencia bancaria",
-    "card5Desc": "Aceptamos tarjetas de crédito y débito, así como transferencias bancarias internacionales. Los detalles del pago se confirman por escrito antes de reservar, para que todo quede claro desde el principio.",
+    "card5Desc": "Aceptamos tarjetas de crédito y débito y transferencias bancarias internacionales. Las condiciones de pago se confirman por escrito antes de reservar, y nuestra [política de pago y cancelación](/es/payment-cancellation-policy) es pública.",
     "card6Title": "Respondemos rápido",
-    "card6Desc": "Escríbannos sus fechas y lo que quieren ver. Les responderemos con un plan claro y un precio confirmado, antes de que se comprometan a nada."
+    "card6Desc": "[Envíennos sus fechas](/es/contacto) y lo que quieren ver. Les respondemos con un plan claro y un precio confirmado, y no se comprometen a nada hasta que estén conformes. El soporte funciona las 24 horas."
   },
   "featuredTours": {
-    "tagline": "Seleccionados para usted",
-    "title": "Tours",
-    "titleSpan": "destacados"
+    "tagline": "Tours privados más pedidos",
+    "title": "Tours privados por Egipto destacados"
   },
   "homeIntro": {
     "verifiedRatings": "Valoraciones verificadas",
-    "licensedAgency": "Agencia autorizada",
+    "licensedGuides": "Guías con licencia",
     "heritageExperts": "Expertos en patrimonio local",
     "fallbackSubtitle": "El viaje definitivo a Egipto",
     "readMore": "Leer historia completa",
@@ -231,7 +247,7 @@
   },
   "destinations": {
     "carousel": {
-      "sectionTitle": "Descubre los destinos de Egipto",
+      "sectionTitle": "Destinos de Egipto para tours privados",
       "navigationLabel": "Navegación del carrusel de destinos",
       "previous": "Destino anterior",
       "next": "Destino siguiente",
@@ -239,53 +255,53 @@
     },
     "aswan": {
       "title": "Asuán",
-      "subtitle": "Tour en Feluca por el Nilo"
+      "subtitle": "Paseo en falúa por el Nilo"
     },
     "fayoum": {
       "title": "Fayún",
-      "subtitle": "Tour de los Lagos de Wadi El Rayan"
+      "subtitle": "Lagos de Wadi El Rayan"
     },
     "giza": {
       "title": "Guiza",
-      "subtitle": "Panorama Pirámides & Esfinge"
+      "subtitle": "Pirámides y Esfinge al atardecer"
     },
     "khanElKhalili": {
       "title": "Khan El Khalili",
-      "subtitle": "Bazar de Compras de El Cairo"
+      "subtitle": "El antiguo bazar de El Cairo"
     },
     "luxor": {
       "title": "Luxor",
-      "subtitle": "Globo Aerostático sobre el Nilo"
+      "subtitle": "Globo aerostático sobre el Nilo"
     },
     "qaitbay": {
-      "title": "Ciudadela de Qaitbay",
-      "subtitle": "Tour Costero de Alejandría"
+      "title": "Alejandría",
+      "subtitle": "Ciudadela de Qaitbay y costa"
     },
     "sharmElSheikh": {
       "title": "Sharm El Sheikh",
-      "subtitle": "Playas y Arrecifes del Mar Rojo"
+      "subtitle": "Playas y arrecifes del mar Rojo"
     },
     "siwa": {
       "title": "Siwa",
-      "subtitle": "Tour del Oasis y Lagos Salados"
+      "subtitle": "Oasis y lagos salados"
     }
   },
   "tailorOffer": {
     "tagline": "A medida",
-    "titleLine1": "Su Egipto,",
-    "titleLine2": "a su manera.",
-    "desc": "Organicen su tour privado en Egipto con un equipo con licencia afincado en El Cairo. Nosotros nos ocupamos de la guía, la ruta y los tiempos — ustedes deciden qué ver y cuándo.",
-    "feature1": "Su propia guía con licencia — solo para ustedes, sin prisas",
+    "title": "Viaje a Egipto a medida, a su manera",
+    "desc": "Organicen su tour privado por Egipto con un equipo de El Cairo. Nosotros nos ocupamos del guía, el vehículo, la ruta y los horarios, y ustedes deciden qué ver y cuándo. ¿Prefieren más comodidad? Echen un vistazo a nuestros [viajes de lujo a Egipto](/es/viajes-lujo-egipto).",
+    "feature1": "Su propio guía con licencia, nunca compartido",
     "feature2": "Elijan los lugares que de verdad les importan",
     "feature3": "Horarios flexibles en cada visita",
     "feature4": "Precio confirmado por escrito antes de reservar",
     "cta": "Planificar mi tour privado",
-    "badge": "Sin tours grupales — 100% Privado"
+    "badge": "100% privado, sin tours grupales",
+    "imageAlt": "Tour privado por Egipto en las Pirámides de Guiza al atardecer"
   },
   "hero": {
     "primaryCtaFallback": "Planifica tu viaje",
     "secondaryCta": "Ofertas especiales",
-    "trust1": "Guías expertos autorizados",
+    "trust1": "Guías expertos con licencia",
     "trust2": "Sin costes ocultos",
     "trust3": "Soporte 24/7",
     "scroll": "Desplázate",
@@ -332,24 +348,22 @@
   },
   "testimonials": {
     "tagline": "Testimonios de clientes",
-    "title": "Lo que dicen",
-    "highlighted": "nuestros viajeros",
+    "title": "Lo que dicen los viajeros sobre nuestros tours privados",
     "previous": "Testimonio anterior",
     "next": "Testimonio siguiente"
   },
   "specialOffer": {
-    "tagline": "Ahorra un 30% en tours por Egipto",
-    "title": "Descubre Egipto — reserva el viaje de tus sueños en",
-    "subtitle": "un clic",
-    "cta": "Consigue tu oferta",
-    "limitedTime": "Oferta por tiempo limitado",
+    "tagline": "Oferta especial: 30% de descuento en tours seleccionados",
+    "title": "Envíennos sus fechas y reciban un precio confirmado",
+    "cta": "Ver las ofertas",
+    "saleLabel": "Oferta especial",
     "off": "de descuento",
     "upTo": "hasta el",
-    "travellerImageAlt": "Viajera con maleta descubriendo Egipto"
+    "travellerImageAlt": "Viajera con maleta al comienzo de un tour privado por Egipto"
   },
   "homeMeta": {
-    "title": "Tours privados y cruceros por el Nilo | JES Egypt Tours",
-    "description": "Operador con sede en El Cairo: viajes privados por Egipto — Guiza, Luxor, Asuán, Abu Simbel y cruceros por el Nilo. Guías titulados, sin costes ocultos.",
+    "title": "Tours privados por Egipto a medida | JES Egypt Tours",
+    "description": "Operador en El Cairo para tours privados por Egipto: guía en español, vehículo privado, recogida en el hotel y sin paradas de compras obligatorias.",
     "imageAlt": "Las Pirámides de Guiza y la Esfinge al atardecer, Egipto"
   }
 }

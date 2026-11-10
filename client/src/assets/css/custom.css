@@ -3236,6 +3236,26 @@ html:has(> body.megamenu-popup-active) {
   font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
 }
 
+/* A link inside a translated sentence (InlineLinks). It keeps the colour of
+   the text around it, which already passes contrast on light sections and on
+   the dark reason cards alike, and is told apart by its underline. The
+   hover/focus/visited states are listed because gotur.css removes the
+   underline on those. */
+.inline-text-link,
+.inline-text-link:hover,
+.inline-text-link:focus,
+.inline-text-link:visited {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.inline-text-link:hover {
+  text-decoration-thickness: 2px;
+}
+
 .destinations-card-two:hover .reason-card__overlay {
   background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%);
 }
