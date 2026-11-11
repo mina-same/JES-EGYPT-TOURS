@@ -395,6 +395,8 @@ export default function NewBlogCategoryPage() {
   // Handle keywords directly via handleChange
 
   useEffect(() => {
+    // Only this run may fill the list: a slower, older answer is dropped.
+    let active = true;
     const searchBlogs = async () => {
       if (!isBlogSearchFocused && !blogSearchQuery.trim()) {
         setBlogSearchResults([]);
@@ -407,7 +409,7 @@ export default function NewBlogCategoryPage() {
           search: blogSearchQuery.trim(), 
           limit: 8 
         });
-        if (response.success && response.data) {
+        if (active && response.success && response.data) {
           setBlogSearchResults(response.data);
         }
       } catch (error) {
@@ -418,11 +420,16 @@ export default function NewBlogCategoryPage() {
     };
 
     const timeoutId = setTimeout(searchBlogs, 300);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [blogSearchQuery, isBlogSearchFocused]);
 
   // Destination Search logic
   useEffect(() => {
+    // Only this run may fill the list: a slower, older answer is dropped.
+    let active = true;
     const searchDests = async () => {
       if (!isDestSearchFocused && !destSearchQuery.trim()) {
         setDestSearchResults([]);
@@ -436,7 +443,7 @@ export default function NewBlogCategoryPage() {
           search: destSearchQuery.trim(), 
           limit: 50
         });
-        if (response.success && response.data) {
+        if (active && response.success && response.data) {
           setDestSearchResults(response.data);
         }
       } catch (error) {
@@ -446,8 +453,11 @@ export default function NewBlogCategoryPage() {
       }
     };
 
-    const timeoutId = setTimeout(searchDests, 100);
-    return () => clearTimeout(timeoutId);
+    const timeoutId = setTimeout(searchDests, 300);
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [destSearchQuery, isDestSearchFocused]);
 
   const addFeaturedDest = (dest: any) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { destinationAPI } from '@/lib/api/blogAdmin';
 import { ScanEye, 
@@ -30,7 +30,11 @@ export default function DestinationsListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
+  // Only the newest list request may write the table: the debounce below
+  // stops a request per keystroke, not an older answer arriving last.
+  const listSequence = useRef(0);
   const fetchDestinations = useCallback(async () => {
+    const sequence = ++listSequence.current;
     setLoading(true);
     try {
       const params: any = {
@@ -44,6 +48,7 @@ export default function DestinationsListPage() {
         params.isActive = statusFilter === 'active';
       }
       const res = await destinationAPI.getAll(params);
+      if (sequence !== listSequence.current) return;
       const rows = res.data || [];
       const responseTotal = res.total ?? rows.length;
       const normalizedTotalPages = Math.max(
@@ -55,12 +60,13 @@ export default function DestinationsListPage() {
       setTotalPages(normalizedTotalPages);
       if (page > normalizedTotalPages) setPage(normalizedTotalPages);
     } catch {
+      if (sequence !== listSequence.current) return;
       setDestinations([]);
       setTotalItems(0);
       setTotalPages(1);
       toast({ title: 'Error', description: 'Failed to load destinations', variant: 'destructive' });
     } finally {
-      setLoading(false);
+      if (sequence === listSequence.current) setLoading(false);
     }
   }, [page, limit, searchTerm, statusFilter, toast]);
 
