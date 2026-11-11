@@ -4,6 +4,7 @@ import { useAdminRequestListRefresh } from '@/hooks/useAdminRequestListRefresh';
 import { adminFetch } from '@/lib/adminNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState, useEffect, useCallback } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { API_ENDPOINTS } from '@/config/api';
 import { useSearchParams } from 'next/navigation';
 import { 
@@ -33,6 +34,9 @@ const BookingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedBooking, setSelectedBooking] = useState<IBooking | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -86,8 +90,8 @@ const BookingPage: React.FC = () => {
         params.status = statusFilter;
       }
       
-      if (searchTerm.trim()) {
-        params.search = searchTerm.trim();
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       const response = await getAllBookings(params);
@@ -105,7 +109,7 @@ const BookingPage: React.FC = () => {
     } finally {
       if (sequence === listSequence.current) { setLoading(false); setInitialLoad(false); }
     }
-  }, [page, limit, statusFilter, searchTerm]);
+  }, [page, limit, statusFilter, debouncedSearch]);
 
   const fetchStats = useCallback(async () => {
     try {

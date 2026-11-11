@@ -5,6 +5,7 @@ import { useAdminRequestListRefresh } from '@/hooks/useAdminRequestListRefresh';
 import { adminFetch } from '@/lib/adminNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useEffect, useState, useCallback } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useSearchParams } from 'next/navigation';
 import { Building2, Eye, Globe2, Loader2, Mail, MapPin, MessageSquare, Phone, RefreshCw, Search, ShieldAlert, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
@@ -81,6 +82,9 @@ const ContactFormPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
   const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'replied' | 'archived'>('all');
   const [selected, setSelected] = useState<ContactSubmission | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -144,7 +148,7 @@ const ContactFormPage: React.FC = () => {
         limit: String(limit),
       });
       if (statusFilter !== 'all') params.set('status', statusFilter);
-      if (searchTerm.trim()) params.set('search', searchTerm.trim());
+      if (debouncedSearch) params.set('search', debouncedSearch);
       const url = `${API_ENDPOINTS.CONTACT.BASE}?${params.toString()}`;
 
       const response = await fetch(url, {
@@ -170,7 +174,7 @@ const ContactFormPage: React.FC = () => {
     } finally {
       if (sequence === listSequence.current) { setLoading(false); setInitialLoad(false); }
     }
-  }, [page, limit, statusFilter, searchTerm]);
+  }, [page, limit, statusFilter, debouncedSearch]);
 
 
   useEffect(() => { void fetchSubmissions(); }, [fetchSubmissions]);
