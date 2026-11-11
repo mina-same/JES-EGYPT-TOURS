@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import Link from "next/link";
 import {
   ArrowRightLeft,
@@ -38,6 +39,11 @@ const AdminFAQManagement: React.FC = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
+  // Only the newest list request may write the table.
+  const listSequence = useRef(0);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   // Which list is open: 'yes' = home page, 'no' = FAQ page. There is no "all"
   // view — the two are separate places, and showing them merged is what hid the
@@ -91,6 +97,7 @@ const AdminFAQManagement: React.FC = () => {
   };
 
   const fetchFAQs = useCallback(async () => {
+    const sequence = ++listSequence.current;
     try {
       setLoading(true);
       const params: any = {
@@ -99,8 +106,8 @@ const AdminFAQManagement: React.FC = () => {
         sort: 'category,order',
       };
       
-      if (searchTerm.trim()) {
-        params.search = searchTerm.trim();
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       if (categoryFilter !== 'all') {
@@ -118,6 +125,7 @@ const AdminFAQManagement: React.FC = () => {
       // Admin-only fetcher: always every FAQ in every language, so a row with
       // no text in the current UI language never vanishes from the editor.
       const response = await faqService.getAllFaqsForAdmin(params);
+      if (sequence !== listSequence.current) return;
       
       if (response.success && response.data) {
         setFaqs(response.data);
@@ -135,6 +143,7 @@ const AdminFAQManagement: React.FC = () => {
         setTotalItems(0);
       }
     } catch (error) {
+      if (sequence !== listSequence.current) return;
       console.error("Error fetching FAQs:", error);
       toast({
         title: "Error",
@@ -145,10 +154,12 @@ const AdminFAQManagement: React.FC = () => {
       setTotalPages(1);
       setTotalItems(0);
     } finally {
-      setLoading(false);
-      setInitialLoad(false);
+      if (sequence === listSequence.current) {
+        setLoading(false);
+        setInitialLoad(false);
+      }
     }
-  }, [page, limit, searchTerm, statusFilter, homeFilter, categoryFilter, toast]);
+  }, [page, limit, debouncedSearch, statusFilter, homeFilter, categoryFilter, toast]);
 
   // Declared after fetchFAQs on purpose: a `const` callback cannot be referenced
   // in a dependency array before it is initialised. It closes over the filter

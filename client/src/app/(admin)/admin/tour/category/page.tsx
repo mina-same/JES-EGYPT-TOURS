@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import Link from 'next/link';
 import { tourCategoryAPI } from '@/lib/api/tour';
 import { ITourCategory } from '@/types/tour';
@@ -27,6 +28,11 @@ export default function TourCategoriesPage() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
+  // Only the newest list request may write the table.
+  const listSequence = useRef(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -39,6 +45,7 @@ export default function TourCategoriesPage() {
 
   // Fetch categories
   const fetchCategories = async () => {
+    const sequence = ++listSequence.current;
     try {
       setLoading(true);
       setError(null);
@@ -46,7 +53,7 @@ export default function TourCategoriesPage() {
       const params: any = {
         page,
         limit: CATEGORIES_PER_PAGE,
-        search: searchTerm.trim() || undefined,
+        search: debouncedSearch || undefined,
       };
 
       if (statusFilter !== 'all') {
@@ -54,6 +61,7 @@ export default function TourCategoriesPage() {
       }
 
       const response = await tourCategoryAPI.getAll(params);
+      if (sequence !== listSequence.current) return;
 
       if (response.success && response.data) {
         setCategories(response.data);
@@ -69,16 +77,18 @@ export default function TourCategoriesPage() {
         setError(response.error || 'Failed to fetch categories');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      if (sequence === listSequence.current) setError(err.message || 'An error occurred');
     } finally {
-      setLoading(false);
-      setInitialLoad(false);
+      if (sequence === listSequence.current) {
+        setLoading(false);
+        setInitialLoad(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchCategories();
-  }, [page, searchTerm, statusFilter]);
+  }, [page, debouncedSearch, statusFilter]);
 
   useEffect(() => {
     window.scrollTo(0, 0);

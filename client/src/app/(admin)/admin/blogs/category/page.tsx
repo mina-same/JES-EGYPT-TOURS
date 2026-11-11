@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import Link from 'next/link';
 import { blogCategoryAPI } from '@/lib/api/blogAdmin';
 import { BlogCategory } from '@/lib/api/blog';
@@ -36,6 +37,11 @@ export default function BlogCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
+  // Only the newest list request may write the table.
+  const listSequence = useRef(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -48,6 +54,7 @@ export default function BlogCategoriesPage() {
 
   // Fetch categories
   const fetchCategories = async () => {
+    const sequence = ++listSequence.current;
     try {
       setLoading(true);
       setError(null);
@@ -55,7 +62,7 @@ export default function BlogCategoriesPage() {
       const params: any = {
         page,
         limit: CATEGORIES_PER_PAGE,
-        search: searchTerm.trim() || undefined,
+        search: debouncedSearch || undefined,
       };
       
       if (statusFilter !== 'all') {
@@ -63,6 +70,7 @@ export default function BlogCategoriesPage() {
       }
 
       const response: any = await blogCategoryAPI.getAll(params);
+      if (sequence !== listSequence.current) return;
       
       if (response.success && response.data) {
         setCategories(response.data);
@@ -78,15 +86,15 @@ export default function BlogCategoriesPage() {
         setError(response.error || 'Failed to fetch categories');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      if (sequence === listSequence.current) setError(err.message || 'An error occurred');
     } finally {
-      setLoading(false);
+      if (sequence === listSequence.current) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCategories();
-  }, [page, searchTerm, statusFilter]);
+  }, [page, debouncedSearch, statusFilter]);
 
   // Delete category
   const handleDelete = async (id: string) => {

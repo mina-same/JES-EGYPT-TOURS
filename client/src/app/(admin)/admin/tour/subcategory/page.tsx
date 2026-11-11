@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import Link from 'next/link';
 import { tourSubcategoryAPI, tourCategoryAPI } from '@/lib/api/tour';
 import { ITourSubcategory, ITourCategory } from '@/types/tour';
@@ -26,6 +27,11 @@ export default function TourSubcategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
+  // Only the newest list request may write the table.
+  const listSequence = useRef(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -51,6 +57,7 @@ export default function TourSubcategoriesPage() {
 
   // Fetch subcategories
   const fetchSubcategories = async () => {
+    const sequence = ++listSequence.current;
     try {
       setLoading(true);
       setError(null);
@@ -58,7 +65,7 @@ export default function TourSubcategoriesPage() {
       const params: any = {
         page,
         limit: SUBCATEGORIES_PER_PAGE,
-        search: searchTerm.trim() || undefined,
+        search: debouncedSearch || undefined,
         category: categoryFilter !== 'all' ? categoryFilter : undefined,
       };
       
@@ -67,6 +74,7 @@ export default function TourSubcategoriesPage() {
       }
 
       const response = await tourSubcategoryAPI.getAll(params);
+      if (sequence !== listSequence.current) return;
       
       if (response.success && response.data) {
         setSubcategories(response.data);
@@ -82,9 +90,9 @@ export default function TourSubcategoriesPage() {
         setError(response.error || 'Failed to fetch subcategories');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      if (sequence === listSequence.current) setError(err.message || 'An error occurred');
     } finally {
-      setLoading(false);
+      if (sequence === listSequence.current) setLoading(false);
     }
   };
 
@@ -98,7 +106,7 @@ export default function TourSubcategoriesPage() {
 
   useEffect(() => {
     fetchSubcategories();
-  }, [page, searchTerm, statusFilter, categoryFilter]);
+  }, [page, debouncedSearch, statusFilter, categoryFilter]);
 
   // Delete subcategory
   const handleDelete = async (id: string) => {
