@@ -112,8 +112,9 @@ export default async function RootLayout({
   // Read here, in the layout, so the very first HTML already carries the
   // visitor's currency. Every visitor route is already `ƒ` (dynamic) — the
   // detail page even declares `revalidate = 0` — so this costs no static
-  // generation that existed. A crawler sends no cookie and therefore keeps
-  // receiving the neutral USD default.
+  // generation that existed. A crawler sends no cookie and therefore gets the
+  // page language's currency: EUR on /de, /it and /es, USD on /en
+  // (lib/currency/localeCurrency.ts).
   const currencyCookie = parseCurrencyCookie(
     (await cookies()).get(CURRENCY_COOKIE)?.value
   );
@@ -139,7 +140,9 @@ export default async function RootLayout({
           <WishlistProvider>
             <SlugProvider>
               <I18nProvider locale={locale} resources={i18nResources}>
-                <CurrencyProvider initialCurrency={currencyCookie ?? undefined}>
+                {/* Saved choice first, then the page language (/de, /it, /es:
+                    EUR), so those pages are in euros in this very HTML. */}
+                <CurrencyProvider savedCurrency={currencyCookie ?? undefined} locale={locale}>
                   <SEOProvider locale={locale} />
                   {children}
                   {/* No Toaster here: the routes that raise toasts (Contact,

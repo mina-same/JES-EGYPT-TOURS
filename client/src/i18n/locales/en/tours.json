@@ -248,7 +248,7 @@
       "perPerson": "per person",
       "noteTitle": "Note:",
       "noteSub": "Prices are per person and may vary based on availability and booking date. Group discounts apply automatically based on the number of travelers. <contactLink>Contact us</contactLink> for custom quotes or special requests.",
-      "affordable": "Affordable",
+      "affordable": "Comfort",
       "gold (5 star standard)": "Gold (5 Star Standard)",
       "diamond (5 star luxury)": "Diamond (5 Star Luxury)",
       "tour prices": "Tour Prices",
@@ -346,6 +346,7 @@
       "failed": "Something went wrong. Please try again.",
       "invalid": "Please check your details and try again.",
       "rateLimited": "We could not send your question right now. Please wait a few minutes and try again."
-    }
+    },
+    "schemaItineraryName": "Tour Itinerary"
   }
 }

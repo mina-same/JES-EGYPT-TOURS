@@ -58,6 +58,7 @@ import {
   type ListingQuery,
 } from "@/lib/blog/listingPage";
 import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
+import { planLabelKey } from "@/lib/tours/planLabels";
 import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -88,6 +89,7 @@ import {
 import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { cookies } from "next/headers";
 import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
+import { pageCurrency, structuredDataCurrency } from "@/lib/currency/localeCurrency";
 
 
 function ensureTourMapSchema(tour: any) {
@@ -717,9 +719,13 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
   if (listingParsed && shouldRedirectPublicQuery(query, listingParsed)) {
     permanentRedirect(`/${locale}/${resolved!.correctSlug}${listingParsed.redirectSearch}`);
   }
-  const currency = parseCurrencyCookie(
-    (await cookies()).get(CURRENCY_COOKIE)?.value
-  ) || 'USD';
+  // The listing's prices, filters and sort in the currency the page shows:
+  // the saved choice, else the page language's (EUR on /de, /it, /es), else
+  // USD — the same rule as the layout and CurrencyContext.
+  const currency = pageCurrency(
+    parseCurrencyCookie((await cookies()).get(CURRENCY_COOKIE)?.value),
+    locale
+  );
   const state = listingParsed?.state;
   const listingQuery = state ? {
     page: state.page,
@@ -1026,28 +1032,45 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
       // the full trail: a BreadcrumbList ends with the page it is on.
       const visibleBreadcrumbs = breadcrumbs.slice(0, -1);
       const { t: tCommon } = await getServerTranslation(locale, "common");
+      const { t: tTours } = await getServerTranslation(locale, "tours");
 
       // ── JSON-LD @graph — fully dynamic, no fake reviews/ratings ────────────
-      // Currency defaults to USD at SSR time (localStorage unavailable server-side).
-      // Prices, itinerary, FAQs, and attractions update automatically when
-      // the tour data changes in the CMS/database.
+      // Currency by page language only (EUR on /de, /it, /es; USD on /en):
+      // search engines send no cookie and no country. Offers carry the amount
+      // typed for that currency; a tier without one is left out, never
+      // converted. Itinerary, FAQs and attractions follow the CMS data.
       const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
       const jsonLd = generateTourJsonLd({
         tour,
         locale: locale as "en" | "de" | "it" | "es",
-        currency: "USD",
+        currency: structuredDataCurrency(locale),
         canonicalUrl,
         siteUrl: baseUrl,
-        organization: {
-          name: "JES Egypt Tours",
-          url: baseUrl,
-          // logoUrl: add absolute logo URL here when available
-          // telephone: add real telephone in E.164 format when available
-          // email: add real contact email when available
-        },
+        // The <h1> below. WebPage, Product and TouristTrip use it, as does the
+        // last breadcrumb (the company itself is defined by SEOProvider).
+        name: name as string,
         breadcrumbs,
         // The same word the visible trail prints ("Startseite", "Inicio"…).
         homeLabel: tCommon("home"),
+        // The graph's own words in the page language: the day word and the
+        // traveler groups are the ones the itinerary and pricing table print.
+        labels: {
+          itineraryName: tTours("tourDetails.schemaItineraryName"),
+          day: tTours("tourDetails.day"),
+          tiers: {
+            solo: tTours("tourDetails.pricing.soloTraveler"),
+            pax_2_4: tTours("tourDetails.pricing.pax2_4"),
+            pax_5_8: tTours("tourDetails.pricing.pax5_8"),
+            pax_9_16: tTours("tourDetails.pricing.pax9_16"),
+          },
+          // The label the pricing section prints ("AFFORDABLE" → Comfort).
+          // getServerTranslation answers a missing key with the key itself.
+          plan: (planName) => {
+            const key = planLabelKey(planName);
+            const label = tTours(key);
+            return label && label !== key ? label : planName;
+          },
+        },
       });
 
       return (

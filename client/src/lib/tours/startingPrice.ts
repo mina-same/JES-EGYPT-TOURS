@@ -75,3 +75,63 @@ export const seasonHasPrices = (season: { prices?: TierPrices } | null | undefin
 /** Whether a plan has any priced season. An unpriced plan gets no tab. */
 export const planHasPrices = (plan: { seasons?: Array<{ prices?: TierPrices }> } | null | undefined): boolean =>
   (plan?.seasons || []).some(seasonHasPrices);
+
+/**
+ * The amount one group-size tier is SHOWN at in `currency`: the price typed for
+ * that currency, otherwise the USD price converted at `usdRate` (units of
+ * `currency` per dollar). 0 when the tier is unpriced.
+ *
+ * The pricing table's rows, its plan and season "from" labels and the tour
+ * page's starting price all read this one function, so a "from" price can
+ * never be lower or higher than the cheapest row underneath it. A typed amount
+ * is used as it is, never converted again.
+ */
+export const tierDisplayAmount = (
+  amounts: CurrencyAmount | null | undefined,
+  currency: PriceCurrency,
+  usdRate: number
+): number => {
+  if (!amounts || typeof amounts !== 'object') return 0;
+  const typed = amounts[currency];
+  if (isUsableAmount(typed) && isPlausibleCurrencyAmount(currency, typed, amounts)) return typed;
+  return isUsableAmount(amounts.USD) ? amounts.USD * usdRate : 0;
+};
+
+/** The cheapest amount the pricing table shows in `currency` for these plans, or 0. */
+export const lowestDisplayAmount = (
+  pricingPlans: Array<{ seasons?: Array<{ prices?: TierPrices }> }> | null | undefined,
+  currency: PriceCurrency,
+  usdRate: number
+): number => {
+  let lowest = 0;
+  for (const plan of pricingPlans || []) {
+    for (const season of plan?.seasons || []) {
+      for (const tier of PRICE_TIERS) {
+        const value = tierDisplayAmount(season?.prices?.[tier], currency, usdRate);
+        if (value > 0 && (lowest === 0 || value < lowest)) lowest = value;
+      }
+    }
+  }
+  return lowest;
+};
+
+/**
+ * The tour page's starting price in every currency, taken from the rows the
+ * pricing table shows (typed amounts as they are, missing ones converted from
+ * USD). Undefined when nothing is priced, so the caller keeps the stored
+ * `priceStartingFrom`.
+ *
+ * The stored value is the minimum of TYPED amounts only, so a tier priced in
+ * USD alone could show a lower converted row than the stored EUR "from".
+ */
+export const displayStartingPrice = (
+  pricingPlans: Array<{ seasons?: Array<{ prices?: TierPrices }> }> | null | undefined,
+  rates: Record<PriceCurrency, number>
+): Record<PriceCurrency, number> | undefined => {
+  const lowest = {
+    USD: lowestDisplayAmount(pricingPlans, 'USD', 1),
+    EUR: lowestDisplayAmount(pricingPlans, 'EUR', rates.EUR),
+    GBP: lowestDisplayAmount(pricingPlans, 'GBP', rates.GBP),
+  };
+  return lowest.USD > 0 || lowest.EUR > 0 || lowest.GBP > 0 ? lowest : undefined;
+};

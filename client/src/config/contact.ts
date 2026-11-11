@@ -92,3 +92,21 @@ export const getSocialProfiles = (): LinkedSocialProfile[] =>
   SOCIAL_PROFILES.filter(
     (profile): profile is LinkedSocialProfile => !!profile.href
   );
+
+/** The public contact email. The footer and the site's structured data both read it here. */
+export const CONTACT_EMAIL = "info@jesegypttours.com";
+
+/**
+ * The office address, as the site's structured data (schema.org PostalAddress)
+ * publishes it.
+ *
+ * The Contact page prints its own copy of this address from the translation
+ * files (contact.json `addressText`). That copy is visible page text, so it is
+ * not read from here.
+ */
+export const COMPANY_POSTAL_ADDRESS = {
+  streetAddress: "8 Alshams Building, Dr. Hanem Mohammed Hussein, Kafr Nassar",
+  addressLocality: "Al Haram, Giza",
+  addressRegion: "Giza Governorate",
+  addressCountry: "EG",
+} as const;

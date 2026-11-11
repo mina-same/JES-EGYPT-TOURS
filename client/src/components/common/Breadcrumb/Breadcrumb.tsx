@@ -54,6 +54,8 @@ interface BreadcrumbProps {
   currentUrl?: string;
   /** Opt out where the page already publishes its own BreadcrumbList. */
   jsonLd?: boolean;
+  /** `@id` of the BreadcrumbList, e.g. `<page url>#breadcrumb`. Omitted when not given. */
+  jsonLdId?: string;
   /**
    * The capsule sits on a pale background (the travel-trade hero) instead of
    * a photograph: dark text, and a dark tint in place of the white glass,
@@ -72,7 +74,8 @@ function buildBreadcrumbJsonLd(
   homeUrl: string,
   homeLabel: string,
   items: BreadcrumbItem[],
-  currentUrl?: string
+  currentUrl?: string,
+  id?: string
 ) {
   const trail: { name: string; url?: string }[] = [
     { name: homeLabel, url: homeUrl },
@@ -91,6 +94,7 @@ function buildBreadcrumbJsonLd(
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    ...(id ? { "@id": id } : {}),
     itemListElement: usable.map((entry, index) => ({
       "@type": "ListItem",
       position: index + 1,
@@ -108,6 +112,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
   className = "",
   currentUrl,
   jsonLd = true,
+  jsonLdId,
   onLight = false,
 }) => {
   const list = Array.isArray(items) ? items : [];
@@ -132,7 +137,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
       type="application/ld+json"
       dangerouslySetInnerHTML={{
         __html: serializeJsonLd(
-          buildBreadcrumbJsonLd(`${getSeoBaseUrl()}/${locale}`, homeLabel, list, currentUrl)
+          buildBreadcrumbJsonLd(`${getSeoBaseUrl()}/${locale}`, homeLabel, list, currentUrl, jsonLdId)
         ),
       }}
     />

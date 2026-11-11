@@ -35,6 +35,7 @@ import CurrencyInput from './CurrencyInput';
 import CurrencyField from './CurrencyField';
 import { plansAllowedForKind, maxPlansForKind, type TourKind } from '@/lib/tours/tourKind';
 import { createEmptyPricingPlan } from '@/lib/tours/pricingPlans';
+import { planLabelEn } from '@/lib/tours/planLabelsEn';
 import AccommodationsEditor from './AccommodationsEditor';
 import { classifySeason } from '@/lib/tours/seasonKind';
 
@@ -416,7 +417,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                         hasError(`pricingPlans.${planIndex}.planName`) && 'text-red-600 font-bold'
                                       )}
                                     >
-                                      {plan.planName || 'Untitled plan'}
+                                      {planLabelEn(plan.planName) || 'Untitled plan'}
                                     </span>
                                     {(hasError(`pricingPlans.${planIndex}.planName`) || hasError(`pricingPlans.${planIndex}.seasons`)) && <span className="text-xs text-red-600 shrink-0 font-bold">⚠ Error</span>}
                                   </div>
@@ -473,7 +474,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                   <div className="space-y-2">
                                     <Label>Plan Type</Label>
                                     <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium">
-                                      {plan.planName || PLAN_OPTIONS[0]}
+                                      {planLabelEn(plan.planName || PLAN_OPTIONS[0])}
                                     </p>
                                   </div>
                                 ) : (
@@ -489,7 +490,8 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                     <SelectContent>
                                       {optionsFor(plan.planName).map((option) => (
                                         <SelectItem key={option} value={option}>
-                                          {option}
+                                          {/* The stored key stays the value; staff read the label. */}
+                                          {planLabelEn(option)}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>

@@ -306,7 +306,9 @@
     "trust3": "Supporto 24/7",
     "scroll": "Scorri",
     "pauseSlideshow": "Metti in pausa la presentazione",
-    "playSlideshow": "Riproduci la presentazione"
+    "playSlideshow": "Riproduci la presentazione",
+    "slidesLabel": "Diapositive",
+    "goToSlide": "Vai alla diapositiva {{current}} di {{total}}"
   },
   "videoReviews": {
     "tagline": "Viaggiatori Reali",
@@ -365,5 +367,13 @@
     "title": "Tour privati in Egitto, operatore locale | JES Egypt Tours",
     "description": "Tour operator al Cairo per tour privati in Egitto: guida in italiano, auto privata, ritiro in hotel e nessuna tappa obbligata nei negozi.",
     "imageAlt": "Le Piramidi di Giza e la Sfinge al tramonto, Egitto"
+  },
+  "tourCarousel": {
+    "previous": "Indietro nel carosello",
+    "next": "Avanti nel carosello"
+  },
+  "whatsappButtonLabel": "Contattaci su WhatsApp",
+  "siteSchema": {
+    "description": "JES Egypt Tours è un tour operator con sede al Cairo che organizza tour privati guidati e viaggi su misura in tutto l'Egitto, con guide autorizzate in italiano, inglese, tedesco e spagnolo."
   }
 }

@@ -29,6 +29,8 @@ interface PageHeaderProps {
    * document does not carry two competing trails.
    */
   breadcrumbJsonLd?: boolean;
+  /** `@id` for that BreadcrumbList, e.g. `<page url>#breadcrumb`. Omitted when not given. */
+  breadcrumbJsonLdId?: string;
   alt?: string;
   imageTitle?: string;
   /**
@@ -45,7 +47,7 @@ interface PageHeaderProps {
    */
   decorativeBackground?: boolean;
 }
-const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, breadcrumbLabelKey, alt, imageTitle, decorativeBackground, breadcrumbJsonLd = true }) => {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, breadcrumbs, breadcrumbLabelKey, alt, imageTitle, decorativeBackground, breadcrumbJsonLd = true, breadcrumbJsonLdId }) => {
   const { t } = useTranslation('common');
   const params = useParams();
   const locale = normalizeLocale(params?.locale);
@@ -83,6 +85,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subTitle, bgImage, bread
             items={trail}
             ariaLabel={t('breadcrumb')}
             jsonLd={breadcrumbJsonLd}
+            jsonLdId={breadcrumbJsonLdId}
             className="mb-[20px]"
           />
           <h1 className="page-header__title bw-split-in-right">{title}</h1>

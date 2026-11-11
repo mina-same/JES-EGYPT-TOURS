@@ -1,3 +1,4 @@
+import { planLabelEn } from './planLabelsEn';
 import { classifySeason, type SeasonKind } from './seasonKind';
 import {
   PRICE_CURRENCIES,
@@ -54,7 +55,8 @@ export const getPriceCompleteness = (tour: PricedTour | null | undefined): Price
   if (plans.length === 0) missing.push('No pricing plans');
 
   plans.forEach((plan, planIndex) => {
-    const planLabel = plan?.planName?.trim() || `Plan ${planIndex + 1}`;
+    // Staff read the plan by its display label ("AFFORDABLE" → Comfort).
+    const planLabel = planLabelEn(plan?.planName?.trim()) || `Plan ${planIndex + 1}`;
     const seasons = plan?.seasons || [];
     if (seasons.length === 0) missing.push(`${planLabel}: no seasons`);
 

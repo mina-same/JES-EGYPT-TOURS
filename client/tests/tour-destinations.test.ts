@@ -7,6 +7,8 @@ import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import * as destinationsModule from '../src/lib/tours/destinations';
 import * as richText from '../src/lib/richTextSections';
+import * as startingPriceModule from '../src/lib/tours/startingPrice';
+import * as priceFormatModule from '../src/lib/currency/priceFormat';
 
 function loadSource(relative: string, overrides: Record<string, unknown> = {}) {
   const url = new URL(relative, import.meta.url);
@@ -24,6 +26,8 @@ const { generateTourJsonLd } = loadSource('../src/lib/seo/tourJsonLd.ts', {
   '../tours/catalog': loadSource('../src/lib/tours/catalog.ts'),
   '../tours/destinations': destinationsModule,
   '@/lib/richTextSections': richText,
+  '../tours/startingPrice': startingPriceModule,
+  '../currency/priceFormat': priceFormatModule,
 });
 
 function nodes(tree: any): any[] {
@@ -72,7 +76,7 @@ for (const locale of ['en', 'de', 'it', 'es'] as const) {
     const tour = { _id: 'tour', heading: { en: 'A tour' }, slug: 'a-tour', destinations: records };
     const card = mapApiTourToCard(tour, locale, { duration: '', location: 'must not appear' });
     assert.equal(card?.meta.find(m => m.icon === 'icon-location')?.title, expected);
-    const graph = generateTourJsonLd({ tour, locale, canonicalUrl: 'https://example.com/tour', siteUrl: 'https://example.com', organization: { name: 'Test', url: 'https://example.com' }, breadcrumbs: [] });
+    const graph = generateTourJsonLd({ tour, locale, canonicalUrl: 'https://example.com/tour', siteUrl: 'https://example.com', breadcrumbs: [] });
     const trip = graph['@graph'].find((node: any) => node['@type'] === 'TouristTrip');
     assert.deepEqual(trip.touristDestination, names.map(name => ({ '@type': 'TouristDestination', name })));
   });
@@ -91,7 +95,7 @@ test('empty, missing and unresolved destinations never expose IDs or invented lo
     assert.equal(formatTourDestinations(destinations), '');
     const tour = { slug: 'tour', heading: { en: 'Tour' }, destinations };
     assert.equal(mapApiTourToCard(tour, 'en', { duration: '', location: 'Egypt' })?.meta[0].title, '');
-    const graph = generateTourJsonLd({ tour, locale: 'en', canonicalUrl: 'https://example.com/tour', siteUrl: 'https://example.com', organization: { name: 'Test', url: 'https://example.com' }, breadcrumbs: [] });
+    const graph = generateTourJsonLd({ tour, locale: 'en', canonicalUrl: 'https://example.com/tour', siteUrl: 'https://example.com', breadcrumbs: [] });
     assert.ok(graph['@graph'].every((node: any) => !('touristDestination' in node)));
   }
 });

@@ -307,7 +307,9 @@
     "trust3": "24/7 support",
     "scroll": "Scroll",
     "pauseSlideshow": "Pause slideshow",
-    "playSlideshow": "Play slideshow"
+    "playSlideshow": "Play slideshow",
+    "slidesLabel": "Slides",
+    "goToSlide": "Go to slide {{current}} of {{total}}"
   },
   "videoReviews": {
     "tagline": "Real Travellers",
@@ -366,5 +368,13 @@
     "title": "Private Egypt Tours with a Local Operator | JES Egypt Tours",
     "description": "Cairo-based operator for private Egypt tours. Licensed guide, private A/C car, hotel pickup, and a route built around you. No forced shopping stops.",
     "imageAlt": "The Giza Pyramids and the Sphinx at sunset, Egypt"
+  },
+  "tourCarousel": {
+    "previous": "carousel previous",
+    "next": "carousel next"
+  },
+  "whatsappButtonLabel": "Contact us on WhatsApp",
+  "siteSchema": {
+    "description": "JES Egypt Tours is a Cairo-based tour operator offering private guided tours and tailor-made trips across Egypt, with licensed guides in English, German, Italian and Spanish."
   }
 }

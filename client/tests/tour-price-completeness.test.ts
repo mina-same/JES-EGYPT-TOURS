@@ -43,7 +43,7 @@ test('zero and absent amounts are unpriced, named per group size and currency', 
   assert.equal(report.complete, false);
   assert.deepEqual(report.missing, [
     'Starting price: EUR, GBP',
-    'TOUR PRICES · Low Season: Solo (EUR, GBP), 9-16 Pax',
+    'Tour Prices · Low Season: Solo (EUR, GBP), 9-16 Pax',
   ]);
 });
 
@@ -57,7 +57,7 @@ test('an untouched season is reported whole, and an unrecognised one by position
   });
 
   assert.deepEqual(report.missing, [
-    'GOLD (5 STAR STANDARD) · Regular Season: no prices',
-    'GOLD (5 STAR STANDARD) · Season 3: no prices',
+    'Gold (5 Star Standard) · Regular Season: no prices',
+    'Gold (5 Star Standard) · Season 3: no prices',
   ]);
 });

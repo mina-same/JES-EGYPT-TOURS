@@ -1,5 +1,7 @@
 import { tourDestinationNames } from '../tours/destinations';
 import { tourTypeLabel } from '../tours/catalog';
+import { isPlausibleCurrencyAmount, isUsableAmount } from '../tours/startingPrice';
+import { roundPriceAmount } from '../currency/priceFormat';
 /**
  * tourJsonLd.ts
  *
@@ -8,7 +10,7 @@ import { tourTypeLabel } from '../tours/catalog';
  *
  * Usage (Server Component / generateMetadata):
  *   import { generateTourJsonLd } from "@/lib/seo/tourJsonLd";
- *   const jsonLd = generateTourJsonLd({ tour, locale, currency, canonicalUrl, siteUrl, organization, breadcrumbs });
+ *   const jsonLd = generateTourJsonLd({ tour, locale, currency, canonicalUrl, siteUrl, name, breadcrumbs, homeLabel, labels });
  *   // render: <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
  */
 
@@ -21,22 +23,23 @@ import { splitRichTextByHeading } from "@/lib/richTextSections";
 export type SupportedLocale = "en" | "de" | "it" | "es";
 export type SupportedCurrency = "USD" | "EUR" | "GBP";
 
-export interface TourJsonLdOrganization {
-  name: string;
-  url: string;
-  /** Absolute URL to the logo image */
-  logoUrl?: string;
-  /** Real telephone in E.164 format, e.g. "+447911123456" */
-  telephone?: string;
-  /** Real public contact email */
-  email?: string;
-  /** Only include if a real postal address is available */
-  address?: {
-    streetAddress?: string;
-    addressLocality: string;
-    addressCountry: string;
-    postalCode?: string;
-  };
+/**
+ * The words the graph prints itself, in the page language. Each one falls back
+ * to English when it is not given.
+ */
+export interface TourJsonLdLabels {
+  /** Name of the itinerary ItemList ("Tour Itinerary", "Reiseverlauf", …). */
+  itineraryName?: string;
+  /** The word before a day's number ("Day", "Tag", "Giorno", "Día"). */
+  day?: string;
+  /** Traveler-group names used in Offer names, the same ones the pricing table prints. */
+  tiers?: Partial<Record<"solo" | "pax_2_4" | "pax_5_8" | "pax_9_16", string>>;
+  /**
+   * A plan's display label from its stored key ("AFFORDABLE" → "Komfort"),
+   * the one the pricing section prints. Offer names and categories use it.
+   * Without it the stored key is printed.
+   */
+  plan?: (planName: string) => string;
 }
 
 export interface TourJsonLdBreadcrumb {
@@ -51,17 +54,21 @@ export interface TourJsonLdInput {
   /** Current page locale */
   locale: SupportedLocale;
   /**
-   * Currency for pricing schema.
-   * NOTE: At SSR time localStorage is unavailable → always pass "USD"
-   * so the schema reflects stable, currency-independent values.
+   * Currency for pricing schema: the page language's (EUR on /de, /it, /es,
+   * USD on /en — lib/currency/localeCurrency.ts structuredDataCurrency).
+   * Offers exist only for tiers with an amount typed in this currency.
    */
   currency?: SupportedCurrency;
   /** Absolute canonical URL for this tour page (no trailing slash) */
   canonicalUrl: string;
   /** Absolute base URL of the site (no trailing slash) */
   siteUrl: string;
-  /** Real organisation / agency data */
-  organization: TourJsonLdOrganization;
+  /**
+   * The tour's name as the page's <h1> prints it. WebPage, Product and
+   * TouristTrip carry this one name, like the last breadcrumb. Falls back to
+   * the tour's heading, then its name.
+   */
+  name?: string;
   /**
    * Breadcrumbs as rendered on the page:
    * e.g. [{ label:"Egypt Packages", href:"/en/egypt-packages" }, { label:"Cairo Tours", href:"/en/cairo-tours" }, { label:"8-Day Cairo Tour" }]
@@ -73,6 +80,8 @@ export interface TourJsonLdInput {
    * `home` string the visible trail prints. Defaults to "Home".
    */
   homeLabel?: string;
+  /** Fixed words of the graph in the page language. */
+  labels?: TourJsonLdLabels;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -190,7 +199,8 @@ export function cleanJsonLd(obj: unknown): unknown {
 const TRAVELER_TIERS = ["solo", "pax_2_4", "pax_5_8", "pax_9_16"] as const;
 type TravelerTier = (typeof TRAVELER_TIERS)[number];
 
-const TIER_LABELS: Record<TravelerTier, string> = {
+/** English names, used when the caller passes no translation. */
+const DEFAULT_TIER_LABELS: Record<TravelerTier, string> = {
   solo: "Solo Traveler",
   pax_2_4: "2–4 Travelers",
   pax_5_8: "5–8 Travelers",
@@ -210,9 +220,16 @@ interface ValidOffer {
 }
 
 /**
- * Walk every pricingPlan → season → traveler tier and collect all valid
- * (non-null, non-zero, numeric) prices for the requested currency.
- * Falls back to USD if the target currency is absent for a given entry.
+ * Walk every pricingPlan → season → traveler tier and collect the prices typed
+ * in the requested currency (non-zero, numeric, plausible against the tier's
+ * USD amount — the same test the stored "from" price uses).
+ *
+ * No fallback and no conversion: a tier without an amount in this currency is
+ * left out. Publishing its USD amount, or a USD amount labelled EUR, would
+ * advertise a price the page does not quote in that currency. Every returned
+ * offer is in `currency`, so the AggregateOffer built from them is too.
+ * Amounts go through the site's one rounding rule (whole numbers pass
+ * through), so the Offer carries the number the visitor sees.
  */
 export function getValidPricesFromPricingPlans(
   pricingPlans: any[] | undefined | null,
@@ -244,17 +261,9 @@ export function getValidPricesFromPricingPlans(
         const tierPrices = prices[tier];
         if (!tierPrices || typeof tierPrices !== "object") continue;
 
-        // Prefer the requested currency; fall back to USD
-        const rawPrice: number | undefined =
-          tierPrices[currency] ?? tierPrices["USD"];
-
-        if (
-          rawPrice === undefined ||
-          rawPrice === null ||
-          typeof rawPrice !== "number" ||
-          isNaN(rawPrice) ||
-          rawPrice <= 0
-        )
+        // Only the amount typed for this currency.
+        const rawPrice: unknown = tierPrices[currency];
+        if (!isUsableAmount(rawPrice) || !isPlausibleCurrencyAmount(currency, rawPrice, tierPrices))
           continue;
 
         offers.push({
@@ -265,8 +274,8 @@ export function getValidPricesFromPricingPlans(
           startDate,
           endDate,
           tier,
-          price: rawPrice,
-          currency: tierPrices[currency] !== undefined ? currency : "USD",
+          price: roundPriceAmount(rawPrice),
+          currency,
         });
       }
     });
@@ -341,9 +350,12 @@ function formatISO8601Duration(durationStr: string | null | undefined): string |
  * Map a free-text tourAvailability string to a schema.org Availability URL.
  * Falls back to InStock when the string is present but not recognisably "sold out"
  * or "limited".
+ *
+ * An empty field gives undefined, and the graph leaves `availability` out: no
+ * one has said the tour is available, so the markup does not say it either.
  */
-function resolveAvailability(availabilityStr: string | null | undefined): string {
-  if (!availabilityStr) return "https://schema.org/InStock";
+function resolveAvailability(availabilityStr: string | null | undefined): string | undefined {
+  if (!availabilityStr) return undefined;
   const lower = availabilityStr.toLowerCase();
   if (lower.includes("sold out") || lower.includes("unavailable")) {
     return "https://schema.org/SoldOut";
@@ -371,17 +383,19 @@ export function generateTourJsonLd({
   currency = "USD",
   canonicalUrl,
   siteUrl,
-  organization,
+  name,
   breadcrumbs,
   homeLabel,
+  labels,
 }: TourJsonLdInput): Record<string, unknown> {
   // ── Derived base values ───────────────────────────────────────────────────
 
   const loc = locale || "en";
   const cur: SupportedCurrency = currency;
 
+  // The page's <h1>, not the meta title: one name across the whole page.
   const tourName = stripHtml(
-    getLocalizedValue(tour.seo?.metaTitle, loc) ||
+    name ||
     getLocalizedValue(tour.heading, loc) ||
     getLocalizedValue(tour.name, loc) ||
     "Tour"
@@ -427,47 +441,8 @@ export function generateTourJsonLd({
 
   // ── 1. TravelAgency ───────────────────────────────────────────────────────
 
-  const travelAgencyNode: Record<string, unknown> = {
-    "@type": "TravelAgency",
-    "@id": organizationId,
-    name: organization.name,
-    url: organization.url,
-    ...(organization.logoUrl
-      ? {
-          logo: {
-            "@type": "ImageObject",
-            url: absoluteUrl(organization.logoUrl, siteUrl),
-          },
-        }
-      : {}),
-    ...(organization.telephone ? { telephone: organization.telephone } : {}),
-    ...(organization.email ? { email: organization.email } : {}),
-    ...(organization.address
-      ? {
-          address: {
-            "@type": "PostalAddress",
-            ...(organization.address.streetAddress
-              ? { streetAddress: organization.address.streetAddress }
-              : {}),
-            addressLocality: organization.address.addressLocality,
-            addressCountry: organization.address.addressCountry,
-            ...(organization.address.postalCode
-              ? { postalCode: organization.address.postalCode }
-              : {}),
-          },
-        }
-      : {}),
-    areaServed: [
-      "United Kingdom",
-      "United States",
-      "Germany",
-      "Spain",
-      "Italy",
-      "Egypt",
-    ],
-    currenciesAccepted: "USD, EUR, GBP",
-    sameAs: [organization.url],
-  };
+  // Not defined here. SEOProvider defines the company once per page
+  // (`${siteUrl}/#travelagency`). The nodes below only point at it by @id.
 
   // ── 2. BreadcrumbList ─────────────────────────────────────────────────────
 
@@ -492,6 +467,9 @@ export function generateTourJsonLd({
 
   // ── 3. Pricing: individual Offer objects + AggregateOffer ─────────────────
 
+  // Prices come from tour.pricingPlans. Check they are real before the site is indexed.
+  // Plans are named by their display label, never the stored key.
+  const planLabel = (planName: string) => labels?.plan?.(planName) || planName;
   const validOffers = getValidPricesFromPricingPlans(tour.pricingPlans, cur);
   const priceRange = calculateLowHighOffer(validOffers);
 
@@ -499,14 +477,14 @@ export function generateTourJsonLd({
   const individualOfferNodes = validOffers.map((o) => ({
     "@type": "Offer",
     "@id": generateOfferId(canonicalUrl, o.planIndex, o.seasonIndex, o.tier),
-    name: `${o.planName} — ${o.seasonName} — ${TIER_LABELS[o.tier]}`,
+    name: `${planLabel(o.planName)} — ${o.seasonName} — ${labels?.tiers?.[o.tier] || DEFAULT_TIER_LABELS[o.tier]}`,
     price: o.price,
     priceCurrency: o.currency,
     ...(o.startDate ? { validFrom: o.startDate } : {}),
     ...(o.endDate ? { validThrough: o.endDate } : {}),
-    availability: availabilityUrl,
+    ...(availabilityUrl ? { availability: availabilityUrl } : {}),
     url: canonicalUrl,
-    category: o.planName,
+    category: planLabel(o.planName),
   }));
 
   // AggregateOffer — only emitted when at least one valid price exists
@@ -519,7 +497,7 @@ export function generateTourJsonLd({
         lowPrice: priceRange.lowPrice,
         highPrice: priceRange.highPrice,
         offerCount: priceRange.offerCount,
-        availability: availabilityUrl,
+        ...(availabilityUrl ? { availability: availabilityUrl } : {}),
         ...(individualOfferNodes.length > 0
           ? { offers: individualOfferNodes }
           : {}),
@@ -537,7 +515,7 @@ export function generateTourJsonLd({
       ? {
           "@type": "ItemList",
           "@id": itineraryId,
-          name: "Tour Itinerary",
+          name: labels?.itineraryName || "Tour Itinerary",
           itemListOrder: "https://schema.org/ItemListOrderAscending",
           itemListElement: itineraryDays.map((day: any) => {
             const dayTitle = stripHtml(getLocalizedValue(day.title, loc));
@@ -559,7 +537,7 @@ export function generateTourJsonLd({
             return {
               "@type": "ListItem",
               position: day.day || itineraryDays.indexOf(day) + 1,
-              name: `Day ${day.day || itineraryDays.indexOf(day) + 1}: ${dayTitle}`,
+              name: `${labels?.day || "Day"} ${day.day || itineraryDays.indexOf(day) + 1}: ${dayTitle}`,
               ...(fullDescription ? { description: fullDescription } : {}),
             };
           }),
@@ -764,7 +742,6 @@ export function generateTourJsonLd({
   // ── Assemble @graph ───────────────────────────────────────────────────────
 
   const graphNodes: unknown[] = [
-    travelAgencyNode,
     breadcrumbNode,
     webPageNode,
     productNode,

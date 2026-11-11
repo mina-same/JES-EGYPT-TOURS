@@ -522,7 +522,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
         )}
         {/* Glass-pill slide indicator: one React-owned button per slide. */}
         {hasMultiple && (
-          <div className="main-slider-four__dots" aria-label="Slides">
+          <div className="main-slider-four__dots" aria-label={t("hero.slidesLabel")}>
             <button
               type="button"
               className="main-slider-four__autoplay"
@@ -541,7 +541,7 @@ const MainSliderFour: React.FC<MainSliderFourProps> = ({
                 type="button"
                 className={activeSlide === index ? "tns-nav-active" : undefined}
                 aria-current={activeSlide === index ? "true" : undefined}
-                aria-label={`Go to slide ${index + 1} of ${slides.length}`}
+                aria-label={t("hero.goToSlide", { current: index + 1, total: slides.length })}
                 onClick={() => sliderRef.current?.slider?.goTo(index)}
               />
             ))}

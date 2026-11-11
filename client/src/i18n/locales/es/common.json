@@ -306,7 +306,9 @@
     "trust3": "Soporte 24/7",
     "scroll": "Desplázate",
     "pauseSlideshow": "Pausar la presentación",
-    "playSlideshow": "Reproducir la presentación"
+    "playSlideshow": "Reproducir la presentación",
+    "slidesLabel": "Diapositivas",
+    "goToSlide": "Ir a la diapositiva {{current}} de {{total}}"
   },
   "videoReviews": {
     "tagline": "Viajeros Reales",
@@ -365,5 +367,13 @@
     "title": "Tours privados por Egipto a medida | JES Egypt Tours",
     "description": "Operador en El Cairo para tours privados por Egipto: guía en español, vehículo privado, recogida en el hotel y sin paradas de compras obligatorias.",
     "imageAlt": "Las Pirámides de Guiza y la Esfinge al atardecer, Egipto"
+  },
+  "tourCarousel": {
+    "previous": "Anterior en el carrusel",
+    "next": "Siguiente en el carrusel"
+  },
+  "whatsappButtonLabel": "Contáctenos por WhatsApp",
+  "siteSchema": {
+    "description": "JES Egypt Tours es un operador turístico con sede en El Cairo que organiza tours privados con guía y viajes a medida por todo Egipto, con guías con licencia en español, inglés, alemán e italiano."
   }
 }

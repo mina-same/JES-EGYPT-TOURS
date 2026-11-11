@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import Image from "next/image";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
@@ -58,6 +59,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
   const [isOpen, setOpen] = useState(false);
   const [videoIds, setVideoIds] = useState<string[]>([]);
   const sliderRef = useRef<TinySliderHandle>(null);
+  const { t } = useTranslation("common");
   // Without these the card's heart renders but does nothing, and never fills
   // in for tours that are already saved.
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -138,7 +140,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                   <button
                     type="button"
                     className='owl-prev'
-                    aria-label='carousel previous'
+                    aria-label={t("tourCarousel.previous")}
                     onClick={() => sliderRef.current?.slider?.goTo("prev")}
                   >
                     <span className='icon-arrow-left'></span>
@@ -146,7 +148,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
                   <button
                     type="button"
                     className='owl-next'
-                    aria-label='carousel next'
+                    aria-label={t("tourCarousel.next")}
                     onClick={() => sliderRef.current?.slider?.goTo("next")}
                   >
                     <span className='icon-arrow-right'></span>
@@ -222,7 +224,7 @@ const FeatureTwo: React.FC<FeatureTwoProps> = ({
         {/* Element Shapes */}
         {showShape && !homeThree && (
           <div className='feature-package__element'>
-            <Image src={featurePackageData.shape} alt='Element Shape' />
+            <Image src={featurePackageData.shape} alt='' aria-hidden='true' />
           </div>
         )}
       </section>

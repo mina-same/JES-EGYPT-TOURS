@@ -105,6 +105,17 @@
   scroll-margin-top: 100px;
 }
 
+/* Keyboard focus clear of the sticky header (73px): moving back with
+   Shift+Tab, the browser scrolled a control to the very top of the window,
+   entirely under the header. */
+.tailor-made-section a,
+.tailor-made-section button,
+.tailor-made-section input,
+.tailor-made-section select,
+.tailor-made-section textarea {
+  scroll-margin-top: 96px;
+}
+
 .tailor-made-form-header {
   padding: 30px 30px 25px;
   border-bottom: 1px solid #e5e7eb;
@@ -245,7 +256,8 @@
   width: 36px;
   height: 36px;
   background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-  color: white;
+  /* Dark espresso on the gold, as on the counters and the submit button. */
+  color: #27221b;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -292,16 +304,19 @@
   color: #d4af37;
 }
 
+/* The form's red (asterisks, messages, invalid borders): 5.4:1 on white. */
 .tailor-made-section .required {
-  color: #ef4444;
+  color: #c0392b;
 }
 
+/* The border is the only thing that shows where a field is (field and form
+   are both white): 3.2:1 on white, against 1.5:1 before. */
 .tailor-made-section .form-input,
 .tailor-made-section .form-select,
 .tailor-made-section .form-textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #7a93a3;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -327,41 +342,44 @@
   overflow: hidden;
   white-space: nowrap;
   padding-right: 30px;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3e%3cpath fill='none' stroke='%23b79c5c' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='M1 1.5l5 5 5-5'/%3e%3c/svg%3e");
+  /* Dark gold, 6:1 on white: the arrow is what tells a list from a text
+     field (the lighter gold was 2.65:1). */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3e%3cpath fill='none' stroke='%237a5f12' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='M1 1.5l5 5 5-5'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 10px 7px;
 }
 
+/* 4.8:1 on white, still lighter than what the visitor types (navy). */
 .tailor-made-section .form-input::placeholder,
 .tailor-made-section .form-textarea::placeholder {
-  color: #9ca3af;
+  color: #6b7280;
   opacity: 1;
 }
 
+/* Focus: a 2px dark gold ring (6:1 on white), 1px outside the border so that
+   it also stands out next to the red border of an invalid field, which keeps
+   its colour. It was the brand gold border and a faint halo: 2.1:1 and 1.05:1,
+   and nothing at all on an invalid field. An outline also survives Windows
+   High Contrast, which drops box shadows. */
 .tailor-made-section .form-input:focus,
 .tailor-made-section .form-select:focus,
 .tailor-made-section .form-textarea:focus {
-  outline: none;
-  border-color: #d4af37;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+  outline: 2px solid #7a5f12;
+  outline-offset: 1px;
+  border-color: #7a5f12;
+  box-shadow: none;
 }
 
 .tailor-made-section .form-input--error,
 .tailor-made-section .form-select--error,
 .tailor-made-section .form-textarea--error {
-  border-color: #ef4444 !important;
-}
-
-.tailor-made-section .form-input--error:focus,
-.tailor-made-section .form-select--error:focus,
-.tailor-made-section .form-textarea--error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+  border-color: #c0392b !important;
 }
 
 .tailor-made-section .form-error {
   display: block;
-  color: #ef4444;
+  color: #c0392b;
   font-size: 12px;
   margin-top: 4px;
   font-weight: 500;
@@ -414,7 +432,7 @@
 .tm-phone-input .PhoneInputInput {
   width: 100%;
   padding: 12px 14px 12px 76px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #7a93a3;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
@@ -423,18 +441,21 @@
   transition: all 0.2s ease;
 }
 
+/* The form's focus ring (see the fields above). */
 .tm-phone-input .PhoneInputInput:focus {
-  outline: none;
-  border-color: #d4af37;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+  outline: 2px solid #7a5f12;
+  outline-offset: 1px;
+  border-color: #7a5f12;
+  box-shadow: none;
 }
 
 .tm-phone-input--error .PhoneInputInput {
-  border-color: #ef4444;
+  border-color: #c0392b;
 }
 
+/* Focused and invalid: the ring, and the border stays red. */
 .tm-phone-input--error .PhoneInputInput:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: #c0392b;
 }
 
 .tm-phone-input .PhoneInputCountry {
@@ -484,7 +505,7 @@
 
 .tm-phone-input .PhoneInputCountry:focus-within {
   border-radius: 6px;
-  outline: 2px solid rgba(212, 175, 55, 0.55);
+  outline: 2px solid #7a5f12;
   outline-offset: 2px;
 }
 
@@ -503,8 +524,8 @@
       appearance: base-select;
     }
 
-    /* The closed field keeps its look; the arrow takes the brand's gold and
-       turns while the list is open. */
+    /* The closed field keeps its look; the arrow is the same dark gold as the
+       chevron above and turns while the list is open. */
     .tailor-made-form .form-select {
       display: flex;
       align-items: center;
@@ -522,7 +543,7 @@
     }
 
     .tailor-made-form .form-select::picker-icon {
-      color: #b79c5c;
+      color: #7a5f12;
       transition: rotate 0.2s ease;
     }
 
@@ -531,8 +552,8 @@
     }
 
     .tailor-made-form .form-select:open {
-      border-color: #d4af37;
-      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+      border-color: #7a5f12;
+      box-shadow: none;
     }
 
     /* The list */
@@ -568,6 +589,14 @@
       outline: none;
     }
 
+    /* The option the arrow keys are on: the tint alone is 1.08:1 next to the
+       white of the others; the ring is 5.5:1 on it. */
+    .tailor-made-form .form-select option:focus-visible,
+    .tm-phone-input .PhoneInputCountrySelect option:focus-visible {
+      outline: 2px solid #7a5f12;
+      outline-offset: -2px;
+    }
+
     /* The chosen entry: gold tint, darker gold text (6:1 on the tint). */
     .tailor-made-form .form-select option:checked,
     .tm-phone-input .PhoneInputCountrySelect option:checked {
@@ -598,6 +627,16 @@
       opacity: 1;
     }
 
+    /* Windows High Contrast replaces `color: transparent` with a system
+       colour, and "International" was printed over the hint. There the text
+       has no size instead; the list keeps its own 14px options.
+       (forced-color-adjust: none does not hide it.) */
+    @media (forced-colors: active) {
+      .tm-phone-input .PhoneInputCountrySelect {
+        font-size: 0;
+      }
+    }
+
     .tm-phone-input .PhoneInputCountrySelect::picker-icon {
       display: none;
     }
@@ -621,7 +660,7 @@
   right: 8px;
   z-index: 1;
   overflow: hidden;
-  color: #9ca3af;
+  color: #6b7280;
   font-size: 14px;
   line-height: 1.4;
   white-space: nowrap;
@@ -675,7 +714,7 @@
   height: 32px;
   border: none;
   background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-  color: white;
+  color: #27221b;
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
@@ -751,7 +790,9 @@
   width: 100%;
   padding: 16px 40px;
   background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-  color: white;
+  /* Text and icons on the gold: dark espresso, 7.5:1 at the gradient's darker
+     end and 10.5:1 at the lighter one. White was 2.1:1 and 1.5:1. */
+  color: #27221b;
   border: none;
   border-radius: 10px;
   font-size: 16px;
@@ -771,11 +812,12 @@
   transform: translateY(0px);
 }
 
-/* While sending (aria-disabled: the button keeps the focus). */
+/* While sending (aria-disabled: the button keeps the focus). No fade: at 70%
+   the label fell to 1.4:1. The spinner and "Submitting..." say what is
+   happening, and the cursor shows the wait. */
 .tailor-made-section .form-submit-btn:disabled,
 .tailor-made-section .form-submit-btn[aria-disabled="true"] {
-  opacity: 0.7;
-  cursor: not-allowed;
+  cursor: progress;
   transform: none !important;
 }
 
@@ -796,6 +838,14 @@
 
 .tailor-made-section .spinner {
   animation: tailor-made-spin 1s linear infinite;
+}
+
+/* Reduce Motion: the spinner stands still. The icon and "Submitting..." still
+   say the request is on its way. */
+@media (prefers-reduced-motion: reduce) {
+  .tailor-made-section .spinner {
+    animation: none;
+  }
 }
 
 /* Keyframe names are global too: `spin` is also defined by custom.css. */
@@ -1082,6 +1132,13 @@
 .tailor-made-section .sidebar-contact__item svg {
   color: #f4d03f;
   flex-shrink: 0;
+}
+
+/* The e-mail address is one long word: on 320px phones it ran past its box
+   and the card, onto the white page. It wraps inside instead. */
+.tailor-made-section .sidebar-contact__item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Below 1200px the container is 960px wide or less, and the 380px sidebar

@@ -27,7 +27,8 @@ import { PricingPlans } from "./components/PricingPlans";
 import { TourMosaic } from "./components/TourMosaic";
 import { DownloadPdfBrochure } from "./components/DownloadPdfBrochure";
 import { MobileStickyBookingBar } from "./components/MobileStickyBookingBar";
-import { planHasPrices } from "@/lib/tours/startingPrice";
+import { displayStartingPrice, planHasPrices } from "@/lib/tours/startingPrice";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { normalizeAmenityItems, isOrderedListContent, bindLeadingDash } from "@/lib/normalizeAmenityItems";
 import TourQuestionModal from "./components/TourQuestionModal";
 import FaqAccordion from "@/components/common/Faq/FaqAccordion";
@@ -411,6 +412,23 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
   /** Plans existing is not the same as prices existing: a plan is created the
    *  moment a tour is set up, long before anyone fills in amounts. */
   const hasQuotablePricing = (pricingPlans || []).some(planHasPrices);
+  /* The "from" price shown in the booking card, the mobile bar and the PDF:
+     the cheapest row the pricing table shows, in every currency (typed amounts
+     as they are, missing ones converted from USD). The stored
+     `priceStartingFrom` is the minimum of TYPED amounts only, so with a tier
+     priced in USD alone it could quote more than the table's cheapest row.
+     Kept when the tour has no priced plans.
+     A plain { USD, EUR, GBP } of numbers: the booking card compares props by
+     value, and these numbers only change when the plans or the rates do. */
+  const { rates } = useCurrency();
+  const startingPrice = React.useMemo(
+    () => displayStartingPrice(pricingPlans, rates) ?? price,
+    [pricingPlans, rates, price]
+  );
+  const brochureTour = React.useMemo(
+    () => ({ ...tourData, price: startingPrice }),
+    [tourData, startingPrice]
+  );
   /* Link normalisation is a regex pass over every rich-text field on the page —
      around 60 of them here. Scrolling re-renders this component whenever the
      sticky bar, the sidebar or the active tab flips, so the passes are memoised
@@ -1062,7 +1080,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
 
                 {/* Download Section */}
                 <section id="download-pdf" className="tour-section">
-                  <DownloadPdfBrochure tour={tourData} />
+                  <DownloadPdfBrochure tour={brochureTour} />
                 </section>
 
                 {/* FAQs Section */}
@@ -1243,7 +1261,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
               >
                 <BookingFormLazy
                   tourId={String(tourData.id || '')}
-                  price={price}
+                  price={startingPrice}
                   // Gates the card's "Pricing" link. Plans existing is not
                   // enough: an unpriced tour renders no #pricing section, so
                   // the link would scroll to nothing.
@@ -1288,7 +1306,7 @@ const TourListingOneDetails: React.FC<TourListingOneDetailsProps> = ({ id, initi
       {/* Mobile Sticky Booking Bar */}
       <MobileStickyBookingBar
         tourId={String(tourData.id || "")}
-        price={price}
+        price={startingPrice}
         tourTitle={title}
         packageOptions={(pricingPlans || []).map((plan) => plan.planName)}
       />

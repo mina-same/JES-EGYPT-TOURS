@@ -1,4 +1,4 @@
-import { PHONE_DISPLAY } from "@/config/contact";
+import { CONTACT_EMAIL, PHONE_DISPLAY } from "@/config/contact";
 // Social profiles live in config/contact.ts — see SOCIAL_PROFILES for why.
 import { StaticImageData } from 'next/image';
 import { BLOG_HUB_HREF_BY_LOCALE } from "@/data/blogHub";
@@ -56,7 +56,7 @@ export const footerOneData: FooterDataType = {
   shape1,
   shape2,
   contact: {
-    email: "info@jesegypttours.com",
+    email: CONTACT_EMAIL,
     phone: PHONE_DISPLAY,
   },
   // Only real, existing routes are listed (no dead template/demo routes).

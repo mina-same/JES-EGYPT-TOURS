@@ -248,7 +248,7 @@
       "perPerson": "por persona",
       "noteTitle": "Nota:",
       "noteSub": "Los precios son por persona y pueden variar según la disponibilidad y la fecha de reserva. Los descuentos para grupos se aplican automáticamente según el número de viajeros. <contactLink>Contáctanos</contactLink> para presupuestos personalizados o solicitudes especiales.",
-      "affordable": "Asequible",
+      "affordable": "Confort",
       "gold (5 star standard)": "Oro (Estándar 5 Estrellas)",
       "diamond (5 star luxury)": "Diamante (Lujo 5 Estrellas)",
       "tour prices": "Precios del Tour",
@@ -346,6 +346,7 @@
       "failed": "Algo salió mal. Inténtalo de nuevo.",
       "invalid": "Revisa tus datos e inténtalo de nuevo.",
       "rateLimited": "No hemos podido enviar tu pregunta en este momento. Espera unos minutos e inténtalo de nuevo."
-    }
+    },
+    "schemaItineraryName": "Itinerario"
   }
 }

@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 
 import { PaginationControls } from '@/components/admin/PaginationControls';
+import { planLabelEn } from '@/lib/tours/planLabelsEn';
 
 const BookingPage: React.FC = () => {
   const { refreshCount } = useBooking();
@@ -567,7 +568,7 @@ const BookingPage: React.FC = () => {
                             ) : (
                               <span className="text-gray-500">
                                 Package: <span className="font-bold text-gray-700 dark:text-gray-300">
-                                  {selectedBooking.selectedPackage}
+                                  {planLabelEn(selectedBooking.selectedPackage)}
                                 </span>
                               </span>
                             )}

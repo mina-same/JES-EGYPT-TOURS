@@ -306,7 +306,9 @@
     "trust3": "24/7 Support",
     "scroll": "Scrollen",
     "pauseSlideshow": "Diashow pausieren",
-    "playSlideshow": "Diashow abspielen"
+    "playSlideshow": "Diashow abspielen",
+    "slidesLabel": "Folien",
+    "goToSlide": "Folie {{current}} von {{total}} anzeigen"
   },
   "videoReviews": {
     "tagline": "Echte Reisende",
@@ -365,5 +367,13 @@
     "title": "Privatreise Ägypten, lokaler Veranstalter | JES Egypt Tours",
     "description": "Reiseveranstalter in Kairo für Privatreisen in Ägypten: deutschsprachiger Ägyptologe, privates Fahrzeug, Hotelabholung. Keine Kaffeefahrten.",
     "imageAlt": "Die Pyramiden von Gizeh und die Sphinx bei Sonnenuntergang, Ägypten"
+  },
+  "tourCarousel": {
+    "previous": "Karussell zurück",
+    "next": "Karussell weiter"
+  },
+  "whatsappButtonLabel": "Kontaktieren Sie uns auf WhatsApp",
+  "siteSchema": {
+    "description": "JES Egypt Tours ist ein Reiseveranstalter mit Sitz in Kairo für private geführte Touren und individuelle Reisen durch Ägypten, mit lizenzierten Guides auf Deutsch, Englisch, Italienisch und Spanisch."
   }
 }

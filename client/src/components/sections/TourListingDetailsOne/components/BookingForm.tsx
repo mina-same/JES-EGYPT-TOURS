@@ -25,6 +25,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { footerOneData } from "@/data/footerOneData";
 import { PACKAGE_NOT_SURE } from "@/lib/tours/tourKind";
+import { planLabelKey } from "@/lib/tours/planLabels";
 import {
   focusWithComfortableScroll,
   getFirstInvalidBookingField,
@@ -741,7 +742,7 @@ export const BookingForm: React.FC<BookingFormProps & BookingFormLocaleProps> = 
               >
                 {packageChoices.map((planName) => (
                   <option key={planName} value={planName}>
-                    {t(`tourDetails.pricing.${planName.toLowerCase()}`, planName)}
+                    {t(planLabelKey(planName), planName)}
                   </option>
                 ))}
                 <option value={PACKAGE_NOT_SURE}>
