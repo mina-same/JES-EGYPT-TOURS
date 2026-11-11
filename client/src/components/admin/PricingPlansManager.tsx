@@ -133,9 +133,37 @@ function SortableItemWrapper({
   );
 }
 
+const PRICE_CELL_CURRENCIES = ['USD', 'EUR', 'GBP'] as const;
+const MISSING_CELL_PATH = /^pricingPlans\.\d+\.seasons\.\d+\.prices\.[a-z0-9_]+\.(USD|EUR|GBP)$/;
+
+/**
+ * One price cell, with a target per currency for the error panel: clicking
+ * "Comfort / Low Season / 2-4 Pax: EUR price missing" scrolls here
+ * (FormErrorPanel looks for [data-field="<error path>"]). The targets are
+ * empty and hidden from assistive technology; they add no space.
+ */
+function PriceCell({ path, children }: { path: string; children: React.ReactNode }) {
+  return (
+    <div>
+      {PRICE_CELL_CURRENCIES.map((currency) => (
+        <span key={currency} data-field={`${path}.${currency}`} aria-hidden="true" />
+      ))}
+      {children}
+    </div>
+  );
+}
+
 export default function PricingPlansManager({ pricingPlans, onChange, activeLanguage, formErrors = [], tourKind }: PricingPlansManagerProps) {
   const hasError = (path: string) => formErrors.some(e => e.path === path || e.path?.startsWith(path + '.'));
   const getErrorMessage = (path: string) => formErrors.find(e => e.path === path)?.message;
+  /* The price table save rule (lib/tours/priceCompleteness.ts) reports each
+     missing cell with its currency at the end of the path, e.g.
+     pricingPlans.0.seasons.1.prices.pax_2_4.EUR. These two read that back so
+     the right currency tab is marked: in the cell, and at the top. */
+  const missingInCell = (cellPath: string) =>
+    PRICE_CELL_CURRENCIES.filter((currency) => formErrors.some((e) => e.path === `${cellPath}.${currency}`));
+  const missingCurrencies = PRICE_CELL_CURRENCIES.filter((currency) =>
+    formErrors.some((e) => MISSING_CELL_PATH.test(e.path ?? '') && e.path!.endsWith(`.${currency}`)));
 
   // Derived, never hardcoded: a day tour must not be offered package tiers and
   // vice versa. The server rejects the wrong pairing anyway — this stops the
@@ -337,7 +365,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <AdminCurrencyTabs activeCurrency={activeCurrency} onCurrencyChange={setActiveCurrency} />
+            <AdminCurrencyTabs activeCurrency={activeCurrency} onCurrencyChange={setActiveCurrency} errorCurrencies={missingCurrencies} />
             {/* A day tour is one price, and a package has only three tiers to
                 offer — past that there is no valid plan left to add. */}
             <Button
@@ -386,9 +414,11 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                 <div className="space-y-4">
                   {pricingPlans.map((plan, planIndex) => {
                     const planId = getPlanId(plan, planIndex);
-                    const isCollapsed = collapsedPlans[planId] ?? true;
-                    const planBg = PLAN_BG_CLASSES[planIndex % PLAN_BG_CLASSES.length];
                     const planHasError = hasError(`pricingPlans.${planIndex}`);
+                    // Collapsed by default, except a plan with an error, so its
+                    // marked cells are in view (the editor's own toggle still wins).
+                    const isCollapsed = collapsedPlans[planId] ?? !planHasError;
+                    const planBg = PLAN_BG_CLASSES[planIndex % PLAN_BG_CLASSES.length];
 
                     return (
                       <SortableItemWrapper
@@ -546,12 +576,14 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                     </Label>
                                                   </div>
                                                   <div className="space-y-4 pt-1">
+                                                    <PriceCell path={`${seasonPath}.prices.solo`}>
                                                     <CurrencyField
                                                       label="Solo"
                                                       value={season.prices?.solo || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'solo', { ...season.prices?.solo, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.solo`)}
+                                                      errorCurrencies={missingInCell(`${seasonPath}.prices.solo`)}
                                                     >
                                                       {(cur, val, handleVal) => (
                                                         <div className="relative">
@@ -567,13 +599,16 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                         </div>
                                                       )}
                                                     </CurrencyField>
+                                                    </PriceCell>
 
+                                                    <PriceCell path={`${seasonPath}.prices.pax_2_4`}>
                                                     <CurrencyField
                                                       label="2-4 Pax"
                                                       value={season.prices?.pax_2_4 || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_2_4', { ...season.prices?.pax_2_4, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_2_4`)}
+                                                      errorCurrencies={missingInCell(`${seasonPath}.prices.pax_2_4`)}
                                                     >
                                                       {(cur, val, handleVal) => (
                                                         <div className="relative">
@@ -589,13 +624,16 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                         </div>
                                                       )}
                                                     </CurrencyField>
+                                                    </PriceCell>
 
+                                                    <PriceCell path={`${seasonPath}.prices.pax_5_8`}>
                                                     <CurrencyField
                                                       label="5-8 Pax"
                                                       value={season.prices?.pax_5_8 || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_5_8', { ...season.prices?.pax_5_8, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_5_8`)}
+                                                      errorCurrencies={missingInCell(`${seasonPath}.prices.pax_5_8`)}
                                                     >
                                                       {(cur, val, handleVal) => (
                                                         <div className="relative">
@@ -611,13 +649,16 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                         </div>
                                                       )}
                                                     </CurrencyField>
+                                                    </PriceCell>
 
+                                                    <PriceCell path={`${seasonPath}.prices.pax_9_16`}>
                                                     <CurrencyField
                                                       label="9-16 Pax"
                                                       value={season.prices?.pax_9_16 || {}}
                                                       activeCurrency={activeCurrency}
                                                       onChange={(cur, val) => updateSeasonPrice(planIndex, seasonIndex, 'pax_9_16', { ...season.prices?.pax_9_16, [cur]: val })}
                                                       error={hasError(`${seasonPath}.prices.pax_9_16`)}
+                                                      errorCurrencies={missingInCell(`${seasonPath}.prices.pax_9_16`)}
                                                     >
                                                       {(cur, val, handleVal) => (
                                                         <div className="relative">
@@ -633,9 +674,11 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                                         </div>
                                                       )}
                                                     </CurrencyField>
+                                                    </PriceCell>
                                                   </div>
-                                                  {/* Prices are optional now, so this only fires on a real server
-    rejection (e.g. a negative amount) — word it accordingly. */}
+                                                  {/* Fires for a missing cell (the price table save rule: a
+    started table must be whole per plan) and for a server rejection
+    (e.g. a negative amount). The cells above carry the details. */}
 {hasError(`${seasonPath}.prices`) && <p className="text-[10px] text-red-600 font-semibold italic">Check the amounts in this season</p>}
                                                 </div>
 

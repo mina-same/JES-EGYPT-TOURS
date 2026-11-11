@@ -1,7 +1,7 @@
 import { tourDestinationNames } from '../tours/destinations';
 import { tourTypeLabel } from '../tours/catalog';
-import { isPlausibleCurrencyAmount, isUsableAmount } from '../tours/startingPrice';
-import { roundPriceAmount } from '../currency/priceFormat';
+import { tierDisplayAmount } from '../tours/startingPrice';
+import { FALLBACK_RATES } from '../currency/rates';
 /**
  * tourJsonLd.ts
  *
@@ -56,9 +56,15 @@ export interface TourJsonLdInput {
   /**
    * Currency for pricing schema: the page language's (EUR on /de, /it, /es,
    * USD on /en — lib/currency/localeCurrency.ts structuredDataCurrency).
-   * Offers exist only for tiers with an amount typed in this currency.
    */
   currency?: SupportedCurrency;
+  /**
+   * The exchange rates the page renders with (the stored ones, from
+   * lib/api/currencyRates.server.ts). A tier without a manual amount in
+   * `currency` is converted from USD with these and the page's own rounding.
+   * Defaults to the last-resort FALLBACK_RATES.
+   */
+  rates?: Record<SupportedCurrency, number>;
   /** Absolute canonical URL for this tour page (no trailing slash) */
   canonicalUrl: string;
   /** Absolute base URL of the site (no trailing slash) */
@@ -220,20 +226,20 @@ interface ValidOffer {
 }
 
 /**
- * Walk every pricingPlan → season → traveler tier and collect the prices typed
- * in the requested currency (non-zero, numeric, plausible against the tier's
- * USD amount — the same test the stored "from" price uses).
+ * Walk every pricingPlan → season → traveler tier and collect, for EVERY
+ * priced tier, the price the page shows in `currency`: the manual amount for
+ * that currency as entered, otherwise the USD amount converted with `rates`
+ * and rounded to the nearest 5.
  *
- * No fallback and no conversion: a tier without an amount in this currency is
- * left out. Publishing its USD amount, or a USD amount labelled EUR, would
- * advertise a price the page does not quote in that currency. Every returned
- * offer is in `currency`, so the AggregateOffer built from them is too.
- * Amounts go through the site's one rounding rule (whole numbers pass
- * through), so the Offer carries the number the visitor sees.
+ * It is the pricing table's own function (lib/tours/startingPrice.ts
+ * `tierDisplayAmount`), so an Offer's price is always the number on the page.
+ * Every returned offer is in `currency`, so the AggregateOffer built from
+ * them is too.
  */
 export function getValidPricesFromPricingPlans(
   pricingPlans: any[] | undefined | null,
-  currency: SupportedCurrency = "USD"
+  currency: SupportedCurrency = "USD",
+  rates: Record<SupportedCurrency, number> = FALLBACK_RATES
 ): ValidOffer[] {
   if (!Array.isArray(pricingPlans) || pricingPlans.length === 0) return [];
 
@@ -261,10 +267,9 @@ export function getValidPricesFromPricingPlans(
         const tierPrices = prices[tier];
         if (!tierPrices || typeof tierPrices !== "object") continue;
 
-        // Only the amount typed for this currency.
-        const rawPrice: unknown = tierPrices[currency];
-        if (!isUsableAmount(rawPrice) || !isPlausibleCurrencyAmount(currency, rawPrice, tierPrices))
-          continue;
+        // What the pricing table shows for this tier in this currency.
+        const shown = tierDisplayAmount(tierPrices, currency, rates[currency]);
+        if (shown <= 0) continue;
 
         offers.push({
           planName,
@@ -274,7 +279,7 @@ export function getValidPricesFromPricingPlans(
           startDate,
           endDate,
           tier,
-          price: roundPriceAmount(rawPrice),
+          price: shown,
           currency,
         });
       }
@@ -381,6 +386,7 @@ export function generateTourJsonLd({
   tour,
   locale,
   currency = "USD",
+  rates = FALLBACK_RATES,
   canonicalUrl,
   siteUrl,
   name,
@@ -470,7 +476,7 @@ export function generateTourJsonLd({
   // Prices come from tour.pricingPlans. Check they are real before the site is indexed.
   // Plans are named by their display label, never the stored key.
   const planLabel = (planName: string) => labels?.plan?.(planName) || planName;
-  const validOffers = getValidPricesFromPricingPlans(tour.pricingPlans, cur);
+  const validOffers = getValidPricesFromPricingPlans(tour.pricingPlans, cur, rates);
   const priceRange = calculateLowHighOffer(validOffers);
 
   // Build individual Offer nodes (one per plan/season/tier combination)
@@ -704,6 +710,9 @@ export function generateTourJsonLd({
       value: property.value,
     }));
 
+  // Output only when it has at least one Offer: a Product without offers,
+  // review or aggregateRating is an error for Google's product snippets. An
+  // unpriced tour is described by its TouristTrip alone.
   const productNode: Record<string, unknown> = {
     "@type": "Product",
     "@id": productId,
@@ -728,7 +737,8 @@ export function generateTourJsonLd({
     inLanguage: loc,
     isPartOf: { "@id": webSiteId },
     breadcrumb: { "@id": breadcrumbId },
-    mainEntity: { "@id": productId },
+    // The Product when there is one (it carries the offers), else the trip.
+    mainEntity: { "@id": aggregateOfferNode ? productId : touristTripId },
     ...(allImageUrls.length > 0
       ? {
           primaryImageOfPage: {
@@ -744,8 +754,7 @@ export function generateTourJsonLd({
   const graphNodes: unknown[] = [
     breadcrumbNode,
     webPageNode,
-    productNode,
-    ...(aggregateOfferNode ? [aggregateOfferNode] : []),
+    ...(aggregateOfferNode ? [productNode, aggregateOfferNode] : []),
     touristTripNode,
     ...(itineraryNode ? [itineraryNode] : []),
     ...(attractionsNode ? [attractionsNode] : []),

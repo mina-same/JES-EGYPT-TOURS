@@ -10,6 +10,7 @@ import { localeCurrency, pageCurrency, structuredDataCurrency } from '../src/lib
 import { currencyForCountry } from '../src/lib/currency/countryCurrency';
 import * as currencyCookie from '../src/lib/currency/currencyCookie';
 import * as priceFormat from '../src/lib/currency/priceFormat';
+import * as ratesModule from '../src/lib/currency/rates';
 import * as startingPrice from '../src/lib/tours/startingPrice';
 import { generateTourJsonLd } from '../src/lib/seo/tourJsonLd';
 
@@ -31,6 +32,7 @@ new Function('require', 'module', 'exports', ts.transpileModule(readFileSync(con
     '@/lib/currency/currencyCookie': currencyCookie,
     '@/lib/currency/localeCurrency': { localeCurrency },
     '@/lib/currency/priceFormat': priceFormat,
+    '@/lib/currency/rates': ratesModule,
     '@/lib/tours/startingPrice': startingPrice,
   } as Record<string, unknown>)[id] ?? createRequire(contextUrl)(id),
   contextModule, contextModule.exports,
@@ -64,7 +66,8 @@ test('the /en country rule is unchanged', () => {
 });
 
 test('the first HTML is in the page currency, and a saved choice beats it', () => {
-  assert.equal(firstHtml({ locale: 'de' }), 'EUR|€95|€92|€95');
+  // A manual EUR 95 stays 95; a bare USD 100 is converted (92) and rounded to the nearest 5.
+  assert.equal(firstHtml({ locale: 'de' }), 'EUR|€95|€90|€95');
   assert.equal(firstHtml({ locale: 'it' }).split('|')[0], 'EUR');
   assert.equal(firstHtml({ locale: 'es' }).split('|')[0], 'EUR');
   // /en renders USD; the browser may then apply the country rule.
@@ -75,7 +78,7 @@ test('the first HTML is in the page currency, and a saved choice beats it', () =
 
 test('the layout and the listing queries use the same rule', () => {
   const layout = source('app/(visitor)/[locale]/layout.tsx');
-  assert.match(layout, /<CurrencyProvider savedCurrency=\{currencyCookie \?\? undefined\} locale=\{locale\}>/);
+  assert.match(layout, /<CurrencyProvider\s+savedCurrency=\{currencyCookie \?\? undefined\}\s+locale=\{locale\}/);
   const route = source('app/(visitor)/[locale]/(home)/[slug]/page.tsx');
   assert.match(route, /const currency = pageCurrency\(\s*parseCurrencyCookie\(\(await cookies\(\)\)\.get\(CURRENCY_COOKIE\)\?\.value\),\s*locale\s*\);/);
   assert.match(route, /currency: structuredDataCurrency\(locale\),/);
@@ -83,8 +86,9 @@ test('the layout and the listing queries use the same rule', () => {
 
 test('a typed amount is shown as typed; a missing one is converted from USD', () => {
   assert.equal(tierDisplayAmount({ USD: 100, EUR: 95 }, 'EUR', 0.92), 95);
-  assert.equal(tierDisplayAmount({ USD: 100 }, 'EUR', 0.92), 92);
-  assert.equal(tierDisplayAmount({ USD: 100, EUR: 0 }, 'EUR', 0.92), 92);
+  assert.equal(tierDisplayAmount({ USD: 100 }, 'EUR', 0.92), 90);
+  assert.equal(tierDisplayAmount({ USD: 100, EUR: 0 }, 'EUR', 0.92), 90);
+  assert.equal(tierDisplayAmount({ USD: 100 }, 'GBP', 0.79), 80);
   assert.equal(tierDisplayAmount({ USD: 100, EUR: 95 }, 'USD', 1), 100);
   assert.equal(tierDisplayAmount(undefined, 'EUR', 0.92), 0);
 });
@@ -99,11 +103,11 @@ const mixedPlans = [{
 }];
 
 test('the "from" price is the cheapest row the table shows', () => {
-  // Rows in EUR: 95 (typed) and 73.6 (80 converted). The stored minimum of
-  // TYPED amounts says 95, which is the disagreement being fixed.
+  // Rows in EUR: 95 (typed) and 75 (80 × 0.92 = 73.6, to the nearest 5). The
+  // stored minimum of TYPED amounts says 95, which is the disagreement fixed.
   assert.equal(deriveStartingPrice(mixedPlans)?.EUR, 95);
-  assert.equal(lowestDisplayAmount(mixedPlans, 'EUR', 0.92), 80 * 0.92);
-  assert.deepEqual(displayStartingPrice(mixedPlans, RATES), { USD: 80, EUR: 80 * 0.92, GBP: 80 * 0.79 });
+  assert.equal(lowestDisplayAmount(mixedPlans, 'EUR', 0.92), 75);
+  assert.deepEqual(displayStartingPrice(mixedPlans, RATES), { USD: 80, EUR: 75, GBP: 65 });
   assert.equal(displayStartingPrice([{ seasons: [{ prices: {} }] }], RATES), undefined);
 });
 
@@ -118,11 +122,9 @@ test('the pricing table formats resolved amounts without converting them again',
   assert.match(details, /price=\{startingPrice\}[\s\S]*price=\{startingPrice\}/);
 });
 
-test('one rounding rule: whole numbers from 10, two decimals below', () => {
-  assert.equal(priceFormat.roundPriceAmount(95), 95);
-  assert.equal(priceFormat.roundPriceAmount(73.6), 74);
-  assert.equal(priceFormat.roundPriceAmount(9.204), 9.2);
-  assert.equal(priceFormat.formatPriceAmount(73.6, 'EUR'), '€74');
+test('formatting never rounds: whole numbers plain, anything else with two decimals', () => {
+  assert.equal(priceFormat.formatPriceAmount(75, 'EUR'), '€75');
+  assert.equal(priceFormat.formatPriceAmount(87.5, 'EUR'), '€87.50');
   assert.equal(priceFormat.formatPriceAmount(9.2, 'GBP'), '£9.20');
 });
 
@@ -134,20 +136,34 @@ const offersOf = (tour: any, currency: 'USD' | 'EUR') => {
   return { aggregate: graph.find((n) => n['@type'] === 'AggregateOffer'), product: graph.find((n) => n['@type'] === 'Product') };
 };
 
-test('JSON-LD offers carry only amounts typed in the page currency', () => {
+test('JSON-LD has an Offer for every priced tier, at the price the page shows', () => {
   const tour = { heading: { en: 'T', de: 'T' }, pricingPlans: [{ planName: 'AFFORDABLE', ...mixedPlans[0] }] };
   const eur = offersOf(tour, 'EUR').aggregate;
-  // pax_2_4 has no EUR amount: its Offer is left out, not converted or labelled EUR.
-  assert.deepEqual(eur.offers.map((o: any) => [o.price, o.priceCurrency]), [[95, 'EUR']]);
-  assert.deepEqual([eur.priceCurrency, eur.lowPrice, eur.highPrice, eur.offerCount], ['EUR', 95, 95, 1]);
+  // solo: manual EUR 95 as entered; pax_2_4: USD 80 converted and rounded (75).
+  assert.deepEqual(eur.offers.map((o: any) => [o.price, o.priceCurrency]), [[95, 'EUR'], [75, 'EUR']]);
+  assert.deepEqual(
+    eur.offers.map((o: any) => o.price),
+    [tierDisplayAmount(mixedPlans[0].seasons[0].prices.solo, 'EUR', RATES.EUR), tierDisplayAmount(mixedPlans[0].seasons[0].prices.pax_2_4, 'EUR', RATES.EUR)]
+  );
+  assert.deepEqual([eur.priceCurrency, eur.lowPrice, eur.highPrice, eur.offerCount], ['EUR', 75, 95, 2]);
   const usd = offersOf(tour, 'USD').aggregate;
   assert.deepEqual(usd.offers.map((o: any) => o.price), [100, 80]);
   assert.deepEqual([usd.priceCurrency, usd.lowPrice, usd.highPrice, usd.offerCount], ['USD', 80, 100, 2]);
 });
 
-test('a tour with no EUR amounts publishes no EUR offers at all', () => {
+test('a USD-only tour gets converted EUR offers; an unpriced tour gets no Product at all', () => {
   const usdOnly = { heading: { de: 'T' }, pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ prices: { solo: { USD: 100 } } }] }] };
-  const { aggregate, product } = offersOf(usdOnly, 'EUR');
-  assert.equal(aggregate, undefined);
-  assert.ok(!('offers' in product));
+  const priced = offersOf(usdOnly, 'EUR');
+  assert.deepEqual(priced.aggregate.offers.map((o: any) => [o.price, o.priceCurrency]), [[90, 'EUR']]);
+  assert.deepEqual(priced.product.offers, { '@id': priced.aggregate['@id'] });
+
+  const unpriced = { heading: { de: 'T' }, pricingPlans: [{ planName: 'AFFORDABLE', seasons: [{ prices: {} }] }] };
+  const graph = (generateTourJsonLd({
+    tour: unpriced, locale: 'de', currency: 'EUR',
+    canonicalUrl: 'https://example.com/t', siteUrl: 'https://example.com', breadcrumbs: [],
+  }) as any)['@graph'] as any[];
+  assert.ok(graph.every((n) => n['@type'] !== 'Product' && n['@type'] !== 'AggregateOffer'));
+  // The page's main entity is then the trip, never a node that is not there.
+  const trip = graph.find((n) => n['@type'] === 'TouristTrip');
+  assert.deepEqual(graph.find((n) => n['@type'] === 'WebPage').mainEntity, { '@id': trip['@id'] });
 });

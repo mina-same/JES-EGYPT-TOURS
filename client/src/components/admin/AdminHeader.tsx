@@ -27,6 +27,7 @@ const getAdminTitle = (pathname: string) => {
   if (pathname.startsWith("/admin/blogs/articles")) return "Articles";
   if (pathname.startsWith("/admin/blogs")) return "Blogs";
   if (pathname.startsWith("/admin/tour/booking")) return "Bookings";
+  if (pathname.startsWith("/admin/tour/exchange-rates")) return "Exchange Rates";
   if (/^\/admin\/tour\/tour\/[^/]+\/view$/.test(pathname)) return "View Tour";
   if (pathname.startsWith("/admin/tour/tour")) return "Tours";
   if (/^\/admin\/tour\/category\/[^/]+\/view$/.test(pathname)) return "View Tour Category";

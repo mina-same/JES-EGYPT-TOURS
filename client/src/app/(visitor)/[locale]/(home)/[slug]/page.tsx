@@ -90,6 +90,7 @@ import { TOUR_IMAGE_PLACEHOLDER } from "@/lib/images/placeholders";
 import { cookies } from "next/headers";
 import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
 import { pageCurrency, structuredDataCurrency } from "@/lib/currency/localeCurrency";
+import { getServerCurrencyRates } from "@/lib/api/currencyRates.server";
 
 
 function ensureTourMapSchema(tour: any) {
@@ -1033,17 +1034,22 @@ export default async function SlugPage({ params, searchParams }: PageProps) {
       const visibleBreadcrumbs = breadcrumbs.slice(0, -1);
       const { t: tCommon } = await getServerTranslation(locale, "common");
       const { t: tTours } = await getServerTranslation(locale, "tours");
+      // The stored rates the layout renders the visible prices with (one cached
+      // read per request), so a converted Offer is the price on the page.
+      const { rates } = await getServerCurrencyRates();
 
       // ── JSON-LD @graph — fully dynamic, no fake reviews/ratings ────────────
       // Currency by page language only (EUR on /de, /it, /es; USD on /en):
-      // search engines send no cookie and no country. Offers carry the amount
-      // typed for that currency; a tier without one is left out, never
-      // converted. Itinerary, FAQs and attractions follow the CMS data.
+      // search engines send no cookie and no country. Every priced tier is an
+      // Offer at the price the page shows: the manual amount for that
+      // currency, else USD converted with the stored rate and rounded to the
+      // nearest 5. Itinerary, FAQs and attractions follow the CMS data.
       const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
       const jsonLd = generateTourJsonLd({
         tour,
         locale: locale as "en" | "de" | "it" | "es",
         currency: structuredDataCurrency(locale),
+        rates,
         canonicalUrl,
         siteUrl: baseUrl,
         // The <h1> below. WebPage, Product and TouristTrip use it, as does the

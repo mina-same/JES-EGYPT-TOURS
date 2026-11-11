@@ -9,7 +9,8 @@ import {
   writeCurrencyCookie,
 } from "@/lib/currency/currencyCookie";
 import { localeCurrency } from "@/lib/currency/localeCurrency";
-import { CURRENCY_SYMBOLS, formatPriceAmount } from "@/lib/currency/priceFormat";
+import { CURRENCY_SYMBOLS, convertUsdPrice, formatPriceAmount } from "@/lib/currency/priceFormat";
+import { FALLBACK_RATES, parseRatesPayload, type CurrencyRates } from "@/lib/currency/rates";
 import { isUsableAmount } from "@/lib/tours/startingPrice";
 
 export type CurrencyCode = "USD" | "EUR" | "GBP";
@@ -34,77 +35,12 @@ interface CurrencyContextType {
   isLoading: boolean;
 }
 
-const DEFAULT_RATES: Record<CurrencyCode, number> = {
-  USD: 1,
-  EUR: 0.92,
-  GBP: 0.79,
-};
-
 const STORAGE_KEY = "jes_preferred_currency";
-const RATES_CACHE_KEY = "jes_currency_rates_cache_v1";
-const RATES_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-
-interface CurrencyRatesCache {
-  timestamp: number;
-  rates: Record<CurrencyCode, number>;
-}
-
-const isRatesPayload = (rates: unknown): rates is Record<CurrencyCode, number> => {
-  const data = rates as Partial<Record<CurrencyCode, unknown>>;
-  return (
-    typeof data?.USD === "number" &&
-    typeof data?.EUR === "number" &&
-    typeof data?.GBP === "number"
-  );
-};
-
-const readRatesCache = (): { rates: Record<CurrencyCode, number>; expired: boolean } | null => {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const raw = window.sessionStorage.getItem(RATES_CACHE_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw) as Partial<CurrencyRatesCache>;
-    if (typeof parsed.timestamp !== "number" || !isRatesPayload(parsed.rates)) {
-      window.sessionStorage.removeItem(RATES_CACHE_KEY);
-      return null;
-    }
-
-    return {
-      rates: parsed.rates,
-      expired: Date.now() - parsed.timestamp >= RATES_CACHE_TTL_MS,
-    };
-  } catch {
-    try {
-      window.sessionStorage.removeItem(RATES_CACHE_KEY);
-    } catch {
-      // sessionStorage unavailable
-    }
-    return null;
-  }
-};
-
-const writeRatesCache = (rates: Record<CurrencyCode, number>) => {
-  if (typeof window === "undefined") return;
-
-  try {
-    window.sessionStorage.setItem(
-      RATES_CACHE_KEY,
-      JSON.stringify({
-        timestamp: Date.now(),
-        rates,
-      })
-    );
-  } catch {
-    // sessionStorage unavailable
-  }
-};
 
 const CurrencyContext = createContext<CurrencyContextType>({
   currency: "USD",
   setCurrency: () => {},
-  rates: DEFAULT_RATES,
+  rates: FALLBACK_RATES,
   formatPrice: () => "$0",
   formatAmount: () => "$0",
   getPriceValue: () => 0,
@@ -125,7 +61,14 @@ export const CurrencyProvider: React.FC<{
   /** The page language. /de, /it and /es are priced in EUR whatever the
    *  visitor's country (lib/currency/localeCurrency.ts). */
   locale?: string;
-}> = ({ children, savedCurrency, locale }) => {
+  /** The exchange rates the server rendered with: the ones stored in the
+   *  database (Admin → Tour → Exchange Rates). Starting from them is what makes
+   *  a converted price in the first HTML the same number after hydration. */
+  initialRates?: CurrencyRates;
+  /** False when the server could not read the stored rates and rendered with
+   *  the last-resort FALLBACK_RATES; the browser then asks the API once. */
+  ratesFromDatabase?: boolean;
+}> = ({ children, savedCurrency, locale, initialRates, ratesFromDatabase = false }) => {
   /*
    * The currency is derived, never copied between states:
    *
@@ -151,8 +94,8 @@ export const CurrencyProvider: React.FC<{
    *  they made. Kept across language switches so /en asks /api/geo once. */
   const [countryCurrency, setCountryCurrency] = useState<CurrencyCode | null>(null);
   const currency: CurrencyCode = choice ?? localeCurrency(locale) ?? countryCurrency ?? "USD";
-  const [rates, setRates] = useState<Record<CurrencyCode, number>>(DEFAULT_RATES);
-  const [isLoading, setIsLoading] = useState(true);
+  const [rates, setRates] = useState<CurrencyRates>(initialRates ?? FALLBACK_RATES);
+  const [isLoading, setIsLoading] = useState(!ratesFromDatabase);
 
   /*
    * Every update this provider makes on its own — the one-time migration, the
@@ -215,43 +158,29 @@ export const CurrencyProvider: React.FC<{
     return () => controller.abort();
   }, [needsCountry]);
 
-  // Fetch exchange rates from API
+  // The rates: the server already rendered with the stored ones, so there is
+  // nothing to fetch — fetching would only risk a different answer after
+  // hydration (the old 6-hour browser cache could hold rates an admin had
+  // since changed). Only when the server fell back to FALLBACK_RATES does the
+  // browser ask the API once.
   useEffect(() => {
-    const fetchRates = async () => {
-      const cached = readRatesCache();
-      if (cached && !cached.expired) {
-        startTransition(() => {
-          setRates(cached.rates);
-          setIsLoading(false);
-        });
-        return;
-      }
-
+    if (ratesFromDatabase) return;
+    let cancelled = false;
+    (async () => {
       try {
         const response = await getCurrencyRates();
-        if (response.success && response.data) {
-          const freshRates = {
-            USD: 1,
-            EUR: response.data.rates.EUR,
-            GBP: response.data.rates.GBP,
-          };
-          startTransition(() => setRates(freshRates));
-          writeRatesCache(freshRates);
-        } else if (cached?.rates) {
-          startTransition(() => setRates(cached.rates));
-        }
+        const stored = parseRatesPayload(response?.data?.rates);
+        if (!cancelled && stored) startTransition(() => setRates(stored));
       } catch (error) {
-        console.warn("Failed to fetch currency rates, using defaults:", error);
-        if (cached?.rates) {
-          startTransition(() => setRates(cached.rates));
-        }
+        console.warn("Failed to fetch currency rates, using fallback rates:", error);
       } finally {
-        startTransition(() => setIsLoading(false));
+        if (!cancelled) startTransition(() => setIsLoading(false));
       }
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    fetchRates();
-  }, []);
+  }, [ratesFromDatabase]);
 
   const setCurrency = useCallback((newCurrency: CurrencyCode) => {
     // From here on the visitor has decided; neither the page language nor geo
@@ -274,9 +203,11 @@ export const CurrencyProvider: React.FC<{
     (amount: number | ICurrencyPrice | undefined | null): number => {
       if (amount === undefined || amount === null) return 0;
       
+      // A bare number is a USD amount: shown as entered in USD, otherwise
+      // converted and rounded by the one rule (nearest 5).
       if (typeof amount === 'number') {
-        if (isNaN(amount)) return 0;
-        return amount * rates[currency];
+        if (!isUsableAmount(amount)) return 0;
+        return convertUsdPrice(amount, currency, rates[currency]);
       }
 
       // It's an ICurrencyPrice object. A typed amount is used as it is; zero
@@ -285,13 +216,13 @@ export const CurrencyProvider: React.FC<{
       const typed = amount[currency];
       if (isUsableAmount(typed)) return typed;
 
-      // Fallback to USD and convert
-      return (amount.USD || 0) * rates[currency];
+      // Fallback to USD, converted and rounded by the one rule
+      return isUsableAmount(amount.USD) ? convertUsdPrice(amount.USD, currency, rates[currency]) : 0;
     },
     [currency, rates]
   );
 
-  // One rounding rule for every price shown or published (lib/currency/priceFormat.ts).
+  // Formatting only: getPriceValue already applied the one rounding rule.
   const formatPrice = useCallback(
     (amount: number | ICurrencyPrice | undefined | null): string =>
       formatPriceAmount(getPriceValue(amount), currency),

@@ -26,6 +26,7 @@ import {
   Menu as MenuIcon,
   Sun,
   Moon,
+  Coins,
 } from "lucide-react"
 import { ThemeToggle } from "./ThemeToggle"
 
@@ -132,6 +133,14 @@ const menuItems = [
         title: 'Tour',
         icon: Target,
         url: '/admin/tour/tour',
+      },
+      {
+        // EUR and GBP per US dollar, for every tour price without a manual
+        // amount in that currency.
+        id: 'tour-exchange-rates',
+        title: 'Exchange Rates',
+        icon: Coins,
+        url: '/admin/tour/exchange-rates',
       },
       // NOTE: "Special Offers" removed — there is no /admin/special-offers
       // route (it is a visitor-only page driven by discounted tours), so the

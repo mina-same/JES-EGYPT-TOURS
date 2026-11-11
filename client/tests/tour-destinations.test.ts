@@ -9,6 +9,7 @@ import * as destinationsModule from '../src/lib/tours/destinations';
 import * as richText from '../src/lib/richTextSections';
 import * as startingPriceModule from '../src/lib/tours/startingPrice';
 import * as priceFormatModule from '../src/lib/currency/priceFormat';
+import * as ratesModule from '../src/lib/currency/rates';
 
 function loadSource(relative: string, overrides: Record<string, unknown> = {}) {
   const url = new URL(relative, import.meta.url);
@@ -28,6 +29,7 @@ const { generateTourJsonLd } = loadSource('../src/lib/seo/tourJsonLd.ts', {
   '@/lib/richTextSections': richText,
   '../tours/startingPrice': startingPriceModule,
   '../currency/priceFormat': priceFormatModule,
+  '../currency/rates': ratesModule,
 });
 
 function nodes(tree: any): any[] {

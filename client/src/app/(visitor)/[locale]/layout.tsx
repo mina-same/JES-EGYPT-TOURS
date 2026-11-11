@@ -5,6 +5,7 @@ import { getLocaleResources } from "@/i18n/bundles";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { cookies } from "next/headers";
 import { CURRENCY_COOKIE, parseCurrencyCookie } from "@/lib/currency/currencyCookie";
+import { getServerCurrencyRates } from "@/lib/api/currencyRates.server";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { SlugProvider } from "@/contexts/SlugContext";
 import SEOProvider from "@/components/common/SEO/SEOProvider";
@@ -122,7 +123,14 @@ export default async function RootLayout({
   // Loaded here, on the server, so the four languages' translation JSON never
   // enters a client chunk. Only the active locale (plus English, which
   // fallbackLng needs) travels, as data in the RSC payload.
-  const i18nResources = await getLocaleResources(locale);
+  //
+  // The exchange rates stored in the database (Admin → Tour → Exchange Rates),
+  // read in parallel: the browser starts from the same rates the server
+  // rendered with, so a converted price never changes after hydration.
+  const [i18nResources, currencyRates] = await Promise.all([
+    getLocaleResources(locale),
+    getServerCurrencyRates(),
+  ]);
 
   return (
     // The font variables live on <html> (:root), not <body>. gotur.css defines
@@ -142,7 +150,12 @@ export default async function RootLayout({
               <I18nProvider locale={locale} resources={i18nResources}>
                 {/* Saved choice first, then the page language (/de, /it, /es:
                     EUR), so those pages are in euros in this very HTML. */}
-                <CurrencyProvider savedCurrency={currencyCookie ?? undefined} locale={locale}>
+                <CurrencyProvider
+                  savedCurrency={currencyCookie ?? undefined}
+                  locale={locale}
+                  initialRates={currencyRates.rates}
+                  ratesFromDatabase={currencyRates.source === "database"}
+                >
                   <SEOProvider locale={locale} />
                   {children}
                   {/* No Toaster here: the routes that raise toasts (Contact,

@@ -1,3 +1,5 @@
+import { roundConvertedPrice } from '../currency/priceFormat';
+
 /** The four group-size tiers a season can be priced for. */
 export const PRICE_TIERS = ['solo', 'pax_2_4', 'pax_5_8', 'pax_9_16'] as const;
 export type PriceTier = (typeof PRICE_TIERS)[number];
@@ -78,13 +80,15 @@ export const planHasPrices = (plan: { seasons?: Array<{ prices?: TierPrices }> }
 
 /**
  * The amount one group-size tier is SHOWN at in `currency`: the price typed for
- * that currency, otherwise the USD price converted at `usdRate` (units of
- * `currency` per dollar). 0 when the tier is unpriced.
+ * that currency exactly as entered, otherwise the USD price converted at
+ * `usdRate` (units of `currency` per dollar) and rounded by the site's one
+ * rule for converted prices (nearest 5, lib/currency/priceFormat.ts). 0 when
+ * the tier is unpriced.
  *
- * The pricing table's rows, its plan and season "from" labels and the tour
- * page's starting price all read this one function, so a "from" price can
- * never be lower or higher than the cheapest row underneath it. A typed amount
- * is used as it is, never converted again.
+ * The pricing table's rows, its plan and season "from" labels, the tour
+ * page's starting price and the tour JSON-LD Offers all read this one
+ * function, so a "from" price can never differ from the cheapest row and the
+ * schema price is always the number on the page.
  */
 export const tierDisplayAmount = (
   amounts: CurrencyAmount | null | undefined,
@@ -94,7 +98,8 @@ export const tierDisplayAmount = (
   if (!amounts || typeof amounts !== 'object') return 0;
   const typed = amounts[currency];
   if (isUsableAmount(typed) && isPlausibleCurrencyAmount(currency, typed, amounts)) return typed;
-  return isUsableAmount(amounts.USD) ? amounts.USD * usdRate : 0;
+  if (currency === 'USD' || !isUsableAmount(amounts.USD)) return 0;
+  return roundConvertedPrice(amounts.USD * usdRate);
 };
 
 /** The cheapest amount the pricing table shows in `currency` for these plans, or 0. */

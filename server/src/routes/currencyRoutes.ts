@@ -1,6 +1,7 @@
 import express from 'express';
 import { getRates, updateRates } from '../controllers/currencyController';
-import { protect } from '../middleware/auth';
+import { permit, protect } from '../middleware/auth';
+import { PERMISSIONS } from '../permissions';
 
 const router = express.Router();
 
@@ -13,9 +14,10 @@ router.get('/rates', getRates);
 
 /**
  * @route   PUT /api/currency/rates
- * @desc    Update exchange rates
- * @access  Private/Admin
+ * @desc    Update exchange rates (Admin → Tour → Exchange Rates)
+ * @access  Users who may edit tour prices (tour:update); superadmins always.
+ *          The rates change every converted tour price on the site.
  */
-router.put('/rates', protect, updateRates);
+router.put('/rates', protect, permit(PERMISSIONS.TOUR_UPDATE), updateRates);
 
 export default router;

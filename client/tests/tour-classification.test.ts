@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import * as priceCompleteness from '../src/lib/tours/priceCompleteness';
 
 // Compile the actual JSX control without introducing a UI testing dependency.
 function loadSource(relative: string, overrides: Record<string, unknown> = {}) {
@@ -32,6 +33,7 @@ test('type labels come only from current IDs, never translated objects or free t
 });
 const { validateTourForm } = loadSource('../src/lib/validations/tourValidation.ts', {
   '@/lib/tours/catalog': catalog,
+  '@/lib/tours/priceCompleteness': priceCompleteness,
 });
 
 test('shared create/edit save validation requires a current type while styles may stay empty', () => {

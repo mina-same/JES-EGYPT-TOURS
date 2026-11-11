@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { roundConvertedPrice } from './priceRounding';
 
 export const BOOKING_CURRENCIES = ['USD', 'EUR', 'GBP'] as const;
 
@@ -99,11 +100,11 @@ export const createBookingRequestFingerprint = (
   return createHash('sha256').update(canonical).digest('hex');
 };
 
-const roundedMoney = (value: number): number => Math.round(value * 100) / 100;
-
 /** Derive the stored quote from the tour document, never from public input.
- *  Exact per-currency admin prices win; configured rates are only a fallback
- *  when the selected currency is absent from priceStartingFrom. */
+ *  Exact per-currency admin prices win and are kept as entered; otherwise the
+ *  USD price is converted with the configured rate and rounded to the nearest
+ *  5 — the rule the tour page and its booking card use (utils/priceRounding.ts),
+ *  so the quote on the booking is the number the visitor saw. */
 export const resolveTourStartingQuote = (
   price: TourStartingPrice | undefined,
   currency: BookingCurrency,
@@ -113,7 +114,7 @@ export const resolveTourStartingQuote = (
 
   const exact = price[currency];
   if (typeof exact === 'number' && Number.isFinite(exact) && exact > 0) {
-    return roundedMoney(exact);
+    return exact;
   }
 
   const usd = price.USD;
@@ -121,12 +122,12 @@ export const resolveTourStartingQuote = (
     return undefined;
   }
 
-  if (currency === 'USD') return roundedMoney(usd);
+  if (currency === 'USD') return usd;
 
   const rate = rates[currency];
   if (typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0) {
     return undefined;
   }
 
-  return roundedMoney(usd * rate);
+  return roundConvertedPrice(usd * rate);
 };
