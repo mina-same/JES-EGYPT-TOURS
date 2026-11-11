@@ -399,7 +399,7 @@ export async function getSubCategoryBySlug(slug: string, locale?: string): Promi
 export async function getAllBlogs(
   pageOrOptions:
     | number
-    | { page?: number; limit?: number; search?: string; tags?: string; isFeatured?: boolean; locale?: string } = 1,
+    | { page?: number; limit?: number; search?: string; tags?: string; isFeatured?: boolean; locale?: string; signal?: AbortSignal } = 1,
   limitArg: number = 9
 ): Promise<BlogResponse> {
   let page = 1;
@@ -408,6 +408,7 @@ export async function getAllBlogs(
   let tags: string | undefined = undefined;
   let isFeatured: boolean | undefined = undefined;
   let locale: string | undefined = undefined;
+  let signal: AbortSignal | undefined = undefined;
 
   if (typeof pageOrOptions === 'object') {
     page = pageOrOptions.page || 1;
@@ -416,6 +417,7 @@ export async function getAllBlogs(
     tags = pageOrOptions.tags;
     isFeatured = pageOrOptions.isFeatured;
     locale = pageOrOptions.locale;
+    signal = pageOrOptions.signal;
   } else {
     page = pageOrOptions;
     limit = limitArg;
@@ -448,6 +450,8 @@ export async function getAllBlogs(
     {
       ...blogListingCacheOptions(page, !search && !tags),
       ...(locale ? { headers: { 'X-Locale': locale } } : {}),
+      // Lets the caller drop a list nobody is waiting for any more.
+      ...(signal ? { signal } : {}),
     }
   );
   
