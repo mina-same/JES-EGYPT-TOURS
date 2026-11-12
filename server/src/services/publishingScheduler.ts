@@ -3,7 +3,7 @@ import Tour from '../models/Tour';
 import { emitDashboardStatsUpdate } from '../realtime/socket';
 import { assertEnglishPublicReady } from '../utils/blogAvailability';
 import { assertPublishableClassification } from '../utils/blogClassification';
-import { PublishingValidationError } from '../utils/publishing';
+import { PublishingValidationError, resolveBlogPublishedAt } from '../utils/publishing';
 
 const DEFAULT_INTERVAL_MS = 30_000;
 
@@ -18,7 +18,7 @@ let runInProgress = false;
 const heldBack = new Map<string, string>();
 
 /**
- * The due articles that may not go public as they are filed now.
+ * The due articles that may go public as they are filed now.
  *
  * An article is checked when it is scheduled, but it publishes later and
  * unattended: by then its category or topic may be switched off, its
@@ -34,9 +34,11 @@ const heldBack = new Map<string, string>();
  * a rule's own refusal holds an article back; a failed lookup fails the run, so
  * nothing is published on a check that could not be made.
  */
-const findUnpublishable = async (dueFilter: Record<string, unknown>): Promise<unknown[]> => {
-  const due = await Blog.find(dueFilter).select('title slug contentBlocks category subCategory destination').lean();
-  const blocked: unknown[] = [];
+const findPublishable = async (dueFilter: Record<string, unknown>) => {
+  const due = await Blog.find(dueFilter)
+    .select('title slug contentBlocks category subCategory destination publishedAt scheduledAt')
+    .lean();
+  const publishable: typeof due = [];
 
   // An article no longer due — published, rescheduled or drafted — has nothing left to report.
   const dueIds = new Set(due.map((article) => String(article._id)));
@@ -50,9 +52,9 @@ const findUnpublishable = async (dueFilter: Record<string, unknown>): Promise<un
       await assertPublishableClassification(article);
       assertEnglishPublicReady(article);
       heldBack.delete(id);
+      publishable.push(article);
     } catch (error) {
       if (!(error instanceof PublishingValidationError)) throw error;
-      blocked.push(article._id);
       if (heldBack.get(id) !== error.message) {
         heldBack.set(id, error.message);
         const title = (article.title as { en?: string } | undefined)?.en ?? '';
@@ -61,7 +63,7 @@ const findUnpublishable = async (dueFilter: Record<string, unknown>): Promise<un
     }
   }
 
-  return blocked;
+  return publishable;
 };
 
 const publishDueBlogs = async (now: Date): Promise<number> => {
@@ -70,24 +72,49 @@ const publishDueBlogs = async (now: Date): Promise<number> => {
     scheduledAt: { $lte: now },
     'featuredImage.url': { $type: 'string', $ne: '' },
   };
-  const blocked = await findUnpublishable(dueFilter);
+  const publishable = await findPublishable(dueFilter);
 
-  // The same write as ever, minus the articles held back above. Everything it
-  // can match was due at `now`, and so was among the articles just checked.
-  const result = await Blog.updateMany(
-    blocked.length > 0 ? { ...dueFilter, _id: { $nin: blocked } } : dueFilter,
-    {
-      $set: {
-        status: 'published',
-        publishedAt: now,
-        lastModified: now,
-      },
-      $unset: { scheduledAt: 1 },
-      $inc: { editVersion: 1 },
-    }
-  );
+  // Each article gets its own first-publication date (resolveBlogPublishedAt):
+  // the time it was scheduled for, not this run's — or, public before and then
+  // rescheduled, the date it first went public on. A plain update sets one
+  // value for every document it matches, so there is one write per date:
+  // usually exactly one, and none when nothing is due. Pipeline and $rename
+  // updates could copy each article's own scheduledAt, but the content-update
+  // guard (utils/duplicateInternalLinksPlugin.ts) refuses both by design.
+  //
+  // Each write matches only articles checked above, and only while they are
+  // still scheduled and due: an article an editor moved meanwhile is not
+  // touched. While an article stays scheduled nothing else writes its date.
+  const byDate = new Map<number, { publishedAt: Date; ids: unknown[] }>();
+  for (const article of publishable) {
+    const publishedAt = resolveBlogPublishedAt({
+      existingPublishedAt: article.publishedAt,
+      scheduledAt: article.scheduledAt,
+      now,
+    });
+    const batch = byDate.get(publishedAt.getTime()) ?? { publishedAt, ids: [] };
+    batch.ids.push(article._id);
+    byDate.set(publishedAt.getTime(), batch);
+  }
 
-  return result.modifiedCount;
+  let published = 0;
+  for (const { publishedAt, ids } of byDate.values()) {
+    const result = await Blog.updateMany(
+      { ...dueFilter, _id: { $in: ids } },
+      {
+        $set: {
+          status: 'published',
+          publishedAt,
+          lastModified: now,
+        },
+        $unset: { scheduledAt: 1 },
+        $inc: { editVersion: 1 },
+      }
+    );
+    published += result.modifiedCount;
+  }
+
+  return published;
 };
 
 const activateDueTours = async (now: Date): Promise<number> => {

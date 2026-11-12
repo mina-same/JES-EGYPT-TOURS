@@ -1,5 +1,6 @@
 import type { FilterQuery } from 'mongoose';
 import type { ITour } from '../models/Tour';
+import { roundConvertedPrice, roundConvertedPriceExpression } from './priceRounding';
 
 export const TOUR_LOCALES = ['en', 'de', 'it', 'es'] as const;
 export type TourLocale = (typeof TOUR_LOCALES)[number];
@@ -72,35 +73,42 @@ export const applyStartingPriceFilter = (
     comparisons.length === 1 ? comparisons[0] : { $and: comparisons };
 };
 
-/** Exact currency prices win; otherwise mirror CurrencyContext and convert USD. */
+/**
+ * The starting price a card shows, as an aggregation expression: the manual
+ * price for the currency as entered, otherwise the USD price converted at
+ * `conversionRate` and rounded to the nearest 5 (utils/priceRounding.ts).
+ * The price filter and sort use it, so filtering by the number on a card
+ * finds that card.
+ */
 export const effectiveStartingPriceExpression = (
   currency: TourCurrency,
   conversionRate = 1
 ): Record<string, unknown> => {
-  const raw = currency === 'USD'
-    ? '$priceStartingFrom.USD'
-    : {
-        $ifNull: [
-          `$priceStartingFrom.${currency}`,
-          { $multiply: ['$priceStartingFrom.USD', conversionRate] },
-        ],
-      };
-  // CurrencyContext displays whole amounts >= 10 and two decimals below 10.
-  // Apply the same precision before filtering so a displayed 81 matches min=81.
-  return { $let: { vars: { price: raw }, in: {
-    $cond: [{ $isNumber: '$$price' }, {
-      $cond: [{ $gte: ['$$price', 10] }, { $floor: { $add: ['$$price', 0.5] } },
-        { $divide: [{ $floor: { $add: [{ $multiply: ['$$price', 100] }, 0.5] } }, 100] }],
-    }, null],
-  } } };
+  const usd = '$priceStartingFrom.USD';
+  const isPrice = (field: string) => ({ $and: [{ $isNumber: field }, { $gt: [field, 0] }] });
+  if (currency === 'USD') return { $cond: [isPrice(usd), usd, null] };
+
+  const manual = `$priceStartingFrom.${currency}`;
+  return {
+    $cond: [
+      isPrice(manual),
+      manual,
+      { $cond: [isPrice(usd), roundConvertedPriceExpression({ $multiply: [usd, conversionRate] }), null] },
+    ],
+  };
 };
 
+/** The same price in JavaScript, for the listing response and the filter range. */
 export function effectiveStartingPrice(
   prices: Partial<Record<TourCurrency, number>> | undefined, currency: TourCurrency, rate: number
 ): number | undefined {
-  const raw = prices?.[currency] ?? (typeof prices?.USD === 'number' ? prices.USD * rate : undefined);
-  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return undefined;
-  return raw >= 10 ? Math.round(raw) : Math.round(raw * 100) / 100;
+  const isPrice = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0;
+  const manual = prices?.[currency];
+  if (isPrice(manual)) return manual;
+  const usd = prices?.USD;
+  if (!isPrice(usd)) return undefined;
+  return currency === 'USD' ? usd : roundConvertedPrice(usd * rate);
 }
 
 export const parseTourSort = (

@@ -39,22 +39,19 @@ process.env.JWT_SECRET = 'featured-destination-visibility-test';
 const name = (en: string) => ({ en, de: en, it: en, es: en });
 const cairo: Doc = {
   _id: new ObjectId(), name: name('Cairo'), slug: name('cairo'),
-  description: name('<p>Cairo public copy</p>'), status: 'published', isActive: true,
+  description: name('<p>Cairo public copy</p>'), status: 'published',
 };
 const draft: Doc = {
   _id: new ObjectId(), name: name('Secret Oasis'), slug: name('secret-oasis'),
   description: name('<p>Unreleased draft copy</p>'), heroTitle: name('Draft hero title'),
-  metaTitle: name('Draft meta title'), status: 'draft', isActive: true,
-};
-const switchedOff: Doc = {
-  _id: new ObjectId(), name: name('Retired Port'), slug: name('retired-port'), status: 'published', isActive: false,
+  metaTitle: name('Draft meta title'), status: 'draft',
 };
 // Everything that identifies the draft or its content.
 const DRAFT_MARKERS = [String(draft._id), 'Secret Oasis', 'secret-oasis', 'Unreleased draft copy', 'Draft hero title', 'Draft meta title', '"status":"draft"'];
 
 // ── the four families, each with a mixed, a published-only and a draft-only parent
 const parents = (prefix: string, extra: Doc = {}) => ({
-  mixed: { _id: new ObjectId(), name: name(`${prefix} mixed`), slug: name(`${prefix}-mixed`), featuredDestinations: [cairo._id, draft._id, switchedOff._id], featuredBlogs: [], isActive: true, ...extra },
+  mixed: { _id: new ObjectId(), name: name(`${prefix} mixed`), slug: name(`${prefix}-mixed`), featuredDestinations: [cairo._id, draft._id], featuredBlogs: [], isActive: true, ...extra },
   publishedOnly: { _id: new ObjectId(), name: name(`${prefix} published`), slug: name(`${prefix}-published`), featuredDestinations: [cairo._id], featuredBlogs: [], isActive: true, ...extra },
   draftOnly: { _id: new ObjectId(), name: name(`${prefix} draft`), slug: name(`${prefix}-draft`), featuredDestinations: [draft._id], featuredBlogs: [], isActive: true, ...extra },
 });
@@ -88,7 +85,7 @@ const WRITES = ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'replaceOn
 const writes: string[] = [];
 const failingReads = new Set<unknown>();
 const stores = new Map<unknown, Doc[]>([
-  [Destination, [cairo, draft, switchedOff]],
+  [Destination, [cairo, draft]],
   [BlogCategory, Object.values(blogCategories)],
   [BlogSubCategory, Object.values(blogSubcategories)],
   [TourCategory, Object.values(tourCategories)],
@@ -186,10 +183,9 @@ test('anonymous by-id reads feature published destinations only, in all four fam
       const { status, text, body } = await get(`${family.url}/${family.docs[parent]._id}`);
       const label = `${family.label} ${parent}`;
       assert.equal(status, 200, label);
-      // A clean array: drafts and switched-off pages are left out, no nulls.
+      // A clean array: drafts are left out, no nulls.
       assert.deepEqual(featuredSlugs(body), expected, label);
       assert.deepEqual(leaks(text), [], `${label}: nothing of the draft in the response`);
-      assert.ok(!text.includes('Retired Port'), `${label}: a switched-off destination is not public either`);
     }
     // Published destinations still come back as before: the whole document.
     const { body } = await get(`${family.url}/${family.docs.publishedOnly._id}`);
@@ -216,7 +212,7 @@ test("the Admin's editor gets every saved reference back, drafts included", asyn
       const label = `${family.label} as ${user}`;
       assert.equal(status, 200, label);
       // Stored order, every reference: the editor re-saves exactly these ids.
-      assert.deepEqual(featuredSlugs(body), ['cairo', 'secret-oasis', 'retired-port'], label);
+      assert.deepEqual(featuredSlugs(body), ['cairo', 'secret-oasis'], label);
       assert.deepEqual(
         (body.data.featuredDestinations as Doc[]).map((destination) => destination._id),
         family.docs.mixed.featuredDestinations.map(String),

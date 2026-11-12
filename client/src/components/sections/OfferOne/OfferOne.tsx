@@ -6,6 +6,7 @@ import { localizeInternalUrl } from "@/lib/url";
 import Link from "next/link";
 import { Col, Container, Row } from "react-bootstrap";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
+import InlineLinks from "@/components/common/InlineLinks/InlineLinks";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import "./OfferOne.css";
@@ -43,9 +44,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
                 </p>
                 <h2 className="sec-title__title bw-split-in-left">
                   <TextAnimation
-                    text={`${t("tailorOffer.titleLine1")} ${t(
-                      "tailorOffer.titleLine2"
-                    )}`}
+                    text={t("tailorOffer.title")}
                     animationType="left"
                     semantic
                   />
@@ -53,7 +52,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
               </div>
 
               <p className="about-one__top__text">
-                {t("tailorOffer.desc")}
+                <InlineLinks text={t("tailorOffer.desc")} />
               </p>
 
               <div className="about-one__feature">
@@ -86,7 +85,7 @@ const OfferOne: React.FC<OfferOneProps> = () => {
               <div className="offer-one__thumb__item">
                 <Image
                   src="/images/jes-egypt-tours-giza-pyramids-family-group-photo.webp"
-                  alt="Private Egypt Tour — Giza Pyramids at Sunset"
+                  alt={t("tailorOffer.imageAlt")}
                   width={600}
                   height={480}
                   style={{ objectFit: "cover", width: "100%", height: "100%" }}

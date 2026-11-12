@@ -44,7 +44,7 @@ const OfferTwo = () => {
                   </p>{" "}
                   <h2 className='sec-title__title bw-split-in-left'>
                     <TextAnimation
-                      text={`${t("specialOffer.title")} ${t("specialOffer.subtitle")}`}
+                      text={t("specialOffer.title")}
                       animationType='left'
                       semantic
                     />
@@ -83,7 +83,7 @@ const OfferTwo = () => {
                 aria-hidden='true'
                 className='offer-two__sale-label__icon'
               />
-              {t("specialOffer.limitedTime")}
+              {t("specialOffer.saleLabel")}
             </span>
             <div className='offer-two__funfact__item'>
               <div className='offer-two__funfact__item__inner count-box'>

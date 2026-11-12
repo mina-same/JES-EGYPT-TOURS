@@ -17,6 +17,8 @@ interface CurrencyFieldProps {
   ) => React.ReactNode;
   activeCurrency?: AdminCurrency;
   error?: boolean;
+  /** Currencies missing in this field: marked on its own currency tabs. */
+  errorCurrencies?: readonly AdminCurrency[];
 }
 
 const CurrencyField: React.FC<CurrencyFieldProps> = ({
@@ -27,6 +29,7 @@ const CurrencyField: React.FC<CurrencyFieldProps> = ({
   children,
   activeCurrency: globalCurrency,
   error,
+  errorCurrencies = [],
 }) => {
   const [localCurrency, setLocalCurrency] = useState<AdminCurrency>(globalCurrency || "USD");
 
@@ -61,6 +64,7 @@ const CurrencyField: React.FC<CurrencyFieldProps> = ({
           activeCurrency={currentCurrency}
           onCurrencyChange={handleCurrencySwitch}
           compact={true}
+          errorCurrencies={errorCurrencies}
         />
       </div>
 

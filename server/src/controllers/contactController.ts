@@ -1,6 +1,6 @@
 import { updateRequestRecord } from '../utils/requestWorkflow';
 import { notifySubmission } from '../utils/submissionNotification';
-import { paginationInput, respondSubmissionError, savePublicSubmission } from '../utils/submission';
+import { GENUINE_SUBMISSION, paginationInput, respondSubmissionError, savePublicSubmission } from '../utils/submission';
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import ContactSubmission from '../models/ContactSubmission';
@@ -324,8 +324,13 @@ export const getContactSubmissionById = async (req: Request, res: Response): Pro
 };
 export const getContactStats = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const rows = await ContactSubmission.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]);
+    // Enquiries only; `spam` is what that leaves out, so the page can say so
+    // (its list still holds those records).
+    const [rows, spam] = await Promise.all([
+      ContactSubmission.aggregate([{ $match: GENUINE_SUBMISSION }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
+      ContactSubmission.countDocuments({ isSpam: true }),
+    ]);
     const count = (status: string) => rows.find(row => row._id === status)?.count || 0;
-    res.json({ success: true, data: { total: rows.reduce((n, row) => n + row.count, 0), new: count('new'), replied: count('replied'), archived: count('archived') } });
+    res.json({ success: true, data: { total: rows.reduce((n, row) => n + row.count, 0), new: count('new'), replied: count('replied'), archived: count('archived'), spam } });
   } catch (error) { respondSubmissionError(res, error, 'Failed to load statistics'); }
 };

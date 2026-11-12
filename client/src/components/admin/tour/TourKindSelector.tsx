@@ -9,6 +9,7 @@ import {
   type TourKind,
 } from '@/lib/tours/tourKind';
 import { ensureDayTourPlan } from '@/lib/tours/pricingPlans';
+import { planLabelEn } from '@/lib/tours/planLabelsEn';
 import type { IPricingPlan } from '@/types/tour';
 
 interface TourKindSelectorProps {
@@ -130,7 +131,7 @@ export default function TourKindSelector({ value, pricingPlans, onChange }: Tour
                   </p>
                   <ul className="mt-2 list-inside list-disc text-sm font-medium text-amber-900 dark:text-amber-200">
                     {losingForPending.map((name, i) => (
-                      <li key={`${name}-${i}`}>{name}</li>
+                      <li key={`${name}-${i}`}>{planLabelEn(name)}</li>
                     ))}
                   </ul>
                   <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">

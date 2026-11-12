@@ -6,6 +6,7 @@ import { adminFetch } from '@/lib/adminNotifications';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState, useEffect, useCallback } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useSearchParams } from 'next/navigation';
 import { 
   Search, Filter, Eye, Trash2, 
@@ -63,6 +64,9 @@ const TailorMadePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedRequest, setSelectedRequest] = useState<TailorMadeRequest | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -111,7 +115,7 @@ const TailorMadePage: React.FC = () => {
         limit: String(limit),
       });
       if (statusFilter !== 'all') params.set('status', statusFilter);
-      if (searchTerm.trim()) params.set('search', searchTerm.trim());
+      if (debouncedSearch) params.set('search', debouncedSearch);
       const url = `${API_ENDPOINTS.TAILOR_MADE.BASE}?${params.toString()}`;
       
       const response = await fetch(url, {
@@ -142,7 +146,7 @@ const TailorMadePage: React.FC = () => {
     } finally {
       if (sequence === listSequence.current) { setLoading(false); setInitialLoad(false); }
     }
-  }, [page, limit, statusFilter, searchTerm]);
+  }, [page, limit, statusFilter, debouncedSearch]);
 
   useEffect(() => { void fetchRequests(); }, [fetchRequests]);
 

@@ -5,8 +5,9 @@ import { Container, Row, Col } from "react-bootstrap";
 import { faqService, type FAQ } from "@/services/faqService";
 import { Plus, Minus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { getLocalizedValue } from "@/lib/localize";
+import { homeFaqContent } from "@/lib/faqContent";
 import TextAnimation from "@/components/common/AnimatedText/TextAnimation";
+import InlineLinks from "@/components/common/InlineLinks/InlineLinks";
 
 /**
  * One question.
@@ -32,6 +33,9 @@ const HomeFaqItem: React.FC<{
 }> = ({ faq, number, isOpen, onToggle, language }) => {
   const panelId = `hfaq-panel-${number}`;
   const headerId = `hfaq-header-${number}`;
+  // The same reader the home page's FAQPage structured data uses, so the
+  // schema and this list cannot word a row differently.
+  const { question, answer } = homeFaqContent(faq, language);
 
   return (
     <div className={`hfaq-item${isOpen ? " hfaq-item--open" : ""}`}>
@@ -46,7 +50,7 @@ const HomeFaqItem: React.FC<{
         >
           <span className="hfaq-num">{String(number).padStart(2, "0")}</span>
           <span className="hfaq-question">
-            {getLocalizedValue(faq.question, language)}
+            {question}
           </span>
           <span className="hfaq-icon" aria-hidden="true">
             {isOpen ? <Minus size={14} /> : <Plus size={14} />}
@@ -68,7 +72,7 @@ const HomeFaqItem: React.FC<{
           <div
             className="hfaq-answer"
             dangerouslySetInnerHTML={{
-              __html: getLocalizedValue(faq.answer, language) || "",
+              __html: answer,
             }}
           />
           {faq.category && <span className="hfaq-tag">{faq.category}</span>}
@@ -142,19 +146,13 @@ const HomeFAQ: React.FC<HomeFAQProps> = ({ initialFaqs = [] }) => {
           </p>
           <h2 className="sec-title__title">
             <TextAnimation
-              text={`${t("frequentlyAsked", "Frequently Asked")} ${t(
-                "questions",
-                "Questions"
-              )}`}
+              text={t("faqTitle")}
               animationType="left"
               semantic
             />
           </h2>
           <p className="hfaq-subtitle">
-            {t(
-              "faqSubtitle",
-              "Everything you need to know about our tours and services."
-            )}
+            <InlineLinks text={t("faqSubtitle")} />
           </p>
         </div>
 

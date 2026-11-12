@@ -81,11 +81,13 @@ export default function NewTourPage() {
 
   // Search effects
   useEffect(() => {
+    // Only this run may fill the list: a slower, older answer is dropped.
+    let active = true;
     const searchTours = async () => {
       setIsSearchingTours(true);
       try {
         const response = await tourAPI.getAll({ search: tourSearchQuery.trim() || undefined, limit: 5, includeInactive: true });
-        if (response.success && response.data) {
+        if (active && response.success && response.data) {
           setTourSearchResults(response.data);
         }
       } catch (error) {
@@ -96,10 +98,15 @@ export default function NewTourPage() {
     };
 
     const timeoutId = setTimeout(searchTours, 500);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [tourSearchQuery]);
 
   useEffect(() => {
+    // Only this run may fill the list: a slower, older answer is dropped.
+    let active = true;
     const searchBlogs = async () => {
       setIsSearchingBlogs(true);
       try {
@@ -114,7 +121,7 @@ export default function NewTourPage() {
           search: blogSearchQuery.trim() || undefined,
           limit: BLOG_SEARCH_LIMIT,
         });
-        if (response.success && response.data) {
+        if (active && response.success && response.data) {
           setBlogSearchResults(response.data);
         }
       } catch (error) {
@@ -125,7 +132,10 @@ export default function NewTourPage() {
     };
 
     const timeoutId = setTimeout(searchBlogs, 500);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [blogSearchQuery]);
 
   // Submit form

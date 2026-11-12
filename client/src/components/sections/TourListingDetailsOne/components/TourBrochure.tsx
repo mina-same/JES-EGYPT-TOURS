@@ -3,6 +3,7 @@ import React from "react";
 import { MapPin, Calendar, DollarSign, Check, X } from "lucide-react";
 import { footerOneData } from "@/data/footerOneData";
 import { useTranslation } from "react-i18next";
+import { planLabelKey } from "@/lib/tours/planLabels";
 import type { TourDetailsOneData, TierAmount } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { normalizeAmenityItems } from "@/lib/normalizeAmenityItems";
@@ -476,7 +477,8 @@ const TourBrochure = React.forwardRef<HTMLDivElement, TourBrochureProps>(({ tour
                   marginBottom: 16,
                 }}
               >
-                {plan.planName}
+                {/* The label the tour page shows ("AFFORDABLE" → Comfort), not the stored key. */}
+                {t(planLabelKey(plan.planName), plan.planName)}
               </h4>
               <div style={{ display: "flex", gap: 16 }}>
                 {plan.seasons.map((s, j) => (

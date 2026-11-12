@@ -454,10 +454,6 @@ export const destinationAPI = {
     const response = await axiosInstance.put<ApiResponse<any>>(`destinations/${id}`, data);
     return response.data;
   },
-  toggleStatus: async (id: string) => {
-    const response = await axiosInstance.patch<ApiResponse<any>>(`destinations/${id}/toggle-active`);
-    return response.data;
-  },
   delete: async (id: string) => {
     const response = await axiosInstance.delete<ApiResponse<any>>(`destinations/${id}`);
     return response.data;

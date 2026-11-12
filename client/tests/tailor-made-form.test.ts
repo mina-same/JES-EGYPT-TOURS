@@ -110,7 +110,10 @@ test('the phone field takes a calling code, follows the country of residence, an
   // No '|': the library draws it as a disabled option filled with the text colour — a black bar.
   assert.match(code, /countryOptionsOrder=\{\['🌐', \.\.\.POPULAR_COUNTRIES, '\.\.\.'\]\}/);
   assert.match(code, /inputComponent=\{InternationalPhoneTextInput\}/);
-  assert.match(code, /if \(formData\.phone && !isValidPhoneNumber\(formData\.phone\)\) \{\s*newErrors\.phone = t\('form\.errors\.invalidPhone'\);/);
+  // The library's check, and the API's own E.164 range (7 to 15 digits): the
+  // library alone lets 6- to 19-digit numbers through, which the API refuses.
+  assert.match(code, /if \(formData\.phone && \(!isValidPhoneNumber\(formData\.phone\) \|\| !E164_PHONE\.test\(formData\.phone\)\)\) \{\s*newErrors\.phone = t\('form\.errors\.invalidPhone'\);/);
+  assert.match(code, /const E164_PHONE = \/\^\\\+\[1-9\]\\d\{6,14\}\$\/;/);
   assert.match(code, /import 'react-phone-number-input\/style\.css';/);
   // One copy of the "+" input, shared with the tour booking form.
   const booking = read('../src/components/sections/TourListingDetailsOne/components/BookingForm.tsx');
@@ -119,10 +122,148 @@ test('the phone field takes a calling code, follows the country of residence, an
 });
 
 test('the budget error sits under the budget fields, and every preference label has its icon', () => {
-  assert.match(code, /aria-invalid=\{!!errors\.maxBudget\}/);
-  assert.match(code, /<span className="form-error" id=\{fieldId\('budget-error'\)\} role="alert">/);
+  // Marked invalid and described by its message (read out when the focus moves
+  // there after a failed submit — messages are not alerts, which would all
+  // speak at once).
+  assert.match(code, /\{\.\.\.invalidProps\('maxBudget', fieldId\('budget-error'\)\)\}/);
+  assert.match(code, /<span className="form-error" id=\{fieldId\('budget-error'\)\}>/);
   assert.equal(/form-submit-wrapper">\s*\{errors\.maxBudget/.test(code), false);
   assert.match(code, /<Wallet size=\{18\} \/>\s*\{t\('form\.fields\.budgetRange'\)\}/);
   assert.match(code, /<Heart size=\{18\} \/>\s*\{t\('form\.fields\.specialOccasions'\)\}/);
   assert.match(code, /<Compass size=\{18\} \/>\s*\{t\('form\.fields\.interestsActivities'\)\}/);
+});
+
+/** The English values of a server enum, from its express-validator chain. */
+const serverEnum = (field: string) => {
+  const server = read('../../server/src/middleware/validation.ts');
+  const list = server.match(new RegExp(`body\\('${field}'\\)[\\s\\S]*?\\.isIn\\(\\[([\\s\\S]*?)\\]\\)`));
+  assert.ok(list, field);
+  return [...list[1].matchAll(/'([^']*)'/g)].map((match) => match[1]).filter(Boolean);
+};
+
+test('the month and accommodation lists read in the page language, and send the values the API accepts', () => {
+  // Months were the English names on every page: the label is now translated, the value stays English.
+  const months = [...(code.match(/const MONTHS = \[([\s\S]*?)\];/)?.[1] ?? '').matchAll(/'([^']+)'/g)].map((match) => match[1]);
+  assert.equal(months.length, 12);
+  assert.deepEqual(months, serverEnum('startMonth'));
+  assert.deepEqual(months, serverEnum('endMonth'));
+  const monthOption = /\{MONTHS\.map\(month => <option key=\{month\} value=\{month\}>\{t\(`form\.options\.months\.\$\{month\.toLowerCase\(\)\}`, \{ defaultValue: month \}\)\}<\/option>\)\}/g;
+  assert.equal(code.match(monthOption)?.length, 2, 'start and end month lists');
+  assert.equal(/<option key=\{month\} value=\{month\}>\{month\}<\/option>/.test(code), false);
+
+  const accommodation = optionList('ACCOMMODATION_OPTIONS');
+  assert.deepEqual(accommodation.map((o) => o.value), serverEnum('accommodation'));
+  assert.match(code, /\{t\(`form\.options\.accommodation\.\$\{o\.key\}`, \{ defaultValue: o\.value \}\)\}/);
+
+  for (const locale of LOCALES) {
+    for (const month of months) {
+      const label = lookup(messages[locale], `form.options.months.${month.toLowerCase()}`);
+      assert.ok(typeof label === 'string' && label.trim(), `${locale} ${month}`);
+    }
+    for (const { key, value } of accommodation) {
+      const label = lookup(messages[locale], `form.options.accommodation.${key}`);
+      assert.ok(typeof label === 'string' && label.trim(), `${locale} ${key}`);
+      // English shows exactly what it always showed; the other languages show their own words.
+      if (locale === 'en') assert.equal(label, value);
+      else assert.notEqual(label, value, `${locale} ${key} is still English`);
+    }
+  }
+  // Months that are not spelled like English anywhere prove the lists are not the English ones.
+  assert.equal(lookup(messages.de, 'form.options.months.march'), 'März');
+  assert.equal(lookup(messages.it, 'form.options.months.january'), 'Gennaio');
+  assert.equal(lookup(messages.es, 'form.options.months.december'), 'Diciembre');
+});
+
+test('the date and budget messages read correctly, and Spanish addresses the visitor as usted throughout', () => {
+  const errors = (locale: (typeof LOCALES)[number]) => lookup(messages[locale], 'form.errors') as Record<string, string>;
+  assert.equal(errors('de').travelRange, 'Wählen Sie aktuelle oder zukünftige Daten. Das Ende darf nicht vor dem Beginn liegen.');
+  assert.equal(errors('it').travelRange, "Scegli date attuali o future, con la fine non precedente all'inizio.");
+  assert.equal(errors('es').budgetRange, 'El presupuesto máximo debe ser igual o mayor que el mínimo.');
+  // "Elige" was the one informal (tú) form on a page that says "Cree", "Planifique", "Seleccione".
+  assert.equal(errors('es').travelRange, 'Elija fechas actuales o futuras, con el final igual o posterior al inicio.');
+  assert.equal(/\bElige\b/.test(JSON.stringify(messages.es)), false);
+});
+
+test('the tour booking form\'s spam trap is on the form, hidden from people, and sent with every request', () => {
+  // The same markup and class as the booking form's trap (the class lives in custom.css).
+  const trap = code.match(/<div className="booking-honeypot" aria-hidden="true">([\s\S]*?)<\/div>/);
+  assert.ok(trap, 'hidden wrapper');
+  for (const attribute of ['name="website"', 'value={formData.website}', 'onChange={handleInputChange}', 'tabIndex={-1}', 'autoComplete="off"', 'data-lpignore="true"', 'data-1p-ignore="true"']) {
+    assert.ok(trap[1].includes(attribute), attribute);
+  }
+  assert.equal(/\brequired\b/.test(trap[1]), false, 'never required');
+  // Controlled, empty for a person, and part of the body (`...formData`).
+  assert.match(code, /website: string;/);
+  assert.match(code, /comments: '',\s*website: '',/);
+  assert.match(code, /body: JSON\.stringify\(\{\s*\.\.\.formData,/);
+  // Inside the last step, not between it and the submit box: the step's
+  // `:has(+ .form-submit-wrapper)` rule must keep matching.
+  assert.match(code, /<div className="booking-honeypot"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<div className="form-submit-wrapper">/);
+  const customCss = read('../src/assets/css/custom.css');
+  assert.match(customCss, /\.booking-honeypot \{[^}]*position: absolute !important;[^}]*clip: rect\(0, 0, 0, 0\) !important;/);
+  assert.match(read('../src/app/(visitor)/[locale]/(home)/layout.tsx'), /import "@\/assets\/css\/custom\.css";/);
+});
+
+test('the phone hint stays on one line inside the field, and the budget lists\' placeholders fit them, in every language', () => {
+  // The hint wrapped to two lines past the field's padding on narrow phones
+  // (German at 360px): it now has a right edge and ends in an ellipsis instead.
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  const hint = css.match(/\.tm-phone-empty-label \{([^}]*)\}/);
+  assert.ok(hint, '.tm-phone-empty-label');
+  for (const declaration of ['right: 8px;', 'overflow: hidden;', 'white-space: nowrap;', 'text-overflow: ellipsis;', 'line-height: 1.4;']) assert.ok(hint[1].includes(declaration), declaration);
+  assert.equal(lookup(messages.de, 'form.placeholders.phone'), 'Vorwahl + Nummer');
+  // "Presupuesto mínimo / máximo" wrapped (desktop) or was cut to "Presupuesto r"
+  // (tablet) where the two lists share a row; the group's label already says
+  // "Presupuesto". Short, like the other three languages' placeholders.
+  assert.equal(lookup(messages.es, 'form.fields.minBudget'), 'Mínimo');
+  assert.equal(lookup(messages.es, 'form.fields.maxBudget'), 'Máximo');
+  for (const locale of LOCALES) {
+    for (const key of ['form.fields.minBudget', 'form.fields.maxBudget']) assert.ok(String(lookup(messages[locale], key)).length <= 11, `${locale} ${key}`);
+  }
+});
+
+test('a long choice or placeholder never breaks a field: one line with "…" (native lists, inputs); the desktop list wraps its few longest countries', () => {
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  assert.match(css, /\.tailor-made-section \.form-input,\s*\.tailor-made-section \.form-select \{\s*text-overflow: ellipsis;\s*\}/);
+  assert.match(css, /\.tailor-made-section \.form-select \{\s*overflow: hidden;\s*white-space: nowrap;/);
+  // The customizable list cannot shorten its closed text: it wraps instead of
+  // running under its arrow.
+  const desktop = css.match(/@supports \(appearance: base-select\) \{[\s\S]*?\.tailor-made-form \.form-select \{([^}]*)\}/);
+  assert.ok(desktop && /white-space: normal;/.test(desktop[1]), 'base-select field wraps');
+  // N-1: "Nessun limite" took two lines where the two budget lists share a row (769–991px).
+  assert.equal(lookup(messages.it, 'form.options.noLimit'), 'Senza limite');
+  for (const locale of LOCALES) assert.ok(String(lookup(messages[locale], 'form.options.noLimit')).length <= 12, locale);
+  // N-3: the four placeholders that were cut at 320px, shortened with their meaning kept.
+  assert.equal(lookup(messages.en, 'form.placeholders.dietary'), 'e.g., Vegetarian, Halal');
+  assert.equal(lookup(messages.it, 'form.placeholders.fullName'), 'Inserisci nome e cognome');
+  assert.equal(lookup(messages.it, 'form.placeholders.mobility'), 'Esigenze di accessibilità');
+  assert.equal(lookup(messages.es, 'form.placeholders.mobility'), 'Accesibilidad que necesita');
+  // Spanish keeps "usted" (necesita), as on the rest of the page.
+  assert.equal(/\bnecesitas\b/.test(String(lookup(messages.es, 'form.placeholders.mobility'))), false);
+});
+
+test('on phones the form is closer: compact feature rows and a link to it under the introduction', () => {
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  // Hidden by default; shown only in the 768px block.
+  assert.match(css, /\.tailor-made-jump \{\s*display: none;\s*\}/);
+  const phone = css.match(/@media \(max-width: 768px\) \{([\s\S]*?)\n\}/);
+  assert.ok(phone, '768px block');
+  assert.match(phone[1], /\.tailor-made-jump \{\s*display: inline-flex;/);
+  assert.match(phone[1], /\.tailor-made-section \.feature-card \{\s*display: grid;\s*grid-template-columns: 48px minmax\(0, 1fr\);/);
+  assert.match(css, /\.tailor-made-form-wrapper \{[^}]*scroll-margin-top: 100px;/);
+  // A link to the form section, its heading taking the focus.
+  assert.match(code, /<a href=\{`#\$\{FORM_ANCHOR\}`\} className="tailor-made-jump" onClick=\{jumpToForm\}>\s*\{t\('form\.header\.title'\)\}/);
+  assert.match(code, /<div className="tailor-made-form-wrapper" id=\{FORM_ANCHOR\}>/);
+  assert.match(code, /<h2 className="form-header-title" tabIndex=\{-1\} ref=\{formHeadingRef\}>/);
+  assert.match(code, /prefers-reduced-motion: reduce/);
+});
+
+test('on the narrowest phones the month gets the room the year does not need', () => {
+  const css = read('../src/app/(visitor)/[locale]/(home)/tailor-made/tailorMade.css');
+  const narrow = css.match(/@media \(max-width: 374\.98px\) \{([\s\S]*?)\n\}/);
+  assert.ok(narrow, '374.98px block');
+  assert.match(narrow[1], /\.date-select-group \.form-select:first-child \{\s*flex: 1 1 0;\s*min-width: 0;/);
+  assert.match(narrow[1], /\.date-select-group \.form-select:last-child \{\s*flex: 0 0 auto;\s*width: auto;/);
+  // The lists still send the English month and the year.
+  assert.match(code, /MONTHS\.map\(month => <option key=\{month\} value=\{month\}>/);
 });

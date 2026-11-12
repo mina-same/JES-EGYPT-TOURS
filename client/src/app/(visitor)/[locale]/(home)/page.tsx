@@ -21,6 +21,9 @@ import { API_URL } from "@/config/api";
 import { getTestimonialsForLocale } from "@/data/testimonialsTwoData";
 import { getFeaturedBlogs, type BlogPost } from "@/lib/api/blog";
 import { getStaticLocaleAlternates, SEO_BASE_URL } from "@/lib/seo/localeAlternates";
+import { buildHomePageJsonLd } from "@/lib/seo/pageJsonLd";
+import { serializeJsonLd } from "@/lib/seo/serializeJsonLd";
+import { homeFaqContent } from "@/lib/faqContent";
 import { getServerTranslation } from "@/lib/i18n-server";
 import { ogSiteDefaults } from "@/lib/ogDefaults";
 import { normalizeLocale } from "@/lib/url";
@@ -280,13 +283,33 @@ export default async function HomeThree({
     getInitialHomeIntro(),
   ]);
 
+  // The home page's WebPage + FAQPage. The company and the website are defined
+  // once by SEOProvider (layout); these nodes point at them by @id. Name and
+  // description are the same strings generateMetadata puts in <title> and the
+  // meta description, and the FAQ rows are the ones HomeFAQ renders below.
+  const lang = normalizeLocale(locale);
+  const { t } = await getServerTranslation(lang, "common");
+  const homeJsonLd = buildHomePageJsonLd({
+    baseUrl: SEO_BASE_URL,
+    pageUrl: String(getStaticLocaleAlternates(lang).canonical ?? `${SEO_BASE_URL}/${lang}`),
+    locale: lang,
+    name: t("homeMeta.title"),
+    description: t("homeMeta.description"),
+    faqs: initialFaqs.map((faq) => homeFaqContent(faq, locale)),
+  });
+
   return (
+    <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(homeJsonLd) }}
+    />
     <Layout>
       <TopbarOne />
       <HeaderOne linkTheme="light" />
       <HeaderOneCloned />
       <MainSliderFour initialSliders={initialSliders} initialPromo={initialSliderPromo} />
-      <AboutOne headingLevel="h1" />
+      <AboutOne headingLevel="h1" copyKey="homeAbout" />
       <WhyChooseUs />
       <HomeIntro initialContent={initialHomeIntro} />
       <FeaturedToursSection initialTours={initialTours} />
@@ -301,5 +324,6 @@ export default async function HomeThree({
       <ClientCarousel />
       <FooterOne />
     </Layout>
+    </>
   );
 }

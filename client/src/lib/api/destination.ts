@@ -58,7 +58,6 @@ export interface Destination {
   relatedDestinations?: Partial<Destination>[];
   /** Whether the destination's own landing page is public. Tours may reference either. */
   status: DestinationStatus;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,13 +84,11 @@ export interface DestinationsListResponse {
  * included, through destinationAPI (lib/api/blogAdmin.ts).
  */
 export async function getAllDestinations(params?: {
-  isActive?: boolean;
   search?: string;
   page?: number;
   limit?: number;
 }): Promise<DestinationsListResponse> {
   const query = new URLSearchParams();
-  if (params?.isActive !== undefined) query.set('isActive', String(params.isActive));
   if (params?.search) query.set('search', params.search);
   if (params?.page) query.set('page', String(params.page));
   if (params?.limit) query.set('limit', String(params.limit));
@@ -237,20 +234,6 @@ export async function deleteDestination(
 ): Promise<{ success: boolean; message?: string }> {
   const res = await fetch(`${API_URL}/destinations/${id}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return reportDuplicateLinkResponse(await res.json());
-}
-
-/**
- * Admin: Toggle active status
- */
-export async function toggleDestinationStatus(
-  id: string,
-  token: string
-): Promise<{ success: boolean; data: Destination; message?: string }> {
-  const res = await fetch(`${API_URL}/destinations/${id}/toggle-active`, {
-    method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
   });
   return reportDuplicateLinkResponse(await res.json());

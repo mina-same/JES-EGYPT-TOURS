@@ -8,6 +8,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import faqSidebarImage from "@/assets/images/resources/faq-sidebar.png";
 import FaqAccordion from '@/components/common/Faq/FaqAccordion';
+import { listingFaqContent } from '@/lib/faqContent';
+import { buildFaqPageJsonLd } from '@/lib/seo/pageJsonLd';
+import { serializeJsonLd } from '@/lib/seo/serializeJsonLd';
 import './ListingSections.css';
 
 interface FAQ {
@@ -21,12 +24,22 @@ interface ListingFaqsProps {
   sectionTitle?: any;
   locale: string;
   style?: React.CSSProperties;
+  /**
+   * `@id` for a FAQPage built from exactly the rows shown here
+   * (`<page url>#faq`). No FAQPage is printed when it is not given.
+   */
+  schemaId?: string;
 }
 
-const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, locale, style }) => {
+const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, locale, style, schemaId }) => {
   const { t } = useTranslation('faq');
 
   if (!faqs || faqs.length === 0) return null;
+
+  // The rows the accordion shows. The FAQPage below is built from the same
+  // array, so the schema cannot list a row the visitor does not see.
+  const items = listingFaqContent(faqs, locale);
+  const faqJsonLd = schemaId ? buildFaqPageJsonLd({ id: schemaId, locale, faqs: items }) : null;
 
   const displayTitle = sectionTitle && getLocalizedValue(sectionTitle, locale)
     ? getLocalizedValue(sectionTitle, locale)
@@ -34,6 +47,13 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
   const sidebarImageLabel = t('sidebarTitle');
 
   return (
+    <>
+    {faqJsonLd && (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
+      />
+    )}
     <section className="faq-page section-space-top section-space-bottom listing-faqs" style={style}>
       <Container>
         <div className="sec-title text-center mb-5">
@@ -71,22 +91,18 @@ const ListingFaqs: React.FC<ListingFaqsProps> = ({ faqs, title, sectionTitle, lo
                   and /faq use. All three carried identical copies of a theme
                   accordion wrapped in inline styles before. */}
               {/* One shared list, styled in custom.css. */}
+              {/* Strict locale lookup, no fallback to English: a German-only
+                  FAQ must not appear on the English page (lib/faqContent). */}
               <FaqAccordion
                 idPrefix="listing-faq"
-                items={faqs
-                  .map((faq) => ({
-                    // Strict locale lookup -- no fallback to English. A
-                    // German-only FAQ must not appear on the English page.
-                    question: faq.question?.[locale] || '',
-                    answer: faq.answer?.[locale] || '',
-                  }))
-                  .filter((faq) => faq.question && faq.answer)}
+                items={items}
               />
             </div>
           </Col>
         </Row>
       </Container>
     </section>
+    </>
   );
 };
 

@@ -25,7 +25,7 @@ import { useSearchParams } from "next/navigation";
 import EnhancedSectionHeader from "@/components/sections/EnhancedSectionHeader/EnhancedSectionHeader";
 import { getLocalizedValue } from "@/lib/localize";
 import { getDisplayName } from "@/lib/displayName";
-import { getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
+import { getSeoBaseUrl, getStrictLocalizedSlug, type SupportedLocale } from "@/lib/url";
 import TourCard, { LISTING_CARD_IMAGE_SIZES } from "@/components/common/TourCard/TourCard";
 import { SlugManager } from "@/components/common/SlugManager";
 import { useTranslation } from 'react-i18next';
@@ -410,6 +410,8 @@ export default function CategoryView({
         breadcrumbs={[
           { label: getDisplayName(category, locale) },
         ]}
+        // The page's own address, the same form as its canonical URL.
+        breadcrumbJsonLdId={`${getSeoBaseUrl()}/${locale}/${slug}#breadcrumb`}
       />
 
       {(() => {
@@ -601,6 +603,8 @@ export default function CategoryView({
         sectionTitle={category.faqsSectionTitle}
         title={"FAQs about " + getLocalizedValue(category.name, locale)} 
         locale={locale} 
+        // FAQPage built from the rows this section shows.
+        schemaId={`${getSeoBaseUrl()}/${locale}/${slug}#faq`}
       />
 
       {/* Gallery Section */}

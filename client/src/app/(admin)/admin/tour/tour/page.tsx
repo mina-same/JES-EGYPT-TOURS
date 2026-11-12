@@ -1,7 +1,8 @@
 'use client';
 
 import { formatTourDestinations } from '@/lib/tours/destinations';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { tourAPI, tourSubcategoryAPI, tourCategoryAPI } from '@/lib/api/tour';
@@ -36,6 +37,11 @@ function ToursPageContent() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
+  // Only the newest list request may write the table.
+  const listSequence = useRef(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -54,6 +60,7 @@ function ToursPageContent() {
 
   // Fetch tours
   const fetchTours = async () => {
+    const sequence = ++listSequence.current;
     try {
       setLoading(true);
       setError(null);
@@ -69,7 +76,7 @@ function ToursPageContent() {
         // season price. FAQs and reviews count toward neither; the API drops
         // them only on explicit sorts, so the default order still returns them.
         fields: '-faqs,-reviews',
-        search: searchTerm.trim() || undefined,
+        search: debouncedSearch || undefined,
       };
       
       if (statusFilter !== 'all') {
@@ -94,6 +101,7 @@ function ToursPageContent() {
       }
 
       const response = await tourAPI.getAll(params);
+      if (sequence !== listSequence.current) return;
       
       if (response.success && response.data) {
         setTours(response.data);
@@ -109,10 +117,12 @@ function ToursPageContent() {
         setError(response.error || 'Failed to fetch tours');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      if (sequence === listSequence.current) setError(err.message || 'An error occurred');
     } finally {
-      setLoading(false);
-      setInitialLoad(false);
+      if (sequence === listSequence.current) {
+        setLoading(false);
+        setInitialLoad(false);
+      }
     }
   };
 
@@ -375,7 +385,7 @@ function ToursPageContent() {
 
   useEffect(() => {
     fetchTours();
-  }, [page, limit, searchTerm, statusFilter, categoryFilter, subcategoryFilter, featuredFilter]);
+  }, [page, limit, debouncedSearch, statusFilter, categoryFilter, subcategoryFilter, featuredFilter]);
 
   useEffect(() => {
     tourCategoryAPI.getAll().then((res) => {

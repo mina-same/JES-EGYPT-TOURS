@@ -5,8 +5,9 @@ import { useAdminRequestListRefresh } from '@/hooks/useAdminRequestListRefresh';
 import { adminFetch } from '@/lib/adminNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useEffect, useState, useCallback } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useSearchParams } from 'next/navigation';
-import { Building2, Eye, Globe2, Loader2, Mail, MapPin, MessageSquare, Phone, RefreshCw, Search, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
+import { Building2, Eye, Globe2, Loader2, Mail, MapPin, MessageSquare, Phone, RefreshCw, Search, ShieldAlert, Trash2, CheckCircle, XCircle, Clock, User } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 import { useContactForm } from '@/contexts/ContactFormContext';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -44,6 +45,10 @@ interface ContactSubmission extends RequestWorkflowData {
   serviceLevel?: string;
   consentGiven?: boolean;
   locale?: string;
+  /** Set by the contact form's and the tour question's spam trap (a hidden
+   *  field only bots fill): such a submission is stored archived and never
+   *  notified. Absent or false on everything else. */
+  isSpam?: boolean;
   status: 'new' | 'replied' | 'archived';
   adminNotes?: string;
   createdAt: string;
@@ -56,16 +61,30 @@ const STATUS_LABELS: Record<ContactSubmission['status'], string> = {
   archived: 'Archived',
 };
 
+/** Marks a submission the spam trap filed, so it is not mistaken for an
+ *  enquiry someone archived by hand. Words and an icon, not a colour alone. */
+const SpamBadge: React.FC = () => (
+  <span className='status-badge spam-badge' title='Filed automatically: the hidden anti-spam field was filled'>
+    <ShieldAlert size={12} aria-hidden='true' />
+    Spam
+  </span>
+);
+
 const ContactFormPage: React.FC = () => {
   const { refreshCount } = useContactForm();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [stats, setStats] = useState({ total: 0, new: 0, replied: 0, archived: 0 });
+  // Enquiries only: the API leaves out what the spam trap filed and reports
+  // that number as `spam` (those records stay in the list below).
+  const [stats, setStats] = useState({ total: 0, new: 0, replied: 0, archived: 0, spam: 0 });
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [listError, setListError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
   const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'replied' | 'archived'>('all');
   const [selected, setSelected] = useState<ContactSubmission | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -129,7 +148,7 @@ const ContactFormPage: React.FC = () => {
         limit: String(limit),
       });
       if (statusFilter !== 'all') params.set('status', statusFilter);
-      if (searchTerm.trim()) params.set('search', searchTerm.trim());
+      if (debouncedSearch) params.set('search', debouncedSearch);
       const url = `${API_ENDPOINTS.CONTACT.BASE}?${params.toString()}`;
 
       const response = await fetch(url, {
@@ -155,7 +174,7 @@ const ContactFormPage: React.FC = () => {
     } finally {
       if (sequence === listSequence.current) { setLoading(false); setInitialLoad(false); }
     }
-  }, [page, limit, statusFilter, searchTerm]);
+  }, [page, limit, statusFilter, debouncedSearch]);
 
 
   useEffect(() => { void fetchSubmissions(); }, [fetchSubmissions]);
@@ -325,6 +344,7 @@ const ContactFormPage: React.FC = () => {
               )}
             </>
           )}
+          {item.isSpam === true && <>{' '}<SpamBadge /></>}
         </div>
       ),
     },
@@ -399,6 +419,13 @@ const ContactFormPage: React.FC = () => {
         <StatCard icon={CheckCircle} value={stats.replied} label="Replied" iconVariant="completed" />
         <StatCard icon={XCircle} value={stats.archived} label="Archived" iconVariant="cancelled" />
       </div>
+      {/* Why the list can hold more than the cards add up to. */}
+      {stats.spam > 0 && (
+        <p className='stats-spam-note'>
+          <ShieldAlert size={14} aria-hidden='true' />
+          Not counted above: {stats.spam} {stats.spam === 1 ? 'submission' : 'submissions'} filed as spam. They stay in the list, marked Spam.
+        </p>
+      )}
 
       <div className='filters-bar'>
         <div className='search-box'>
@@ -521,10 +548,16 @@ const ContactFormPage: React.FC = () => {
                     {selected.source === 'travel-trade' && (
                       <span className='status-badge status-in-progress'>Travel Trade</span>
                     )}
+                    {selected.isSpam === true && <SpamBadge />}
                   </div>
                   <p className='submission-received-at'>
                     Received {formatReceivedAt(selected.createdAt)}
                   </p>
+                  {selected.isSpam === true && (
+                    <p className='submission-spam-note'>
+                      Filed automatically as spam: the form&apos;s hidden anti-spam field was filled, so no notification was sent.
+                    </p>
+                  )}
                 </div>
               </div>
               <button

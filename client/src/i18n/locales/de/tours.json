@@ -248,7 +248,7 @@
       "perPerson": "pro Person",
       "noteTitle": "Hinweis:",
       "noteSub": "Die Preise verstehen sich pro Person und können je nach Verfügbarkeit und Buchungsdatum variieren. Gruppenrabatte werden automatisch basierend auf der Anzahl der Reisenden angewendet. <contactLink>Kontaktieren Sie uns</contactLink> für individuelle Angebote oder Sonderwünsche.",
-      "affordable": "Erschwinglich",
+      "affordable": "Komfort",
       "gold (5 star standard)": "Gold (5 Sterne Standard)",
       "diamond (5 star luxury)": "Diamant (5 Sterne Luxus)",
       "tour prices": "Tourpreise",
@@ -270,7 +270,8 @@
       "holiday_easter": "Ostern"
     },
     "bookingForm": {
-      "title": "Diese Tour buchen",
+      "viewPricingDetails": "Preisdetails ansehen",
+      "title": "Buchung starten",
       "namePlaceholder": "Name *",
       "emailPlaceholder": "E-Mail *",
       "nationalityPlaceholder": "Wählen Sie Ihre Nationalität",
@@ -288,7 +289,7 @@
       "infants": "Kleinkinder",
       "infantsSub": "( 0 bis 2 Jahre )",
       "requirementsPlaceholder": "Bitte teilen Sie uns Ihre Tour-Anforderungen mit",
-      "submitBtn": "Absenden",
+      "submitBtn": "Buchungsanfrage senden",
       "submitting": "Wird gesendet...",
       "whatsapp": "Auf WhatsApp fragen",
       "whatsappShort": "WhatsApp",
@@ -343,7 +344,10 @@
       "errorName": "Bitte geben Sie Ihren Namen ein",
       "errorEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
       "errorMessage": "Bitte sagen Sie uns, was Sie wissen möchten",
-      "failed": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
-    }
+      "failed": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "invalid": "Bitte prüfen Sie Ihre Angaben und versuchen Sie es erneut.",
+      "rateLimited": "Ihre Frage konnte gerade nicht gesendet werden. Bitte warten Sie einige Minuten und versuchen Sie es dann erneut."
+    },
+    "schemaItineraryName": "Reiseverlauf"
   }
 }

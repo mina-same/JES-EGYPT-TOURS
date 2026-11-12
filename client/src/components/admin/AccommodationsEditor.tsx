@@ -15,6 +15,7 @@ import LocalizedInput from './LocalizedInput';
 import LocalizedTextArea from './LocalizedTextArea';
 import { type AdminLanguage } from './AdminLanguageTabs';
 import StayIcon from '@/components/sections/TourListingDetailsOne/components/StayIcon';
+import { planLabelEn } from '@/lib/tours/planLabelsEn';
 import {
   ACCOMMODATION_ICONS,
   type AccommodationIcon,
@@ -117,7 +118,7 @@ export default function AccommodationsEditor({
               <SelectContent>
                 {copySources.map((p) => (
                   <SelectItem key={p.planName} value={p.planName}>
-                    {p.planName}
+                    {planLabelEn(p.planName)}
                   </SelectItem>
                 ))}
               </SelectContent>

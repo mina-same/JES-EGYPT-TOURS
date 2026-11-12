@@ -9,6 +9,7 @@ import ContactSubmission from '../models/ContactSubmission';
 import TailorMadeRequest from '../models/TailorMadeRequest';
 import Tour from '../models/Tour';
 import { JwtPayload } from '../types';
+import { GENUINE_SUBMISSION } from '../utils/submission';
 
 export type AdminNotificationType = 'booking' | 'tailorMade' | 'contact';
 
@@ -48,7 +49,7 @@ export const buildDashboardStats = async (): Promise<AdminDashboardStats> => {
     Tour.countDocuments({ isActive: true }),
     Booking.countDocuments(),
     Booking.countDocuments({ status: 'pending' }),
-    ContactSubmission.countDocuments({ status: 'new' }),
+    ContactSubmission.countDocuments({ status: 'new', ...GENUINE_SUBMISSION }),
     TailorMadeRequest.countDocuments({ status: 'pending' }),
   ]);
 

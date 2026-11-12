@@ -24,8 +24,9 @@ const TOPIC_OF_SWITCHED_OFF_CATEGORY = 'bbbbbbbbbbbbbbbbbbbbbbb4';
 const TOPIC_OF_LEGACY_CATEGORY = 'bbbbbbbbbbbbbbbbbbbbbbb5';
 const CAIRO = 'ccccccccccccccccccccccc1';
 const DRAFT_DESTINATION = 'ccccccccccccccccccccccc2';
-// Published, then switched off: no public page either.
-const SWITCHED_OFF_DESTINATION = 'ccccccccccccccccccccccc3';
+// Published, and still carrying `isActive: false` from when destinations had
+// that switch. Nothing reads it any more: the page is public.
+const LEFTOVER_FLAG_DESTINATION = 'ccccccccccccccccccccccc3';
 const DELETED = 'dddddddddddddddddddddddd';
 const ARTICLE = 'eeeeeeeeeeeeeeeeeeeeeeee';
 
@@ -45,9 +46,9 @@ const STORE: Record<'category' | 'topic' | 'destination', Doc[]> = {
     { _id: TOPIC_OF_LEGACY_CATEGORY, category: LEGACY_CATEGORY },
   ],
   destination: [
-    { _id: CAIRO, status: 'published', isActive: true },
-    { _id: DRAFT_DESTINATION, status: 'draft', isActive: true },
-    { _id: SWITCHED_OFF_DESTINATION, status: 'published', isActive: false },
+    { _id: CAIRO, status: 'published' },
+    { _id: DRAFT_DESTINATION, status: 'draft' },
+    { _id: LEFTOVER_FLAG_DESTINATION, status: 'published', isActive: false },
   ],
 };
 
@@ -241,18 +242,19 @@ test('the topic must be switched on and belong to the category', async () => {
   });
 });
 
-test('the destination must have a public page: published, and not switched off', async () => {
+test('the destination must have a public page: published', async () => {
   await withModels(null, async (writes) => {
     assertRejected(await create({ destination: DRAFT_DESTINATION }), UNPUBLISHED_DESTINATION);
-    assertRejected(await create({ destination: SWITCHED_OFF_DESTINATION }), UNPUBLISHED_DESTINATION);
     assert.equal(writes.created.length, 0);
 
     assert.equal((await create({ destination: CAIRO })).status, 201);
+    // The status is the only switch: a stored `isActive: false` changes nothing.
+    assert.equal((await create({ destination: LEFTOVER_FLAG_DESTINATION })).status, 201);
   });
 
   // The guard reads a document in hand; the public reads use this filter. The
   // two are one rule, so a change to the filter has to come back here.
-  assert.deepEqual({ ...PUBLIC_DESTINATION_FILTER }, { status: 'published', isActive: { $ne: false } });
+  assert.deepEqual({ ...PUBLIC_DESTINATION_FILTER }, { status: 'published' });
 });
 
 test('everything that is not ready is named in one answer', async () => {
@@ -263,7 +265,7 @@ test('everything that is not ready is named in one answer', async () => {
         'Choose an active subcategory and a published destination before publishing'
     );
     assertRejected(
-      await create({ category: SWITCHED_OFF_CATEGORY, subCategory: SWITCHED_OFF_TOPIC, destination: SWITCHED_OFF_DESTINATION }),
+      await create({ category: SWITCHED_OFF_CATEGORY, subCategory: SWITCHED_OFF_TOPIC, destination: DRAFT_DESTINATION }),
       'The selected category is inactive, subcategory is inactive and destination has no published page. ' +
         'Choose an active category, an active subcategory and a published destination before publishing'
     );
@@ -369,7 +371,6 @@ test('an edit may not leave an already published article with a parent that is n
       [{ category: null }, 'Category is required before publishing'],
       [{ destination: DELETED }, 'The selected destination no longer exists. Choose another before publishing'],
       [{ destination: DRAFT_DESTINATION }, UNPUBLISHED_DESTINATION],
-      [{ destination: SWITCHED_OFF_DESTINATION }, UNPUBLISHED_DESTINATION],
       [{ subCategory: SWITCHED_OFF_TOPIC }, INACTIVE_TOPIC],
       [{ category: SWITCHED_OFF_CATEGORY, subCategory: TOPIC_OF_SWITCHED_OFF_CATEGORY }, INACTIVE_CATEGORY],
       [{ subCategory: OTHER_TOPIC }, MISMATCH],

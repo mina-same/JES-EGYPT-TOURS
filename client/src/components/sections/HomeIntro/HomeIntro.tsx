@@ -300,7 +300,7 @@ const HomeIntro: React.FC<HomeIntroProps> = ({ initialContent = null }) => {
                 <div className="pt-10 border-t border-gray-100 flex flex-wrap gap-x-10 gap-y-4 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
                   <div className="flex items-center gap-3">
                     <ShieldCheck size={22} strokeWidth={1.5} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">{t("homeIntro.licensedAgency")}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap">{t("homeIntro.licensedGuides")}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin size={22} strokeWidth={1.5} />

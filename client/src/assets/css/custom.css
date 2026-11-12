@@ -262,13 +262,14 @@ html, body {
   border: 0 !important;
 }
 
-/* Inputs */
+/* Inputs. The border is what shows where a field is: #7a93a3 is 3:1 against
+   the white card and the field's own fill (#e0e0e0 was 1.3:1). */
 .booking-input,
 .booking-select,
 .booking-date-input,
 .booking-textarea {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #7a93a3;
   border-radius: 30px;
   padding: 14px 24px;
   font-size: 15px;
@@ -279,13 +280,30 @@ html, body {
   font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
 }
 
+/* Focus: a 2px dark-gold ring (6:1 on white) 1px outside the border, so it
+   also stands out beside the red border of an invalid field. It was the brand
+   gold border and a 10% halo — 2.1:1 at best, nothing on an invalid field —
+   and Windows High Contrast drops halos; it keeps outlines. */
 .booking-input:focus,
 .booking-select:focus,
 .booking-date-input:focus,
 .booking-textarea:focus {
-  border-color: var(--gotur-base, #d4af37);
+  border-color: #7a5f12;
   background-color: #fff;
-  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+  outline: 2px solid #7a5f12;
+  outline-offset: 1px;
+  box-shadow: none;
+}
+
+/* Tailwind's preflight greys every placeholder to #9ca3af (2.4:1 here). The
+   placeholders are these fields' only visible labels: #636b77 is 4.9:1 even on
+   the pink of an invalid field, and still lighter than what is typed. */
+.booking-input::placeholder,
+.booking-date-input::placeholder,
+.booking-textarea::placeholder,
+.booking-phone-input .PhoneInputInput::placeholder {
+  color: #636b77;
+  opacity: 1;
 }
 
 .booking-select {
@@ -309,7 +327,7 @@ html, body {
 
 .booking-phone-input .PhoneInputInput {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #7a93a3;
   border-radius: 30px;
   padding: 14px 24px 14px 82px;
   font-size: 15px;
@@ -320,10 +338,13 @@ html, body {
   font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
 }
 
+/* The form's focus ring (see the inputs above). */
 .booking-phone-input .PhoneInputInput:focus {
-  border-color: var(--gotur-base, #d4af37);
+  border-color: #7a5f12;
   background-color: #fff;
-  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+  outline: 2px solid #7a5f12;
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 .booking-phone-empty-label {
@@ -332,7 +353,7 @@ html, body {
   top: 50%;
   z-index: 3;
   transform: translateY(-50%);
-  color: #a8afbd;
+  color: #636b77;
   font-size: 15px;
   line-height: 1;
   pointer-events: none;
@@ -392,9 +413,11 @@ html, body {
   opacity: 0.85;
 }
 
+/* The calling-code list is invisible over the flag, so this ring is the only
+   sign of its focus: dark gold, 6:1 (the 55% brand gold was about 1.5:1). */
 .booking-phone-input .PhoneInputCountry:focus-within {
   border-radius: 8px;
-  outline: 2px solid rgba(212, 175, 55, 0.55);
+  outline: 2px solid #7a5f12;
   outline-offset: 2px;
 }
 
@@ -460,32 +483,50 @@ html, body {
   overflow-wrap: anywhere;
 }
 
+/* The form's red, 5.4:1 on white (#ef4444 was 3.8:1). */
 .booking-input-error,
 .booking-date-input.booking-input-error {
-  border-color: #ef4444 !important;
+  border-color: #c0392b !important;
   background-color: #fef2f2;
 }
 
+/* Focused and invalid: the red border stays and the focus ring shows outside
+   it; no halo, which was the only focus sign here (1.1:1). */
 .booking-input-error:focus,
 .booking-date-input.booking-input-error:focus {
-  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+  box-shadow: none !important;
+}
+
+/* The phone field never took the error class: its own aria-invalid gives it
+   the same red border, focused or not. */
+.booking-phone-input .PhoneInputInput[aria-invalid="true"],
+.booking-phone-input .PhoneInputInput[aria-invalid="true"]:focus {
+  border-color: #c0392b;
 }
 
 .booking-error-text {
   display: block;
-  color: #ef4444;
+  color: #c0392b;
   font-size: 12px;
   margin-top: 4px;
   font-weight: 500;
 }
 
+/* While sending. No fade: at 70% the label fell to 1.4:1. The spinner and
+   "Submitting..." say what is happening. */
 .booking-submit-btn:disabled {
-  opacity: 0.7;
   cursor: not-allowed;
 }
 
 .booking-submit-btn .spinning {
   animation: spin 1s linear infinite;
+}
+
+/* Reduce Motion: the spinner stands still; the label still says it is sending. */
+@media (prefers-reduced-motion: reduce) {
+  .booking-submit-btn .spinning {
+    animation: none;
+  }
 }
 
 @keyframes spin {
@@ -631,20 +672,24 @@ html, body {
   box-shadow: 0 4px 10px rgba(183, 156, 92, 0.28);
 }
 
+/* The day the arrow keys are on: a 2px dark-gold ring (6:1; the light gold
+   rings were 2.4–2.65:1). */
 .booking-date-popper .react-datepicker__day--keyboard-selected:not(.react-datepicker__day--selected) {
   background: rgba(212, 175, 55, 0.22);
   color: #5e4a14;
-  box-shadow: inset 0 0 0 1px rgba(183, 156, 92, 0.7);
+  box-shadow: inset 0 0 0 2px #7a5f12;
 }
 
 .booking-date-popper .react-datepicker__day:focus-visible {
-  outline: 2px solid #b79c5c;
+  outline: 2px solid #7a5f12;
   outline-offset: 2px;
 }
 
+/* Days of the next or previous month can be picked, so they must be readable:
+   4.8:1, still lighter than this month's days (they were 1.4:1). Disabled
+   days keep their own faded look below. */
 .booking-date-popper .react-datepicker__day--outside-month {
-  color: #b7bdc7;
-  opacity: 0.62;
+  color: #6b7280;
 }
 
 .booking-date-popper .react-datepicker__day--disabled,
@@ -798,6 +843,20 @@ html, body {
   transform: scale(1.1);
 }
 
+/* The booking form's counters (Tailor-Made styles its own): dark espresso on
+   the gold, 7.5:1 (white was 2.1:1); white again on the dark hover fill. */
+.booking-counter-row .counter-btn {
+  color: #27221b;
+}
+
+.booking-counter-row .counter-btn:hover {
+  color: #fff;
+}
+
+.booking-counter-row .counter-subtitle {
+  color: #6b7280;
+}
+
 .counter-value {
   font-weight: 700;
   min-width: 20px;
@@ -837,11 +896,12 @@ html, body {
   height: 0;
 }
 
-/* Submit Button */
+/* Submit Button. Dark espresso on the gold: 7.5:1 at its darker end, 10.5:1 at
+   the lighter one (white was 2.1:1 and 1.5:1). */
 .booking-submit-btn {
   width: 100%;
   background: linear-gradient(45deg, var(--gotur-base, #d4af37), #f4d03f);
-  color: #fff;
+  color: #27221b;
   border: none;
   border-radius: 30px;
   padding: 16px;
@@ -903,7 +963,8 @@ html, body {
   border: 1px solid #25d366;
   border-radius: 30px;
   background: transparent;
-  color: #128c4a;
+  /* 5.4:1 (#128c4a was 4.3:1). */
+  color: #0f7a40;
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
@@ -913,7 +974,7 @@ html, body {
 
 .booking-whatsapp-btn:hover {
   background: rgba(37, 211, 102, 0.12);
-  color: #0f7a40;
+  color: #0b6b37;
 }
 
 .booking-whatsapp-btn:focus-visible {
@@ -931,8 +992,9 @@ html, body {
   color: #8a6d1b;
 }
 
+/* Dark gold, 6:1 (the brand gold ring was 2.1:1). */
 .booking-save-btn:focus-visible {
-  outline: 2px solid var(--gotur-base, #d4af37);
+  outline: 2px solid #7a5f12;
   outline-offset: 2px;
 }
 
@@ -2106,6 +2168,28 @@ html:has(> body.megamenu-popup-active) {
   min-width: 0;
 }
 
+/* Request-only pricing is a status, separate from the numeric price badge.
+   Its own row leaves room for translated titles at narrow sidebar widths. */
+.booking-card-header.booking-card-header--on-request {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.booking-price-request {
+  display: inline-block;
+  max-width: 100%;
+  padding: 5px 10px;
+  border: 1px solid #ece1c9;
+  border-radius: 8px;
+  background: #fdfbf5;
+  color: #6e6349;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .booking-card-header .tour-listing-details__sidebar__title {
   margin: 0;
   font-size: 18px;
@@ -3236,6 +3320,26 @@ html:has(> body.megamenu-popup-active) {
   font-family: var(--gotur-font, "Plus Jakarta Sans", sans-serif);
 }
 
+/* A link inside a translated sentence (InlineLinks). It keeps the colour of
+   the text around it, which already passes contrast on light sections and on
+   the dark reason cards alike, and is told apart by its underline. The
+   hover/focus/visited states are listed because gotur.css removes the
+   underline on those. */
+.inline-text-link,
+.inline-text-link:hover,
+.inline-text-link:focus,
+.inline-text-link:visited {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.inline-text-link:hover {
+  text-decoration-thickness: 2px;
+}
+
 .destinations-card-two:hover .reason-card__overlay {
   background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%);
 }
@@ -3763,7 +3867,8 @@ div[suppressHydrationWarning] {
   .booking-bar-price .price-value {
     font-size: 26px;
     font-weight: 800;
-    color: #b79c5c;
+    /* The booking card's own price colour: 4.5:1 (#b79c5c was 2.65:1). */
+    color: #8f7333;
     line-height: 1;
     font-family: var(--gotur-heading-font, "Plus Jakarta Sans", sans-serif);
   }
@@ -3877,6 +3982,9 @@ div[suppressHydrationWarning] {
   .bottom-sheet-content {
     padding: 20px 20px 24px;
     overflow-y: auto;
+    /* At the end of the form, a swipe stops here instead of reaching the
+       locked page behind (or the browser's pull-to-refresh). */
+    overscroll-behavior: contain;
     flex-grow: 1;
     background: #fff;
     padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
@@ -3934,6 +4042,14 @@ div[suppressHydrationWarning] {
     opacity: 0 !important;
     transform: translateY(12px);
     pointer-events: none;
+  }
+}
+
+/* Reduce Motion: the booking sheet appears and goes in place instead of
+   sliding for 0.4s. The sheet only; other motion keeps its own rules. */
+@media (max-width: 991px) and (prefers-reduced-motion: reduce) {
+  .mobile-bottom-sheet {
+    transition: none;
   }
 }
 

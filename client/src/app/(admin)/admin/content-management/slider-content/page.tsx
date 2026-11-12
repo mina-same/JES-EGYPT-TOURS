@@ -241,16 +241,7 @@ export default function SliderContentPage() {
       const response = await sliderAPI.getAll(params);
       
       if (response.success && response.data) {
-        // Keep the same UI search box behavior by filtering client-side
-        const s = searchTerm.trim().toLowerCase();
-        const filtered = !s
-          ? response.data
-          : response.data.filter((item) =>
-              getLocalizedValue(item.title, 'en')?.toLowerCase().includes(s) || 
-              getLocalizedValue(item.subtitle, 'en')?.toLowerCase().includes(s)
-            );
-
-        setSliderItems(filtered);
+        setSliderItems(response.data);
       } else {
         setError('Failed to fetch slider content');
       }
@@ -323,11 +314,21 @@ export default function SliderContentPage() {
     }
   };
 
+  // The search box filters what is already loaded: the API has no search
+  // here, so typing never sends a request.
+  const s = searchTerm.trim().toLowerCase();
+  const visibleSliderItems = !s
+    ? sliderItems
+    : sliderItems.filter((item) =>
+        getLocalizedValue(item.title, 'en')?.toLowerCase().includes(s) ||
+        getLocalizedValue(item.subtitle, 'en')?.toLowerCase().includes(s)
+      );
+
   // Calculate stats
   const stats = {
-    total: sliderItems.length,
-    active: sliderItems.filter(item => item.isActive).length,
-    inactive: sliderItems.filter(item => !item.isActive).length,
+    total: visibleSliderItems.length,
+    active: visibleSliderItems.filter(item => item.isActive).length,
+    inactive: visibleSliderItems.filter(item => !item.isActive).length,
   };
 
   const columns: Array<AdminTableColumn<SliderItem>> = [
@@ -413,7 +414,7 @@ export default function SliderContentPage() {
 
   useEffect(() => {
     fetchSliderItems();
-  }, [searchTerm, statusFilter]);
+  }, [statusFilter]);
 
   useEffect(() => {
     fetchPromo();
@@ -648,7 +649,7 @@ export default function SliderContentPage() {
       {/* Slider Items Table */}
       <div className='requests-table-container'>
         <AdminTable<SliderItem>
-          data={sliderItems}
+          data={visibleSliderItems}
           columns={columns}
           getRowKey={(row) => row._id}
           enableSelection

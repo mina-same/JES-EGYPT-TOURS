@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { X, Send, MessageCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { API_ENDPOINTS } from "@/config/api";
+import { tourQuestionOutcome, type TourQuestionResponse } from "./tourQuestionOutcome";
 
 interface TourQuestionModalProps {
   open: boolean;
@@ -22,9 +23,12 @@ interface Values {
   phone: string;
   message: string;
   preferredDate: string;
+  /** The spam trap: hidden, so only a bot fills it. Sent with every question;
+   *  the API answers a filled one as usual but files it as spam. */
+  website: string;
 }
 
-const EMPTY: Values = { name: "", email: "", phone: "", message: "", preferredDate: "" };
+const EMPTY: Values = { name: "", email: "", phone: "", message: "", preferredDate: "", website: "" };
 
 /**
  * The quick question asked from a tour page.
@@ -160,11 +164,15 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
           tourName,
           tourSlug,
           locale,
+          website: values.website,
         }),
       });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok || !body?.success) {
-        setFailure(body?.error || t("tourDetails.askModal.failed", "Something went wrong. Please try again."));
+      // Read defensively: the site-wide rate limiter answers in plain text.
+      const body = (await response.json().catch(() => null)) as TourQuestionResponse;
+      const outcome = tourQuestionOutcome(response.status, body);
+      if (outcome.type === "error") {
+        setErrors(Object.fromEntries(Object.entries(outcome.fields).map(([field, key]) => [field, t(key)])));
+        setFailure(t(outcome.message));
         return;
       }
       setSent(true);
@@ -246,6 +254,7 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
                     ref={firstFieldRef}
                     type="text"
                     name="name"
+                    maxLength={100}
                     value={values.name}
                     onChange={set("name")}
                     aria-invalid={!!errors.name}
@@ -261,6 +270,7 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
                   <input
                     type="email"
                     name="email"
+                    maxLength={150}
                     value={values.email}
                     onChange={set("email")}
                     aria-invalid={!!errors.email}
@@ -278,6 +288,7 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
                   <input
                     type="tel"
                     name="phone"
+                    maxLength={40}
                     value={values.phone}
                     onChange={set("phone")}
                     autoComplete="tel"
@@ -294,6 +305,7 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
                   <input
                     type="text"
                     name="preferredDate"
+                    maxLength={60}
                     value={values.preferredDate}
                     onChange={set("preferredDate")}
                     placeholder={t("tourDetails.askModal.datePlaceholder", "e.g. March 2027")}
@@ -307,6 +319,7 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
                 </span>
                 <textarea
                   name="message"
+                  maxLength={5000}
                   rows={5}
                   value={values.message}
                   onChange={set("message")}
@@ -319,12 +332,18 @@ const TourQuestionModal: React.FC<TourQuestionModalProps> = ({
                 {errors.message && <span className="tour-ask__error">{errors.message}</span>}
               </label>
 
-              {/* Hidden from people, filled by bots. Handled server-side. */}
+              {/* Hidden from people, filled by bots. Handled server-side, so
+                  it is part of the request (it used to be left out of it).
+                  Password managers are told to skip it, as on the booking form. */}
               <input
                 type="text"
                 name="website"
+                value={values.website}
+                onChange={set("website")}
                 tabIndex={-1}
                 autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
                 aria-hidden="true"
                 className="tour-ask__honeypot"
               />

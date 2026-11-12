@@ -13,10 +13,11 @@ const isActive = (doc: Stored): boolean => doc.isActive !== false;
 
 /**
  * Has a public page: PUBLIC_DESTINATION_FILTER (models/Destination.ts) applied
- * to a document already in hand. The two must say the same thing —
- * tests/blog-classification.test.ts holds them together.
+ * to a document already in hand — published; a destination has no other
+ * switch. The two must say the same thing — tests/blog-classification.test.ts
+ * holds them together.
  */
-export const hasPublicPage = (doc: Stored): boolean => doc.status === 'published' && doc.isActive !== false;
+export const hasPublicPage = (doc: Stored): boolean => doc.status === 'published';
 
 /**
  * How an article is classified: one category, one topic of that category
@@ -31,7 +32,7 @@ export const hasPublicPage = (doc: Stored): boolean => doc.status === 'published
 const FIELDS = [
   { key: 'category', label: 'category', select: 'isActive', ready: isActive, notReady: 'is inactive', remedy: 'an active category' },
   { key: 'subCategory', label: 'subcategory', select: 'category isActive', ready: isActive, notReady: 'is inactive', remedy: 'an active subcategory' },
-  { key: 'destination', label: 'destination', select: 'status isActive', ready: hasPublicPage, notReady: 'has no published page', remedy: 'a published destination' },
+  { key: 'destination', label: 'destination', select: 'status', ready: hasPublicPage, notReady: 'has no published page', remedy: 'a published destination' },
 ] as const;
 
 type ClassificationKey = (typeof FIELDS)[number]['key'];

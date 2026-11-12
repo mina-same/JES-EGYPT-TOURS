@@ -248,7 +248,7 @@
       "perPerson": "a persona",
       "noteTitle": "Nota:",
       "noteSub": "I prezzi sono per persona e possono variare in base alla disponibilità e alla data di prenotazione. Gli sconti per i gruppi si applicano automaticamente in base al numero di viaggiatori. <contactLink>Contattaci</contactLink> per preventivi personalizzati o richieste speciali.",
-      "affordable": "Accessibile",
+      "affordable": "Comfort",
       "gold (5 star standard)": "Gold (Standard 5 Stelle)",
       "diamond (5 star luxury)": "Diamond (Lusso 5 Stelle)",
       "tour prices": "Prezzi del Tour",
@@ -270,7 +270,8 @@
       "holiday_easter": "Pasqua"
     },
     "bookingForm": {
-      "title": "Prenota questo tour",
+      "viewPricingDetails": "Vedi i dettagli dei prezzi",
+      "title": "Inizia la prenotazione",
       "namePlaceholder": "Nome *",
       "emailPlaceholder": "E-mail *",
       "nationalityPlaceholder": "Seleziona la tua Nazionalità",
@@ -288,7 +289,7 @@
       "infants": "N. di Neonati",
       "infantsSub": "( da 0 a 2 anni )",
       "requirementsPlaceholder": "Ti preghiamo di comunicarci le tue esigenze per il tour",
-      "submitBtn": "Invia",
+      "submitBtn": "Invia richiesta di prenotazione",
       "submitting": "Invio in corso...",
       "whatsapp": "Chiedi su WhatsApp",
       "whatsappShort": "WhatsApp",
@@ -343,7 +344,10 @@
       "errorName": "Inserisci il tuo nome",
       "errorEmail": "Inserisci un indirizzo email valido",
       "errorMessage": "Dicci cosa vorresti sapere",
-      "failed": "Qualcosa è andato storto. Riprova."
-    }
+      "failed": "Qualcosa è andato storto. Riprova.",
+      "invalid": "Controlla i tuoi dati e riprova.",
+      "rateLimited": "Non è stato possibile inviare la tua domanda in questo momento. Attendi qualche minuto e riprova."
+    },
+    "schemaItineraryName": "Itinerario"
   }
 }

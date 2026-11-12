@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { destinationAPI } from '@/lib/api/blogAdmin';
 import { ScanEye, 
   Loader2, Plus, Edit2, Trash2, Search, Filter, 
-  RefreshCw, MapPin, CheckCircle, XCircle
+  RefreshCw, MapPin, CheckCircle, Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import StatCard from '@/components/common/StatCard/StatCard';
@@ -30,7 +30,11 @@ export default function DestinationsListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
+  // Only the newest list request may write the table: the debounce below
+  // stops a request per keystroke, not an older answer arriving last.
+  const listSequence = useRef(0);
   const fetchDestinations = useCallback(async () => {
+    const sequence = ++listSequence.current;
     setLoading(true);
     try {
       const params: any = {
@@ -40,10 +44,9 @@ export default function DestinationsListPage() {
       };
       if (statusFilter === 'published' || statusFilter === 'draft') {
         params.status = statusFilter;
-      } else if (statusFilter !== 'all') {
-        params.isActive = statusFilter === 'active';
       }
       const res = await destinationAPI.getAll(params);
+      if (sequence !== listSequence.current) return;
       const rows = res.data || [];
       const responseTotal = res.total ?? rows.length;
       const normalizedTotalPages = Math.max(
@@ -55,12 +58,13 @@ export default function DestinationsListPage() {
       setTotalPages(normalizedTotalPages);
       if (page > normalizedTotalPages) setPage(normalizedTotalPages);
     } catch {
+      if (sequence !== listSequence.current) return;
       setDestinations([]);
       setTotalItems(0);
       setTotalPages(1);
       toast({ title: 'Error', description: 'Failed to load destinations', variant: 'destructive' });
     } finally {
-      setLoading(false);
+      if (sequence === listSequence.current) setLoading(false);
     }
   }, [page, limit, searchTerm, statusFilter, toast]);
 
@@ -68,6 +72,36 @@ export default function DestinationsListPage() {
     const timer = setTimeout(fetchDestinations, 300);
     return () => clearTimeout(timer);
   }, [fetchDestinations]);
+
+  // Published and draft totals for the cards: the API's `total` for each
+  // status (so `limit: 1`), under the same search as the table. With "All
+  // Status" they add up to the total. Not the rows on the current page.
+  const [statusTotals, setStatusTotals] = useState<{ published: number; draft: number } | null>(null);
+  const totalsSequence = useRef(0);
+  const fetchStatusTotals = useCallback(async () => {
+    const sequence = ++totalsSequence.current;
+    try {
+      const search = searchTerm.trim() || undefined;
+      const [published, draft] = await Promise.all([
+        destinationAPI.getAll({ status: 'published', search, limit: 1 }),
+        destinationAPI.getAll({ status: 'draft', search, limit: 1 }),
+      ]);
+      if (sequence !== totalsSequence.current) return;
+      setStatusTotals({ published: published.total ?? 0, draft: draft.total ?? 0 });
+    } catch {
+      if (sequence === totalsSequence.current) setStatusTotals(null);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const timer = setTimeout(fetchStatusTotals, 300);
+    return () => clearTimeout(timer);
+  }, [fetchStatusTotals]);
+
+  const refreshAll = () => {
+    fetchDestinations();
+    fetchStatusTotals();
+  };
 
   const handleDelete = (id: string) => {
     setDeleteIds([id]);
@@ -92,7 +126,7 @@ export default function DestinationsListPage() {
       setSelectedRowKeys([]);
       setDeleteModalOpen(false);
       setDeleteIds([]);
-      fetchDestinations();
+      refreshAll();
     } catch (err: any) {
       // The API's own reason first — e.g. articles are still filed under it.
       toast({
@@ -107,8 +141,8 @@ export default function DestinationsListPage() {
 
   const stats = {
     total: totalItems,
-    active: destinations.filter(d => d.isActive).length,
-    inactive: destinations.filter(d => !d.isActive).length,
+    published: statusTotals ? statusTotals.published : '—',
+    draft: statusTotals ? statusTotals.draft : '—',
   };
 
   const columns: Array<AdminTableColumn<any>> = [
@@ -151,13 +185,6 @@ export default function DestinationsListPage() {
           >
             {dest.status === 'published' ? 'Published' : 'Draft'}
           </span>
-          <span className={`status-badge ${dest.isActive ? 'status-active' : 'status-inactive'}`}>
-            {dest.isActive ? (
-              <><CheckCircle size={14} /> Active</>
-            ) : (
-              <><XCircle size={14} /> Inactive</>
-            )}
-          </span>
         </div>
       ),
     },
@@ -195,7 +222,7 @@ export default function DestinationsListPage() {
           <p className="admin-page-subtitle">Manage your travel destinations and regions</p>
         </div>
         <div className="header-actions">
-          <button className="btn-refresh" onClick={fetchDestinations} disabled={loading}>
+          <button className="btn-refresh" onClick={refreshAll} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'spinning' : ''} />
             Refresh
           </button>
@@ -209,8 +236,8 @@ export default function DestinationsListPage() {
       {/* Stats Cards */}
       <div className="stats-grid">
         <StatCard icon={MapPin} value={stats.total} label="Total Destinations" iconVariant="total" />
-        <StatCard icon={CheckCircle} value={stats.active} label="Active" iconVariant="active" />
-        <StatCard icon={XCircle} value={stats.inactive} label="Inactive" iconVariant="inactive" />
+        <StatCard icon={CheckCircle} value={stats.published} label="Published" iconVariant="active" />
+        <StatCard icon={Clock} value={stats.draft} label="Draft" iconVariant="pending" />
       </div>
 
       {/* Filters */}
@@ -239,8 +266,6 @@ export default function DestinationsListPage() {
             <option value="all">All Status</option>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
           </select>
         </div>
       </div>

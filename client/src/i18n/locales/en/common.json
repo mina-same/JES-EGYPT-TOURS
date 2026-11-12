@@ -32,7 +32,7 @@
     "travelTrade": "Travel Trade",
     "about": {
       "title": "About JES Egypt Tours",
-      "text": "JES Egypt Tours is a licensed Egyptian travel agency based in Giza. We design private, guided journeys through Egypt — from the Pyramids and the Nile Valley to Siwa and the Red Sea — led by qualified Egyptologists and planned around the people travelling, not a fixed timetable."
+      "text": "JES Egypt Tours is a tour operator and travel agency based in Cairo. We design private, guided journeys through Egypt, from the Pyramids and the Nile Valley to Siwa and the Red Sea, led by licensed Egyptologist guides and planned around the people travelling, not a fixed timetable."
     },
     "sendEmail": "Send email",
     "callAgent": "Call an agent",
@@ -68,9 +68,8 @@
     "unavailable": "Not available for this page"
   },
   "gotQuestions": "Got Questions?",
-  "frequentlyAsked": "Frequently Asked",
-  "questions": "Questions",
-  "faqSubtitle": "Everything you need to know about our tours and services.",
+  "faqTitle": "Private Egypt Tours: Frequently Asked Questions",
+  "faqSubtitle": "Short answers on safety, cost, what's included and how to plan. More questions are on our [FAQ page](/en/faq).",
   "category": "Category",
   "travelersExperiences": "Travelers Honest Experiences",
   "reflectiveAnd": "Reflective &",
@@ -199,31 +198,48 @@
     "mainImageAlt": "Private Egypt Tours - Giza Pyramids",
     "smallImageAlt": "Egypt private guide - temple tour"
   },
+  "homeAbout": {
+    "tagline": "About JES Egypt Tours",
+    "title": "Private Egypt Tours,",
+    "titleHighlight": "Planned by a Local Tour Operator in Cairo",
+    "description": "JES Egypt Tours is a tour operator based in Cairo. A private Egypt tour with us means your own licensed Egyptologist guide, a private air-conditioned vehicle, hotel pickup and drop-off, and a schedule you can change on the day. We run [private day tours](/en/egypt-day-tours) and custom multi-day [Egypt tour packages](/en/egypt-tour-packages) across Giza, Cairo, Luxor, Aswan, Abu Simbel and the Nile, with no shared buses and no forced shopping stops.",
+    "feature1": "Private tours, no shared group buses",
+    "feature2": "Itemized prices, no hidden fees",
+    "approachTitle": "How our private tours work",
+    "approachText": "The price is fixed in writing before you book, nothing changes on the day, and your guide works for you, not for a commission.",
+    "exploreCta": "Explore Private Tours",
+    "exploreHref": "/en/egypt-tour-packages",
+    "customTripCta": "Plan a Custom Trip",
+    "customTripHref": "/en/tailor-made",
+    "callText": "Call or WhatsApp",
+    "replyTime": "Typically replies within minutes",
+    "mainImageAlt": "Private Egypt tour at the Giza Pyramids with a licensed guide",
+    "smallImageAlt": "Private guide explaining a temple relief on an Egypt tour"
+  },
   "whyChooseUs": {
     "tagline": "Why Choose Us?",
-    "title": "Why Travel with JES Egypt Tours?",
-    "subtitle": "Egypt specialists based in Cairo, planning private tours for travelers who want to experience Egypt at their own pace.",
+    "title": "Why Book a Private Egypt Tour with JES?",
+    "subtitle": "A Cairo-based tour operator planning private tours for travelers who want to see Egypt at their own pace.",
     "card1Title": "Licensed Local Guides",
-    "card1Desc": "Our tours are led by guides licensed by the Egyptian Ministry of Tourism. They explain Egypt's history, context, and stories clearly — without rushing you through the day to fit a group schedule.",
-    "card2Title": "One Party at a Time",
-    "card2Desc": "Every tour is booked for you alone. Your guide focuses entirely on you, not on managing other travelers. That gives you more flexibility and more room to ask questions.",
-    "card3Title": "Cairo-Based, Not Just an Online Booking Page",
-    "card3Desc": "We plan your trip from Cairo, not from an office abroad. Direct communication, real local knowledge, and someone on the ground if anything needs adjusting.",
+    "card1Desc": "Our guides are licensed by the Egyptian Ministry of Tourism. They explain the history and context on site, and you can choose a guide in English, German, Italian or Spanish.",
+    "card2Title": "Your Own Guide and Vehicle",
+    "card2Desc": "Every booking is one party. Your guide and a private air-conditioned car are yours for the day, which leaves room for questions, longer stops and a pace that suits your group.",
+    "card3Title": "Cairo-Based, Not Just a Booking Page",
+    "card3Desc": "We plan your trip from Cairo, not from an office abroad. You talk directly to the people arranging it, and someone is on the ground if plans need to change.",
     "card4Title": "A Flexible Day, Built Around You",
-    "card4Desc": "Want to spend longer at the Valley of the Kings? Skip a stop that doesn't interest you? We build the day around what you actually want to see and adjust when plans change.",
+    "card4Desc": "Want longer at the [Valley of the Kings](/en/luxor-west-bank-tour)? Skip a stop that doesn't interest you? Tell your guide at breakfast and we adjust. Shopping stops only happen if you ask for them.",
     "card5Title": "Pay by Card or Bank Transfer",
-    "card5Desc": "We accept credit and debit cards as well as international bank transfers. Payment details are confirmed in writing before you book, so everything is clear from the start.",
+    "card5Desc": "We accept credit and debit cards and international bank transfers. Payment terms are confirmed in writing before you book, and our [payment and cancellation policy](/en/payment-cancellation-policy) is public.",
     "card6Title": "We Reply Fast",
-    "card6Desc": "Send us your dates and what you want to see. We'll get back to you with a clear plan and a confirmed price — before you commit to anything."
+    "card6Desc": "[Send us your dates](/en/contact) and what you want to see. We reply with a clear plan and a confirmed price, and you commit to nothing until you are happy with it. Support runs 24/7."
   },
   "featuredTours": {
-    "tagline": "Handpicked for you",
-    "title": "Featured",
-    "titleSpan": "Tours"
+    "tagline": "Popular private tours",
+    "title": "Featured Private Egypt Tours"
   },
   "homeIntro": {
     "verifiedRatings": "Verified Ratings",
-    "licensedAgency": "Licensed Agency",
+    "licensedGuides": "Licensed Guides",
     "heritageExperts": "Local Heritage Experts",
     "fallbackSubtitle": "The Ultimate Egyptian Journey",
     "readMore": "Read Full Story",
@@ -232,7 +248,7 @@
   },
   "destinations": {
     "carousel": {
-      "sectionTitle": "Explore Egypt's destinations",
+      "sectionTitle": "Egypt destinations for private tours",
       "navigationLabel": "Destination carousel navigation",
       "previous": "Previous destination",
       "next": "Next destination",
@@ -240,27 +256,27 @@
     },
     "aswan": {
       "title": "Aswan",
-      "subtitle": "Nile Felucca Sailing Tour"
+      "subtitle": "Nile Felucca Sailing"
     },
     "fayoum": {
       "title": "Fayoum",
-      "subtitle": "Wadi El Rayan Lakes Tour"
+      "subtitle": "Wadi El Rayan Lakes"
     },
     "giza": {
       "title": "Giza",
-      "subtitle": "Pyramids & Sphinx Sunset Panorama"
+      "subtitle": "Pyramids & Sphinx at Sunset"
     },
     "khanElKhalili": {
       "title": "Khan El Khalili",
-      "subtitle": "Cairo Shopping Bazaar"
+      "subtitle": "Cairo's Old Bazaar"
     },
     "luxor": {
       "title": "Luxor",
-      "subtitle": "Nile Hot Air Balloon View"
+      "subtitle": "Hot Air Balloon over the Nile"
     },
     "qaitbay": {
-      "title": "Qaitbay Citadel",
-      "subtitle": "Alexandria Coastal Tour"
+      "title": "Alexandria",
+      "subtitle": "Qaitbay Citadel & Coast"
     },
     "sharmElSheikh": {
       "title": "Sharm El Sheikh",
@@ -268,20 +284,20 @@
     },
     "siwa": {
       "title": "Siwa",
-      "subtitle": "Oasis & Salt Lakes Tour"
+      "subtitle": "Oasis & Salt Lakes"
     }
   },
   "tailorOffer": {
     "tagline": "Tailor-Made",
-    "titleLine1": "Your Egypt,",
-    "titleLine2": "Your Way.",
-    "desc": "Plan a private Egypt tour with a licensed Cairo-based team. We take care of the guide, route, and timing — you decide what to see and when.",
-    "feature1": "Your Own Licensed Guide — No Sharing, No Rush",
-    "feature2": "Choose the Places That Matter to You",
-    "feature3": "Flexible Timing at Every Stop",
-    "feature4": "Price Confirmed in Writing Before You Book",
+    "title": "Tailor-Made Egypt Tours: Your Way",
+    "desc": "Plan a private Egypt tour with a Cairo-based team. We arrange the guide, vehicle, route and timing, and you decide what to see and when. Prefer more comfort? Take a look at our [luxury Egypt tours](/en/luxury-egypt-tours).",
+    "feature1": "Your own licensed guide, never shared",
+    "feature2": "Choose the places that matter to you",
+    "feature3": "Flexible timing at every stop",
+    "feature4": "Price confirmed in writing before you book",
     "cta": "Plan My Private Tour",
-    "badge": "100% Private — No Group Tours"
+    "badge": "100% Private, No Group Tours",
+    "imageAlt": "Private Egypt tour at the Giza Pyramids at sunset"
   },
   "hero": {
     "primaryCtaFallback": "Plan My Trip",
@@ -291,7 +307,9 @@
     "trust3": "24/7 support",
     "scroll": "Scroll",
     "pauseSlideshow": "Pause slideshow",
-    "playSlideshow": "Play slideshow"
+    "playSlideshow": "Play slideshow",
+    "slidesLabel": "Slides",
+    "goToSlide": "Go to slide {{current}} of {{total}}"
   },
   "videoReviews": {
     "tagline": "Real Travellers",
@@ -333,24 +351,30 @@
   },
   "testimonials": {
     "tagline": "Client Testimonials",
-    "title": "Recent Clients",
-    "highlighted": "Feedback",
+    "title": "What Travelers Say About Our Private Tours",
     "previous": "Previous testimonial",
     "next": "Next testimonial"
   },
   "specialOffer": {
-    "tagline": "Save 30% on Egypt Tours",
-    "title": "Discover Egypt — Book Your Dream Trip in",
-    "subtitle": "One Click",
-    "cta": "Claim Your Offer",
-    "limitedTime": "Limited-Time Offer",
+    "tagline": "Special Offer: 30% Off Selected Tours",
+    "title": "Send Us Your Dates, Get a Confirmed Price",
+    "cta": "See the Offers",
+    "saleLabel": "Special Offer",
     "off": "off",
     "upTo": "up to",
-    "travellerImageAlt": "Female traveler with a suitcase exploring Egypt"
+    "travellerImageAlt": "Traveler with a suitcase at the start of a private Egypt tour"
   },
   "homeMeta": {
-    "title": "Private Egypt Tours & Nile Cruises | JES Egypt Tours",
-    "description": "Cairo-based operator running private, guided trips across Egypt: Giza, Luxor, Aswan, Abu Simbel and Nile cruises. Licensed guides, no hidden fees.",
+    "title": "Private Egypt Tours with a Local Operator | JES Egypt Tours",
+    "description": "Cairo-based operator for private Egypt tours. Licensed guide, private A/C car, hotel pickup, and a route built around you. No forced shopping stops.",
     "imageAlt": "The Giza Pyramids and the Sphinx at sunset, Egypt"
+  },
+  "tourCarousel": {
+    "previous": "carousel previous",
+    "next": "carousel next"
+  },
+  "whatsappButtonLabel": "Contact us on WhatsApp",
+  "siteSchema": {
+    "description": "JES Egypt Tours is a Cairo-based tour operator offering private guided tours and tailor-made trips across Egypt, with licensed guides in English, German, Italian and Spanish."
   }
 }

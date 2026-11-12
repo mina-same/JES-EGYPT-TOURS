@@ -2,10 +2,9 @@
   "metaTitle": "Esperienze di viaggio su misura | JES Egypt Tours",
   "metaDescription": "Crea la tua avventura egiziana perfetta con i nostri pacchetti vacanza su misura.",
   "pageTitle": "Esperienze di viaggio su misura",
-  "pageSubTitle": "Su misura",
   "hero": {
     "title": "Crea la tua avventura egiziana perfetta",
-    "subtitle": "Crea la tua avventura egiziana perfetta con i nostri specialisti di viaggio. Ogni dettaglio pensato per i tuoi sogni."
+    "subtitle": "I nostri specialisti di viaggio curano ogni dettaglio pensando ai tuoi sogni."
   },
   "features": {
     "personalizedItinerary": {
@@ -55,7 +54,7 @@
       "additionalComments": "Commenti aggiuntivi"
     },
     "placeholders": {
-      "fullName": "Inserisci il tuo nome completo",
+      "fullName": "Inserisci nome e cognome",
       "email": "tua.email@esempio.com",
       "phone": "Prefisso + numero",
       "country": "Seleziona il tuo paese",
@@ -65,7 +64,7 @@
       "accommodation": "Seleziona preferenza",
       "specialOccasion": "Seleziona se applicabile",
       "dietary": "es. Vegetariano, Halal",
-      "mobility": "Eventuali esigenze di accessibilità",
+      "mobility": "Esigenze di accessibilità",
       "comments": "Raccontaci di più sul viaggio dei tuoi sogni..."
     },
     "buttons": {
@@ -81,10 +80,17 @@
       "to": "a",
       "selectCountry": "Seleziona il tuo paese",
       "countryCode": "Prefisso internazionale",
-      "international": "Internazionale"
+      "international": "Internazionale",
+      "startMonth": "Mese di inizio",
+      "startYear": "Anno di inizio",
+      "endMonth": "Mese di fine",
+      "endYear": "Anno di fine",
+      "decreaseCount": "{{label}}: meno",
+      "increaseCount": "{{label}}: più",
+      "closeNotification": "Chiudi la notifica"
     },
     "errors": {
-      "travelRange": "Scegli date attuali o future, con la fine non precedente all?inizio.",
+      "travelRange": "Scegli date attuali o future, con la fine non precedente all'inizio.",
       "budgetRange": "Il budget massimo deve essere almeno pari al minimo.",
       "fillAllFields": "Si prega di compilare correttamente tutti i campi obbligatori",
       "fullNameRequired": "Il nome e cognome è obbligatorio",
@@ -100,14 +106,43 @@
       "commentsRequired": "Sono richiesti commenti aggiuntivi",
       "commentsMaxLength": "I commenti non possono superare i 2000 caratteri",
       "networkError": "Errore di rete. Controlla la tua connessione.",
-      "invalidPhone": "Inserisci un numero di telefono valido, con il prefisso internazionale."
+      "invalidPhone": "Inserisci un numero di telefono valido, con il prefisso internazionale.",
+      "invalidSubmission": "Controlla i tuoi dati e riprova.",
+      "tooManyRequests": "Non è stato possibile accettare la tua richiesta in questo momento. Riprova tra qualche minuto oppure scrivici su WhatsApp."
+    },
+    "privacy": {
+      "note": "Usiamo i tuoi dati per rispondere alla tua richiesta e preparare la tua proposta. Se necessario per organizzare il viaggio, i dati pertinenti possono essere condivisi con guide, hotel e altri fornitori di servizi turistici. Consulta la nostra",
+      "linkLabel": "Informativa sulla Privacy",
+      "newTab": "(si apre in una nuova scheda)"
     },
     "success": {
       "requestSubmitted": "La tua richiesta di viaggio è stata inviata con successo!",
-      "failFallback": "Impossibile inviare la richiesta. Riprova."
+      "failFallback": "Impossibile inviare la richiesta. Riprova.",
+      "nextTitle": "Cosa succede ora",
+      "newRequest": "Invia un'altra richiesta"
     },
     "options": {
-      "noLimit": "Nessun limite",
+      "noLimit": "Senza limite",
+      "months": {
+        "january": "Gennaio",
+        "february": "Febbraio",
+        "march": "Marzo",
+        "april": "Aprile",
+        "may": "Maggio",
+        "june": "Giugno",
+        "july": "Luglio",
+        "august": "Agosto",
+        "september": "Settembre",
+        "october": "Ottobre",
+        "november": "Novembre",
+        "december": "Dicembre"
+      },
+      "accommodation": {
+        "luxury": "Hotel di lusso (5 stelle)",
+        "premium": "Hotel premium (4 stelle)",
+        "standard": "Hotel standard (3 stelle)",
+        "mixed": "Categorie miste"
+      },
       "specialOccasions": {
         "honeymoon": "Luna di miele",
         "anniversary": "Anniversario",
@@ -153,7 +188,8 @@
     "needHelp": {
       "title": "Hai bisogno di aiuto?",
       "subtitle": "Parla con i nostri esperti",
-      "note": "Disponibile 24/7 per assisterti"
+      "note": "Disponibile 24/7 per assisterti",
+      "whatsappNewTab": "(WhatsApp, si apre in una nuova scheda)"
     }
   }
 }

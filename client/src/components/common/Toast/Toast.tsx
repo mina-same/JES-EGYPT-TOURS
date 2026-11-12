@@ -8,9 +8,14 @@ interface ToastProps {
   type: ToastType;
   onClose: () => void;
   duration?: number;
+  /** The close button's name, in the page's language. */
+  closeLabel?: string;
 }
 
-const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration = 5000 }) => {
+/** Visual only: the toast mounts with its text already inside, which screen
+ *  readers do not reliably announce, so the page that shows it also writes the
+ *  message to a live region that is always present. */
+const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration = 5000, closeLabel = 'Close notification' }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
@@ -22,7 +27,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration = 5000 }
   return (
     <>
       <div className={`toast toast--${type}`}>
-        <div className="toast__icon">
+        <div className="toast__icon" aria-hidden="true">
           {type === 'success' ? (
             <CheckCircle size={24} />
           ) : (
@@ -32,7 +37,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration = 5000 }
         <div className="toast__content">
           <p className="toast__message">{message}</p>
         </div>
-        <button className="toast__close" onClick={onClose} aria-label="Close notification">
+        <button type="button" className="toast__close" onClick={onClose} aria-label={closeLabel}>
           <X size={18} />
         </button>
       </div>

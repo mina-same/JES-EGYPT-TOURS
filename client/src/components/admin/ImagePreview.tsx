@@ -46,7 +46,7 @@ export function ImagePreviewButton({ images, index = 0 }: { images: PreviewImage
         <div className="flex flex-wrap items-center gap-2 border-b p-3">
           <div className="mr-auto">
             <Dialog.Title className="font-semibold">Image preview</Dialog.Title>
-            <Dialog.Description className="text-xs text-muted-foreground">{label(image?.title) || label(image?.alt) || 'Full image'} ? {current + 1} / {images.length}</Dialog.Description>
+            <Dialog.Description className="text-xs text-muted-foreground">{label(image?.title) || label(image?.alt) || 'Full image'} · {current + 1} / {images.length}</Dialog.Description>
           </div>
           <Button type="button" variant="outline" size="icon" aria-label="Zoom out" disabled={zoom <= 1} onClick={() => setZoom(z => Math.max(1, z - 0.5))}><ZoomOut className="h-4 w-4" /></Button>
           <span className="text-xs">{Math.round(zoom * 100)}%</span>

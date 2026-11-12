@@ -1,6 +1,7 @@
 'use client';
 import { submissionFetch } from '@/lib/submissionFetch';
-import React, { useState, useEffect, useId, useMemo } from 'react';
+import React, { useState, useEffect, useId, useMemo, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import PhoneInput, {
   getCountries,
   getCountryCallingCode,
@@ -20,13 +21,15 @@ import PageHeader from '@/components/sections/PageHeader/PageHeader';
 import Toast, { ToastType } from '@/components/common/Toast/Toast';
 import { API_ENDPOINTS } from '@/config/api';
 import { waHref, PHONE_DISPLAY } from '@/config/contact';
+import { localizeInternalUrl } from '@/lib/url';
 import {
   MapPin, Calendar, Users, Heart, Star, Clock, Wallet, Compass,
-  CheckCircle, Sparkles, Award, Phone, Mail, User, Loader2, type LucideIcon
+  CheckCircle, Sparkles, Award, Phone, Mail, User, Loader2, ArrowDown, type LucideIcon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'next/navigation';
 import HeaderOneCloned from '@/components/layout/HeaderOneCloned/HeaderOneCloned';
+import { DATE_FIELDS, submissionOutcome, type SubmitResponse } from './submissionOutcome';
 import './tailorMade.css';
 
 type TailorMadeFormData = {
@@ -53,6 +56,9 @@ type TailorMadeFormData = {
   dietary: string;
   mobility: string;
   comments: string;
+  /** The spam trap: hidden, so only a bot fills it, and the API then refuses
+   *  the request. Sent empty with every request, as on the tour booking form. */
+  website: string;
 };
 
 const createInitialFormData = (): TailorMadeFormData => ({
@@ -79,8 +85,11 @@ const createInitialFormData = (): TailorMadeFormData => ({
   dietary: '',
   mobility: '',
   comments: '',
+  website: '',
 });
 
+/** The English names are what the API accepts (an enum on the server); each
+ *  language shows its own, under `form.options.months.<name in lower case>`. */
 const MONTHS = [
   'January',
   'February',
@@ -116,11 +125,13 @@ const ENGLISH_COUNTRY_NAMES = englishCountryNames as Record<string, string>;
 const countrySortKey = (name: string) =>
   name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
+/** `value` is what the API accepts (English, an enum on the server); `key`
+ *  names its translation, as for the occasions and interests below. */
 const ACCOMMODATION_OPTIONS = [
-  'Luxury Hotels (5 Star)',
-  'Premium Hotels (4 Star)',
-  'Standard Hotels (3 Star)',
-  'Mix of Categories',
+  { value: 'Luxury Hotels (5 Star)', key: 'luxury' },
+  { value: 'Premium Hotels (4 Star)', key: 'premium' },
+  { value: 'Standard Hotels (3 Star)', key: 'standard' },
+  { value: 'Mix of Categories', key: 'mixed' },
 ];
 
 const MIN_BUDGET_OPTIONS = ['$500', '$1,000', '$1,500', '$2,000', '$3,000', '$5,000+'];
@@ -172,18 +183,32 @@ const SIDEBAR_FEATURES = [
   'Handpicked Experiences',
 ];
 
-const SUBMIT_INFO_CARDS: Array<{ icon: LucideIcon; title: string; text: string }> = [
+/** What happens after a request is sent: shown by the submit button, and
+ *  again in the confirmation that replaces the form. */
+const SUBMIT_INFO_CARDS: Array<{ icon: LucideIcon; key: string; title: string; text: string }> = [
   {
     icon: Clock,
+    key: 'quickResponse',
     title: 'Quick Response',
     text: 'Our travel specialists will contact you within 24 hours',
   },
   {
     icon: CheckCircle,
+    key: 'personalizedItinerary',
     title: 'Personalized Itinerary',
     text: 'Receive a custom proposal tailored to your preferences',
   },
 ];
+
+/** The form's section, the target of the hero's link on phones. */
+const FORM_ANCHOR = 'tailor-made-form';
+
+/** What the API accepts as a phone number: "+", then 7 to 15 digits. */
+const E164_PHONE = /^\+[1-9]\d{6,14}$/;
+
+/** The fields that can carry a message, in the order they appear: after a
+ *  failed submit the first one with a message takes the focus. */
+const FIELD_ORDER = ['fullName', 'email', 'phone', 'country', 'startMonth', 'startYear', 'endMonth', 'endYear', 'maxBudget', 'comments'];
 
 interface TailorMadePageProps {
   /** Country names in the page's language (page.tsx); absent on English pages. */
@@ -243,14 +268,55 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  // The same message, for screen readers: a live region that is always on the
+  // page (one that mounts with its text, like the toast, is not reliably read).
+  const [announcement, setAnnouncement] = useState('');
+  // A request went through: the form gives way to a confirmation that stays.
+  const [submitted, setSubmitted] = useState(false);
+  const formHeadingRef = useRef<HTMLHeadingElement>(null);
+  const successHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  /** A field's message and invalid state, for its aria attributes. */
+  const errorId = (name: string) => fieldId(`${name}-error`);
+  const invalidProps = (name: string, describedBy = errorId(name)) =>
+    errors[name] ? { 'aria-invalid': true, 'aria-describedby': describedBy } : {};
+  const dateMessages = Array.from(new Set(DATE_FIELDS.map((name) => errors[name]).filter(Boolean)));
+
+  const showFeedback = (message: string, type: ToastType) => {
+    setToast({ message, type });
+    // Emptied first, so the same message twice in a row is read again.
+    setAnnouncement('');
+    window.setTimeout(() => setAnnouncement(message), 50);
+  };
+
+  /** Shows the messages, then moves to the first field that has one. */
+  const showErrors = (found: Record<string, string>, summary: string) => {
+    // flushSync: the messages (the targets of aria-describedby) must be in the
+    // DOM before the focus moves, or a screen reader reads the field without them.
+    flushSync(() => setErrors(found));
+    const first = FIELD_ORDER.find((name) => found[name]);
+    const field = first ? document.getElementById(fieldId(first)) : null;
+    if (field) {
+      // Centred, so the sticky header cannot cover it.
+      field.scrollIntoView({ block: 'center' });
+      field.focus({ preventScroll: true });
+    }
+    showFeedback(summary, 'error');
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // A field's message goes once it is edited; the budget range's sits on
-    // the maximum but is about both ends.
-    const errorKey = name === 'minBudget' ? 'maxBudget' : name;
-    if (errors[errorKey]) setErrors(prev => ({ ...prev, [errorKey]: '' }));
+    // A field's message goes once it is edited. The date lists share theirs,
+    // and the budget range's sits on the maximum but is about both ends.
+    const cleared = DATE_FIELDS.includes(name) ? DATE_FIELDS : [name === 'minBudget' ? 'maxBudget' : name];
+    if (cleared.some((key) => errors[key])) {
+      setErrors(prev => {
+        const next = { ...prev };
+        for (const key of cleared) delete next[key];
+        return next;
+      });
+    }
   };
 
   // The library gives an E.164 number ("+4915112345678"), or undefined while
@@ -276,7 +342,10 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
     }));
   };
 
-  const validateForm = (): boolean => {
+  /** Every problem with the form, by field: empty when it can be sent. The
+   *  form has `noValidate`, so these messages, in the page's language, are
+   *  what visitors see — not the browser's, one field at a time. */
+  const validateForm = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
 
     // Personal Information
@@ -292,8 +361,10 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
       newErrors.email = t('form.errors.invalidEmail');
     }
 
-    // Optional, but a number we could not dial is worse than none.
-    if (formData.phone && !isValidPhoneNumber(formData.phone)) {
+    // Optional, but a number we could not dial is worse than none. The
+    // library's own check lets 6- to 19-digit numbers through; the API takes
+    // E.164's 7 to 15.
+    if (formData.phone && (!isValidPhoneNumber(formData.phone) || !E164_PHONE.test(formData.phone))) {
       newErrors.phone = t('form.errors.invalidPhone');
     }
 
@@ -326,28 +397,31 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
       newErrors.comments = t('form.errors.commentsMaxLength');
     }
 
+    // A range is about both ends of a date: the month and the year are marked
+    // together, and the end is only compared with a complete start.
     const monthValue = (month: string, year: string) => Number(year) * 12 + MONTHS.indexOf(month);
     const now = new Date();
     const start = monthValue(formData.startMonth, formData.startYear);
     const end = monthValue(formData.endMonth, formData.endYear);
-    if (formData.startMonth && formData.startYear && start < now.getFullYear() * 12 + now.getMonth()) newErrors.startYear = t('form.errors.travelRange');
-    if (formData.endMonth && formData.endYear && end < start) newErrors.endYear = t('form.errors.travelRange');
+    const startChosen = formData.startMonth && formData.startYear;
+    if (startChosen && start < now.getFullYear() * 12 + now.getMonth()) {
+      newErrors.startMonth = newErrors.startYear = t('form.errors.travelRange');
+    }
+    if (startChosen && formData.endMonth && formData.endYear && end < start) {
+      newErrors.endMonth = newErrors.endYear = t('form.errors.travelRange');
+    }
     const amount = (value: string) => Number(value.replace(/[$,+]/g, ''));
     if (formData.minBudget && formData.maxBudget && formData.maxBudget !== 'No Limit' && amount(formData.minBudget) > amount(formData.maxBudget)) newErrors.maxBudget = t('form.errors.budgetRange');
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
-    // Validate form
-    if (!validateForm()) {
-      setToast({
-        message: t('form.errors.fillAllFields'),
-        type: 'error'
-      });
+
+    const found = validateForm();
+    if (Object.keys(found).length > 0) {
+      showErrors(found, t('form.errors.fillAllFields'));
       return;
     }
 
@@ -368,31 +442,48 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
         }),
       });
 
-      const data = await response.json();
+      // Read defensively: the site-wide rate limiter answers in plain text.
+      const data = (await response.json().catch(() => null)) as SubmitResponse | null;
+      const outcome = submissionOutcome(response.status, data);
 
-      if (response.ok && data.success) {
-        setToast({
-          message: t('form.success.requestSubmitted'),
-          type: 'success'
-        });
-        
-        // Reset form
+      if (outcome.type === 'success') {
+        // Not a toast: it closed after five seconds, at the top of the screen,
+        // while the visitor was at the submit button at the end of a long
+        // form. The confirmation replaces the form and takes the focus, so a
+        // keyboard or screen reader user lands on it too.
+        setToast(null);
         setFormData(createInitialFormData());
+        flushSync(() => setSubmitted(true));
+        successHeadingRef.current?.scrollIntoView({ block: 'center' });
+        successHeadingRef.current?.focus({ preventScroll: true });
+      } else if (Object.keys(outcome.fields).length > 0) {
+        const rejected: Record<string, string> = {};
+        for (const [field, key] of Object.entries(outcome.fields)) rejected[field] = t(key);
+        showErrors(rejected, t(outcome.message));
       } else {
-        setToast({
-          message: data.error || t('form.success.failFallback'),
-          type: 'error'
-        });
+        showFeedback(t(outcome.message), 'error');
       }
     } catch (error) {
+      // No answer at all: offline, blocked, or the 20-second timeout.
       console.error('Error submitting form:', error);
-      setToast({
-        message: t('form.errors.networkError'),
-        type: 'error'
-      });
+      showFeedback(t('form.errors.networkError'), 'error');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  /** Back to an empty form, from the confirmation. */
+  const startAgain = () => {
+    flushSync(() => setSubmitted(false));
+    document.getElementById(fieldId('fullName'))?.focus();
+  };
+
+  /** The hero's link on phones: down to the form, and the focus with it. */
+  const jumpToForm = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(FORM_ANCHOR)?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    formHeadingRef.current?.focus({ preventScroll: true });
   };
 
   return (
@@ -402,14 +493,16 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
+          closeLabel={t('form.labels.closeNotification')}
         />
       )}
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement}</p>
       <TopbarOne />
       <HeaderOne />
       <HeaderOneCloned />
-      <PageHeader 
+      {/* No subtitle: it was the breadcrumb's "Tailor-Made" a third time. */}
+      <PageHeader
         title={t('pageTitle')}
-        subTitle={t('pageSubTitle')}
         breadcrumbLabelKey="pageNames.tailorMade"
       />
 
@@ -424,6 +517,12 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
               <p className="tailor-made-hero__subtitle">
                 {t('hero.subtitle')}
               </p>
+              {/* Phones only (the CSS hides it from 769px): there the form
+                  starts below four feature cards, about two screens down. */}
+              <a href={`#${FORM_ANCHOR}`} className="tailor-made-jump" onClick={jumpToForm}>
+                {t('form.header.title')}
+                <ArrowDown size={18} aria-hidden="true" />
+              </a>
             </div>
 
             {/* Features Grid */}
@@ -447,55 +546,99 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
 
           {/* Form Section */}
           <div className="tailor-made-content-wrapper">
-          <div className="tailor-made-form-wrapper">
+          <div className="tailor-made-form-wrapper" id={FORM_ANCHOR}>
             <div className="tailor-made-form-header">
-              <h2 className="form-header-title">{t('form.header.title')}</h2>
+              <h2 className="form-header-title" tabIndex={-1} ref={formHeadingRef}>{t('form.header.title')}</h2>
               <p className="form-header-subtitle">
                 {t('form.header.subtitle')}
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="tailor-made-form">
+            {/* After a request went through: what was received and what comes
+                next, in place of the form, until the visitor starts again. Only
+                the page's existing commitments (the cards by the submit button). */}
+            {submitted && (
+              <div className="tailor-made-success">
+                <span className="tailor-made-success__icon" aria-hidden="true">
+                  <CheckCircle size={32} />
+                </span>
+                <h3 className="tailor-made-success__title" tabIndex={-1} ref={successHeadingRef}>
+                  {t('form.success.requestSubmitted')}
+                </h3>
+                <p className="tailor-made-success__next">{t('form.success.nextTitle')}</p>
+                <ul className="tailor-made-success__steps">
+                  {SUBMIT_INFO_CARDS.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                      <li key={card.key}>
+                        <Icon size={18} aria-hidden="true" />
+                        <span>
+                          <strong>{t(`submitInfo.${card.key}.title`)}</strong>{' '}
+                          {t(`submitInfo.${card.key}.text`)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <button type="button" className="tailor-made-success__again" onClick={startAgain}>
+                  {t('form.success.newRequest')}
+                </button>
+              </div>
+            )}
+
+            {/* noValidate: the form's own messages, in the page's language and
+                for every field at once, instead of the browser's bubble. Text
+                fields keep `required`, which screen readers announce; the
+                lists take aria-required — Chrome does not expose `required` on
+                a select, and an empty required one read as invalid on load. */}
+            <form onSubmit={handleSubmit} className="tailor-made-form" noValidate hidden={submitted || undefined}>
               {/* Step 1: Personal Information */}
               <div className="form-section">
                 <div className="form-section-header">
-                  <span className="step-number">1</span>
+                  <span className="step-number" aria-hidden="true">1</span>
                   <h3 className="form-section-title">{t('form.steps.1')}</h3>
                 </div>
 
                 <div className="form-grid">
                   <div className="form-group">
-                    <label className="form-label">
+                    <label className="form-label" htmlFor={fieldId('fullName')}>
                       <User size={18} />
-                      {t('form.fields.fullName')} <span className="required">*</span>
+                      {t('form.fields.fullName')} <span className="required" aria-hidden="true">*</span>
                     </label>
                     <input
+                      id={fieldId('fullName')}
                       type="text"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
+                      autoComplete="name"
+                      maxLength={100}
+                      {...invalidProps('fullName')}
                       className={`form-input ${errors.fullName ? 'form-input--error' : ''}`}
                       placeholder={t('form.placeholders.fullName')}
                       required
                     />
-                    {errors.fullName && <span className="form-error">{errors.fullName}</span>}
+                    {errors.fullName && <span className="form-error" id={errorId('fullName')}>{errors.fullName}</span>}
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">
+                    <label className="form-label" htmlFor={fieldId('email')}>
                       <Mail size={18} />
-                      {t('form.fields.email')} <span className="required">*</span>
+                      {t('form.fields.email')} <span className="required" aria-hidden="true">*</span>
                     </label>
                     <input
+                      id={fieldId('email')}
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
+                      autoComplete="email"
+                      {...invalidProps('email')}
                       className={`form-input ${errors.email ? 'form-input--error' : ''}`}
                       placeholder={t('form.placeholders.email')}
                       required
                     />
-                    {errors.email && <span className="form-error">{errors.email}</span>}
+                    {errors.email && <span className="form-error" id={errorId('email')}>{errors.email}</span>}
                   </div>
 
                   {/* Calling code + number, as on the tour booking form: a flag
@@ -523,7 +666,7 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                         limitMaxLength
                         autoComplete="tel"
                         aria-invalid={!!errors.phone}
-                        aria-describedby={errors.phone ? fieldId('phone-error') : undefined}
+                        aria-describedby={errors.phone ? errorId('phone') : undefined}
                         className={`tm-phone-input ${errors.phone ? 'tm-phone-input--error' : ''}`}
                       />
                       {/* Only while the field shows a bare "+": once a calling
@@ -534,8 +677,11 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                         </span>
                       )}
                     </div>
+                    {/* Messages are not alerts: after a failed submit the focus
+                        moves to the first field with one, which reads it out
+                        through aria-describedby. */}
                     {errors.phone && (
-                      <span className="form-error" id={fieldId('phone-error')} role="alert">
+                      <span className="form-error" id={errorId('phone')}>
                         {errors.phone}
                       </span>
                     )}
@@ -544,7 +690,7 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                   <div className="form-group">
                     <label className="form-label" htmlFor={fieldId('country')}>
                       <MapPin size={18} />
-                      {t('form.fields.country')} <span className="required">*</span>
+                      {t('form.fields.country')} <span className="required" aria-hidden="true">*</span>
                     </label>
                     <select
                       id={fieldId('country')}
@@ -552,9 +698,9 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                       value={formData.country}
                       onChange={handleInputChange}
                       autoComplete="country"
-                      aria-invalid={!!errors.country}
+                      {...invalidProps('country')}
                       className={`form-select ${errors.country ? 'form-input--error' : ''}`}
-                      required
+                      aria-required="true"
                     >
                       <option value="">{t('form.placeholders.country')}</option>
                       {countryOptions.map((c) => (
@@ -563,7 +709,7 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                         </option>
                       ))}
                     </select>
-                    {errors.country && <span className="form-error">{errors.country}</span>}
+                    {errors.country && <span className="form-error" id={errorId('country')}>{errors.country}</span>}
                   </div>
                 </div>
               </div>
@@ -571,50 +717,58 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
               {/* Step 2: Travel Details */}
               <div className="form-section">
                 <div className="form-section-header">
-                  <span className="step-number">2</span>
+                  <span className="step-number" aria-hidden="true">2</span>
                   <h3 className="form-section-title">{t('form.steps.2')}</h3>
                 </div>
 
                 <div className="form-grid">
-                  <div className="form-group form-group--full">
-                    <label className="form-label">
+                  {/* Four lists under one heading: each is named on its own
+                      ("Start month"…), and they share one message area, styled
+                      like every other field's, for the dates' messages. */}
+                  <div className="form-group form-group--full" role="group" aria-labelledby={fieldId('dates-label')}>
+                    <span className="form-label" id={fieldId('dates-label')}>
                       <Calendar size={18} />
-                      {t('form.fields.travelDates')} <span className="required">*</span>
-                    </label>
+                      {t('form.fields.travelDates')} <span className="required" aria-hidden="true">*</span>
+                    </span>
                     <div className="date-range-wrapper">
                       <div className="date-select-group">
-                        <select name="startMonth" value={formData.startMonth} onChange={handleInputChange} className="form-select" required>
+                        <select id={fieldId('startMonth')} name="startMonth" value={formData.startMonth} onChange={handleInputChange} aria-label={t('form.labels.startMonth')} {...invalidProps('startMonth', errorId('dates'))} className={`form-select ${errors.startMonth ? 'form-input--error' : ''}`} aria-required="true">
                           <option value="">{t('form.placeholders.month')}</option>
-                          {MONTHS.map(month => <option key={month} value={month}>{month}</option>)}
+                          {MONTHS.map(month => <option key={month} value={month}>{t(`form.options.months.${month.toLowerCase()}`, { defaultValue: month })}</option>)}
                         </select>
-                        <select name="startYear" value={formData.startYear} onChange={handleInputChange} className="form-select" required>
+                        <select id={fieldId('startYear')} name="startYear" value={formData.startYear} onChange={handleInputChange} aria-label={t('form.labels.startYear')} {...invalidProps('startYear', errorId('dates'))} className={`form-select ${errors.startYear ? 'form-input--error' : ''}`} aria-required="true">
                           <option value="">{t('form.placeholders.year')}</option>
                           {YEARS.map(year => <option key={year} value={year}>{year}</option>)}
                         </select>
                       </div>
-                      <span className="date-separator">{t('form.labels.to')}</span>
+                      <span className="date-separator" aria-hidden="true">{t('form.labels.to')}</span>
                       <div className="date-select-group">
-                        <select name="endMonth" value={formData.endMonth} onChange={handleInputChange} className="form-select" required>
+                        <select id={fieldId('endMonth')} name="endMonth" value={formData.endMonth} onChange={handleInputChange} aria-label={t('form.labels.endMonth')} {...invalidProps('endMonth', errorId('dates'))} className={`form-select ${errors.endMonth ? 'form-input--error' : ''}`} aria-required="true">
                           <option value="">{t('form.placeholders.month')}</option>
-                          {MONTHS.map(month => <option key={month} value={month}>{month}</option>)}
+                          {MONTHS.map(month => <option key={month} value={month}>{t(`form.options.months.${month.toLowerCase()}`, { defaultValue: month })}</option>)}
                         </select>
-                        <select name="endYear" value={formData.endYear} onChange={handleInputChange} className="form-select" required>
+                        <select id={fieldId('endYear')} name="endYear" value={formData.endYear} onChange={handleInputChange} aria-label={t('form.labels.endYear')} {...invalidProps('endYear', errorId('dates'))} className={`form-select ${errors.endYear ? 'form-input--error' : ''}`} aria-required="true">
                           <option value="">{t('form.placeholders.year')}</option>
                           {YEARS.map(year => <option key={year} value={year}>{year}</option>)}
                         </select>
                       </div>
                     </div>
-                    {errors.startYear && <p role="alert" className="text-red-600">{errors.startYear}</p>}
-                    {errors.endYear && <p role="alert" className="text-red-600">{errors.endYear}</p>}
+                    {dateMessages.length > 0 && (
+                      <div id={errorId('dates')}>
+                        {dateMessages.map((message) => <span className="form-error" key={message}>{message}</span>)}
+                      </div>
+                    )}
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">
+                    <label className="form-label" htmlFor={fieldId('duration')}>
                       <Clock size={18} />
                       {t('form.fields.duration')}
                     </label>
                     <input
+                      id={fieldId('duration')}
                       type="text"
+                      maxLength={100}
                       name="duration"
                       value={formData.duration}
                       onChange={handleInputChange}
@@ -624,11 +778,12 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">
+                    <label className="form-label" htmlFor={fieldId('accommodation')}>
                       <Star size={18} />
                       {t('form.fields.accommodation')}
                     </label>
                     <select
+                      id={fieldId('accommodation')}
                       name="accommodation"
                       value={formData.accommodation}
                       onChange={handleInputChange}
@@ -636,32 +791,44 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                     >
                       <option value="">{t('form.placeholders.accommodation')}</option>
                       {ACCOMMODATION_OPTIONS.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
+                        <option key={o.value} value={o.value}>
+                          {t(`form.options.accommodation.${o.key}`, { defaultValue: o.value })}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  <div className="form-group form-group--full">
-                    <label className="form-label">
+                  <div className="form-group form-group--full" role="group" aria-labelledby={fieldId('travelers-label')}>
+                    <span className="form-label" id={fieldId('travelers-label')}>
                       <Users size={18} />
                       {t('form.fields.travelers')}
-                    </label>
+                    </span>
                     <div className="travelers-grid">
-                      {TRAVELER_COUNTERS.map((tItem) => (
-                        <div className="traveler-counter" key={tItem.key}>
-                          <span className="traveler-label">
-                            {t(`form.labels.${tItem.key}`)} {tItem.required ? <span className="required">*</span> : null}
-                            {tItem.meta ? <span className="age-label">{t(`form.labels.${tItem.key}Age`, { defaultValue: tItem.meta })}</span> : null}
-                          </span>
-                          <div className="counter-controls">
-                            <button type="button" onClick={() => handleNumberChange(tItem.key, false)} className="counter-btn">-</button>
-                            <span className="counter-value">{formData[tItem.key]}</span>
-                            <button type="button" onClick={() => handleNumberChange(tItem.key, true)} className="counter-btn">+</button>
+                      {TRAVELER_COUNTERS.map((tItem) => {
+                        const label = t(`form.labels.${tItem.key}`);
+                        return (
+                          <div className="traveler-counter" key={tItem.key} role="group" aria-labelledby={fieldId(`${tItem.key}-label`)}>
+                            {/* The name and its asterisk in one line (as flex
+                                items of their own they were stacked), the ages below. */}
+                            <span className="traveler-label" id={fieldId(`${tItem.key}-label`)}>
+                              <span>
+                                {label}
+                                {tItem.required ? <> <span className="required" aria-hidden="true">*</span></> : null}
+                              </span>
+                              {tItem.meta ? <span className="age-label">{t(`form.labels.${tItem.key}Age`, { defaultValue: tItem.meta })}</span> : null}
+                            </span>
+                            <div className="counter-controls">
+                              <button type="button" onClick={() => handleNumberChange(tItem.key, false)} className="counter-btn" aria-label={t('form.labels.decreaseCount', { label })}>-</button>
+                              {/* Read out after each press: "3 Adults". */}
+                              <span className="counter-value" aria-live="polite" aria-atomic="true">
+                                {formData[tItem.key]}
+                                <span className="sr-only"> {label}</span>
+                              </span>
+                              <button type="button" onClick={() => handleNumberChange(tItem.key, true)} className="counter-btn" aria-label={t('form.labels.increaseCount', { label })}>+</button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -670,7 +837,7 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
               {/* Step 3: Travel Preferences */}
               <div className="form-section">
                 <div className="form-section-header">
-                  <span className="step-number">3</span>
+                  <span className="step-number" aria-hidden="true">3</span>
                   <h3 className="form-section-title">{t('form.steps.3')}</h3>
                 </div>
 
@@ -687,6 +854,7 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                     </span>
                     <div className="budget-selects">
                       <select
+                        id={fieldId('minBudget')}
                         name="minBudget"
                         value={formData.minBudget}
                         onChange={handleInputChange}
@@ -701,12 +869,12 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                         ))}
                       </select>
                       <select
+                        id={fieldId('maxBudget')}
                         name="maxBudget"
                         value={formData.maxBudget}
                         onChange={handleInputChange}
                         aria-label={t('form.fields.maxBudget')}
-                        aria-invalid={!!errors.maxBudget}
-                        aria-describedby={errors.maxBudget ? fieldId('budget-error') : undefined}
+                        {...invalidProps('maxBudget', fieldId('budget-error'))}
                         className={`form-select ${errors.maxBudget ? 'form-input--error' : ''}`}
                       >
                         <option value="">{t('form.fields.maxBudget')}</option>
@@ -720,7 +888,7 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                     {/* Under the fields it is about (it used to show beside
                         the submit button, far from them). */}
                     {errors.maxBudget && (
-                      <span className="form-error" id={fieldId('budget-error')} role="alert">
+                      <span className="form-error" id={fieldId('budget-error')}>
                         {errors.maxBudget}
                       </span>
                     )}
@@ -774,15 +942,17 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
               {/* Step 4: Special Requirements */}
               <div className="form-section">
                 <div className="form-section-header">
-                  <span className="step-number">4</span>
+                  <span className="step-number" aria-hidden="true">4</span>
                   <h3 className="form-section-title">{t('form.steps.4')}</h3>
                 </div>
 
                 <div className="form-grid">
                   <div className="form-group">
-                    <label className="form-label">{t('form.fields.dietaryRequirements')}</label>
+                    <label className="form-label" htmlFor={fieldId('dietary')}>{t('form.fields.dietaryRequirements')}</label>
                     <input
+                      id={fieldId('dietary')}
                       type="text"
+                      maxLength={500}
                       name="dietary"
                       value={formData.dietary}
                       onChange={handleInputChange}
@@ -792,9 +962,11 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">{t('form.fields.mobilityRequirements')}</label>
+                    <label className="form-label" htmlFor={fieldId('mobility')}>{t('form.fields.mobilityRequirements')}</label>
                     <input
+                      id={fieldId('mobility')}
                       type="text"
+                      maxLength={500}
                       name="mobility"
                       value={formData.mobility}
                       onChange={handleInputChange}
@@ -804,49 +976,83 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
                   </div>
 
                   <div className="form-group form-group--full">
-                    <label className="form-label">
-                      {t('form.fields.additionalComments')} <span className="required">*</span>
+                    <label className="form-label" htmlFor={fieldId('comments')}>
+                      {t('form.fields.additionalComments')} <span className="required" aria-hidden="true">*</span>
                     </label>
                     <textarea
+                      id={fieldId('comments')}
                       name="comments"
                       value={formData.comments}
                       onChange={handleInputChange}
+                      {...invalidProps('comments')}
                       className={`form-textarea ${errors.comments ? 'form-input--error' : ''}`}
                       rows={6}
                       placeholder={t('form.placeholders.comments')}
                       required
                     />
-                    {errors.comments && <span className="form-error">{errors.comments}</span>}
+                    {errors.comments && <span className="form-error" id={errorId('comments')}>{errors.comments}</span>}
+                  </div>
+
+                  {/* Spam trap, as on the tour booking form: out of sight, the
+                      keyboard and screen readers. Kept inside this step, not
+                      before the submit box, whose spacing rule needs this step
+                      right in front of it. Never required. */}
+                  <div className="booking-honeypot" aria-hidden="true">
+                    <label htmlFor={fieldId('website')}>Website</label>
+                    <input
+                      type="text"
+                      id={fieldId('website')}
+                      name="website"
+                      value={formData.website}
+                      onChange={handleInputChange}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      data-lpignore="true"
+                      data-1p-ignore="true"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Submit Button */}
               <div className="form-submit-wrapper">
-                <button type="submit" className="form-submit-btn" disabled={isSubmitting}>
+                {/* aria-disabled, not disabled, while sending: a disabled
+                    button drops the keyboard focus to the page, so after the
+                    answer the visitor started again from the top. A second
+                    press is ignored by handleSubmit. */}
+                <button type="submit" className="form-submit-btn" aria-disabled={isSubmitting || undefined}>
                   {isSubmitting ? (
                     <>
-                      <Loader2 size={20} className="spinner" />
+                      <Loader2 size={20} className="spinner" aria-hidden="true" />
                       {t('form.buttons.submitting')}
                     </>
                   ) : (
                     <>
-                      <Sparkles size={20} />
+                      <Sparkles size={20} aria-hidden="true" />
                       {t('form.buttons.submit')}
                     </>
                   )}
                 </button>
+                {/* What the privacy policy says about requests, before they are
+                    sent. It opens in a new tab: following it must not cost the
+                    visitor the form they have filled in. */}
+                <p className="form-privacy-note">
+                  {t('form.privacy.note')}{' '}
+                  <a href={localizeInternalUrl('/privacy-policy', params?.locale)} target="_blank" rel="noopener noreferrer">
+                    {t('form.privacy.linkLabel')}
+                    <span className="sr-only"> {t('form.privacy.newTab')}</span>
+                  </a>
+                  .
+                </p>
                 <div className="form-submit-info">
-                  {SUBMIT_INFO_CARDS.map((card, idx) => {
+                  {SUBMIT_INFO_CARDS.map((card) => {
                     const Icon = card.icon;
-                    const infoKeys = ['quickResponse', 'personalizedItinerary'];
-                    const iKey = infoKeys[idx];
                     return (
-                      <div className="submit-info-card" key={idx}>
+                      <div className="submit-info-card" key={card.key}>
                         <Icon size={18} />
                         <div className="submit-info-text">
-                          <strong>{t(`submitInfo.${iKey}.title`)}</strong>
-                          <span>{t(`submitInfo.${iKey}.text`)}</span>
+                          <strong>{t(`submitInfo.${card.key}.title`)}</strong>
+                          <span>{t(`submitInfo.${card.key}.text`)}</span>
                         </div>
                       </div>
                     );
@@ -880,9 +1086,12 @@ const TailorMadePage: React.FC<TailorMadePageProps> = ({ countryNames }) => {
               </h3>
               <p className="sidebar-card__subtitle">{t('sidebar.needHelp.subtitle')}</p>
               <div className="sidebar-contact">
-                <a href={waHref()} className="sidebar-contact__item">
+                {/* A new tab, like the site's floating WhatsApp button: in the
+                    same tab the visitor left the page and lost the form. */}
+                <a href={waHref()} className="sidebar-contact__item" target="_blank" rel="noopener noreferrer">
                   <Phone size={18} />
                   <span>{PHONE_DISPLAY}</span>
+                  <span className="sr-only"> {t('sidebar.needHelp.whatsappNewTab')}</span>
                 </a>
                 <a href="mailto:info@jesegypttours.com" className="sidebar-contact__item">
                   <Mail size={18} />

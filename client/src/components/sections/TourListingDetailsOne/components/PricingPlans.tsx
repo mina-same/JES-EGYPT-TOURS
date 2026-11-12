@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Trans, useTranslation } from "react-i18next";
+import { planLabelKey } from "@/lib/tours/planLabels";
 import { PricingPlan, Season } from "../types";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { getLocalizedStaticPath } from "@/lib/url/staticSlugs";
@@ -19,9 +20,10 @@ import {
 } from "@/lib/tours/seasonKind";
 import {
   PRICE_TIERS,
-  isUsableAmount,
   planHasPrices,
   seasonHasPrices,
+  tierDisplayAmount,
+  type CurrencyAmount,
   type PriceTier,
 } from "@/lib/tours/startingPrice";
 
@@ -64,7 +66,13 @@ const isMostChosen = (planName: string) => planName.toUpperCase().startsWith("GO
 
 export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
   const { t } = useTranslation("tours");
-  const { formatPrice, getPriceValue } = useCurrency();
+  const { currency, rates, formatAmount } = useCurrency();
+  /** What a tier shows in the current currency: its typed amount, or the
+   *  converted USD one. The rows AND the "from" labels read this, and the
+   *  result is formatted with formatAmount. Passing a number to formatPrice
+   *  converts it again, which turned a typed EUR 95 into EUR 87 at 0.92. */
+  const shown = (amounts: CurrencyAmount | undefined) =>
+    tierDisplayAmount(amounts, currency, rates[currency]);
   /*
    * The ROUTE locale, not the i18next instance's.
    *
@@ -97,15 +105,15 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
    *  ladder the visitor has to read backwards — they know their own party size
    *  and scan for it, so the row order has to match how the sizes count up. */
   const pricedTiers = (season: Season) =>
-    PRICE_TIERS.map((tier) => ({ tier, amounts: season.prices?.[tier] })).filter(
-      ({ amounts }) => isUsableAmount(getPriceValue(amounts as any))
+    PRICE_TIERS.map((tier) => ({ tier, amount: shown(season.prices?.[tier]) })).filter(
+      ({ amount }) => amount > 0
     );
 
   /** The cheapest quotable amount in a plan — its "starting from". */
   const planFrom = (plan: PricingPlan) => {
     const all = plan.seasons
       .filter(seasonHasPrices)
-      .flatMap((season) => pricedTiers(season).map(({ amounts }) => getPriceValue(amounts as any)));
+      .flatMap((season) => pricedTiers(season).map(({ amount }) => amount));
     return all.length ? Math.min(...all) : 0;
   };
 
@@ -126,7 +134,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
               className={`tour-pricing__tab${index === activeIndex ? " is-active" : ""}`}
               onClick={() => setActivePlan(index)}
             >
-              {t(`tourDetails.pricing.${plan.planName.toLowerCase()}`, plan.planName)}
+              {t(planLabelKey(plan.planName), plan.planName)}
             </button>
           ))}
         </div>
@@ -152,14 +160,14 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
             <div className="tour-pricing__head">
               <div>
                 <h3 className="tour-pricing__plan-name">
-                  {t(`tourDetails.pricing.${plan.planName.toLowerCase()}`, plan.planName)}
+                  {t(planLabelKey(plan.planName), plan.planName)}
                 </h3>
                 {from > 0 && (
                   <>
                     <p className="tour-pricing__from-label">
                       {t("tourDetails.pricing.startingFrom", "Starting from")}
                     </p>
-                    <p className="tour-pricing__from-value">{formatPrice(from)}</p>
+                    <p className="tour-pricing__from-value">{formatAmount(from)}</p>
                   </>
                 )}
               </div>
@@ -194,7 +202,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                 const windows = splitSeasonWindows(season.seasonName, kind);
                 /** Cheapest tier IN THIS SEASON — what the collapsed row shows. */
                 const seasonFrom = tiers.length
-                  ? Math.min(...tiers.map(({ amounts }) => getPriceValue(amounts as any)))
+                  ? Math.min(...tiers.map(({ amount }) => amount))
                   : 0;
 
                 return (
@@ -250,7 +258,7 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                       {seasonFrom > 0 && (
                         <span className="tour-pricing__season-from">
                           {t("tourDetails.pricing.fromPerPerson", "From {{price}} per person", {
-                            price: formatPrice(seasonFrom),
+                            price: formatAmount(seasonFrom),
                           })}
                         </span>
                       )}
@@ -281,13 +289,13 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({ pricingPlans }) => {
                           {t("tourDetails.pricing.groupSizePricing", "Group Size & Pricing")}
                         </p>
                         <dl className="tour-pricing__rows">
-                          {tiers.map(({ tier, amounts }) => (
+                          {tiers.map(({ tier, amount }) => (
                             <div key={tier} className="tour-pricing__row">
                               <dt className="tour-pricing__row-label">
                                 {t(TIER_LABELS[tier].key, TIER_LABELS[tier].fallback)}
                               </dt>
                               <dd className="tour-pricing__row-price">
-                                <strong>{formatPrice(amounts as any)}</strong>
+                                <strong>{formatAmount(amount)}</strong>
                                 <span className="tour-pricing__row-unit">
                                   {" / "}
                                   {t("tourDetails.pricing.person", "person")}

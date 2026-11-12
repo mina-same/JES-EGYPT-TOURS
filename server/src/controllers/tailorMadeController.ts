@@ -24,7 +24,13 @@ export const createTailorMadeRequest = async (
       res.status(400).json({
         success: false,
         error: errors.array()[0].msg,
-        errors: errors.array(),
+        // Which fields and why, not what was sent: express-validator's `value`
+        // echoed the visitor's own input back, personal data or megabytes of it.
+        errors: errors.array().map((error) => ({
+          type: error.type,
+          msg: error.msg,
+          ...(error.type === 'field' ? { path: error.path, location: error.location } : {}),
+        })),
       });
       return;
     }

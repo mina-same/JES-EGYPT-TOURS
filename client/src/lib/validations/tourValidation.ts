@@ -1,6 +1,7 @@
 import { TourFormData } from '@/types/tour';
 import { FormErrorItem } from '@/lib/parseApiError';
 import { catalog } from '@/lib/tours/catalog';
+import { getMissingPriceCells } from '@/lib/tours/priceCompleteness';
 
 export function validateTourForm(formData: TourFormData): FormErrorItem[] {
   const errors: FormErrorItem[] = [];
@@ -98,6 +99,16 @@ export function validateTourForm(formData: TourFormData): FormErrorItem[] {
         });
       }
     });
+
+    /* But a price table that IS started must be whole, per plan: USD in every
+       cell, and EUR or GBP either in every cell or in none. A plan with no
+       prices at all is still allowed. One error per missing cell, worded as
+       the editor names it ("Comfort / Low Season / 2-4 Pax: EUR price
+       missing"); the path lets the Pricing tab mark the plan, the season, the
+       group size and the currency. Rule: lib/tours/priceCompleteness.ts. */
+    for (const cell of getMissingPriceCells(formData.pricingPlans)) {
+      errors.push({ field: cell.message, message: '', path: cell.path });
+    }
   }
 
   /* Every day states its meals. Unlike the prices above, this is not a number

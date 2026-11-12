@@ -2,10 +2,9 @@
   "metaTitle": "Maßgeschneiderte Reiseerlebnisse | JES Egypt Tours",
   "metaDescription": "Erstellen Sie Ihr perfektes ägyptisches Abenteuer mit unseren maßgeschneiderten Urlaubspaketen.",
   "pageTitle": "Maßgeschneiderte Reiseerlebnisse",
-  "pageSubTitle": "Maßgeschneidert",
   "hero": {
     "title": "Erstellen Sie Ihr perfektes ägyptisches Abenteuer",
-    "subtitle": "Erstellen Sie Ihr perfektes Ägyptenabenteuer mit unseren Reiseexperten. Jedes Detail passend zu Ihren Träumen."
+    "subtitle": "Unsere Reiseexperten gestalten jedes Detail passend zu Ihren Träumen."
   },
   "features": {
     "personalizedItinerary": {
@@ -57,7 +56,7 @@
     "placeholders": {
       "fullName": "Geben Sie Ihren Namen ein",
       "email": "ihre.email@beispiel.com",
-      "phone": "Ländervorwahl + Nummer",
+      "phone": "Vorwahl + Nummer",
       "country": "Wählen Sie Ihr Land",
       "month": "Monat",
       "year": "Jahr",
@@ -81,10 +80,17 @@
       "to": "bis",
       "selectCountry": "Wählen Sie Ihr Land",
       "countryCode": "Ländervorwahl",
-      "international": "International"
+      "international": "International",
+      "startMonth": "Startmonat",
+      "startYear": "Startjahr",
+      "endMonth": "Endmonat",
+      "endYear": "Endjahr",
+      "decreaseCount": "{{label}}: weniger",
+      "increaseCount": "{{label}}: mehr",
+      "closeNotification": "Hinweis schließen"
     },
     "errors": {
-      "travelRange": "W?hlen Sie aktuelle oder zuk?nftige Daten. Das Ende darf nicht vor dem Beginn liegen.",
+      "travelRange": "Wählen Sie aktuelle oder zukünftige Daten. Das Ende darf nicht vor dem Beginn liegen.",
       "budgetRange": "Das maximale Budget muss mindestens dem Mindestbudget entsprechen.",
       "fillAllFields": "Bitte füllen Sie alle erforderlichen Felder korrekt aus",
       "fullNameRequired": "Vollständiger Name ist erforderlich",
@@ -100,14 +106,43 @@
       "commentsRequired": "Zusätzliche Kommentare sind erforderlich",
       "commentsMaxLength": "Kommentare dürfen 2000 Zeichen nicht überschreiten",
       "networkError": "Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung.",
-      "invalidPhone": "Bitte geben Sie eine gültige Telefonnummer mit Ländervorwahl ein."
+      "invalidPhone": "Bitte geben Sie eine gültige Telefonnummer mit Ländervorwahl ein.",
+      "invalidSubmission": "Bitte prüfen Sie Ihre Angaben und versuchen Sie es erneut.",
+      "tooManyRequests": "Ihre Anfrage konnte gerade nicht angenommen werden. Bitte versuchen Sie es in einigen Minuten erneut oder schreiben Sie uns auf WhatsApp."
+    },
+    "privacy": {
+      "note": "Wir verwenden Ihre Angaben, um Ihre Anfrage zu beantworten und Ihr Angebot zu erstellen. Soweit für die Organisation Ihrer Reise erforderlich, können relevante Angaben an Reiseleiter, Hotels und andere Leistungsträger weitergegeben werden. Siehe unsere",
+      "linkLabel": "Datenschutzerklärung",
+      "newTab": "(wird in einem neuen Tab geöffnet)"
     },
     "success": {
       "requestSubmitted": "Ihre Reiseanfrage wurde erfolgreich übermittelt!",
-      "failFallback": "Fehler beim Senden Ihrer Anfrage."
+      "failFallback": "Fehler beim Senden Ihrer Anfrage.",
+      "nextTitle": "So geht es weiter",
+      "newRequest": "Weitere Anfrage senden"
     },
     "options": {
       "noLimit": "Kein Limit",
+      "months": {
+        "january": "Januar",
+        "february": "Februar",
+        "march": "März",
+        "april": "April",
+        "may": "Mai",
+        "june": "Juni",
+        "july": "Juli",
+        "august": "August",
+        "september": "September",
+        "october": "Oktober",
+        "november": "November",
+        "december": "Dezember"
+      },
+      "accommodation": {
+        "luxury": "Luxushotels (5 Sterne)",
+        "premium": "Premiumhotels (4 Sterne)",
+        "standard": "Standardhotels (3 Sterne)",
+        "mixed": "Gemischte Kategorien"
+      },
       "specialOccasions": {
         "honeymoon": "Flitterwochen",
         "anniversary": "Jahrestag",
@@ -153,7 +188,8 @@
     "needHelp": {
       "title": "Brauchen Sie Hilfe?",
       "subtitle": "Sprechen Sie mit unseren Experten",
-      "note": "Rund um die Uhr verfügbar"
+      "note": "Rund um die Uhr verfügbar",
+      "whatsappNewTab": "(WhatsApp, wird in einem neuen Tab geöffnet)"
     }
   }
 }

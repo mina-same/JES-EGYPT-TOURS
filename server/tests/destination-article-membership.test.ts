@@ -10,6 +10,7 @@ import { PUBLIC_DESTINATION_FILTER } from '../src/models/Destination';
 import { getBlogBySlug } from '../src/controllers/blogController';
 import { getBlogsByDestination } from '../src/controllers/destinationController';
 import { ARTICLE_DESTINATION_FIELDS } from '../src/utils/blogClassification';
+import { BLOG_CHRONOLOGICAL_SORT } from '../src/utils/blogCardPopulate';
 import sift from 'sift';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,7 +178,8 @@ test('only published articles are listed, newest first', async () => {
     const { body } = await listFor(CAIRO);
     assert.ok(!ids(body).includes('d-cairo-draft'));
     assert.deepEqual(ids(body), ['a-cairo', 'c-cairo']);
-    assert.equal(reads.sort, '-publishedAt');
+    // The shared chronological order itself, not a copy of it.
+    assert.equal(reads.sort, BLOG_CHRONOLOGICAL_SORT);
   });
 });
 
@@ -224,14 +226,12 @@ const DESTINATIONS: Doc[] = [
     description: { en: 'The capital.' },
     faqs: [{ question: { en: 'Q' }, answer: { en: 'A' } }],
     status: 'published',
-    isActive: true,
   },
   {
     _id: 'abu-simbel',
     name: { en: 'Abu Simbel' },
     slug: { en: 'abu-simbel' },
     status: 'draft',
-    isActive: true,
   },
 ];
 

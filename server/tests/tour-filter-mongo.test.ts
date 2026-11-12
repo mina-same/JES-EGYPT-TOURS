@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { structuredTourFilters } from '../src/utils/tourFilterContract';
 import { listingSortStages } from '../src/utils/tourListingSort';
 import { applyStartingPriceFilter, effectiveStartingPrice } from '../src/utils/tourQuery';
+import { roundConvertedPrice, roundConvertedPriceExpression } from '../src/utils/priceRounding';
 
 // Opt-in read-only integration: $documents evaluates fixtures without inserting
 // anything into the connected database or changing its collections/indexes.
@@ -14,7 +15,7 @@ test('Mongo evaluates membership, precise durations, prices, ranking and paginat
     try {
       const documents = [
         { _id: 1, tourType: 'day-tour', durationHours: 8, tourStyles: ['luxury', 'honeymoon'], recommendedOrder: 2, priceStartingFrom: { USD: 88 } },
-        { _id: 2, tourType: 'nile-cruise', durationHours: 4, tourStyles: ['family'], recommendedOrder: 1, priceStartingFrom: { USD: 110, EUR: 80 } },
+        { _id: 2, tourType: 'nile-cruise', durationHours: 4, tourStyles: ['family'], recommendedOrder: 1, priceStartingFrom: { USD: 110, EUR: 79 } },
         { _id: 3, tourType: 'multi-day', durationHours: 72, tourStyles: ['honeymoon'], priceStartingFrom: { USD: 0 } },
         { _id: 4, durationHours: 73, tourStyles: ['classic'] },
         { _id: 5, durationHours: 144, tourStyles: ['accessible'] },
@@ -45,7 +46,7 @@ test('Mongo evaluates membership, precise durations, prices, ranking and paginat
       assert.deepEqual((await query(listingSortStages('priceStartingFrom.EUR', 'EUR', .92))).slice(0, 2), [2, 1]);
       assert.deepEqual((await query(listingSortStages('-priceStartingFrom.EUR', 'EUR', .92))).slice(0, 2), [1, 2]);
       const priceFilter = {};
-      applyStartingPriceFilter(priceFilter, '0', '80', 'EUR', .92);
+      applyStartingPriceFilter(priceFilter, '0', '79', 'EUR', .92);
       assert.deepEqual(await query([{ $match: priceFilter }]), [2]);
       for (const [currency, rate] of [['USD', 1], ['EUR', .92], ['GBP', .79]] as const) {
         const displayed = effectiveStartingPrice({ USD: 88 }, currency, rate)!;
@@ -53,6 +54,24 @@ test('Mongo evaluates membership, precise durations, prices, ranking and paginat
         applyStartingPriceFilter(exactFilter, String(displayed), String(displayed), currency, rate);
         assert.deepEqual(await query([{ $match: exactFilter }]), [1]);
       }
-      assert.equal(effectiveStartingPrice({ USD: 88 }, 'EUR', .92), 81);
+      // 88 × 0.92 = 80.96: converted prices go to the nearest 5.
+      assert.equal(effectiveStartingPrice({ USD: 88 }, 'EUR', .92), 80);
+
+      // The aggregation rounds a converted price to exactly the double the JS
+      // rule (and so every page) computes — 3000 cases, halves included.
+      const samples: Array<{ _id: number; usd: number; rate: number }> = [];
+      for (const rate of [0.79, 0.86, 0.92, 0.925, 0.95]) {
+        for (let usd = 1; usd <= 600; usd += 1) samples.push({ _id: samples.length, usd, rate });
+      }
+      const evaluated = await mongoose.connection.db!.command({ aggregate: 1, pipeline: [
+        { $documents: samples },
+        { $project: { value: roundConvertedPriceExpression({ $multiply: ['$usd', '$rate'] }) } },
+      ], cursor: { batchSize: samples.length } });
+      const rows = evaluated.cursor.firstBatch as Array<{ _id: number; value: number }>;
+      assert.equal(rows.length, samples.length);
+      for (const row of rows) {
+        const { usd, rate } = samples[row._id];
+        assert.equal(row.value, roundConvertedPrice(usd * rate), `${usd} × ${rate}`);
+      }
     } finally { await mongoose.disconnect(); }
   });

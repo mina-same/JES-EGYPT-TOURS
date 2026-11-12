@@ -9,6 +9,7 @@ import { publicDestinationPopulate } from '../models/Destination';
 import {
   parseFutureSchedule,
   PublishingValidationError,
+  resolveBlogPublishedAt,
 } from '../utils/publishing';
 import {
   ARTICLE_DESTINATION_FIELDS,
@@ -29,6 +30,7 @@ import {
 import { narrowBlocksToLocale } from '../utils/blogBlocks';
 import {
   BLOG_CARD_FIELDS,
+  BLOG_CHRONOLOGICAL_SORT,
   BLOG_LISTING_FIELDS,
   BLOG_LISTING_POPULATE,
   blogCardPopulate,
@@ -136,7 +138,7 @@ export const getAllBlogs = async (
       // Shipping them made a nine-card listing a 984 KB page — four languages
       // of every content block for nine articles nobody had opened yet.
       .select('-comments -contentBlocks')
-      .sort('-publishedAt')
+      .sort(BLOG_CHRONOLOGICAL_SORT)
       .skip(skip)
       .limit(Number(limit));
 
@@ -304,7 +306,9 @@ export const getFeaturedBlogs = async (
       // contentBlocks, and shipping full article bodies in four languages made
       // this the single heaviest request on the site (598 KB).
       .select('-comments -contentBlocks')
-      .sort({ publishedAt: -1 })
+      // The same order as every chronological list, so the limit always cuts
+      // the same articles off.
+      .sort(BLOG_CHRONOLOGICAL_SORT)
       .limit(Number(limit));
 
     // Localized, EXCEPT `slug` — the homepage builds per-locale article URLs
@@ -612,7 +616,9 @@ export const createBlog = async (
 
     // Normalize image fields for backward compatibility
     const body = { ...req.body };
-    
+    // The system's field (resolveBlogPublishedAt), never the client's.
+    delete body.publishedAt;
+
     // Handle featuredImage migration
     if (body.featuredImage || body.featuredImageAlt) {
       body.featuredImage = normalizeFeaturedImage(body.featuredImage, body.featuredImageAlt);
@@ -631,13 +637,10 @@ export const createBlog = async (
 
     if (body.status === 'scheduled') {
       body.scheduledAt = parseFutureSchedule(body.scheduledAt);
-      delete body.publishedAt;
     } else {
       delete body.scheduledAt;
       if (body.status === 'published') {
-        body.publishedAt = new Date();
-      } else {
-        delete body.publishedAt;
+        body.publishedAt = resolveBlogPublishedAt({ existingPublishedAt: undefined });
       }
     }
 
@@ -714,6 +717,11 @@ export const updateBlog = async (
 
     // Normalize image fields for backward compatibility
     const body = { ...req.body };
+    // The system's field (resolveBlogPublishedAt), never the client's: dropped
+    // before anything — Mongoose's cast included — reads it. The Admin form
+    // sends the stored value back on every save; another client may send
+    // null, '', 0, any date or no date at all.
+    delete body.publishedAt;
 
     // --- Stale-save conflict guard ---
     // Extract the client-submitted edit version. Missing or non-numeric is treated as absent.
@@ -812,16 +820,17 @@ export const updateBlog = async (
       });
     }
 
+    // publishedAt is written only when this save publishes the article. An
+    // edit, a move to draft or a reschedule leaves it as stored: an article
+    // that was public before keeps the date it first went public on.
     if (targetStatus === 'scheduled') {
       body.scheduledAt = parseFutureSchedule(body.scheduledAt ?? ex.scheduledAt);
-      fieldsToUnset.publishedAt = 1;
-      delete body.publishedAt;
     } else {
       fieldsToUnset.scheduledAt = 1;
       delete body.scheduledAt;
 
       if (targetStatus === 'published' && ex.status !== 'published') {
-        body.publishedAt = new Date();
+        body.publishedAt = resolveBlogPublishedAt({ existingPublishedAt: ex.publishedAt });
       }
     }
 
@@ -1108,7 +1117,9 @@ export const publishBlog = async (
     assertEnglishPublicReady(typeof blog.toObject === 'function' ? blog.toObject() : blog);
 
     blog.status = 'published';
-    blog.publishedAt = new Date();
+    // A manual "publish now": dated now unless it was public before, when it
+    // keeps that date — even if it is published already.
+    blog.publishedAt = resolveBlogPublishedAt({ existingPublishedAt: blog.publishedAt });
     blog.scheduledAt = undefined;
     blog.editVersion = (blog.editVersion ?? 0) + 1;
     await blog.save();
@@ -1232,7 +1243,7 @@ const findListingPage = (filter: Record<string, unknown>, skip: number, limit: n
     Blog.find(filter)
       .select(BLOG_LISTING_FIELDS)
       .populate(BLOG_LISTING_POPULATE)
-      .sort({ publishedAt: -1 })
+      .sort(BLOG_CHRONOLOGICAL_SORT)
       .skip(skip)
       .limit(limit)
       .lean(),

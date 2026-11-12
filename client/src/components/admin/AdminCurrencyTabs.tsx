@@ -11,6 +11,9 @@ interface AdminCurrencyTabsProps {
   onCurrencyChange: (currency: AdminCurrency) => void;
   className?: string;
   compact?: boolean;
+  /** Currencies with missing prices: their tab is marked red, so staff see
+   *  which currency to open (the price table save rule). */
+  errorCurrencies?: readonly AdminCurrency[];
 }
 
 const CURRENCIES: { id: AdminCurrency; label: string; Icon: any }[] = [
@@ -24,6 +27,7 @@ const AdminCurrencyTabs: React.FC<AdminCurrencyTabsProps> = ({
   onCurrencyChange,
   className = "",
   compact = false,
+  errorCurrencies = [],
 }) => {
   return (
     <div className={cn(
@@ -42,6 +46,7 @@ const AdminCurrencyTabs: React.FC<AdminCurrencyTabsProps> = ({
       )}>
         {CURRENCIES.map(({ id, label, Icon }) => {
           const isActive = activeCurrency === id;
+          const hasError = errorCurrencies.includes(id);
           return (
             <button
               key={id}
@@ -54,13 +59,17 @@ const AdminCurrencyTabs: React.FC<AdminCurrencyTabsProps> = ({
                 "flex items-center gap-1.5 px-2 py-1 rounded-[2px] text-[10px] font-bold transition-all",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-xs"
-                  : "text-muted-foreground hover:bg-muted"
+                  : "text-muted-foreground hover:bg-muted",
+                hasError && "ring-1 ring-red-500",
+                hasError && !isActive && "text-red-600"
               )}
-              title={label}
+              title={hasError ? `${label}: prices missing` : label}
+              aria-label={hasError ? `${label}, prices missing` : undefined}
             >
               <Icon className="w-3.5 h-2.5 rounded-[0.5px]" />
               {!compact && <span className="uppercase">{id}</span>}
               {compact && <span className="uppercase text-[9px]">{id}</span>}
+              {hasError && <span aria-hidden="true">⚠</span>}
             </button>
           );
         })}

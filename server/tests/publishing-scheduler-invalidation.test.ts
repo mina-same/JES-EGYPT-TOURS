@@ -1,20 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { ObjectId } from 'mongodb';
 import Blog from '../src/models/Blog';
+import BlogCategory from '../src/models/BlogCategory';
+import BlogSubCategory from '../src/models/BlogSubCategory';
+import Destination from '../src/models/Destination';
 import Tour from '../src/models/Tour';
 import { runPublishingCycle } from '../src/services/publishingScheduler';
 import { wroteDocuments } from '../src/services/revalidate';
 
 /*
  * The publishing scheduler runs every 30 seconds. Each run is one
- * Blog.updateMany and one Tour.updateMany, and the models' post('updateMany')
+ * Tour.updateMany, and one Blog.updateMany per publication date among the
+ * articles due (none when nothing is due); the models' post('updateMany')
  * hooks are what tell the front end to clear `blog` / `tours`. A run that
  * publishes nothing must therefore send nothing — otherwise every cached blog
  * and tour page is expired twice a minute.
  *
- * Real scheduler, real Mongoose middleware; only the driver's updateMany is
- * stubbed (it answers with the counts a case asks for) and fetch is captured,
- * so nothing reaches a database or a front end.
+ * Real scheduler, real Mongoose middleware; only the driver is stubbed — its
+ * reads answer with the due articles a case asks for (properly filed, with an
+ * English page) and its updateMany with the counts the case asks for — and
+ * fetch is captured, so nothing reaches a database or a front end.
  */
 
 process.env.REVALIDATE_SECRET = 'test-secret';
@@ -37,6 +43,34 @@ const due: { blogs: Counts; tours: Counts } = {
   blogs: { matchedCount: 0, modifiedCount: 0 },
   tours: { matchedCount: 0, modifiedCount: 0 },
 };
+// The parents a due article is filed under, all ready.
+const CATEGORY = new ObjectId();
+const TOPIC = new ObjectId();
+const DESTINATION = new ObjectId();
+const parents: [typeof Blog.collection, Record<string, unknown>][] = [
+  [BlogCategory.collection, { _id: CATEGORY, isActive: true }],
+  [BlogSubCategory.collection, { _id: TOPIC, category: CATEGORY, isActive: true }],
+  [Destination.collection, { _id: DESTINATION, status: 'published' }],
+];
+for (const [collection, parent] of parents) {
+  (collection as unknown as Record<string, unknown>).findOne = async () => parent;
+}
+
+/** The due articles the scheduler finds on the next run: all scheduled for one time. */
+let dueArticles: Record<string, unknown>[] = [];
+const dueArticle = (scheduledAt: Date) => ({
+  _id: new ObjectId(),
+  title: { en: 'Kom Ombo Temple Guide' },
+  slug: { en: 'kom-ombo-temple-guide' },
+  contentBlocks: [{ type: 'html', content: { en: '<p>Kom Ombo stands on a bend of the Nile.</p>' } }],
+  status: 'scheduled',
+  scheduledAt,
+  featuredImage: { url: 'https://example.test/cover.jpg' },
+  category: CATEGORY,
+  subCategory: TOPIC,
+  destination: DESTINATION,
+});
+
 const driverCalls: string[] = [];
 for (const [family, model] of [['blogs', Blog], ['tours', Tour]] as const) {
   const collection = model.collection as unknown as Record<string, unknown>;
@@ -44,14 +78,20 @@ for (const [family, model] of [['blogs', Blog], ['tours', Tour]] as const) {
     driverCalls.push(family);
     return { acknowledged: true, upsertedCount: 0, upsertedId: null, ...due[family] };
   };
-  // The duplicate-internal-links plugin reads the documents an update matches.
-  collection.find = () => ({ toArray: async () => [], close: async () => {} });
+  // The scheduler's read, and the duplicate-internal-links plugin's read of
+  // the documents an update matches.
+  collection.find = () => ({
+    toArray: async () => (family === 'blogs' ? dueArticles.map((article) => ({ ...article })) : []),
+    close: async () => {},
+  });
 }
 
 /** One scheduler run; returns its result and the tags of every webhook it sent. */
 async function tick(blogs: [number, number], tours: [number, number]) {
   due.blogs = { matchedCount: blogs[0], modifiedCount: blogs[1] };
   due.tours = { matchedCount: tours[0], modifiedCount: tours[1] };
+  const scheduledAt = new Date(Date.now() - 60_000);
+  dueArticles = Array.from({ length: blogs[0] }, () => dueArticle(scheduledAt));
   const from = sent.length;
   const result = await runPublishingCycle(new Date());
   await new Promise((resolve) => setImmediate(resolve));
@@ -90,7 +130,8 @@ test('each scenario sends exactly the invalidations its changes call for', async
   for (const [name, blogs, tours, expectBlog, expectTours] of cases) {
     driverCalls.length = 0;
     const { result, webhooks } = await tick(blogs, tours);
-    assert.deepEqual(driverCalls.sort(), ['blogs', 'tours'], `${name}: one write per family`);
+    // Due articles scheduled for one time make one Blog write; none due, none.
+    assert.deepEqual(driverCalls.sort(), blogs[0] > 0 ? ['blogs', 'tours'] : ['tours'], `${name}: writes`);
     assert.equal(count(webhooks, 'blog'), expectBlog, `${name}: blog`);
     assert.equal(count(webhooks, 'tours'), expectTours, `${name}: tours`);
     assert.equal(webhooks.length, expectBlog + expectTours, `${name}: no other webhooks`);

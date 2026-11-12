@@ -48,6 +48,7 @@ import {
   publishClassificationErrors,
 } from '@/lib/admin/blogClassification';
 import { destinationLabel } from '@/lib/admin/featuredDestinations';
+import { fetchAllDestinations } from '@/lib/admin/fetchAllDestinations';
 import { normalizeFaqsForSave } from '@/lib/faqCleanup';
 
 import { mixedToHtml, htmlAllEmpty } from '@/lib/localizedHtml';
@@ -820,7 +821,8 @@ export default function EditBlogPage() {
           blogCategoryAPI.getAll({ isActive: true }),
           userAPI.getAllUsers(),
           blogAPI.getEditorialAuthors(),
-          destinationAPI.getAll({ isActive: true }),
+          // Every page of them: one request stops at the API's default of 10.
+          fetchAllDestinations((params) => destinationAPI.getAll(params), {}),
           blogAPI.getAll({ limit: 100, status: 'published' }),
           // Only what the "Related tour" dropdown renders — see the same call
           // on the new-article page.

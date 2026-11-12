@@ -8,7 +8,7 @@ import User from '../models/User';
 import Tour from '../models/Tour';
 import { PERMISSIONS } from '../permissions';
 import { notificationScope, canRead } from '../utils/notificationAccess';
-import { paginationInput, respondSubmissionError } from '../utils/submission';
+import { GENUINE_SUBMISSION, paginationInput, respondSubmissionError } from '../utils/submission';
 import { drainSubmissionNotifications } from '../utils/submissionNotification';
 import { getBookingToday } from '../utils/booking';
 const userOf = (req: Request) => (req as any).user;
@@ -21,7 +21,7 @@ function serialize(document: any, userId: unknown) {
 export async function requestCounts(user: any) {
   const [bookingsPending, contactNew, tailorMadePending] = await Promise.all([
     canRead(user, PERMISSIONS.BOOKING_READ) ? Booking.countDocuments({ status: 'pending' }) : 0,
-    canRead(user, PERMISSIONS.CONTACT_READ) ? ContactSubmission.countDocuments({ status: 'new' }) : 0,
+    canRead(user, PERMISSIONS.CONTACT_READ) ? ContactSubmission.countDocuments({ status: 'new', ...GENUINE_SUBMISSION }) : 0,
     canRead(user, PERMISSIONS.TAILOR_MADE_READ) ? TailorMadeRequest.countDocuments({ status: 'pending' }) : 0,
   ]);
   return { bookingsPending, contactNew, tailorMadePending, updatedAt: new Date().toISOString() };
@@ -102,9 +102,9 @@ export const getAdminOverview = async (req: Request, res: Response): Promise<voi
       { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Africa/Cairo' } }, count: { $sum: 1 } } },
     ]) : [];
     const [bookingDays, contactDays, tailorDays, bookings, contacts, tailorMade, usersTotal, toursTotal, toursActive, specialOffers] = await Promise.all([
-      trend(Booking, PERMISSIONS.BOOKING_READ), trend(ContactSubmission, PERMISSIONS.CONTACT_READ, { isSpam: { $ne: true } }), trend(TailorMadeRequest, PERMISSIONS.TAILOR_MADE_READ),
+      trend(Booking, PERMISSIONS.BOOKING_READ), trend(ContactSubmission, PERMISSIONS.CONTACT_READ, GENUINE_SUBMISSION), trend(TailorMadeRequest, PERMISSIONS.TAILOR_MADE_READ),
       canRead(user, PERMISSIONS.BOOKING_READ) ? Booking.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(5).populate('tour', 'heading slug images') : [],
-      canRead(user, PERMISSIONS.CONTACT_READ) ? ContactSubmission.find({ status: 'new' }).sort({ createdAt: -1 }).limit(5) : [],
+      canRead(user, PERMISSIONS.CONTACT_READ) ? ContactSubmission.find({ status: 'new', ...GENUINE_SUBMISSION }).sort({ createdAt: -1 }).limit(5) : [],
       canRead(user, PERMISSIONS.TAILOR_MADE_READ) ? TailorMadeRequest.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(5) : [],
       canRead(user, PERMISSIONS.USER_READ) ? User.countDocuments() : null,
       canRead(user, PERMISSIONS.TOUR_READ) ? Tour.countDocuments() : null,

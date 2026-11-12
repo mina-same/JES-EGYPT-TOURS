@@ -214,7 +214,7 @@ const FeaturedToursSection: React.FC<FeaturedToursSectionProps> = ({
       id="featured-tours"
       rewind
       tours={tours}
-      title={`${t("featuredTours.title")} ${t("featuredTours.titleSpan")}`}
+      title={t("featuredTours.title")}
       titleSpan=""
       subtitle={t("featuredTours.tagline")}
     />

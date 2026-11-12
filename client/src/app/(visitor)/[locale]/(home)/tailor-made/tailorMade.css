@@ -1,3 +1,10 @@
+/* Every rule here is scoped to this page. The stylesheet is global, and once a
+   visitor has opened the page it stays in the document through client-side
+   navigation — so its generic class names (.form-label, .form-select,
+   .counter-btn, .spinner…) used to restyle the tour booking form, the listing
+   filters and the search page. Names that are already unique to the page
+   (.tailor-made-*, .tm-phone-*) need no prefix; anything else goes under
+   .tailor-made-section. */
 .tailor-made-section {
   padding: 80px 0;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
@@ -29,6 +36,11 @@
   line-height: 1.6;
 }
 
+/* "Plan your dream journey ↓": phones only (see the 768px block). */
+.tailor-made-jump {
+  display: none;
+}
+
 .tailor-made-features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -36,7 +48,7 @@
   margin-bottom: 60px;
 }
 
-.feature-card {
+.tailor-made-section .feature-card {
   background: white;
   padding: 30px;
   border-radius: 16px;
@@ -45,12 +57,12 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.feature-card:hover {
+.tailor-made-section .feature-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 30px rgba(212, 175, 55, 0.2);
 }
 
-.feature-card__icon {
+.tailor-made-section .feature-card__icon {
   width: 70px;
   height: 70px;
   margin: 0 auto 20px;
@@ -62,14 +74,14 @@
   color: white;
 }
 
-.feature-card__title {
+.tailor-made-section .feature-card__title {
   font-size: 20px;
   font-weight: 700;
   color: #1a1a1a;
   margin-bottom: 10px;
 }
 
-.feature-card__text {
+.tailor-made-section .feature-card__text {
   font-size: 14px;
   color: #666;
   line-height: 1.5;
@@ -89,6 +101,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
   overflow: hidden;
+  /* The hero's link lands here: clear of the sticky header. */
+  scroll-margin-top: 100px;
+}
+
+/* Keyboard focus clear of the sticky header (73px): moving back with
+   Shift+Tab, the browser scrolled a control to the very top of the window,
+   entirely under the header. */
+.tailor-made-section a,
+.tailor-made-section button,
+.tailor-made-section input,
+.tailor-made-section select,
+.tailor-made-section textarea {
+  scroll-margin-top: 96px;
 }
 
 .tailor-made-form-header {
@@ -96,7 +121,7 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.form-header-title {
+.tailor-made-section .form-header-title {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 6px;
@@ -104,7 +129,7 @@
   letter-spacing: -0.3px;
 }
 
-.form-header-subtitle {
+.tailor-made-section .form-header-subtitle {
   font-size: 13px;
   color: #6b7280;
   margin: 0;
@@ -116,29 +141,123 @@
   padding: 40px 35px;
 }
 
-.form-section {
+/* The confirmation that takes the form's place once a request went through. */
+.tailor-made-success {
+  padding: 48px 35px;
+  text-align: center;
+}
+
+.tailor-made-success__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+  color: #ffffff;
+}
+
+.tailor-made-section .tailor-made-success__title {
+  margin: 0 0 24px;
+  color: #0E3A57;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.tailor-made-section .tailor-made-success__next {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tailor-made-success__steps {
+  display: grid;
+  gap: 12px;
+  max-width: 440px;
+  margin: 0 auto 28px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.tailor-made-success__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tailor-made-success__steps svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #d4af37;
+}
+
+.tailor-made-success__steps strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #0E3A57;
+  font-weight: 600;
+}
+
+.tailor-made-success__again {
+  padding: 12px 24px;
+  border: 1px solid #d4af37;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0E3A57;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tailor-made-success__again:hover {
+  background: rgba(212, 175, 55, 0.1);
+}
+
+.tailor-made-success__again:focus-visible {
+  outline: 2px solid #0E3A57;
+  outline-offset: 2px;
+}
+
+.tailor-made-section .form-section {
   margin-bottom: 40px;
   padding-bottom: 35px;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.form-section:last-of-type {
+/* The last step, right before the submit box. `:last-of-type` never matched:
+   the submit box is a div too, so step 4 kept its rule and double spacing. */
+.tailor-made-section .form-section:has(+ .form-submit-wrapper) {
   border-bottom: none;
   margin-bottom: 20px;
 }
 
-.form-section-header {
+.tailor-made-section .form-section-header {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 25px;
 }
 
-.step-number {
+.tailor-made-section .step-number {
   width: 36px;
   height: 36px;
   background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-  color: white;
+  /* Dark espresso on the gold, as on the counters and the submit button. */
+  color: #27221b;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -148,7 +267,7 @@
   flex-shrink: 0;
 }
 
-.form-section-title {
+.tailor-made-section .form-section-title {
   font-size: 18px;
   font-weight: 600;
   color: #0E3A57;
@@ -156,23 +275,23 @@
   letter-spacing: -0.3px;
 }
 
-.form-grid {
+.tailor-made-section .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
-.form-group {
+.tailor-made-section .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.form-group--full {
+.tailor-made-section .form-group--full {
   grid-column: 1 / -1;
 }
 
-.form-label {
+.tailor-made-section .form-label {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -181,20 +300,23 @@
   font-size: 13px;
 }
 
-.form-label svg {
+.tailor-made-section .form-label svg {
   color: #d4af37;
 }
 
-.required {
-  color: #ef4444;
+/* The form's red (asterisks, messages, invalid borders): 5.4:1 on white. */
+.tailor-made-section .required {
+  color: #c0392b;
 }
 
-.form-input,
-.form-select,
-.form-textarea {
+/* The border is the only thing that shows where a field is (field and form
+   are both white): 3.2:1 on white, against 1.5:1 before. */
+.tailor-made-section .form-input,
+.tailor-made-section .form-select,
+.tailor-made-section .form-textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #7a93a3;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -203,65 +325,91 @@
   background: #ffffff;
 }
 
-.form-input::placeholder,
-.form-textarea::placeholder {
-  color: #9ca3af;
+/* The lists' arrow. Bootstrap's .form-select hides the native one
+   (appearance: none) and the background above replaced Bootstrap's own image,
+   so on phones, tablets and browsers without customizable selects every list
+   looked like a text field. The same gold chevron as the desktop lists' picker
+   icon, which replaces it inside the @supports block below. */
+/* Text longer than its field (a placeholder on a 320px phone, a long country
+   or month name in a native list) ends in "…" on one line instead of being
+   cut off mid-word. Text areas wrap. */
+.tailor-made-section .form-input,
+.tailor-made-section .form-select {
+  text-overflow: ellipsis;
+}
+
+.tailor-made-section .form-select {
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: 30px;
+  /* Dark gold, 6:1 on white: the arrow is what tells a list from a text
+     field (the lighter gold was 2.65:1). */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3e%3cpath fill='none' stroke='%237a5f12' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='M1 1.5l5 5 5-5'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px 7px;
+}
+
+/* 4.8:1 on white, still lighter than what the visitor types (navy). */
+.tailor-made-section .form-input::placeholder,
+.tailor-made-section .form-textarea::placeholder {
+  color: #6b7280;
   opacity: 1;
 }
 
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: #d4af37;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+/* Focus: a 2px dark gold ring (6:1 on white), 1px outside the border so that
+   it also stands out next to the red border of an invalid field, which keeps
+   its colour. It was the brand gold border and a faint halo: 2.1:1 and 1.05:1,
+   and nothing at all on an invalid field. An outline also survives Windows
+   High Contrast, which drops box shadows. */
+.tailor-made-section .form-input:focus,
+.tailor-made-section .form-select:focus,
+.tailor-made-section .form-textarea:focus {
+  outline: 2px solid #7a5f12;
+  outline-offset: 1px;
+  border-color: #7a5f12;
+  box-shadow: none;
 }
 
-.form-input--error,
-.form-select--error,
-.form-textarea--error {
-  border-color: #ef4444 !important;
+.tailor-made-section .form-input--error,
+.tailor-made-section .form-select--error,
+.tailor-made-section .form-textarea--error {
+  border-color: #c0392b !important;
 }
 
-.form-input--error:focus,
-.form-select--error:focus,
-.form-textarea--error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
-}
-
-.form-error {
+.tailor-made-section .form-error {
   display: block;
-  color: #ef4444;
+  color: #c0392b;
   font-size: 12px;
   margin-top: 4px;
   font-weight: 500;
 }
 
-.form-textarea {
+.tailor-made-section .form-textarea {
   resize: vertical;
   min-height: 120px;
 }
 
-.date-range-wrapper {
+.tailor-made-section .date-range-wrapper {
   display: flex;
   align-items: center;
   gap: 15px;
   flex-wrap: wrap;
 }
 
-.date-select-group {
+.tailor-made-section .date-select-group {
   display: flex;
   gap: 10px;
   flex: 1;
   min-width: 200px;
 }
 
-.date-separator {
+.tailor-made-section .date-separator {
   font-weight: 600;
   color: #666;
 }
 
-.budget-selects {
+.tailor-made-section .budget-selects {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
@@ -284,7 +432,7 @@
 .tm-phone-input .PhoneInputInput {
   width: 100%;
   padding: 12px 14px 12px 76px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #7a93a3;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
@@ -293,18 +441,21 @@
   transition: all 0.2s ease;
 }
 
+/* The form's focus ring (see the fields above). */
 .tm-phone-input .PhoneInputInput:focus {
-  outline: none;
-  border-color: #d4af37;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+  outline: 2px solid #7a5f12;
+  outline-offset: 1px;
+  border-color: #7a5f12;
+  box-shadow: none;
 }
 
 .tm-phone-input--error .PhoneInputInput {
-  border-color: #ef4444;
+  border-color: #c0392b;
 }
 
+/* Focused and invalid: the ring, and the border stays red. */
 .tm-phone-input--error .PhoneInputInput:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: #c0392b;
 }
 
 .tm-phone-input .PhoneInputCountry {
@@ -354,7 +505,7 @@
 
 .tm-phone-input .PhoneInputCountry:focus-within {
   border-radius: 6px;
-  outline: 2px solid rgba(212, 175, 55, 0.55);
+  outline: 2px solid #7a5f12;
   outline-offset: 2px;
 }
 
@@ -373,18 +524,26 @@
       appearance: base-select;
     }
 
-    /* The closed field keeps its look; the arrow takes the brand's gold and
-       turns while the list is open. */
+    /* The closed field keeps its look; the arrow is the same dark gold as the
+       chevron above and turns while the list is open. */
     .tailor-made-form .form-select {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
       cursor: pointer;
+      /* ::picker-icon is the arrow here, not the background chevron. */
+      padding-right: 14px;
+      background-image: none;
+      /* The closed field cannot shorten its text (the browser draws that box,
+         and nowrap would push the arrow out of it): a long choice, the
+         longest country names, takes a second line instead, readable in
+         full. The other lists' choices fit on one line. */
+      white-space: normal;
     }
 
     .tailor-made-form .form-select::picker-icon {
-      color: #b79c5c;
+      color: #7a5f12;
       transition: rotate 0.2s ease;
     }
 
@@ -393,8 +552,8 @@
     }
 
     .tailor-made-form .form-select:open {
-      border-color: #d4af37;
-      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+      border-color: #7a5f12;
+      box-shadow: none;
     }
 
     /* The list */
@@ -430,6 +589,14 @@
       outline: none;
     }
 
+    /* The option the arrow keys are on: the tint alone is 1.08:1 next to the
+       white of the others; the ring is 5.5:1 on it. */
+    .tailor-made-form .form-select option:focus-visible,
+    .tm-phone-input .PhoneInputCountrySelect option:focus-visible {
+      outline: 2px solid #7a5f12;
+      outline-offset: -2px;
+    }
+
     /* The chosen entry: gold tint, darker gold text (6:1 on the tint). */
     .tailor-made-form .form-select option:checked,
     .tm-phone-input .PhoneInputCountrySelect option:checked {
@@ -460,6 +627,16 @@
       opacity: 1;
     }
 
+    /* Windows High Contrast replaces `color: transparent` with a system
+       colour, and "International" was printed over the hint. There the text
+       has no size instead; the list keeps its own 14px options.
+       (forced-color-adjust: none does not hide it.) */
+    @media (forced-colors: active) {
+      .tm-phone-input .PhoneInputCountrySelect {
+        font-size: 0;
+      }
+    }
+
     .tm-phone-input .PhoneInputCountrySelect::picker-icon {
       display: none;
     }
@@ -471,32 +648,40 @@
 }
 
 /* The field shows a bare "+" until a code is chosen, so the input's own
-   placeholder can never appear: this hint stands in for it. */
+   placeholder can never appear: this hint stands in for it. One line inside
+   the field like a placeholder: with no right edge it wrapped to two lines,
+   past the field's padding, on narrow phones (German at 360px). The line
+   height leaves room for descenders now that the box clips; the hint stays
+   centred, so its text does not move. */
 .tm-phone-empty-label {
   position: absolute;
   top: 50%;
   left: 92px;
+  right: 8px;
   z-index: 1;
-  color: #9ca3af;
+  overflow: hidden;
+  color: #6b7280;
   font-size: 14px;
-  line-height: 1;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   pointer-events: none;
   transform: translateY(-50%);
 }
 
-.travelers-grid {
+.tailor-made-section .travelers-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
-.traveler-counter {
+.tailor-made-section .traveler-counter {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.traveler-label {
+.tailor-made-section .traveler-label {
   font-weight: 600;
   color: #333;
   font-size: 14px;
@@ -505,13 +690,13 @@
   gap: 4px;
 }
 
-.age-label {
+.tailor-made-section .age-label {
   font-size: 12px;
   font-weight: 400;
   color: #666;
 }
 
-.counter-controls {
+.tailor-made-section .counter-controls {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -519,14 +704,17 @@
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+  /* At the foot of the counter: "Adults *" is one line, the others two (name
+     and ages), and the three counters still line up when side by side. */
+  margin-top: auto;
 }
 
-.counter-btn {
+.tailor-made-section .counter-btn {
   width: 32px;
   height: 32px;
   border: none;
   background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-  color: white;
+  color: #27221b;
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
@@ -534,15 +722,15 @@
   transition: all 0.2s ease;
 }
 
-.counter-btn:hover {
+.tailor-made-section .counter-btn:hover {
   transform: scale(1.1);
 }
 
-.counter-btn:active {
+.tailor-made-section .counter-btn:active {
   transform: scale(0.95);
 }
 
-.counter-value {
+.tailor-made-section .counter-value {
   flex: 1;
   text-align: center;
   font-size: 16px;
@@ -550,13 +738,13 @@
   color: #0E3A57;
 }
 
-.interests-grid {
+.tailor-made-section .interests-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
 }
 
-.checkbox-label {
+.tailor-made-section .checkbox-label {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -568,25 +756,25 @@
   transition: all 0.2s ease;
 }
 
-.checkbox-label:hover {
+.tailor-made-section .checkbox-label:hover {
   border-color: #d4af37;
   background: rgba(212, 175, 55, 0.03);
 }
 
-.checkbox-input {
+.tailor-made-section .checkbox-input {
   width: 20px;
   height: 20px;
   cursor: pointer;
   accent-color: #d4af37;
 }
 
-.checkbox-text {
+.tailor-made-section .checkbox-text {
   font-size: 13px;
   font-weight: 400;
   color: #374151;
 }
 
-.form-submit-wrapper {
+.tailor-made-section .form-submit-wrapper {
   margin-top: 40px;
   padding: 30px;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(244, 208, 63, 0.05) 100%);
@@ -594,7 +782,7 @@
   border: 1px solid rgba(212, 175, 55, 0.15);
 }
 
-.form-submit-btn {
+.tailor-made-section .form-submit-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -602,7 +790,9 @@
   width: 100%;
   padding: 16px 40px;
   background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-  color: white;
+  /* Text and icons on the gold: dark espresso, 7.5:1 at the gradient's darker
+     end and 10.5:1 at the lighter one. White was 2.1:1 and 1.5:1. */
+  color: #27221b;
   border: none;
   border-radius: 10px;
   font-size: 16px;
@@ -613,26 +803,53 @@
   letter-spacing: 0.3px;
 }
 
-.form-submit-btn:hover {
+.tailor-made-section .form-submit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
 }
 
-.form-submit-btn:active {
+.tailor-made-section .form-submit-btn:active {
   transform: translateY(0px);
 }
 
-.form-submit-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+/* While sending (aria-disabled: the button keeps the focus). No fade: at 70%
+   the label fell to 1.4:1. The spinner and "Submitting..." say what is
+   happening, and the cursor shows the wait. */
+.tailor-made-section .form-submit-btn:disabled,
+.tailor-made-section .form-submit-btn[aria-disabled="true"] {
+  cursor: progress;
   transform: none !important;
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
+.tailor-made-section .form-privacy-note {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6b7280;
+  text-align: center;
 }
 
-@keyframes spin {
+.tailor-made-section .form-privacy-note a {
+  color: #0E3A57;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tailor-made-section .spinner {
+  animation: tailor-made-spin 1s linear infinite;
+}
+
+/* Reduce Motion: the spinner stands still. The icon and "Submitting..." still
+   say the request is on its way. */
+@media (prefers-reduced-motion: reduce) {
+  .tailor-made-section .spinner {
+    animation: none;
+  }
+}
+
+/* Keyframe names are global too: `spin` is also defined by custom.css. */
+@keyframes tailor-made-spin {
   from {
     transform: rotate(0deg);
   }
@@ -641,14 +858,14 @@
   }
 }
 
-.form-submit-info {
+.tailor-made-section .form-submit-info {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   margin-top: 24px;
 }
 
-.submit-info-card {
+.tailor-made-section .submit-info-card {
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -659,31 +876,31 @@
   transition: all 0.3s ease;
 }
 
-.submit-info-card:hover {
+.tailor-made-section .submit-info-card:hover {
   border-color: #d4af37;
   box-shadow: 0 2px 8px rgba(212, 175, 55, 0.1);
 }
 
-.submit-info-card svg {
+.tailor-made-section .submit-info-card svg {
   color: #d4af37;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.submit-info-text {
+.tailor-made-section .submit-info-text {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.submit-info-text strong {
+.tailor-made-section .submit-info-text strong {
   font-size: 14px;
   font-weight: 600;
   color: #0E3A57;
   line-height: 1.3;
 }
 
-.submit-info-text span {
+.tailor-made-section .submit-info-text span {
   font-size: 12px;
   color: #6b7280;
   line-height: 1.4;
@@ -694,39 +911,103 @@
     padding: 50px 0;
   }
 
+  .tailor-made-hero {
+    margin-bottom: 40px;
+  }
+
   .tailor-made-hero__title {
     font-size: 32px;
   }
 
+  /* The form started about two screens down, below four tall feature cards
+     (about 1,000px). The same cards as rows, icon beside the text, and a link
+     to the form under the introduction. */
+  .tailor-made-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 11px 20px;
+    border: 1px solid #d4af37;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0E3A57;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .tailor-made-jump svg {
+    color: #b79c5c;
+  }
+
+  .tailor-made-jump:focus-visible {
+    outline: 2px solid #0E3A57;
+    outline-offset: 2px;
+  }
+
   .tailor-made-features {
     grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .tailor-made-section .feature-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: center;
+    padding: 16px;
+    text-align: left;
+  }
+
+  .tailor-made-section .feature-card__icon {
+    grid-row: span 2;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  .tailor-made-section .feature-card__icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tailor-made-section .feature-card__title {
+    margin-bottom: 2px;
+    font-size: 16px;
+  }
+
+  .tailor-made-section .feature-card__text {
+    font-size: 13px;
+  }
+
+  .tailor-made-success {
+    padding: 36px 20px;
   }
 
   .tailor-made-form {
     padding: 30px 20px;
   }
 
-  .form-grid {
+  .tailor-made-section .form-grid {
     grid-template-columns: 1fr;
   }
 
-  .date-select-group {
+  .tailor-made-section .date-select-group {
     min-width: 100%;
   }
 
-  .travelers-grid {
+  .tailor-made-section .travelers-grid {
     grid-template-columns: 1fr;
   }
 
-  .interests-grid {
+  .tailor-made-section .interests-grid {
     grid-template-columns: 1fr;
   }
 
-  .budget-selects {
-    grid-template-columns: 1fr;
-  }
-
-  .tailor-made-content-wrapper {
+  .tailor-made-section .budget-selects {
     grid-template-columns: 1fr;
   }
 
@@ -734,16 +1015,16 @@
     margin-top: 40px;
   }
 
-  .form-submit-wrapper {
+  .tailor-made-section .form-submit-wrapper {
     padding: 20px;
   }
 
-  .form-submit-info {
+  .tailor-made-section .form-submit-info {
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  .submit-info-card {
+  .tailor-made-section .submit-info-card {
     padding: 14px;
   }
 }
@@ -759,19 +1040,19 @@
   overflow-y: auto;
 }
 
-.sidebar-card {
+.tailor-made-section .sidebar-card {
   background: white;
   border-radius: 16px;
   padding: 30px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.sidebar-card--contact {
+.tailor-made-section .sidebar-card--contact {
   background: linear-gradient(135deg, #0E3A57 0%, #1a4d6d 100%);
   color: white;
 }
 
-.sidebar-card__title {
+.tailor-made-section .sidebar-card__title {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -781,17 +1062,17 @@
   color: #1a1a1a;
 }
 
-.sidebar-card--contact .sidebar-card__title {
+.tailor-made-section .sidebar-card--contact .sidebar-card__title {
   color: white;
 }
 
-.sidebar-card__subtitle {
+.tailor-made-section .sidebar-card__subtitle {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 20px;
 }
 
-.sidebar-card__note {
+.tailor-made-section .sidebar-card__note {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -802,7 +1083,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.sidebar-features {
+.tailor-made-section .sidebar-features {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -811,7 +1092,7 @@
   gap: 15px;
 }
 
-.sidebar-feature {
+.tailor-made-section .sidebar-feature {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -819,18 +1100,18 @@
   color: #333;
 }
 
-.sidebar-feature svg {
+.tailor-made-section .sidebar-feature svg {
   color: #d4af37;
   flex-shrink: 0;
 }
 
-.sidebar-contact {
+.tailor-made-section .sidebar-contact {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.sidebar-contact__item {
+.tailor-made-section .sidebar-contact__item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -843,18 +1124,79 @@
   font-weight: 500;
 }
 
-.sidebar-contact__item:hover {
+.tailor-made-section .sidebar-contact__item:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateX(5px);
 }
 
-.sidebar-contact__item svg {
+.tailor-made-section .sidebar-contact__item svg {
   color: #f4d03f;
   flex-shrink: 0;
 }
 
-@media (max-width: 1024px) {
+/* The e-mail address is one long word: on 320px phones it ran past its box
+   and the card, onto the white page. It wraps inside instead. */
+.tailor-made-section .sidebar-contact__item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Below 1200px the container is 960px wide or less, and the 380px sidebar
+   beside the form left it unusable (236px wide at 820px, fields 92px, budget
+   lists 30px; 476px at 1024px). The form takes the full width and the sidebar
+   follows it — no longer sticky, and no longer a scroll box, which only made
+   sense while it stayed in view (stacked, it cut its last card off on short
+   screens). */
+/* The narrowest phones: month and year split the row evenly, which left a
+   month 56px of text — "Septem…" at 320px — while the year needs room for
+   four digits only. The month now takes what the year leaves. */
+@media (max-width: 374.98px) {
+  .tailor-made-section .date-select-group .form-select:first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .tailor-made-section .date-select-group .form-select:last-child {
+    flex: 0 0 auto;
+    width: auto;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  /* minmax(0, …): the column never grows past the container to fit the
+     sidebar's longest word (the e-mail address at 360px). */
+  .tailor-made-content-wrapper {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .tailor-made-sidebar {
     position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+/* Tablets: the sidebar's two cards side by side, and the four feature cards
+   two by two (from 992px they fell into a row of three and a lone fourth). */
+@media (min-width: 769px) and (max-width: 1199.98px) {
+  .tailor-made-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tailor-made-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Desktop screens too short for the whole sidebar (about 670-690px of cards
+   plus 120px of margins): its own scroll box hid the end of the contact card
+   (44px at 1366x768, 92px at 1280x720). There it scrolls with the page; from
+   860px of height it fits, and stays in view as before. */
+@media (min-width: 1200px) and (max-height: 859.98px) {
+  .tailor-made-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
   }
 }

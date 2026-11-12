@@ -20,7 +20,7 @@ type ClassificationKey = (typeof REQUIRED_TO_PUBLISH)[number]['key'];
 export type ArticleClassificationForm = { status?: string } & Partial<Record<ClassificationKey, string | null>>;
 
 /** A destination as the editor's list holds it. The Admin list includes drafts. */
-export type DestinationOption = { _id: string; status?: string; isActive?: boolean };
+export type DestinationOption = { _id: string; status?: string };
 
 export type ArticleClassificationOptions = {
   /** The destinations offered in the form; omitted or still loading means "not known here". */
@@ -39,9 +39,9 @@ const isChosen = (value: string | null | undefined): boolean => {
 /** The form is about to save an article that is, or will become, public. */
 export const isPublishing = (status: string | undefined): boolean => status === 'published' || status === 'scheduled';
 
-/** Has a public page — the rule the API applies: published, and not switched off. */
+/** Has a public page — the rule the API applies: published (the only switch). */
 export const isPublishedDestination = (destination: DestinationOption): boolean =>
-  destination.status === 'published' && destination.isActive !== false;
+  destination.status === 'published';
 
 /**
  * What still stands between the form and the status it is about to save.

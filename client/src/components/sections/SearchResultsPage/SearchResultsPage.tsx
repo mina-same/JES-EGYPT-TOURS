@@ -354,6 +354,9 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
   }, [currency, locale]);
 
   useEffect(() => {
+    // A newer search, page or language cancels this request, so an older
+    // answer can never replace the articles for what was asked last.
+    const controller = new AbortController();
     const fetchBlogs = async () => {
       try {
         setBlogsLoading(true);
@@ -367,21 +370,24 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialSearchPara
           search: q || undefined,
           subCategory: appliedFilters.blogSubCategory || undefined,
           locale,
+          signal: controller.signal,
         };
         const res = await getAllBlogs(opts);
         setBlogs(res.data);
         setBlogsPagination(res.pagination);
       } catch (e) {
+        if (controller.signal.aborted) return;
         console.error(e);
         setBlogsError("Failed to load blogs");
         setBlogs([]);
         setBlogsPagination({ page: 1, limit: 6, total: 0, pages: 1 });
       } finally {
-        setBlogsLoading(false);
+        if (!controller.signal.aborted) setBlogsLoading(false);
       }
     };
 
     void fetchBlogs();
+    return () => controller.abort();
   }, [q, blogPage, appliedFilters.blogSubCategory, locale]);
 
   return (

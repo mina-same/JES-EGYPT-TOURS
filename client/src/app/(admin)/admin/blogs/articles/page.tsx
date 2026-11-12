@@ -1,6 +1,7 @@
  'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +11,7 @@ import {
   Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
 import { blogAPI, destinationAPI, blogCategoryAPI, blogSubcategoryAPI } from '@/lib/api/blogAdmin';
+import { fetchAllDestinations } from '@/lib/admin/fetchAllDestinations';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -82,6 +84,11 @@ function BlogsPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Requests read the settled term (one per pause, not one per keystroke);
+  // the input and any local filtering stay on the live one.
+  const debouncedSearch = useDebouncedValue(searchTerm.trim(), 300);
+  // Only the newest list request may write the table.
+  const listSequence = useRef(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -102,6 +109,7 @@ function BlogsPageContent() {
 
   // Fetch blogs
   const fetchBlogs = async () => {
+    const sequence = ++listSequence.current;
     try {
       setLoading(true);
       setError(null);
@@ -109,7 +117,7 @@ function BlogsPageContent() {
       const params: any = {
         page,
         limit: ARTICLES_PER_PAGE,
-        search: searchTerm.trim() || undefined,
+        search: debouncedSearch || undefined,
       };
       
       if (statusFilter !== 'all') {
@@ -137,6 +145,7 @@ function BlogsPageContent() {
       }
 
       const response = await blogAPI.getAllAdmin(params);
+      if (sequence !== listSequence.current) return;
       
       if (response.success && response.data) {
         setBlogs(response.data);
@@ -166,9 +175,9 @@ function BlogsPageContent() {
         setError(response.error || 'Failed to fetch blogs');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      if (sequence === listSequence.current) setError(err.message || 'An error occurred');
     } finally {
-      setLoading(false);
+      if (sequence === listSequence.current) setLoading(false);
     }
   };
 
@@ -422,10 +431,11 @@ function BlogsPageContent() {
 
   useEffect(() => {
     fetchBlogs();
-  }, [page, searchTerm, statusFilter, tagFilter, featuredFilter, destinationFilter, categoryFilter, subCategoryFilter]);
+  }, [page, debouncedSearch, statusFilter, tagFilter, featuredFilter, destinationFilter, categoryFilter, subCategoryFilter]);
 
   useEffect(() => {
-    destinationAPI.getAll({ isActive: true }).then(res => {
+    // Every page of them: one request stops at the API's default of 10.
+    fetchAllDestinations((params) => destinationAPI.getAll(params), {}).then(res => {
       if (res.success && res.data) setDestinations(res.data);
     });
   }, []);

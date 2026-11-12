@@ -1,5 +1,6 @@
 import { publicSubmissionKeyValidation } from '../middleware/validation';
 import { createBookingSubmissionLimiter } from '../middleware/bookingRateLimit';
+import { createHoneypotGuard } from '../middleware/bookingHoneypot';
 import express from 'express';
 import {
   createTailorMadeRequest,
@@ -14,10 +15,18 @@ import { PERMISSIONS } from '../permissions';
 import { tailorMadeRequestValidation } from '../middleware/validation';
 
 const router = express.Router();
-const submissionLimiter = createBookingSubmissionLimiter();
+const submissionLimiter = createBookingSubmissionLimiter({
+  rejection: { code: 'TAILOR_MADE_RATE_LIMITED', error: 'Too many tailor-made requests. Please wait before trying again.' },
+});
+// The tour booking form's spam trap (the form's hidden "website" field), in
+// the same place: counted by the limiter, ahead of every other check.
+const honeypotGuard = createHoneypotGuard({
+  code: 'INVALID_TAILOR_MADE_REQUEST',
+  error: 'Unable to process tailor-made request.',
+});
 
 // Public route - anyone can submit a tailor-made request
-router.post('/', submissionLimiter, publicSubmissionKeyValidation, tailorMadeRequestValidation, createTailorMadeRequest);
+router.post('/', submissionLimiter, honeypotGuard, publicSubmissionKeyValidation, tailorMadeRequestValidation, createTailorMadeRequest);
 
 // Admin only routes
 router.get('/stats', protect, permit(PERMISSIONS.TAILOR_MADE_READ), getTailorMadeStats);

@@ -55,10 +55,6 @@ const TestimonialsTwo = ({ testimonials }: TestimonialsTwoProps) => {
                 </p>
                 <h2 className='sec-title__title'>
                   <TextAnimation text={t("testimonials.title")} animationType='left' semantic />
-                  {" "}
-                  <span>
-                    <TextAnimation text={t("testimonials.highlighted")} animationType='left' semantic />
-                  </span>
                 </h2>
               </div>
               {testimonials.length > 1 && (

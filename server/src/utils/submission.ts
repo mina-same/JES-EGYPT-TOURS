@@ -4,6 +4,12 @@ import { isEmail } from 'validator';
 
 export const isSubmissionEmail = (value: string): boolean => isEmail(value);
 
+/** The contact submissions that are customer enquiries: everything except what
+ *  a public form's spam trap filed (`isSpam: true`) — missing or false is an
+ *  enquiry. For the Admin's statistics, counts and queues; its list still
+ *  shows spam, marked as such. */
+export const GENUINE_SUBMISSION = { isSpam: { $ne: true } } as const;
+
 export function paginationInput(query: Request['query'], defaultLimit = 10) {
   const number = (value: unknown, fallback: number, max: number) => {
     const parsed = Number(value);

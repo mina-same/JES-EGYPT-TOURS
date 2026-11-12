@@ -408,6 +408,8 @@ export default function NewBlogSubCategoryPage() {
   // Handle keywords directly via handleChange
 
   useEffect(() => {
+    // Only this run may fill the list: a slower, older answer is dropped.
+    let active = true;
     const searchBlogs = async () => {
       if (!isBlogSearchFocused && !blogSearchQuery.trim()) {
         setBlogSearchResults([]);
@@ -420,7 +422,7 @@ export default function NewBlogSubCategoryPage() {
           search: blogSearchQuery.trim(), 
           limit: 8 
         });
-        if (response.success && response.data) {
+        if (active && response.success && response.data) {
           setBlogSearchResults(response.data);
         }
       } catch (error) {
@@ -431,7 +433,10 @@ export default function NewBlogSubCategoryPage() {
     };
 
     const timeoutId = setTimeout(searchBlogs, 300);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [blogSearchQuery, isBlogSearchFocused]);
 
   const addFeaturedBlog = (blog: any) => {
@@ -451,6 +456,8 @@ export default function NewBlogSubCategoryPage() {
 
   // Destination Search logic
   useEffect(() => {
+    // Only this run may fill the list: a slower, older answer is dropped.
+    let active = true;
     const searchDests = async () => {
       if (!isDestSearchFocused && !destSearchQuery.trim()) {
         setDestSearchResults([]);
@@ -464,7 +471,7 @@ export default function NewBlogSubCategoryPage() {
           search: destSearchQuery.trim(), 
           limit: 50
         });
-        if (response.success && response.data) {
+        if (active && response.success && response.data) {
           setDestSearchResults(response.data);
         }
       } catch (error) {
@@ -474,8 +481,11 @@ export default function NewBlogSubCategoryPage() {
       }
     };
 
-    const timeoutId = setTimeout(searchDests, 100);
-    return () => clearTimeout(timeoutId);
+    const timeoutId = setTimeout(searchDests, 300);
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [destSearchQuery, isDestSearchFocused]);
 
   const addFeaturedDest = (dest: any) => {

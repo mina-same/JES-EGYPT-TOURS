@@ -88,7 +88,6 @@ function tourGraph(homeLabel?: string) {
     locale: 'de',
     canonicalUrl: 'https://example.com/de/kairo-reise',
     siteUrl: 'https://example.com',
-    organization: { name: 'Test', url: 'https://example.com' },
     breadcrumbs: buildTourBreadcrumbs(tour, 'de', 'Kairo-Reise'),
     ...(homeLabel ? { homeLabel } : {}),
   }) as { '@graph': any[] };

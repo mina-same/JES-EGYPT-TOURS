@@ -10,6 +10,7 @@ import { getLocalizedValue } from '@/lib/localize';
 import { AdminPageSkeleton } from '@/components/admin/AdminPageSkeleton';
 import LanguageBadges from '@/components/admin/LanguageBadges';
 import PriceBadge from '@/components/admin/tour/PriceBadge';
+import { planLabelEn } from '@/lib/tours/planLabelsEn';
 import { TOUR_REQUIRED_LOCALIZED_FIELDS } from '@/lib/tours/requiredLocalizedFields';
 import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
@@ -175,7 +176,7 @@ export default function TourViewPage() {
             <div className="space-y-2"><label className="text-[11px] uppercase font-bold text-gray-400">Pricing plans</label>
               {plans.map((p, i) => (
                 <div key={i} className="rounded-lg border border-gray-100 dark:border-slate-800 p-3">
-                  <div className="font-semibold text-gray-900 dark:text-white">{p.planName || `Plan ${i + 1}`}</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{planLabelEn(p.planName) || `Plan ${i + 1}`}</div>
                   {Array.isArray(p.seasons) && p.seasons.length > 0 && (
                     <div className="overflow-x-auto mt-2">
                       <table className="w-full text-sm border-collapse">
