@@ -12,9 +12,10 @@ const source = (path: string) => readFileSync(new URL(`../src/${path}`, import.m
 const classified = { category: 'c1', subCategory: 's1', destination: 'cairo' };
 // The Admin's destination list: published pages and drafts alike.
 const destinations = [
-  { _id: 'cairo', status: 'published', isActive: true },
-  { _id: 'abu-simbel', status: 'draft', isActive: true },
-  { _id: 'switched-off', status: 'published', isActive: false },
+  { _id: 'cairo', status: 'published' },
+  { _id: 'abu-simbel', status: 'draft' },
+  // Still carrying `isActive: false` from when destinations had that switch.
+  { _id: 'leftover', status: 'published', isActive: false },
 ];
 const UNPUBLISHED = {
   field: 'Destination',
@@ -48,7 +49,8 @@ test('publishing or scheduling names each one that is still on "None"', () => {
 test('publishing or scheduling under a destination with no published page is stopped in the form', () => {
   for (const status of ['published', 'scheduled']) {
     assert.deepEqual(publishClassificationErrors({ status, ...classified, destination: 'abu-simbel' }, { destinations }), [UNPUBLISHED], status);
-    assert.deepEqual(publishClassificationErrors({ status, ...classified, destination: 'switched-off' }, { destinations }), [UNPUBLISHED], status);
+    // The status is the only switch: a stored `isActive: false` stops nothing.
+    assert.deepEqual(publishClassificationErrors({ status, ...classified, destination: 'leftover' }, { destinations }), [], status);
   }
   // A destination the form does not know — the list still loading, or one
   // removed from it — is left to the API, which decides in any case.
@@ -56,10 +58,9 @@ test('publishing or scheduling under a destination with no published page is sto
   assert.deepEqual(publishClassificationErrors({ status: 'published', ...classified, destination: 'abu-simbel' }), []);
 });
 
-test('the form\'s reading of "published" is the API\'s: published, and not switched off', () => {
-  assert.deepEqual(destinations.map(isPublishedDestination), [true, false, false]);
-  // Stored before the flag existed: on.
-  assert.equal(isPublishedDestination({ _id: 'legacy', status: 'published' }), true);
+test('the form\'s reading of "published" is the API\'s: the status alone', () => {
+  assert.deepEqual(destinations.map(isPublishedDestination), [true, false, true]);
+  assert.equal(isPublishedDestination({ _id: 'no-status' }), false);
   assert.deepEqual(['draft', 'published', 'scheduled', undefined].map(isPublishing), [false, true, true, false]);
 });
 

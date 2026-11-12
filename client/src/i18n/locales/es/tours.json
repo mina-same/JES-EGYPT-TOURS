@@ -270,7 +270,8 @@
       "holiday_easter": "Semana Santa"
     },
     "bookingForm": {
-      "title": "Reservar este Tour",
+      "viewPricingDetails": "Ver detalles de precios",
+      "title": "Empieza tu reserva",
       "namePlaceholder": "Nombre *",
       "emailPlaceholder": "Correo electrónico *",
       "nationalityPlaceholder": "Selecciona tu Nacionalidad",
@@ -288,7 +289,7 @@
       "infants": "Nº de Bebés",
       "infantsSub": "( de 0 a 2 años )",
       "requirementsPlaceholder": "Por favor, indícanos tus requisitos para el tour",
-      "submitBtn": "Enviar",
+      "submitBtn": "Enviar solicitud de reserva",
       "submitting": "Enviando...",
       "whatsapp": "Preguntar por WhatsApp",
       "whatsappShort": "WhatsApp",

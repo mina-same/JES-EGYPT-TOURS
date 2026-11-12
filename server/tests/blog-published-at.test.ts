@@ -151,7 +151,7 @@ blogCollection.findOneAndUpdate = async (filter: Doc, update: Doc) => clone(writ
 const PARENTS = new Map<unknown, Doc>([
   [BlogCategory.collection, { _id: CATEGORY, isActive: true }],
   [BlogSubCategory.collection, { _id: TOPIC, category: CATEGORY, isActive: true }],
-  [Destination.collection, { _id: DESTINATION, status: 'published', isActive: true }],
+  [Destination.collection, { _id: DESTINATION, status: 'published' }],
 ]);
 for (const model of Object.values(mongoose.models)) {
   if (model === Blog) continue;

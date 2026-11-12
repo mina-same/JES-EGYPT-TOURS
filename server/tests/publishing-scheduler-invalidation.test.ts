@@ -50,7 +50,7 @@ const DESTINATION = new ObjectId();
 const parents: [typeof Blog.collection, Record<string, unknown>][] = [
   [BlogCategory.collection, { _id: CATEGORY, isActive: true }],
   [BlogSubCategory.collection, { _id: TOPIC, category: CATEGORY, isActive: true }],
-  [Destination.collection, { _id: DESTINATION, status: 'published', isActive: true }],
+  [Destination.collection, { _id: DESTINATION, status: 'published' }],
 ];
 for (const [collection, parent] of parents) {
   (collection as unknown as Record<string, unknown>).findOne = async () => parent;

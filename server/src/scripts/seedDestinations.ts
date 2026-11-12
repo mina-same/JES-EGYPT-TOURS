@@ -378,7 +378,6 @@ const seedDestinations = async () => {
         ...data,
         // Fully written pages: published, unlike a new destination's default.
         status: 'published',
-        isActive: true
       });
     }
 

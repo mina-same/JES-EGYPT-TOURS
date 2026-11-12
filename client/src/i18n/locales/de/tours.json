@@ -270,7 +270,8 @@
       "holiday_easter": "Ostern"
     },
     "bookingForm": {
-      "title": "Diese Tour buchen",
+      "viewPricingDetails": "Preisdetails ansehen",
+      "title": "Buchung starten",
       "namePlaceholder": "Name *",
       "emailPlaceholder": "E-Mail *",
       "nationalityPlaceholder": "Wählen Sie Ihre Nationalität",
@@ -288,7 +289,7 @@
       "infants": "Kleinkinder",
       "infantsSub": "( 0 bis 2 Jahre )",
       "requirementsPlaceholder": "Bitte teilen Sie uns Ihre Tour-Anforderungen mit",
-      "submitBtn": "Absenden",
+      "submitBtn": "Buchungsanfrage senden",
       "submitting": "Wird gesendet...",
       "whatsapp": "Auf WhatsApp fragen",
       "whatsappShort": "WhatsApp",

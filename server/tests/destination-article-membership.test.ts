@@ -226,14 +226,12 @@ const DESTINATIONS: Doc[] = [
     description: { en: 'The capital.' },
     faqs: [{ question: { en: 'Q' }, answer: { en: 'A' } }],
     status: 'published',
-    isActive: true,
   },
   {
     _id: 'abu-simbel',
     name: { en: 'Abu Simbel' },
     slug: { en: 'abu-simbel' },
     status: 'draft',
-    isActive: true,
   },
 ];
 

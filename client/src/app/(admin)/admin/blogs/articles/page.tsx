@@ -11,6 +11,7 @@ import {
   Calendar, CheckCircle, XCircle, Tag, MapPin, Star, Upload
 } from 'lucide-react';
 import { blogAPI, destinationAPI, blogCategoryAPI, blogSubcategoryAPI } from '@/lib/api/blogAdmin';
+import { fetchAllDestinations } from '@/lib/admin/fetchAllDestinations';
 import StatCard from '@/components/common/StatCard/StatCard';
 import AdminTable, { type AdminTableColumn } from '@/components/admin/AdminTable';
 import BulkActionsBar from '@/components/admin/BulkActionsBar';
@@ -433,7 +434,8 @@ function BlogsPageContent() {
   }, [page, debouncedSearch, statusFilter, tagFilter, featuredFilter, destinationFilter, categoryFilter, subCategoryFilter]);
 
   useEffect(() => {
-    destinationAPI.getAll({ isActive: true }).then(res => {
+    // Every page of them: one request stops at the API's default of 10.
+    fetchAllDestinations((params) => destinationAPI.getAll(params), {}).then(res => {
       if (res.success && res.data) setDestinations(res.data);
     });
   }, []);

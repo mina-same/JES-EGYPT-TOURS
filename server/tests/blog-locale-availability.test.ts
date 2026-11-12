@@ -493,7 +493,7 @@ const CLASSIFIED = { category: 'aaaaaaaaaaaaaaaaaaaaaaa1', subCategory: 'bbbbbbb
 const PARENTS: Record<string, Doc> = {
   [CLASSIFIED.category]: { _id: CLASSIFIED.category, isActive: true },
   [CLASSIFIED.subCategory]: { _id: CLASSIFIED.subCategory, category: CLASSIFIED.category, isActive: true },
-  [CLASSIFIED.destination]: { _id: CLASSIFIED.destination, status: 'published', isActive: true },
+  [CLASSIFIED.destination]: { _id: CLASSIFIED.destination, status: 'published' },
 };
 const ENGLISH = {
   title: { en: 'Saladin Citadel' },

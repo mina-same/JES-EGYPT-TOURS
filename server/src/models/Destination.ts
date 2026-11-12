@@ -13,8 +13,10 @@ export const isDestinationStatus = (value: unknown): value is DestinationStatus 
   DESTINATION_STATUSES.includes(value as DestinationStatus);
 
 /**
- * The one rule for "this destination has a public landing page": published,
- * and not switched off.
+ * The one rule for "this destination has a public landing page": published.
+ * `status` is the only switch. Destinations used to carry a separate
+ * `isActive` flag as well; a document saved before it was removed may still
+ * hold one, and nothing reads it.
  *
  * It governs the page and only the page: the slug resolver, the public
  * destination reads, the sitemap, and the cards that link to the page. Tours
@@ -25,7 +27,6 @@ export const isDestinationStatus = (value: unknown): value is DestinationStatus 
  */
 export const PUBLIC_DESTINATION_FILTER: Record<string, unknown> = Object.freeze({
   status: 'published',
-  isActive: { $ne: false },
 });
 
 /** Populates a destination reference for a public page: landing pages only. */
@@ -91,9 +92,6 @@ export interface IDestination extends Document {
 
   // Publication of the landing page
   status: DestinationStatus;
-
-  // Status
-  isActive: boolean;
 
   // Timestamps
   createdAt: Date;
@@ -217,9 +215,6 @@ const DestinationSchema: Schema = new Schema(
     // page. See PUBLIC_DESTINATION_FILTER for what the status does and does
     // not control.
     status: { type: String, enum: [...DESTINATION_STATUSES], default: 'draft' },
-
-    // === STATUS ===
-    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
@@ -230,7 +225,6 @@ DestinationSchema.index({ 'slug.de': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.it': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
 DestinationSchema.index({ filterKey: 1 }, { unique: true, partialFilterExpression: { filterKey: { $type: 'string' } } });
-DestinationSchema.index({ isActive: 1 });
 DestinationSchema.index({ name: 'text', description: 'text' });
 
 // Pre-save: auto-populate SEO fields

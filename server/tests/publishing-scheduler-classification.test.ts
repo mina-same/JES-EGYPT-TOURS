@@ -35,7 +35,7 @@ const LATER = new Date('2026-06-02T12:00:00.000Z');
 const readyParents = (): Record<'category' | 'topic' | 'destination', Doc[]> => ({
   category: [{ _id: EGYPT_BLOG, isActive: true }, { _id: OTHER_CATEGORY, isActive: true }],
   topic: [{ _id: TRAVEL_TIPS, category: EGYPT_BLOG, isActive: true }],
-  destination: [{ _id: CAIRO, status: 'published', isActive: true }],
+  destination: [{ _id: CAIRO, status: 'published' }],
 });
 
 /** An English body the shared availability rule accepts. */
@@ -188,7 +188,6 @@ const BROKEN_BEFORE_DUE: [string, (store: Store) => void, RegExp][] = [
   ['its category was switched off', (s) => { s.parents.category[0].isActive = false; }, /The selected category is inactive/],
   ['its topic was switched off', (s) => { s.parents.topic[0].isActive = false; }, /The selected subcategory is inactive/],
   ['its destination went back to a draft', (s) => { s.parents.destination[0].status = 'draft'; }, /The selected destination has no published page/],
-  ['its destination was switched off', (s) => { s.parents.destination[0].isActive = false; }, /The selected destination has no published page/],
   ['its topic was moved to another category', (s) => { s.parents.topic[0].category = OTHER_CATEGORY; }, /does not belong to the selected category/],
   ['its category was deleted', (s) => { s.parents.category.shift(); }, /The selected category no longer exists/],
   ['its topic was deleted', (s) => { s.parents.topic.length = 0; }, /The selected subcategory no longer exists/],

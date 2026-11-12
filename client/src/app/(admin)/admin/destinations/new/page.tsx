@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { DestinationStatus } from '@/lib/api/destination';
 import {
@@ -68,7 +67,6 @@ const INITIAL_FORM = {
   ogImage: '',
   // A new destination has no public page until it is published.
   status: 'draft' as DestinationStatus,
-  isActive: true,
 };
 
 export default function DestinationFormPage() {
@@ -122,7 +120,6 @@ export default function DestinationFormPage() {
             ogDescription: d.ogDescription || EMPTY_LOCALIZED,
             ogImage: d.ogImage || '',
             status: d.status === 'published' ? 'published' : 'draft',
-            isActive: d.isActive ?? true,
           });
         }
       }).catch(() => toast({ title: 'Error', description: 'Failed to load destination', variant: 'destructive' }))
@@ -296,16 +293,6 @@ export default function DestinationFormPage() {
               <span id="status-help" className="text-xs text-gray-500 dark:text-gray-400">
                 {formData.status === 'published' ? 'Page is live' : 'Not public'}
               </span>
-            </div>
-            <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
-              <Switch
-                checked={formData.isActive}
-                onCheckedChange={v => handleChange('isActive', v)}
-                id="isActive"
-              />
-              <Label htmlFor="isActive" className="text-sm font-bold cursor-pointer">
-                {formData.isActive ? 'Active' : 'Inactive'}
-              </Label>
             </div>
             <Button type="submit" disabled={saving} className="bg-primary hover:opacity-90 text-white font-bold h-11 px-8 rounded-xl shadow-lg shadow-primary/20 gap-2">
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}

@@ -270,7 +270,8 @@
       "holiday_easter": "Easter"
     },
     "bookingForm": {
-      "title": "Book This Tour",
+      "viewPricingDetails": "View Pricing Details",
+      "title": "Start Your Booking",
       "namePlaceholder": "Name *",
       "emailPlaceholder": "E-mail *",
       "nationalityPlaceholder": "Select your Nationality",
@@ -288,7 +289,7 @@
       "infants": "No. of Infants",
       "infantsSub": "( 0 to 2 years )",
       "requirementsPlaceholder": "Please advise your tour requirements",
-      "submitBtn": "Submit",
+      "submitBtn": "Send Booking Request",
       "submitting": "Submitting...",
       "whatsapp": "Ask on WhatsApp",
       "whatsappShort": "WhatsApp",

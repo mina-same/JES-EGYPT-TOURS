@@ -9,7 +9,7 @@ import BlogSubCategory from '../src/models/BlogSubCategory';
 import Destination from '../src/models/Destination';
 import { deleteCategory, toggleCategoryStatus, updateCategory } from '../src/controllers/blogCategoryController';
 import { deleteSubcategory, toggleSubcategoryStatus, updateSubcategory } from '../src/controllers/blogSubCategoryController';
-import { deleteDestination, toggleDestinationStatus, updateDestination } from '../src/controllers/destinationController';
+import { deleteDestination, updateDestination } from '../src/controllers/destinationController';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Doc = Record<string, any>;
@@ -226,29 +226,23 @@ for (const family of FAMILIES) {
   });
 }
 
-// ── The destination: its page is public when published and switched on ──────
+// ── The destination: its page is public when it is published ─────────────────
 
 const filedUnder = (status: string, destination = PARENT): Doc => ({ status, destination });
 const destinationModel = Destination as unknown as Model;
-const PUBLIC = { status: 'published', isActive: true };
+const PUBLIC = { status: 'published' };
 const destinationInUse = (count: number, change: string) =>
   `Cannot ${change} this destination because ${count} published or scheduled ${count === 1 ? 'article uses' : 'articles use'} it`;
 
-test('destination: its page cannot be taken down while a published or a scheduled article is filed under it', async () => {
+test('destination: its page cannot be unpublished while a published or a scheduled article is filed under it', async () => {
   for (const status of ['published', 'scheduled']) {
     const articles = [filedUnder(status)];
     // Back to a draft.
     await withParent(destinationModel, PUBLIC, articles, async (writes) => {
       assertRefused(await respond(updateDestination as Handler, { body: { status: 'draft' } }), writes, destinationInUse(1, 'unpublish'));
     });
-    // Switched off, through the editor or through the toggle.
-    await withParent(destinationModel, PUBLIC, articles, async (writes) => {
-      assertRefused(await respond(updateDestination as Handler, { body: { isActive: false } }), writes, destinationInUse(1, 'deactivate'));
-    });
-    await withParent(destinationModel, PUBLIC, articles, async (writes) => {
-      assertRefused(await respond(toggleDestinationStatus as Handler, {}), writes, destinationInUse(1, 'deactivate'));
-    });
-    // Both at once is still an unpublish.
+    // With the removed switch in the same body, as an Admin tab opened before
+    // its removal may send it: still an unpublish, refused the same way.
     await withParent(destinationModel, PUBLIC, articles, async (writes) => {
       assertRefused(
         await respond(updateDestination as Handler, { body: { status: 'draft', isActive: false } }),
@@ -263,15 +257,11 @@ test('destination: its page cannot be taken down while a published or a schedule
   });
 });
 
-test('destination: with drafts only, or with no articles, its page can be taken down', async () => {
+test('destination: with drafts only, or with no articles, its page can be unpublished', async () => {
   for (const articles of [[filedUnder('draft')], [], [filedUnder('published', ELSEWHERE)]]) {
     await withParent(destinationModel, PUBLIC, articles, async (writes) => {
       assert.equal((await respond(updateDestination as Handler, { body: { status: 'draft' } })).status, 200);
-      assert.deepEqual(writes.saved, [{ isActive: true, status: 'draft' }]);
-    });
-    await withParent(destinationModel, PUBLIC, articles, async (writes) => {
-      assert.equal((await respond(toggleDestinationStatus as Handler, {})).status, 200);
-      assert.deepEqual(writes.saved, [{ isActive: false, status: 'published' }]);
+      assert.deepEqual(writes.saved.map((saved) => saved.status), ['draft']);
     });
   }
 });
@@ -281,33 +271,34 @@ test('destination: an edit that leaves its page public is never held up', async 
     for (const body of [
       { heroTitle: { en: 'A new hero' } },
       { description: { en: 'New copy' }, status: 'published' },
-      { region: { en: 'Upper Egypt' }, isActive: true },
+      // The removed switch, as an Admin tab opened before its removal may
+      // still send it: ignored, so the page stays public and nothing is counted.
+      { region: { en: 'Upper Egypt' }, isActive: false },
     ]) {
       assert.equal((await respond(updateDestination as Handler, { body })).status, 200, JSON.stringify(body));
     }
     assert.equal(writes.saved.length, 3);
     assert.equal(writes.counted.length, 0, 'no dependency count without a real transition');
+    assert.deepEqual(writes.saved.map((saved) => saved.isActive), [undefined, undefined, undefined], 'the removed field is never written');
   });
 });
 
-test('destination: one with no public page is free to change, and publishing one is never blocked', async () => {
-  // A draft, or a published one already switched off, has no page to lose.
-  for (const fields of [{ status: 'draft', isActive: true }, { status: 'published', isActive: false }]) {
-    await withParent(destinationModel, fields, [filedUnder('published')], async (writes) => {
-      assert.equal((await respond(updateDestination as Handler, { body: { isActive: false } })).status, 200);
-      assert.equal((await respond(toggleDestinationStatus as Handler, {})).status, 200);
-      assert.equal(writes.counted.length, 0);
-    });
-  }
-  await withParent(destinationModel, { status: 'draft', isActive: true }, [filedUnder('draft')], async (writes) => {
+test('destination: a draft is free to change, and publishing one is never blocked', async () => {
+  // A draft has no page to lose.
+  await withParent(destinationModel, { status: 'draft' }, [filedUnder('published')], async (writes) => {
+    assert.equal((await respond(updateDestination as Handler, { body: { heroTitle: { en: 'Draft copy' } } })).status, 200);
+    assert.equal((await respond(updateDestination as Handler, { body: { status: 'draft' } })).status, 200);
+    assert.equal(writes.counted.length, 0);
+  });
+  await withParent(destinationModel, { status: 'draft' }, [filedUnder('draft')], async (writes) => {
     assert.equal((await respond(updateDestination as Handler, { body: { status: 'published' } })).status, 200);
-    assert.deepEqual(writes.saved, [{ isActive: true, status: 'published' }]);
+    assert.deepEqual(writes.saved.map((saved) => saved.status), ['published']);
   });
 });
 
 test('destination: deleting it is refused while a published or a scheduled article is filed under it', async () => {
   for (const status of ['published', 'scheduled']) {
-    for (const fields of [PUBLIC, { status: 'draft', isActive: true }]) {
+    for (const fields of [PUBLIC, { status: 'draft' }]) {
       await withParent(destinationModel, fields, [filedUnder(status)], async (writes) => {
         assertRefused(await respond(deleteDestination as Handler, {}), writes, destinationInUse(1, 'delete'));
       });

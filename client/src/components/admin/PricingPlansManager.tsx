@@ -134,7 +134,8 @@ function SortableItemWrapper({
 }
 
 const PRICE_CELL_CURRENCIES = ['USD', 'EUR', 'GBP'] as const;
-const MISSING_CELL_PATH = /^pricingPlans\.\d+\.seasons\.\d+\.prices\.[a-z0-9_]+\.(USD|EUR|GBP)$/;
+/** A missing cell (…seasons.S.prices.<tier>.<CUR>) or a currency missing from a whole plan (…currencies.<CUR>). */
+const MISSING_CELL_PATH = /^pricingPlans\.\d+\.(seasons\.\d+\.prices\.[a-z0-9_]+|currencies)\.(USD|EUR|GBP)$/;
 
 /**
  * One price cell, with a target per currency for the error panel: clicking
@@ -158,10 +159,15 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
   const getErrorMessage = (path: string) => formErrors.find(e => e.path === path)?.message;
   /* The price table save rule (lib/tours/priceCompleteness.ts) reports each
      missing cell with its currency at the end of the path, e.g.
-     pricingPlans.0.seasons.1.prices.pax_2_4.EUR. These two read that back so
-     the right currency tab is marked: in the cell, and at the top. */
-  const missingInCell = (cellPath: string) =>
-    PRICE_CELL_CURRENCIES.filter((currency) => formErrors.some((e) => e.path === `${cellPath}.${currency}`));
+     pricingPlans.0.seasons.1.prices.pax_2_4.EUR, and a currency a plan lacks
+     entirely (while another plan has it) as pricingPlans.0.currencies.EUR.
+     These two read that back so the right currency tab is marked: in every
+     affected cell, and at the top. */
+  const missingInCell = (cellPath: string) => {
+    const planPath = cellPath.split('.').slice(0, 2).join('.');
+    return PRICE_CELL_CURRENCIES.filter((currency) => formErrors.some((e) =>
+      e.path === `${cellPath}.${currency}` || e.path === `${planPath}.currencies.${currency}`));
+  };
   const missingCurrencies = PRICE_CELL_CURRENCIES.filter((currency) =>
     formErrors.some((e) => MISSING_CELL_PATH.test(e.path ?? '') && e.path!.endsWith(`.${currency}`)));
 
@@ -427,6 +433,10 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                         className={cn('rounded-lg border transition-all', planBg, planHasError && 'border-red-400 ring-1 ring-red-200')}
                         children={({ attributes, listeners, setActivatorNodeRef }) => (
                           <>
+                            {/* Where "Comfort: EUR prices missing (…)" in the error panel scrolls to. */}
+                            {PRICE_CELL_CURRENCIES.map((currency) => (
+                              <span key={currency} data-field={`pricingPlans.${planIndex}.currencies.${currency}`} aria-hidden="true" />
+                            ))}
                             <div className="flex items-center justify-between gap-3 border-b p-3">
                               <div className="flex items-center gap-2 min-w-0">
                                 <div
@@ -449,7 +459,7 @@ export default function PricingPlansManager({ pricingPlans, onChange, activeLang
                                     >
                                       {planLabelEn(plan.planName) || 'Untitled plan'}
                                     </span>
-                                    {(hasError(`pricingPlans.${planIndex}.planName`) || hasError(`pricingPlans.${planIndex}.seasons`)) && <span className="text-xs text-red-600 shrink-0 font-bold">⚠ Error</span>}
+                                    {(hasError(`pricingPlans.${planIndex}.planName`) || hasError(`pricingPlans.${planIndex}.seasons`) || hasError(`pricingPlans.${planIndex}.currencies`)) && <span className="text-xs text-red-600 shrink-0 font-bold">⚠ Error</span>}
                                   </div>
                                   <div className="text-xs text-muted-foreground truncate">
                                     {plan.seasons?.length || 0} seasons

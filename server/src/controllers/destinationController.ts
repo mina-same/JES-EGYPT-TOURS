@@ -17,7 +17,6 @@ import {
   assertNoPublicArticlesUnder,
   hasPublicPage,
   respondToPublishingValidation,
-  switchesOff,
 } from '../utils/blogClassification';
 import {
   BLOG_CHRONOLOGICAL_SORT,
@@ -28,7 +27,6 @@ import {
 } from '../utils/blogCardPopulate';
 
 interface QueryParams {
-  isActive?: string;
   status?: string;
   search?: string;
   page?: string;
@@ -40,7 +38,8 @@ interface QueryParams {
 // decides who sees drafts through them.
 const buildFilter = (query: QueryParams, includeDrafts: boolean): FilterQuery<IDestination> => {
   const filter: FilterQuery<IDestination> = {};
-  if (query.isActive !== undefined) filter.isActive = query.isActive === 'true';
+  // `status` is the only switch. An `isActive` parameter, which callers built
+  // before it was removed may still send, is ignored like any other unknown one.
   if (includeDrafts && isDestinationStatus(query.status)) filter.status = query.status;
   const searchRegex = createSearchRegex(query.search);
   if (searchRegex) {
@@ -300,17 +299,18 @@ export const updateDestination = async (req: Request, res: Response): Promise<vo
     // Update fields. A body without `status` leaves the publication state as it is.
     const body = { ...req.body };
     delete body.filterKey;
+    // No longer a field: an Admin tab opened before its removal may still send it.
+    delete body.isActive;
     if (body.metaImage?.url) {
       body.ogImage = body.metaImage.url;
     }
 
-    // Taking the page down — back to a draft, or switched off — is refused
-    // while a published or scheduled article is filed under the destination.
-    // An edit that leaves the page public goes through untouched.
+    // Taking the page down — back to a draft — is refused while a published or
+    // scheduled article is filed under the destination. An edit that leaves
+    // the page public goes through untouched.
     const staysPublished = body.status === undefined ? destination.status === 'published' : body.status === 'published';
-    const staysActive = body.isActive === undefined ? destination.isActive !== false : !switchesOff(body.isActive);
-    if (hasPublicPage(destination) && !(staysPublished && staysActive)) {
-      await assertNoPublicArticlesUnder('destination', destination._id, staysPublished ? 'deactivate' : 'unpublish');
+    if (hasPublicPage(destination) && !staysPublished) {
+      await assertNoPublicArticlesUnder('destination', destination._id, 'unpublish');
     }
 
     Object.assign(destination, body);
@@ -365,37 +365,5 @@ export const deleteDestination = async (req: Request, res: Response): Promise<vo
       return;
     }
     res.status(500).json({ success: false, error: 'Failed to delete destination', message: error.message });
-  }
-};
-
-/**
- * @desc    Toggle destination active status
- * @route   PATCH /api/destinations/:id/toggle-active
- * @access  Private/Admin
- */
-export const toggleDestinationStatus = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const destination = await Destination.findById(req.params.id);
-    if (!destination) {
-      res.status(404).json({ success: false, error: 'Destination not found' });
-      return;
-    }
-    // Switching off a destination that has a public page takes the page down:
-    // refused while a published or scheduled article is filed under it. A
-    // draft has no page to lose, so its switch is free either way.
-    if (hasPublicPage(destination)) {
-      await assertNoPublicArticlesUnder('destination', destination._id, 'deactivate');
-    }
-    destination.isActive = !destination.isActive;
-    await destination.save();
-    res.status(200).json({
-      success: true,
-      message: `Destination ${destination.isActive ? 'activated' : 'deactivated'} successfully`,
-      data: destination,
-    });
-  } catch (error: any) {
-    if (respondToDuplicateInternalLinks(error, res)) return;
-    if (respondToPublishingValidation(error, res)) return;
-    res.status(500).json({ success: false, error: 'Failed to toggle destination status', message: error.message });
   }
 };

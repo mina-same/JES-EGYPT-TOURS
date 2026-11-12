@@ -66,7 +66,7 @@ test('one missing EUR cell blocks, named the way the editor shows it', () => {
   delete (table.prices as any).pax_2_4.EUR;
   const cells = getMissingPriceCells([plan('AFFORDABLE', [table, priced(REGULAR, ['USD', 'EUR', 'GBP'])])]);
   assert.deepEqual(cells, [{
-    planIndex: 0, seasonIndex: 0, tier: 'pax_2_4', currency: 'EUR',
+    scope: 'cell', planIndex: 0, seasonIndex: 0, tier: 'pax_2_4', currency: 'EUR',
     path: 'pricingPlans.0.seasons.0.prices.pax_2_4.EUR',
     message: 'Comfort / Low Season / 2-4 Pax: EUR price missing',
   }]);
@@ -99,18 +99,71 @@ test('USD is required in every cell of a priced plan, even when only EUR was ent
     `Comfort / Low Season / ${{ solo: 'Solo', pax_2_4: '2-4 Pax', pax_5_8: '5-8 Pax', pax_9_16: '9-16 Pax' }[tier]}: USD price missing`));
 });
 
-test('plans are checked separately', () => {
+test('per tour: Gold with EUR and Comfort without EUR is blocked, with one line for Comfort', () => {
+  const plans = [
+    plan('AFFORDABLE', [priced(LOW, ['USD']), priced(PEAK, ['USD'])]),
+    plan('GOLD (5 STAR STANDARD)', [priced(LOW, ['USD', 'EUR']), priced(PEAK, ['USD', 'EUR'])]),
+  ];
+  assert.deepEqual(getMissingPriceCells(plans), [{
+    scope: 'plan', planIndex: 0, currency: 'EUR',
+    path: 'pricingPlans.0.currencies.EUR',
+    message: 'Comfort: EUR prices missing (Gold (5 Star Standard) has EUR prices, so every priced plan needs them)',
+    requiredBy: ['Gold (5 Star Standard)'],
+  }]);
+  // Two plans with the currency are both named.
+  assert.deepEqual(messages([...plans, plan('DIAMOND (5 STAR LUXURY)', [priced(LOW, ['USD', 'EUR'])])]), [
+    'Comfort: EUR prices missing (Gold (5 Star Standard) and Diamond (5 Star Luxury) have EUR prices, so every priced plan needs them)',
+  ]);
+});
+
+test('per tour: every priced plan with EUR is accepted; no plan with EUR is accepted', () => {
+  assert.deepEqual(getMissingPriceCells([
+    plan('AFFORDABLE', [priced(LOW, ['USD', 'EUR'])]),
+    plan('GOLD (5 STAR STANDARD)', [priced(LOW, ['USD', 'EUR']), priced(PEAK, ['USD', 'EUR'])]),
+    plan('DIAMOND (5 STAR LUXURY)', [priced(LOW, ['USD', 'EUR'])]),
+  ]), []);
+  assert.deepEqual(getMissingPriceCells([
+    plan('AFFORDABLE', [priced(LOW, ['USD'])]),
+    plan('GOLD (5 STAR STANDARD)', [priced(LOW, ['USD']), priced(PEAK, ['USD'])]),
+  ]), []);
+});
+
+test('per tour: a plan with no prices at all is ignored', () => {
   assert.deepEqual(getMissingPriceCells([
     plan('AFFORDABLE', [priced(LOW, ['USD', 'EUR', 'GBP'])]),
-    plan('GOLD (5 STAR STANDARD)', [priced(LOW, ['USD'])]),
+    plan('GOLD (5 STAR STANDARD)', [{ seasonName: LOW, prices: {} }, { seasonName: PEAK }]),
+    plan('DIAMOND (5 STAR LUXURY)', [{ seasonName: LOW, prices: { solo: { USD: 0, EUR: 0, GBP: 0 } } }]),
   ]), []);
-  const second = getMissingPriceCells([
+});
+
+test('the per-tour and per-plan rules apply together, currency by currency', () => {
+  // Gold: GBP started in one season only (per-plan rule, cell lines).
+  // Comfort: no GBP at all while Gold has some (per-tour rule, one line).
+  const cells = getMissingPriceCells([
     plan('AFFORDABLE', [priced(LOW, ['USD'])]),
     plan('GOLD (5 STAR STANDARD)', [priced(LOW, ['USD', 'GBP']), priced(PEAK, ['USD'])]),
   ]);
-  assert.ok(second.every((cell) => cell.planIndex === 1 && cell.currency === 'GBP' && cell.seasonIndex === 1));
-  assert.equal(second.length, 4);
+  assert.equal(cells[0].message, 'Comfort: GBP prices missing (Gold (5 Star Standard) has GBP prices, so every priced plan needs them)');
+  assert.deepEqual(cells.slice(1).map((c) => c.message), [
+    'Gold (5 Star Standard) / Peak Season / Solo: GBP price missing',
+    'Gold (5 Star Standard) / Peak Season / 2-4 Pax: GBP price missing',
+    'Gold (5 Star Standard) / Peak Season / 5-8 Pax: GBP price missing',
+    'Gold (5 Star Standard) / Peak Season / 9-16 Pax: GBP price missing',
+  ]);
+  // USD stays required cell by cell in every priced plan.
+  assert.deepEqual(messages([
+    plan('AFFORDABLE', [priced(LOW, ['EUR'])]),
+    plan('GOLD (5 STAR STANDARD)', [priced(LOW, ['USD', 'EUR'])]),
+  ]).filter((m) => m.includes('USD')).length, 4);
 });
+
+/** The Saqqara tour's price plan as stored on 2026-11-12 (one plan, three seasons, USD + EUR + GBP). */
+const SAQQARA_AS_STORED = [{ planName: 'TOUR PRICES', seasons: [
+  { seasonName: LOW, prices: { solo: { USD: 125, EUR: 115, GBP: 90 }, pax_2_4: { USD: 90, EUR: 85, GBP: 70 }, pax_5_8: { USD: 75, EUR: 70, GBP: 60 }, pax_9_16: { USD: 65, EUR: 60, GBP: 50 } } },
+  { seasonName: REGULAR, prices: { solo: { USD: 125, EUR: 115, GBP: 90 }, pax_2_4: { USD: 90, EUR: 85, GBP: 70 }, pax_5_8: { USD: 75, EUR: 70, GBP: 60 }, pax_9_16: { USD: 65, EUR: 60, GBP: 50 } } },
+  { seasonName: PEAK, prices: { solo: { USD: 140, EUR: 125, GBP: 95 }, pax_2_4: { USD: 100, EUR: 95, GBP: 75 }, pax_5_8: { USD: 85, EUR: 80, GBP: 65 }, pax_9_16: { USD: 70, EUR: 70, GBP: 50 } } },
+] }];
+
 
 test('an unrecognised season is named by its position', () => {
   const cells = getMissingPriceCells([plan('AFFORDABLE', [priced(LOW, ['USD', 'EUR']), priced('Ramadan', ['USD'])])]);
@@ -175,4 +228,32 @@ test('a currency tab with missing prices is marked red and says so', () => {
   assert.match(euro, /⚠/);
   assert.match(html, /<button[^>]*title="US Dollar"/);
   assert.equal((html.match(/prices missing"/g) || []).length, 2, 'only EUR (title + aria-label)');
+});
+
+test('the Saqqara tour as stored still saves', () => {
+  assert.deepEqual(getMissingPriceCells(SAQQARA_AS_STORED), []);
+  assert.deepEqual(validateTourForm(validForm(SAQQARA_AS_STORED)), []);
+});
+
+test('saving is blocked with the per-tour line, at a path the Pricing tab can mark', () => {
+  const errors = validateTourForm(validForm([
+    plan('AFFORDABLE', [priced(LOW, ['USD'])]),
+    plan('GOLD (5 STAR STANDARD)', [priced(LOW, ['USD', 'EUR'])]),
+  ]));
+  assert.deepEqual(errors, [{
+    field: 'Comfort: EUR prices missing (Gold (5 Star Standard) has EUR prices, so every priced plan needs them)',
+    message: '',
+    path: 'pricingPlans.0.currencies.EUR',
+  }]);
+});
+
+test('a currency missing from a whole plan marks that plan, its cells and the currency tab', () => {
+  const manager = readFileSync(new URL('../src/components/admin/PricingPlansManager.tsx', import.meta.url), 'utf8');
+  // Cells of the plan show the currency as missing …
+  assert.ok(manager.includes('e.path === `${cellPath}.${currency}` || e.path === `${planPath}.currencies.${currency}`'));
+  // … so does the main currency tab, and the plan header shows "⚠ Error".
+  assert.ok(manager.includes(String.raw`(seasons\.\d+\.prices\.[a-z0-9_]+|currencies)\.(USD|EUR|GBP)$`));
+  assert.ok(manager.includes('hasError(`pricingPlans.${planIndex}.currencies`)'));
+  // The error panel can scroll to the plan.
+  assert.ok(manager.includes('data-field={`pricingPlans.${planIndex}.currencies.${currency}`}'));
 });

@@ -449,7 +449,7 @@ export const getTourFilterOptions = async (
     const optionValues = (group: 'types' | 'styles', values: unknown[]) =>
       Object.entries(filterCatalog[group]).filter(([id]) => values.includes(id))
         .map(([id, labels]) => ({ id, label: labels[locale] || labels.en }));
-    const destinations = await Destination.find({ _id: { $in: destinationIds }, isActive: { $ne: false } })
+    const destinations = await Destination.find({ _id: { $in: destinationIds } })
       .select('name shortName filterKey').lean();
 
     const prices = pricedTours.map(tour => effectiveStartingPrice(tour.priceStartingFrom, currency, currencyRate))

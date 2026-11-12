@@ -13,7 +13,7 @@ import { InternalLinksAudit } from '@/components/admin/InternalLinksAudit';
 import { getStrictLocalizedSlug, type SupportedLocale } from '@/lib/url';
 import {
   Section, Field, LiveUrlPreview, TranslationMatrix, SeoHealthPanel,
-  useEntity, EditEntityButton, EntityViewError, ActiveBadge, LocalePreviewTabs, FaqPreview,
+  useEntity, EditEntityButton, EntityViewError, LocalePreviewTabs, FaqPreview,
   hasText, localeHasField, faqHasLocale, rawLocale, strictText, getImageUrl,
   type MatrixRow, type ReadinessItem,
 } from '@/components/admin/entityView';
@@ -30,8 +30,7 @@ export default function DestinationViewPage() {
   if (error || !entity) return <EntityViewError error={error} backHref={LIST_PATH} />;
 
   const title = getLocalizedValue(entity.name) || '(untitled)';
-  const isActive = entity.isActive !== false;
-  // The page is public only when it is published and active.
+  // The page is public exactly when it is published.
   const isPublished = entity.status === 'published';
   const socialImageUrl = entity.ogImage || getImageUrl(entity.metaImage);
   const coverUrl = getImageUrl(entity.coverImage);
@@ -77,7 +76,6 @@ export default function DestinationViewPage() {
             >
               {isPublished ? 'Published' : 'Draft'}
             </span>
-            <ActiveBadge active={isActive} />
           </h1>
           <p className="admin-page-subtitle flex items-center gap-2"><span>Destination · read-only</span><LanguageBadges entity={entity} /></p>
         </div>
@@ -89,10 +87,8 @@ export default function DestinationViewPage() {
 
       <LiveUrlPreview
         slug={entity.slug}
-        live={isPublished && isActive}
-        warning={isPublished
-          ? <>This destination is <b>inactive</b> — its live URLs return 404 until it is activated.</>
-          : <>This destination is a <b>draft</b> — it has no public page until it is published. Tours can still list it under Places Visited.</>}
+        live={isPublished}
+        warning={<>This destination is a <b>draft</b> — it has no public page until it is published. Tours can still list it under Places Visited.</>}
       />
 
       <TranslationMatrix rows={matrixRows} />
@@ -102,7 +98,6 @@ export default function DestinationViewPage() {
       <Section title="At a glance" icon={<Info size={14} />}>
         <div className="detail-grid">
           <Field label="Status">{isPublished ? 'Published' : 'Draft'}</Field>
-          <Field label="Active">{isActive ? 'Yes' : 'No'}</Field>
           <Field label="Region">{getLocalizedValue(entity.region) || '—'}</Field>
           <Field label="Time needed">{getLocalizedValue(entity.timeNeeded) || '—'}</Field>
           <Field label="FAQs">{faqs.length}</Field>

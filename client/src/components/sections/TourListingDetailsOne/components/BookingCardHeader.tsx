@@ -41,14 +41,14 @@ export const BookingCardHeader: React.FC<BookingCardHeaderProps> = ({ price, has
        right. The secondary "Pricing" link lives under the title rather than
        under the amount — it belongs to the reading path, not to the number,
        and it fills the column's second line instead of ragging the badge. */
-    <div className="booking-card-header">
+    <div className={`booking-card-header${resolvedPrice > 0 ? "" : " booking-card-header--on-request"}`}>
       <div className="booking-card-header__intent">
         <h2 className='tour-listing-details__sidebar__title'>
           {t("tourDetails.bookingForm.title")}
         </h2>
         {hasPricing && (
           <a className="booking-price-block__link" href="#pricing">
-            {t("tourDetails.nav.pricing")}
+            {t("tourDetails.bookingForm.viewPricingDetails")}
             <ChevronRight size={13} aria-hidden="true" />
           </a>
         )}
@@ -75,17 +75,13 @@ export const BookingCardHeader: React.FC<BookingCardHeaderProps> = ({ price, has
          * value or converting from USD — so a detail page and the card that
          * links to it can never disagree about whether a tour has a price.
          *
-         * The block used to be omitted entirely, leaving the booking card
-         * headed by nothing. The label and the "per person" unit are dropped
-         * with the amount, because neither means anything without a number;
-         * only the value slot speaks. `resolvedPrice` itself is untouched and
-         * still numeric — this is display text, never a calculation input.
+         * This is a status, so it gets its own compact text treatment below
+         * the title rather than the large numeric price styles. No "from"
+         * or "per person" label applies without an amount.
          */
-        <div className="booking-price-block">
-          <span className="booking-price-block__value">
-            {tCommon("tourCard.priceOnRequest")}
-          </span>
-        </div>
+        <span className="booking-price-request">
+          {tCommon("tourCard.priceOnRequest")}
+        </span>
       )}
     </div>
   );

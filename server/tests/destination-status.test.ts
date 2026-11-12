@@ -41,7 +41,7 @@ import { getTourFilterOptions } from '../src/controllers/tourController';
  */
 
 const { ObjectId } = mongoose.Types;
-const PUBLIC = { status: 'published', isActive: { $ne: false } };
+const PUBLIC = { status: 'published' };
 
 // ── captured revalidation webhook ───────────────────────────────────────────
 const sent: string[][] = [];
@@ -107,11 +107,13 @@ const request = (parts: Record<string, unknown>) => ({ query: {}, params: {}, bo
 const admin = { role: 'superadmin', permissions: [], isActive: true };
 
 const name = (en: string) => ({ en, de: en, it: en, es: en });
-const cairo = { _id: new ObjectId(), name: name('Cairo'), slug: name('cairo'), filterKey: 'cairo', status: 'published', isActive: true };
-const abuSimbel = { _id: new ObjectId(), name: name('Abu Simbel'), slug: name('abu-simbel'), filterKey: 'abu-simbel', status: 'draft', isActive: true };
-const retired = { _id: new ObjectId(), name: name('Retired'), slug: name('retired'), status: 'published', isActive: false };
-const legacy = { _id: new ObjectId(), name: name('Legacy'), slug: name('legacy'), isActive: true };
-const ALL = [cairo, abuSimbel, retired, legacy];
+const cairo = { _id: new ObjectId(), name: name('Cairo'), slug: name('cairo'), filterKey: 'cairo', status: 'published' };
+const abuSimbel = { _id: new ObjectId(), name: name('Abu Simbel'), slug: name('abu-simbel'), filterKey: 'abu-simbel', status: 'draft' };
+// Saved while destinations still had an `isActive` switch, and switched off.
+// Nothing reads the field any more: published, so its page is public.
+const leftover = { _id: new ObjectId(), name: name('Leftover'), slug: name('leftover'), status: 'published', isActive: false };
+const legacy = { _id: new ObjectId(), name: name('Legacy'), slug: name('legacy') };
+const ALL = [cairo, abuSimbel, leftover, legacy];
 
 function stubDriver() {
   const collection = Destination.collection as unknown as Record<string, unknown>;
@@ -137,11 +139,11 @@ test('a new destination is a draft, and only draft or published is accepted', as
   }
 });
 
-test('the public rule is published and active, shared by the resolver and the sitemap', () => {
+test('the public rule is the status alone, shared by the resolver and the sitemap', () => {
   assert.deepEqual(PUBLIC_DESTINATION_FILTER, PUBLIC);
   assert.equal(SITEMAP_VISIBILITY.destinations, PUBLIC_DESTINATION_FILTER);
   for (const doc of ALL) {
-    assert.equal(matches(doc, PUBLIC_DESTINATION_FILTER), doc === cairo, String(doc.name.en));
+    assert.equal(matches(doc, PUBLIC_DESTINATION_FILTER), doc === cairo || doc === leftover, String(doc.name.en));
   }
 });
 
@@ -162,11 +164,13 @@ test('the resolver answers a published destination and treats a draft as not fou
   const live = await resolve('cairo');
   assert.equal(live.status, 200);
   assert.equal((live.body?.data as Doc).type, 'destination');
+  // A stored `isActive: false` no longer takes a published page down.
+  assert.equal((await resolve('leftover')).status, 200);
 
   // A draft: the same answer as a slug that does not exist, with no identity
   // in the response. Its status alone decides it; there is no robots flag.
   const missing = await resolve('no-such-slug');
-  for (const slug of ['abu-simbel', 'retired', 'legacy']) {
+  for (const slug of ['abu-simbel', 'legacy']) {
     const draft = await resolve(slug);
     assert.equal(draft.status, 404, slug);
     assert.deepEqual(draft.body, missing.body, slug);
@@ -177,7 +181,7 @@ test('the resolver answers a published destination and treats a draft as not fou
 test('the sitemap lists published destinations and never a draft', async (context) => {
   const updatedAt = new Date('2026-09-01T10:00:00.000Z');
   const giza = { ...cairo, _id: new ObjectId(), slug: name('giza'), updatedAt };
-  const stored = [{ ...cairo, updatedAt }, { ...abuSimbel, updatedAt }, { ...retired, updatedAt }, giza];
+  const stored = [{ ...cairo, updatedAt }, { ...abuSimbel, updatedAt }, { ...leftover, updatedAt }, giza];
   for (const model of [Tour, TourCategory, TourSubcategory, BlogCategory, BlogSubCategory]) {
     replace(context,model as unknown as { find: unknown }, 'find', () => chain([]));
   }
@@ -191,7 +195,7 @@ test('the sitemap lists published destinations and never a draft', async (contex
   await getSitemapData(request({}), res);
   assert.equal(out.status, 200);
   const destinations = (out.body?.data as SitemapData).destinations;
-  assert.deepEqual(destinations.map((entity) => entity.slug.en), ['cairo', 'giza']);
+  assert.deepEqual(destinations.map((entity) => entity.slug.en), ['cairo', 'leftover', 'giza']);
 });
 
 // ── public destination reads ────────────────────────────────────────────────
@@ -204,17 +208,19 @@ test('an anonymous caller gets published destinations only; the Admin gets all o
     return ((out.body?.data as Doc[]) || []).map((doc) => (doc.slug as Doc).en);
   };
 
-  assert.deepEqual(await list({}), ['cairo']);
+  assert.deepEqual(await list({}), ['cairo', 'leftover']);
   // No query parameter widens it.
-  assert.deepEqual(await list({ query: { status: 'draft' } }), ['cairo']);
-  assert.deepEqual(await list({ query: { isActive: 'false' } }), ['cairo']);
+  assert.deepEqual(await list({ query: { status: 'draft' } }), ['cairo', 'leftover']);
+  // `isActive` is no longer a filter, for anyone: the parameter is ignored.
+  assert.deepEqual(await list({ query: { isActive: 'false' } }), ['cairo', 'leftover']);
 
-  assert.deepEqual(await list({ user: admin }), ['cairo', 'abu-simbel', 'retired', 'legacy']);
+  assert.deepEqual(await list({ user: admin }), ['cairo', 'abu-simbel', 'leftover', 'legacy']);
+  assert.deepEqual(await list({ user: admin, query: { isActive: 'false' } }), ['cairo', 'abu-simbel', 'leftover', 'legacy']);
   assert.deepEqual(await list({ user: admin, query: { status: 'draft' } }), ['abu-simbel']);
-  assert.deepEqual(await list({ user: admin, query: { status: 'published' } }), ['cairo', 'retired']);
+  assert.deepEqual(await list({ user: admin, query: { status: 'published' } }), ['cairo', 'leftover']);
   // An editor of tours reads drafts too: the Places Visited picker needs them.
-  assert.deepEqual(await list({ user: { role: 'admin', permissions: ['tour:read'] } }), ['cairo', 'abu-simbel', 'retired', 'legacy']);
-  assert.deepEqual(await list({ user: { role: 'admin', permissions: [] } }), ['cairo']);
+  assert.deepEqual(await list({ user: { role: 'admin', permissions: ['tour:read'] } }), ['cairo', 'abu-simbel', 'leftover', 'legacy']);
+  assert.deepEqual(await list({ user: { role: 'admin', permissions: [] } }), ['cairo', 'leftover']);
 });
 
 test('a draft is a 404 by id and by slug for the public, and readable by the Admin', async (context) => {
@@ -236,7 +242,7 @@ test('a draft is a 404 by id and by slug for the public, and readable by the Adm
   assert.equal(await byId(abuSimbel), 404);
   assert.equal(await bySlug('cairo'), 200);
   assert.equal(await bySlug('abu-simbel'), 404);
-  assert.equal(await bySlug('retired'), 404);
+  assert.equal(await bySlug('leftover'), 200);
   // Every public read so far populated related destinations as landing pages only.
   const related = populated.filter((arg) => (arg as Doc).path === 'relatedDestinations');
   assert.ok(related.length > 0);
@@ -349,7 +355,7 @@ test('a draft destination referenced by a live tour stays a tour filter value', 
   await getTourFilterOptions(request({ query: {} }) as unknown as Parameters<typeof getTourFilterOptions>[0], res);
 
   assert.equal(out.status, 200);
-  assert.deepEqual(Object.keys(seen[0]).sort(), ['_id', 'isActive'], 'no publication status in the tour filter query');
+  assert.deepEqual(Object.keys(seen[0]).sort(), ['_id'], 'no publication status (or any other switch) in the tour filter query');
   assert.deepEqual(
     ((out.body?.data as Doc).destinations as Doc[]).map((option) => option.label),
     ['Abu Simbel', 'Cairo']
